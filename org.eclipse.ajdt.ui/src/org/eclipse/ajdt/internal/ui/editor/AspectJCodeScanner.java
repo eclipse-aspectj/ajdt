@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.text.AbstractJavaScanner;
 import org.eclipse.jdt.internal.ui.text.CombinedWordRule;
@@ -26,7 +27,6 @@ import org.eclipse.jdt.internal.ui.text.JavaWordDetector;
 import org.eclipse.jdt.ui.text.IColorManager;
 import org.eclipse.jdt.ui.text.IJavaColorConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
@@ -318,7 +318,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		 * @see org.eclipse.jdt.internal.ui.text.ISourceVersionDependent#setSourceVersion(java.lang.String)
 		 */
 		public void setSourceVersion(String version) {
-			fIsVersionMatch= fVersion.compareTo(version) <= 0; //$NON-NLS-1$
+			fIsVersionMatch= fVersion.compareTo(version) <= 0; 
 		}
 
 	}
@@ -433,7 +433,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		// Add word rule for keyword 'return'.
 		CombinedWordRule.WordMatcher returnWordRule= new CombinedWordRule.WordMatcher();
 		token= getToken(IJavaColorConstants.JAVA_KEYWORD_RETURN);
-		returnWordRule.addWord(RETURN, token);  //$NON-NLS-1$
+		returnWordRule.addWord(RETURN, token);  
 		combinedWordRule.addWordMatcher(returnWordRule);
 
 		// Add word rule for keywords, types, and constants.

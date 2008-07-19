@@ -24,7 +24,9 @@ public class UIMessages extends NLS {
 		// Do not instantiate
 	}
 	
-	public static String ajde_version;	
+	public static String ajde_version;
+    public static String BuildPathsBlock_ChooseOutputFolderDialog_description;
+    public static String BuildPathsBlock_ChooseOutputFolderDialog_title;	
 	public static String buildPrereqsMessage;	
 	public static String Builder_migration_build;	
 	public static String Builder_migration_failed_title;
@@ -35,6 +37,13 @@ public class UIMessages extends NLS {
 	public static String ajErrorDialogTitle;	
 	public static String ajErrorText;
 	public static String ajdtErrorDialogTitle;
+    public static String InPathBlock_6;
+    public static String InPathBlock_Browse;
+    public static String InPathBlock_DuplicateBuildEntry;
+    public static String InPathBlock_outFolder_1;
+    public static String InPathBlock_outFolder_2;
+    public static String InPathBlock_outFolder_3;
+    public static String InPathBlock_outFolder_4;
 	public static String jmCoreException;
 	public static String buildpathwarning_title;
 	public static String addtoinpathwarning;
@@ -152,8 +161,8 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_multiple_advice_stopping_lazy_tjp;
 	public static String InPathBlock_tab_inpath_order;
 	public static String InPathBlock_tab_libraries;
-	public static String InPathBlock_order_up_button;
-	public static String InPathBlock_order_down_button;
+	public static String PathBlock_order_up_button;
+	public static String PathBlock_order_down_button;
 	public static String AspectPathBlock_tab_libraries;
 	public static String AspectPathBlock_note;
 	public static String InPathBlock_note;
@@ -165,26 +174,19 @@ public class UIMessages extends NLS {
 	public static String InPathLibrariesWorkbookPage_exclusion_added_title;
 	public static String InPathLibrariesWorkbookPage_exclusion_added_message;
 	public static String InPathLibrariesWorkbookPage_libraries_inpath_label;
-	public static String InPathLibrariesWorkbookPage_libraries_addjar_button;
-	public static String InPathLibrariesWorkbookPage_libraries_addextjar_button;
-	public static String InPathLibrariesWorkbookPage_libraries_addvariable_button;
-	public static String InPathLibrariesWorkbookPage_libraries_addlibrary_button;//250
-	public static String InPathLibrariesWorkbookPage_libraries_addclassfolder_button;
-	public static String InPathLibrariesWorkbookPage_libraries_edit_button;
-	public static String InPathLibrariesWorkbookPage_libraries_remove_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_edit_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_remove_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_aspectpath_label;
-	public static String AspectPathLibrariesWorkbookPage_libraries_addjar_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_addextjar_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_addvariable_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_addlibrary_button;
-	public static String AspectPathLibrariesWorkbookPage_libraries_addclassfolder_button;
+	public static String PathLibrariesWorkbookPage_libraries_addjar_button;
+	public static String PathLibrariesWorkbookPage_libraries_addextjar_button;
+	public static String PathLibrariesWorkbookPage_libraries_addvariable_button;
+	public static String PathLibrariesWorkbookPage_libraries_addlibrary_button;
+	public static String PathLibrariesWorkbookPage_libraries_addclassfolder_button;
+	public static String PathLibrariesWorkbookPage_libraries_edit_button;
+	public static String PathLibrariesWorkbookPage_libraries_remove_button;
+	public static String PathLibrariesWorkbookPage_libraries_addproject_button;
 	public static String AspectPathLibrariesWorkbookPage_NewClassFolderDialog_description;
 	public static String AspectPathLibrariesWorkbookPage_configurecontainer_error_title;
 	public static String AspectPathLibrariesWorkbookPage_configurecontainer_error_message;
 	public static String AspectPathLibrariesWorkbookPage_exclusion_added_message;
-	public static String InPathBlock_operationdesc_java;
+	public static String PathBlock_operationdesc_java;
 	public static String InPathBlock_warning_EntryMissing;
 	public static String InPathBlock_warning_EntriesMissing;
 	public static String InPathBlock_inpath_label;
@@ -193,7 +195,6 @@ public class UIMessages extends NLS {
 	public static String AspectPathBlock_aspectpath_label;
 	public static String AspectPathBlock_warning_EntryMissing;
 	public static String AspectBlock_warning_EntriesMissing;
-	public static String AspectPathBlock_operationdesc_java;
 	public static String InPathProp_exceptionInitializingInpath_title;
 	public static String InPathProp_exceptionInitializingInpath_message;
 	public static String AspectPathProp_exceptionInitializingAspectpath_title;
@@ -240,6 +241,10 @@ public class UIMessages extends NLS {
 	public static String ajdocTreeWizardPage_ajdoccmd_error_enterpath;
 	public static String ajdocTreeWizardPage_ajdoccmd_error_notexists;
 	public static String AJdocTreeWizardPage_ajdoccmd_dialog_title;
+	public static String ajdocTreeWizardPage_MAC_ajdoccommand_label;
+	public static String ajdocTreeWizardPage_MAC_ajdoccmd_error_enterpath;
+	public static String ajdocTreeWizardPage_MAC_ajdoccmd_error_notexists;
+	public static String AJdocTreeWizardPage_MAC_ajdoccmd_dialog_title;
 	public static String ajdocSpecificsWizardPage_description;
 	public static String ajdocSpecificsWizardPage_vmoptionsfield_label;
 	public static String ajdoc_error_noProjectSelected;
@@ -273,6 +278,7 @@ public class UIMessages extends NLS {
 	public static String Refactoring_UpdateBuildConfigs;
 	public static String Refactoring_ConvertFileExtensions;
 	public static String Refactoring_ConvertingFileExtensions;
+    public static String UIBuildListener_InvalidInpathOutFolderText;
 	public static String utils_refresh_explorer_job;
 	public static String utils_refresh_outline_job;
 	public static String editor_title_refresh_job;
@@ -406,6 +412,9 @@ public class UIMessages extends NLS {
 	public static String OpenAspect_showCrossReferencesView_question;
 	public static String OpenAspect_showCrossReferencesView_explanation;
 	
+	public static String CompilerConfigurationBlock_aj_builder_settings;
+	public static String CompilerConfigurationBlock_aj_suppressAutoBuild;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}

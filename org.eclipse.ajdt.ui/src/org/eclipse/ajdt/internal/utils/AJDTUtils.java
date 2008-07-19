@@ -14,6 +14,7 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
+import org.aspectj.weaver.ShadowMunger;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -70,7 +72,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
-import org.eclipse.pde.internal.core.WorkspaceModelManager;
 import org.eclipse.pde.internal.core.natures.PDE;
 import org.eclipse.pde.internal.ui.IPDEUIConstants;
 import org.eclipse.pde.internal.ui.editor.plugin.DependenciesPage;
@@ -203,8 +204,17 @@ public class AJDTUtils {
 			// Checks if the plugin already has the plugin dependency
 			// before adding it, this avoids duplication
 			if (!hasAJPluginDependency(project)) {
-				getAndPrepareToChangePDEModel(project);
-				addAJPluginDependency(project,prompt);
+			    
+			    // Bugzilla 97080
+			    // Must close manifest editor after we are done with it 
+			    // if it is not already open
+			    boolean manifestEditorAlreadyOpen = isManifestEditorOpen(project);
+			    
+			    ManifestEditor manEd = getAndPrepareToChangePDEModel(project);
+				addAJPluginDependency(manEd, prompt);
+                if (!manifestEditorAlreadyOpen) {
+                    manEd.close(true);
+                }
 			}
 		} else {
 			// A Java project that is not a plugin project. Just add
@@ -225,7 +235,34 @@ public class AJDTUtils {
 		refreshPackageExplorer();
 	}
 	
-	private static boolean hasBundleManifest(IProject project) {
+	/*
+	 * checks to see if the manifest editor for 
+	 * the given project is open
+	 */
+	private static boolean isManifestEditorOpen(IProject project) {
+        // Must have already been validated as a PDE project
+        // to get to this method. Now get the id of the plugin
+        // being developed in current project.
+        String pluginId = (new AJDTWorkspaceModelManager().getWorkspacePluginModel(project))
+                                .getPluginBase().getId();
+
+
+        // cycle through all open editors looking for the manifest.
+        IEditorReference[] eRefs = PlatformUI.getWorkbench()
+                .getActiveWorkbenchWindow().getActivePage()
+                .getEditorReferences();
+        for (int i = 0; i < eRefs.length; i++) {
+            IEditorReference er = eRefs[i];
+            if (er.getId().equals(IPDEUIConstants.MANIFEST_EDITOR_ID)
+                    && er.getPartName().equals(pluginId)) {
+                return true;
+            }
+        }// end for
+
+        return false;
+    }
+
+    private static boolean hasBundleManifest(IProject project) {
 		return project.exists(new Path("META-INF/MANIFEST.MF")); //$NON-NLS-1$
 	}
 	
@@ -409,10 +446,10 @@ public class AJDTUtils {
 	}
 
 	/**
-	 * @param project
+	 * @param manEd the manifest editor
 	 * @param prompt
 	 */
-	private static void addAJPluginDependency(IProject project, boolean prompt) {
+	private static void addAJPluginDependency(ManifestEditor manEd, boolean prompt) {
 		IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
 				.getActiveWorkbenchWindow();
 
@@ -423,7 +460,7 @@ public class AJDTUtils {
 		}
 
 		if (autoImport) {
-			importRuntimePlugin(project);
+			importRuntimePlugin(manEd);
 		} else {
 			MessageDialog
 					.openWarning(
@@ -434,10 +471,9 @@ public class AJDTUtils {
 	}
 
 	/**
-	 * @param project
+	 * @param manEd
 	 */
-	public static void importRuntimePlugin(IProject project) {
-		ManifestEditor manEd = getAndPrepareToChangePDEModel(project);
+	public static void importRuntimePlugin(ManifestEditor manEd) {
 		if (manEd != null) {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 			try {
@@ -533,8 +569,8 @@ public class AJDTUtils {
 								.getPluginBase().getId();
 
 		// Open the manifest editor if it is not already open.
-		ManifestEditor.openPluginEditor(pluginId);
-		ManifestEditor manEd = getPDEManifestEditor(project);
+		ManifestEditor manEd = (ManifestEditor) ManifestEditor.openPluginEditor(pluginId);
+//		ManifestEditor manEd = getPDEManifestEditor(project);
 
 		// IMPORTANT
 		// Necessary to force the active page to be the dependency management
@@ -583,7 +619,7 @@ public class AJDTUtils {
 				if (newPosition < newNatures.length) {
 					newNatures[newPosition++] = prevNatures[i];
 				} else {
-					// exception... atempt to remove ajnature from a project
+					// exception... attempt to remove ajnature from a project
 					// that
 					// doesn't have it. Leave the project natures unchanged.
 					newNatures = prevNatures;
@@ -600,12 +636,21 @@ public class AJDTUtils {
 		if (project.hasNature(PDE.PLUGIN_NATURE) 
 		        && (hasPluginManifest(project)
 		        		|| hasBundleManifest(project))) {
-//			// Bugzilla 72007
-//			// Checks if it was ajdt that added the ajde dependancy and removes
-//			// it if it was
+			// Bugzilla 72007
+			// Checks if it was ajdt that added the ajde dependancy and removes
+			// it if it was
 			if (hasAJPluginDependency(project)) {
-				getAndPrepareToChangePDEModel(project);
-				removeAJPluginDependency(project);
+			    
+                // Bugzilla 97080
+                // Must close manifest editor after we are done with it 
+                // if it is not already open
+			    boolean manifestEditorAlreadyOpen = isManifestEditorOpen(project);
+                ManifestEditor manEd = getAndPrepareToChangePDEModel(project);
+                removeAJPluginDependency(manEd);
+                if (!manifestEditorAlreadyOpen) {
+                    manEd.close(true);
+                }
+	                
 			}
 		} else {
 			// Update the build classpath to try and remove the aspectjrt.jar
@@ -764,17 +809,14 @@ public class AJDTUtils {
 	}
 
 	/**
-	 * @param project
+	 * @param manEd
 	 */
-	private static void removeAJPluginDependency(IProject project) {
+	private static void removeAJPluginDependency(ManifestEditor manEd) {
 		IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
 		.getActiveWorkbenchWindow();
 		if ((AspectJPreferences.askPDEAutoRemoveImport() && confirmPDEAutoRemoveImport(window))
 				|| (AspectJPreferences.doPDEAutoRemoveImport())) {
 
-			// Attempt to get hold of the open manifest editor
-			// for the current project.
-			ManifestEditor manEd = getPDEManifestEditor(project);
 	
 			if (manEd != null) {
 				IPluginModel model = (IPluginModel) manEd.getAggregateModel();
@@ -1204,4 +1246,47 @@ public class AJDTUtils {
 		return ret;
 	}
 
+    // Bug 119853
+    // paths are different on Mac
+    public static boolean isMacOS() {
+        String os = System.getProperty("os.name"); //$NON-NLS-1$
+        return os.startsWith("Mac"); //$NON-NLS-1$
+    }
+
+    /**
+     * extracts a project name from a full path of a binary aspect path.
+     * A binary aspect path is like a normal path, but contains a '!' at the 
+     * package root.  Assume that the filename looks like this:<br>
+     * <br>
+     *  <code>/full/path/to/project/<project_folder>/path/to/package/root!qualified/name.class</code>
+     * 
+     * cannot assume that the project name is the same as the project folder.  Cannot assume that
+     * project folder is on the workspace path.
+     * 
+     * @See {@link ShadowMunger.getBinarySourceLocation}
+     */
+    public static IJavaProject extractProject(String filepath) {
+        // remove class name
+        String pathOnly = filepath.substring(0, filepath.lastIndexOf('!'));
+        
+        // find associated resource
+        IResource packageRootRes = findResource(pathOnly);
+        if (packageRootRes != null) {
+            IProject proj = packageRootRes.getProject();
+            if (proj != null) {
+                return JavaCore.create(proj);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * converts an absolute path name to a binary aspect to 
+     * the fully qualified name of that aspect.
+     */
+    public static String extractQualifiedName(String filepath) {
+        String namePath = filepath.substring(filepath.lastIndexOf('!')+1);
+        String removeFileExtension = namePath.substring(0, namePath.lastIndexOf('.'));
+        return removeFileExtension.replace(File.separatorChar, '.');
+    }
 }

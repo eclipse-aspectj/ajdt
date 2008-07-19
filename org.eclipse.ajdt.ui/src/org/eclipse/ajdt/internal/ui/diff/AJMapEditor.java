@@ -61,7 +61,7 @@ import com.ibm.icu.text.DateFormat;
  * project's crosscutting structure. The editor doesn't do much at
  * the moment, it just shows a message. It could in future allow
  * for editing of associated metadata, such as notes etc.
- */
+ */ 
 public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 
 	private ScrolledComposite fScrolledComposite;
@@ -233,7 +233,7 @@ public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 			int version = ois.readInt();
 			ois.close();
 			fis.close();
-			info.append(NLS.bind(UIMessages.ajmapEditor_file_version, ""
+			info.append(NLS.bind(UIMessages.ajmapEditor_file_version, "" //$NON-NLS-1$
 					+ version));
 			info.append("\n"); //$NON-NLS-1$
 		} catch (IOException e) {

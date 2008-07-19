@@ -112,9 +112,9 @@ public class AJDTErrorHandler {
 	static String limitMessageLength(String msg, int length) {
 		if (msg.length() > length) {
 			int endLength = 150;
-			String gap = " ... ";
+			String gap = " ... "; //$NON-NLS-1$
 			return msg.substring(0, length - endLength - gap.length())
-				+ " ... " + msg.substring(msg.length() - endLength);
+				+ " ... " + msg.substring(msg.length() - endLength); //$NON-NLS-1$
 		} else {
 			return msg;
 		}

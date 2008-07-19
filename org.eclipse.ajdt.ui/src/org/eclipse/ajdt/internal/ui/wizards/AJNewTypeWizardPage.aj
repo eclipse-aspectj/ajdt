@@ -265,7 +265,7 @@ privileged aspect AJNewTypeWizardPage {
 				// create a working copy with a new owner
 				
 				needsSave= true;
-				parentCU.becomeWorkingCopy(null, new SubProgressMonitor(monitor, 1)); // cu is now a (primary) working copy
+				parentCU.becomeWorkingCopy(new SubProgressMonitor(monitor, 1)); // cu is now a (primary) working copy
 				connectedCU= parentCU;
 				
 				IBuffer buffer= parentCU.getBuffer();
@@ -295,7 +295,7 @@ privileged aspect AJNewTypeWizardPage {
 				ICompilationUnit parentCU= enclosingType.getCompilationUnit();
 				
 				needsSave= !parentCU.isWorkingCopy();
-				parentCU.becomeWorkingCopy(null, new SubProgressMonitor(monitor, 1)); // cu is now for sure (primary) a working copy
+				parentCU.becomeWorkingCopy(new SubProgressMonitor(monitor, 1)); // cu is now for sure (primary) a working copy
 				connectedCU= parentCU;
 				
 				CompilationUnit astRoot= createASTForImports(parentCU);
@@ -407,9 +407,8 @@ privileged aspect AJNewTypeWizardPage {
 				repl = originalContent.substring(0,ind) + "class" //$NON-NLS-1$
 					+ originalContent.substring(ind+"aspect".length()); //$NON-NLS-1$
 			}
-			String formattedContent= CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, originalContent, indent, lineDelimiter, pack.getJavaProject());
-
-//			String formattedContent= CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, repl, indent, null, lineDelimiter, pack.getJavaProject());
+			String formattedContent= CodeFormatterUtil.format(
+					CodeFormatter.K_CLASS_BODY_DECLARATIONS, repl, indent, lineDelimiter, pack.getJavaProject());
 			formattedContent= Strings.trimLeadingTabsAndSpaces(formattedContent);
 			ind = formattedContent.indexOf("class"); //$NON-NLS-1$
 			if (ind != -1) {

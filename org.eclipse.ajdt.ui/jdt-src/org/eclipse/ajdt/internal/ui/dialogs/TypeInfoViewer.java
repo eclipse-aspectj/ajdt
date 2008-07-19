@@ -210,8 +210,6 @@ public class TypeInfoViewer {
 				if (type.getPackageFragmentRoot().getKind() == IPackageFragmentRoot.K_SOURCE)
 					return 0;
 			} catch (JavaModelException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 			return 1;
 		}

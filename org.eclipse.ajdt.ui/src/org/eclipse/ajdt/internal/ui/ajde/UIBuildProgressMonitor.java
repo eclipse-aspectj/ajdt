@@ -55,13 +55,12 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         AJLog.log(AJLog.COMPILER,"AJDE Callback: finish. Was full build: "+wasFullBuild); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
-        compilationInProgress = false;
         ((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
 				.getCompilerForProject(project).getMessageHandler()).setLastBuildType(wasFullBuild);
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
         	AJLog.log("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$
-        else
+        else 
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {
 
@@ -178,7 +177,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         }
 
         final String amendedText = removePrefix(text);
-        AJLog.log(AJLog.COMPILER_PROGRESS,"AJC: " + text); //$NON-NLS-1$ //$NON-NLS-2$
+        AJLog.log(AJLog.COMPILER_PROGRESS,"AJC: " + text); //$NON-NLS-1$ 
         if (monitor != null) {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {
@@ -284,11 +283,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
      */
     private IProgressMonitor monitor = null;
     
-    /**
-     * Is this CoreCompilerMonitor instance currently 'in use' ?
-     */
-    private boolean compilationInProgress = false;
-
     private boolean reportedCompiledMessages;
 
     private boolean reportedWovenMessages;
@@ -377,7 +371,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         AJLog.logStart(TimerLogEvent.FIRST_WOVEN);
         reportedCompiledMessages = false;
         reportedWovenMessages = false;
-        compilationInProgress = true;
 
     }
 

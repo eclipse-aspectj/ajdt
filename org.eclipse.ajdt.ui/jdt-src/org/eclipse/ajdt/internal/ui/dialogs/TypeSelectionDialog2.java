@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.TypeNameMatch;
 import org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.ajdt.internal.corext.util.OpenTypeHistory;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
@@ -207,7 +208,7 @@ public class TypeSelectionDialog2 extends SelectionStatusDialog {
 					String text= ((ITextSelection)selection).getText();
 					if (text != null) {
 						text= text.trim();
-						if (text.length() > 0 && JavaConventions.validateJavaTypeName(text).isOK()) {
+						if (text.length() > 0 && JavaConventions.validateJavaTypeName(text, CompilerOptions.VERSION_1_3,CompilerOptions.VERSION_1_3).isOK()) {
 							fInitialFilter= text;
 							fSelectionMode= FULL_SELECTION;
 						}

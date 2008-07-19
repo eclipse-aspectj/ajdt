@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -353,15 +354,26 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			if (!foundJavaCmd) {
 				vmArgs.add(jreDir + File.separator + "jre" + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$				
 			}
-			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar"; //$NON-NLS-1$ //$NON-NLS-2$
+			
+			// Bug 119853: Mac OS uses different paths
+			String javadocJarDir;
+			String javadocJarName;
+			if (!AJDTUtils.isMacOS()) {
+			    javadocJarName = "tools.jar"; //$NON-NLS-1$
+			    javadocJarDir = jreDir + File.separator + "lib" + File.separator + "tools.jar"; //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+                javadocJarName = "classes.jar"; //$NON-NLS-1$
+			    javadocJarDir = jreDir + File.separator + ".." + File.separator + "Classes" + File.separator + "classes.jar"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			}
+			
 			boolean noXmx = true;
 			for (Iterator iter = userVmArgs.iterator(); iter.hasNext();) {
 				String element = (String) iter.next();
 				if (element.startsWith("-Xmx")) { //$NON-NLS-1$
 					noXmx = false;
 				} 
-				if (element.indexOf("tools.jar") != -1) { //$NON-NLS-1$
-					toolsDir = element;
+                if (element.indexOf(javadocJarName) != -1) {
+ 					javadocJarDir = element;
 				} else {
 					vmArgs.add(element);
 				}
@@ -372,7 +384,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 			vmArgs.add("-classpath"); //$NON-NLS-1$
 			
-			vmArgs.add(aspectjtoolsDir + File.pathSeparator + toolsDir + File.pathSeparator + aspectjrtDir);
+			vmArgs.add(checkForSpaces(aspectjtoolsDir + File.pathSeparator + javadocJarDir + File.pathSeparator + aspectjrtDir));
 			vmArgs.add("org.aspectj.tools.ajdoc.Main"); //$NON-NLS-1$
 			
 			for (int i = 0; i < progArgs.size(); i++) {
@@ -571,5 +583,4 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		} else
 			return null;
 	}
-
 }

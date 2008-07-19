@@ -73,8 +73,7 @@ public class AspectJImages  {
 	private final AJDTIcon WKBENCH_FILE = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FILE ) );
 
-	private final AJDTIcon WKBENCH_FOLDER = new AJDTIcon(
-		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FOLDER ) );
+
 	private static final AJDTIcon AJDT_ASPECT = new AJDTIcon(
 		"icons/structure/aspect.gif" ); //$NON-NLS-1$
 	

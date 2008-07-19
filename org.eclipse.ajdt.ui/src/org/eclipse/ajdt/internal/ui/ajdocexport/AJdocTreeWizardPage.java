@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -35,8 +36,8 @@ import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.javadocexport.JavadocExportMessages;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.eclipse.jdt.ui.JavaElementComparator;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
-import org.eclipse.jdt.ui.JavaElementSorter;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
@@ -163,7 +164,14 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		group.setLayout(layout);
 
 //		 AspectJ Extension - message
-		createLabel(group, SWT.NONE, UIMessages.ajdocTreeWizardPage_ajdoccommand_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, numColumns, 0)); //$NON-NLS-1$
+		String labelText;
+        if (!AJDTUtils.isMacOS()) {
+            labelText = UIMessages.ajdocTreeWizardPage_ajdoccommand_label; 
+        } else {
+            labelText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccommand_label; 
+        }
+
+		createLabel(group, SWT.NONE, labelText, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, numColumns, 0)); 
 		fAJdocCommandText= createCombo(group, SWT.NONE, null, createGridData(GridData.FILL_HORIZONTAL, numColumns - 1, 0));
 
 		fAJdocCommandText.addModifyListener(new ModifyListener() {
@@ -188,7 +196,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	
 	protected void createInputGroup(Composite composite) {
 //		 AspectJ Extension - message
-		createLabel(composite, SWT.NONE, UIMessages.ajdoc_info_projectselection, createGridData(6)); //$NON-NLS-1$
+		createLabel(composite, SWT.NONE, UIMessages.ajdoc_info_projectselection, createGridData(6)); 
 		Composite c= new Composite(composite, SWT.NONE);
 		
 		// AspectJ Extension begin - fill layout
@@ -211,7 +219,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 				doValidation(TREESTATUS);
 			}
 		});
-		fInputGroup.setSorter(new JavaElementSorter());
+		fInputGroup.setComparator(new JavaElementComparator());
 		
 		IJavaElement[] elements= fStore.getInitialElements();
 		setTreeChecked(elements);
@@ -234,7 +242,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		visibilityGroup.setLayout(visibilityLayout);
 		
 //		 AspectJ Extension - message
-		createLabel(visibilityGroup, SWT.NONE, UIMessages.ajdocTreeWizardPage_visibilitygroup_label, createGridData(GridData.FILL_HORIZONTAL, 4, 0)); //$NON-NLS-1$
+		createLabel(visibilityGroup, SWT.NONE, UIMessages.ajdocTreeWizardPage_visibilitygroup_label, createGridData(GridData.FILL_HORIZONTAL, 4, 0)); 
 		fPrivateVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_privatebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
 		fPackageVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_packagebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
 		fProtectedVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_protectedbutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
@@ -667,11 +675,24 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 				String text= fAJdocCommandText.getText();
 				// AspectJ Extension - messages
 				if (text.length() == 0) {
-					fJavadocStatus.setError(UIMessages.ajdocTreeWizardPage_ajdoccmd_error_enterpath);  
+			        String errorText;
+			        if (!AJDTUtils.isMacOS()) {
+			            errorText = UIMessages.ajdocTreeWizardPage_ajdoccmd_error_enterpath; 
+			        } else {
+			            errorText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccmd_error_enterpath; 
+			        }
+
+					fJavadocStatus.setError(errorText);  
 				} else {
 					File file= new File(text);
 					if (!file.isFile()) {
-						fJavadocStatus.setError(UIMessages.ajdocTreeWizardPage_ajdoccmd_error_notexists);  
+	                    String errorText;
+	                    if (!AJDTUtils.isMacOS()) {
+	                        errorText = UIMessages.ajdocTreeWizardPage_ajdoccmd_error_notexists; 
+	                    } else {
+	                        errorText = UIMessages.ajdocTreeWizardPage_MAC_ajdoccmd_error_notexists; 
+	                    }
+						fJavadocStatus.setError(errorText);  
 					}
 				}
 				updateStatus(findMostSevereStatus());
@@ -685,7 +706,13 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	protected void browseForAJdocCommand() {
 		FileDialog dialog= new FileDialog(getShell());
 //		 AspectJ Extension - message
-		dialog.setText(UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title);
+        String dialogText;
+        if (!AJDTUtils.isMacOS()) {
+            dialogText = UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title; 
+        } else {
+            dialogText = UIMessages.AJdocTreeWizardPage_MAC_ajdoccmd_dialog_title; 
+        }
+		dialog.setText(dialogText);
 		String dirName= fAJdocCommandText.getText();
 		dialog.setFileName(dirName);
 		String selectedDirectory= dialog.open();

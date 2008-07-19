@@ -152,7 +152,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                                     if (offset < start || offset > end) {
                                         // not in the inner type
                                         IStatusLineManager statusLine = editorPart.getEditorSite().getActionBars().getStatusLineManager();
-                                        statusLine.setErrorMessage(NLS.bind(UIMessages.ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1, new String[] { type.getTypeQualifiedName() })); //$NON-NLS-1$
+                                        statusLine.setErrorMessage(NLS.bind(UIMessages.ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1, new String[] { type.getTypeQualifiedName() })); 
                                         Display.getCurrent().beep();
                                         return Status.OK_STATUS;
                                     }

@@ -628,7 +628,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 * {@inheritDoc}
 	 */
 	protected String getStatusFieldText() {
-		KeySequence[] sequences= getInvokingCommandKeySequences();
+	    KeySequence[] sequences= getInvokingCommandKeySequences();
 		if (sequences == null || sequences.length == 0)
 			return ""; //$NON-NLS-1$
 

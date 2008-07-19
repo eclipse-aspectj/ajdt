@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,15 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     SpringSource    - Adapted for use with AJDT
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.build;
 
-import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
+
+import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation; // AspectJ Change
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -27,7 +27,7 @@ import org.eclipse.pde.internal.ui.PDEUIMessages;
 import org.eclipse.swt.widgets.Display;
 
 public class FeatureExportJob extends Job {
-	
+
 	class SchedulingRule implements ISchedulingRule {
 		public boolean contains(ISchedulingRule rule) {
 			return rule instanceof SchedulingRule || rule instanceof IResource;
@@ -41,9 +41,13 @@ public class FeatureExportJob extends Job {
 	protected FeatureExportInfo fInfo;
 
 	public FeatureExportJob(FeatureExportInfo info) {
-		super(PDEUIMessages.FeatureExportJob_name); 
+		this(info, PDEUIMessages.FeatureExportJob_name);
+	}
+
+	protected FeatureExportJob(FeatureExportInfo info, String name) {
+		super(name);
 		fInfo = info;
-		setRule(new SchedulingRule());
+		setRule(ResourcesPlugin.getWorkspace().getRoot());
 	}
 
 	protected IStatus run(IProgressMonitor monitor) {
@@ -55,16 +59,17 @@ public class FeatureExportJob extends Job {
 			final Display display = getStandardDisplay();
 			display.asyncExec(new Runnable() {
 				public void run() {
-					ErrorDialog.openError(display.getActiveShell(), PDEUIMessages.FeatureExportJob_error, PDEUIMessages.FeatureExportJob_problems, e.getStatus()); // 
+					MultiStatus status = new MultiStatus(e.getStatus().getPlugin(), e.getStatus().getCode(), new IStatus[] {e.getStatus()}, PDEUIMessages.FeatureExportJob_problems, e);
+					ErrorDialog.openError(display.getActiveShell(), PDEUIMessages.FeatureExportJob_error, PDEUIMessages.FeatureExportJob_error, status); // 
 					done(new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null)); //$NON-NLS-1$
 				}
 			});
 			return Job.ASYNC_FINISH;
 		}
-		
-		if (errorMessage == null && op.hasErrors()) 
+
+		if (errorMessage == null && op.hasErrors())
 			errorMessage = getLogFoundMessage();
-		
+
 		if (errorMessage != null) {
 			final String em = errorMessage;
 			getStandardDisplay().asyncExec(new Runnable() {
@@ -76,11 +81,11 @@ public class FeatureExportJob extends Job {
 		}
 		return new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null); //$NON-NLS-1$
 	}
-	
+
 	protected FeatureExportOperation createOperation() {
 		return new FeatureExportOperation(fInfo);
 	}
-	
+
 	/**
 	 * Returns the standard display to be used. The method first checks, if the
 	 * thread calling this method has an associated disaply. If so, this display
@@ -95,12 +100,12 @@ public class FeatureExportJob extends Job {
 
 	private void asyncNotifyExportException(String errorMessage) {
 		getStandardDisplay().beep();
-		MessageDialog.openError(PDEPlugin.getActiveWorkbenchShell(), PDEUIMessages.FeatureExportJob_error, errorMessage); 
+		MessageDialog.openError(PDEPlugin.getActiveWorkbenchShell(), PDEUIMessages.FeatureExportJob_error, errorMessage);
 		done(new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null)); //$NON-NLS-1$
 	}
 
 	protected String getLogFoundMessage() {
-		return NLS.bind(PDEUIMessages.ExportJob_error_message, fInfo.destinationDirectory); 
-	} 
+		return NLS.bind(PDEUIMessages.ExportJob_error_message, fInfo.destinationDirectory);
+	}
 
 }

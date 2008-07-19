@@ -88,7 +88,7 @@ public class BreakpointLocationVerifierJob extends Job {
 	private int fOffset;
 	
 	public BreakpointLocationVerifierJob(IDocument document, IJavaLineBreakpoint breakpoint, int offset, int lineNumber, String typeName, IType type, IResource resource, IEditorPart editorPart) {
-		super(ActionMessages.BreakpointLocationVerifierJob_breakpoint_location); //$NON-NLS-1$
+		super(ActionMessages.BreakpointLocationVerifierJob_breakpoint_location); 
 		fDocument= document;
 		fBreakpoint= breakpoint;
 		fOffset = offset;
@@ -129,19 +129,19 @@ public class BreakpointLocationVerifierJob extends Job {
 							|| element instanceof IField
 							|| emptyOrComment(fDocument.get(offset, line.getLength())))) {
 						createNewBreakpoint(lineNumber, fTypeName);
-						return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); //$NON-NLS-1$
+						return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); 
 					}
 					lineNumber++;
 				}
 				// Cannot find a valid location
-				report(ActionMessages.BreakpointLocationVerifierJob_not_valid_location); //$NON-NLS-1$
-				return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); //$NON-NLS-1$
+				report(ActionMessages.BreakpointLocationVerifierJob_not_valid_location); 
+				return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); 
 			}			
 		} catch (JavaModelException e) {
 		} catch (CoreException e) {
 		} catch (BadLocationException e) {
 		}
-		return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.OK, ActionMessages.BreakpointLocationVerifierJob_breakpoint_set, null); //$NON-NLS-1$
+		return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.OK, ActionMessages.BreakpointLocationVerifierJob_breakpoint_set, null); 
 		
 	}
 	

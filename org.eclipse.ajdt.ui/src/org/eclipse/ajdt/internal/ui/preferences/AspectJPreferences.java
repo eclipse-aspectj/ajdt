@@ -25,7 +25,7 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.aspectj.bridge.IMessage;
-import org.aspectj.bridge.IMessageHandler;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -54,8 +54,6 @@ public class AspectJPreferences {
 	public static final String AJDE_JAR = "ajde.jar"; //$NON-NLS-1$
 
 	public static final String JAVA_OR_AJ_EXT = "aspectjPreferences.fileExt"; //$NON-NLS-1$
-
-	public static final String AUTOBUILD_SUPPRESSED = "org.eclipse.ajdt.ui.preferences.autobuildSuppressed"; //$NON-NLS-1$
 
 	/**
 	 * Identifier (key) for indication of whether AJDTPrefConfigWizard should be
@@ -96,7 +94,7 @@ public class AspectJPreferences {
 
 	// project-scope preference to indicate if project-specific settings are in
 	// force
-	public static final String OPTION_UseProjectSettings = "org.eclipse.ajdt.core.compiler.useProjectSettings"; //$NON-NLS-1$
+    public static final String OPTION_UseProjectSettings = "org.eclipse.ajdt.core.compiler.useProjectSettings"; //$NON-NLS-1$
 
 	// AspectJ Lint options
 	public static final String OPTION_ReportInvalidAbsoluteTypeName = "org.aspectj.ajdt.core.compiler.lint.InvalidAbsoluteTypeName"; //$NON-NLS-1$
@@ -255,7 +253,7 @@ public class AspectJPreferences {
 	 */
 	public static void initDefaults(IPreferenceStore store) {
 		store.setDefault(AspectJPreferences.JAVA_OR_AJ_EXT, false);
-		store.setDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED, true);
+		store.setDefault(AspectJCorePreferences.OPTION_AutobuildSuppressed, false);
 		store.setDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE, false);
 		store.setDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT, true);
 		store.setDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT, false);
@@ -281,7 +279,7 @@ public class AspectJPreferences {
 	}
 
 	public static void setShowWeaveMessagesOption(IProject project, boolean showWeaveMessages) {
-		String value = "";
+		String value = ""; //$NON-NLS-1$
 		IBuildMessageHandler handler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		if (showWeaveMessages) {
 			value = VALUE_TRUE;
@@ -334,6 +332,9 @@ public class AspectJPreferences {
 		}
 		try {
 			projectNode.flush();
+			if (!isUsingProjectSettings) {
+				projectNode.removeNode();
+			}
 		} catch (BackingStoreException e) {
 		}
 	}
@@ -398,9 +399,6 @@ public class AspectJPreferences {
 		return opts;
 	}
 
-	static public boolean isAutobuildSuppressed() {
-		return false; // Bug 46653
-	}
 
 	/**
 	 * Helper set method
@@ -434,12 +432,12 @@ public class AspectJPreferences {
 		store.setValue(PDE_AUTO_IMPORT_CONFIG_DONE, done);
 	}
 
-	public static boolean isPDEAutoImportConfigDone() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		return store.getBoolean(PDE_AUTO_IMPORT_CONFIG_DONE);
-	}
-
+    public static boolean isPDEAutoImportConfigDone() {
+        IPreferenceStore store = AspectJUIPlugin.getDefault()
+                .getPreferenceStore();
+        return store.getBoolean(PDE_AUTO_IMPORT_CONFIG_DONE);
+    }
+    
 	static public void setDoPDEAutoImport(boolean doImport) {
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
@@ -479,11 +477,11 @@ public class AspectJPreferences {
 		return store.getBoolean(ASK_PDE_AUTO_REMOVE_IMPORT);
 	}
 
-	static public void setPDEAutoRemoveImportConfigDone(boolean done) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		store.setValue(PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE, done);
-	}
+    static public void setPDEAutoRemoveImportConfigDone(boolean done) {
+        IPreferenceStore store = AspectJUIPlugin.getDefault()
+                .getPreferenceStore();
+        store.setValue(PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE, done);
+    }
 
 	public static boolean isPDEAutoRemoveImportConfigDone() {
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
@@ -528,7 +526,7 @@ public class AspectJPreferences {
 
 	public static String getCompilerOptions(IProject project) {
 		String compilerOptions = getStringPrefValue(project, COMPILER_OPTIONS);
-		return compilerOptions; //$NON-NLS-1$
+		return compilerOptions; 
 	}
 	
 	public static String getStringPrefValue(IProject project, String key) {

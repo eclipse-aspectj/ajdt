@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2008 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     SpringSource    - adapted for use with AJDT
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
 
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.jdt.core.IType;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
@@ -29,7 +29,9 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -38,11 +40,12 @@ import org.eclipse.jdt.core.search.TypeNameMatch;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 
+
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
-import org.eclipse.jdt.internal.ui.dialogs.TypeSelectionDialog2;
+import org.eclipse.jdt.internal.ui.viewsupport.BasicElementLabels;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 
 /**
@@ -154,9 +157,9 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 				String message;
 
 				if (fTypeWizardPage.addSuperInterface(qualifiedName)) {
-					message= Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfaceadded_info, qualifiedName);
+					message= Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfaceadded_info, BasicElementLabels.getJavaElementName(qualifiedName));
 				} else {
-					message= Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfacealreadyadded_info, qualifiedName);
+					message= Messages.format(NewWizardMessages.SuperInterfaceSelectionDialog_interfacealreadyadded_info, BasicElementLabels.getJavaElementName(qualifiedName));
 				}
 				updateStatus(new StatusInfo(IStatus.INFO, message));
 			}
@@ -210,7 +213,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 	}
 	
 	public static String getNameWithTypeParameters(IType type) {
-		String superName= type.getFullyQualifiedName();
+		String superName= type.getFullyQualifiedName('.');
 		if (!JavaModelUtil.is50OrHigher(type.getJavaProject())) {
 			return superName;
 		}
@@ -228,7 +231,7 @@ public class SuperInterfaceSelectionDialog extends OpenTypeSelectionDialog {
 				buf.append('>');
 				return buf.toString();
 			}
-		} catch (org.eclipse.jdt.core.JavaModelException e) {
+		} catch (JavaModelException e) {
 			// ignore
 		}
 		return superName;

@@ -237,21 +237,21 @@ public class LTWApplicationLaunchConfigurationDelegate
 
 	private String addExtraVMArgs(String vmArgs, String[] ajClasspath) {
 		StringBuffer sb = new StringBuffer(vmArgs);
-		sb.append(' '); //$NON-NLS-1$
+		sb.append(' '); 
 		sb.append(classLoaderOption);
-		sb.append('='); //$NON-NLS-1$
+		sb.append('='); 
 		sb.append("org.aspectj.weaver.loadtime.WeavingURLClassLoader"); //$NON-NLS-1$
-		sb.append(' '); //$NON-NLS-1$
+		sb.append(' '); 
 		sb.append(ajClasspathOption);
-		sb.append('='); //$NON-NLS-1$
-		sb.append('\"'); //$NON-NLS-1$
+		sb.append('='); 
+		sb.append('\"'); 
 		for (int i = 0; i < ajClasspath.length; i++) {
 			if(i != 0) {
-				sb.append(File.pathSeparator); //$NON-NLS-1$
+				sb.append(File.pathSeparator); 
 			}
 			sb.append(ajClasspath[i]);			
 		}
-		sb.append('\"'); //$NON-NLS-1$
+		sb.append('\"'); 
 		
 		return sb.toString();
 	}

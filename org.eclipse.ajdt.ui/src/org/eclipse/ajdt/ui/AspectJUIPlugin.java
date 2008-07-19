@@ -30,7 +30,6 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -41,7 +40,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.PluginVersionIdentifier;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -62,6 +60,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 // --- end imports ---
 /**
@@ -84,7 +83,7 @@ import org.osgi.framework.Constants;
 public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 
 	// the id of this plugin
-	public static final String PLUGIN_ID = Utils.PLUGIN_ID; //$NON-NLS-1$
+	public static final String PLUGIN_ID = Utils.PLUGIN_ID; 
 
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
 
@@ -110,11 +109,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * shared single instance of the plugin
 	 */
 	private static AspectJUIPlugin plugin;
-
-	/**
-	 * AbstractIconRegistry used to manage all icons for AJDT.
-	 */
-	private AspectJImages ajdtImages;
 
 	/**
 	 * The text tools to use for AspectJ aware editing
@@ -293,8 +287,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// set the UI version of core operations
 		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
 		
-		ajdtImages = AspectJImages.instance();
-		
 		// set the compiler factory to be the ui one
 		setCompilerFactory(new UICompilerFactory());
 
@@ -321,19 +313,19 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$
-		String version = (String) bundle.getHeaders().get(
+		String versionStr = (String) bundle.getHeaders().get(
 				Constants.BUNDLE_VERSION);
-		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
-		if ((pvi.getMajorComponent() != EclipseVersion.MAJOR_VERSION)
-				|| (pvi.getMinorComponent() != EclipseVersion.MINOR_VERSION)) {
+		Version version = new Version(versionStr);
+		if ((version.getMajor() != EclipseVersion.MAJOR_VERSION)
+				|| (version.getMinor() != EclipseVersion.MINOR_VERSION)) {
 			MessageDialog.openError(null,
 					UIMessages.ajdtErrorDialogTitle,
 					NLS.bind(UIMessages.wrong_eclipse_version,
 							new String[] {
 									EclipseVersion.MAJOR_VERSION + "." //$NON-NLS-1$
 											+ EclipseVersion.MINOR_VERSION,
-									pvi.getMajorComponent() + "." //$NON-NLS-1$
-											+ pvi.getMinorComponent() }));
+									version.getMajor() + "." //$NON-NLS-1$
+											+ version.getMinor() }));
 		}
 	}
 

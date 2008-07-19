@@ -21,13 +21,14 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOpenAction;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
-//import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
+import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
 import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.xref.XRefUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -36,7 +37,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -57,7 +57,6 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.information.IInformationPresenter;
@@ -123,7 +122,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
 
-//		private JavaCorrectionAssistant fCorrectionAssistant;
+		private JavaCorrectionAssistant fCorrectionAssistant;
 
 		private IInformationPresenter fOutlinePresenter;
 		
@@ -148,13 +147,13 @@ public class AspectJEditor extends CompilationUnitEditor {
 		public void doOperation(int operation) {
 			if (operation == ISourceViewer.QUICK_ASSIST) {
 				// use our own correction assistant
-//				if (fCorrectionAssistant == null) {
-//					fCorrectionAssistant = new JavaCorrectionAssistant(
-//							AspectJEditor.this);
-//					fCorrectionAssistant.install(getSourceViewer());
-//				}
-//				String msg = fCorrectionAssistant.showPossibleQuickAssists();
-//				setStatusLineErrorMessage(msg);
+				if (fCorrectionAssistant == null) {
+					fCorrectionAssistant = new JavaCorrectionAssistant(
+							AspectJEditor.this);
+					fCorrectionAssistant.install(getSourceViewer());
+				}
+				String msg = fCorrectionAssistant.showPossibleQuickAssists();
+				setStatusLineErrorMessage(msg);
 			} else if (operation == JavaSourceViewer.SHOW_OUTLINE) {
 				// use our own outline presenter
 				// not needed if/when eclipse bug 79489 is fixed
@@ -360,6 +359,13 @@ public class AspectJEditor extends CompilationUnitEditor {
 	
 	public void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
+
+		IPreferenceStore store = getPreferenceStore();
+		AspectJTextTools textTools = new AspectJTextTools(store);
+		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
+				textTools, this);
+		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
+		
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;
 			ICompilationUnit unit = null;
@@ -372,9 +378,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 					.getAJCompilationUnitFromCache(fInput.getFile());
 				if (unit != null){
 					isEditingAjFile = true;	
-					IAnnotationModel annotationModel = getDocumentProvider().getAnnotationModel(input);
 					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
-					unit.becomeWorkingCopy((IProblemRequestor) annotationModel, null);
+					unit.becomeWorkingCopy(null);
 					((IWorkingCopyManagerExtension) JavaUI
 							.getWorkingCopyManager()).setWorkingCopy(input, unit);
 				
@@ -387,7 +392,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 				if(unit instanceof CompilationUnit) {
 					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
 				}
-				unit.becomeWorkingCopy((IProblemRequestor)annotationModel, null);
+				unit.becomeWorkingCopy(null);
 			   ((IWorkingCopyManagerExtension) JavaUI
 					.getWorkingCopyManager()).setWorkingCopy(input, unit);
 			
@@ -400,8 +405,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 				activeEditorList.add(this);
 			}
 			IDocument document = getDocumentProvider().getDocument(fInput);
-			AspectJTextTools textTools = AspectJUIPlugin.getDefault()
-					.getAspectJTextTools();
 
 			textTools.setupJavaDocumentPartitioner(document,
 					IJavaPartitions.JAVA_PARTITIONING);
@@ -491,26 +494,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 		}
 	}
-
-	protected void setPreferenceStore(IPreferenceStore store) {
-		super.setPreferenceStore(store);
-		AspectJTextTools textTools = new AspectJTextTools(store);
-		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
-				textTools, this);
-		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
-		
-	}
 	
-	protected void initializeEditor() {
-		super.initializeEditor();
-//		IPreferenceStore store = this.getPreferenceStore();
-//		AspectJTextTools textTools = new AspectJTextTools(store);
-//		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
-//				textTools, this);
-//		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
-	}
-
-
 	/**
 	 * Removes unsupported menu options. This is obviously not a nice way to do
 	 * that. It would be much better do never add them in the first place. But

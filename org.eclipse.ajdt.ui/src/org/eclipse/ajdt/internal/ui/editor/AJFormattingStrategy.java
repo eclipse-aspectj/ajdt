@@ -69,8 +69,9 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 						content.toCharArray());
 				ArrayList changes = pars.convert(ConversionOptions.CONSTANT_SIZE);
 				content = new String(pars.content);
-				final TextEdit edit = CodeFormatterUtil.format2(
-						CodeFormatter.K_COMPILATION_UNIT, content, partition
+				
+				final TextEdit edit = CodeFormatterUtil.reformat(
+						CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS, content, partition
 								.getOffset(), partition.getLength(), 0,
 						TextUtilities.getDefaultLineDelimiter(document),
 						getPreferences());

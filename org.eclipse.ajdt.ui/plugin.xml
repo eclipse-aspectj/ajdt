@@ -70,7 +70,6 @@
                id="removeajnatureaction">
          </action>
       </objectContribution>   
-      <!--
       <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
             nameFilter="plugin.xml"
@@ -97,7 +96,6 @@
                id="org.eclipse.pde.ui.BuildPluginAction2">
          </action>
       </objectContribution>   
-      -->
  
 	<!--
 	Restrict selection to be a project with an AspectJ nature.
@@ -105,7 +103,6 @@
 	this contribution would become unavailable for web and EJB
 	projects in IBM Rational 6.x tools.
 	--> 
-	<!--
      <objectContribution
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
@@ -135,8 +132,7 @@
                enablesFor="1">
          </action>
       </objectContribution>
-         -->
-<!--
+
       <objectContribution
             objectClass="org.eclipse.jdt.core.ICompilationUnit"
             adaptable="true"
@@ -167,7 +163,6 @@
                id="renametoajaction">
          </action>
       </objectContribution>
-
       <objectContribution
             objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
             adaptable="true"
@@ -192,7 +187,7 @@
                id="renametojavaaction">
          </action>
       </objectContribution>
--->      
+      
       <!--
       <objectContribution 
       		objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
@@ -208,7 +203,6 @@
 	-->
 	
 	<!-- Adding our own rename action for .aj files -->
-	<!--
 	  <objectContribution
            objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
            adaptable="true"
@@ -220,7 +214,7 @@
              id="renameAJFile">
          </action>
       </objectContribution>
--->      
+      
       <!-- Build configuration actions -->
       <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
@@ -397,7 +391,7 @@
             name="%declarationFilter.name"
             description="%declarationFilter.description"
             class="org.eclipse.ajdt.internal.ui.editor.outline.DeclarationFilter"
-            enabled="false"/>      
+            enabled="false"/>
    </extension>
 
 <!-- Define editors used by AspectJ -->
@@ -493,7 +487,7 @@
       </wizard>
 
    </extension>
-<!--
+
    <extension
          point="org.eclipse.ui.exportWizards">
       <wizard
@@ -548,7 +542,6 @@
          </selection>
       </wizard>
    </extension>
-   -->
 
 
 <!-- Actions contributed by AspectJ to the Java perspective -->
@@ -1001,6 +994,9 @@ M4 = Platform-specific fourth key
       <persistent
             value="true">
       </persistent>
+      <super
+            type="org.eclipse.jdt.core.problem">
+      </super>
    </extension>
 
 
@@ -1552,7 +1548,6 @@ M4 = Platform-specific fourth key
    </actionSetPartAssociation>
   </extension>
   
-  <!--
    <extension
          point="org.eclipse.jdt.ui.quickFixProcessors">
       <quickFixProcessor
@@ -1566,10 +1561,8 @@ M4 = Platform-specific fourth key
             id="org.eclipse.ajdt.ui.editor.quickfix.AJQuickFixProcessor">
       </quickFixProcessor>
     </extension>
-    -->
   
   <!-- Launching extensions -->  
-  <!--
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
@@ -1606,7 +1599,7 @@ M4 = Platform-specific fourth key
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
-   -->   
+   
 <!-- Load-Time Weaving launch configuration -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
@@ -1646,7 +1639,6 @@ M4 = Platform-specific fourth key
    </extension>
    
 	<!-- Extensions for launch shortcuts -->
-<!--
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
@@ -1687,7 +1679,6 @@ M4 = Platform-specific fourth key
          </perspective>
       </shortcut>
    </extension>
-   -->
     
    <extension
          point="org.eclipse.contribution.xref.core.providers">
@@ -1988,7 +1979,28 @@ M4 = Platform-specific fourth key
                menubarPath="arv.menu1/group1"
                id="arv.sameProject"/>       
       </objectContribution>
-   </extension>  
+   </extension>
+     <extension
+           point="org.eclipse.ui.navigator.navigatorContent">
+       <commonFilter
+          activeByDefault="true"
+          class="org.eclipse.ajdt.internal.ui.lazystart.CompilationUnitFilter"
+          description="%ajFileFilterDesc"
+          id="org.eclipse.ajdt.commonFilters.CompilationUnitFilter"
+          name="%ajFileFilter">
+       </commonFilter>
+    </extension>
+     <extension
+           point="org.eclipse.ui.navigator.viewer">
+        <viewerContentBinding
+              viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+           <includes>
+              <contentExtension
+                    pattern="org.eclipse.ajdt.commonFilters.CompilationUnitFilter">
+              </contentExtension>
+           </includes>
+        </viewerContentBinding>
+     </extension>  
 
 <!-- EXPERIMENTAL (for debugging purposes only)
   <extension point="org.eclipse.ui.views">

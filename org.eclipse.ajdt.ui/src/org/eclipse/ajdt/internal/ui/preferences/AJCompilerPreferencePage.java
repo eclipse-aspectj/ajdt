@@ -20,10 +20,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
@@ -35,6 +39,7 @@ import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -50,6 +55,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -78,9 +84,20 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	public static final String PROP_ID = "org.eclipse.ajdt.ui.propertyPages.AJCompilerPreferencePage"; //$NON-NLS-1$
 
+	/* used by the PreferencePageBuilder aspect to determine if a change in a preference page widget should
+	 * cause a full build
+	 */ 
+    static String NO_BUILD_ON_CHANGE = "NO BUILD ON CHANGE"; //$NON-NLS-1$
+
 	protected List fComboBoxes;
 
 	protected List fCheckBoxes;
+	
+	/*
+	 * Stores a list of widgets that use AspectJCores preference store
+	 * not AJDT UI preference store
+	 */
+	protected Set fUsesAspectJCorePreferences;
 
 	protected final ArrayList fExpandedComposites;
 	
@@ -88,6 +105,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	
 	// Non standard compiler options that should be passed to ajc
 	private StringFieldEditor nonStandardOptionsEditor;
+
 	
 	private static final String SETTINGS_EXPANDED= "expanded"; //$NON-NLS-1$
 	
@@ -99,9 +117,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 */
 	private static final Map defaultValueMap = new HashMap();
 	static {
-		defaultValueMap.put(
-				AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
-				AspectJPreferences.VALUE_WARNING);
+        defaultValueMap.put(
+                AspectJCorePreferences.OPTION_AutobuildSuppressed,
+                AspectJPreferences.VALUE_FALSE);
+        defaultValueMap.put(
+                AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
+                AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(
 				AspectJPreferences.OPTION_ReportShadowNotInStructure,
 				AspectJPreferences.VALUE_IGNORE);
@@ -193,7 +214,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				AspectJPreferences.VALUE_IGNORE);
 		
-		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, "");
+		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, ""); //$NON-NLS-1$
 
 		defaultValueMap.put(AspectJPreferences.OPTION_cantFindType, 
 				AspectJPreferences.VALUE_ERROR);
@@ -207,6 +228,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * List of all the preference keys for this page
 	 */
 	private static final String[] keys = new String[] {
+	        AspectJCorePreferences.OPTION_AutobuildSuppressed,
 			AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
 			AspectJPreferences.OPTION_ReportShadowNotInStructure,
 			AspectJPreferences.OPTION_ReportCannotImplementLazyTJP,
@@ -249,6 +271,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		super();
 		setTitle(UIMessages.AJCompilerPreferencePage_aspectj_compiler);
 		fCheckBoxes = new ArrayList();
+		fUsesAspectJCorePreferences = new HashSet();
 		fComboBoxes = new ArrayList();
 		fExpandedComposites = new ArrayList();
 	}
@@ -289,10 +312,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	/**
 	 * The default values used when the plugin is first installed or when
 	 * "restore defaults" is clicked.
-	 */
+	 */ 
 	public static void initDefaults(IPreferenceStore store) {
-		store.setDefault(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, 
-				AspectJPreferences.VALUE_WARNING);
+        getAspectJCorePLuginPreferences().setDefault(AspectJCorePreferences.OPTION_AutobuildSuppressed, 
+                AspectJPreferences.VALUE_FALSE);
+        store.setDefault(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, 
+                AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_ReportShadowNotInStructure, 
 				AspectJPreferences.VALUE_IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, 
@@ -389,14 +414,35 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		Composite composite= pageContent.getBody();
 		composite.setLayout(layout);
 
-		String label = UIMessages.CompilerConfigurationBlock_aj_messages_matching;
-		ExpandableComposite excomposite = createStyleSection(composite, label,
-				nColumns);
+		Composite othersComposite;
+		ExpandableComposite excomposite;
+		String label;
+		if (!isProjectPreferencePage()) {
+    		label = UIMessages.CompilerConfigurationBlock_aj_builder_settings;
+    		excomposite = createStyleSection(composite, label,
+    				nColumns);
+    
+            othersComposite = new Composite(excomposite, SWT.NONE);
+    		excomposite.setClient(othersComposite);
+    		othersComposite.setLayout(new GridLayout(nColumns, false));
+    		
+            label = UIMessages.CompilerConfigurationBlock_aj_suppressAutoBuild;
+            Button b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_AutobuildSuppressed, enableDisableValues, 0, false);
+            useAspectJCorePreferences(b);
+            // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
+            // ignoring the original value.
+            b.setSelection(getAspectJCorePLuginPreferences().getBoolean(AspectJCorePreferences.OPTION_AutobuildSuppressed));
 
-		Composite othersComposite = new Composite(excomposite, SWT.NONE);
-		excomposite.setClient(othersComposite);
-		othersComposite.setLayout(new GridLayout(nColumns, false));
+		}
 		
+        label = UIMessages.CompilerConfigurationBlock_aj_messages_matching;
+        excomposite = createStyleSection(composite, label,
+                nColumns);
+
+        othersComposite = new Composite(excomposite, SWT.NONE);
+        excomposite.setClient(othersComposite);
+        othersComposite.setLayout(new GridLayout(nColumns, false));
+        
 		label = UIMessages.CompilerConfigurationBlock_aj_invalid_absolute_type_name_label;
 		addComboBox(othersComposite, label, 
 				AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
@@ -465,7 +511,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XNoInline,
-				enableDisableValues, 0);
+				enableDisableValues, 0, true);
 
 		//		 AJ5 options do not apply to Eclipse 3.0
 		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
@@ -588,7 +634,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_WeaveMessages,
-				enableDisableValues, 0);
+				enableDisableValues, 0, true);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_other_tabtitle;
 		excomposite = createStyleSection(composite, label, nColumns);
@@ -599,24 +645,24 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XSerializableAspects,
-				enableDisableValues, 0);
+				enableDisableValues, 0, true);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_not_reweavable_label;
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XNotReweavable,
-				enableDisableValues, 0);
+				enableDisableValues, 0, true);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_has_member_label;
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XHasMember,
-				enableDisableValues, 0);
+				enableDisableValues, 0, true);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_out_xml;
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_Outxml,
-				enableDisableValues, 0);
+				enableDisableValues, 0, true);
 
 		Composite row3Comp = createRowComposite(othersComposite,2);
 
 		//fills the editor with the stored preference if there is one.
-		String currValue = "";
+		String currValue = ""; //$NON-NLS-1$
 		if (isProjectPreferencePage()) {
 			if (hasProjectSpecificOptions(getProject())) {
 				currValue = AspectJPreferences.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS);
@@ -629,7 +675,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		nonStandardOptionsEditor =
 			new StringFieldEditor(
-				currValue, //$NON-NLS-1$
+				currValue, 
 				UIMessages.compilerPropsPage_nonStandardOptions,
 				StringFieldEditor.UNLIMITED,
 				row3Comp);
@@ -641,6 +687,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		return pageContent;
 	}
+
+    private void useAspectJCorePreferences(Button b) {
+        fUsesAspectJCorePreferences.add(b);
+    }
 
 	/**
 	 * Get the preference store for AspectJ mode
@@ -664,26 +714,50 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			return projectPerformOK();
 		} else {
 			IPreferenceStore store = getPreferenceStore();
+			Preferences ajCorePreferences = getAspectJCorePLuginPreferences();
 
 			boolean lintChanges = false;
 			for (int i = fComboBoxes.size() - 1; i >= 0; i--) {
 				Combo curr = (Combo) fComboBoxes.get(i);
 				ControlData data = (ControlData) curr.getData();
-				String value = data.getValue(curr.getSelectionIndex());
-				if (!value.equals(store.getString(data.getKey()))) {
+				String currValue = data.getValue(curr.getSelectionIndex());
+				String storedValue = usesAspectJCorePreferences(curr) ?
+                        ajCorePreferences.getString(data.getKey()) :
+                        store.getString(data.getKey());
+				if (!currValue.equals(storedValue)) {
 					lintChanges = true;
-					store.setValue(data.getKey(), value);
+					
+					if (usesAspectJCorePreferences(curr)) {
+					    ajCorePreferences.setValue(data.getKey(), currValue);
+					} else {
+					    store.setValue(data.getKey(), currValue);
+					}
 				}
 			}
 
 			boolean advancedOrOtherChanges = false;
 			for (int i = fCheckBoxes.size() - 1; i >= 0; i--) {
 				Button curr = (Button) fCheckBoxes.get(i);
+				
+				// has the data changed?
 				ControlData data = (ControlData) curr.getData();
-				boolean value = curr.getSelection();
-				if (value != store.getBoolean(data.getKey())) {
-					advancedOrOtherChanges = true;
-					store.setValue(data.getKey(), value);
+				boolean currValue = curr.getSelection();
+				boolean storedValue = usesAspectJCorePreferences(curr) ?
+				        ajCorePreferences.getBoolean(data.getKey()) :
+				        store.getBoolean(data.getKey());
+				if (currValue != storedValue) {
+				    // check to see if we should ignore the change in the checkbox
+				    // change should be ignored if the NO_BUILD_ON_CHANGE flad exists
+				    if (curr.getData(NO_BUILD_ON_CHANGE) == null) {
+				        advancedOrOtherChanges = true;
+				    }
+				    
+				    // determine where this preference is stored
+                    if (usesAspectJCorePreferences(curr)) {
+                        ajCorePreferences.setValue(data.getKey(), currValue);
+                    } else {
+                        store.setValue(data.getKey(), currValue);
+                    }
 				}
 			}
 			
@@ -696,9 +770,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			}
 			
 			AspectJUIPlugin.getDefault().savePluginPreferences();
+			AspectJPlugin.getDefault().savePluginPreferences();
 
 			if (lintChanges || advancedOrOtherChanges || compilerChanges) {
-				boolean doBuild = false;
 				String[] strings = getFullBuildDialogStrings();
 				if (strings != null) {
 					MessageDialog dialog = new MessageDialog(getShell(),
@@ -716,13 +790,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 						// choices are "Yes", "No" or "Cancel"
 						dialog.close();
 						if (buildNow) {
-							res = dialog.OK;
+							res = Window.OK;
 						} else {
-							res = dialog.CANCEL; // simulating cancel or no being pressed.
+							res = Window.CANCEL; // simulating cancel or no being pressed.
 						}
 					}
 					if (res == 0) {
-						doBuild = true;
 						projects= (ResourcesPlugin.getWorkspace().getRoot().getProjects());
 					} else if (res != 1) {
 						return false; // cancel pressed
@@ -738,6 +811,15 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			return true;
 		}
 	}
+
+	/**
+	 * returns true if preferences should be stored with ajdt UI prefs
+	 * false if should be stored with Core prefs
+	 * default is true
+	 */
+    private boolean usesAspectJCorePreferences(Control ctrl) {
+        return fUsesAspectJCorePreferences.contains(ctrl);
+    }
 	
 	public IProject[] getProjects() {
 		return projects;
@@ -859,9 +941,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 					// choices are "Yes", "No" or "Cancel"
 					dialog.close();
 					if (buildNow) {
-						res = dialog.OK;
+						res = Window.OK;
 					} else {
-						res = dialog.CANCEL; // simulating cancel or no being pressed.
+						res = Window.CANCEL; // simulating cancel or no being pressed.
 					}
 				}
 				if ((res == 0)) {
@@ -922,9 +1004,16 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		for (int i = fComboBoxes.size() - 1; i >= 0; i--) {
 			Combo curr = (Combo) fComboBoxes.get(i);
 			ControlData data = (ControlData) curr.getData();
-			String defaultValue = getPreferenceStore().getDefaultString(
-					data.getKey());
-			curr.select(data.getSelection(defaultValue));
+			
+			String defaultValue;
+	        if (usesAspectJCorePreferences(curr)) {
+	            defaultValue = getAspectJCorePLuginPreferences()
+	                    .getDefaultString(data.getKey());
+	        } else {
+	            defaultValue = getPreferenceStore().getDefaultString(
+	                    data.getKey());
+	        }
+	        curr.select(data.getSelection(defaultValue));
 		}
 		for (int i = fCheckBoxes.size() - 1; i >= 0; i--) {
 			Button curr = (Button) fCheckBoxes.get(i);
@@ -932,8 +1021,14 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			// if -XnoWeave was previously selected
 			curr.setEnabled(true);
 			ControlData data = (ControlData) curr.getData();
-			String defaultValue = getPreferenceStore().getDefaultString(
-					data.getKey());
+			String defaultValue;
+			if (usesAspectJCorePreferences(curr)) {
+			    defaultValue = getAspectJCorePLuginPreferences()
+			            .getDefaultString(data.getKey());
+			} else {
+			    defaultValue = getPreferenceStore().getDefaultString(
+			            data.getKey());
+			}
 			curr.setSelection(defaultValue.equals("true")); //$NON-NLS-1$
 		}
 		
@@ -971,12 +1066,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	    }
 
 	protected Button addCheckBox(Composite parent, String label, String key,
-			String[] values, int indent) {
-		return addCheckBox(parent, label, key, values, indent, true);
+			String[] values, int indent, boolean changeCausesBuild) {
+		return addCheckBox(parent, label, key, values, indent, changeCausesBuild, true);
 	}
 
 	protected Button addCheckBox(Composite parent, String label, String key,
-			String[] values, int indent, boolean fillGridVertically) {
+			String[] values, int indent, boolean changeCausesBuild, boolean fillGridVertically) {
 		ControlData data = new ControlData(key, values);
 
 		int idx = label.indexOf("-"); //$NON-NLS-1$
@@ -992,6 +1087,14 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		gd.horizontalIndent = indent;
 
 		Button checkBox = new Button(parent, SWT.CHECK);
+		if (!changeCausesBuild) {
+		    // want a change in the checkbox to be
+		    // ignored by the aspect that controls
+		    // whether or not to do a full build.
+		    // so, set a data field in the button 
+		    // to mark this
+		    checkBox.setData(NO_BUILD_ON_CHANGE, NO_BUILD_ON_CHANGE);
+		}
 		checkBox.setText(optionname);
 		checkBox.setData(data);
 		checkBox.setLayoutData(gd);
@@ -1015,7 +1118,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		checkBox.setSelection(currValue);
 
 		fCheckBoxes.add(checkBox);
-
+		
 		return checkBox;
 	}
 
@@ -1230,6 +1333,13 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		return super.useProjectSettings();
 	}
 
+	
+	private static Preferences getAspectJCorePLuginPreferences() {
+        return AspectJPlugin.getDefault()
+                .getPluginPreferences();
+
+	}
+	
 	// ---------------- methods and fields used for testing ----------------
 	private IProject project;
 	private boolean isTesting; 
@@ -1246,9 +1356,18 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	}
 	// changes one of the button values to simulate user input
 	public void setButtonChanged() {
-		Button curr = (Button) fCheckBoxes.get(0);
-		boolean value = curr.getSelection();
-		curr.setSelection(!value);
+	    Button b = null;
+	    Iterator iter = fCheckBoxes.iterator();
+	    while(iter.hasNext()) {
+	        b = (Button) iter.next();
+	        if (UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label.startsWith(b.getText())) {
+	            break;
+	        }
+	    }
+	    if (b != null) {
+	        boolean value = b.getSelection();
+	        b.setSelection(!value);
+	    }
 	}
 	
 	// override so we can use this in testing

@@ -14,6 +14,7 @@ import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
 import org.eclipse.ajdt.internal.core.exports.PluginExportOperation;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
 
+
 public class AJPluginExportJob extends AJFeatureExportJob {
 
 	public AJPluginExportJob(FeatureExportInfo info) {

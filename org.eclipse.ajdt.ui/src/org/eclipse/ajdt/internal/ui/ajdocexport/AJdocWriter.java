@@ -37,7 +37,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jface.util.Assert;
+import org.eclipse.core.runtime.Assert;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -276,11 +276,11 @@ public class AJdocWriter {
 		doclet.setAttribute(store.PATH, store.getDocletPath());
 
 		String str= store.getOverview();
-		if (str.length() > 0) //$NON-NLS-1$
+		if (str.length() > 0) 
 			xmlJavadocDesc.setAttribute(store.OVERVIEW, str);
 
 		str= store.getAdditionalParams();
-		if (str.length() > 0) //$NON-NLS-1$
+		if (str.length() > 0) 
 			xmlJavadocDesc.setAttribute(store.EXTRAOPTIONS, str);
 
 	}

@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     SpringSource    - Adapted for use with AJDT
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
@@ -14,15 +15,10 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.pde.internal.ui.IPreferenceConstants;
-import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.pde.internal.ui.PDEUIMessages;
-import org.eclipse.ui.IExportWizard;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.pde.internal.ui.*;
+import org.eclipse.ui.*;
 
-public abstract class BaseExportWizard extends Wizard
-				implements IExportWizard, IPreferenceConstants {
+public abstract class BaseExportWizard extends Wizard implements IExportWizard, IPreferenceConstants {
 
 	protected IStructuredSelection fSelection;
 
@@ -34,9 +30,9 @@ public abstract class BaseExportWizard extends Wizard
 		IDialogSettings masterSettings = PDEPlugin.getDefault().getDialogSettings();
 		setNeedsProgressMonitor(true);
 		setDialogSettings(getSettingsSection(masterSettings));
-		setWindowTitle(PDEUIMessages.BaseExportWizard_wtitle); 
+		setWindowTitle(PDEUIMessages.BaseExportWizard_wtitle);
 	}
-	
+
 	public void dispose() {
 		PDEPlugin.getDefault().getLabelProvider().disconnect(this);
 		super.dispose();
@@ -53,40 +49,40 @@ public abstract class BaseExportWizard extends Wizard
 			settings = master.addNewSection(name);
 		return settings;
 	}
-	
+
 	protected abstract String getSettingsSectionName();
 
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		fSelection = selection;
 	}
-	
+
 	public boolean performFinish() {
 		saveSettings();
 		if (!PlatformUI.getWorkbench().saveAllEditors(true))
 			return false;
-				
+
 		if (!performPreliminaryChecks())
 			return false;
-		
+
 		if (!confirmDelete())
 			return false;
-		
+
 		scheduleExportJob();
 		return true;
 	}
-	
+
 	protected void saveSettings() {
 		IDialogSettings settings = getDialogSettings();
 		IWizardPage[] pages = getPages();
 		for (int i = 0; i < pages.length; i++) {
-			((AbstractExportWizardPage)pages[i]).saveSettings(settings);
+			((AbstractExportWizardPage) pages[i]).saveSettings(settings);
 		}
 	}
-	
+
 	protected abstract boolean performPreliminaryChecks();
-	
+
 	protected abstract boolean confirmDelete();
-	
+
 	protected abstract void scheduleExportJob();
-	
+
 }

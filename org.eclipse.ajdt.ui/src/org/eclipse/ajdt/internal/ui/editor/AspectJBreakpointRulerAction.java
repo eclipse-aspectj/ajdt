@@ -54,7 +54,7 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	public AspectJBreakpointRulerAction(IVerticalRulerInfo ruler,
 			ITextEditor editor, IEditorPart editorPart) {
-		super(UIMessages.ManageBreakpointRulerAction_label); //$NON-NLS-1$
+		super(UIMessages.ManageBreakpointRulerAction_label); 
 		fRuler = ruler;
 		fTextEditor = editor;
 		fStatusLine = (IEditorStatusLine) editorPart
@@ -133,7 +133,7 @@ public class AspectJBreakpointRulerAction extends Action {
 				}
 			}
 		} catch (CoreException e) {
-			JDIDebugUIPlugin.errorDialog(UIMessages.ManageBreakpointRulerAction_error_adding_message1, e); //$NON-NLS-1$
+			JDIDebugUIPlugin.errorDialog(UIMessages.ManageBreakpointRulerAction_error_adding_message1, e); 
 		}	
 	}
 

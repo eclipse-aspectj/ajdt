@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006 IBM Corporation and others.
+ * Copyright (c) 2006, 2008 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,44 +7,23 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     SpringSource    - adapted for use with AJDT
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.exports;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import com.ibm.icu.util.Calendar;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import javax.xml.parsers.*;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.eclipse.ant.core.AntCorePlugin;
-import org.eclipse.ant.core.AntCorePreferences;
-import org.eclipse.ant.core.AntRunner;
-import org.eclipse.ant.core.IAntClasspathEntry;
-import org.eclipse.ant.core.Property;
+import org.eclipse.ajdt.core.exports.AJBuildScriptGenerator;
+import org.eclipse.ant.core.*;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Preferences;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.launching.environments.IExecutionEnvironment;
@@ -52,54 +31,37 @@ import org.eclipse.jdt.launching.environments.IExecutionEnvironmentsManager;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.pde.core.IModel;
-import org.eclipse.pde.core.build.IBuild;
-import org.eclipse.pde.core.build.IBuildEntry;
-import org.eclipse.pde.core.build.IBuildModel;
-import org.eclipse.pde.core.plugin.IPluginModelBase;
-import org.eclipse.pde.core.plugin.PluginRegistry;
-import org.eclipse.pde.core.plugin.TargetPlatform;
-import org.eclipse.pde.internal.build.AbstractScriptGenerator;
-import org.eclipse.pde.internal.build.BuildScriptGenerator;
-import org.eclipse.pde.internal.build.IXMLConstants;
+import org.eclipse.pde.core.build.*;
+import org.eclipse.pde.core.plugin.*;
+import org.eclipse.pde.internal.build.*;
 import org.eclipse.pde.internal.build.site.QualifierReplacer;
-import org.eclipse.pde.internal.core.ClasspathHelper;
-import org.eclipse.pde.internal.core.PDECore;
-import org.eclipse.pde.internal.core.PDECoreMessages;
-import org.eclipse.pde.internal.core.TargetPlatformHelper;
-import org.eclipse.pde.internal.core.XMLPrintHandler;
+import org.eclipse.pde.internal.core.*;
 import org.eclipse.pde.internal.core.build.WorkspaceBuildModel;
 import org.eclipse.pde.internal.core.exports.BuildUtilities;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
 import org.eclipse.pde.internal.core.feature.FeatureChild;
-import org.eclipse.pde.internal.core.ifeature.IFeature;
-import org.eclipse.pde.internal.core.ifeature.IFeatureChild;
-import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
-import org.eclipse.pde.internal.core.ifeature.IFeaturePlugin;
+import org.eclipse.pde.internal.core.ifeature.*;
 import org.eclipse.pde.internal.core.util.CoreUtility;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.ibm.icu.util.Calendar;
+import org.w3c.dom.*;
 
 public class FeatureExportOperation implements IWorkspaceRunnable {
-	
+
 	// write to the ant build listener log
 	private static boolean fHasErrors;
 
 	// Location where the build takes place
 	protected String fBuildTempLocation;
+	protected String fBuildTempMetadataLocation;
 	private String fDevProperties;
 
 	protected HashMap fAntBuildProperties;
 
-	private State fStateCopy;
+	protected State fStateCopy;
 
 	protected static String FEATURE_POST_PROCESSING = "features.postProcessingSteps.properties"; //$NON-NLS-1$
 	protected static String PLUGIN_POST_PROCESSING = "plugins.postProcessingSteps.properties"; //$NON-NLS-1$
-	
+
 	public static String getDate() {
 		final String empty = ""; //$NON-NLS-1$
 		int monthNbr = Calendar.getInstance().get(Calendar.MONTH) + 1;
@@ -118,7 +80,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	}
 
 	protected FeatureExportInfo fInfo;
-	
+
 	public FeatureExportOperation(FeatureExportInfo info) {
 		fInfo = info;
 		String qualifier = info.qualifier;
@@ -126,6 +88,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			qualifier = getDate();
 		QualifierReplacer.setGlobalQualifier(qualifier);
 		fBuildTempLocation = PDECore.getDefault().getStateLocation().append("temp").toString(); //$NON-NLS-1$
+		fBuildTempMetadataLocation = PDECore.getDefault().getStateLocation().append("tempp2metadata").toString(); //$NON-NLS-1$
 	}
 
 	public void run(IProgressMonitor monitor) throws CoreException {
@@ -133,9 +96,9 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			createDestination();
 			String[][] configurations = fInfo.targets;
 			if (configurations == null)
-				configurations = new String[][] { null };
-			
-			monitor.beginTask("", configurations.length * fInfo.items.length * 10); //$NON-NLS-1$
+				configurations = new String[][] {null};
+
+			monitor.beginTask("", configurations.length * fInfo.items.length * 11); //$NON-NLS-1$
 			for (int i = 0; i < configurations.length; i++) {
 				for (int j = 0; j < fInfo.items.length; j++) {
 					if (monitor.isCanceled())
@@ -146,32 +109,90 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 						cleanup(configurations[i], new SubProgressMonitor(monitor, 1));
 					}
 				}
+				if (fInfo.exportMetadata && !fInfo.toDirectory) {
+					appendMetadataToArchive(configurations[i], new SubProgressMonitor(monitor, 1));
+				}
 			}
 		} catch (InvocationTargetException e) {
 			throwCoreException(e);
 		}
 		monitor.done();
 	}
-	
+
+	/**
+	 * Takes the generated metadata and adds it to the destination zip.
+	 * This method should only be called if exporting to an archive file
+	 * and metadata was generated at fBuildMetadataLocation.
+	 * @param monitor progress monitor
+	 */
+	protected void appendMetadataToArchive(String[] configuration, IProgressMonitor monitor) {
+		String filename = fInfo.zipFileName;
+		if (configuration != null) {
+			int i = filename.lastIndexOf('.');
+			filename = filename.substring(0, i) + '.' + configuration[0] + '.' + configuration[1] + '.' + configuration[2] + filename.substring(i);
+		}
+		String archive = fInfo.destinationDirectory + File.separator + filename;
+		File scriptFile = null;
+		try {
+			scriptFile = createScriptFile("append.xml"); //$NON-NLS-1$
+
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			Document doc = factory.newDocumentBuilder().newDocument();
+
+			Element root = doc.createElement("project"); //$NON-NLS-1$
+			root.setAttribute("name", "temp"); //$NON-NLS-1$ //$NON-NLS-2$
+			root.setAttribute("default", "append"); //$NON-NLS-1$ //$NON-NLS-2$
+			root.setAttribute("basedir", "."); //$NON-NLS-1$ //$NON-NLS-2$
+			doc.appendChild(root);
+
+			Element target = doc.createElement("target"); //$NON-NLS-1$
+			target.setAttribute("name", "clean"); //$NON-NLS-1$ //$NON-NLS-2$
+			Element child = doc.createElement("delete"); //$NON-NLS-1$
+			child.setAttribute("dir", fBuildTempMetadataLocation); //$NON-NLS-1$
+			target.appendChild(child);
+			root.appendChild(target);
+
+			target = doc.createElement("target"); //$NON-NLS-1$
+			target.setAttribute("name", "append"); //$NON-NLS-1$ //$NON-NLS-2$
+			child = doc.createElement("zip"); //$NON-NLS-1$
+			child.setAttribute("zipfile", archive); //$NON-NLS-1$
+			child.setAttribute("basedir", fBuildTempMetadataLocation); //$NON-NLS-1$
+			child.setAttribute("update", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+			target.appendChild(child);
+			root.appendChild(target);
+
+			XMLPrintHandler.writeFile(doc, scriptFile);
+
+			String[] targets = new String[] {"append", "clean"}; //$NON-NLS-1$ //$NON-NLS-2$
+			AntRunner runner = new AntRunner();
+			runner.setBuildFileLocation(scriptFile.getAbsolutePath());
+			runner.setExecutionTargets(targets);
+			runner.run(new SubProgressMonitor(monitor, 1));
+		} catch (FactoryConfigurationError e) {
+		} catch (ParserConfigurationException e) {
+		} catch (CoreException e) {
+		} catch (IOException e) {
+		} finally {
+			if (scriptFile != null && scriptFile.exists())
+				scriptFile.delete();
+			monitor.done();
+		}
+	}
+
 	protected void throwCoreException(InvocationTargetException e) throws CoreException {
 		String message = e.getTargetException().getMessage();
-		if (message != null && message.length() > 0) {	
-			throw new CoreException(new Status(
-					IStatus.ERROR,
-					PDECore.PLUGIN_ID,
-					IStatus.ERROR,
-					message,
-					null));
-		}		
+		if (message != null && message.length() > 0) {
+			throw new CoreException(new Status(IStatus.ERROR, PDECore.PLUGIN_ID, IStatus.ERROR, message, null));
+		}
 	}
-	
+
 	private void createDestination(String os, String ws, String arch) throws InvocationTargetException {
 		if (!fInfo.toDirectory)
 			return;
 		File file = new File(fInfo.destinationDirectory, os + '.' + ws + '.' + arch);
 		if (!file.exists() || !file.isDirectory()) {
 			if (!file.mkdirs())
-				throw new InvocationTargetException(new Exception(PDECoreMessages.ExportWizard_badDirectory)); 
+				throw new InvocationTargetException(new Exception(PDECoreMessages.ExportWizard_badDirectory));
 		}
 	}
 
@@ -188,7 +209,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			deleteBuildFiles(model);
 		}
 	}
-	
+
 	protected void createPostProcessingFile(File file) {
 		FileOutputStream stream = null;
 		try {
@@ -203,17 +224,17 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 				if (stream != null)
 					stream.close();
 			} catch (IOException e) {
-			}			
+			}
 		}
 	}
 
 	protected void doExport(String featureID, String version, String featureLocation, String os, String ws, String arch, IProgressMonitor monitor) throws CoreException, InvocationTargetException {
 		fHasErrors = false;
 		monitor.beginTask("", 9); //$NON-NLS-1$
-		monitor.setTaskName(PDECoreMessages.FeatureExportJob_taskName); 
+		monitor.setTaskName(PDECoreMessages.FeatureExportJob_taskName);
 		try {
 			HashMap properties = createAntBuildProperties(os, ws, arch);
-			BuildScriptGenerator generator = new BuildScriptGenerator();
+			BuildScriptGenerator generator = new AJBuildScriptGenerator();
 			setupGenerator(generator, featureID, version, os, ws, arch, featureLocation);
 			generator.generate();
 			monitor.worked(1);
@@ -231,11 +252,11 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	public void deleteBuildFiles(Object object) throws CoreException {
 		IModel model = null;
 		if (object instanceof BundleDescription) {
-			model = PluginRegistry.findModel((BundleDescription)object);
-		} else if (object instanceof IModel){
-			model = (IModel)object;
+			model = PluginRegistry.findModel((BundleDescription) object);
+		} else if (object instanceof IModel) {
+			model = (IModel) object;
 		}
-		
+
 		if (model == null)
 			return;
 
@@ -251,9 +272,8 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 								|| (filename.startsWith("javaCompiler.") && filename.endsWith(".args")) //$NON-NLS-1$ //$NON-NLS-2$
 								|| (filename.startsWith("assemble.") && filename.endsWith(".xml")) //$NON-NLS-1$ //$NON-NLS-2$
 								|| (filename.startsWith("package.") && filename.endsWith(".xml")) //$NON-NLS-1$ //$NON-NLS-2$
-								|| filename.equals(FEATURE_POST_PROCESSING)
-								|| filename.equals(PLUGIN_POST_PROCESSING)) {
-								children[i].delete();
+								|| filename.equals(FEATURE_POST_PROCESSING) || filename.equals(PLUGIN_POST_PROCESSING)) {
+							children[i].delete();
 						}
 					} else if (children[i].getName().equals("temp.folder")) { //$NON-NLS-1$
 						CoreUtility.deleteContent(children[i]);
@@ -299,6 +319,16 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		return new String[] {"build.jars"}; //$NON-NLS-1$ 
 	}
 
+	/**
+	 * Execute the script at the given location.
+	 * 
+	 * @param location the script to run
+	 * @param targets the targets in the script to run, use <code>null</code> to run all
+	 * @param properties map of user properties
+	 * @param monitor progress monitor
+	 * @throws InvocationTargetException
+	 * @throws CoreException
+	 */
 	protected void runScript(String location, String[] targets, Map properties, IProgressMonitor monitor) throws InvocationTargetException, CoreException {
 		AntRunner runner = new AntRunner();
 		runner.addUserProperties(properties);
@@ -340,14 +370,14 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	protected HashMap createAntBuildProperties(String os, String ws, String arch) {
 		if (fAntBuildProperties == null) {
 			fAntBuildProperties = new HashMap(15);
-			
-			List defaultProperties= AntCorePlugin.getPlugin().getPreferences().getDefaultProperties();
+
+			List defaultProperties = AntCorePlugin.getPlugin().getPreferences().getProperties();
 			ListIterator li = defaultProperties.listIterator();
 			while (li.hasNext()) {
-				Property prop = (Property)li.next();
+				Property prop = (Property) li.next();
 				fAntBuildProperties.put(prop.getName(), prop.getValue());
 			}
-			
+
 			if (fInfo.signingInfo != null) {
 				fAntBuildProperties.put("sign.alias", fInfo.signingInfo[0]); //$NON-NLS-1$
 				fAntBuildProperties.put("sign.keystore", fInfo.signingInfo[1]); //$NON-NLS-1$
@@ -379,7 +409,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			fAntBuildProperties.put(IXMLConstants.PROPERTY_JAVAC_VERBOSE, "false"); //$NON-NLS-1$
 
 			Preferences pref = JavaCore.getPlugin().getPluginPreferences();
-			String source = pref.getString(JavaCore.COMPILER_SOURCE); 
+			String source = pref.getString(JavaCore.COMPILER_SOURCE);
 			fAntBuildProperties.put(IXMLConstants.PROPERTY_JAVAC_SOURCE, source);
 			String target = pref.getString(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM);
 			fAntBuildProperties.put(IXMLConstants.PROPERTY_JAVAC_TARGET, target);
@@ -405,8 +435,38 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 				fAntBuildProperties.put(IXMLConstants.PROPERTY_ASSEMBLY_TMP, dir);
 			}
 			fAntBuildProperties.put(IXMLConstants.PROPERTY_TAR_ARGS, ""); //$NON-NLS-1$
+
 		}
+
+		setP2MetaDataProperties(fAntBuildProperties);
+
 		return fAntBuildProperties;
+	}
+
+	/**
+	* Adds the necessary properties to invoke the p2 metadata generator.  This method will
+	* be called when creating the ant build properties map.
+	* 
+	* @param map the map to add generator properties to
+	*/
+	protected void setP2MetaDataProperties(Map map) {
+		if (fInfo.useJarFormat && fInfo.exportMetadata) {
+			map.put(IXMLConstants.TARGET_P2_METADATA, IBuildPropertiesConstants.TRUE);
+			map.put(IBuildPropertiesConstants.PROPERTY_P2_FLAVOR, P2Utils.P2_FLAVOR_DEFAULT);
+			map.put(IBuildPropertiesConstants.PROPERTY_P2_PUBLISH_ARTIFACTS, IBuildPropertiesConstants.FALSE);
+			map.put(IBuildPropertiesConstants.PROPERTY_P2_FINAL_MODE_OVERRIDE, IBuildPropertiesConstants.TRUE);
+			try {
+				if (fInfo.toDirectory) {
+					map.put(IBuildPropertiesConstants.PROPERTY_P2_METADATA_REPO, new File(fInfo.destinationDirectory).toURL().toString());
+					map.put(IBuildPropertiesConstants.PROPERTY_P2_ARTIFACT_REPO, new File(fInfo.destinationDirectory).toURL().toString());
+				} else {
+					map.put(IBuildPropertiesConstants.PROPERTY_P2_METADATA_REPO, new File(fBuildTempMetadataLocation).toURL().toString());
+					map.put(IBuildPropertiesConstants.PROPERTY_P2_ARTIFACT_REPO, new File(fBuildTempMetadataLocation).toURL().toString());
+				}
+			} catch (MalformedURLException e) {
+				PDECore.log(e);
+			}
+		}
 	}
 
 	private String getOS(IFeature feature) {
@@ -434,7 +494,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		File file = new File(fInfo.destinationDirectory);
 		if (!file.exists() || !file.isDirectory()) {
 			if (!file.mkdirs())
-				throw new InvocationTargetException(new Exception(PDECoreMessages.ExportWizard_badDirectory)); 
+				throw new InvocationTargetException(new Exception(PDECoreMessages.ExportWizard_badDirectory));
 		}
 	}
 
@@ -447,7 +507,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			doExport(model, config[0], config[1], config[2], monitor);
 		}
 	}
-		
+
 	protected void setupGenerator(BuildScriptGenerator generator, String featureID, String versionId, String os, String ws, String arch, String featureLocation) throws CoreException {
 		generator.setBuildingOSGi(true);
 		generator.setChildren(true);
@@ -460,7 +520,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		generator.setSignJars(fInfo.signingInfo != null);
 		generator.setGenerateJnlp(fInfo.jnlpInfo != null);
 		String config = os + ',' + ws + ',' + arch;
-		AbstractScriptGenerator.setConfigInfo(config);  //This needs to be set before we set the format
+		AbstractScriptGenerator.setConfigInfo(config); //This needs to be set before we set the format
 		String format;
 		if (fInfo.toDirectory)
 			format = config + '-' + IXMLConstants.FORMAT_FOLDER;
@@ -471,22 +531,18 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		generator.setNextId(TargetPlatformHelper.getPDEState().getNextId());
 		generator.setStateExtraData(TargetPlatformHelper.getBundleClasspaths(TargetPlatformHelper.getPDEState()), TargetPlatformHelper.getPatchMap(TargetPlatformHelper.getPDEState()));
 		AbstractScriptGenerator.setForceUpdateJar(false);
-		AbstractScriptGenerator.setEmbeddedSource(fInfo.exportSource);		
+		AbstractScriptGenerator.setEmbeddedSource(fInfo.exportSource);
 	}
-	
+
 	protected State getState(String os, String ws, String arch) {
 		State main = TargetPlatformHelper.getState();
-		if (os.equals(TargetPlatform.getOS()) 
-				&& ws.equals(TargetPlatform.getWS())
-				&& arch.equals(TargetPlatform.getOSArch())) {
+		if (os.equals(TargetPlatform.getOS()) && ws.equals(TargetPlatform.getWS()) && arch.equals(TargetPlatform.getOSArch())) {
 			return main;
-		} 			
-		if (fStateCopy == null) {
-			fStateCopy = main.getFactory().createState(main);
-			fStateCopy.setResolver(Platform.getPlatformAdmin().getResolver());
-			fStateCopy.setPlatformProperties(main.getPlatformProperties());
 		}
-		
+		if (fStateCopy == null) {
+			copyState(main);
+		}
+
 		Dictionary[] dictionaries = fStateCopy.getPlatformProperties();
 		for (int i = 0; i < dictionaries.length; i++) {
 			Dictionary properties = dictionaries[i];
@@ -497,14 +553,19 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		fStateCopy.resolve(false);
 		return fStateCopy;
 	}
-	
+
+	protected void copyState(State state) {
+		fStateCopy = state.getFactory().createState(state);
+		fStateCopy.setResolver(Platform.getPlatformAdmin().getResolver());
+		fStateCopy.setPlatformProperties(state.getPlatformProperties());
+	}
+
 	private String getDevProperties() {
 		if (fDevProperties == null) {
 			fDevProperties = ClasspathHelper.getDevEntriesProperties(fBuildTempLocation + "/dev.properties", false); //$NON-NLS-1$
 		}
 		return fDevProperties;
 	}
-
 
 	protected boolean isCustomBuild(IModel model) throws CoreException {
 		IBuildModel buildModel = null;
@@ -532,32 +593,32 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	protected String[] getPaths() {
 		return TargetPlatformHelper.getFeaturePaths();
 	}
-	
+
 	protected void cleanup(String[] config, IProgressMonitor monitor) {
-        monitor.beginTask("", 2); //$NON-NLS-1$
-        // clear out some cached values that depend on the configuration being built.
-        fDevProperties = null;
-        fAntBuildProperties = null;
+		monitor.beginTask("", 2); //$NON-NLS-1$
+		// clear out some cached values that depend on the configuration being built.
+		fDevProperties = null;
+		fAntBuildProperties = null;
 
 		File scriptFile = null;
 		try {
 			scriptFile = createScriptFile("zip.xml"); //$NON-NLS-1$
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			Document doc = factory.newDocumentBuilder().newDocument();
-			
+
 			Element root = doc.createElement("project"); //$NON-NLS-1$
 			root.setAttribute("name", "temp"); //$NON-NLS-1$ //$NON-NLS-2$
 			root.setAttribute("default", "clean"); //$NON-NLS-1$ //$NON-NLS-2$
 			root.setAttribute("basedir", "."); //$NON-NLS-1$ //$NON-NLS-2$
 			doc.appendChild(root);
-			
+
 			Element target = doc.createElement("target"); //$NON-NLS-1$
 			target.setAttribute("name", "clean"); //$NON-NLS-1$ //$NON-NLS-2$
 			Element child = doc.createElement("delete"); //$NON-NLS-1$
 			child.setAttribute("dir", fBuildTempLocation); //$NON-NLS-1$
 			target.appendChild(child);
 			root.appendChild(target);
-							
+
 			if (fHasErrors) {
 				target = doc.createElement("target"); //$NON-NLS-1$
 				target.setAttribute("name", "zip.logs"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -566,12 +627,11 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 				child.setAttribute("basedir", fBuildTempLocation + "/pde.logs"); //$NON-NLS-1$ //$NON-NLS-2$
 				target.appendChild(child);
 				root.appendChild(target);
-			}	
+			}
 			XMLPrintHandler.writeFile(doc, scriptFile);
-			
-			String[] targets = fHasErrors 
-						? new String[] {"zip.logs", "clean"}  //$NON-NLS-1$ //$NON-NLS-2$
-						: new String[] {"clean"}; //$NON-NLS-1$
+
+			String[] targets = fHasErrors ? new String[] {"zip.logs", "clean"} //$NON-NLS-1$ //$NON-NLS-2$
+					: new String[] {"clean"}; //$NON-NLS-1$
 			AntRunner runner = new AntRunner();
 			runner.setBuildFileLocation(scriptFile.getAbsolutePath());
 			runner.setExecutionTargets(targets);
@@ -589,7 +649,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 
 	protected File createScriptFile(String filename) throws IOException {
 		String path = PDECore.getDefault().getStateLocation().toOSString();
-		File zip = new File(path, filename); 
+		File zip = new File(path, filename);
 		if (zip.exists()) {
 			zip.delete();
 			zip.createNewFile();
@@ -600,14 +660,14 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	private String logName(String[] config) {
 		if (config == null)
 			return "/logs.zip"; //$NON-NLS-1$
-		return "/logs." + config[0] + '.' + config[1] + '.' + config[2] + ".zip";  //$NON-NLS-1$ //$NON-NLS-2$
+		return "/logs." + config[0] + '.' + config[1] + '.' + config[2] + ".zip"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-    protected void createFeature(String featureID, String featureLocation, String[] config, boolean includeLauncher) throws IOException {
-        File file = new File(featureLocation);
-        if (!file.exists() || !file.isDirectory())
-            file.mkdirs();
-        
+	protected void createFeature(String featureID, String featureLocation, String[] config, boolean includeLauncher) throws IOException {
+		File file = new File(featureLocation);
+		if (!file.exists() || !file.isDirectory())
+			file.mkdirs();
+
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			Document doc = factory.newDocumentBuilder().newDocument();
@@ -615,9 +675,9 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			root.setAttribute("id", featureID); //$NON-NLS-1$
 			root.setAttribute("version", "1.0"); //$NON-NLS-1$ //$NON-NLS-2$
 			doc.appendChild(root);
-			
+
 			if (includeLauncher) {
-				IFeatureModel model = PDECore.getDefault().getFeatureModelManager().findFeatureModel("org.eclipse.platform.launchers"); //$NON-NLS-1$
+				IFeatureModel model = PDECore.getDefault().getFeatureModelManager().getDeltaPackFeature();
 				if (model != null) {
 					IFeature feature = model.getFeature();
 					Element includes = doc.createElement("includes"); //$NON-NLS-1$
@@ -626,61 +686,63 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 					root.appendChild(includes);
 				}
 			}
-            Dictionary environment = new Hashtable(4);
-            environment.put("osgi.os", config[0]); //$NON-NLS-1$
-            environment.put("osgi.ws", config[1]); //$NON-NLS-1$
-            environment.put("osgi.arch", config[2]); //$NON-NLS-1$
-            environment.put("osgi.nl", config[3]); //$NON-NLS-1$
+			Dictionary environment = new Hashtable(4);
+			environment.put("osgi.os", config[0]); //$NON-NLS-1$
+			environment.put("osgi.ws", config[1]); //$NON-NLS-1$
+			environment.put("osgi.arch", config[2]); //$NON-NLS-1$
+			environment.put("osgi.nl", config[3]); //$NON-NLS-1$
 
-            BundleContext context = PDECore.getDefault().getBundleContext();
-            for (int i = 0; i < fInfo.items.length; i++) {
-            	if (fInfo.items[i] instanceof IFeatureModel) {
-                    IFeature feature = ((IFeatureModel) fInfo.items[i]).getFeature();
-  					Element includes = doc.createElement("includes"); //$NON-NLS-1$
- 					includes.setAttribute("id", feature.getId()); //$NON-NLS-1$
- 					includes.setAttribute("version", feature.getVersion()); //$NON-NLS-1$
- 					root.appendChild(includes);
-                } else {
-	            	BundleDescription bundle = null;
-	                if (fInfo.items[i] instanceof IPluginModelBase) {
-	                	bundle = ((IPluginModelBase)fInfo.items[i]).getBundleDescription();
-	                }
-	                if (bundle == null) {
-	                	if (fInfo.items[i] instanceof BundleDescription)
-	                		bundle = (BundleDescription)fInfo.items[i];
-	                }
-	                if (bundle == null)
-	                	continue;
-                    try {
-                        String filterSpec = bundle.getPlatformFilter();
-                        if (filterSpec == null|| context.createFilter(filterSpec).match(environment)) {
-                        	Element plugin = doc.createElement("plugin"); //$NON-NLS-1$
-                        	plugin.setAttribute("id", bundle.getSymbolicName()); //$NON-NLS-1$
-                            plugin.setAttribute("version", "0.0.0"); //$NON-NLS-1$ //$NON-NLS-2$
-                            setAdditionalAttributes(plugin, bundle);
-                            root.appendChild(plugin);
-                         }
-                    } catch (InvalidSyntaxException e) {
-                    }
-                }
-            }
-            XMLPrintHandler.writeFile(doc, new File(file, "feature.xml")); //$NON-NLS-1$
- 		} catch (DOMException e1) {
+			for (int i = 0; i < fInfo.items.length; i++) {
+				if (fInfo.items[i] instanceof IFeatureModel) {
+					IFeature feature = ((IFeatureModel) fInfo.items[i]).getFeature();
+					Element includes = doc.createElement("includes"); //$NON-NLS-1$
+					includes.setAttribute("id", feature.getId()); //$NON-NLS-1$
+					includes.setAttribute("version", feature.getVersion()); //$NON-NLS-1$
+					root.appendChild(includes);
+				} else {
+					BundleDescription bundle = null;
+					if (fInfo.items[i] instanceof IPluginModelBase) {
+						bundle = ((IPluginModelBase) fInfo.items[i]).getBundleDescription();
+					}
+					if (bundle == null) {
+						if (fInfo.items[i] instanceof BundleDescription)
+							bundle = (BundleDescription) fInfo.items[i];
+					}
+					if (bundle == null)
+						continue;
+					if (shouldAddPlugin(bundle, environment)) {
+						Element plugin = doc.createElement("plugin"); //$NON-NLS-1$
+						plugin.setAttribute("id", bundle.getSymbolicName()); //$NON-NLS-1$
+						plugin.setAttribute("version", bundle.getVersion().toString()); //$NON-NLS-1$ 
+						setAdditionalAttributes(plugin, bundle);
+						root.appendChild(plugin);
+					}
+				}
+			}
+			XMLPrintHandler.writeFile(doc, new File(file, "feature.xml")); //$NON-NLS-1$
+		} catch (DOMException e1) {
 		} catch (FactoryConfigurationError e1) {
 		} catch (ParserConfigurationException e1) {
-		}      	
-    }
-    
-    protected void setAdditionalAttributes(Element plugin, BundleDescription bundle){
-    }
-    
-    public boolean hasErrors() {
-    	return fHasErrors;
-    }
+		}
+	}
+
+	protected void setAdditionalAttributes(Element plugin, BundleDescription bundle) {
+	}
+
+	public boolean hasErrors() {
+		return fHasErrors;
+	}
 
 	public static void errorFound() {
 		fHasErrors = true;
 	}
 
-
+	protected boolean shouldAddPlugin(BundleDescription bundle, Dictionary environment) {
+		String filterSpec = bundle.getPlatformFilter();
+		try {
+			return (filterSpec == null || PDECore.getDefault().getBundleContext().createFilter(filterSpec).match(environment));
+		} catch (InvalidSyntaxException e) {
+		}
+		return false;
+	}
 }

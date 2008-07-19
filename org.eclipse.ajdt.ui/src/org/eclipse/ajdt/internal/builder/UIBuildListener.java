@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
@@ -35,7 +36,9 @@ import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ListenerList;
@@ -94,9 +97,36 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 
 		MarkerUpdating.deleteAllMarkers(project);
+		
 	}
 
-	/**
+	
+	/*
+	 * Check the inpath out folder to see if it exists.
+	 * If not, notify the user that the default out folder will be used instead
+	 * The out folder may not exist if the project has been renamed and the
+	 * outfolder not updated after that.
+	 */
+	private void checkInpathOutFolder(IProject project) {
+	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(project);
+        if (outFolder == null || outFolder.equals("")) { //$NON-NLS-1$
+            // using default outfolder
+            return;
+        }
+
+	    if (!pathExists(outFolder)) { 
+	        try {
+	            IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+	            errorMarker.setAttribute(IMarker.MESSAGE, UIMessages.UIBuildListener_InvalidInpathOutFolderText + outFolder);
+	            errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+	            errorMarker.setAttribute(IMarker.LOCATION, "Inpath"); //$NON-NLS-1$
+	        } catch (CoreException e) {
+	            AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
+	                            + project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+	        }	    }
+    }
+
+    /**
 	 * Only want to mark referencing projects once, therefore need to check
 	 * whether they've been marked already. Also, if a project has been marked
 	 * dont want to build it until its prerequisites have been rebuilt.
@@ -128,7 +158,7 @@ public class UIBuildListener implements IAJBuildListener {
 	private void markProject(IProject project, String errorMessage) {
 		try {
 			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
+			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage);
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
@@ -165,6 +195,9 @@ public class UIBuildListener implements IAJBuildListener {
 		// before returning, check to see if the project sent its output
 		// to an outjar and if so, then update any depending projects
 		checkOutJarEntry(project);
+		
+		checkInpathOutFolder(project);
+
 
 		MarkerUpdating.addNewMarkers(project);
 		
@@ -389,4 +422,15 @@ public class UIBuildListener implements IAJBuildListener {
 		return path.makeAbsolute();
 	}
 
+    private boolean pathExists(String pathStr) {
+        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+        IPath path = new Path(pathStr);
+        if (path.segmentCount() == 1) {
+            // bug 153682: getFolder fails when the path is a project
+            return root.findMember(path).exists();
+        } else {
+            return root.getFolder(path).exists();
+        }   
+    }
+	
 }

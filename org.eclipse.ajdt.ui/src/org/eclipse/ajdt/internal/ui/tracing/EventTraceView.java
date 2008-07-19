@@ -121,8 +121,8 @@ public class EventTraceView extends ViewPart
 		Calendar calendar = GregorianCalendar.getInstance();
 		calendar.setTime(time);
 		
-		final String txt = calendar.get(Calendar.HOUR_OF_DAY) + ":" 
-			+ calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + " " + msg + "\n";
+		final String txt = calendar.get(Calendar.HOUR_OF_DAY) + ":"  //$NON-NLS-1$
+			+ calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + " " + msg + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {

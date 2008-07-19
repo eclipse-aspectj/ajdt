@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
-/** 
+/**
  * A wrapper class for IAspectJElements that enables them to have
  * a more detailed label and be understood by the Cross reference
  * view (so that we can navigate to them).

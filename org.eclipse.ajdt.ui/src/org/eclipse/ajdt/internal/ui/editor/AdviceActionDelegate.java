@@ -41,11 +41,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageImageDescriptor;
@@ -55,6 +57,9 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
@@ -446,43 +451,83 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			if (r == null) {
 				r = AJDTUtils.findResource(filepath,project);
 			}
-			final IResource ir = r;
-
-			IMarker jumpMarker = null;
-
-			if ((ir != null) && (ir.exists())) {
-				try {
-					jumpMarker = ir.createMarker(IMarker.TEXT);
-					/*
-					 * GOTCHA: If setting LINE_NUMBER for a marker, you *have*
-					 * to call the version of setAttribute that takes an int and
-					 * not the version that takes a string (even if your line
-					 * number is in a string) - it won't give you an error but
-					 * will *not* be interpreted correctly.
-					 */
-					jumpMarker.setAttribute(IMarker.LINE_NUMBER, new Integer(
-							linenumber).intValue());
-
-				} catch (CoreException ce) {
-					AJDTErrorHandler.handleAJDTError(
-									UIMessages.AdviceActionDelegate_unable_to_create_marker,
-									ce);
-				}
-
-				try {
-					IDE.openEditor(AspectJUIPlugin.getDefault()
-							.getActiveWorkbenchWindow().getActivePage(),
-							jumpMarker, true);
-				} catch (CoreException e) {
-					AJDTErrorHandler.handleAJDTError(
-							UIMessages.AdviceActionDelegate_exception_jumping,
-							e);
-
-				}
+			
+			// 159867: not able to navigate to a binary aspect
+			if (!r.exists()) {
+			    revealBinaryAspect(filepath, linenumber);
 			} else {
-				report(UIMessages.AdviceActionDelegate_resource_not_found);
+	            revealSourceAspect(linenumber, r);
 			}
 		}
+
+        private void revealSourceAspect(final String linenumber, final IResource resource) {
+            IMarker jumpMarker = null;
+            if ((resource != null) && (resource.exists())) {
+                try {
+                    jumpMarker = resource.createMarker(IMarker.TEXT);
+                    /*
+                     * GOTCHA: If setting LINE_NUMBER for a marker, you *have*
+                     * to call the version of setAttribute that takes an int and
+                     * not the version that takes a string (even if your line
+                     * number is in a string) - it won't give you an error but
+                     * will *not* be interpreted correctly.
+                     */
+                    jumpMarker.setAttribute(IMarker.LINE_NUMBER, new Integer(
+                            linenumber).intValue());
+
+                } catch (CoreException ce) {
+                    AJDTErrorHandler.handleAJDTError(
+                                    UIMessages.AdviceActionDelegate_unable_to_create_marker,
+                                    ce);
+                }
+
+                try {
+                    IDE.openEditor(AspectJUIPlugin.getDefault()
+                            .getActiveWorkbenchWindow().getActivePage(),
+                            jumpMarker, true);
+                } catch (CoreException e) {
+                    AJDTErrorHandler.handleAJDTError(
+                            UIMessages.AdviceActionDelegate_exception_jumping,
+                            e);
+
+                }
+            } else {
+                report(UIMessages.AdviceActionDelegate_resource_not_found);
+            }
+        }
+
+        private void revealBinaryAspect(final String filepath,
+                final String linenumber) {
+            // 167121: might be a binary file in a directory, which uses ! as a separator
+            //  - see org.aspectj.weaver.ShadowMunger.getBinaryFile()
+            String qualifiedName = AJDTUtils.extractQualifiedName(filepath);
+            IJavaProject javaProject = JavaCore.create(project);
+            if (javaProject != null) {
+                try {
+                    IType type = javaProject.findType(qualifiedName);
+                    IEditorPart part= EditorUtility.openInEditor(type, true);
+                    if (part instanceof ITextEditor) {
+                        ITextEditor editor = (ITextEditor) part;
+                        IRegion region = getOffsetOfLine(linenumber, editor);
+                        editor.selectAndReveal(region.getOffset(), region.getLength());
+                        return;
+                    }
+                } catch (JavaModelException e) {
+                } catch (PartInitException e) {
+                }
+            }
+            report(UIMessages.AdviceActionDelegate_resource_not_found);
+        }
+
+        private IRegion getOffsetOfLine(String linenumber, ITextEditor editor) {
+            IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+            try {
+                return doc.getLineInformation(Integer.parseInt(linenumber)-1);
+            } catch (NumberFormatException e) {
+            } catch (BadLocationException e) {
+            }
+            return null;
+        }
     }
 	
 	class RelatedLocationMenuAction extends BaseAJDTMenuAction {

@@ -204,7 +204,7 @@ public class LaunchConfigurationClasspathUtils {
 	 */
 	public static IRuntimeClasspathEntry[] getAspectpath(IProject project) {
 		List result = new ArrayList();
-        String[] v = AspectJCorePreferences.getProjectAspectPath(project);
+        String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
         if (v==null) {
         	return null;
         }

@@ -19,16 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -40,7 +33,6 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
@@ -299,29 +291,29 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			}
 		}
 		
-		private static List getAspectJTypes(IJavaSearchScope scope) {
-			List ajTypes = new ArrayList();
-			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-					.getProjects();
-			for (int i = 0; i < projects.length; i++) {
-				try {
-					if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 		
-						IJavaProject jp = JavaCore.create(projects[i]);
-						if (jp != null) {
-							IPath[] paths = scope.enclosingProjectsAndJars();
-							for (int a = 0; a < paths.length; a++) {	
-								if (paths[a].equals(jp.getPath())) { 
-									List ajCus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
-									for (Iterator iter = ajCus.iterator(); iter
-											.hasNext();) {
-										AJCompilationUnit unit = (AJCompilationUnit) iter.next();
-										IType[] types = unit.getAllTypes();
-										for (int j = 0; j < types.length; j++) {
-											IType type = types[j];
-											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
-											int kind = type.getFlags(); // 103131 - pass in correct flags
-											if (type instanceof AspectElement) { // 3.2 - Classes in .aj files are found
-												//TODO: 3.3M3
+//		private static List getAspectJTypes(IJavaSearchScope scope) {
+//			List ajTypes = new ArrayList();
+//			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+//					.getProjects();
+//			for (int i = 0; i < projects.length; i++) {
+//				try {
+//					if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 		
+//						IJavaProject jp = JavaCore.create(projects[i]);
+//						if (jp != null) {
+//							IPath[] paths = scope.enclosingProjectsAndJars();
+//							for (int a = 0; a < paths.length; a++) {	
+//								if (paths[a].equals(jp.getPath())) { 
+//									List ajCus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
+//									for (Iterator iter = ajCus.iterator(); iter
+//											.hasNext();) {
+//										AJCompilationUnit unit = (AJCompilationUnit) iter.next();
+//										IType[] types = unit.getAllTypes();
+//										for (int j = 0; j < types.length; j++) {
+//											IType type = types[j];
+//											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
+//											int kind = type.getFlags(); // 103131 - pass in correct flags
+//											if (type instanceof AspectElement) { // 3.2 - Classes in .aj files are found
+//												//TODO: 3.3M3
 //												AJCUTypeInfo info = new AJCUTypeInfo(
 //														type.getPackageFragment().getElementName(),
 //														type.getElementName(),
@@ -334,20 +326,20 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 //														"aj", //$NON-NLS-1$
 //														unit);							
 //												ajTypes.add(info);
-											}
-											
-										}
-									}
-								} 
-							}
-						}
-					}	
-				} catch (JavaModelException e) {
-				} catch (CoreException e) {					
-				}
-			}
-			return ajTypes;
-		}
+//											}
+//											
+//										}
+//									}
+//								} 
+//							}
+//						}
+//					}	
+//				} catch (JavaModelException e) {
+//				} catch (CoreException e) {					
+//				}
+//			}
+//			return ajTypes;
+//		}
 
 
 		private TypeNameMatch[] processTypeInfo(List typeRefsFound) {

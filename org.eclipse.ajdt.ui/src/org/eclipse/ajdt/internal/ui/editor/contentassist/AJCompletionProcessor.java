@@ -31,7 +31,7 @@ import org.eclipse.ui.IEditorPart;
  */
 public class AJCompletionProcessor extends JavaCompletionProcessor {
 	
-	protected static final String intertypeMemberTag = "ajc$";  //$NON-NLS-1$
+	private static final String INTERTYPE_MEMBER_TAG = "ajc$";  //$NON-NLS-1$
 	private int offset;
 	
 	public AJCompletionProcessor(IEditorPart editor, ContentAssistant assistant, String partition) {
@@ -43,7 +43,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		List newProposals = super.filterAndSortProposals(proposals, monitor, context);
 		for (Iterator iter = newProposals.iterator(); iter.hasNext();) {
 			ICompletionProposal proposal = (ICompletionProposal) iter.next();			
-			if (proposal.getDisplayString().startsWith(intertypeMemberTag)) {
+			if (proposal.getDisplayString().startsWith(INTERTYPE_MEMBER_TAG)) {
 				iter.remove();
 			}
 		}

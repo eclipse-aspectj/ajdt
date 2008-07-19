@@ -16,21 +16,30 @@
 package org.eclipse.ajdt.internal.ui.wizards;
 
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
@@ -38,6 +47,7 @@ import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 
@@ -89,15 +99,15 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	        BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 	 		IProject project = fSecondPage.getJavaProject().getProject();
 	 		selectAndReveal(project);
-			boolean completed = finalizeNewProject(project, false);//fFirstPage.getDetect());
+			boolean completed = finalizeNewProject(project);
 			res = completed;
 		}
 		return res;
 	}
     
     protected void handleFinishException(Shell shell, InvocationTargetException e) {
-        String title= NewWizardMessages.JavaProjectWizard_op_error_title; //$NON-NLS-1$
-        String message= NewWizardMessages.JavaProjectWizard_op_error_create_message; //$NON-NLS-1$
+        String title= NewWizardMessages.JavaProjectWizard_op_error_title; 
+        String message= NewWizardMessages.JavaProjectWizard_op_error_create_message; 
         ExceptionHandler.handle(e, getShell(), title, message);
     }	
 
@@ -105,9 +115,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	/**
 	 * Builds and adds the necessary properties to the new project and updates the workspace view
 	 */
-	private boolean finalizeNewProject(IProject project, boolean alreadyExists) {
-		
-//		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
+	private boolean finalizeNewProject(IProject project) {
 		
         // Bugzilla 46271
         // Force a build of the new AspectJ project using the Java builder
@@ -119,33 +127,23 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 		ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
 		try {
 			
-			// The nature to add is the PluginID+NatureID - it is not the
-			// name of the class implementing IProjectNature !!
-			// When the nature is attached, the project will be driven through
-			// INatureProject.configure() which will replace the normal javabuilder
-			// with the aspectj builder.
-			if(!alreadyExists) {
-				AJDTUtils.addAspectJNature(project,true);
-			}
-			
-			else {
-				dialog.run(true, true, new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor)
-							throws InvocationTargetException {
-						monitor.beginTask("", 2); //$NON-NLS-1$
-						try {
-							monitor
-									.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
-							thisProject.build(
-									IncrementalProjectBuilder.FULL_BUILD,
-									new SubProgressMonitor(monitor, 2));
-						} catch (CoreException e) {
-						} finally {
-							monitor.done();
-						}
+			AJDTUtils.addAspectJNature(project,true);
+
+			dialog.run(true, true, new IRunnableWithProgress() {
+				public void run(IProgressMonitor monitor)
+						throws InvocationTargetException {
+					monitor.beginTask("", 2); //$NON-NLS-1$
+					try {
+						monitor.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
+						thisProject.build(
+								IncrementalProjectBuilder.FULL_BUILD,
+								new SubProgressMonitor(monitor, 2));
+					} catch (CoreException e) {
+					} finally {
+						monitor.done();
 					}
-				});
-			}
+				}
+			});
 		} catch(InterruptedException e) {
 			// build cancelled by user
 			return false;
@@ -192,5 +190,4 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	public IJavaElement getCreatedElement() {
 		return fSecondPage.getJavaProject();
 	}
-
 }

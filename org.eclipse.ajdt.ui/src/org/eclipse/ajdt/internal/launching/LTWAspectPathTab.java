@@ -244,7 +244,7 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 				}
 				configuration.setAttribute(ATTR_ASPECTPATH, mementos);
 			} catch (CoreException e) {
-				JDIDebugUIPlugin.errorDialog(LauncherMessages.JavaClasspathTab_Unable_to_save_classpath_1, e); //$NON-NLS-1$
+				JDIDebugUIPlugin.errorDialog(LauncherMessages.JavaClasspathTab_Unable_to_save_classpath_1, e); 
 			}
 		}
 	}

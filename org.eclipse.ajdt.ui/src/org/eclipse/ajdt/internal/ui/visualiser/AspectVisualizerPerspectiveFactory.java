@@ -94,7 +94,7 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 		final String VISUALISER_MENU_VIEW_ID = "org.eclipse.contribution.visualiser.views.Menu";  //$NON-NLS-1$
 
 		// Add the Visualiser Menu above the Java editor view
-		layout.addView(VISUALISER_MENU_VIEW_ID, //$NON-NLS-1$
+		layout.addView(VISUALISER_MENU_VIEW_ID, 
 				IPageLayout.TOP, (float) 0.75, IPageLayout.ID_EDITOR_AREA);		
 
 		// Add the package explorer to the left
@@ -102,7 +102,7 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 				IPageLayout.LEFT, (float) 0.20, VISUALISER_MENU_VIEW_ID);
 
 		// Add the main visualiser view to the left of the v.menu
-		layout.addView(VISUALISER_VIEW_ID, //$NON-NLS-1$
+		layout.addView(VISUALISER_VIEW_ID, 
 				IPageLayout.LEFT, (float) 0.75, VISUALISER_MENU_VIEW_ID);		
 
 

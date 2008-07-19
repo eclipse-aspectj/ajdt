@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.launching;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -23,8 +22,10 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.launching.RuntimeClasspathEntry;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
@@ -80,7 +81,18 @@ public class LaunchConfigurationManagementUtils {
 						.hasNext();) {
 					IClasspathEntry newEntry = ((CPListElement) iterator.next())
 							.getClasspathEntry();
-					entriesAsList.add(new RuntimeClasspathEntry(newEntry));
+					if (newEntry.getEntryKind() != IClasspathEntry.CPE_CONTAINER) {
+					    entriesAsList.add(new RuntimeClasspathEntry(newEntry));
+					} else {
+					    IClasspathContainer container = 
+					        JavaCore.getClasspathContainer(newEntry.getPath(), project);
+					    if (container != null) {
+    					    IClasspathEntry[] containerEntries = container.getClasspathEntries();
+    					    for (int i = 0; i < containerEntries.length; i++) {
+    					        entriesAsList.add(new RuntimeClasspathEntry(containerEntries[i]));
+    					    }
+					    }
+					}
 				}
 				IRuntimeClasspathEntry[] updatedEntries = (IRuntimeClasspathEntry[]) entriesAsList
 						.toArray(new IRuntimeClasspathEntry[0]);
@@ -179,27 +191,26 @@ public class LaunchConfigurationManagementUtils {
 	 * @param projectName
 	 */
 	private static List getLaunchConfigsForProject(String projectName) {
-		return Collections.EMPTY_LIST;
-//		ILaunchConfigurationType configType = AspectJApplicationLaunchShortcut
-//				.getAJConfigurationType();
-//		List candidateConfigs = new ArrayList();
-//		try {
-//			ILaunchConfiguration[] configs = DebugPlugin.getDefault()
-//					.getLaunchManager().getLaunchConfigurations(configType);
-//			candidateConfigs = new ArrayList(configs.length);
-//			for (int i = 0; i < configs.length; i++) {
-//				ILaunchConfiguration config = configs[i];
-//				if (config
-//						.getAttribute(
-//								IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
-//								"").equals(projectName)) { //$NON-NLS-1$
-//					candidateConfigs.add(config);
-//				}
-//			}
-//		} catch (CoreException cEx) {
-//			AJLog.log(cEx.getMessage());
-//		}
-//		return candidateConfigs;
+		ILaunchConfigurationType configType = AspectJApplicationLaunchShortcut
+				.getAJConfigurationType();
+		List candidateConfigs = new ArrayList();
+		try {
+			ILaunchConfiguration[] configs = DebugPlugin.getDefault()
+					.getLaunchManager().getLaunchConfigurations(configType);
+			candidateConfigs = new ArrayList(configs.length);
+			for (int i = 0; i < configs.length; i++) {
+				ILaunchConfiguration config = configs[i];
+				if (config
+						.getAttribute(
+								IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
+								"").equals(projectName)) { //$NON-NLS-1$
+					candidateConfigs.add(config);
+				}
+			}
+		} catch (CoreException cEx) {
+			AJLog.log(cEx.getMessage());
+		}
+		return candidateConfigs;
 	}
 
 }

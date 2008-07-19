@@ -587,7 +587,7 @@ public class AJMarkersDialog extends Dialog {
 							List children = new ArrayList();
 							for (int i = 0; i < members.length; i++) {
 								IResource resource = members[i];
-								if(resource instanceof IContainer || resource.getFileExtension().equals("gif") || resource.getFileExtension().equals("png")) { //$NON-NLS-1$
+								if(resource instanceof IContainer || resource.getFileExtension().equals("gif") || resource.getFileExtension().equals("png")) { //$NON-NLS-1$ //$NON-NLS-2$
 									children.add(resource);
 								}
 							}

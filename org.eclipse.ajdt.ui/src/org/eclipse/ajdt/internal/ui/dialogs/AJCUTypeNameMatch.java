@@ -12,7 +12,6 @@
  package org.eclipse.ajdt.internal.ui.dialogs;
 
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.search.TypeNameMatch;
 import org.eclipse.jdt.internal.core.search.JavaSearchTypeNameMatch;
 
 public class AJCUTypeNameMatch extends JavaSearchTypeNameMatch {

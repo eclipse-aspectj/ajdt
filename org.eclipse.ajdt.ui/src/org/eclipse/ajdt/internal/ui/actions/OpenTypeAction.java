@@ -19,7 +19,9 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaUIMessages;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
@@ -29,6 +31,18 @@ public class OpenTypeAction extends
 
 	public OpenTypeAction() {
 		super();
+	}
+	
+	public void run(IAction action) {
+	    run();
+	}
+	
+	public void runWithEvent(Event e) {
+	    run();
+	}
+	
+	public void runWithEvent(IAction action, Event event) {
+        run();
 	}
 	
 	public void run() {

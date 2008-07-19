@@ -34,7 +34,7 @@ public class Utils {
 	public static boolean isAJProject(IProject project) {
 		if((project!=null) && project.isOpen()) {			
 			try {
-				if (project.hasNature(ID_NATURE)) { //$NON-NLS-1$
+				if (project.hasNature(ID_NATURE)) { 
 					return true;
 				}
 			} catch (CoreException e) {
