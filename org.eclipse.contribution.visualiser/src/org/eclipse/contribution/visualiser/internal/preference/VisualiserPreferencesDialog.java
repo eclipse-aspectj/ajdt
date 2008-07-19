@@ -47,7 +47,7 @@ import org.eclipse.swt.widgets.Shell;
 public class VisualiserPreferencesDialog extends Dialog implements IPreferencePageContainer{
 
 	public static final String PREF_DLG_TITLE_IMG = "visualiser_preference_dialog_title_image"; //$NON-NLS-1$
-	public static final String PREF_DLG_IMG_TITLE_ERROR = DLG_IMG_MESSAGE_ERROR; //$NON-NLS-1$
+	public static final String PREF_DLG_IMG_TITLE_ERROR = DLG_IMG_MESSAGE_ERROR;
 
 	static {
 		ImageRegistry reg = JFaceResources.getImageRegistry();
