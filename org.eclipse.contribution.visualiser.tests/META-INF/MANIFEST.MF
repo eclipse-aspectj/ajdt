@@ -4,7 +4,6 @@ Bundle-Name: Visualser Tests
 Bundle-SymbolicName: org.eclipse.contribution.visualiser.tests;singleton:=true
 Bundle-Version: 2.2.0.qualifier
 Bundle-ClassPath: visualisertests.jar
-Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.visualiser.tests
 Require-Bundle: org.eclipse.ui,
  org.junit,
