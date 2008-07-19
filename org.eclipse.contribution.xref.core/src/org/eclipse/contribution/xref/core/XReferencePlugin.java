@@ -14,8 +14,8 @@ package org.eclipse.contribution.xref.core;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.core.runtime.PluginVersionIdentifier;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Version;
 
 /**
  * The main plugin class to be used in the desktop.
@@ -51,13 +51,13 @@ public class XReferencePlugin extends Plugin {
 	
 	public static String getVersion() {
 	    String pluginVersion = (String) Platform.getBundle(PLUGIN_ID).getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
-		PluginVersionIdentifier version = new PluginVersionIdentifier(pluginVersion); 
+		Version version = new Version(pluginVersion); 
 		StringBuffer result = new StringBuffer();
-		result.append(version.getMajorComponent());
+		result.append(version.getMajor());
 		result.append("."); //$NON-NLS-1$
-		result.append(version.getMinorComponent());
+		result.append(version.getMinor());
 		result.append("."); //$NON-NLS-1$
-		result.append(version.getServiceComponent());		
+		result.append(version.getMicro());		
 		return result.toString();		
 	}
 

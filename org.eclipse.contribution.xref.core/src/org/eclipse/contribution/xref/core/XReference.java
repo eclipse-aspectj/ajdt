@@ -25,7 +25,6 @@ public class XReference implements IXReference {
 	private String name;
 	private Set associates;
 	
-	private XReference() {}
 	
 	/**
 	 * Creates a new cross reference with the given (user-visible) name and
