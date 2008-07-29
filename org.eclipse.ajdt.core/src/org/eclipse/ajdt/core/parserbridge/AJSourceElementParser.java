@@ -1674,8 +1674,8 @@ public void parseTypeMemberDeclarations(
 			return;
 		this.sourceType = type;
 		helper1(sourceUnit, start, end, unit);  // extracted to try and avoid JSRs in compiled code
-	} catch (AbortCompilation e) {
-		// ignore this exception
+//	} catch (AbortCompilation e) { // trying to get around 225785 - j9 verifier problem
+//		// ignore this exception
 	} finally {
 		if (scanner.recordLineSeparator) {
 			requestor.acceptLineSeparatorPositions(compilationUnitResult.getLineSeparatorPositions());
@@ -1702,6 +1702,8 @@ private void helper1(ICompilationUnit sourceUnit, int start, int end,
 		/* run automaton */
 		parse();
 		notifySourceElementRequestor(unit);
+	} catch (AbortCompilation ac) {
+		// ignore
 	} finally {
 		unit = compilationUnit;
 		compilationUnit = null; // reset parser
