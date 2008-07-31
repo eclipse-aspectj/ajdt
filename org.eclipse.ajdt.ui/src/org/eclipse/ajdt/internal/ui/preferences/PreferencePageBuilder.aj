@@ -23,6 +23,7 @@ import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
+import org.eclipse.ajdt.internal.ui.wizards.PathBlock;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -78,9 +79,7 @@ aspect PreferencePageBuilder {
 	interface AJDTPathBlockPage {
 	}
 
-	declare parents: AspectPathBlock implements AJDTPathBlockPage;
-
-	declare parents: InPathBlock implements AJDTPathBlockPage;
+	declare parents: PathBlock implements AJDTPathBlockPage;
 
 	pointcut interestingPage(): 
 	    within(AspectJProjectPropertiesPage) ||
@@ -121,15 +120,21 @@ aspect PreferencePageBuilder {
 		remainingActivePages.remove(page);
 	}
 
-	pointcut interestingPathBlockPages() : within(AspectPathBlock) || within(InPathBlock);
+	pointcut interestingPathBlockPages() : within(PathBlock) || within(AspectPathBlock) || within(InPathBlock);
 
 	pointcut setSelection(Button button, boolean val,
 			IWorkbenchPropertyPage page):
         call(* setSelection(boolean)) && args(val) && target(button) && this(page);
-
+	
 	// remember the first value put into the buttons
 	before(Button b, boolean val, IWorkbenchPropertyPage page):
-        	setSelection(b,val,page) && interestingPage(){
+        	setSelection(b,val,page) && interestingPage() { 
+	    
+	    // check to see if this button is ignored
+	    if (AJCompilerPreferencePage.NO_BUILD_ON_CHANGE.equals(b.getData(AJCompilerPreferencePage.NO_BUILD_ON_CHANGE))) {
+	        return;
+	    }
+	    
 		if (!buttonOriginalValues.containsKey(page)) {
 			Hashtable buttonValues = new Hashtable();
 			buttonValues.put(b, new Boolean(val));
@@ -217,10 +222,7 @@ aspect PreferencePageBuilder {
 		for (Iterator iter = activePages.iterator(); iter.hasNext();) {
 			IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter
 					.next();
-			if ((basePage instanceof AspectPathBlock)
-					&& (ajdtPage instanceof AspectJProjectPropertiesPage)) {
-				page = ajdtPage;
-			} else if ((basePage instanceof InPathBlock)
+			if ((basePage instanceof PathBlock)
 					&& (ajdtPage instanceof AspectJProjectPropertiesPage)) {
 				page = ajdtPage;
 			}
@@ -390,7 +392,7 @@ aspect PreferencePageBuilder {
 	}
 
 	pointcut pageCompleting(IWorkbenchPropertyPage page) : 
-        execution(boolean performOk()) && interestingPage() && this(page);
+        (execution(boolean performOk()) || execution(void performApply())) && interestingPage() && this(page);
 
 	// performOk not running because of performApply
 	after(IWorkbenchPropertyPage page) returning: pageCompleting(page) && !cflow(execution(* performApply())) {
