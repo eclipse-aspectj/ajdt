@@ -9,18 +9,20 @@
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
  *******************************************************************************/
-
 package org.eclipse.ajdt.ui.tests;
+
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+
+import org.eclipse.ui.internal.views.log.LogEntry;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.ui.internal.views.log.AbstractEntry;
-import org.eclipse.ui.internal.views.log.LogEntry;
-import org.eclipse.ui.internal.views.log.LogView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.internal.Workbench;
+import org.eclipse.ui.internal.views.log.LogView;
 
 /**
  * Aspect that causes tests to fail if they add errors to the error log
@@ -36,8 +38,10 @@ public aspect ErrorsTest {
 	 	&& !this(PluginFFDCTest);
 	
 	void around(): uiTestRun() {
+		IViewPart view;
 		try {
-			LogView logView = UITestCase.openLogView();
+			view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+			LogView logView = (LogView)view;
 			AbstractEntry[] logs = logView.getElements();
 			int numErrors = logs.length;
 			proceed();
@@ -46,9 +50,9 @@ public aspect ErrorsTest {
 			if(logs.length > numErrors) { // Check for errors or warnings
 				int numAdded = logs.length - numErrors;
 				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
-					LogEntry entry = (LogEntry)logs[i];
+					LogEntry entry = (LogEntry) logs[i];
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-						failureText += "The test added errors to the log: \n" + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					}
 				}
 				if (failureText.length() > 0) {
