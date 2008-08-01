@@ -39,7 +39,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		String[] Aspectpath = AspectJCorePreferences
-				.getProjectAspectPath(project);
+				.getResolvedProjectAspectPath(project);
 		String[] seperatedAspectpath = Aspectpath[0].split(";"); //$NON-NLS-1$
 		assertEquals("/jarCreatingProject/myJar.jar",seperatedAspectpath[0]); //$NON-NLS-1$
 
@@ -56,7 +56,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 
 		waitForJobsToComplete();
 
-		Aspectpath = AspectJCorePreferences.getProjectAspectPath(project);
+		Aspectpath = AspectJCorePreferences.getResolvedProjectAspectPath(project);
 		seperatedAspectpath = Aspectpath[0].split(";"); //$NON-NLS-1$
 		assertEquals("",seperatedAspectpath[0]); //$NON-NLS-1$
 	}
@@ -81,7 +81,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 
 		waitForJobsToComplete();
 
-		String[] Inpath = AspectJCorePreferences.getProjectInPath(project);
+		String[] Inpath = AspectJCorePreferences.getResolvedProjectInpath(project);
 		String[] seperatedInpath = Inpath[0].split(";"); //$NON-NLS-1$
 		assertEquals("/jarCreatingProject/myJar.jar",seperatedInpath[0]); //$NON-NLS-1$
 
@@ -98,7 +98,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 
 		waitForJobsToComplete();
 
-		Inpath = AspectJCorePreferences.getProjectAspectPath(project);
+		Inpath = AspectJCorePreferences.getResolvedProjectAspectPath(project);
 		seperatedInpath = Inpath[0].split(";"); //$NON-NLS-1$
 		assertEquals("",seperatedInpath[0]); //$NON-NLS-1$
 	}
