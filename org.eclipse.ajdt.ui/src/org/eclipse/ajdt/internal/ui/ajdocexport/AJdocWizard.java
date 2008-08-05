@@ -408,7 +408,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			// all the source files to use as an argument file.
 			File tempFile = File.createTempFile("filelist", ".ls");
 			tempFile.deleteOnExit();
-			vmArgs.add("@filelist.ls");
+			vmArgs.add("@" + tempFile.getPath());
 			java.io.BufferedWriter out = new java.io.BufferedWriter(new java.io.FileWriter(tempFile));
 			for(int i = sourceIndex; i < progArgs.size();i++){
 				out.write((String) progArgs.get(i));
