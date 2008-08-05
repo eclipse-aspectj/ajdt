@@ -8,6 +8,7 @@
  * Davids <sdavids@gmx.de>bug 38692
  * Luzius Meisser - adjusted for ajdoc 
  * Helen Hawkins - updated for Eclipse 3.1 (bug 109484)
+ * Arturo Salazar , Jason Naylor - Adjust for projects with large # of files.
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ajdocexport;
 
@@ -387,10 +388,33 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			vmArgs.add(checkForSpaces(aspectjtoolsDir + File.pathSeparator + javadocJarDir + File.pathSeparator + aspectjrtDir));
 			vmArgs.add("org.aspectj.tools.ajdoc.Main"); //$NON-NLS-1$
 			
+			// Condense arguments into a file so that a poject 
+			// with a large amount of source files doesn't pass too many
+			// arguments causing a System error 87 on windows when ajdoc is called.
+			int sourceIndex = 0; // get index of where the source files start
+			
 			for (int i = 0; i < progArgs.size(); i++) {
+				// Keep adding arguments till we reach the source files.
+				if(((String)progArgs.get(i)).indexOf(".java")  != -1
+						|| ((String)progArgs.get(i)).indexOf(".aj") != -1){
+					sourceIndex = i;
+					break;
+				}
 				String curr = (String) progArgs.get(i);	
 				vmArgs.add(checkForSpaces(curr));
 			}
+			
+			// Create a temporary file containing a list of
+			// all the source files to use as an argument file.
+			File tempFile = File.createTempFile("filelist", ".ls");
+			tempFile.deleteOnExit();
+			vmArgs.add("@filelist.ls");
+			java.io.BufferedWriter out = new java.io.BufferedWriter(new java.io.FileWriter(tempFile));
+			for(int i = sourceIndex; i < progArgs.size();i++){
+				out.write((String) progArgs.get(i));
+				out.write("\n");
+			}
+			out.close();
 			
 			String[] args = (String[]) vmArgs
 					.toArray(new String[vmArgs.size()]);
