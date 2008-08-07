@@ -156,7 +156,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			}
 			
 			// Go through the problem markers 
-			IMarker probMarkers[] = ifile.findMarkers(IMarker.PROBLEM, true, 2);
+			IMarker probMarkers[] = ifile.findMarkers(IMarker.MARKER, true, 2);
             MenuManager problemSubmenu = null;
             boolean problemSubmenuInitialized = false;
             if (probMarkers != null && probMarkers.length != 0) {
