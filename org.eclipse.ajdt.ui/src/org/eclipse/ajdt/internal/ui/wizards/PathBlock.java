@@ -402,7 +402,7 @@ public abstract class PathBlock {
                                 rawEntry.getPath().makeRelative().toPortableString());
                         if (! requiredProj.getName().equals(thisProject.getName())   
                                 && requiredProj.exists()) {
-                            List containerEntries2 = AspectJCorePreferences.resolveDependentProjectClasspath(requiredProj);
+                            List containerEntries2 = AspectJCorePreferences.resolveDependentProjectClasspath(requiredProj, rawEntry);
                             for (Iterator containerIter = containerEntries2.iterator(); containerIter.hasNext(); ) {
                                 IClasspathEntry containerEntry = (IClasspathEntry) containerIter.next();
                                 resolvedEntries.put(containerEntry.getPath()
