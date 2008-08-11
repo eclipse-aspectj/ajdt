@@ -38,6 +38,9 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.TextViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
@@ -65,6 +68,7 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 public abstract class UITestCase extends TestCase {
 
 	public static final String TEST_PROJECTS_FOLDER = "/workspace"; //$NON-NLS-1$
+    protected Display display = Display.getCurrent();
 
 	public UITestCase(String name) {
 		super(name);
@@ -329,21 +333,6 @@ public abstract class UITestCase extends TestCase {
 		return contents.toString();
 	}
 	
-   protected static String getConsoleViewContents() {
-        ConsoleView cview = null;
-        IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench()
-                .getActiveWorkbenchWindow().getActivePage().getViewReferences();
-        for (int i = 0; i < views.length; i++) {
-            if (views[i].getView(false) instanceof ConsoleView) {
-                cview = (ConsoleView) views[i].getView(false);
-            }
-        }
-        assertNotNull("Console view should be open", cview); //$NON-NLS-1$
-        IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
-        TextViewer viewer = page.getViewer();
-        return viewer.getDocument().get();
-    }
- 
 	protected IMarker[] getAllProblemViewMarkers() {
 		try {
 			ProblemsView problemsView = (ProblemsView) AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().showView("org.eclipse.ui.views.ProblemView");        //$NON-NLS-1$
@@ -357,4 +346,113 @@ public abstract class UITestCase extends TestCase {
 		
 	}
 
+    protected static String getConsoleViewContents() {
+        ConsoleView cview = null;
+        IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench()
+                .getActiveWorkbenchWindow().getActivePage().getViewReferences();
+        for (int i = 0; i < views.length; i++) {
+            if (views[i].getView(false) instanceof ConsoleView) {
+                cview = (ConsoleView) views[i].getView(false);
+            }
+        }
+        assertNotNull("Console view should be open", cview); //$NON-NLS-1$
+        IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
+        TextViewer viewer = page.getViewer();
+        return viewer.getDocument().get();
+    }
+
+    /**
+     * Post a key event (equivalent to posting a key down event then a key up
+     * event)
+     * 
+     * @param c -
+     *            the character to post
+     */
+    protected void postKey(char c) {
+        postKeyDown(c);
+        postKeyUp(c);
+    }
+
+    /**
+     * Post a key down event
+     * 
+     * @param c -
+     *            the character to post
+     */
+    protected void postKeyDown(char c) {
+        Event event = new Event();
+        event.type = SWT.KeyDown;
+        event.character = c;
+        display.post(event);
+        sleep(10);
+    }
+
+    /**
+     * Post a key up event
+     * 
+     * @param c -
+     *            the character to post
+     */
+    protected void postKeyUp(char c) {
+        Event event = new Event();
+        event.type = SWT.KeyUp;
+        event.character = c;
+        display.post(event);
+        sleep(10);
+    }
+
+    /**
+     * Post a key event (equivalent to posting a key down event then a key up
+     * event)
+     * 
+     * @param keyCode -
+     *            one of the key codes defined int he SWT class
+     */
+    protected void postKey(int keyCode) {
+        postKeyDown(keyCode);
+        postKeyUp(keyCode);
+    }
+
+    /**
+     * Post a key down event
+     * 
+     * @param keyCode -
+     *            one of the key codes defined int he SWT class
+     */
+    protected void postKeyDown(int keyCode) {
+        Event event = new Event();
+        event.type = SWT.KeyDown;
+        event.keyCode = keyCode;
+        display.post(event);
+        sleep(10);
+    }
+
+    /**
+     * Post a key up event
+     * 
+     * @param keyCode -
+     *            one of the key codes defined int he SWT class
+     */
+    protected void postKeyUp(int keyCode) {
+        Event event = new Event();
+        event.type = SWT.KeyUp;
+        event.keyCode = keyCode;
+        display.post(event);
+        sleep(10);
+    }
+
+    
+    protected void sleep() {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    protected void sleep(int delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+        }
+    }
 }
