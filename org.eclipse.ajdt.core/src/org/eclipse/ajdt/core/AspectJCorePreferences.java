@@ -432,6 +432,8 @@ public class AspectJCorePreferences {
                 if (requiredEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 
                     // always add source entries even if not explicitly exported
+
+                    // don't add the source folder itself, but instead add the outfolder
                     IPath outputLocation = requiredEntry.getOutputLocation();
                     if (outputLocation != null) {
 	                    // XXX Not sure what I should be doing with these
@@ -440,11 +442,13 @@ public class AspectJCorePreferences {
             	        IAccessRule[] rules = projEntry.getAccessRules();
                 	    IClasspathAttribute[] attributes = projEntry.getExtraAttributes();
 
-                        // don't add the source folder itself, but instead add the outfolder
-                        IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
-                                requiredEntry.getPath(),
-                                requiredProj.getFullPath(), rules, attributes, projEntry.isExported());
-                        actualEntries.add(outFolder);
+                	    // only add the out folder if it already exists
+                	    if (requiredProj.getFolder(outputLocation.removeFirstSegments(1)).exists()) {
+                            IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
+                                    requiredEntry.getPath(),
+                                    requiredProj.getFullPath(), rules, attributes, projEntry.isExported());
+                            actualEntries.add(outFolder);
+                	    }
                     }
                 } else if (requiredEntry.isExported()) {
                     // must recur through this entry and add entries that it contains
