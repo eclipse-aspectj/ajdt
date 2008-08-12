@@ -16,6 +16,7 @@ import junit.framework.TestSuite;
 
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
+import org.eclipse.ajdt.core.tests.builder.AspectPathTests;
 import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
@@ -82,7 +83,8 @@ public class AllCoreTests {
 		// builder tests
 		suite.addTest(new TestSuite(CoreOutputLocationManagerTest.class));
 		suite.addTest(new TestSuite(AJBuilderTest.class));
-		suite.addTest(new TestSuite(AJBuilderTest2.class));
+        suite.addTest(new TestSuite(AJBuilderTest2.class));
+        suite.addTest(new TestSuite(AspectPathTests.class));
 		suite.addTest(new TestSuite(Bug99133Test.class));
         suite.addTest(new TestSuite(Bug159197Test.class));
         suite.addTest(new TestSuite(Bug43711Test.class));
