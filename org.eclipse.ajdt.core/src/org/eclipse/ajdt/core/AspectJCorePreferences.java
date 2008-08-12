@@ -336,7 +336,7 @@ public class AspectJCorePreferences {
     			setProjectAspectPath(project,old[0],old[1],old[2]);
     			removeOldAspectPathSetting(project);
     		}
-	    } else {
+	    } else { // INPATH_ATTRIBUTE
             String[] old = getOldProjectInPath(project);
             if (old != null) {
                 AJLog.log("Migrating inpath settings for project "+project.getName()); //$NON-NLS-1$
@@ -390,6 +390,7 @@ public class AspectJCorePreferences {
 					}  // attributes[j].equals(attribute)
 				}  // for (int j = 0; j < attributes.length; j++)
 				
+				// Bug 243356
 				// there is a special case that we must look inside the classpath container for entries with
 				// attributes if we are returning the resolved path and the container itself isn't already
 				// on the path.
@@ -403,7 +404,7 @@ public class AspectJCorePreferences {
                             IClasspathEntry containerEntry = (IClasspathEntry) cpIter.next();
                             IClasspathAttribute[] containerAttrs = containerEntry.getExtraAttributes();
                             for (int j = 0; j < containerAttrs.length; j++) {
-                                if (containerAttrs[j].equals(attribute)) {
+                                if (containerAttrs[j].getName().equals(attribute.getName())) {
                                     pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
                                     contentString += containerEntry.getContentKind() + File.pathSeparator;
                                     entryString += containerEntry.getEntryKind() + File.pathSeparator;
@@ -432,6 +433,8 @@ public class AspectJCorePreferences {
                 if (requiredEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 
                     // always add source entries even if not explicitly exported
+
+                    // don't add the source folder itself, but instead add the outfolder
                     IPath outputLocation = requiredEntry.getOutputLocation();
                     if (outputLocation != null) {
 	                    // XXX Not sure what I should be doing with these
@@ -440,11 +443,13 @@ public class AspectJCorePreferences {
             	        IAccessRule[] rules = projEntry.getAccessRules();
                 	    IClasspathAttribute[] attributes = projEntry.getExtraAttributes();
 
-                        // don't add the source folder itself, but instead add the outfolder
-                        IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
-                                requiredEntry.getPath(),
-                                requiredProj.getFullPath(), rules, attributes, projEntry.isExported());
-                        actualEntries.add(outFolder);
+                	    // only add the out folder if it already exists
+                	    if (requiredProj.getFolder(outputLocation.removeFirstSegments(1)).exists()) {
+                            IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
+                                    requiredEntry.getPath(),
+                                    requiredProj.getFullPath(), rules, attributes, projEntry.isExported());
+                            actualEntries.add(outFolder);
+                	    }
                     }
                 } else if (requiredEntry.isExported()) {
                     // must recur through this entry and add entries that it contains
