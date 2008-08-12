@@ -336,7 +336,7 @@ public class AspectJCorePreferences {
     			setProjectAspectPath(project,old[0],old[1],old[2]);
     			removeOldAspectPathSetting(project);
     		}
-	    } else {
+	    } else { // INPATH_ATTRIBUTE
             String[] old = getOldProjectInPath(project);
             if (old != null) {
                 AJLog.log("Migrating inpath settings for project "+project.getName()); //$NON-NLS-1$
@@ -403,8 +403,8 @@ public class AspectJCorePreferences {
                             IClasspathEntry containerEntry = (IClasspathEntry) cpIter.next();
                             IClasspathAttribute[] containerAttrs = containerEntry.getExtraAttributes();
                             for (int j = 0; j < containerAttrs.length; j++) {
-                                if (containerAttrs[j].equals(attribute)) {
-                                    pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
+                                if (containerAttrs[j].getName().equals(attribute.getName())) {
+                            		pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
                                     contentString += containerEntry.getContentKind() + File.pathSeparator;
                                     entryString += containerEntry.getEntryKind() + File.pathSeparator;
                                 }
