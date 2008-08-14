@@ -1,6 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2008 Mylyn project committers and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * Contributors:
+ * Andrew Eisenberg  (SpringSource)
+ *******************************************************************************/
 package org.eclipse.ajdt.mylyn.ui;
-
-import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.IAJCodeElement;
@@ -11,21 +18,14 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JarEntryFile;
-import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
-import org.eclipse.jdt.internal.ui.packageview.PackageFragmentRootContainer;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
+import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.internal.java.ui.JavaStructureBridge;
-import org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin;
-import org.eclipse.mylyn.monitor.core.StatusHandler;
-import org.eclipse.ui.internal.WorkingSet;
 import org.eclipse.ui.views.markers.internal.ConcreteMarker;
 
 /**
@@ -90,7 +90,7 @@ public class AspectJStructureBridge extends JavaStructureBridge {
 				ExceptionHandler.handle(ex, "error", "could not find java element"); //$NON-NLS-2$ //$NON-NLS-1$
 			return null;
 		} catch (Throwable t) {
-			StatusHandler.log(new Status(IStatus.ERROR, JavaUiBridgePlugin.PLUGIN_ID, "Could not find element for: " + marker, t));
+			StatusHandler.log(new Status(IStatus.ERROR, AspectJStructureBridgePlugin.PLUGIN_ID, "Could not find element for: " + marker, t));
 			return null;
 		}
 	}
@@ -100,7 +100,7 @@ public class AspectJStructureBridge extends JavaStructureBridge {
 		try {
 			return AspectJCore.create(handle);
 		} catch (Throwable t) {
-			StatusHandler.log(new Status(IStatus.WARNING, JavaUiBridgePlugin.PLUGIN_ID, "Could not create java element for handle: " + handle, t));
+			StatusHandler.log(new Status(IStatus.WARNING, AspectJStructureBridgePlugin.PLUGIN_ID, "Could not create java element for handle: " + handle, t));
 			return null;
 		}
 	}

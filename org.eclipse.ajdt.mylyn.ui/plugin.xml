@@ -21,14 +21,34 @@
           contentType="aspectj"
           activeSearchIcon=""
 	      activeSearchLabel="AspectJ Search"/>
-   		<labelProvider
-          class="org.eclipse.ajdt.mylyn.ui.AspectJLabelProvider"
-          contentType="aspectj"/>
-     <preservedFilters
-           viewId="org.eclipse.jdt.ui.PackageExplorer">
-        <filter
+        <preservedFilters
+            viewId="org.eclipse.jdt.ui.PackageExplorer">
+            <filter
               class="org.eclipse.ajdt.internal.ui.lazystart.CompilationUnitFilter"></filter>
-     </preservedFilters>
+       	 	<filter
+               class="org.eclipse.jdt.internal.ui.filters.ImportDeclarationFilter">
+         	</filter>
+         	<filter
+               class="org.eclipse.jdt.internal.ui.filters.PackageDeclarationFilter">
+         	</filter>
+         	<filter
+               class="org.eclipse.mylyn.internal.java.ui.JavaDeclarationsFilter">
+         	</filter>
+          <filter
+                class="org.eclipse.jdt.internal.ui.filters.ClosedProjectFilter">
+          </filter>
+        </preservedFilters>
+        <preservedFilters
+              viewId="org.eclipse.ui.navigator.ProjectExplorer">
+            <filter
+              class="org.eclipse.ajdt.internal.ui.lazystart.CompilationUnitFilter"></filter>
+            <filter
+                 class="org.eclipse.jdt.internal.ui.filters.PackageDeclarationFilter">
+           </filter>
+           <filter
+                 class="org.eclipse.jdt.internal.ui.filters.ImportDeclarationFilter">
+           </filter>
+        </preservedFilters>
   	</extension>
   	
   	<extension point="org.eclipse.ui.actionSets">
@@ -105,7 +125,7 @@
       </viewContribution> 
    </extension>
    <extension
-         point="org.eclipse.mylyn.context.core.internalBridges">
+         point="org.eclipse.mylyn.context.core.bridges">
       <shadow
             baseContent="java"
             shadowedByContent="aspectj">

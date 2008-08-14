@@ -1,3 +1,12 @@
+/*******************************************************************************
+ * Copyright (c) 2008 Mylyn project committers and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * Contributors:
+ * Andrew Eisenberg  (SpringSource)
+ *******************************************************************************/
 package org.eclipse.ajdt.mylyn.ui;
 
 import org.eclipse.ajdt.core.AspectJCore;
@@ -10,10 +19,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.text.TextSelection;
+import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.internal.java.ui.JavaUiBridge;
 import org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin;
-import org.eclipse.mylyn.monitor.core.StatusHandler;
 import org.eclipse.ui.IEditorPart;
 
 /**
@@ -47,7 +56,7 @@ public class AspectJUIBridge extends JavaUiBridge {
 			IEditorPart part = JavaUI.openInEditor(javaElement);
 			JavaUI.revealInEditor(part, javaElement);
 		} catch (Throwable t) {
-			StatusHandler.fail(new Status(IStatus.ERROR, JavaUiBridgePlugin.PLUGIN_ID, "Could not open editor for: " + node, t));
+			StatusHandler.fail(new Status(IStatus.ERROR, AspectJStructureBridgePlugin.PLUGIN_ID, "Could not open editor for: " + node, t));
 		}
 	}
 
