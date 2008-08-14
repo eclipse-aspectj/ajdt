@@ -1,44 +1,81 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others. All rights reserved.
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors: IBM - Initial API and implementation Prosyst - create proper
- * OSGi bundles (bug 174157)
- ******************************************************************************/
-package org.eclipse.pde.internal.build.builder;
+ * Contributors:
+ *     IBM - Initial API and implementation
+ *     Andre Eisenberg - Adapted for AJDT 1.6
+ *******************************************************************************/
+package org.eclipse.pde.internal.build.tasks;
 
-import java.io.*;
-import java.util.*;
-import org.eclipse.core.runtime.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.pde.internal.build.*;
-import org.eclipse.pde.internal.build.ant.*;
+import org.eclipse.pde.internal.build.AbstractScriptGenerator;
+import org.eclipse.pde.internal.build.BundleHelper;
+import org.eclipse.pde.internal.build.IBuildPropertiesConstants;
+import org.eclipse.pde.internal.build.IXMLConstants;
+import org.eclipse.pde.internal.build.Messages;
+import org.eclipse.pde.internal.build.Utils;
+import org.eclipse.pde.internal.build.ant.AntScript;
+import org.eclipse.pde.internal.build.ant.FileSet;
+import org.eclipse.pde.internal.build.ant.JavacTask;
+import org.eclipse.pde.internal.build.builder.ClasspathComputer2_1;
+import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
+import org.eclipse.pde.internal.build.builder.IClasspathComputer;
+import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0.ClasspathElement;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;
 
 /**
  * Generic class for generating scripts for plug-ins and fragments.
  */
-public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
+/*
+ * Copied from org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator
+ * to enable AspectJ plugins to be correctly exported.
+ * 
+ * Changes marked with // AspectJ Change 
+ */
+public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // AspectJ change
 	public static final String SRC_ZIP = "src.zip"; //$NON-NLS-1$
 	public static final String EXPANDED_DOT = "@dot"; //$NON-NLS-1$
 	public static final String DOT = "."; //$NON-NLS-1$
 	
 	// AspectJ Change Begin - aspectpath and inpath support
-	protected List aspectpath;
-	protected List inpath;
-	
 	public static final String PROPERTY_INPATH = "inpath"; //$NON-NLS-1$
 	public static final String PROPERTY_ASPECTPATH = "aspectpath"; //$NON-NLS-1$
 	// AspectJ Change end
-	
+
+
 	/**
 	 * Represents a entry that must be compiled and which is listed in the build.properties file.
 	 */
-	static protected class CompiledEntry {
+	static protected class CompiledEntry extends ModelBuildScriptGenerator.CompiledEntry { // AspectJ change
 		static final byte JAR = 0;
 		static final byte FOLDER = 1;
 		private String name;
@@ -50,6 +87,9 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		byte type;
 
 		protected CompiledEntry(String entryName, String[] entrySource, String[] entryOutput, String[] entryExtraClasspath, String excludedFromJar, byte entryType) {
+			// AspectJ Change Begin
+			super(entryName, entrySource, entryOutput, entryExtraClasspath, excludedFromJar, entryType);
+			// AspectJ Change End
 			this.name = entryName;
 			this.source = entrySource;
 			this.output = entryOutput;
@@ -89,6 +129,11 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		}
 	}
 
+	// AspectJ Change Begin - aspectpath and inpath support
+	protected List aspectpath;
+	protected List inpath;
+    // AspectJ Change End
+	
 	/**
 	 * Bundle for which we are generating the script.
 	 */
@@ -102,7 +147,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	protected String pluginZipDestination;
 	protected String pluginUpdateJarDestination;
 
-	private BuildDirector featureGenerator;
+	private AJBuildDirector featureGenerator; // AspectJ Change
 
 	/** constants */
 	protected final String PLUGIN_DESTINATION = Utils.getPropertyFormat(PROPERTY_PLUGIN_DESTINATION);
@@ -121,6 +166,46 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	private boolean binaryPlugin = false;
 	private boolean signJars = false;
 
+	// added bundles required for AspectJ
+	private List addedBundles; // AspectJ Change
+
+	
+	// AspectJ Change Begin - override this method to use an AJAntScript	
+	/**
+	 * @see AbstractScriptGenerator#openScript()
+	 */
+	public void openScript(String scriptLocation, String scriptName) throws CoreException {
+		if (script != null)
+			return;
+
+		try {
+			OutputStream scriptStream = new BufferedOutputStream(new FileOutputStream(scriptLocation + '/' + scriptName)); //$NON-NLS-1$
+			try {
+				script = new AJAntScript(scriptStream);
+			} catch (IOException e) {
+				try {
+					scriptStream.close();
+					String message = NLS.bind(Messages.exception_writingFile, scriptLocation + '/' + scriptName);
+					throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
+				} catch (IOException e1) {
+					// Ignored		
+				}
+			}
+		} catch (FileNotFoundException e) {
+			String message = NLS.bind(Messages.exception_writingFile, scriptLocation + '/' + scriptName);
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
+		}
+	}
+	
+	private String buildConfig;
+	
+	public void setBuildConfig(String config) {
+		buildConfig = config;
+	}
+//	 AspectJ Change End
+
+	
+	
 	/**
 	 * @see AbstractScriptGenerator#generate()
 	 */
@@ -176,7 +261,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	public static String getNormalizedName(BundleDescription bundle) {
 		return bundle.getSymbolicName() + '_' + bundle.getVersion();
 	}
-
+ 
 	private void initializeVariables() throws CoreException {
 		fullName = getNormalizedName(model);
 		pluginZipDestination = PLUGIN_DESTINATION + '/' + fullName + ".zip"; //$NON-NLS-1$
@@ -195,6 +280,10 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		else if (FALSE.equalsIgnoreCase(customBuildCallbacks))
 			customBuildCallbacks = null;
 
+		customCallbacksBuildpath = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_BUILDPATH, "."); //$NON-NLS-1$
+		customCallbacksFailOnError = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_FAILONERROR, FALSE);
+		customCallbacksInheritAll = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_INHERITALL);
+		
 		// AspectJ change begin
 		String inpathProp = getBuildProperties().getProperty(PROPERTY_INPATH);
 		if (inpathProp != null) {
@@ -206,10 +295,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 			aspectpath = new ArrayList();
 			aspectpath.add(aspectpathProp);
 		}
-		
-		customCallbacksBuildpath = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_BUILDPATH, "."); //$NON-NLS-1$
-		customCallbacksFailOnError = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_FAILONERROR, FALSE);
-		customCallbacksInheritAll = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_INHERITALL);
+		// AspectJ change end
 	}
 
 	protected static boolean findAndReplaceDot(String[] classpathInfo) {
@@ -224,16 +310,18 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 
 	public static boolean specialDotProcessing(Properties properties, String[] classpathInfo) {
 		findAndReplaceDot(classpathInfo);
+
+		String outputValue = properties.getProperty(PROPERTY_OUTPUT_PREFIX + DOT);
+		if (outputValue != null) {
+			properties.setProperty(PROPERTY_OUTPUT_PREFIX + EXPANDED_DOT, outputValue);
+			properties.remove(PROPERTY_OUTPUT_PREFIX + DOT);
+		}
+
 		String sourceFolder = properties.getProperty(PROPERTY_SOURCE_PREFIX + DOT);
 		if (sourceFolder != null) {
 			properties.setProperty(PROPERTY_SOURCE_PREFIX + EXPANDED_DOT, sourceFolder);
 			properties.remove(PROPERTY_SOURCE_PREFIX + DOT);
 
-			String outputValue = properties.getProperty(PROPERTY_OUTPUT_PREFIX + DOT);
-			if (outputValue != null) {
-				properties.setProperty(PROPERTY_OUTPUT_PREFIX + EXPANDED_DOT, outputValue);
-				properties.remove(PROPERTY_OUTPUT_PREFIX + DOT);
-			}
 			String excludedFromJar = properties.getProperty(PROPERTY_EXCLUDE_PREFIX + DOT);
 			if (excludedFromJar != null) {
 				properties.setProperty(PROPERTY_EXCLUDE_PREFIX + EXPANDED_DOT, excludedFromJar);
@@ -308,24 +396,29 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		script.printTargetDeclaration(TARGET_BUILD_JARS, null, null, null, null);
 		compiledJarNames = new ArrayList(0);
 
-		Set pluginsToGatherSourceFrom = (Set) featureGenerator.sourceToGather.getElementEntries().get(model.getSymbolicName());
-		if (pluginsToGatherSourceFrom != null) {
-			for (Iterator iter = pluginsToGatherSourceFrom.iterator(); iter.hasNext();) {
-				BundleDescription plugin = (BundleDescription) iter.next();
-				if (plugin.getSymbolicName().equals(model.getSymbolicName())) // We are not trying to gather the source from ourself since we are generated and we know we don't have source...
-					continue;
-
-				IPath location = Utils.makeRelative(new Path(getLocation(plugin)), new Path(getLocation(model)));
-				if (!Utils.isSourceBundle(model)) {
-					// The two steps are required, because some plugins (xerces, junit, ...) don't build their source: the source already comes zipped
-					script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_BUILD_SOURCES, null, null, null);
-					HashMap params = new HashMap(1);
-					params.put(PROPERTY_DESTINATION_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR) + "/src"); //$NON-NLS-1$
-					script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_GATHER_SOURCES, null, null, params);
+		try {
+			Set pluginsToGatherSourceFrom = (Set) featureGenerator.getSourceToGather().getElementEntries().get(model.getSymbolicName());
+			if (pluginsToGatherSourceFrom != null) {
+				for (Iterator iter = pluginsToGatherSourceFrom.iterator(); iter.hasNext();) {
+					BundleDescription plugin = (BundleDescription) iter.next();
+					if (plugin.getSymbolicName().equals(model.getSymbolicName())) // We are not trying to gather the source from ourself since we are generated and we know we don't have source...
+						continue;
+	
+					IPath location = Utils.makeRelative(new Path(getLocation(plugin)), new Path(getLocation(model)));
+					if (!Utils.isSourceBundle(model)) {
+						// The two steps are required, because some plugins (xerces, junit, ...) don't build their source: the source already comes zipped
+						script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_BUILD_SOURCES, null, null, null);
+						HashMap params = new HashMap(1);
+						params.put(PROPERTY_DESTINATION_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR) + "/src"); //$NON-NLS-1$
+						script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_GATHER_SOURCES, null, null, params);
+					}
 				}
 			}
+		} catch (NullPointerException e) {
+			
+		} finally {
+			script.printTargetEnd();
 		}
-		script.printTargetEnd();
 	}
 
 	/**
@@ -336,7 +429,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	private void generateCleanTarget() throws CoreException {
 		script.println();
 		Properties properties = getBuildProperties();
-		CompiledEntry[] availableJars = extractEntriesToCompile(properties);
+		ModelBuildScriptGenerator.CompiledEntry[] availableJars = extractEntriesToCompile(properties); // AspectJ change
 		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, NLS.bind(Messages.build_plugin_clean, model.getSymbolicName()));
 
 		Map params = null;
@@ -348,12 +441,12 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 			script.printSubantTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), PROPERTY_PRE + TARGET_CLEAN, customCallbacksBuildpath, customCallbacksFailOnError, customCallbacksInheritAll, params, null);
 		}
 		for (int i = 0; i < availableJars.length; i++) {
-			String jarName = availableJars[i].getName(true);
+			String jarName = ((CompiledEntry)availableJars[i]).getName(true); // AspectJ change
 			String jarLocation = getJARLocation(jarName);
 			//avoid destructive cleans
 			if (jarLocation.equals("") || jarLocation.startsWith(DOT + DOT) || jarLocation.equals(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER))) //$NON-NLS-1$
 				continue;
-			if (availableJars[i].type == CompiledEntry.JAR) {
+			if (((CompiledEntry)availableJars[i]).type == CompiledEntry.JAR) { // AspectJ change
 				script.printDeleteTask(null, jarLocation, null);
 			} else {
 				script.printDeleteTask(jarLocation, null, null);
@@ -388,9 +481,9 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		}
 		List destinations = new ArrayList(5);
 		Properties properties = getBuildProperties();
-		CompiledEntry[] availableJars = extractEntriesToCompile(properties);
+		ModelBuildScriptGenerator.CompiledEntry[] availableJars = extractEntriesToCompile(properties); // AspectJ change
 		for (int i = 0; i < availableJars.length; i++) {
-			String name = availableJars[i].getName(true);
+			String name = ((CompiledEntry)availableJars[i]).getName(true);  // AspectJ change
 			IPath destination = baseDestination.append(name).removeLastSegments(1); // remove the jar name
 			if (!destinations.contains(destination)) {
 				script.printMkdirTask(destination.toString());
@@ -439,9 +532,9 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		}
 		List destinations = new ArrayList(5);
 		Properties properties = getBuildProperties();
-		CompiledEntry[] availableJars = extractEntriesToCompile(properties);
+		ModelBuildScriptGenerator.CompiledEntry[] availableJars = extractEntriesToCompile(properties); // AspectJ Change
 		for (int i = 0; i < availableJars.length; i++) {
-			String jar = availableJars[i].getName(true);
+			String jar = ((CompiledEntry) availableJars[i]).getName(true); // AspectJ Change
 			IPath destination = baseDestination.append(jar).removeLastSegments(1); // remove the jar name
 			if (!destinations.contains(destination)) {
 				script.printMkdirTask(destination.toString());
@@ -477,9 +570,9 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		copyParams.put(PROPERTY_SOURCE_DESTINATION_FOLDER, baseDestination.toString());
 
 		Properties properties = getBuildProperties();
-		CompiledEntry[] availableJars = extractEntriesToCompile(properties);
+		ModelBuildScriptGenerator.CompiledEntry[] availableJars = extractEntriesToCompile(properties); // AspectJ Change
 		for (int i = 0; i < availableJars.length; i++) {
-			String jar = availableJars[i].getName(true);
+			String jar = ((CompiledEntry) availableJars[i]).getName(true); // AspectJ Change
 			String srcName = getSRCName(jar);
 
 			script.printAntCallTask("copy." + srcName, true, copyParams); //$NON-NLS-1$
@@ -575,7 +668,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		}
 
 		if (Utils.isSourceBundle(model)) {
-			Set pluginsToGatherSourceFrom = (Set) featureGenerator.sourceToGather.getElementEntries().get(model.getSymbolicName());
+			Set pluginsToGatherSourceFrom = (Set) featureGenerator.getSourceToGather().getElementEntries().get(model.getSymbolicName());
 			if (pluginsToGatherSourceFrom != null) {
 				for (Iterator iter = pluginsToGatherSourceFrom.iterator(); iter.hasNext();) {
 					BundleDescription plugin = (BundleDescription) iter.next();
@@ -903,7 +996,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	 * Sets the featureGenerator.
 	 * @param featureGenerator The featureGenerator to set
 	 */
-	public void setFeatureGenerator(BuildDirector featureGenerator) {
+	public void setFeatureGenerator(AJBuildDirector featureGenerator) {  // AspectJ Change
 		this.featureGenerator = featureGenerator;
 	}
 
@@ -915,11 +1008,11 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	 */
 	private void generateBuildJarsTarget(BundleDescription pluginModel) throws CoreException {
 		Properties properties = getBuildProperties();
-		CompiledEntry[] availableJars = extractEntriesToCompile(properties);
+		ModelBuildScriptGenerator.CompiledEntry[] availableJars = extractEntriesToCompile(properties); // AspectJ change
 		compiledJarNames = new ArrayList(availableJars.length);
 		Map jars = new HashMap(availableJars.length);
 		for (int i = 0; i < availableJars.length; i++)
-			jars.put(availableJars[i].getName(false), availableJars[i]);
+			jars.put(((CompiledEntry)availableJars[i]).getName(false), availableJars[i]); // AspectJ change
 
 		// Put the jars in a correct compile order
 		String jarOrder = (String) getBuildProperties().get(PROPERTY_JAR_ORDER);
@@ -1104,24 +1197,14 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		}
 
 		script.printComment("compile the source code"); //$NON-NLS-1$
-		// AspectJ Change Begin
-		String toolsLocation = "";
+		// AspectJ Change Begin		
+		String[] ajdeClasspath = null;
 		try {
-			// locate the eclipse classes required by the iajc task, such as
-			// OperationCanceledException from org.eclipse.equinox.common
-			BundleDescription model = getSite(false).getRegistry()
-					.getResolvedBundle("org.eclipse.equinox.common"); //$NON-NLS-1$
-			if (model == null) {
-				// might be an Eclipse 3.1 target
-				model = getSite(false).getRegistry()
-					.getResolvedBundle("org.eclipse.core.runtime"); //$NON-NLS-1$
-			}
-			if (model != null) {
-				toolsLocation = model.getLocation();
-			}
+			addedBundles = new ArrayList();
+			ajdeClasspath = bundleToCP(getModel("org.aspectj.ajde", null)); //$NON-NLS-1$
 		} catch (CoreException e) {
-		}				
-		AJCTask javac = new AJCTask(getModel().getLocation(), null/*buildConfig*/, toolsLocation);
+		}		
+		AJCTask javac = new AJCTask(buildConfig, ajdeClasspath);
 		javac.setAspectpath(aspectpath);
 		javac.setInpath(inpath);
 		// AspectJ Change End
@@ -1144,10 +1227,14 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		FileSet[] fileSets = new FileSet[sources.length];
 		for (int i = 0; i < sources.length; i++) {
 			// AspectJ Change Begin
-			// Filter .aj files when copying resources
-			fileSets[i] = new FileSet(sources[i], null, null, null, "**/*.aj, **/*.java, **/package.htm*" + ',' + entry.getExcludedFromJar(), null, null); //$NON-NLS-1$
+			// Also filter .aj files when copying resources
+			String excludes = "**/*.aj, **/*.java, **/package.htm*"; //$NON-NLS-1$
 			// AspectJ Change End
+			String excludedFromJar = entry.getExcludedFromJar();
+			if (excludedFromJar != null)
+				excludes += ',' + excludedFromJar;
 
+			fileSets[i] = new FileSet(sources[i], null, null, null, excludes, null, null);
 		}
 
 		script.printCopyTask(null, destdir, fileSets, true, false);
@@ -1191,11 +1278,15 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	 * @param properties
 	 * @return JAR[]
 	 */
-	protected CompiledEntry[] extractEntriesToCompile(Properties properties) throws CoreException {
+	// AspectJ Change Begin
+	protected ModelBuildScriptGenerator.CompiledEntry[] extractEntriesToCompile(Properties properties) throws CoreException {
+	// AspectJ Change End
 		return extractEntriesToCompile(properties, model);
 	}
 
-	public static CompiledEntry [] extractEntriesToCompile(Properties properties, BundleDescription model) throws CoreException {
+	// AspectJ Change Begin
+	public static ModelBuildScriptGenerator.CompiledEntry[] extractEntriesToCompile(Properties properties, BundleDescription model) throws CoreException {
+	// AspectJ Change End
 		List result = new ArrayList(5);
 		int prefixLength = PROPERTY_SOURCE_PREFIX.length();
 		for (Iterator iterator = properties.entrySet().iterator(); iterator.hasNext();) {
@@ -1233,11 +1324,12 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		FileSet[] fileSets = new FileSet[sources.length];
 		int count = 0;
 		for (int i = 0; i < sources.length; i++) {
-			if (sources[i] != null)
+			if (sources[i] != null) {
 				// AspectJ Change Begin
-				// Include .aj files in source zip
-				fileSets[count++] = new FileSet(sources[i], null, "**/*.java, **/*.aj", null, null, null, null); //$NON-NLS-1$
-				// AspectJ Change End
+				// Also include .aj files in source zip
+				fileSets[count++] = new FileSet(sources[i], null, "**/*.aj, **/*.java", null, null, null, null); //$NON-NLS-1$
+				// AspectJ Change Emd
+			}
 		}
 
 		String srcLocation = getSRCLocation(name);
@@ -1431,6 +1523,7 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 		this.associatedEntry = associatedEntry;
 	}
 	
+	
 	// AspectJ Change Begin - aspectpath and inpath support
 	public void setAspectpath(List aspectpath) {
 		this.aspectpath = aspectpath;
@@ -1438,5 +1531,41 @@ public class ModelBuildScriptGenerator extends AbstractBuildScriptGenerator {
 	public void setInpath(List inpath) {
 		this.inpath = inpath;
 	}
+
+	private String[] bundleToCP(BundleDescription bundle) throws CoreException {
+		if (addedBundles.contains(bundle)) {
+			return new String[]{};
+		}
+		addedBundles.add(bundle);
+		if (bundle.getName().equals("org.apache.ant")) { //$NON-NLS-1$
+			return new String[]{};
+		}
+		
+		List pathList = new ArrayList();
+		String loc = bundle.getLocation();
+		Path absPath = new Path(loc);
+		IPath basePath = Utils.makeRelative(absPath, new Path(getLocation(model)));
+		
+		if ("jar".equalsIgnoreCase(basePath.getFileExtension())) { //$NON-NLS-1$
+			pathList.add(basePath.toString());
+		} else {
+			String[] cpe = getClasspathEntries(bundle);
+			for (int i = 0; i < cpe.length; i++) {
+				pathList.add(basePath.append(cpe[i]).toString());
+			}
+		}		
+		
+		// now add prerequisite bundles
+		BundleDescription[] prereqs = bundle.getResolvedRequires();
+		for (int i = 0; i < prereqs.length; i++) {
+			String[] pcp = bundleToCP(prereqs[i]);
+			pathList.addAll(Arrays.asList(pcp));
+		}
+		
+		String[] path = new String[pathList.size()];
+		pathList.toArray(path);
+		return path;
+	}
 	// AspectJ Change End
+
 }
