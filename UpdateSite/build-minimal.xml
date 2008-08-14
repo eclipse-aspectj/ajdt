@@ -50,6 +50,7 @@ Creates an update site structure for AspectJ
   <ant dir="../org.aspectj.ajde" inheritAll="true" target="clean" />
   <ant dir="../org.eclipse.ajdt.core" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.ui" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.mylyn.ui" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.aspectj" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" target="clean"/>
 </target>
