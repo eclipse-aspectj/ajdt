@@ -17,11 +17,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -481,10 +484,20 @@ public class AspectJCorePreferences {
                 }
             } // for (int i = 0; i < requiredEntries.length; i++)
             
-            // the required project's out folder is on the class path of the dependent project
-            // output location may not exist.  Do not put it on path unless it exists
             IPath outputLocation = requiredJavaProj.getOutputLocation();
-            if (requiredProj.getWorkspace().getRoot().getFolder(outputLocation).exists()) {
+            // Output location may not exist.  Do not put output location of required project
+            // on path unless it exists
+            boolean exists = false;
+            // bug 244330 check to see if the project folder is also the output folder
+            if (outputLocation.segmentCount() == 1) {
+            	exists = true;
+            } else {
+            	if (requiredProj.getWorkspace().getRoot().getFolder(outputLocation).exists()) {
+            		exists = true;
+            	}
+            }
+            
+            if (exists) {
                 IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
                         null,
                         requiredProj.getFullPath());					                
