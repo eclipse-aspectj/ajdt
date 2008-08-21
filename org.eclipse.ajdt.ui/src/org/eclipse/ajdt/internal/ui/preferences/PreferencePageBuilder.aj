@@ -216,9 +216,7 @@ aspect PreferencePageBuilder {
 		// We need to associate the ListDialogField with the related IWorkbenchPropertyPage object
 		// rather than the related AJDTPathBlockPage (so we can check if the contents
 		// of the ListDialogField more easily in settingsHaveChanged(IWorkbenchPropertyPage)).
-		// We therefore iterate through the active pages and if basePage is an
-		// AspectPathBlock then we're looking for the AspectPathPropertyPage object, whereas
-		// if basePage is an InPathBlock then we're looking for the InPathPropertyPage object.       
+		// We therefore iterate through the active pages.       
 		for (Iterator iter = activePages.iterator(); iter.hasNext();) {
 			IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter
 					.next();
