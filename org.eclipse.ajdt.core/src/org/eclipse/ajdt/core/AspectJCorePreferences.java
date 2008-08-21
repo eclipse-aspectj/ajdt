@@ -51,11 +51,20 @@ public class AspectJCorePreferences {
 	
 	private static final String INPATH_ATTRIBUTE_NAME = "org.eclipse.ajdt.inpath"; //$NON-NLS-1$
 
-	public static final IClasspathAttribute ASPECTPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
-			ASPECTPATH_ATTRIBUTE_NAME, "true"); //$NON-NLS-1$
 
+	/**
+	 *  The value may be filled in with the container that contains this classpath entry
+	 *  So when checking to see if a classpath entry has this attribute, use {@link #isOnAspectpath(IClasspathEntry)} 
+	 */
+	public static final IClasspathAttribute ASPECTPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
+			ASPECTPATH_ATTRIBUTE_NAME, ASPECTPATH_ATTRIBUTE_NAME); //$NON-NLS-1$
+
+	/**
+	 *  The value may be filled in with the container that contains this classpath entry
+	 *  So when checking to see if a classpath entry has this attribute, use {@link #isOnInpath(IClasspathEntry)} 
+	 */
 	public static final IClasspathAttribute INPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
-			INPATH_ATTRIBUTE_NAME, "true"); //$NON-NLS-1$
+			INPATH_ATTRIBUTE_NAME, ASPECTPATH_ATTRIBUTE_NAME); //$NON-NLS-1$
 
     public static final String OUT_JAR = "org.eclipse.ajdt.ui.outJar"; //$NON-NLS-1$
 
@@ -217,14 +226,17 @@ public class AspectJCorePreferences {
 	public static boolean isOnAspectpath(IClasspathEntry entry) {
 		IClasspathAttribute[] attributes = entry.getExtraAttributes();
 		for (int j = 0; j < attributes.length; j++) {
-			if (attributes[j].equals(AspectJCorePreferences.ASPECTPATH_ATTRIBUTE)) {
+			if (isAspectPathAttribute(attributes[j])) {
 				return true;								
 			}
 		}
 		return false;
 	}
 	
-	
+	public static boolean isAspectPathAttribute(IClasspathAttribute attribute) {
+		return attribute.getName().equals(AspectJCorePreferences.ASPECTPATH_ATTRIBUTE.getName());
+	}
+
 	
 	
     /**
@@ -242,11 +254,8 @@ public class AspectJCorePreferences {
 					String entry = JavaCore.getResolvedClasspathEntry(cp[i])
 							.getPath().toPortableString();
 					if (entry.equals(jarPath)) {
-						IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
-						for (int j = 0; j < attributes.length; j++) {
-							if (attributes[j].equals(AspectJCorePreferences.ASPECTPATH_ATTRIBUTE)) {
-								return true;								
-							}
+						if (isOnAspectpath(cp[i])) {
+							return true;
 						}
 					}
 				}
@@ -332,7 +341,7 @@ public class AspectJCorePreferences {
     }
 	
 	private static String[] internalGetProjectPath(IProject project, IClasspathAttribute attribute, boolean useResolvedPath) {
-	    if (attribute == ASPECTPATH_ATTRIBUTE) {
+	    if (isAspectPathAttribute(attribute)) {
     		String[] old = getOldProjectAspectPath(project);
     		if (old != null) {
     			AJLog.log("Migrating aspect path settings for project "+project.getName()); //$NON-NLS-1$
@@ -358,7 +367,7 @@ public class AspectJCorePreferences {
 				IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
 				boolean attributeFound = false;
 				for (int j = 0; j < attributes.length; j++) {
-					if (attributes[j].equals(attribute)) {
+					if (attributes[j].getName().equals(attribute.getName())) {
 					    attributeFound = true;
 					    List actualEntries = new ArrayList();
 					    
@@ -377,8 +386,14 @@ public class AspectJCorePreferences {
 					                    && requiredProj.exists()) {
     					            actualEntries.addAll(resolveDependentProjectClasspath(requiredProj, cp[i]));
 					            }
-					        } else {
-					            actualEntries.add(JavaCore.getResolvedClasspathEntry(cp[i]));
+					        } else { // resolve the classpath variable
+					        	IClasspathEntry resolved = JavaCore.getResolvedClasspathEntry(cp[i]);
+					        	if (resolved.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+					        		// must resolve the project
+					        		actualEntries.addAll(resolveDependentProjectClasspath(project.getWorkspace().getRoot().getProject(resolved.getPath().toString()), resolved));
+					        	} else {
+					        		actualEntries.add(resolved);
+					        	}
 					        } // cp[i].getEntryKind()
 					    } else {
 					        actualEntries.add(cp[i]);
@@ -386,9 +401,13 @@ public class AspectJCorePreferences {
 					    
 					    for (Iterator cpIter = actualEntries.iterator(); cpIter.hasNext(); ) {
 					        IClasspathEntry actualEntry = (IClasspathEntry) cpIter.next();
-	                        pathString += actualEntry.getPath().toPortableString() + File.pathSeparator;
-	                        contentString += actualEntry.getContentKind() + File.pathSeparator;
-	                        entryString += actualEntry.getEntryKind() + File.pathSeparator;
+					        // we can get null for actualEntry if the raw entry corresponds to 
+					        // an unbound classpath variable
+					        if (actualEntry != null) {
+		                        pathString += actualEntry.getPath().toPortableString() + File.pathSeparator;
+		                        contentString += actualEntry.getContentKind() + File.pathSeparator;
+		                        entryString += actualEntry.getEntryKind() + File.pathSeparator;
+					        }
 					    }
 					}  // attributes[j].equals(attribute)
 				}  // for (int j = 0; j < attributes.length; j++)
@@ -508,7 +527,7 @@ public class AspectJCorePreferences {
         return actualEntries;
     }
 
-    public static List resolveClasspathContainer(IClasspathContainer container, IProject thisProject) {
+    public static List /* IClasspathEntry */ resolveClasspathContainer(IClasspathContainer container, IProject thisProject) {
         List actualEntries = new ArrayList();
         IClasspathEntry[] containerEntries = 
             container.getClasspathEntries();
@@ -602,7 +621,7 @@ public class AspectJCorePreferences {
 					IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length - 1];
 					int count = 0;
 					for (int j = 0; j < attributes.length; j++) {
-						if (!attributes[j].equals(attr)) {
+						if (!attributes[j].getName().equals(attr.getName())) {
 							newattrib[count++] = attributes[j];
 						}
 					}
@@ -716,14 +735,14 @@ public class AspectJCorePreferences {
     public static boolean isOnInpath(IClasspathEntry entry) {
 		IClasspathAttribute[] attributes = entry.getExtraAttributes();
 		for (int j = 0; j < attributes.length; j++) {
-			if (attributes[j].equals(AspectJCorePreferences.INPATH_ATTRIBUTE)) {
+			if (isInPathAttribute(attributes[j])) {
 				return true;								
 			}
 		}
 		return false;
 	}
-	
-    /**
+
+	/**
      * Checks to see if an entry is already on the Inpath
      */
 	public static boolean isOnInpath(IProject project, String jarPath) {
@@ -738,11 +757,8 @@ public class AspectJCorePreferences {
 					String entry = JavaCore.getResolvedClasspathEntry(cp[i])
 							.getPath().toPortableString();
 					if (entry.equals(jarPath)) {
-						IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
-						for (int j = 0; j < attributes.length; j++) {
-							if (attributes[j].equals(AspectJCorePreferences.INPATH_ATTRIBUTE)) {
-								return true;								
-							}
+						if (isOnInpath(cp[i])) {
+							return true;
 						}
 					}
 				}
@@ -750,6 +766,11 @@ public class AspectJCorePreferences {
 		} catch (JavaModelException e) {
 		}
 		return false;
+	}
+	
+
+	public static boolean isInPathAttribute(IClasspathAttribute attribute) {
+		return attribute.getName().equals(AspectJCorePreferences.INPATH_ATTRIBUTE.getName());
 	}
 
 	private static String[] getOldProjectInPath(IProject project) {
@@ -836,7 +857,7 @@ public class AspectJCorePreferences {
 						.getExtraAttributes();
 				boolean found = false;
 				for (int j = 0; !found && (j < attributes.length); j++) {
-					if (attributes[j].equals(attribute)) {
+					if (attributes[j].getName().equals(attribute.getName())) {
 						found = true;
 					}
 				}
@@ -845,8 +866,8 @@ public class AspectJCorePreferences {
 					IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length - 1];
 					int count = 0;
 					for (int j = 0; j < attributes.length; j++) {
-						if (!attributes[j]
-								.equals(attribute)) {
+						if (!attributes[j].getName()
+								.equals(attribute.getName())) {
 							newattrib[count++] = attributes[j];
 						}
 					}

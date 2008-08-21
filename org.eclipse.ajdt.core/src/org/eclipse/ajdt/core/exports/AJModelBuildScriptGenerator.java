@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -228,7 +229,8 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 
 		initializeVariables();
 		if (BundleHelper.getDefault().isDebugging())
-			System.out.println("Generating plugin " + model.getSymbolicName()); //$NON-NLS-1$
+			AspectJPlugin.getDefault().getLog().log(new Status(IStatus.INFO, 
+					AspectJPlugin.PLUGIN_ID, "Generating plugin " + model.getSymbolicName())); //$NON-NLS-1$
 
 		String custom = (String) getBuildProperties().get(PROPERTY_CUSTOM);
 		if (custom != null && custom.equalsIgnoreCase("true")) { //$NON-NLS-1$
