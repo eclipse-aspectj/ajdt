@@ -26,7 +26,7 @@ Export-Package: org.eclipse.ajdt.core,
  org.eclipse.ajdt.internal.core.ras;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.refactoring;x-friends:="org.eclipse.ajdt.core.tests"
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.pde.build,
+ org.eclipse.pde.build;resolution:=optional,
  org.eclipse.update.core,
  org.eclipse.core.resources,
  org.eclipse.jdt.core,
