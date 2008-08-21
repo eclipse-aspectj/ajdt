@@ -14,10 +14,13 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -52,6 +55,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	private Map /*File*/ srcFolderToOutput = new HashMap();
 	
 	private List /*File*/ allOutputFolders = new ArrayList();
+	
+	// Bug 243376 
+	// Gather all of the files that are touched by this compilation
+	// and use it to determine which files need to have their 
+	// Relationship maps updated.
+	// XXX Really, this logic should not be in this class
+	// This class is about output locations.
+	// I am waiting for an extension to the compiler so
+	// that I can grab this information directly.
+	private Set /*File*/ touchedClassFiles = new HashSet();
 	
 	private boolean outputIsRoot;
 	// if there is only one output directory then this is recorded in the
@@ -91,7 +104,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 if (isUsingNonDefaultInpathOutfolder) {
                     IClasspathAttribute[] attributes = cpe[i].getExtraAttributes();
                     for (int j = 0; j < attributes.length; j++) {
-                        if (attributes[j].getName().equals(AspectJCorePreferences.INPATH_ATTRIBUTE.getName())) {
+                        if (AspectJCorePreferences.isInPathAttribute(attributes[j])) {
                             IPath path = cpe[i].getPath();
                             File f = workspacePathToFile(path);
                             if (f != null && f.exists()) {
@@ -138,6 +151,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 	
 	public File getOutputLocationForClass(File compilationUnit) {
+	    // remember that this file has been asked for
+	    // presumably it is being recompiled
+	    touchedClassFiles.add(compilationUnit);
+	    
 		return getOutputLocationForResource(compilationUnit);
 	}
 
@@ -258,6 +275,9 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
         return inpathOutFolder;
     }
 
+	public Set getTouchedClassFiles() {
+        return Collections.unmodifiableSet(touchedClassFiles);
+    }
 
 	/**
 	 * If there's only one output directory return this one, otherwise
