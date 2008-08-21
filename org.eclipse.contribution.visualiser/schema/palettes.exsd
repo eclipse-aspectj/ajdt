@@ -12,7 +12,7 @@
 
    <element name="extension">
       <complexType>
-         <sequence>
+         <sequence minOccurs="1" maxOccurs="unbounded">
             <element ref="palette"/>
          </sequence>
          <attribute name="point" type="string" use="required">
@@ -53,7 +53,7 @@
                </documentation>
                <appInfo>
                   <meta.attribute kind="java"/>
-               </appInfo>               
+               </appInfo>
             </annotation>
          </attribute>
          <attribute name="name" type="string" use="required">
