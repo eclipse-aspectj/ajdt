@@ -9,6 +9,10 @@
 	         url="features/org.eclipse.ajdt_@AJFVERSION@.jar">
 		<category name="org.eclipse.ajdt"/>
 	</feature>
+	<feature id="org.eclipse.ajdt.source" version="@AJFVERSION@"
+	         url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar">
+		<category name="org.eclipse.ajdt"/>
+	</feature>
 
 	<category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
 </site>

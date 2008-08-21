@@ -125,6 +125,7 @@ Creates an update site structure for AspectJ
 	<move file="../org.eclipse.ajdt.source/src/org.aspectj.weaver" tofile="../org.eclipse.ajdt.source/src/org.aspectj.weaver_${ajde.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui_${ajdt.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.mylyn.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.mylyn.ui_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.examples" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.examples_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core_${xref.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui_${xref.version}"/>
@@ -276,6 +277,8 @@ Creates an update site structure for AspectJ
  <copy file="../org.eclipse.ajdt.core/org.eclipse.ajdt.core_${ajdt.version}.jar"
        todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.ui/org.eclipse.ajdt.ui_${ajdt.version}.jar"
+	   todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.ui/org.eclipse.ajdt.mylyn.ui_${ajdt.version}.jar"
 	   todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.examples/org.eclipse.ajdt.examples_${ajdt.version}.jar"
        todir="dist/plugins" />
