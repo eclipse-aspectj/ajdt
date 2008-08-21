@@ -68,20 +68,20 @@ public class IdReplaceTask extends Task {
 	 * Note all the pluginIds that have a generic number into the feature.xml must be
 	 * listed in <param>values</param>.
 	 * @param values a comma separated list alternating pluginId and versionNumber.
-	 * For example: org.eclipse.pde.build,2.1.0,org.eclipse.core.resources,1.2.0
+	 * For example: org.eclipse.pde.build:0.0.0,2.1.0,org.eclipse.core.resources:0.0.0,1.2.0
 	 */
 	public void setPluginIds(String values) {
 		pluginIds = new HashMap(10);
 		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) { 
+			
 			String token = tokens.nextToken().trim();
-			String id = EMPTY;
-			if (!token.equals(EMPTY))
-				id = token;
-
-			String version = EMPTY;
-			token = tokens.nextToken().trim();
-			if (!token.equals(EMPTY))
-				version = token;
+			String[] split = token.split(":");
+			if (split.length != 2) {
+				continue;
+			}
+			String id = split[0];
+			String version = tokens.nextToken().trim();
+			
 			pluginIds.put(id, version);
 		}
 	}
@@ -95,15 +95,15 @@ public class IdReplaceTask extends Task {
 	public void setFeatureIds(String values) {
 		featureIds = new HashMap(10);
 		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) { 
+			
 			String token = tokens.nextToken().trim();
-			String id = EMPTY;
-			if (!token.equals(EMPTY))
-				id = token;
-
-			String version = EMPTY;
-			token = tokens.nextToken().trim();
-			if (!token.equals(EMPTY))
-				version = token;
+			String[] split = token.split(":");
+			if (split.length != 2) {
+				continue;
+			}
+			String id = split[0];
+			String version = tokens.nextToken().trim();
+			
 			featureIds.put(id, version);
 		}
 	}
@@ -285,5 +285,22 @@ public class IdReplaceTask extends Task {
 			}
 		}
 		return result;
+	}
+
+	public static void main(String[] args) {
+		String values = "org.aspectj.ajde:0.0.0,1.6.2.20080807114600,org.aspectj.runtime:0.0.0,1.6.2.20080807114600,org.aspectj.weaver:0.0.0,1.6.2.20080807114600,org.eclipse.ajdt.core:0.0.0,1.6.0.200808181436,org.eclipse.contribution.visualiser:0.0.0,2.2.0.200808181436,org.eclipse.contribution.xref.core:0.0.0,1.5.0.200808181436,org.eclipse.contribution.xref.ui:0.0.0,1.5.0.200808181436,org.eclipse.ajdt.ui:0.0.0,1.6.0.200808181436,org.eclipse.ajdt.examples:0.0.0,1.6.0.200808181436,org.eclipse.aspectj:0.0.0,1.5.0.200808181436,org.eclipse.ajdt.pde.build:0.0.0,1.5.3.200808181436,org.eclipse.ajdt.doc.user:0.0.0,1.6.0.200808181436,org.eclipse.ajdt.mylyn.ui:0.0.0,1.6.0.200808181436,";
+		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) { 
+			
+			String token = tokens.nextToken().trim();
+			String[] split = token.split(":");
+			if (split.length != 2) {
+				System.out.println("skipped !");
+				continue;
+			}
+			String id = split[0];
+			String version = split[1];
+			token = tokens.nextToken().trim();
+			System.out.println(id + " : " + version + " , " + token);
+		}
 	}
 }

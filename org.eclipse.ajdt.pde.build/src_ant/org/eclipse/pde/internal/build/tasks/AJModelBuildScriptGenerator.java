@@ -865,9 +865,9 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printProperty(PROPERTY_JAVAC_COMPILERARG, ""); //$NON-NLS-1$  
 
 		if (javacSource == null)
-			script.printProperty(IXMLConstants.PROPERTY_JAVAC_SOURCE, "1.3"); //$NON-NLS-1$
+			script.printProperty(IXMLConstants.PROPERTY_JAVAC_SOURCE, "1.5"); //$NON-NLS-1$
 		if (javacTarget == null)
-			script.printProperty(IXMLConstants.PROPERTY_JAVAC_TARGET, "1.2"); //$NON-NLS-1$  
+			script.printProperty(IXMLConstants.PROPERTY_JAVAC_TARGET, "1.5"); //$NON-NLS-1$  
 		if (bootClasspath == null) {
 			script.println("<condition property=\"dir_bootclasspath\" value=\"${java.home}/../Classes\">");//$NON-NLS-1$  
 			script.println("\t<os family=\"mac\"/>");//$NON-NLS-1$  
