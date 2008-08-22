@@ -1534,7 +1534,8 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			return new String[]{};
 		}
 		addedBundles.add(bundle);
-		if (bundle.getName().equals("org.apache.ant")) { //$NON-NLS-1$
+		if (bundle.getSymbolicName() != null &&
+				bundle.getSymbolicName().equals("org.apache.ant")) { //$NON-NLS-1$
 			return new String[]{};
 		}
 		

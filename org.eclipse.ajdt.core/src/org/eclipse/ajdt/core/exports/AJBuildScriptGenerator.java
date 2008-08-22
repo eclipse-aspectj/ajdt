@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.exports;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -371,15 +372,19 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator { // AspectJ Ch
 
 	protected void readVersions(Properties properties, String fileName) {
 		String location = getFilePath(fileName);
-		try {
-			InputStream is = new BufferedInputStream(new FileInputStream(location));
+		File f = new File(location);
+		// check to prevent a failure during testing
+		if (f.exists()) {
 			try {
-				properties.load(is);
-			} finally {
-				is.close();
+				InputStream is = new BufferedInputStream(new FileInputStream(f));
+				try {
+					properties.load(is);
+				} finally {
+					is.close();
+				}
+			} catch (IOException e) {
+				//Ignore
 			}
-		} catch (IOException e) {
-			//Ignore
 		}
 	}
 
