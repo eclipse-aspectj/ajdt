@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008Mylyn project committers and others.
+ * Copyright (c) 2008 Mylyn project committers and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,13 +16,11 @@ package org.eclipse.ajdt.mylyn.ui.actions;
 import org.eclipse.ajdt.mylyn.ui.AspectJStructureBridgePlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.mylyn.commons.core.StatusHandler;
-import org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin;
 import org.eclipse.mylyn.tasks.ui.TasksUiImages;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IActionDelegate2;
@@ -57,13 +55,17 @@ public class ToggleActiveFoldingAction extends Action implements IWorkbenchWindo
 		valueChanged(action, action.isChecked());
 	}
 
+	@SuppressWarnings("restriction")
 	private void valueChanged(IAction action, final boolean on) {
 		try {
 			if (on) {
-				JavaPlugin.getDefault().getPreferenceStore().setValue(PreferenceConstants.EDITOR_FOLDING_ENABLED, true);
+				org.eclipse.jdt.internal.ui.JavaPlugin.
+					getDefault().getPreferenceStore().setValue(PreferenceConstants.EDITOR_FOLDING_ENABLED, true);
 			}
 			action.setChecked(on);
-			JavaUiBridgePlugin.getDefault().getPreferenceStore().setValue(JavaUiBridgePlugin.AUTO_FOLDING_ENABLED, on);
+			org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin
+				.getDefault().getPreferenceStore().setValue(org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin
+						.AUTO_FOLDING_ENABLED, on);
 		} catch (Throwable t) {
 			StatusHandler.fail(new Status(IStatus.ERROR, AspectJStructureBridgePlugin.PLUGIN_ID, "Could not enable editor management", t));
 		}
@@ -77,10 +79,13 @@ public class ToggleActiveFoldingAction extends Action implements IWorkbenchWindo
 		// don't care when the selection changes
 	}
 
+	@SuppressWarnings("restriction")
 	public void init(IAction action) {
 		this.parentAction = action;
-		valueChanged(action, JavaUiBridgePlugin.getDefault().getPreferenceStore().getBoolean(
-				JavaUiBridgePlugin.AUTO_FOLDING_ENABLED));
+		valueChanged(action, org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin
+				.getDefault().getPreferenceStore().getBoolean(
+						org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin
+						.AUTO_FOLDING_ENABLED));
 	}
 
 	public void dispose() {

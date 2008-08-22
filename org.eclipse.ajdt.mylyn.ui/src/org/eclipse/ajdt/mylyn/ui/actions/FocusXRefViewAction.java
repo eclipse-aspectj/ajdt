@@ -7,15 +7,22 @@
  * Contributors:
  * Andrew Eisenberg  (SpringSource)
  *******************************************************************************/
+/*******************************************************************************
+ * Copyright (c) 2008 Mylyn project committers and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * Contributors:
+ * Andrew Eisenberg  (SpringSource)
+ *******************************************************************************/
 package org.eclipse.ajdt.mylyn.ui.actions;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.builder.AJNode;
-import org.eclipse.ajdt.mylyn.ui.AspectJStructureBridge;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
-import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -23,7 +30,6 @@ import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.context.ui.AbstractAutoFocusViewAction;
 import org.eclipse.mylyn.context.ui.InterestFilter;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.views.navigator.ResourceNavigator;
 
 /**
  * This class adds context filtering to the AspectJ cross references view

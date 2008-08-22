@@ -34,6 +34,7 @@ import org.eclipse.ui.views.markers.internal.ConcreteMarker;
  * @author andrew eisenberg
  *
  */
+@SuppressWarnings("restriction")
 public class AspectJStructureBridge extends JavaStructureBridge {
 
 	public final static String CONTENT_TYPE = "aspectj";
@@ -49,9 +50,9 @@ public class AspectJStructureBridge extends JavaStructureBridge {
 		IMarker marker;
 		int charStart = 0;
 		if (object instanceof ConcreteMarker) {
-			marker = ((ConcreteMarker)object).getMarker();
-		} else if (object instanceof Marker) {
-			marker = (Marker)object;
+			marker = ((ConcreteMarker) object).getMarker();
+		} else if (object instanceof IMarker) {
+			marker = (IMarker) object;
 		} else {
 			return null;
 		}
