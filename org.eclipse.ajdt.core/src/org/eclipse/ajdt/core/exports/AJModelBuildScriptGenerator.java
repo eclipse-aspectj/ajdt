@@ -58,6 +58,7 @@ import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0.ClasspathElem
 import org.eclipse.pde.internal.build.site.PDEState;
 import org.eclipse.pde.internal.build.site.PluginRegistryConverter;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;
+import org.osgi.framework.Bundle;
 
 /**
  * Generic class for generating scripts for plug-ins and fragments.
@@ -1284,14 +1285,24 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	// this essentially forces the bundle to be resolvable for this
 	// build process
 	private BundleDescription addBundleAndRequired(String bundleName) throws CoreException {
-        // this tempBundle is used only so we can get the location.
-	    // there may be a better way, but don't know it.
-	    BundleDescription tempBundle = PluginRegistry
-                .findEntry(bundleName).getModel().getBundleDescription();
 		PDEState state = getSite(false).getRegistry();
 		BundleDescription realBundle = state.getBundle(bundleName, null, false);
         if (realBundle == null) {
-		    state.addBundle(new File(tempBundle.getLocation()));
+            // this tempBundle is used only so we can get the location.
+            // there may be a better way, but don't know it.
+			Bundle tempBundle = Platform.getBundle(bundleName);
+			String location = tempBundle.getLocation();
+			
+            int refIndex = location.indexOf("reference:");
+            if (refIndex != -1) {
+                location = location.substring(refIndex + "reference:".length());
+            }
+            int fileIndex = location.indexOf("file:");
+            if (fileIndex != -1) {
+                location = location.substring(fileIndex + "file:".length());
+            }
+			
+			state.addBundle(new File(location));
 		    realBundle = state.getBundle(bundleName, null, false);
 		    
 			// must add required bundles before this bundle can be resolved
