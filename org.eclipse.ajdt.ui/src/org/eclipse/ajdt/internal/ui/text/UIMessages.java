@@ -74,6 +74,8 @@ public class UIMessages extends NLS {
 	public static String AutoPluginRemoveErrorDialog_message;
 	public static String PluginImportDialog_removeImportConfirmTitle;
 	public static String PluginImportDialog_removeImportConfirmMsg;
+	public static String PluginImportDialog_removeNonPluginImportConfirmTitle;
+	public static String PluginImportDialog_removeNonPluginImportConfirmMsg;
 	public static String PluginImportDialog_removeImportConfirmToggleMsg;	
 	public static String NewAspectJProject_CreateAnAspectJProject;
 	public static String NewAspectJProject_CreateAnAspectJProjectDescription;
