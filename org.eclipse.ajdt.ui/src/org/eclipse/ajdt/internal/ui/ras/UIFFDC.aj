@@ -9,7 +9,7 @@
  *     	IBM Corporation - initial API and implementation
  * 		Matthew Webster - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.ui.ras;
+package org.eclipse.ajdt.internal.ui.ras;
 
 import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog2;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerAction;

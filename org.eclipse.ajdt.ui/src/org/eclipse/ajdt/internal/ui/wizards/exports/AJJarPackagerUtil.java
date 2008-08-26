@@ -44,7 +44,7 @@ public class AJJarPackagerUtil {
 
 	// Constants
 	static final String JAR_EXTENSION= "jar"; //$NON-NLS-1$
-	static final String DESCRIPTION_EXTENSION= "jardesc"; //$NON-NLS-1$
+	public static final String DESCRIPTION_EXTENSION= "jardesc"; //$NON-NLS-1$
 
 	public static boolean askToCreateDirectory(final Shell parent, File directory) {
 		if (parent == null)

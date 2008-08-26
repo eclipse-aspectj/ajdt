@@ -1940,6 +1940,32 @@ M4 = Platform-specific fourth key
     		 id="org.eclipse.ajdt.addtoaspectpath1">
     	 </action>
       </objectContribution>
+      <objectContribution
+            id="org.eclipse.ajdt.internal.ui.jarpackager.RunJarPackager"
+            nameFilter="*.jardesc"
+            objectClass="org.eclipse.core.resources.IResource">
+         <action
+               class="org.eclipse.ajdt.internal.ui.wizards.OpenAJJarPackageWizardActionDelegate"
+               enablesFor="1"
+               id="OpenAJJarPackageWizard"
+               label="%openJarPackager.label"
+               menubarPath="additions"
+               tooltip="%openJarPackager.tooltip">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="org.eclipse.ajdt.internal.ui.jarpackager.RunJarPackager"
+            nameFilter="*.jardesc"
+            objectClass="org.eclipse.core.resources.IResource">
+         <action
+               class="org.eclipse.ajdt.internal.ui.wizards.exports.CreateAJJarActionDelegate"
+               enablesFor="+"
+               id="CreateJar"
+               label="%createJarAction.label"
+               menubarPath="additions"
+               tooltip="%createJarAction.tooltip">
+         </action>
+      </objectContribution>
       </extension>
       
     <extension

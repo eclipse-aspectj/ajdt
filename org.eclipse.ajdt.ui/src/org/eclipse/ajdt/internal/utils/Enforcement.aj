@@ -10,7 +10,7 @@
  *     Helen Hawkins   - initial version
  *     Helen Hawkins   - updated for new ajde interface (bug 148190)
  *******************************************************************************/
-package org.eclipse.internal.ajdt.utils;
+package org.eclipse.ajdt.internal.utils;
 
 /**
  * Check some coding standards and conventions

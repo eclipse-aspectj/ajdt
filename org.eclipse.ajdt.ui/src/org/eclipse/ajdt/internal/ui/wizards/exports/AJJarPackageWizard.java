@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.core.IClassFile;
@@ -97,6 +98,27 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 		setDefaultPageImageDescriptor(JavaPluginImages.DESC_WIZBAN_JAR_PACKAGER);
 		setNeedsProgressMonitor(true);
 	}
+	
+	
+    /**
+     * Initializes this wizard from the given JAR package description.
+     * 
+     * @param workbench
+     *            the workbench which launched this wizard
+     * @param jarPackage
+     *            the JAR package description used to initialize this wizard
+     */
+    public void init(IWorkbench workbench, AJJarPackageData jarPackage) {  // AspectJ Change
+        Assert.isNotNull(workbench);
+        Assert.isNotNull(jarPackage);
+        fJarPackage= jarPackage;
+        setInitializeFromJarPackage(true);
+        fSelection= new StructuredSelection(fJarPackage.getElements());
+        setWindowTitle(JarPackagerMessages.JarPackageWizard_windowTitle);
+        setDefaultPageImageDescriptor(JavaPluginImages.DESC_WIZBAN_JAR_PACKAGER);
+        setNeedsProgressMonitor(true);
+    }
+
 
 	/*
 	 * (non-Javadoc)
