@@ -30,13 +30,17 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.BundleHelper;
 import org.eclipse.pde.internal.build.IBuildPropertiesConstants;
@@ -51,6 +55,8 @@ import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
 import org.eclipse.pde.internal.build.builder.IClasspathComputer;
 import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0.ClasspathElement;
+import org.eclipse.pde.internal.build.site.PDEState;
+import org.eclipse.pde.internal.build.site.PluginRegistryConverter;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;
 
 /**
@@ -961,7 +967,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		BundleDescription newModel = getModel(modelId, modelVersion);
 		if (newModel == null) {
 			String message = NLS.bind(Messages.exception_missingElement, modelId);
-			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, message, null));
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, message, new NullPointerException()));
 		}
 		setModel(newModel);
 	}
@@ -1198,7 +1204,20 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		String[] ajdeClasspath = null;
 		try {
 			addedBundles = new ArrayList();
-			ajdeClasspath = bundleToCP(getModel("org.aspectj.ajde", null)); //$NON-NLS-1$
+			try {
+				BundleDescription ajdeBundle = getModel("org.aspectj.ajde", null);
+				// bug 244735
+				// ajde plugin is not included in this build environment.
+				// no worries...get the ajdeClasspath from the rnning 
+				// version
+				if (ajdeBundle == null) {
+					ajdeBundle = addBundleAndRequired("org.aspectj.ajde");
+				}
+				ajdeClasspath = bundleToCP(ajdeBundle); //$NON-NLS-1$
+			} catch (NullPointerException npe) {
+				
+//				ajdeClasspath = bundleToCP();
+			}
 		} catch (CoreException e) {
 		}		
 		AJCTask javac = new AJCTask(buildConfig, ajdeClasspath);
@@ -1259,6 +1278,31 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printTargetEnd();
 	}
 
+
+    // bug 244735
+	// adds a bundle and all its required bundles to the PDE State
+	// this essentially forces the bundle to be resolvable for this
+	// build process
+	private BundleDescription addBundleAndRequired(String bundleName) throws CoreException {
+        // this tempBundle is used only so we can get the location.
+	    // there may be a better way, but don't know it.
+	    BundleDescription tempBundle = PluginRegistry
+                .findEntry(bundleName).getModel().getBundleDescription();
+		PDEState state = getSite(false).getRegistry();
+		BundleDescription realBundle = state.getBundle(bundleName, null, false);
+        if (realBundle == null) {
+		    state.addBundle(new File(tempBundle.getLocation()));
+		    realBundle = state.getBundle(bundleName, null, false);
+		    
+			// must add required bundles before this bundle can be resolved
+	        BundleSpecification[] requiredBundles = realBundle.getRequiredBundles();
+	        for (int i = 0; i < requiredBundles.length; i++) {
+	            addBundleAndRequired(requiredBundles[i].getName());
+            }
+		}
+		return realBundle;
+	}
+	
 	private String getEmbeddedManifestFile(CompiledEntry jarEntry, String destdir) {
 		try {
 			String manifestName = getBuildProperties().getProperty(PROPERTY_MANIFEST_PREFIX + jarEntry.getName(true));
@@ -1548,8 +1592,10 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			pathList.add(basePath.toString());
 		} else {
 			String[] cpe = getClasspathEntries(bundle);
-			for (int i = 0; i < cpe.length; i++) {
-				pathList.add(basePath.append(cpe[i]).toString());
+			if (cpe != null) {
+			    for (int i = 0; i < cpe.length; i++) {
+			        pathList.add(basePath.append(cpe[i]).toString());
+			    }
 			}
 		}		
 		
