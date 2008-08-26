@@ -393,7 +393,7 @@ public class AspectsConvertingParser implements TerminalTokens {
 		return pos;
 	}
 
-	private char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart;" //$NON-NLS-1$
+	private char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart; org.aspectj.lang.JoinPoint.StaticPart thisEnclosingJoinPointStaticPart;" //$NON-NLS-1$
 			.toCharArray();
 	
 	private void applyReplacements() {
