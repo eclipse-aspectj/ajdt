@@ -25,6 +25,7 @@
 	<template name="pertarget" description="pertarget (AspectJ)" context="java" enabled="true">pertarget(${pointcut_expression})</template>
 	<template name="perthis" description="perthis (AspectJ)" context="java" enabled="true">perthis(${pointcut_expression})</template>
 	<template name="pertypewithin" description="pertypewithin (AspectJ)" context="java" enabled="true">pertypewithin(${type_pattern})</template>
+	<template name="pointcut" description="pointcut (AspectJ)" context="java" enabled="true">pointcut ${name}(${args}) : ${pointcut_expression};</template>
 	<template name="preinitialization" description="preinitialization pointcut (AspectJ)" context="java" enabled="true">preinitialization(${modifier_pattern} ${type_pattern}.new(..))</template>
 	<template name="set" description="set pointcut (AspectJ)" context="java" enabled="true">set(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern})</template>
 	<template name="staticinitialization" description="staticinitialization pointcut (AspectJ)" context="java" enabled="true">staticinitialization(${type_pattern})</template>
