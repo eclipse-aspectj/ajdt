@@ -57,5 +57,6 @@ public class AddAJNatureActionTest extends UITestCase {
         // Attempt to add the nature
         aja.run(action);
         assertTrue(AspectJPlugin.isAJProject(testProject));
+        assertTrue("Should have aspectjruntime.jar on the classpath", RemoveAJNatureActionTest.hasAjrtOnBuildPath(testProject)); //$NON-NLS-1$
     }
 }
