@@ -1,13 +1,23 @@
 package org.eclipse.ajdt.core.tests.builder;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.ajdt.core.AspectJCorePreferences;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.core.internal.runtime.PlatformActivator;
+import org.eclipse.core.internal.runtime.RuntimeLog;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IAccessRule;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
@@ -34,6 +44,7 @@ public class AspectPathTests extends AJDTCoreTestCase {
                 new IClasspathAttribute[] {AspectJCorePreferences.ASPECTPATH_ATTRIBUTE}, // 
                 false /*not exported*/);
 
+        // note that projects inside of a container are *not* added to the aspect path
         entries[1] = JavaCore.newProjectEntry(hasLib.getFullPath(), 
                 new IAccessRule[0] /*accessRules*/,
                 true /*combineAccessRules*/,
@@ -73,5 +84,24 @@ public class AspectPathTests extends AJDTCoreTestCase {
         String[] aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(makeContainer);
         
         assertTrue("Should have lib.jar on the aspect path", aspectPath[0].endsWith("lib.jar:"));  //$NON-NLS-1$//$NON-NLS-2$
+    }
+    
+    /**
+     * this test ensures that projects that have their out folder as root can be 
+     * properly placed on the aspect and in paths
+     * See bug 244300
+     */
+    public void testProjectWithRootOutFolderOnAspectPath() throws Exception {
+    	final List log = new LinkedList();
+    	RuntimeLog.addLogListener(new ILogListener() {
+			public void logging(IStatus status, String plugin) {
+				log.add(plugin.toString() + ": " + status);
+			}
+		});
+    	
+    	createPredefinedProject("AJ Proj depends on Java Proj with Root out Folder"); //$NON-NLS-1$
+    	createPredefinedProject("Java Proj with Root Out folder"); //$NON-NLS-1$
+    	waitForAutoBuild();
+    	assertEquals("Build should have produced no errors, but errors were:\n" + log.toString(), 0, log.size());
     }
 }
