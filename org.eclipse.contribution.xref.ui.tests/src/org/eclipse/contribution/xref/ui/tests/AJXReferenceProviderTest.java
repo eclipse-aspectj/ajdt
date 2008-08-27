@@ -30,7 +30,7 @@ public class AJXReferenceProviderTest extends TestCase {
 		List providers = manager.getRegisteredProviders();
 		for (Iterator iter = providers.iterator(); iter.hasNext();) {
             XReferenceProviderDefinition element = (XReferenceProviderDefinition) iter.next();
-            if (element.getProvider().getProviderDescription().equals("Testable AJXReferenceProvider")) { //$NON-NLS-1$
+            if (element.getProvider().getProviderDescription().equals("Provides AspectJ crosscutting structure references")) { //$NON-NLS-1$
             	providerDef = element;
             }
         }
