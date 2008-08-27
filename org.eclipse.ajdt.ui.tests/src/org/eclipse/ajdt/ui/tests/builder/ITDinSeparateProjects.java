@@ -1,14 +1,12 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.ui.views.markers.internal.ProblemView;
 
 public class ITDinSeparateProjects extends UITestCase {
     
@@ -35,8 +33,7 @@ public class ITDinSeparateProjects extends UITestCase {
             // should get a warning
             // the ITD makes the class serializable should now have a warning on the woven class
             // that says it doesn't have a serialVersionUID field.
-            ProblemView problemView = (ProblemView) AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().showView("org.eclipse.ui.views.ProblemView");        //$NON-NLS-1$
-            IMarker[] markers = problemView.getCurrentMarkers().getIMarkers();
+            IMarker[] markers = getAllProblemViewMarkers();
             boolean found = false;
             for (int i = 0; i < markers.length; i++) {
                 IMarker marker = markers[i];
@@ -54,5 +51,4 @@ public class ITDinSeparateProjects extends UITestCase {
         
         
     }
-
 }
