@@ -79,8 +79,13 @@ public class SynchronizationUtils {
 		for (int i= 0; i < jobs.length; i++) {
 			Job job= jobs[i];
 			int state= job.getState();
-			if (state == Job.RUNNING || state == Job.WAITING)
+			// ignore Mylyn's Flush Cache Job
+			// it is always running and we don't 
+			// care about it
+			if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+					(state == Job.RUNNING || state == Job.WAITING)) {
 				return false;
+			}
 		}
 		return true;
 	}

@@ -20,6 +20,7 @@ import java.io.StringReader;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -39,6 +40,14 @@ import org.eclipse.jdt.core.JavaCore;
  */
 public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
+    protected void setUp() throws Exception {
+        super.setUp();
+        // avoid prompting for depency removal.
+        AspectJPreferences.setAskPDEAutoRemoveImport(false);
+        // automatically remove import from classpath
+        AspectJPreferences.setDoPDEAutoRemoveImport(true);
+    }
+    
 	/**
 	 * This tests part of the fix for 71371 with dependencies between projects with
 	 * exported jar files. Have two projects A and B where A contains a jar file and 

@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -46,6 +47,10 @@ public class AJDTUtilsTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+        // avoid prompting for depency removal.
+        AspectJPreferences.setAskPDEAutoRemoveImport(false);
+        // automatically remove import from classpath
+        AspectJPreferences.setDoPDEAutoRemoveImport(true);
 	}
 
 	/*

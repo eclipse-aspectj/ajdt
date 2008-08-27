@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.BlockingProgressMonitor;
@@ -29,6 +30,10 @@ public class ProjectDependenciesTest extends UITestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
+        // avoid prompting for depency removal.
+        AspectJPreferences.setAskPDEAutoRemoveImport(false);
+        // automatically remove import from classpath
+        AspectJPreferences.setDoPDEAutoRemoveImport(true);
 	}
 
 	protected void tearDown() throws Exception {
