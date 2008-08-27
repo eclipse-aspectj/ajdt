@@ -387,7 +387,7 @@ public class VisualiserCanvas extends Canvas {
 				if (selectedItem instanceof StripeGeom) {
 					label = ((StripeGeom) selectedItem).stripe.getToolTip();
 				} else {
-					label = ((ISelectable) selectedItem).getMember().getToolTip();
+					label = selectedItem.getMember().getToolTip();
 				}
 				int x = selectedItem.getBounds().x; // relative to column
 				x += selectedItem.getIndex() * colWidth;
