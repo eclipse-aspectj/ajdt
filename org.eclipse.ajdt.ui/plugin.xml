@@ -738,6 +738,26 @@ M4 = Platform-specific fourth key
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>				
     	</perspectiveExtension>
+
+		<!-- Show the crosscutting comparison view in the team synchronizing and the cvs repository browsing perspectives -->    	
+        <perspectiveExtension
+           targetID="org.eclipse.team.ui.TeamSynchronizingPerspective">
+           <view
+              relative="org.eclipse.team.sync.views.SynchronizeView"
+              id="org.eclipse.ajdt.ui.diff.ChangesView"
+              minimized="false"
+              relationship="stack">
+           </view>
+        </perspectiveExtension>
+        <perspectiveExtension
+           targetID="org.eclipse.team.cvs.ui.cvsPerspective">
+           <view
+              relative="org.eclipse.team.ccvs.ui.RepositoriesView"
+              id="org.eclipse.ajdt.ui.diff.ChangesView"
+              minimized="false"
+              relationship="stack">
+           </view>
+        </perspectiveExtension>
    </extension>
 
 <!-- Project properties -->
