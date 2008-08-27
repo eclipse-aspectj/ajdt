@@ -14,10 +14,13 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -53,6 +56,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	
 	private List /*File*/ allOutputFolders = new ArrayList();
 	
+
 	private boolean outputIsRoot;
 	// if there is only one output directory then this is recorded in the
 	// 'commonOutputDir' field.
@@ -91,7 +95,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 if (isUsingNonDefaultInpathOutfolder) {
                     IClasspathAttribute[] attributes = cpe[i].getExtraAttributes();
                     for (int j = 0; j < attributes.length; j++) {
-                        if (attributes[j].getName().equals(AspectJCorePreferences.INPATH_ATTRIBUTE.getName())) {
+                        if (AspectJCorePreferences.isInPathAttribute(attributes[j])) {
                             IPath path = cpe[i].getPath();
                             File f = workspacePathToFile(path);
                             if (f != null && f.exists()) {

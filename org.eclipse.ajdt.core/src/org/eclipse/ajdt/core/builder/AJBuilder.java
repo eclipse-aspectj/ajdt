@@ -93,17 +93,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
 		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
 		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
-		String kindS = null;
-		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
-			kindS = "AUTOBUILD";  //$NON-NLS-1$
-		if (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD)
-			kindS = "INCREMENTALBUILD";  //$NON-NLS-1$
-		if (kind == IncrementalProjectBuilder.FULL_BUILD)
-			kindS = "FULLBUILD";  //$NON-NLS-1$
-		if (kind == IncrementalProjectBuilder.CLEAN_BUILD)
-			kindS = "CLEANBUILD";  //$NON-NLS-1$
 		AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
-		AJLog.log(AJLog.BUILDER,"Build kind = " + kindS); //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"Build kind = " + buildKindString(kind)); //$NON-NLS-1$
 				
 		IProject[] requiredProjects = getRequiredProjects(project,true);
 
@@ -164,7 +155,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		if (kind != FULL_BUILD) {
-		    // need to add check here for whether the classpath has changed
+		    // XXX need to add check here for whether the classpath has changed
 		    if (!sourceFilesChanged(dta, project)){
 				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file changes for project "  //$NON-NLS-1$
 								+ project.getName() );
@@ -177,6 +168,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					IResourceDelta delta = getDelta(requiredProjects[i]);
 					continueToBuild = sourceFilesChanged(delta,requiredProjects[i]);
 				}
+				
+				// no compilation units found.  end the compilation!
 				if (!continueToBuild) {
 					// bug 107027
 					compilerConfig.flushClasspathCache();
@@ -198,15 +191,18 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		    !hasValidPreviousBuildConfig(compiler.getId())) {
 		    
 			IJavaProject ijp = JavaCore.create(project);
-			if (ijp != null)
+			if (ijp != null) {
 				cleanOutputFolders(ijp,false);
-			else
+			} else {
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
+			}
 		}
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
 		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath()); //$NON-NLS-1$
 		
+        // ----------------------------------------
+		// Do the compilation
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
 		if (kind == FULL_BUILD) {
 			compiler.buildFresh();
@@ -214,13 +210,57 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			compiler.build();
 		}
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_AJDE);
+		// compilation is done
+		// ----------------------------------------
 		
-		// We previously refreshed the project to infinite depth to pickup
-		// generated artifacts, but this can be very slow and isn't generally
-		// required. One case it is required is when a Java project depends on
-		// us - without an full refresh, it won't detect the class files written
-		// by AJC. A better solution might be for AJC to give us a list of the
-		// files it wrote, so we can just tell Eclipse about those.
+		
+		doRefreshAfterBuild(project, dependingProjects, javaProject);
+		
+		// update the relationship map
+		boolean inc = (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD) || (kind == IncrementalProjectBuilder.AUTO_BUILD);
+		AJModel.getInstance().createMap(project,true,inc);
+		
+		// do the cleanup
+		// bug 107027
+		compilerConfig.flushClasspathCache();
+		postCallListeners(false);
+		progressMonitor.worked(1);
+		progressMonitor.done();
+		
+		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+		return requiredProjects;
+	}
+
+    private String buildKindString(int kind) {
+        switch(kind) {
+            case IncrementalProjectBuilder.AUTO_BUILD:
+                return "AUTOBUILD";  //$NON-NLS-1$;
+            case IncrementalProjectBuilder.INCREMENTAL_BUILD:
+                return "INCREMENTALBUILD";  //$NON-NLS-1$
+            case IncrementalProjectBuilder.FULL_BUILD:
+                return "FULLBUILD";  //$NON-NLS-1$;
+            case IncrementalProjectBuilder.CLEAN_BUILD:
+                return "CLEANBUILD";  //$NON-NLS-1$
+            default:
+                return "UNKNOWN"; //$NON-NLS-1$
+        }
+    }
+
+	/**
+	 * Refreshes the project's out folders after a build
+	 * try to be as precise as possible because this can be a time consuming task 
+	 * 
+	 * A full refresh to infinite depth is required is when a Java project depends on
+     * us - without an full refresh, it won't detect the class files written
+     * by AJC.
+     * 
+     * In other cases, use the output location manager to determine the folders
+     * that have changes in them and refresh only those folders
+	 */
+    private void doRefreshAfterBuild(IProject project,
+            IProject[] dependingProjects, IJavaProject javaProject)
+            throws CoreException {
+        
 		boolean javaDep = false;
 		for (int i = 0; !javaDep && (i < dependingProjects.length); i++) {
 			if (dependingProjects[i].hasNature(JavaCore.NATURE_ID)) {
@@ -249,18 +289,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		} catch (CoreException e) {
 		}
-		
-		boolean inc = (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD) || (kind == IncrementalProjectBuilder.AUTO_BUILD);
-		AJModel.getInstance().createMap(project,true,inc);
-		// bug 107027
-		compilerConfig.flushClasspathCache();
-		postCallListeners(false);
-		progressMonitor.worked(1);
-		progressMonitor.done();
-		
-		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
-		return requiredProjects;
-	}
+    }
 
     private boolean hasValidPreviousBuildConfig(String configId) {
         AjState state = IncrementalStateManager.retrieveStateFor(configId);
