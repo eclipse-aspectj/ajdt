@@ -14,9 +14,12 @@ package org.eclipse.ajdt.internal.ui;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.aspectj.weaver.ast.HasAnnotation;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
@@ -37,10 +40,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
+import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ClasspathAttribute;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.eclipse.jdt.internal.launching.JREContainer;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
@@ -51,27 +58,30 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
+import org.eclipse.ui.activities.WorkbenchActivityHelper;
 import org.eclipse.ui.dialogs.PropertyPage;
 
 /**
- * The properties page for the AspectJ compiler options that can be set.
- * These options can be set on a per-project basis and so because of that
- * are held as persistent properties against the project resource.
- * 
+ * The properties page for the AspectJ build path options that can be set.
+ * The aspect path and in path are stored with the Java classpath
+ * THe outjar and the inpath out folder are stored in project specific settings
  */
 public class AspectJProjectPropertiesPage extends PropertyPage implements
 		IStatusChangeListener {
@@ -79,8 +89,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     /**
      * Listens for changes that require a refresh or a commit of
      * the properties page.
-     *
-     * 
      */
     private class PageChangeListener implements Listener, IResourceChangeListener {
         public void handleEvent(Event event) {
@@ -106,18 +114,25 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         private void refreshPathBlock() {
             if (hasChangesInClasspathFile()) {
                 // must run from the UI thread
-                IRunnableWithProgress runnable = new IRunnableWithProgress() {
-                    public void run(IProgressMonitor monitor) {
+                Display.getDefault().asyncExec(new Runnable() {
+                	public void run() {
                         resetPathBlocks();
-                    }
-                };
-                try {
-                    PlatformUI.getWorkbench().getProgressService().runInUI(
-                            new ProgressMonitorDialog(getShell()), runnable, null);
-                } catch (InvocationTargetException e) {
-                } catch (InterruptedException e) {
-                    // cancelled
-                }
+                	}
+                });
+                // would be better to use a runnable that has a progress bar here, but
+                // this is giving me invocation errors. so not using it.
+//                IRunnableWithProgress runnable = new IRunnableWithProgress() {
+//                    public void run(IProgressMonitor monitor) {
+//                        resetPathBlocks();
+//                    }
+//                };
+//                try {
+//                    PlatformUI.getWorkbench().getProgressService().runInUI(
+//                    		new ProgressMonitorDialog(null), runnable, null);
+//                } catch (InvocationTargetException e) {
+//                } catch (InterruptedException e) {
+//                	// cancelled
+//                }
             }
         }
     }
@@ -164,13 +179,12 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		fInPathBlock = new InPathBlock(this, 0);
-		fAspectPathBlock = new AspectPathBlock(this, 0);
-
-		
-		
 		fInPathBlock.tabContent(folder);
+
+		fAspectPathBlock = new AspectPathBlock(this, 0);
 		fAspectPathBlock.tabContent(folder);
 
+		// populate the two path block tabs
 		resetPathBlocks();
 
 		TabItem item;
@@ -200,7 +214,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         // Inpath block
 		IClasspathEntry[] initalInpath = null;
 		try {
-			initalInpath = getInitialInpathValue(thisProject);
+			initalInpath = getInitialPathValue(thisProject, AspectJCorePreferences.INPATH_ATTRIBUTE);
 		} catch (CoreException ce) {
 			AJDTErrorHandler.handleAJDTError(
 					UIMessages.InPathProp_exceptionInitializingInpath_title,
@@ -213,7 +227,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         // Aspect path block
 		IClasspathEntry[] initialAspectpath = null;
 		try {
-			initialAspectpath = getInitialAspectpathValue(thisProject);
+			initialAspectpath = getInitialPathValue(thisProject, AspectJCorePreferences.ASPECTPATH_ATTRIBUTE);
 		} catch (CoreException ce) {
 			AJDTErrorHandler.handleAJDTError(
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
@@ -223,10 +237,16 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		fAspectPathBlock.init(JavaCore.create(thisProject), initialAspectpath);
     }
 
-	private IClasspathEntry[] getInitialAspectpathValue(IProject project)
+	private IClasspathEntry[] getInitialPathValue(IProject project, IClasspathAttribute attribute)
 			throws CoreException {
-		List result = new ArrayList();
-		String[] v = AspectJCorePreferences.getRawProjectAspectPath(project);
+		List newPath = new ArrayList();
+		
+		String[] v;
+		if (AspectJCorePreferences.isAspectPathAttribute(attribute)) {
+			v = AspectJCorePreferences.getRawProjectAspectPath(project);
+		} else {
+			v = AspectJCorePreferences.getRawProjectInpath(project);
+		}
 		if (v == null) {
 			return null;
 		}
@@ -260,17 +280,79 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 							false, // combine access rules?
 							new IClasspathAttribute[0] // extra attributes?
 					);
-					result.add(entry);
+					newPath.add(entry);
 				}// end while
 			}// end if string token counts tally
 		}// end if we have something valid to work with
 
-		if (result.size() > 0) {
-			return (IClasspathEntry[]) result.toArray(new IClasspathEntry[0]);
+        // Bug 243356
+        // also get entries that are contained in containers
+        // where the containers *don't* have the path attribute
+        // but the element does.
+        // this requires looking inside the containers.
+        newPath.addAll(getEntriesInContainers(project, attribute));
+
+		if (newPath.size() > 0) {
+			return (IClasspathEntry[]) newPath.toArray(new IClasspathEntry[0]);
 		} else {
 			return null;
 		}
 	}
+	
+    // Bug 243356
+    // Look inside all container classpath elements in the project
+    protected List /*CPListElement*/ getEntriesInContainers(IProject project, IClasspathAttribute attribute) {
+    	try {
+    		IJavaProject jProject = JavaCore.create(project);
+    		// get the raw classpath of the project
+			IClasspathEntry[] allEntries = jProject.getRawClasspath();
+			List entriesWithAttribute = new ArrayList();
+			for (int i = 0; i < allEntries.length; i++) {
+				// for each container element, peek inside it
+				if (allEntries[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+		            IClasspathContainer container = 
+		                JavaCore.getClasspathContainer(allEntries[i].getPath(), jProject);
+		            if (container != null && !(container instanceof JREContainer)) {
+			            IClasspathEntry[] containerEntries = container.getClasspathEntries();
+			            for (int j = 0; j < containerEntries.length; j++) {
+			    			// iterate through each element and add 
+			    			// 	to the path those that have the appropriate attribute
+			            	if (hasClasspathAttribute(containerEntries[j], attribute)) {
+			            		addContainerToAttribute(containerEntries[j], attribute, container);
+			            		entriesWithAttribute.add(containerEntries[j]);
+			            	}
+			            }
+		            }
+				}
+			}
+	    	return entriesWithAttribute;
+
+		} catch (JavaModelException e) {
+		}
+    	return Collections.EMPTY_LIST;
+    }
+    
+    private void addContainerToAttribute(IClasspathEntry classpathEntry,
+			IClasspathAttribute attribute, IClasspathContainer container) {
+    	// find the attribute
+    	IClasspathAttribute[] attributes = classpathEntry.getExtraAttributes();
+    	for (int i = 0; i < attributes.length; i++) {
+			if (attributes[i].getName().equals(attribute.getName())) {
+				attributes[i] = new ClasspathAttribute(attribute.getName(), container.getPath().toPortableString());
+			}
+		}
+	}
+
+	private boolean hasClasspathAttribute(IClasspathEntry entry, IClasspathAttribute attribute) {
+    	IClasspathAttribute[] allAttributes = entry.getExtraAttributes();
+    	for (int i = 0; i < allAttributes.length; i++) {
+			if (allAttributes[i].getName().equals(attribute.getName())) {
+				return true;
+			}
+		}
+    	return false;
+    }
+
 
 	private Composite outputTab(Composite composite) {
 		Composite pageComposite = createPageComposite(composite, 3);
@@ -482,7 +564,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     					runnable);
     			try {
     			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
-    //				new ProgressMonitorDialog(shell).run(true, true, op);
     			} catch (InvocationTargetException e) {
     				return false;
     			} catch (InterruptedException e) {
@@ -513,55 +594,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		return pageSettings;
 	}
 
-	private IClasspathEntry[] getInitialInpathValue(IProject project)
-			throws CoreException {
-		List result = new ArrayList();
-		String[] v = AspectJCorePreferences.getRawProjectInpath(project);
-		if (v == null) {
-			return null;
-		}
-		String paths = v[0];
-		String cKinds = v[1];
-		String eKinds = v[2];
-		if ((paths != null && paths.length() > 0)
-				&& (cKinds != null && cKinds.length() > 0)
-				&& (eKinds != null && eKinds.length() > 0)) {
-			StringTokenizer sTokPaths = new StringTokenizer(paths,
-					File.pathSeparator);
-			StringTokenizer sTokCKinds = new StringTokenizer(cKinds,
-					File.pathSeparator);
-			StringTokenizer sTokEKinds = new StringTokenizer(eKinds,
-					File.pathSeparator);
-			if ((sTokPaths.countTokens() == sTokCKinds.countTokens())
-					&& (sTokPaths.countTokens() == sTokEKinds.countTokens())) {
-				while (sTokPaths.hasMoreTokens()) {
-					IClasspathEntry entry = new ClasspathEntry(Integer
-							.parseInt(sTokCKinds.nextToken()), // content kind
-							Integer.parseInt(sTokEKinds.nextToken()), // entry
-							// kind
-							new Path(sTokPaths.nextToken()), // path
-							new IPath[] {}, // inclusion patterns
-							new IPath[] {}, // exclusion patterns
-							null, // src attachment path
-							null, // src attachment root path
-							null, // output location
-							false, // is exported ?
-							null, // accessRules
-							false, // combine access rules?
-							new IClasspathAttribute[0] // extra attributes?
-					);
-					result.add(entry);
-				}// end while
-			}// end if string token counts tally
-		}// end if we have something valid to work with
-
-		if (result.size() > 0) {
-			return (IClasspathEntry[]) result.toArray(new IClasspathEntry[0]);
-		} else {
-			return null;
-		}
-
-	}
 
 	/**
 	 * Bug 76811: All fields in the preference page are put back to their

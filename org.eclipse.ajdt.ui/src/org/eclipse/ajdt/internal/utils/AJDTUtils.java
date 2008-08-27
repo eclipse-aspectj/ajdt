@@ -68,6 +68,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.pde.core.plugin.IPluginImport;
@@ -629,7 +630,7 @@ public class AJDTUtils {
 		}// end for
 		description.setNatureIds(newNatures);
 		project.setDescription(description, null);
-
+		
 		// Bugzilla 62625
 		// Bugzilla 93532 - just remove plugin dependency if there is a plugin.xml file
 		// Bugzilla 137922 - also consider bundles without a plugin.xml
@@ -653,8 +654,14 @@ public class AJDTUtils {
 	                
 			}
 		} else {
-			// Update the build classpath to try and remove the aspectjrt.jar
-			AspectJUIPlugin.removeAjrtFromBuildPath(project);
+		    IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
+		            .getActiveWorkbenchWindow();
+		    if ((AspectJPreferences.askPDEAutoRemoveImport() && confirmAutoRemoveImport(window, false))
+		            || (AspectJPreferences.doPDEAutoRemoveImport())) {
+
+		        // Update the build classpath to try and remove the aspectjrt.jar
+		        AspectJUIPlugin.removeAjrtFromBuildPath(project);
+		    }
 		}
 		
 		AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
@@ -814,7 +821,7 @@ public class AJDTUtils {
 	private static void removeAJPluginDependency(ManifestEditor manEd) {
 		IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
 		.getActiveWorkbenchWindow();
-		if ((AspectJPreferences.askPDEAutoRemoveImport() && confirmPDEAutoRemoveImport(window))
+		if ((AspectJPreferences.askPDEAutoRemoveImport() && confirmAutoRemoveImport(window, true))
 				|| (AspectJPreferences.doPDEAutoRemoveImport())) {
 
 	
@@ -954,16 +961,21 @@ public class AJDTUtils {
 	 * Prompts the user for whether to automatically remove the AspectJ runtime plug-in 
 	 * dependency when removing AspectJ nature from a PDE project.
 	 * 
+	 * @param window the workbench windo that the doalog box will be modal on
+	 * @param pde whether or not to use pde related messages (bug 170043)
+	 * 
 	 * @return <code>true</code> if it's OK to import, <code>false</code>
 	 *         otherwise
 	 */
-	private static boolean confirmPDEAutoRemoveImport(IWorkbenchWindow window) {
+	private static boolean confirmAutoRemoveImport(IWorkbenchWindow window, boolean pde) {
 
 		MessageDialogWithToggle dialog = MessageDialogWithToggle
 				.openQuestion(
 						window.getShell(),
-						UIMessages.PluginImportDialog_removeImportConfirmTitle,
-						UIMessages.PluginImportDialog_removeImportConfirmMsg,
+						pde ? UIMessages.PluginImportDialog_removeImportConfirmTitle :
+						      UIMessages.PluginImportDialog_removeNonPluginImportConfirmTitle,
+						pde ? UIMessages.PluginImportDialog_removeImportConfirmMsg :
+						      UIMessages.PluginImportDialog_removeNonPluginImportConfirmMsg,
 						UIMessages.PluginImportDialog_removeImportConfirmToggleMsg,
 						false); // toggle is initially unchecked
 

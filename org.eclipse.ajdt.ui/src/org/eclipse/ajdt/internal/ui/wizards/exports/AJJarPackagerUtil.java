@@ -1,9 +1,9 @@
 /**********************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,23 +22,18 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableContext;
-
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.corext.util.Messages;
+import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.jarpackager.JarPackageData;
-
-import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.jarpackager.JarPackagerUtil
@@ -49,14 +44,12 @@ public class AJJarPackagerUtil {
 
 	// Constants
 	static final String JAR_EXTENSION= "jar"; //$NON-NLS-1$
-	static final String DESCRIPTION_EXTENSION= "jardesc"; //$NON-NLS-1$
+	public static final String DESCRIPTION_EXTENSION= "jardesc"; //$NON-NLS-1$
 
 	public static boolean askToCreateDirectory(final Shell parent, File directory) {
 		if (parent == null)
 			return false;
-		// AspectJ Change Begin
-		return queryDialog(parent, AJJarPackagerMessages.getString("JarPackage.confirmCreate.title"), AJJarPackagerMessages.getFormattedString("JarPackage.confirmCreate.message", directory.toString())); //$NON-NLS-2$ //$NON-NLS-1$
-		// AspectJ Change End
+		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmCreate_title, Messages.format(JarPackagerMessages.JarPackage_confirmCreate_message, directory.toString())); 
 	}
 
 	/**
@@ -83,9 +76,7 @@ public class AJJarPackagerUtil {
 	public static boolean askForOverwritePermission(final Shell parent, String filePath) {
 		if (parent == null)
 			return false;
-//		 AspectJ Change Begin
-		return queryDialog(parent, AJJarPackagerMessages.getString("JarPackage.confirmReplace.title"), AJJarPackagerMessages.getFormattedString("JarPackage.confirmReplace.message", filePath)); //$NON-NLS-2$ //$NON-NLS-1$
-//		 AspectJ Change End
+		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmReplace_title, Messages.format(JarPackagerMessages.JarPackage_confirmReplace_message, filePath)); 
 	}
 
 	/**
@@ -166,7 +157,6 @@ public class AJJarPackagerUtil {
 			// Test if it has a main method
 			return JavaModelUtil.hasMainMethod(mainClass);
 		} catch (JavaModelException e) {
-			JavaPlugin.log(e.getStatus());
 		}
 		return false;
 	}

@@ -59,7 +59,6 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.jarpackager.JarPackagerMessages;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.refactoring.RefactoringSaveHelper;
 import org.eclipse.jdt.internal.ui.util.BusyIndicatorRunnableContext;
@@ -278,7 +277,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			try {
 				resource= je.getUnderlyingResource();
 			} catch (JavaModelException ex) {
-				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_underlyingResourceNotFound, je.getElementName()), ex); 
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_resourceNotFound, je.getElementName()), ex); 
 				return;
 			}
 			jProject= je.getJavaProject();

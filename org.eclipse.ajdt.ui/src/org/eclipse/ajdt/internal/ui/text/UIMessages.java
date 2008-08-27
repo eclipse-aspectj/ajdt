@@ -60,7 +60,7 @@ public class UIMessages extends NLS {
 	public static String NewAspectjProjectCreationWizard_op_error_message;
 	public static String NewAspectjProjectCreationWizard_MainPage_project_exists_capitalization;
 	public static String EditorRulerContextMenu_relatedLocations;
-	public static String EditorRulerContextMenu_relatedLocation_message;	
+	public static String EditorRulerContextMenu_relatedLocation_message;
 	public static String PluginImportDialog_importConfirmTitle;
 	public static String PluginImportDialog_importConfirmMsg;
 	public static String PluginImportDialog_importConfirmToggleMsg ;	
@@ -74,6 +74,8 @@ public class UIMessages extends NLS {
 	public static String AutoPluginRemoveErrorDialog_message;
 	public static String PluginImportDialog_removeImportConfirmTitle;
 	public static String PluginImportDialog_removeImportConfirmMsg;
+	public static String PluginImportDialog_removeNonPluginImportConfirmTitle;
+	public static String PluginImportDialog_removeNonPluginImportConfirmMsg;
 	public static String PluginImportDialog_removeImportConfirmToggleMsg;	
 	public static String NewAspectJProject_CreateAnAspectJProject;
 	public static String NewAspectJProject_CreateAnAspectJProjectDescription;

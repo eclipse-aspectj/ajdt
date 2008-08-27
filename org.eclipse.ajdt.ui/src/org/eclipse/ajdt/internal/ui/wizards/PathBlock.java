@@ -34,6 +34,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelStatus;
@@ -55,10 +57,13 @@ import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElementAttribute;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListLabelProvider;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.ClasspathOrderingWorkbookPage;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.CheckedListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IListAdapter;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.ITreeListAdapter;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.ListDialogField;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.TreeListDialogField;
 import org.eclipse.jdt.ui.JavaElementComparator;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.wizards.BuildPathDialogAccess;
@@ -69,6 +74,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -88,9 +94,6 @@ import org.eclipse.ui.dialogs.ListSelectionDialog;
 public abstract class PathBlock {
 
     /* constants representing button locations */
-    protected static final int IDX_UP = 0;
-    protected static final int IDX_DOWN = 1;
-    // 
     protected static final int IDX_ADDJAR = 3;
     protected static final int IDX_ADDEXT = 4;
     protected static final int IDX_ADDVAR = 5;
@@ -100,12 +103,60 @@ public abstract class PathBlock {
     protected static final int IDX_REMOVE = 9;
     
 
-    private int fPageIndex;
+    protected class LibrariesAdapter implements IDialogFieldListener, ITreeListAdapter {
+    	
+	    // ---------- IDialogFieldListener --------
+	    public void dialogFieldChanged(DialogField field) {
+	        libaryPageDialogFieldChanged(field);
+	    }
+
+	    // -------- ITreeListAdapter --------
+		public void customButtonPressed(TreeListDialogField field, int index) {
+	        libaryPageCustomButtonPressed(field, index);
+		}
+
+		public void doubleClicked(TreeListDialogField field) {
+			// do nothing
+		}
+
+		public Object[] getChildren(TreeListDialogField field, Object element) {
+			if (element instanceof CPListElement) {
+				IClasspathEntry entry = ((CPListElement) element).getClasspathEntry();
+				IClasspathContainer container = getClasspathContainer(entry); 
+				if (container != null) {
+					return new Object[] { "From: " + container.getDescription() };
+				}
+			} 
+			return null;
+		}
+
+		public Object getParent(TreeListDialogField field, Object element) {
+			if (element instanceof CPListElementAttribute) {
+				return ((CPListElementAttribute) element).getParent();
+			} else {
+				return null;
+			}
+		}
+
+		public boolean hasChildren(TreeListDialogField field, Object element) {
+			Object[] children = getChildren(field, element);
+			return children != null && children.length > 0;
+		}
+
+		public void keyPressed(TreeListDialogField field, KeyEvent event) {
+		}
+
+		public void selectionChanged(TreeListDialogField field) {
+	        libaryPageSelectionChanged(field);
+		}
+	}
+
+	private int fPageIndex;
     private IJavaProject fCurrJProject;
     private String fUserSettingsTimeStamp;
 
     protected final IWorkspaceRoot fWorkspaceRoot;
-    protected ListDialogField fPathList;
+    protected TreeListDialogField fPathList;
     protected IStatusChangeListener fContext;
     protected StatusInfo fPathStatus;  /* status for path list being self-consistent */
     protected StatusInfo fJavaBuildPathStatus; /* status for path list being consistent with Java build path */
@@ -117,8 +168,8 @@ public abstract class PathBlock {
         
         LibrariesAdapter adapter= new LibrariesAdapter();
         String[] buttonLabels= new String[] {
-                /* IDX_UP     */ UIMessages.PathBlock_order_up_button,
-                /* IDX_DOWN   */ UIMessages.PathBlock_order_down_button,
+                null,
+                null,
                 null,
                 /* IDX_ADDJAR */ UIMessages.PathLibrariesWorkbookPage_libraries_addjar_button,
                 /* IDX_ADDEXT */ UIMessages.PathLibrariesWorkbookPage_libraries_addextjar_button,
@@ -128,10 +179,8 @@ public abstract class PathBlock {
                 /* IDX_ADDPRJ */ UIMessages.PathLibrariesWorkbookPage_libraries_addproject_button,       
                 /* IDX_REMOVE */ UIMessages.PathLibrariesWorkbookPage_libraries_remove_button               
         };
-        fPathList= new ListDialogField(adapter, buttonLabels, new CPListLabelProvider());
+        fPathList= new TreeListDialogField(adapter, buttonLabels, new CPListLabelProvider());
         fPathList.setDialogFieldListener(adapter);
-        fPathList.setUpButtonIndex(IDX_UP);
-        fPathList.setDownButtonIndex(IDX_DOWN);
         fPathList.setRemoveButtonIndex(IDX_REMOVE);
         fPathList.enableButton(IDX_REMOVE, false);
 
@@ -142,31 +191,23 @@ public abstract class PathBlock {
 
     }
     
+    protected abstract void internalSetProjectPath(List pathEntries,
+            StringBuffer pathBuffer, StringBuffer contentKindBuffer,
+            StringBuffer entryKindBuffer);
+    
+    
+    protected abstract String getBlockNote();
+
+    protected abstract String getBlockTitle();
+
+
+    
     public void init() {
         initializeTimeStamp();
         updatePathStatus();
     }
     
     
-    protected class LibrariesAdapter implements IDialogFieldListener, IListAdapter {
-        // -------- IListAdapter --------
-        public void customButtonPressed(ListDialogField field, int index) {
-            libaryPageCustomButtonPressed(field, index);
-        }
-        
-        public void selectionChanged(ListDialogField field) {
-            libaryPageSelectionChanged(field);
-        }
-        
-        public void doubleClicked(ListDialogField field) {
-        }
-
-        // ---------- IDialogFieldListener --------
-        public void dialogFieldChanged(DialogField field) {
-            libaryPageDialogFieldChanged(field);
-        }
-    }
-
     private void libaryPageSelectionChanged(DialogField field) {
         List selElements = fPathList.getSelectedElements();
         fPathList.enableButton(IDX_REMOVE, canRemove(selElements));
@@ -174,33 +215,35 @@ public abstract class PathBlock {
     private void libaryPageDialogFieldChanged(DialogField field) {
         if (fCurrJProject != null) {
             // already initialized
-            updatePathList();
+//            updatePathList();
             updatePathStatus();
             doStatusLineUpdate();
         }
     }
   
-  private void updatePathList() {
-        List projelements = fPathList.getElements();
-
-        List cpelements = fPathList.getElements();
-        int nEntries = cpelements.size();
-        // backwards, as entries will be deleted
-        int lastRemovePos = nEntries;
-        for (int i = nEntries - 1; i >= 0; i--) {
-            CPListElement cpe = (CPListElement) cpelements.get(i);
-            if (!projelements.remove(cpe)) {
-                cpelements.remove(i);
-                lastRemovePos = i;
-            }
-        }
-
-        cpelements.addAll(lastRemovePos, projelements);
-
-        if (lastRemovePos != nEntries || !projelements.isEmpty()) {
-            fPathList.setElements(cpelements);
-        }
-    }
+    // don't think thisis needed any more because we accept 
+    // all kinds of classpath entries now (ie- projects and containers)
+//  private void updatePathList() {
+//        List projelements = fPathList.getElements();
+//        List cpelements = fPathList.getElements();
+//        
+//        int nEntries = cpelements.size();
+//        // backwards, as entries will be deleted
+//        int lastRemovePos = nEntries;
+//        for (int i = nEntries - 1; i >= 0; i--) {
+//            CPListElement cpe = (CPListElement) cpelements.get(i);
+//            if (!projelements.remove(cpe)) {
+//                cpelements.remove(i);
+//                lastRemovePos = i;
+//            }
+//        }
+//
+//        cpelements.addAll(lastRemovePos, projelements);
+//
+//        if (lastRemovePos != nEntries || !projelements.isEmpty()) {
+//            fPathList.setElements(cpelements);
+//        }
+//    }
 
 
 
@@ -218,7 +261,7 @@ public abstract class PathBlock {
             case IDX_ADDVAR: /* add variable */
                 libentries = openVariableSelectionDialog(null);
                 break;
-            case IDX_ADDFOL: /* add folder */
+            case IDX_ADDFOL: /* add class folder */
                 libentries = openClassFolderDialog(null);
                 break;
             case IDX_ADDCON: /* add container */
@@ -233,7 +276,10 @@ public abstract class PathBlock {
         }
         if (libentries != null) {
             int nElementsChosen = libentries.length;
-            // remove duplicates
+            // remove duplicates, but ignore 
+            // elements with classpath containers
+            // since there is no direct control over
+            // them.
             List cplist = fPathList.getElements();
             List elementsToAdd = new ArrayList(nElementsChosen);
 
@@ -243,8 +289,14 @@ public abstract class PathBlock {
                     elementsToAdd.add(curr);
                     curr.setAttribute(CPListElement.SOURCEATTACHMENT,
                             BuildPathSupport.guessSourceAttachment(curr));
-                    curr.setAttribute(CPListElement.JAVADOC, 
-                            JavaUI.getLibraryJavadocLocation(curr.getPath()));
+                    
+                    // Not working and I don't think we need this.
+//                    try {
+//						curr.setAttribute(CPListElement.JAVADOC, 
+//								JavaUI.getJavadocBaseLocation(
+//										fCurrJProject.getJavaModel().findElement(curr.getPath())));
+//					} catch (JavaModelException e) {
+//					}
                 }
             }
             if (!elementsToAdd.isEmpty() && (index == IDX_ADDFOL)) {
@@ -259,7 +311,7 @@ public abstract class PathBlock {
             doStatusLineUpdate();
         }
     }
-  
+
   protected void doStatusLineUpdate() {
         IStatus res = findMostSevereStatus();
         fContext.statusChanged(res);
@@ -305,11 +357,15 @@ public abstract class PathBlock {
      */
     protected void updateJavaBuildPathStatus() {
         List elements = fPathList.getElements();
-        IClasspathEntry[] entries = new IClasspathEntry[elements.size()];
+        List /* IClasspathEntry */ entries = new ArrayList();
 
         for (int i = elements.size() - 1; i >= 0; i--) {
             CPListElement currElement = (CPListElement) elements.get(i);
-            entries[i] = currElement.getClasspathEntry();
+            // ignore elements that are part of a container 
+            // since user does not have direct control over removing them
+            if (!inClasspathContainer(currElement)) {
+            	entries.add(currElement.getClasspathEntry());
+            }
         }
 
         IPath outPath;
@@ -318,16 +374,17 @@ public abstract class PathBlock {
         } catch (JavaModelException e) {
             outPath = fCurrJProject.getPath();
         }
-
+        
+        IClasspathEntry[] entriesArr = (IClasspathEntry[]) entries.toArray(new IClasspathEntry[0]);
         IJavaModelStatus status = JavaConventions.validateClasspath(
-                fCurrJProject, entries, outPath);
+                fCurrJProject, entriesArr, outPath);
 
         if (!status.isOK()) {
             fJavaBuildPathStatus.setError(status.getMessage());
             return;
         }
 
-        IJavaModelStatus dupStatus = checkForDuplicates(fCurrJProject, entries);
+        IJavaModelStatus dupStatus = checkForDuplicates(fCurrJProject, entriesArr);
         if (!dupStatus.isOK()) {
             fJavaBuildPathStatus.setError(dupStatus.getMessage());
             return;
@@ -355,8 +412,11 @@ public abstract class PathBlock {
         try {
             Map allEntries = new HashMap(entries.length, 1.0f);
             for (int i = 0; i < entries.length; i++) {
-                allEntries.put(entries[i].getPath().toPortableString(),
-                        entries[i]);
+            	// ignore entries that are inside of a container
+            	if (getClasspathContainer(entries[i]) == null) {
+	                allEntries.put(entries[i].getPath().toPortableString(),
+	                        entries[i]);
+            	}
             }
 
             IClasspathEntry[] rawProjectClasspath = currJProject
@@ -453,6 +513,13 @@ public abstract class PathBlock {
         }
     }
   
+    /**
+     * Determines whether or not the remove button is active.
+     * 
+     * @param selElements Selected elements
+     * @return true if all elements are CPListElements that are not attributes
+     * and are not contained in classpath containers
+     */
     private boolean canRemove(List selElements) {
         if (selElements.size() == 0) {
             return false;
@@ -464,8 +531,10 @@ public abstract class PathBlock {
                     return false;
                 }
             } else if (elem instanceof CPListElement) {
+            	// Bug 243356
+            	// can't remove elements that are contained in a container
                 CPListElement curr = (CPListElement) elem;
-                if (curr.getParentContainer() != null) {
+                if (inClasspathContainer(curr)) {
                     return false;
                 }
             }
@@ -473,7 +542,37 @@ public abstract class PathBlock {
         return true;
     }
 
+    private boolean inClasspathContainer(CPListElement element) {
+    	IClasspathAttribute[] attributes = element.getClasspathEntry().getExtraAttributes();
+    	for (int i = 0; i < attributes.length; i++) {
+			if (AspectJCorePreferences.isAspectPathAttribute(attributes[i]) || 
+					AspectJCorePreferences.isInPathAttribute(attributes[i])) {
+				if (! (attributes[i].getValue().equals(attributes[i].getName()))) {
+					return true;
+				}
+			}
+    	}
+    	return false;
+	}
   
+    private IClasspathContainer getClasspathContainer(IClasspathEntry classpathEntry) {
+    	IClasspathAttribute[] attributes = classpathEntry.getExtraAttributes();
+    	for (int i = 0; i < attributes.length; i++) {
+			if (AspectJCorePreferences.isAspectPathAttribute(attributes[i]) || 
+					AspectJCorePreferences.isInPathAttribute(attributes[i])) {
+				if (attributes[i].getValue() != null) {
+					try {
+						return JavaCore.getClasspathContainer(new Path(attributes[i].getValue()), fCurrJProject);
+					} catch (JavaModelException e) {
+						return null;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	// Don't think this is used.
     private void askForAddingExclusionPatternsDialog(List newEntries) {
         HashSet modified = new HashSet();
         if (!modified.isEmpty()) {
@@ -751,7 +850,7 @@ public abstract class PathBlock {
         ImageRegistry imageRegistry = JavaPlugin.getDefault()
                 .getImageRegistry();
 
-        ClasspathOrderingWorkbookPage ordpage = new ClasspathOrderingWorkbookPage(
+        PathBlockWorkbookPage ordpage = new PathBlockWorkbookPage(
                 fPathList);
         item = new TabItem(folder, SWT.NONE);
         item.setText(getBlockTitle());
@@ -797,14 +896,19 @@ public abstract class PathBlock {
         return buffer;
     }
     
-    protected void internalConfigureJavaProject(List pathEntries,
+    protected void internalConfigureJavaProject(List pathElements,
             IProgressMonitor monitor) throws CoreException, InterruptedException {
-        int nEntries = pathEntries.size();
-        IClasspathEntry[] aspectpath = new IClasspathEntry[nEntries];
+        int nEntries = pathElements.size();
+        List /* IClasspathEntry */ pathEntries = new ArrayList();
 
         for (int i = 0; i < nEntries; i++) {
-            CPListElement entry = ((CPListElement) pathEntries.get(i));
-            aspectpath[i] = entry.getClasspathEntry();
+        	// Bug 243356
+        	// remove from the list if this is an entry contained in a container
+        	// because entries in containers are computed separately
+            CPListElement element = ((CPListElement) pathElements.get(i));
+			if (!inClasspathContainer(element)) {
+				pathEntries.add(element.getClasspathEntry());
+            }
         }
 
         monitor.worked(2);
@@ -812,12 +916,13 @@ public abstract class PathBlock {
         StringBuffer pathBuffer = new StringBuffer();
         StringBuffer contentKindBuffer = new StringBuffer();
         StringBuffer entryKindBuffer = new StringBuffer();
-        for (int i = 0; i < aspectpath.length; i++) {
-            pathBuffer.append(aspectpath[i].getPath());
+        for (Iterator pathIter = pathEntries.iterator(); pathIter.hasNext();) {
+			IClasspathEntry pathEntry = (IClasspathEntry) pathIter.next();
+            pathBuffer.append(pathEntry.getPath());
             pathBuffer.append(File.pathSeparator);
-            contentKindBuffer.append(aspectpath[i].getContentKind());
+            contentKindBuffer.append(pathEntry.getContentKind());
             contentKindBuffer.append(File.pathSeparator);
-            entryKindBuffer.append(aspectpath[i].getEntryKind());
+            entryKindBuffer.append(pathEntry.getEntryKind());
             entryKindBuffer.append(File.pathSeparator);
         }
 
@@ -825,25 +930,18 @@ public abstract class PathBlock {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
 
-        internalSetProjectPath(pathEntries, pathBuffer,
+        internalSetProjectPath(pathElements, pathBuffer,
                 contentKindBuffer, entryKindBuffer);
     }
 
-    
-    protected abstract void internalSetProjectPath(List pathEntries,
-            StringBuffer pathBuffer, StringBuffer contentKindBuffer,
-            StringBuffer entryKindBuffer);
-    protected abstract String getBlockNote();
-    protected abstract String getBlockTitle();
-
-    protected ArrayList getExistingEntries(IClasspathEntry[] pathEntries) {
-        ArrayList newAspectPath = new ArrayList();
+    protected ArrayList /*CPListElement*/ getExistingEntries(IClasspathEntry[] pathEntries) {
+        ArrayList /*CPListElement*/ newPath = new ArrayList();
         for (int i = 0; i < pathEntries.length; i++) {
             IClasspathEntry curr = pathEntries[i];
-            newAspectPath.add(CPListElement.createFromExisting(curr,
+            newPath.add(CPListElement.createFromExisting(curr,
                     fCurrJProject));
         }
-        return newAspectPath;
+        return newPath;
     }
 
     protected Shell getShell() {
