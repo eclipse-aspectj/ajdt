@@ -91,7 +91,7 @@ public class AJBuildDirector extends BuildDirector {
 			if (list.size() == 0)
 				continue;
 
-			ModelBuildScriptGenerator generator = 
+			AJModelBuildScriptGenerator generator = 
 				new AJModelBuildScriptGenerator();  // AspectJ Change
 			generator.setBuildSiteFactory(siteFactory);
 			generator.setCompiledElements(getCompiledElements());
