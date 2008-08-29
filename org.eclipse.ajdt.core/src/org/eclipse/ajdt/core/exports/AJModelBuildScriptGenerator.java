@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.util.NLS;
@@ -1279,17 +1280,20 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printTargetEnd();
 	}
 
-
+	// AspectJ Change Begin
     // bug 244735
 	// adds a bundle and all its required bundles to the PDE State
 	// this essentially forces the bundle to be resolvable for this
-	// build process
+	// build process even if it is not in the target workspace
 	private BundleDescription addBundleAndRequired(String bundleName) throws CoreException {
 		PDEState state = getSite(false).getRegistry();
 		BundleDescription realBundle = state.getBundle(bundleName, null, false);
         if (realBundle == null) {
-            // this tempBundle is used only so we can get the location.
-            // there may be a better way, but don't know it.
+            // the bundle is not part of the target workspace
+            // this tempBundle is used only so we can get the location 
+            // which is in the installed workspace, but not the target.
+            // This allows target workspaces to be used that do not
+            // include the ajde or weaver bundles.
 			Bundle tempBundle = Platform.getBundle(bundleName);
 			String location = tempBundle.getLocation();
 			
@@ -1301,6 +1305,13 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
             if (fileIndex != -1) {
                 location = location.substring(fileIndex + "file:".length());
             }
+			if (!location.startsWith("/")) {
+				Location installLocation = Platform.getInstallLocation();
+
+				if (installLocation != null) {
+					location = installLocation.getURL().getPath() + location;
+				}
+			}
 			
 			state.addBundle(new File(location));
 		    realBundle = state.getBundle(bundleName, null, false);
@@ -1313,6 +1324,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		}
 		return realBundle;
 	}
+    // AspectJ Change End
 	
 	private String getEmbeddedManifestFile(CompiledEntry jarEntry, String destdir) {
 		try {
