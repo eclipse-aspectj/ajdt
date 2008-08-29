@@ -47,30 +47,29 @@ import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * ICompilerConfiguration implementation which returns information for
- * all methods except getNonStandardOptions().
- *
+ * ICompilerConfiguration implementation which returns information for all methods except getNonStandardOptions().
+ * 
  */
 public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
 	private String cachedClasspath = null;
 	protected IProject project;
 	private CoreOutputLocationManager locationManager;
-	
+
 	public CoreCompilerConfiguration(IProject project) {
 		this.project = project;
 	}
-	
+
 	public Map getJavaOptionsMap() {
 		Map optionsMap = null;
-		
+
 		JavaProject javaProject;
 		try {
-			javaProject = (JavaProject)project.getNature(JavaCore.NATURE_ID);
+			javaProject = (JavaProject) project.getNature(JavaCore.NATURE_ID);
 			optionsMap = javaProject.getOptions(true);
 		} catch (CoreException e) {
 		}
-		
+
 		if (optionsMap == null) {
 			return JavaCore.getOptions();
 		} else {
@@ -105,8 +104,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		// bug 73035: use this build classpath resolver which is a direct
 		// copy from JDT, so the classpath environment is much closer between
 		// AspectJ and Java projects.
-		cachedClasspath = new BuildClasspathResolver().getClasspath(
-				AspectJPlugin.getWorkspace().getRoot(), jp);
+		cachedClasspath = new BuildClasspathResolver().getClasspath(AspectJPlugin.getWorkspace().getRoot(), jp);
 		return cachedClasspath;
 	}
 
@@ -130,8 +128,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
 		// If outputJar does not start with a slash, we might need to prepend
 		// the project work directory.
-		if (outputJar.trim().length() > 0
-				&& !(outputJar.startsWith("\\") || outputJar.startsWith("/"))) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (outputJar.trim().length() > 0 && !(outputJar.startsWith("\\") || outputJar.startsWith("/"))) { //$NON-NLS-1$ //$NON-NLS-2$
 			String trimmedName = outputJar.trim();
 			boolean prependProject = true;
 
@@ -145,16 +142,14 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
 			if (prependProject) {
 				// Its a relative path, it should be relative to the project.
-				String projectBaseDirectory = project.getLocation()
-						.toOSString();
-				outputJar = new String(projectBaseDirectory + File.separator
-						+ outputJar.trim());
+				String projectBaseDirectory = project.getLocation().toOSString();
+				outputJar = new String(projectBaseDirectory + File.separator + outputJar.trim());
 			}
 		}
 
 		return outputJar;
 	}
-	
+
 	public IOutputLocationManager getOutputLocationManager() {
 		if (locationManager == null) {
 			locationManager = new CoreOutputLocationManager(project);
@@ -176,19 +171,16 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		IJavaProject jProject = JavaCore.create(project);
 		Map map = new HashMap();
 		try {
-			IClasspathEntry[] classpathEntries = jProject
-					.getResolvedClasspath(false);
+			IClasspathEntry[] classpathEntries = jProject.getResolvedClasspath(false);
 
 			// find the absolute output path
 			String realOutputLocation;
 			IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
 			if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
 				// root
-				realOutputLocation = jProject.getResource().getLocation()
-						.toOSString();
+				realOutputLocation = jProject.getResource().getLocation().toOSString();
 			} else {
-				IFolder out = ResourcesPlugin.getWorkspace().getRoot()
-						.getFolder(workspaceRelativeOutputPath);
+				IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(workspaceRelativeOutputPath);
 				realOutputLocation = out.getLocation().toOSString();
 			}
 			for (int i = 0; i < classpathEntries.length; i++) {
@@ -197,23 +189,19 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 					IPath sourcePath = sourceEntry.getPath();
 					List files = new ArrayList();
 					sourcePath = sourcePath.removeFirstSegments(1);
-					IResource[] srcContainer = new IResource[] { project
-							.findMember(sourcePath) };
-					if(srcContainer[0] != null) {
-						getProjectRelativePaths(srcContainer, files,
-								CoreUtils.RESOURCE_FILTER, srcContainer[0]
-										.getFullPath().segmentCount() - 1, sourceEntry);
-	
+					IResource[] srcContainer = new IResource[] { project.findMember(sourcePath) };
+					if (srcContainer[0] != null) {
+						getProjectRelativePaths(srcContainer, files, CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
+								.segmentCount() - 1, sourceEntry);
+
 						ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
-	
+
 						for (Iterator it = files.iterator(); it.hasNext();) {
 							String relPath = (String) it.next();
-							String fullPath = getResourceFullPath(srcContainer[0],
-									relPath, linkedSrcFolders);
-	
+							String fullPath = getResourceFullPath(srcContainer[0], relPath, linkedSrcFolders);
+
 							// put file on list if not in output path
-							if (!fullPath.startsWith(realOutputLocation)
-									&& !relPath.endsWith(".classpath") //$NON-NLS-1$
+							if (!fullPath.startsWith(realOutputLocation) && !relPath.endsWith(".classpath") //$NON-NLS-1$
 									&& !relPath.endsWith(".project") //$NON-NLS-1$
 									&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
 									&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
@@ -238,26 +226,22 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	public void flushClasspathCache() {
 		cachedClasspath = null;
 	}
-	
+
 	public String expandVariables(String path, String eKinds) {
 		StringBuffer resultBuffer = new StringBuffer();
 		StringTokenizer strTok = new StringTokenizer(path, File.pathSeparator);
-		StringTokenizer strTok2 = new StringTokenizer(eKinds,
-				File.pathSeparator);
+		StringTokenizer strTok2 = new StringTokenizer(eKinds, File.pathSeparator);
 		while (strTok.hasMoreTokens()) {
 			String current = strTok.nextToken();
 			int entryKind = Integer.parseInt(strTok2.nextToken());
 			if (entryKind == IClasspathEntry.CPE_VARIABLE) {
-				int slashPos = current.indexOf(
-						AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 0);
+				int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 0);
 				if (slashPos != -1) {
-					String exp = JavaCore.getClasspathVariable(
-							current.substring(0, slashPos)).toOSString();
+					String exp = JavaCore.getClasspathVariable(current.substring(0, slashPos)).toOSString();
 					resultBuffer.append(exp);
 					resultBuffer.append(current.substring(slashPos));
 				} else {
-					String exp = JavaCore.getClasspathVariable(current)
-							.toOSString();
+					String exp = JavaCore.getClasspathVariable(current).toOSString();
 					resultBuffer.append(exp);
 				}
 			} else {
@@ -274,8 +258,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	 */
 	public String fullyQualifyPathEntries(String inputPath) {
 		StringBuffer resultBuffer = new StringBuffer();
-		StringTokenizer strTok = new StringTokenizer(inputPath,
-				File.pathSeparator);
+		StringTokenizer strTok = new StringTokenizer(inputPath, File.pathSeparator);
 		while (strTok.hasMoreTokens()) {
 			String current = strTok.nextToken();
 			File f = new File(current);
@@ -287,16 +270,14 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 				// replace part of the path string with a fully qualified
 				// equivalent.
 				String projectName = null;
-				int slashPos = current.indexOf(
-						AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 1);
+				int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 1);
 				if (slashPos != -1) {
 					projectName = current.substring(1, slashPos);
 				} else {
 					projectName = current.substring(1);
 				}
 
-				IProject proj = AspectJPlugin.getWorkspace().getRoot()
-						.getProject(projectName);
+				IProject proj = AspectJPlugin.getWorkspace().getRoot().getProject(projectName);
 
 				if (proj != null && proj.getLocation() != null) {
 					String projectPath = proj.getLocation().toString();
@@ -305,19 +286,16 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 						String rest = current.substring(slashPos + 1);
 						IResource res = proj.findMember(rest);
 						if (res != null) {
-							resultBuffer.append(res.getRawLocation()
-									.toOSString());
+							resultBuffer.append(res.getRawLocation().toOSString());
 						} else {
-							resultBuffer.append(projectPath
-									+ AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR
-									+ rest);
+							resultBuffer.append(projectPath + AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR + rest);
 						}
 					} else {
 						resultBuffer.append(projectPath);
 					}
 				}// end if named project found
 				else {
-					AJLog.log(AJLog.BUILDER,"AspectJ path entry " + current //$NON-NLS-1$
+					AJLog.log(AJLog.BUILDER, "AspectJ path entry " + current //$NON-NLS-1$
 							+ " does not exist."); //$NON-NLS-1$
 					resultBuffer.append(current);
 				}// end else entry not found in workspace
@@ -334,9 +312,8 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	/**
-	 * Utility method for converting a semicolon separated list of files stored
-	 * in a string into a Set of java.io.File objects.
-	 *  
+	 * Utility method for converting a semicolon separated list of files stored in a string into a Set of java.io.File objects.
+	 * 
 	 */
 	private Set mapStringToSet(String input, boolean validateFiles) {
 		if (input.length() == 0)
@@ -350,18 +327,17 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		String projectBaseDirectory = project.getLocation().toOSString();
 
 		Set fileSet = new HashSet();
-		while (inputCopy.indexOf(java.io.File.pathSeparator) != -1) { //ASCFIXME
-																	  // - Bit
-																	  // too
-																	  // platform
-																	  // specific!
+		while (inputCopy.indexOf(java.io.File.pathSeparator) != -1) { // ASCFIXME
+			// - Bit
+			// too
+			// platform
+			// specific!
 			int idx = inputCopy.indexOf(java.io.File.pathSeparator);
 			String path = inputCopy.substring(0, idx);
 
 			java.io.File f = new java.io.File(path);
 			if (!f.isAbsolute())
-				f = new File(projectBaseDirectory + java.io.File.separator
-						+ path);
+				f = new File(projectBaseDirectory + java.io.File.separator + path);
 			if (validateFiles && !f.exists()) {
 				invalidEntries.append(f + "\n"); //$NON-NLS-1$
 			} else {
@@ -374,8 +350,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		if (inputCopy.length() != 0) {
 			java.io.File f = new java.io.File(inputCopy);
 			if (!f.isAbsolute())
-				f = new File(projectBaseDirectory + java.io.File.separator
-						+ inputCopy);
+				f = new File(projectBaseDirectory + java.io.File.separator + inputCopy);
 			if (validateFiles && !f.exists()) {
 				invalidEntries.append(f + "\n"); //$NON-NLS-1$
 			} else {
@@ -389,26 +364,20 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		}
 		return fileSet;
 	}
-	
-	private void getProjectRelativePaths(IResource[] resource_list,
-			List allProjectFiles, CoreUtils.FilenameFilter filter,
+
+	private void getProjectRelativePaths(IResource[] resource_list, List allProjectFiles, CoreUtils.FilenameFilter filter,
 			int trimSegments, IClasspathEntry sourceEntry) {
 		try {
 			for (int i = 0; i < resource_list.length; i++) {
 				IResource ir = resource_list[i];
 				// bug 161739: skip excluded resources
-				char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry)
-						.fullInclusionPatternChars();
-				char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry)
-						.fullExclusionPatternChars();
+				char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry).fullInclusionPatternChars();
+				char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry).fullExclusionPatternChars();
 				if (!Util.isExcluded(ir, inclusionPatterns, exclusionPatterns)) {
 					if (ir instanceof IContainer) {
-						getProjectRelativePaths(((IContainer) ir).members(),
-								allProjectFiles, filter, trimSegments,
-								sourceEntry);
+						getProjectRelativePaths(((IContainer) ir).members(), allProjectFiles, filter, trimSegments, sourceEntry);
 					} else if (filter.accept(ir.getName())) {
-						String[] segments = ir.getProjectRelativePath()
-								.segments();
+						String[] segments = ir.getProjectRelativePath().segments();
 						String path = ""; //$NON-NLS-1$
 						for (int j = trimSegments; j < segments.length; j++) {
 							path += segments[j];
@@ -423,7 +392,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		} catch (Exception e) {
 		}
 	}
-	
+
 	private ArrayList getLinkedChildFolders(IResource resource) {
 		ArrayList resultList = new ArrayList();
 
@@ -431,8 +400,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 			try {
 				IResource[] children = ((IContainer) resource).members();
 				for (int i = 0; i < children.length; i++) {
-					if ((children[i] instanceof IFolder)
-							&& children[i].isLinked()) {
+					if ((children[i] instanceof IFolder) && children[i].isLinked()) {
 						resultList.add(children[i]);
 					}
 				}
@@ -442,8 +410,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return resultList;
 	}
 
-	private String getResourceFullPath(IResource srcContainer, String relPath,
-			ArrayList linkedFolders) {
+	private String getResourceFullPath(IResource srcContainer, String relPath, ArrayList linkedFolders) {
 		String result = null;
 		if (relPath.lastIndexOf('/') != -1) {
 			// Check to see if the relPath under scrutiny is
@@ -455,17 +422,56 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 				if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
 					// Do the replacement ensuring that the result uses
 					// operating system separator characters.
-					result = folder.getLocation().toString()
-							+ relPath.substring(linkedFolderName.length());
+					result = folder.getLocation().toString() + relPath.substring(linkedFolderName.length());
 					result = result.replace('/', File.separatorChar);
 					break;
 				}
 			}
 		}
 		if (result == null) {
-			result = srcContainer.getLocation().toOSString() + File.separator
-					+ relPath;
+			result = srcContainer.getLocation().toOSString() + File.separator + relPath;
 		}
 		return result;
+	}
+
+	// List modifiedFiles = new ArrayList();
+
+	public void addModifiedFile(String string) {
+		// modifiedFiles.add(string);
+	}
+
+	/**
+	 * Callback method from AspectJ to tell us that it has processed the configuration information and is going to proceed with a
+	 * build.
+	 */
+	public void configurationRead() {
+	}
+
+	/**
+	 * Need to tell AspectJ what has changed in the configuration since the last build was done - the lazy answer (which causes it
+	 * to behave as it always used to) is EVERYTHING.
+	 */
+	public int getConfigurationChanges() {
+		return EVERYTHING;
+	}
+
+	/**
+	 * If we know, tell AspectJ a List<File> that have changed since the last build. We should be able to work this out from
+	 * analysing delta changes. Returning null means we have no idea and will cause AspectJ to do the analysis to work it out.
+	 */
+	public List getProjectSourceFilesChanged() {
+		return null;// null means we dont know
+		// if (modifiedFiles == null) {
+		// AJLog.log("Nothing changed??");
+		// } else {
+		// AJLog.log(modifiedFiles.size() + " changes");
+		// }
+		// if (modifiedFiles.isEmpty())
+		// return null;
+		// return modifiedFiles;
+	}
+
+	public void resetModifiedList() {
+		// modifiedFiles.clear();
 	}
 }
