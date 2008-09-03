@@ -474,4 +474,8 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	public void resetModifiedList() {
 		// modifiedFiles.clear();
 	}
+
+	public List getClasspathElementsWithModifiedContents() {
+		return null;
+	}
 }
