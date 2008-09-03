@@ -22,7 +22,7 @@ public class ProjectDeletionTest extends AJDTCoreTestCase {
         
         for (int i = 0; i < 3; i++) {
             System.out.println(">>>>>>>>>>>>>>>>> count = " + i); //$NON-NLS-1$
-    		IProject libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+    		IProject libProject = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
     		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
     		try {
     		    deleteProject(weaveMeProject, true);
