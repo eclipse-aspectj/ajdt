@@ -125,7 +125,7 @@
       </viewContribution> 
    </extension>
    <extension
-         point="org.eclipse.mylyn.context.core.bridges">
+         point="org.eclipse.mylyn.context.core.internalBridges">
       <shadow
             baseContent="java"
             shadowedByContent="aspectj">
