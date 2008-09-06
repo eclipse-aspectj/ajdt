@@ -28,6 +28,7 @@ import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -251,6 +252,18 @@ public abstract class UITestCase extends TestCase {
 		}
 	}
 
+	/**
+	 * Returns the IWorkspace this test suite is running on.
+	 */
+	public IWorkspace getWorkspace() {
+		return ResourcesPlugin.getWorkspace();
+	}
+	
+	public IWorkspaceRoot getWorkspaceRoot() {
+		return getWorkspace().getRoot();
+	}
+
+	
 	protected void waitForJobsToComplete(){
 		SynchronizationUtils.joinBackgroudActivities();
 	}

@@ -52,7 +52,10 @@ public aspect ErrorsTest {
 				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
 					LogEntry entry = (LogEntry) logs[i];
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-						failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						if (entry.getMessage().indexOf("org.eclipse.core.tests.UnknownProvider") == -1) {//$NON-NLS-1$ 
+							// ignore warnings that are regarding a known missing class.
+							failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						}
 					}
 				}
 				if (failureText.length() > 0) {
