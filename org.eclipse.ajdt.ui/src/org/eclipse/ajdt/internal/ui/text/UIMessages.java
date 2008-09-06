@@ -416,6 +416,7 @@ public class UIMessages extends NLS {
 	
 	public static String CompilerConfigurationBlock_aj_builder_settings;
 	public static String CompilerConfigurationBlock_aj_suppressAutoBuild;
+	public static String CompilerConfigurationBlock_aj_incrementalCompilerOptimizations;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

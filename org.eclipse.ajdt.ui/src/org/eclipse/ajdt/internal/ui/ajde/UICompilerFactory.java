@@ -14,9 +14,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.aspectj.ajde.core.AjCompiler;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.core.resources.IProject;
 
+/**
+ * ICompilerFactory implementation which returns AjCompilers with
+ * core implementations of the required interfaces.
+ * 
+ * If ajdt.ui plugin is not present, then CoreCompilerFactory is used instead
+ * 
+ * @see CoreCompilerFactory
+ */ 
 public class UICompilerFactory implements ICompilerFactory {
 
 	private Map compilerMap = new HashMap();
@@ -37,9 +46,12 @@ public class UICompilerFactory implements ICompilerFactory {
 
 	public void removeCompilerForProject(IProject project) {
 		// firstly clean up any state associated with the compiler
-		getCompilerForProject(project).clearLastState();
-		// remove compiler from the map
-		compilerMap.remove(project);
+	    AjCompiler compiler = (AjCompiler) compilerMap.get(project);
+	    if (compiler != null) {
+	        compiler.clearLastState();
+	        // remove compiler from the map
+	        compilerMap.remove(project);
+	    }
 	}
 	
 	public boolean hasCompilerForProject(IProject project) {

@@ -21,14 +21,14 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
  * Notifies the AJCompilationUnitManager if files got added or removed.
  * 
  */
-public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
+public class AJCompilationUnitResourceDeltaVisitor implements IResourceDeltaVisitor {
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 	 */
-	public ResourceDeltaVisitor() {
+	public AJCompilationUnitResourceDeltaVisitor() {
 	}
 
 	/*

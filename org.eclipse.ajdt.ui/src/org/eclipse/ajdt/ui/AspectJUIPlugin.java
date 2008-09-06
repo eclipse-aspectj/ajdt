@@ -24,7 +24,7 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
-import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
+import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
@@ -277,7 +277,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// listener for aspectj model
 		if (!AspectJPlugin.usingCUprovider) {
 			AspectJPlugin.getWorkspace().addResourceChangeListener(
-					new ResourceChangeListener(),
+					new AJCompilationUnitResourceChangeListener(),
 					IResourceChangeEvent.PRE_CLOSE
 							| IResourceChangeEvent.PRE_DELETE
 							| IResourceChangeEvent.POST_CHANGE

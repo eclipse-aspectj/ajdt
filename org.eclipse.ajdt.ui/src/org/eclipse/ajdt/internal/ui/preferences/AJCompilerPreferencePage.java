@@ -121,6 +121,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
                 AspectJCorePreferences.OPTION_AutobuildSuppressed,
                 AspectJPreferences.VALUE_FALSE);
         defaultValueMap.put(
+                AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations,
+                AspectJPreferences.VALUE_FALSE);
+        defaultValueMap.put(
                 AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
                 AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(
@@ -426,12 +429,21 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
     		excomposite.setClient(othersComposite);
     		othersComposite.setLayout(new GridLayout(nColumns, false));
     		
+    		// suppress autobuild
             label = UIMessages.CompilerConfigurationBlock_aj_suppressAutoBuild;
             Button b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_AutobuildSuppressed, enableDisableValues, 0, false);
             useAspectJCorePreferences(b);
             // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
             // ignoring the original value.
             b.setSelection(getAspectJCorePLuginPreferences().getBoolean(AspectJCorePreferences.OPTION_AutobuildSuppressed));
+
+            // incremental compiler optimizations
+            label = UIMessages.CompilerConfigurationBlock_aj_incrementalCompilerOptimizations;
+            b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations, enableDisableValues, 0, false);
+            useAspectJCorePreferences(b);
+            // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
+            // ignoring the original value.
+            b.setSelection(getAspectJCorePLuginPreferences().getBoolean(AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations));
 
 		}
 		

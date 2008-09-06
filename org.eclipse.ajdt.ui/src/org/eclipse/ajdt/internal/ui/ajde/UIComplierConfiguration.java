@@ -14,6 +14,11 @@ import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.core.resources.IProject;
 
+/**
+ * A complete implementation of ICompilerConfiguration.  If the ajdt.ui 
+ * plugin is not present in the platform, then CoreCompilerConfiguration
+ * is used instead.
+ */
 public class UIComplierConfiguration extends CoreCompilerConfiguration {
 
 	public UIComplierConfiguration(IProject project) {

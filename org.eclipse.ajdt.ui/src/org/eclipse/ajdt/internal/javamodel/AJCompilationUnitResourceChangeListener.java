@@ -20,15 +20,15 @@ import org.eclipse.core.runtime.CoreException;
  * @author Luzius Meisser
  * 
  */
-public class ResourceChangeListener implements IResourceChangeListener {
-	private ResourceDeltaVisitor myDeltaVisitor;
+public class AJCompilationUnitResourceChangeListener implements IResourceChangeListener {
+	private AJCompilationUnitResourceDeltaVisitor myDeltaVisitor;
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 	 */
-	public ResourceChangeListener() {
-		myDeltaVisitor = new ResourceDeltaVisitor();
+	public AJCompilationUnitResourceChangeListener() {
+		myDeltaVisitor = new AJCompilationUnitResourceDeltaVisitor();
 	}
 	
 	public void resourceChanged(IResourceChangeEvent event) {
