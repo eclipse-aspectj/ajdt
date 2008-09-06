@@ -17,14 +17,18 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 
-public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
+/**
+ * Removes stored compiler info for projects when they are deleted or closed.
+ *
+ */
+public class CompilerConfigResourceDeltaVisitor implements IResourceDeltaVisitor {
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 	 */
-	public ResourceDeltaVisitor() {
+	public CompilerConfigResourceDeltaVisitor() {
 	}
 
 	/*

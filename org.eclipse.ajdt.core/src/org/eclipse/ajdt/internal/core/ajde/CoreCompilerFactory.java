@@ -19,6 +19,9 @@ import org.eclipse.core.resources.IProject;
 /**
  * ICompilerFactory implementation which returns AjCompilers with
  * core implementations of the required interfaces.
+ * 
+ * This class is only used if ajdt.ui plugin is not available
+ * 
  */ 
 public class CoreCompilerFactory implements ICompilerFactory {
 
@@ -45,10 +48,13 @@ public class CoreCompilerFactory implements ICompilerFactory {
 	 * No longer record the AjCompiler for the given project.
 	 */
 	public void removeCompilerForProject(IProject project) {
-		// firstly clean up any state associated with the compiler
-		getCompilerForProject(project).clearLastState();
-		// remove compiler from the map
-		compilerMap.remove(project);
+        // firstly clean up any state associated with the compiler
+	    AjCompiler compiler = (AjCompiler) compilerMap.get(project);
+	    if (compiler != null) {
+            compiler.clearLastState();
+            // remove compiler from the map
+            compilerMap.remove(project);
+        }
 	}
 	
 	/**

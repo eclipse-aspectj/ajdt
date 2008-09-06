@@ -45,6 +45,7 @@ import org.osgi.service.prefs.BackingStoreException;
 public class AspectJCorePreferences {
 			
     public static final String OPTION_AutobuildSuppressed = "org.eclipse.ajdt.ui.builder.autobuildSuppressed"; //$NON-NLS-1$
+    public static final String OPTION_IncrementalCompilationOptimizations = "org.eclipse.ajdt.ui.builder.incrementalCompilationOptimizations"; //$NON-NLS-1$
 
     
 	private static final String ASPECTPATH_ATTRIBUTE_NAME = "org.eclipse.ajdt.aspectpath"; //$NON-NLS-1$
@@ -989,6 +990,23 @@ public class AspectJCorePreferences {
         Preferences store = AspectJPlugin.getDefault()
                 .getPluginPreferences();
         store.setValue(OPTION_AutobuildSuppressed, done);
+    }
+    
+    /**
+     * Checks to see if the compiler option for incremental build optimizations
+     * is on or off
+     * @return
+     */
+    public static boolean isIncrementalCompilationOptimizationsEnabled() {
+        Preferences store = AspectJPlugin.getDefault()
+                .getPluginPreferences();
+        return store.getBoolean(OPTION_IncrementalCompilationOptimizations);
+    }
+    
+    public static void setIncrementalCompilationOptimizationsEnabled(boolean value) {
+        Preferences store = AspectJPlugin.getDefault()
+                .getPluginPreferences();
+        store.setValue(OPTION_IncrementalCompilationOptimizations, value);
     }
 
 }

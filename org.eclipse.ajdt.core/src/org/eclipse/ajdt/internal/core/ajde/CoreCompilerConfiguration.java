@@ -22,6 +22,7 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
+import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -47,8 +48,9 @@ import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * ICompilerConfiguration implementation which returns information for all methods except getNonStandardOptions().
- * 
+ * ICompilerConfiguration implementation which returns information for all 
+ * methods except getNonStandardOptions().  This implementation is used
+ * if ajdt.core plugin is not present in the platform
  */
 public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
@@ -56,8 +58,25 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	protected IProject project;
 	private CoreOutputLocationManager locationManager;
 
-	public CoreCompilerConfiguration(IProject project) {
+	// fully qualified list of file names that have been touched since
+    // last build
+    // set to null originally since we don't know anything 
+    // about build state when first created.  Assume everything 
+    // has changed.
+    private List/* File */ modifiedFiles = null;
+    // set of flags describing what has changed since last
+    // build
+    // initially set to EVERYTHING since we don't know
+    // build state when first created.
+    private int configurationChanges;
+    
+    // list of classpath entries that have been rebuilt since last build
+    private List /*String*/ classpathElementsWithModifiedContents = null;
+
+    public CoreCompilerConfiguration(IProject project) {
 		this.project = project;
+		AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " doesn't know previous state, so assuming EVERYTHING has changed.");
+		configurationChanges = EVERYTHING;
 	}
 
 	public Map getJavaOptionsMap() {
@@ -434,10 +453,102 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return result;
 	}
 
-	// List modifiedFiles = new ArrayList();
+	public void addModifiedFile(File changedFile) {
+	    AJLog.log(AJLog.BUILDER, "File: " + changedFile + " has changed.");
+	    if (modifiedFiles != null) {
+	        modifiedFiles.add(changedFile);
+	    } else {
+	        AJLog.log(AJLog.BUILDER, "    but, we don't have any state yet, so not recording the change.");
+	    }
+	}
+	
+	/**
+	 * Flag this compiler configuration as having had a change.
+	 * This is reset after a call to {@link #configurationRead()}
+	 * @param changeFlag change flag from 
+	 * {@link CompilerConfigurationChangeFlags}
+	 */
+	public void configurationChanged(int changeFlag) {
+	    configurationChanges |= changeFlag;
+	    logConfigurationChange(changeFlag);
+	}
 
-	public void addModifiedFile(String string) {
-		// modifiedFiles.add(string);
+	private void logConfigurationChange(int changeFlag) {
+	    List changeKind = new ArrayList();
+        if ((changeFlag & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
+            changeKind.add("PROJECTSOURCEFILES_CHANGED");
+        }
+        if ((changeFlag & JAVAOPTIONS_CHANGED) != NO_CHANGES) {
+            changeKind.add("JAVAOPTIONS_CHANGED");
+        }
+        if ((changeFlag & ASPECTPATH_CHANGED) != NO_CHANGES) {
+            changeKind.add("ASPECTPATH_CHANGED");
+        }
+        if ((changeFlag & CLASSPATH_CHANGED) != NO_CHANGES) {
+            changeKind.add("CLASSPATH_CHANGED");
+        }
+        if ((changeFlag & INPATH_CHANGED) != NO_CHANGES) {
+            changeKind.add("INPATH_CHANGED");
+        }
+        if ((changeFlag & NONSTANDARDOPTIONS_CHANGED) != NO_CHANGES) {
+            changeKind.add("NONSTANDARDOPTIONS_CHANGED");
+        }
+        if ((changeFlag & OUTJAR_CHANGED) != NO_CHANGES) {
+            changeKind.add("OUTJAR_CHANGED");
+        }
+        if ((changeFlag & PROJECTSOURCERESOURCES_CHANGED) != NO_CHANGES) {
+            changeKind.add("PROJECTSOURCERESOURCES_CHANGED");
+        }
+        if ((changeFlag & OUTPUTDESTINATIONS_CHANGED) != NO_CHANGES) {
+            changeKind.add("OUTPUTDESTINATIONS_CHANGED");
+        }
+        // deprecated
+        if ((changeFlag & INJARS_CHANGED) != NO_CHANGES) {
+            changeKind.add("INJARS_CHANGED");
+        }
+        AJLog.log(AJLog.BUILDER, "CoreCompilerConfiguration for project " + project.getName() + " registered a configuration change: " + changeKind);
+	}
+	
+	/**
+	 * converts the current configuration change list to a 
+	 * human readable string
+	 * @return human readable string denoting all configuration
+	 * changes since last read.
+	 */
+	private String toConfigurationString() {
+        List changeKind = new ArrayList();
+        if ((configurationChanges & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
+            changeKind.add("PROJECTSOURCEFILES_CHANGED");
+        }
+        if ((configurationChanges & JAVAOPTIONS_CHANGED) != NO_CHANGES) {
+            changeKind.add("JAVAOPTIONS_CHANGED");
+        }
+        if ((configurationChanges & ASPECTPATH_CHANGED) != NO_CHANGES) {
+            changeKind.add("ASPECTPATH_CHANGED");
+        }
+        if ((configurationChanges & CLASSPATH_CHANGED) != NO_CHANGES) {
+            changeKind.add("CLASSPATH_CHANGED");
+        }
+        if ((configurationChanges & INPATH_CHANGED) != NO_CHANGES) {
+            changeKind.add("INPATH_CHANGED");
+        }
+        if ((configurationChanges & NONSTANDARDOPTIONS_CHANGED) != NO_CHANGES) {
+            changeKind.add("NONSTANDARDOPTIONS_CHANGED");
+        }
+        if ((configurationChanges & OUTJAR_CHANGED) != NO_CHANGES) {
+            changeKind.add("OUTJAR_CHANGED");
+        }
+        if ((configurationChanges & PROJECTSOURCERESOURCES_CHANGED) != NO_CHANGES) {
+            changeKind.add("PROJECTSOURCERESOURCES_CHANGED");
+        }
+        if ((configurationChanges & OUTPUTDESTINATIONS_CHANGED) != NO_CHANGES) {
+            changeKind.add("OUTPUTDESTINATIONS_CHANGED");
+        }
+        // deprecated
+        if ((configurationChanges & INJARS_CHANGED) != NO_CHANGES) {
+            changeKind.add("INJARS_CHANGED");
+        }
+        return changeKind.toString();
 	}
 
 	/**
@@ -445,14 +556,33 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	 * build.
 	 */
 	public void configurationRead() {
+	    // we now know nothing has changed
+	    AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " has been read by compiler.  Resetting.");
+	    AJLog.log(AJLog.BUILDER, "     Configuration was " + toConfigurationString());
+	    
+	    // we are still not keeping track of some changes:
+	    // JAVAOPTIONS_CHANGED | NONSTANDARDOPTIONS_CHANGED | OUTJAR_CHANGED |
+        // OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
+	    configurationChanges = NO_CHANGES;
+	    resetModifiedList();
 	}
 
 	/**
 	 * Need to tell AspectJ what has changed in the configuration since the last build was done - the lazy answer (which causes it
 	 * to behave as it always used to) is EVERYTHING.
+	 * 
+	 * @see CompilerConfigurationChangeFlags
+	 * @see AspectJCorePreferences#isIncrementalCompilationOptimizationsEnabled
 	 */
 	public int getConfigurationChanges() {
-		return EVERYTHING;
+	    // if the optimization flag is turned off, then return EVERYTHING
+	    if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
+            AJLog.log(AJLog.BUILDER, "Optimizations turned off, so assuming all parts of configuration have changed");
+            return EVERYTHING;
+	    } else {
+	        AJLog.log(AJLog.BUILDER, "Sending the following configuration changes to the compiler: " + toConfigurationString());
+	        return AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled() ? configurationChanges : EVERYTHING;
+	    }
 	}
 
 	/**
@@ -460,22 +590,48 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	 * analysing delta changes. Returning null means we have no idea and will cause AspectJ to do the analysis to work it out.
 	 */
 	public List getProjectSourceFilesChanged() {
-		return null;// null means we dont know
-		// if (modifiedFiles == null) {
-		// AJLog.log("Nothing changed??");
-		// } else {
-		// AJLog.log(modifiedFiles.size() + " changes");
-		// }
-		// if (modifiedFiles.isEmpty())
-		// return null;
-		// return modifiedFiles;
+	    if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
+            AJLog.log(AJLog.BUILDER, "Optimizations turned off, so assuming all source files have changed");
+            return null;
+        } else if (modifiedFiles == null) {
+            // null means we dont know
+	        AJLog.log(AJLog.BUILDER, "We don't know what has changed since last build, so assuming all source files have changed");
+	        return null;
+	    } else {
+	        AJLog.log(AJLog.BUILDER, modifiedFiles.size() + " source file changes since last build");
+	        return modifiedFiles;
+	    }
 	}
 
 	public void resetModifiedList() {
-		// modifiedFiles.clear();
+	    AJLog.log(AJLog.BUILDER, "Resetting list of modified source files.  Was " + 
+	            (modifiedFiles == null ? "null" : modifiedFiles.toString()));
+	    modifiedFiles = new ArrayList();
+	}
+	
+    public void resetClasspathElementsWithModifiedContents() {
+        classpathElementsWithModifiedContents = null;
+    }
+    public void setClasspathElementsWithModifiedContents(List /*String*/ modifiedContents) {
+        AJLog.log(AJLog.BUILDER, "Setting list of classpath elements with modified contents:");
+        AJLog.log(AJLog.BUILDER, "      " + modifiedContents.toString());
+        classpathElementsWithModifiedContents = modifiedContents;
+    }
+	
+	// must go through the classpath and look at projects we depend on that have been built before our
+	// most recent last build
+	public List getClasspathElementsWithModifiedContents() {
+	    return classpathElementsWithModifiedContents;
 	}
 
-	public List getClasspathElementsWithModifiedContents() {
-		return null;
+	
+	/**
+	 * helper method that grabs the compiler configuration for a particular project
+	 * creates one if it does not exist
+	 * @param project
+	 * @return the project's compiler configuration
+	 */
+	public static CoreCompilerConfiguration getCompilerConfigurationForProject(IProject project) {
+	    return (CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
 	}
 }

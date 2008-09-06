@@ -18,17 +18,21 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 
-public class ResourceChangeListener implements IResourceChangeListener {
+/**
+ * This listener will add or remove compilers for projects when they are removed or closed
+ *
+ */
+public class CompilerConfigResourceChangeListener implements IResourceChangeListener {
 
-	private ResourceDeltaVisitor myDeltaVisitor;
+	private CompilerConfigResourceDeltaVisitor myDeltaVisitor;
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 	 */
-	public ResourceChangeListener() {
-		myDeltaVisitor = new ResourceDeltaVisitor();
+	public CompilerConfigResourceChangeListener() {
+		myDeltaVisitor = new CompilerConfigResourceDeltaVisitor();
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {

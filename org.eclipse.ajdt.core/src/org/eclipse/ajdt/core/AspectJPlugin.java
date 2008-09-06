@@ -13,7 +13,7 @@
 package org.eclipse.ajdt.core;
 
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.internal.core.ResourceChangeListener;
+import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.core.resources.IProject;
@@ -119,7 +119,7 @@ public class AspectJPlugin extends Plugin {
 		super.start(context);
 		checkForCUprovider();
 		getWorkspace().addResourceChangeListener(
-				new ResourceChangeListener(),
+				new CompilerConfigResourceChangeListener(),
 				IResourceChangeEvent.POST_CHANGE);
 		setCompilerFactory(new CoreCompilerFactory());
 	}

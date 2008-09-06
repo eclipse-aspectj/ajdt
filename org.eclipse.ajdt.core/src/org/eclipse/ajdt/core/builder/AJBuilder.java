@@ -14,8 +14,10 @@
 package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.ajde.core.AjCompiler;
+import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajdt.internal.core.builder.AjState;
+import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -37,13 +41,15 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
-import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -52,8 +58,10 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -62,7 +70,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.builder.State;
 import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.service.prefs.BackingStoreException;
@@ -156,9 +166,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		if (kind != FULL_BUILD) {
-		    // XXX need to add check here for whether the classpath has changed
-		    if (!sourceFilesChanged(dta, project)){
-				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file changes for project "  //$NON-NLS-1$
+		    if (!sourceFilesChanged(dta, project) && !classpathChanged(dta, project)){
+				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file or classpath changes for project "  //$NON-NLS-1$
 								+ project.getName() );
 				
 				// if the source files of any projects which the current
@@ -186,6 +195,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 		IAJCompilerMonitor compilerMonitor = (IAJCompilerMonitor) compiler.getBuildProgressMonitor();
 		
+		
 		// Bug 43711 must do a clean and rebuild if we can't 
 		// find a buildConfig file from a previous compilation
 		if (kind == FULL_BUILD ||
@@ -197,10 +207,19 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			} else {
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 			}
+		} else {
+		    // doing an incremental build
+		    if (AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
+    		    // Bug 245566:
+		        // facilitate incremental compilation by checking 
+		        // classpath for projects that have changed since the last build
+		        long timestamp = getLastBuildTimeStamp(compiler);
+		        compilerConfig.setClasspathElementsWithModifiedContents(getChangedRequiredProjects(timestamp));
+		    }
 		}
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
-		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath()); //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath = " + compilerConfig.getClasspath()); //$NON-NLS-1$
 		
         // ----------------------------------------
 		// Do the compilation
@@ -217,10 +236,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		doRefreshAfterBuild(project, dependingProjects, javaProject);
 		
-		// update the relationship map
-        CoreOutputLocationManager outputLocManager = (CoreOutputLocationManager) 
-                compilerConfig.getOutputLocationManager();
-        Set/*File*/ touchedFiles = outputLocManager.getTouchedClassFiles();
+        // not needed now. This will be used to help create the relationship
+		// map more efficiently
+//        CoreOutputLocationManager outputLocManager = (CoreOutputLocationManager) 
+//                compilerConfig.getOutputLocationManager();
+//        Set/*File*/ touchedFiles = outputLocManager.getTouchedClassFiles();
+
+	      // update the relationship map
 		boolean inc = (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD) || (kind == IncrementalProjectBuilder.AUTO_BUILD);
 		AJModel.getInstance().createMap(project,true,inc);
 		
@@ -234,6 +256,28 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
 	}
+
+	// check to see if the .classpath has changed.
+	// we know exactly where it is located, so no need for a visitor
+    private boolean classpathChanged(IResourceDelta dta, IProject project) {
+        IResourceDelta[] children = dta.getAffectedChildren();
+        for (int i = 0; i < children.length; i++) {
+            IResourceDelta child = children[i];
+            if (child.getResource().getName().equals(".classpath")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private long getLastBuildTimeStamp(AjCompiler compiler) {
+        AjState state = IncrementalStateManager.retrieveStateFor(compiler.getId());
+        if (state != null) {
+            return state.getLastBuildTime();
+        } else {
+            return 0;
+        }
+    }
 
     private String buildKindString(int kind) {
         switch(kind) {
@@ -250,7 +294,126 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
     }
 
-	/**
+    /**
+     * returns a list of fully qualified names of entries on the classpath
+     * that have been rebuilt since last build
+     * @return
+     */
+    private List /*String*/ getChangedRequiredProjects(long lastBuildTimestamp) {
+        try {
+            // first find all the projects that have changed since last build
+            IProject[] projectsOnClasspath = getRequiredProjects(getProject(), true);
+            List /*IProject*/ changedProjects = new ArrayList();
+            for (int i = 0; i < projectsOnClasspath.length; i++) {
+                IProject project = projectsOnClasspath[i];
+    
+                // get timestamp of last build for this project
+                long otherTimestamp = -1;
+                if (AspectJPlugin.isAJProject(project)) {
+                    AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
+                    otherTimestamp = getLastBuildTimeStamp(compiler);
+                } else if (project.hasNature(JavaCore.NATURE_ID)) {
+                    Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);
+                    if (s != null && s instanceof State) {
+                        State state = (State) s;
+                        // need to use reflection to get at the last build time
+                        otherTimestamp = getLastBuildTime(state);
+                    }
+                } else {
+                    otherTimestamp = -1;
+                }
+                if (lastBuildTimestamp <= otherTimestamp) {
+                    changedProjects.add(project);
+                }
+            }
+            List /*String*/ changedEntries = new ArrayList();
+            
+            // now that we have all the projects, need to find out what they contribute to
+            // this project's path.  could be itself, a jar, or a class folder
+            if (changedProjects.size() > 0) {
+                IClasspathEntry[] thisClasspath = JavaCore.create(getProject()).getResolvedClasspath(true);
+                for (Iterator projIter = changedProjects.iterator(); projIter
+                        .hasNext();) {
+                    IProject changedProject = (IProject) projIter.next();
+                    for (int i = 0; i < thisClasspath.length; i++) {
+                        IClasspathEntry classpathEntry = thisClasspath[i];
+                        switch (classpathEntry.getEntryKind()) {
+                        case IClasspathEntry.CPE_PROJECT:
+                            if (changedProject.getFullPath().equals(classpathEntry.getPath())) {
+                                // resolve project and add all entries
+                                changedEntries.addAll(listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
+                                        changedProject, classpathEntry)));
+                            }
+                            break;
+                        case IClasspathEntry.CPE_LIBRARY:
+                            if (changedProject.getFullPath().isPrefixOf(classpathEntry.getPath())) {
+                                // only add if this path exists
+                                IWorkspaceRoot root = getProject().getWorkspace().getRoot();
+                                IFile onPath = root.getFile(classpathEntry.getPath());
+                                if (onPath.exists() || 
+                                        root.getFolder(onPath.getFullPath()).exists()) {  // may be a folder
+                                    changedEntries.add(onPath.getLocation().toPortableString());
+                                }
+                            }
+                        }
+                    }
+                }
+            }            
+            // if all else went well, also add the inpath the the list of changed projects.
+            // Adding the inpath always is just a conservative estimate of what has changed.
+            // 
+            // For Java projects, we only know the last structural build time.  Usually this is 
+            // fine, but if the Java project is on the inpath, then we care about the last 
+            // build of any kind, which we can't be sure of.  
+            // (Actually, we need to know this for Aspect path projects, but aspectj can give us
+            // precise time of the last build.
+            // 
+            // So, as a conservative estimate, put all inpath entries onto the list.
+            Set inPathFiles = CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject()).getInpath();
+            if (inPathFiles != null) {
+                for (Iterator fileIter = inPathFiles.iterator(); fileIter.hasNext();) {
+                    File inpathFile = (File) fileIter.next();
+                    changedEntries.add(inpathFile.getAbsolutePath());
+                }
+            }            
+            return changedEntries;
+        } catch (Exception e) {
+            // something went wrong.
+            // return null to imply everything's changed
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, 
+                    "Error determining list of entries on classpath that have changed.", e));
+            return null;
+        }
+    }
+    
+    private List/*String*/ listOfClassPathEntriesToListOfString(
+            List/*IClassPathEntry*/ entries) {
+        IWorkspaceRoot root = getProject().getWorkspace().getRoot();
+        List strings = new ArrayList(entries.size());
+        for (Iterator iterator = entries.iterator(); iterator
+                .hasNext();) {
+            IClasspathEntry entry = (IClasspathEntry) iterator.next();
+            IFile onPath = root.getFile(entry.getPath());
+            // only add if exists
+            if (onPath.exists() || 
+                    root.getFolder(onPath.getFullPath()).exists()) {  // may be a class folder
+
+                strings.add(onPath.getLocation().toPortableString());
+            }
+        }
+        return strings;
+    }
+
+    private static Field state_lastStructuralBuildTime = null;
+	private static long getLastBuildTime(State state) throws Exception {
+	    if (state_lastStructuralBuildTime == null) {
+	        state_lastStructuralBuildTime = State.class.getDeclaredField("lastStructuralBuildTime");
+	        state_lastStructuralBuildTime.setAccessible(true);
+	    }
+        return state_lastStructuralBuildTime.getLong(state);
+    }
+
+    /**
 	 * Refreshes the project's out folders after a build
 	 * try to be as precise as possible because this can be a time consuming task 
 	 * 
@@ -442,7 +605,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	/**
 	 * Copies non-src resources to the output directory (bug 78579). The main
 	 * part of this method was taken from 
-	 * org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta)
+	 * {@link org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta)}
 	 * 
 	 * @param IJavaProject - the project which is being built
 	 * @param IResourceDelta - the projects delta
@@ -456,12 +619,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			IPath srcPath = srcEntry.getPath().removeFirstSegments(1);			
 			IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
 
-			if(srcContainer.equals(project.getProject())) {				
+			// handle case where project root is a source folder
+			if (srcContainer.equals(project.getProject())) {				
 				int segmentCount = delta.getFullPath().segmentCount();
 				IResourceDelta[] children = delta.getAffectedChildren();
-				for (int j = 0, m = children.length; j < m; j++)
-					if (!isExcludedFromProject(project,children[j].getFullPath(),srcEntries))
+				for (int j = 0, m = children.length; j < m; j++) {
+					if (!isExcludedFromProject(project,children[j].getFullPath(),srcEntries)) {
 						copyResources(project, children[j], srcEntry, segmentCount);
+					}
+				}
 			} else {
 				IPath projectRelativePath = srcEntry.getPath().removeFirstSegments(1);
 				projectRelativePath.makeRelative();
@@ -474,9 +640,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					int segmentCount = sourceDelta.getFullPath().segmentCount();
 					IResourceDelta[] children = sourceDelta.getAffectedChildren();
 					try {
-						for (int j = 0, m = children.length; j < m; j++)
+						for (int j = 0, m = children.length; j < m; j++) {
 							copyResources(project, children[j], srcEntry, segmentCount);
-					} catch (org.eclipse.core.internal.resources.ResourceException e) {
+						}
+					} catch (ResourceException e) {
 						// catch the case that a package has been renamed and collides on disk with an as-yet-to-be-deleted package
 						if (e.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
 							return false;
@@ -530,8 +697,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 						// fall thru & collect all the resource files
 					case IResourceDelta.CHANGED :
 						IResourceDelta[] children = sourceDelta.getAffectedChildren();
-						for (int i = 0, l = children.length; i < l; i++)
+						for (int i = 0, l = children.length; i < l; i++) {
 							copyResources(javaProject, children[i],srcEntry, segmentCount);
+						}
 						return;
 					case IResourceDelta.REMOVED :
 						IPath removedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
@@ -544,15 +712,17 @@ public class AJBuilder extends IncrementalProjectBuilder {
 									// only a package fragment was removed, same as removing multiple source files
 									createFolder(removedPackagePath, outputFolder); // ensure package exists in the output folder
 									IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
-									for (int j = 0, m = removedChildren.length; j < m; j++)
+									for (int j = 0, m = removedChildren.length; j < m; j++) {
 										copyResources(javaProject,removedChildren[j], srcEntry, segmentCount);
+									}
 									return;
 								}
 							}
 						}
 						IFolder removedPackageFolder = outputFolder.getFolder(removedPackagePath);
-						if (removedPackageFolder.exists())
+						if (removedPackageFolder.exists()) {
 							removedPackageFolder.delete(IResource.FORCE, null);
+						}
 				}
 				return;
 			case IResource.FILE :
@@ -567,6 +737,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			        				|| resourcePath.getFileExtension().equals("java"))) { //$NON-NLS-1$
 						return;
 					}
+			        
 			        IResource outputFile = outputFolder.getFile(resourcePath);
 					switch (sourceDelta.getKind()) {
 						case IResourceDelta.ADDED :
@@ -580,17 +751,26 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							outputFile.setDerived(true);
 							Util.setReadOnly(outputFile, false); // just in case the original was read only
 							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
+		                    // mark this change so compiler knows about it.
+		                    CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject())
+		                            .configurationChanged(
+		                                    CompilerConfigurationChangeFlags.PROJECTSOURCERESOURCES_CHANGED);
 							return;
 						case IResourceDelta.REMOVED :
 							if (outputFile.exists()) {
 								AJLog.log(AJLog.BUILDER,"Deleting removed file " + resourcePath);//$NON-NLS-1$
 								outputFile.delete(IResource.FORCE, null);
 							}
+		                    // mark this change so compiler knows about it.
+		                    CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject())
+		                            .configurationChanged(
+		                                    CompilerConfigurationChangeFlags.PROJECTSOURCERESOURCES_CHANGED);
 							return;
 						case IResourceDelta.CHANGED :
 							if ((sourceDelta.getFlags() & IResourceDelta.CONTENT) == 0
-									&& (sourceDelta.getFlags() & IResourceDelta.ENCODING) == 0)
+									&& (sourceDelta.getFlags() & IResourceDelta.ENCODING) == 0) {
 								return; // skip it since it really isn't changed
+							}
 							if (outputFile.exists()) {
 								AJLog.log(AJLog.BUILDER,"Deleting existing file " + resourcePath);//$NON-NLS-1$
 								outputFile.delete(IResource.FORCE, null);
@@ -922,11 +1102,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	    // clean the output folders and do a refresh if not
 	    // automatically building (so that output dir reflects the
 	    // changes)
-	    if (AspectJPlugin.getWorkspace().getDescription().isAutoBuilding()) {
-	        cleanOutputFolders(JavaCore.create(project),false);
-        } else {
-            cleanOutputFolders(JavaCore.create(project),true);
-        }
+		cleanOutputFolders(JavaCore.create(project),
+		        !AspectJPlugin.getWorkspace().getDescription().isAutoBuilding());
 	}
 	
 	private void removeProblemsAndTasksFor(IResource resource) {
@@ -937,60 +1114,141 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		} catch (CoreException e) {
 		}
-		AJLog.log(AJLog.BUILDER,"Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
+		if (resource != null) {
+		    AJLog.log(AJLog.BUILDER,"Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
+		}
 	}
-		
-	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
-		if (delta!=null && delta.getAffectedChildren().length!=0) {
-			List includedFileNames = BuildConfig.getIncludedSourceFiles(project);
+	
+	
+	/**
+	 * Determine if any source files have changed and if so	record it in the compiler configuration for the
+	 * project
+	 * @param delta
+	 * @param project
+	 * @return true if a source file has changed.  False otherwise
+	 */
+	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) {
+	    AJLog.logStart("SourceFilesChanged");
+		if (delta != null && delta.getAffectedChildren().length != 0) {
+		    
+		    // XXX might be better if this were a Set.
+		    // look into this
+			List /*IFile*/ includedFileNames = BuildConfig.getIncludedSourceFiles(project);
+//	          Set /*IFile*/ includedFileNames = BuildConfig.getIncludedSourceFilesSet(project);
+
 			IJavaProject ijp = JavaCore.create(project);		
 			if (ijp == null) {
 				return true;
 			}			
 			try {
-				IPath outputPath = ijp.getOutputLocation();
-				if (project.getFullPath().equals(outputPath)) {
-					outputPath = null;
-				}
-				if (sourceFilesChanged(delta, includedFileNames,outputPath)) {
-					AJLog.log(AJLog.BUILDER,"build: Examined delta - source file changes in " //$NON-NLS-1$
+			    SourceFilesChangedVisitor visitor = new SourceFilesChangedVisitor(project, includedFileNames);
+			    delta.accept(visitor);
+				if (visitor.hasChanges()) {
+					AJLog.log(AJLog.BUILDER,"build: Examined delta - " + visitor.getNumberChanged() + //$NON-NLS-1$ 
+					        " changed, " + visitor.getNumberAdded() + " added, and " + //$NON-NLS-1$ //$NON-NLS-2$
+					        visitor.getNumberRemoved() + " deleted source files in " //$NON-NLS-1$
 							+ "required project " + project.getName() ); //$NON-NLS-1$
 					return true;
 				} else {
 					return false;
 				}
-			} catch (JavaModelException e) {}
+			} catch (CoreException e) {
+			    AspectJPlugin.getDefault().getLog().log(
+			            new Status(IStatus.ERROR, 
+			                    AspectJPlugin.PLUGIN_ID, "Error finding source file changes", e));
+			}
 		}
+        AJLog.logEnd(AJLog.BUILDER,"SourceFilesChanged");
 		return true;
 	}
 	
-	private boolean sourceFilesChanged(IResourceDelta dta, List includedFileNames,IPath outputLocation) { //IProject project) {
-		if (dta == null) return false;
+	private class SourceFilesChangedVisitor implements IResourceDeltaVisitor {
+	    private final List includedFileNames;
+	    private final CoreCompilerConfiguration compilerConfiguration;
+	    private final IProject affectedProject;
+	    private int numberChanged;
+	    private int numberAdded;
+	    private int numberRemoved;
+	    
+	    private SourceFilesChangedVisitor(IProject affectedProject,
+                List includedFileNames) {
+            this.includedFileNames = includedFileNames;
+            this.affectedProject = affectedProject;
+            compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(affectedProject);
+            numberChanged = 0;
+            numberAdded = 0;
+            numberRemoved = 0;
+        }
 
-		if (outputLocation!=null && outputLocation.equals(dta.getFullPath()) ) {
-			return false;
-		}
-		String resname = dta.getFullPath().toString();
-		
-		if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resname)) {
-		    if ((includedFileNames==null) || includedFileNames.contains(dta.getResource())
-		    		|| dta.getKind() == IResourceDelta.REMOVED) {
-                return true;
-            } else {
+	    /**
+	     * Look for changed resources that we care about.
+	     */
+        public boolean visit(IResourceDelta delta) throws CoreException {
+            String resname = delta.getFullPath().toString();
+
+            if (delta.getResource().getType() == IResource.FILE) {
+                if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resname)) {
+                        
+                    switch (delta.getKind()) {
+                    case IResourceDelta.REMOVED:
+                    case IResourceDelta.REMOVED_PHANTOM:
+                        // don't check to see if these files are on the list of included 
+                        // files because they have already been removed and we won't find
+                        // them on the list.
+                        // be conservative and set the flag regardless.
+                        compilerConfiguration.configurationChanged(
+                                CompilerConfigurationChangeFlags.PROJECTSOURCEFILES_CHANGED);
+                        numberRemoved++;
+                        break;
+
+                    case IResourceDelta.ADDED:
+                    case IResourceDelta.ADDED_PHANTOM:
+                        if (includedFileNames.contains(delta.getResource())) {
+                            compilerConfiguration.configurationChanged(
+                                    CompilerConfigurationChangeFlags.PROJECTSOURCEFILES_CHANGED);
+                            numberAdded++;
+                            break;
+                        }
+                    case IResourceDelta.CHANGED:
+                        if (includedFileNames.contains(delta.getResource())) {
+                            compilerConfiguration.addModifiedFile(new File(delta.getResource()
+                                    .getLocation().toPortableString()));
+                            numberChanged++;
+                        }
+                    }
+                } else if (resname.endsWith(".classpath")) { //$NON-NLS-1$
+                    // also need to ensure that this is a project classpath
+                    IContainer parent = delta.getResource().getParent();
+                    if (parent.getFullPath().equals(affectedProject.getFullPath())) {
+                        // we don't know what has changed exactly.  
+                        // be conservative
+                        compilerConfiguration.configurationChanged(
+                                CompilerConfigurationChangeFlags.CLASSPATH_CHANGED |
+                                CompilerConfigurationChangeFlags.ASPECTPATH_CHANGED |
+                                CompilerConfigurationChangeFlags.INPATH_CHANGED);
+                    }
+                }
                 return false;
+            } else {
+                
+                // want to fully traverse this delta if not 
+                // a leaf node
+                return true;
             }
-		} else if (resname.endsWith(".classpath")){ //$NON-NLS-1$
-			return true;
-		} else {
-			boolean kids_results = false;
-			int i = 0;
-			IResourceDelta[] kids = dta.getAffectedChildren();
-			while (!kids_results && i < kids.length) {
-				kids_results = kids_results | sourceFilesChanged(kids[i], includedFileNames, outputLocation);
-				i++;
-			}
-			return kids_results;
-		}
+        }
+        public int getNumberChanged() {
+            return numberChanged;
+        }
+        public int getNumberAdded() {
+            return numberAdded;
+        }
+        public int getNumberRemoved() {
+            return numberRemoved;
+        }
+        
+        public boolean hasChanges() {
+            return numberAdded + numberChanged + numberRemoved > 0;
+        }
 	}
 	
 	public static void addStateListener() {
@@ -1006,8 +1264,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				public void pathChangeDetected() {
 				}
 
-				public void buildSuccessful(boolean arg0) {
-					AJLog.log(AJLog.COMPILER,"AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				public void buildSuccessful(boolean wasFull) {
+					AJLog.log(AJLog.COMPILER,"AspectJ reports build successful, build was: " + //$NON-NLS-1$ 
+					        (wasFull ? "FULL" : "INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ 
 				}
 
 				public void detectedAspectDeleted(File f) {

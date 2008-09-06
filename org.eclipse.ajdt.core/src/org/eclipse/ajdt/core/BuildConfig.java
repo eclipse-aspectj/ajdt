@@ -12,9 +12,11 @@
 package org.eclipse.ajdt.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IContainer;
@@ -33,7 +35,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 public class BuildConfig {
 	
-	private static Map projectsToIncludedSourceFiles = new WeakHashMap();
+	private static Map /*IProject, List<IFile>*/ projectsToIncludedSourceFiles = new WeakHashMap();
 	
 	/**
 	 * Returns all of the currently included source files in a project
@@ -74,6 +76,48 @@ public class BuildConfig {
 		projectsToIncludedSourceFiles.put(project, sourceFiles);
 		return sourceFiles;
 	}
+
+	
+	
+	/**
+	 * Experimental version of above that uses a set, not a list
+	 * @param project
+	 * @return
+	 */
+	public static Set /* IFile */getIncludedSourceFilesSet(IProject project) {
+        if (projectsToIncludedSourceFiles.get(project) instanceof List) {
+            return (Set) projectsToIncludedSourceFiles.get(project);
+        }
+        Set sourceFiles = new HashSet();
+        try {
+            IJavaProject jp = JavaCore.create(project);
+            IClasspathEntry[] cpes = jp.getRawClasspath();
+            for (int i = 0; i < cpes.length; i++) {
+                if ((cpes[i] instanceof ClasspathEntry)
+                        && (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE)) {
+                    ClasspathEntry cp = (ClasspathEntry) cpes[i];
+                    char[][] incl = cp.fullInclusionPatternChars();
+                    char[][] excl = cp.fullExclusionPatternChars();
+                    IPath path = cpes[i].getPath();
+                    IResource res = project.findMember(path
+                            .removeFirstSegments(1));
+                    if ((res != null) && (res instanceof IContainer)) {
+                        List l = allFiles((IContainer) res);
+                        for (Iterator iter = l.iterator(); iter.hasNext();) {
+                            IFile file = (IFile) iter.next();
+                            if (!Util.isExcluded(file, incl, excl)) {
+                                sourceFiles.add(file);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+        }
+        projectsToIncludedSourceFiles.put(project, sourceFiles);
+        return sourceFiles;
+    }
+
 	
 	/**
 	 * Invalidate the list of included source files for a project
