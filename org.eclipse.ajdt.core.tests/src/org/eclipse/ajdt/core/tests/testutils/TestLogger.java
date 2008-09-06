@@ -133,11 +133,13 @@ public class TestLogger implements IAJLogger {
      * Clears the log
      */
     public void clearLog() {
-    	log.clear();
+        if (log != null) {
+            log.clear();
+        }
     }
     
     public boolean isEmpty() {
-    	return log.isEmpty();
+    	return log != null && log.isEmpty();
     }
     
     /**

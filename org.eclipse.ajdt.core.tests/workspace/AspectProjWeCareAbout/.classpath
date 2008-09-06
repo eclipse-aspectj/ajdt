@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
+	<classpathentry kind="src" path="/JavaProj2-On Inpath">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.inpath" value="org.eclipse.ajdt.aspectpath"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/AspectProj2-On AspectPath">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.aspectpath" value="org.eclipse.ajdt.aspectpath"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/AspectProj1"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JavaProj1"/>
+	<classpathentry kind="lib" path="/JavaProj3-ClassFolder/bin"/>
+	<classpathentry kind="lib" path="/AspectProj3-Has Outjar/output.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -14,12 +14,15 @@ package org.eclipse.ajdt.core.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import org.eclipse.ajdt.core.tests.ajde.CoreCompilerConfigurationTests;
+import org.eclipse.ajdt.core.tests.ajde.CoreCompilerConfigurationTests2;
+import org.eclipse.ajdt.core.tests.ajde.CoreCompilerFactoryTests;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.AspectPathTests;
 import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
-import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
+import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
@@ -77,6 +80,11 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 		
+		// core compiler configuration
+        suite.addTest(new TestSuite(CoreCompilerConfigurationTests.class));
+        suite.addTest(new TestSuite(CoreCompilerConfigurationTests2.class));
+        suite.addTest(new TestSuite(CoreCompilerFactoryTests.class));
+
 		// Java Element tests
 		suite.addTest(new TestSuite(AspectElementTests.class));
 

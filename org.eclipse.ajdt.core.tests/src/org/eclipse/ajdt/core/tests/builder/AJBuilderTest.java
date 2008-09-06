@@ -400,7 +400,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertTrue(
 				"AJDT should have found no source file changes and decided not to build", //$NON-NLS-1$
 				listContainsString(buildLog, "build: Examined delta - no " + //$NON-NLS-1$
-						"source file changes for project bug99133b")); //$NON-NLS-1$
+						"source file or classpath changes for project bug99133b")); //$NON-NLS-1$
 		assertFalse("There should be no errors in the build log", //$NON-NLS-1$
 				listContainsString(buildLog, "error")); //$NON-NLS-1$
 
@@ -471,7 +471,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertTrue(
 				"AJDT should have found no source file changes and decided not to build", //$NON-NLS-1$
 				listContainsString(buildLog, "build: Examined delta - no " + //$NON-NLS-1$
-						"source file changes for project bug99133b")); //$NON-NLS-1$
+						"source file or classpath changes for project bug99133b")); //$NON-NLS-1$
 		assertFalse("There should be no errors in the build log", //$NON-NLS-1$
 				listContainsString(buildLog, "error")); //$NON-NLS-1$
 
@@ -550,7 +550,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertTrue(
 				"AJDT should have found no source file changes and decided not to build", //$NON-NLS-1$
 				listContainsString(buildLogB, "build: Examined delta - no " + //$NON-NLS-1$
-						"source file changes for project bug99133b")); //$NON-NLS-1$
+						"source file or classpath changes for project bug99133b")); //$NON-NLS-1$
 
 		// by checking that we don't have the following messages in the
 		// log (and the previous checking for no errors) we know that
