@@ -1,6 +1,7 @@
 package org.eclipse.ajdt.core.tests.ajde;
 
 import java.io.StringReader;
+import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -8,8 +9,11 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.jdt.core.IJavaModelMarker;
 
 /**
  * this set of tests ensures that the CoreCompilerConfiguration.getClasspathElementsWithModifiedContents() method 
@@ -207,4 +211,35 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // ensure that this is the only time the list has been set
         assertEquals(2, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
     }
+    
+    /**
+     * Test that when a jar on the classpath resides in a closed project
+     * there is an error and the build is aborted.
+     */
+    public void testInvalidClasspath() throws Exception {
+        // incremental build
+        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+        waitForAutoBuild();
+
+        testLog.clearLog();
+
+        ap3.close(null);
+        
+        // incremental build
+        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+        waitForAutoBuild();
+
+        IMarker[] markers = myProj.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, 
+                false, IResource.DEPTH_ZERO);
+
+        assertEquals("Should have a single marker on the project", 1, markers.length);
+        assertEquals("Marker on project should be an error", IMarker.SEVERITY_ERROR, markers[0].getAttribute(IMarker.SEVERITY, -1));
+        
+        // now check the log for an aborted message
+        // the last 3 messages should be about aborting the build
+        List entries = testLog.getMostRecentEntries(3);
+        assertEquals("build: Abort due to missing inpath/aspectpath/classpath entries", entries.get(0));
+        assertEquals("Removed problems and tasks for project AspectProjWeCareAbout", entries.get(2));
+    }
+    
 }

@@ -6,11 +6,6 @@ public aspect A {
 	static final String h = "barf";
 	void foo() { }
 	
-//	@MyAnnotation
-//	before() : execution(@MyAnnotation * *..*()) {
-//		
-//	}
-	
 	declare error : execution(public void *.x(..)) : "barf";
 	void bar() {
 		

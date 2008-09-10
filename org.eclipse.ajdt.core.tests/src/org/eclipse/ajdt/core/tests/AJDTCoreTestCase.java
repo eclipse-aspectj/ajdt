@@ -266,6 +266,7 @@ public class AJDTCoreTestCase extends TestCase {
 		waitForAutoBuild();
 		CoreException lastException = null;
 		try {
+		    resource.refreshLocal(IResource.DEPTH_INFINITE, null);
 			resource.delete(false, null);
 		} catch (CoreException e) {
 			lastException = e;
