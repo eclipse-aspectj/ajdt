@@ -18,7 +18,7 @@ import java.util.Map;
  * Minimal logging - if a logger hasn't been set, dump to sdout
  */ 
 public class AJLog {
-
+ 
 	public static final int DEFAULT = 0; 
 
 	public static final int COMPILER = 1;
