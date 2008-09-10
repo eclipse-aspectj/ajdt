@@ -69,10 +69,12 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.builder.State;
+import org.eclipse.jdt.internal.core.util.Messages;
 import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.service.prefs.BackingStoreException;
@@ -132,14 +134,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.log(AJLog.BUILDER,"Project=" //$NON-NLS-1$
 				+ project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
 		
-		// bug 159197: check inpath and aspectpath
-		if (!validateInpathAspectPath(project)) {
-			postCallListeners(true);
-			AJLog.log(AJLog.BUILDER,
-					"build: Abort due to missing inpath/aspectpath entries"); //$NON-NLS-1$
-			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
-			progressMonitor.done();
-			return requiredProjects;
+		if (!isWorthBuilding(project, requiredProjects)) {
+		    postCallListeners(true);
+		    progressMonitor.done();
+		    return requiredProjects;
 		}
 		
 		// workaround for bug 73435
@@ -256,6 +254,28 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
 	}
+
+	/**
+	 * Check to see if the class paths are valid
+	 * @param progressMonitor
+	 * @param project
+	 * @param requiredProjects
+	 * @return true if aspect, in, and class paths are valid.  False if there is a problem
+	 * @throws CoreException
+	 */
+    private boolean isWorthBuilding(IProject project, IProject[] requiredProjects) throws CoreException {
+        // bug 159197: check inpath and aspectpath
+        // and classpath
+		if (!validateInpathAspectPath(project) ||
+		        isClasspathBroken(JavaCore.create(project).getRawClasspath(), project)) {
+			AJLog.log(AJLog.BUILDER,
+					"build: Abort due to missing inpath/aspectpath/classpath entries"); //$NON-NLS-1$
+			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+            removeProblemsAndTasksFor(project); // make this the only problem for this project
+			return false;
+		}
+		return true;
+    }
 
 	// check to see if the .classpath has changed.
 	// we know exactly where it is located, so no need for a visitor
@@ -503,6 +523,21 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		return success;
 	}
+	
+
+	private boolean isClasspathBroken(IClasspathEntry[] classpath, IProject p) throws CoreException {
+	    IMarker[] markers = p.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, 
+	            false, IResource.DEPTH_ZERO);
+	    for (int i = 0, l = markers.length; i < l; i++) {
+	        if (markers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
+	            markProject(p, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
+	                    p.getName()));
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
 	
 	private void markProject(IProject project, String errorMessage) {
 		try {
@@ -1109,7 +1144,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void removeProblemsAndTasksFor(IResource resource) {
 		try {
 			if (resource != null && resource.exists()) {
-				resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
+			    if (resource instanceof IContainer) {
+			        IResource[] members = ((IContainer) resource).members();
+			        for (int i = 0; i < members.length; i++) {
+			            members[i].deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
+                    }
+			    } else { 
+			        resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
+			    }
 				resource.deleteMarkers(IJavaModelMarker.TASK_MARKER, false, IResource.DEPTH_INFINITE);
 			}
 		} catch (CoreException e) {
