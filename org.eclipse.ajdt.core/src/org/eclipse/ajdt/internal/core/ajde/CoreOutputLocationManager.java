@@ -290,4 +290,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			return defaultOutput;
 		}
 	}
+
+	public String getSourceFolderForFile(File sourceFile) {
+		return null; // null means before as you used to, do not put source folders in the model
+	}
 }
