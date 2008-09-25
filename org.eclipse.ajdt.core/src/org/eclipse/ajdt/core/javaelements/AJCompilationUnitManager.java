@@ -191,10 +191,6 @@ public class AJCompilationUnitManager {
 			info.removeChild(unit); // Remove identical CompilationUnit if it exists
 			info.addChild(unit);
 
-			//enable java search (experimental) - leads to exceptions when
-			// using
-			//AJIndexManager.addSource(unit);
-
 			compilationUnitStore.put(file, unit);
 		} catch (JavaModelException e) {
 		}
@@ -300,7 +296,12 @@ public class AJCompilationUnitManager {
 			}
 		} catch (CoreException e) {
 		}
-
 	}
-
+	
+	/**
+	 * useful for testing
+	 */
+	public void clearCache() {
+	   compilationUnitStore.clear(); 
+	}
 }
