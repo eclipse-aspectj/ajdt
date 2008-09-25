@@ -1,3 +1,12 @@
+/*******************************************************************************
+ * Copyright (c) 2008 SpringSource and others. All rights reserved. This
+ * program and the accompanying materials are made available under the terms of
+ * the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors: SpringSource 
+ *               Andrew Eisenberg
+ ******************************************************************************/
 package org.eclipse.ajdt.core.tests.ajde;
 
 import java.io.StringReader;
@@ -55,7 +64,9 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         assertEquals(0, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
         assertEquals(1, testLog.numberOfEntriesForMessage("Optimizations turned off, so assuming all parts of configuration have changed"));
         assertEquals(1, testLog.numberOfEntriesForMessage("Configuration was []"));
-        assertEquals(1, testLog.numberOfEntriesForMessage("Resetting list of modified source files.  Was [/Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/Point.java]"));
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {
+                "Resetting list of modified source files.  Was [",
+                "Bean Example/src/bean/Point.java]"}));
     }
     
     
@@ -76,8 +87,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         
         // look at AJDT Event trace
         // when build is determining which source files have changed
-        assertEquals(1, testLog.numberOfEntriesForMessage("File: /Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/Point.java has changed."));
-        assertEquals(1, testLog.numberOfEntriesForMessage("File: /Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/BoundPoint.aj has changed."));
+        assertEquals(1, testLog.numberOfEntriesForMessage("Bean Example/src/bean/Point.java has changed."));
+        assertEquals(1, testLog.numberOfEntriesForMessage("Bean Example/src/bean/BoundPoint.aj has changed."));
         
         // should not happen.  this line should only be logged when a file is added or deleted
         assertEquals(0, testLog.numberOfEntriesForMessage("CoreCompilerConfiguration for project Bean Example registered a configuration change: [PROJECTSOURCEFILES_CHANGED]"));
@@ -86,7 +97,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         assertEquals(1, testLog.numberOfEntriesForMessage("build: Examined delta - 2 changed, 0 added, and 0 deleted source files in required project Bean Example"));
         
         // after compilation can reset configuration
-        assertEquals(1, testLog.numberOfEntriesForMessage("Resetting list of modified source files.  Was [/Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/BoundPoint.aj, /Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/Point.java]"));
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"Resetting list of modified source files.  Was [", 
+            "Bean Example/src/bean/BoundPoint.aj, ", "Bean Example/src/bean/Point.java]"}));
 
         // when the configuration is being reset
         assertEquals(1, testLog.numberOfEntriesForMessage("Configuration was []"));
@@ -182,8 +194,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         
         // since there was no state before and hence no ResourceDelta, 
         // we know that there must be certain entries missing from the log
-        assertEquals(0, testLog.numberOfEntriesForMessage("File: /Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/Point.java has changed."));
-        assertEquals(0, testLog.numberOfEntriesForMessage("File: /Users/andrew/Eclipse/Workspaces/junit-workspace/Bean Example/src/bean/BoundPoint.aj has changed."));
+        assertEquals(0, testLog.numberOfEntriesForMessage("Bean Example/src/bean/Point.java has changed."));
+        assertEquals(0, testLog.numberOfEntriesForMessage("Bean Example/src/bean/BoundPoint.aj has changed."));
         assertEquals(0, testLog.numberOfEntriesForMessage("CoreCompilerConfiguration for project Bean Example registered a configuration change: [PROJECTSOURCEFILES_CHANGED]"));
 
         assertEquals(1, testLog.numberOfEntriesForMessage("Compiler configuration for project Bean Example doesn't know previous state, so assuming EVERYTHING has changed."));

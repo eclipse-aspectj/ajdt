@@ -1,7 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2008 SpringSource and others. All rights reserved. This
+ * program and the accompanying materials are made available under the terms of
+ * the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors: SpringSource 
+ *               Andrew Eisenberg
+ ******************************************************************************/
 package org.eclipse.ajdt.core.tests.ajde;
 
 import java.io.StringReader;
-import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -9,11 +17,8 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.jdt.core.IJavaModelMarker;
 
 /**
  * this set of tests ensures that the CoreCompilerConfiguration.getClasspathElementsWithModifiedContents() method 
@@ -26,7 +31,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
     private TestLogger testLog;
 
     private IProject jp1;
-//    private IProject jp2;  // not used
+//    private IProject jp2; not used
     private IProject jp3;
     private IProject ap1;
     private IProject ap2;
@@ -40,13 +45,13 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         AspectJPlugin.getDefault().setAJLogger(testLog);
         
         jp1 = createPredefinedProject("JavaProj1");
-        /* jp2 = */ createPredefinedProject("JavaProj2-On Inpath");
+        /*jp2 = */ createPredefinedProject("JavaProj2-On Inpath");
         jp3 = createPredefinedProject("JavaProj3-ClassFolder");
         ap1 = createPredefinedProject("AspectProj1");
         ap2 = createPredefinedProject("AspectProj2-On AspectPath");
         ap3 = createPredefinedProject("AspectProj3-Has Outjar");
         myProj = createPredefinedProject("AspectProjWeCareAbout");
-        
+       
         AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(true);
     }
 
@@ -72,7 +77,9 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // check log
         // should see that the project on the inpath was considered changed.
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        // because projects on in path are always considered changed
+        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        assertEquals(1, testLog.numberOfEntriesForMessage("/JavaProj2-On Inpath/bin]"));
         
         // ensure that this is the only time the list has been set
         assertEquals(1, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
@@ -95,7 +102,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // This first entry is from when project ap1 is built
         assertEquals(1, testLog.numberOfEntriesForMessage("   []"));
         // this message comes from the project we care about
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/AspectProj1/bin, /Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/AspectProj1/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that these are the only 2 times the list has been set
         assertEquals(2, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
@@ -115,7 +123,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // This first entry is from when project ap2 is built
         assertEquals(1, testLog.numberOfEntriesForMessage("   []"));
         // this message comes from the project we care about
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/AspectProj2-On AspectPath/bin, /Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/AspectProj2-On AspectPath/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that these are the only 2 times the list has been set
         assertEquals(2, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
@@ -133,7 +142,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // check log
         // this message comes from the project we care about
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj1/bin, /Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj1/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that this is the only time the list has been set
         assertEquals(1, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
@@ -152,7 +162,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // check log
         // this message comes from the project we care about
         // nothing other than the inpath should be on the list
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj2-On Inpath/bin]"}));
 
         // ensure that this is the only time the list has been set
         assertEquals(1, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
@@ -179,10 +190,12 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // check log
         // this message comes from the project we care about on the first build
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        // should occur twice: once alone and once with /JavaProj3-ClassFolder/bin (tested below)
+        assertEquals(2, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj2-On Inpath/bin]"}));
 
         // this message comes from the project we care about on the second build
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj3-ClassFolder/bin, /Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj3-ClassFolder/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that this is the only time the list has been set
         assertEquals(2, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
@@ -206,40 +219,9 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // This first entry is from when project ap3 is built
         assertEquals(1, testLog.numberOfEntriesForMessage("   []"));
         // this message comes from the project we care about
-        assertEquals(1, testLog.numberOfEntriesForMessage("[/Users/andrew/Eclipse/Workspaces/junit-workspace/AspectProj3-Has Outjar/output.jar, /Users/andrew/Eclipse/Workspaces/junit-workspace/JavaProj2-On Inpath/bin]"));
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/AspectProj3-Has Outjar/output.jar", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that this is the only time the list has been set
         assertEquals(2, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
     }
-    
-    /**
-     * Test that when a jar on the classpath resides in a closed project
-     * there is an error and the build is aborted.
-     */
-    public void testInvalidClasspath() throws Exception {
-        // incremental build
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
-
-        testLog.clearLog();
-
-        ap3.close(null);
-        
-        // incremental build
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
-
-        IMarker[] markers = myProj.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, 
-                false, IResource.DEPTH_ZERO);
-
-        assertEquals("Should have a single marker on the project", 1, markers.length);
-        assertEquals("Marker on project should be an error", IMarker.SEVERITY_ERROR, markers[0].getAttribute(IMarker.SEVERITY, -1));
-        
-        // now check the log for an aborted message
-        // the last 3 messages should be about aborting the build
-        List entries = testLog.getMostRecentEntries(3);
-        assertEquals("build: Abort due to missing inpath/aspectpath/classpath entries", entries.get(0));
-        assertEquals("Removed problems and tasks for project AspectProjWeCareAbout", entries.get(2));
-    }
-    
 }
