@@ -19,6 +19,7 @@ import java.net.URL;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -52,6 +53,7 @@ public class AJDTCoreTestCase extends TestCase {
 			IProject project = allProjects[i];
 			deleteProject(project,true);
 		}
+		AJCompilationUnitManager.INSTANCE.clearCache();
 	}
 
 	/**
