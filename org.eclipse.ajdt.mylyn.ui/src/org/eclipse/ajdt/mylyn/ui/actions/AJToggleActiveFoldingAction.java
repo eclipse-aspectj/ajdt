@@ -32,13 +32,13 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
  * @author Mik Kersten
  * @author andrew eisenberg
  */
-public class ToggleActiveFoldingAction extends Action implements IWorkbenchWindowActionDelegate, IActionDelegate2 {
+public class AJToggleActiveFoldingAction extends Action implements IWorkbenchWindowActionDelegate, IActionDelegate2 {
 
-	private static ToggleActiveFoldingAction INSTANCE;
+	private static AJToggleActiveFoldingAction INSTANCE;
 
 	private IAction parentAction = null;
 
-	public ToggleActiveFoldingAction() {
+	public AJToggleActiveFoldingAction() {
 		super();
 		INSTANCE = this;
 		setText("Active folding");
