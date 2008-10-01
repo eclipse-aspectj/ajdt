@@ -435,8 +435,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 
     private static final String POINTCUT = Character
             .toString(AspectElement.JEM_POINTCUT);
-    private static final String EXTRA_INFO = Character
-            .toString(AspectElement.JEM_EXTRA_INFO);
+//    private static final String EXTRA_INFO = Character
+//            .toString(AspectElement.JEM_EXTRA_INFO);
 	// end AspectJ change
 
 	private final char[] memento;
@@ -511,8 +511,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 			return DECLARE;
 		case AspectElement.JEM_POINTCUT:
 			return POINTCUT;
-		case AspectElement.JEM_EXTRA_INFO:
-		    return EXTRA_INFO;
+//		case AspectElement.JEM_EXTRA_INFO:
+//		    return EXTRA_INFO;
 		// end AspectJ change
 		}
 		loop: while (this.index < this.length) {
@@ -545,7 +545,7 @@ class AJMementoTokenizer extends MementoTokenizer {
 			case AspectElement.JEM_ITD:
 			case AspectElement.JEM_DECLARE:
             case AspectElement.JEM_POINTCUT:
-            case AspectElement.JEM_EXTRA_INFO:
+//            case AspectElement.JEM_EXTRA_INFO:
 			// end AspectJ change
 				break loop;
 			}

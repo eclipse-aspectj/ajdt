@@ -42,7 +42,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	public static final char JEM_POINTCUT = '+';
 	// TYPE_PARAMETER is defined in Eclipse 3.1, but not 3.0
 	public static final char JEM_TYPE_PARAMETER = ']';
-	public static final char JEM_EXTRA_INFO = '>';
+//	public static final char JEM_EXTRA_INFO = '>';
 	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {
@@ -266,7 +266,11 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			String[] parameters = new String[params.size()];
 			params.toArray(parameters);
 			JavaElement itd = new IntertypeElement(this, name, parameters);
-			return itd.getHandleFromMemento(memento, workingCopyOwner);
+			if (memento.hasMoreTokens()) {
+			    return itd.getHandleFromMemento(token, memento, workingCopyOwner);
+			} else {
+			    return itd;
+			}
 		} else if (token.charAt(0) == AspectElement.JEM_DECLARE) {
 			String name = memento.nextToken();
 			ArrayList params = new ArrayList();
