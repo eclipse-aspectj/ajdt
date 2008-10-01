@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
@@ -55,6 +56,14 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	public int getType() {
 		return TYPE;
 	}
+	
+    protected Object createElementInfo() {
+        AspectElementInfo info = new AspectElementInfo();
+        info.setAJKind(IProgramElement.Kind.ASPECT);
+        info.setHandle(this);
+        info.setSourceRangeStart(0);
+        return info;
+    }
 
 	/**
 	 * Returns the pointcuts declared by this type. If this is a source type,
@@ -192,6 +201,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
 		if (token.charAt(0) == AspectElement.JEM_ADVICE) {
+		    token = null;
 			if (!memento.hasMoreTokens()) return this;
 			String name = memento.nextToken();
 			
@@ -200,7 +210,9 @@ public class AspectElement extends SourceType implements IAspectJElement {
 				token = memento.nextToken();
 				switch (token.charAt(0)) {
 					case JEM_TYPE:
+                        break nextParam;
 					case JEM_TYPE_PARAMETER:
+					    token = null;
 						break nextParam;
 					case JEM_ADVICE:
 						if (!memento.hasMoreTokens()) return this;
@@ -212,6 +224,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 							param = memento.nextToken();
 						}
 						params.add(buffer.toString() + param);
+						token = null;
 						break;
 					default:
 						break nextParam;
@@ -221,10 +234,11 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			params.toArray(parameters);
 			
 			JavaElement advice = new AdviceElement(this, name, parameters);
-			if (token.charAt(0) == JavaElement.JEM_COUNT) {
-				return advice.getHandleFromMemento(token, memento, workingCopyOwner);
-			} 
-			return advice.getHandleFromMemento(memento, workingCopyOwner);			
+			if (token != null) {
+			    return advice.getHandleFromMemento(token, memento, workingCopyOwner);
+			} else {
+			    return advice;
+			}
 		} else if (token.charAt(0) == AspectElement.JEM_ITD) {
 			String name = memento.nextToken();
 			ArrayList params = new ArrayList();
@@ -312,6 +326,47 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			params.toArray(parameters);
 			JavaElement pointcut = new PointcutElement(this, name, parameters);
 			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
+		} else if (token.charAt(0) == AspectElement.JEM_METHOD &&
+		       ! (this.getOpenable() instanceof AJCompilationUnit)) {
+		    // method must be mocked up if we are an aspect in a 
+		    // .class or .java file
+		    // cannot get the JavaElementInfo otherwise
+            String name = memento.nextToken();
+            ArrayList params = new ArrayList();
+            nextParam: while (memento.hasMoreTokens()) {
+                token = memento.nextToken();
+                switch (token.charAt(0)) {
+                    case JEM_TYPE:
+                    case JEM_TYPE_PARAMETER:
+                    case JEM_ANNOTATION:
+                        break nextParam;
+                    case JEM_METHOD:
+                        if (!memento.hasMoreTokens()) return this;
+                        String param = memento.nextToken();
+                        StringBuffer buffer = new StringBuffer();
+                        while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
+                            buffer.append(Signature.C_ARRAY);
+                            if (!memento.hasMoreTokens()) return this;
+                            param = memento.nextToken();
+                        }
+                        params.add(buffer.toString() + param);
+                        break;
+                    default:
+                        break nextParam;
+                }
+            }
+            String[] parameters = new String[params.size()];
+            params.toArray(parameters);
+            MockSourceMethod mockMethod = new MockSourceMethod(this, name, parameters);
+            switch (token.charAt(0)) {
+                case JEM_TYPE:
+                case JEM_TYPE_PARAMETER:
+                case JEM_LOCALVARIABLE:
+                case JEM_ANNOTATION:
+                    return mockMethod.getHandleFromMemento(token, memento, workingCopyOwner);
+                default:
+                    return mockMethod;
+            }
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}

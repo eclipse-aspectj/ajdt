@@ -14,13 +14,10 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -52,9 +49,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// location to use is recorded in the 'defaultOutput' field
 	private File defaultOutput;
 	
-	private Map /*File*/ srcFolderToOutput = new HashMap();
+	private Map /*String,File*/ srcFolderToOutput = new HashMap();
 	
 	private List /*File*/ allOutputFolders = new ArrayList();
+	
+	private List /*IPath*/ allSourceFolders = new ArrayList();
 	
 	// Bug 243376 
 	// Gather all of the files that are touched by this compilation
@@ -64,7 +63,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// This class is about output locations.
 	// I am waiting for an extension to the compiler so
 	// that I can grab this information directly.
-	private Set /*File*/ touchedClassFiles = new HashSet();
+	// NO LONGER MANAGING THIS
+//	private Set /*String*/ touchedCUs = new HashSet();
 	
 	private boolean outputIsRoot;
 	// if there is only one output directory then this is recorded in the
@@ -74,6 +74,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public CoreOutputLocationManager(IProject project) {
 		this.project = project;
 		jProject = JavaCore.create(project);
+        initSourceFolders();
 		if (!isUsingSeparateOutputFolders(jProject)) {
 			// using the same output directory therefore record this one
 			setCommonOutputDir();
@@ -83,6 +84,23 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			init();
 		}
 		
+	}
+	
+	/**
+	 * initialize the source folder locations only
+	 */
+	private void initSourceFolders() {
+	    try {
+            IClasspathEntry[] cpe = jProject.getRawClasspath();
+            for (int i = 0; i < cpe.length; i++) {
+                if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+                    IPath path = cpe[i].getPath();
+                    path = path.removeFirstSegments(1).makeRelative();
+                    allSourceFolders.add(path);
+                }
+            }
+        } catch (JavaModelException e) {
+        }
 	}
 	
 	/**
@@ -153,7 +171,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public File getOutputLocationForClass(File compilationUnit) {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
-	    touchedClassFiles.add(compilationUnit);
+	    // no longer managing this
+//	    touchedCUs.add(compilationUnit.getAbsolutePath());
 	    
 		return getOutputLocationForResource(compilationUnit);
 	}
@@ -275,10 +294,15 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
         return inpathOutFolder;
     }
 
-	public Set getTouchedClassFiles() {
-        return Collections.unmodifiableSet(touchedClassFiles);
-    }
-
+	// no longer managing this
+//	public String[] getTouchedClassFiles() {
+//        return (String[]) touchedCUs.toArray(new String[touchedCUs.size()]);
+//    }
+//
+//	public void resetTouchedClassFiles() {
+//	    touchedCUs.clear();
+//	}
+	
 	/**
 	 * If there's only one output directory return this one, otherwise
 	 * return the one marked as default
@@ -291,7 +315,19 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 	}
 
-	public String getSourceFolderForFile(File sourceFile) {
-		return null; // null means before as you used to, do not put source folders in the model
-	}
+    public String getSourceFolderForFile(File sourceFile) {
+        IPath sourceFilePath = new Path(sourceFile.getAbsolutePath());
+        IPath projLoc = project.getLocation();
+        if (projLoc.isPrefixOf(sourceFilePath)) {
+            sourceFilePath = sourceFilePath.removeFirstSegments(projLoc.segmentCount()).makeRelative();
+        }
+        
+        for (Iterator pathIter = allSourceFolders.iterator(); pathIter.hasNext();) {
+            IPath sourceFolderPath = (IPath) pathIter.next();
+            if (sourceFolderPath.isPrefixOf(sourceFilePath)) {
+                return sourceFolderPath.toPortableString();
+            }
+        }
+        return null;
+    }
 }

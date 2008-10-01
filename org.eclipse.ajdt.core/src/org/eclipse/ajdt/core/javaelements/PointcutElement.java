@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.internal.core.JavaElement;
 
 /**
@@ -25,4 +28,24 @@ public class PointcutElement extends AspectJMemberElement {
 		return AspectElement.JEM_POINTCUT;
 	}
 	
+	protected Object createElementInfo() {
+        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this)
+                .javaElementToProgramElement(this);
+	    
+	    PointcutElementInfo info = new PointcutElementInfo();
+	    info.setAJKind(IProgramElement.Kind.POINTCUT);
+	    info.setName(this.getElementName().toCharArray());
+	    info.setAJAccessibility(ipe.getAccessibility());
+        ISourceLocation sourceLocation = ipe.getSourceLocation();
+        info.setSourceRangeStart(sourceLocation.getOffset());
+        info.setNameSourceStart(sourceLocation.getOffset());
+        info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+	    return info;
+	}
+	
+//   public String getHandleIdentifier() {
+//        return super.getHandleIdentifier() 
+//            + AspectElement.JEM_EXTRA_INFO + elementInfo.getSourceRange().getOffset()
+//            + AspectElement.JEM_EXTRA_INFO + elementInfo.accessibility.toString();
+//    }
 }

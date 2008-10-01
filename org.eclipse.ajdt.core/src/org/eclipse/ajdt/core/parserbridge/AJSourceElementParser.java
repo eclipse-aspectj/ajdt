@@ -1189,7 +1189,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 			}
 		}	
 		return;	
-	}	
+	}
 	char[][] argumentTypes = null;
 	char[][] argumentNames = null;
 	boolean isVarArgs = false;
@@ -1204,6 +1204,33 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		}
 		isVarArgs = arguments[argumentLength-1].isVarArgs();
 	}
+    // begin AspectJ Change
+    // ensure the extra argument for after returning and after throwing advice are 
+    // included here.
+	if (methodDeclaration instanceof AdviceDeclaration) {
+	    AdviceDeclaration adviceDeclaration = (AdviceDeclaration) methodDeclaration;
+	    if (adviceDeclaration.extraArgument != null) {
+	        char[][] newArgumentTypes;
+	        char[][] newArgumentNames;
+	        if (arguments != null) {
+                newArgumentTypes = new char[argumentTypes.length +1][];
+                newArgumentNames = new char[argumentTypes.length +1][];
+                System.arraycopy(argumentTypes, 0, newArgumentTypes, 0, argumentTypes.length);
+                System.arraycopy(argumentNames, 0, newArgumentNames, 0, argumentNames.length);
+                newArgumentTypes[argumentTypes.length] = CharOperation.concatWith(adviceDeclaration.extraArgument.type.getParameterizedTypeName(), '.');
+                newArgumentNames[argumentNames.length] = adviceDeclaration.extraArgument.name;
+	        } else {
+	            newArgumentTypes = new char[1][];
+                newArgumentNames = new char[1][];
+                newArgumentTypes[0] = CharOperation.concatWith(adviceDeclaration.extraArgument.type.getParameterizedTypeName(), '.');
+                newArgumentNames[0] = adviceDeclaration.extraArgument.name;
+	        }
+	        argumentNames = newArgumentNames;
+	        argumentTypes = newArgumentTypes;
+	    }
+	}
+	// end AspectJ Change
+
 	char[][] thrownExceptionTypes = null;
 	TypeReference[] thrownExceptions = methodDeclaration.thrownExceptions;
 	if (thrownExceptions != null) {

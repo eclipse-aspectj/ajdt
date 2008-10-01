@@ -554,6 +554,12 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
 		JavaElement type = this;
+		
+		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
+		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
+		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
+		}
+		
 		// need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
 		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||

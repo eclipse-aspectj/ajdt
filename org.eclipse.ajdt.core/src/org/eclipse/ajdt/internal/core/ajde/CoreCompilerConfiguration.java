@@ -23,6 +23,7 @@ import java.util.StringTokenizer;
 import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
+import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -633,5 +634,12 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	 */
 	public static CoreCompilerConfiguration getCompilerConfigurationForProject(IProject project) {
 	    return (CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
+	}
+	
+	public File[] getChangedFiles() {
+	    Set changedFiles = AsmManager.getDefault().getAspectsWeavingFilesOnLastBuild();
+	    changedFiles.addAll(AsmManager.getDefault().getModelChangesOnLastBuild());
+
+	    return (File[]) changedFiles.toArray(new File[changedFiles.size()]);
 	}
 }

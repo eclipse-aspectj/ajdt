@@ -17,7 +17,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.ajde.core.AjCompiler;
-import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
@@ -37,7 +35,7 @@ import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
@@ -69,7 +67,6 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -105,7 +102,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
 		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
 		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
-		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
+        AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
+        AJLog.logStart("Pre compile");
 		AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
 		AJLog.log(AJLog.BUILDER,"Build kind = " + buildKindString(kind)); //$NON-NLS-1$
 				
@@ -135,9 +133,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				+ project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
 		
 		if (!isWorthBuilding(project, requiredProjects)) {
-		    postCallListeners(true);
-		    progressMonitor.done();
-		    return requiredProjects;
+			postCallListeners(kind, true);
+			AJLog.log(AJLog.BUILDER,
+					"build: Abort due to missing inpath/aspectpath entries"); //$NON-NLS-1$
+			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+			progressMonitor.done();
+			return requiredProjects;
 		}
 		
 		// workaround for bug 73435
@@ -181,7 +182,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				if (!continueToBuild) {
 					// bug 107027
 					compilerConfig.flushClasspathCache();
-					postCallListeners(true);
+					postCallListeners(kind, true);
 					AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 					progressMonitor.done();
 					return requiredProjects;						
@@ -205,6 +206,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			} else {
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 			}
+			AJProjectModelFactory.getInstance().removeModelForProject(project);
+	        
 		} else {
 		    // doing an incremental build
 		    if (AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
@@ -218,7 +221,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
 		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath = " + compilerConfig.getClasspath()); //$NON-NLS-1$
-		
+        AJLog.logEnd(AJLog.BUILDER,"Pre compile");
+
         // ----------------------------------------
 		// Do the compilation
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
@@ -230,24 +234,18 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_AJDE);
 		// compilation is done
 		// ----------------------------------------
-		
-		
-		doRefreshAfterBuild(project, dependingProjects, javaProject);
-		
-        // not needed now. This will be used to help create the relationship
-		// map more efficiently
-//        CoreOutputLocationManager outputLocManager = (CoreOutputLocationManager) 
-//                compilerConfig.getOutputLocationManager();
-//        Set/*File*/ touchedFiles = outputLocManager.getTouchedClassFiles();
 
-	      // update the relationship map
-		boolean inc = (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD) || (kind == IncrementalProjectBuilder.AUTO_BUILD);
-		AJModel.getInstance().createMap(project,true,inc);
+		
+        AJLog.logStart("Refresh after build");
+		doRefreshAfterBuild(project, dependingProjects, javaProject);
+        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
 		
 		// do the cleanup
 		// bug 107027
 		compilerConfig.flushClasspathCache();
-		postCallListeners(false);
+		
+		
+		postCallListeners(kind, false);
 		progressMonitor.worked(1);
 		progressMonitor.done();
 		
@@ -1116,13 +1114,20 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
-	private void postCallListeners(boolean noSourceChanges) {
-		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-			IAJBuildListener listener = (IAJBuildListener) iter.next();
-			listener.postAJBuild(getProject(),noSourceChanges);
-		}
-	}
-	
+    private void postCallListeners(int kind, boolean noSourceChanges) {
+        for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+            IAJBuildListener listener = (IAJBuildListener) iter.next();
+            listener.postAJBuild(kind, getProject(),noSourceChanges);
+        }
+    }
+    
+    private void postCleanCallListeners() {
+        for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+            IAJBuildListener listener = (IAJBuildListener) iter.next();
+            listener.postAJClean(getProject());
+        }
+    }
+    
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
 	 */
@@ -1132,6 +1137,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Remove the compiler instance associated with this project
 		// from the factory
 		AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
+        AJProjectModelFactory.getInstance().removeModelForProject(project);
 	    
 		removeProblemsAndTasksFor(project);
 	    // clean the output folders and do a refresh if not
@@ -1139,6 +1145,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	    // changes)
 		cleanOutputFolders(JavaCore.create(project),
 		        !AspectJPlugin.getWorkspace().getDescription().isAutoBuilding());
+		
+		
+		postCleanCallListeners();
 	}
 	
 	private void removeProblemsAndTasksFor(IResource resource) {

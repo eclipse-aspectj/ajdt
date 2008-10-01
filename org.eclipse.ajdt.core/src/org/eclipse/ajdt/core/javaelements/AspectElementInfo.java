@@ -54,14 +54,14 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	 * to its openable's source buffer.
 	 */
 	public void setNameSourceEnd(int end) {
-		this.nameEnd= end;
+		this.nameEnd = end;
 	}
 	/**
 	 * Sets the start position of this member's name, relative
 	 * to its openable's source buffer.
 	 */
 	public void setNameSourceStart(int start) {
-		this.nameStart= start;
+		this.nameStart = start;
 	}
 	
 	public void setSourceRangeEnd(int end) {
@@ -70,7 +70,7 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	public void setSourceRangeStart(int start) {
 		fSourceRangeStart = start;
 	}
-
+	
 	public Kind getAJKind() {
 		return kind;
 	}

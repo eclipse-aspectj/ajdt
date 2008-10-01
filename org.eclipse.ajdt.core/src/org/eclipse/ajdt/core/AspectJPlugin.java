@@ -12,7 +12,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
-import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
@@ -145,8 +144,6 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		super.stop(context);
-		
-		AJModel.getInstance().saveAllModels();
 	}
 
 	/**

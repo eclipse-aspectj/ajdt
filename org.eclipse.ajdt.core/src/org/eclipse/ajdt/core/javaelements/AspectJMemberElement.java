@@ -94,23 +94,20 @@ public String[] getExceptionTypes() throws JavaModelException {
 	}
 	return typeSigs;
 }
-/**
- * @see JavaElement#getHandleMemento()
- */
-public String getHandleMemento() {
-	StringBuffer buff = new StringBuffer(((JavaElement) getParent()).getHandleMemento());
-	char delimiter = getHandleMementoDelimiter();
-	buff.append(delimiter);
-	escapeMementoName(buff, getElementName());
-	for (int i = 0; i < fParameterTypes.length; i++) {
-		buff.append(delimiter);
-		escapeMementoName(buff, fParameterTypes[i]);
-	}
-	if (this.occurrenceCount > 1) {
-		buff.append(JEM_COUNT);
-		buff.append(this.occurrenceCount);
-	}
-	return buff.toString();
+
+protected void getHandleMemento(StringBuffer buff) {
+    buff.append(((JavaElement) getParent()).getHandleMemento());
+    char delimiter = getHandleMementoDelimiter();
+    buff.append(delimiter);
+    escapeMementoName(buff, getElementName());
+    for (int i = 0; i < this.fParameterTypes.length; i++) {
+        buff.append(delimiter);
+        escapeMementoName(buff, this.fParameterTypes[i]);
+    }
+    if (this.occurrenceCount > 1) {
+        buff.append(JEM_COUNT);
+        buff.append(this.occurrenceCount);
+    }
 }
 /**
  * @see JavaElement#getHandleMemento()

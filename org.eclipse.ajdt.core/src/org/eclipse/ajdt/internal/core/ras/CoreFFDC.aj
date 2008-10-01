@@ -15,10 +15,9 @@ package org.eclipse.ajdt.internal.core.ras;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.internal.core.ajde.CoreBuildMessageHandler;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.ajdt.core.ras.*;
 
 /**
  * FFDC policy for org.eclipse.ajdt.core plug-in
@@ -28,7 +27,7 @@ public aspect CoreFFDC extends PluginFFDC {
 	protected pointcut ffdcScope () :
 		within(org.eclipse.ajdt..*)
 		// Exclude programming by exception cases
-		&& !within(AspectsConvertingParser)
+		&& !within(NoFFDC+)
 		// see pr225785
 		&& !withincode(* org.eclipse.ajdt.core.parserbridge.AJSourceElementParser.parseTypeMemberDeclarations(ISourceType,ICompilationUnit,int,int,boolean));
 		

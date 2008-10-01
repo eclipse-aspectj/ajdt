@@ -14,7 +14,6 @@ import org.eclipse.pde.internal.build.SourceFeatureInformation;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.builder.BuildDirector;
 import org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator;
-import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator;
 import org.eclipse.pde.internal.build.site.BuildTimeFeature;
 import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;

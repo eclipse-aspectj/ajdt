@@ -19,6 +19,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 
 /**
  * The purpose of this parser is to convert AspectJ code into similar Java code
@@ -43,7 +44,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
  * 
  * @author Luzius Meisser
  */
-public class AspectsConvertingParser implements TerminalTokens {
+public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
 	public char[] content;
 

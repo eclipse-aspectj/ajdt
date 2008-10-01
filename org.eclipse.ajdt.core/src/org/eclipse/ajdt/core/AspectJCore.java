@@ -17,21 +17,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.core.javaelements.AspectElementInfo;
-import org.eclipse.ajdt.core.javaelements.MockAdviceElement;
-import org.eclipse.ajdt.core.javaelements.MockAspectElement;
-import org.eclipse.ajdt.core.javaelements.MockDeclareElement;
-import org.eclipse.ajdt.core.javaelements.MockIntertypeElement;
-import org.eclipse.ajdt.core.javaelements.MockPointcutElement;
-import org.eclipse.ajdt.core.javaelements.MockSourceMethod;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
@@ -75,27 +67,17 @@ public class AspectJCore {
 				codeElementHandle,
 				JavaElement.JEM_COUNT);
 		if (li != -1) {
-			String cname = codeElementHandle
-					.substring(0, li);
-			String rest = codeElementHandle
-					.substring(li + 1);
-			li = indexOfIgnoringEscapes(rest,
-					JavaElement.JEM_COUNT);
-			if (li != -1) {
-				String lineStr = rest.substring(0,li);
-				try {
-					int line = new Integer(lineStr)
-							.intValue();
-					return new AJCodeElement(
-							parent, line, cname);
-				} catch (NumberFormatException e) {
-				}
-			}
-		} else {
-			// no line number
-			return new AJCodeElement(parent, 0, codeElementHandle);
+		    int occurrenceIndex = codeElementHandle.lastIndexOf(JavaElement.JEM_COUNT);
+		    if (Character.isDigit(codeElementHandle.charAt(occurrenceIndex+1))) {
+		        int occurrence = Integer.parseInt(codeElementHandle.substring(occurrenceIndex+1));
+		        String cname = codeElementHandle.substring(0, li);
+		        codeElementHandle = codeElementHandle.substring(0, li);
+		        return new AJCodeElement(parent, cname, occurrence);
+		    }
+            codeElementHandle = codeElementHandle.substring(0, li);
 		}
-		return null;
+		// no occurrance count
+		return new AJCodeElement(parent, codeElementHandle);
 	}
 	
 	public static IJavaElement create(String handleIdentifier,
@@ -119,16 +101,22 @@ public class AspectJCore {
 					codeElementDelimPos);
 		}
 
-		MementoTokenizer memento = new AJMementoTokenizer(handleIdentifier);
+		AJMementoTokenizer memento = new AJMementoTokenizer(handleIdentifier);
 		while (memento.hasMoreTokens()) {
 			String token = memento.nextToken();
 			if ((token.charAt(0) == AspectElement.JEM_ASPECT_CU)
-					|| (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT)) {
-				int index1 = handleIdentifier
-						.indexOf(JavaElement.JEM_COMPILATIONUNIT);
-				int index2 = handleIdentifier
-					.indexOf(AspectElement.JEM_ASPECT_CU);
-				int index = Math.max(index1,index2);
+					|| (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT) 
+					|| (token.charAt(0) == JavaElement.JEM_CLASSFILE)) {
+			    
+				int index;
+				if (token.charAt(0) == AspectElement.JEM_ASPECT_CU) {
+				    index = handleIdentifier.indexOf(AspectElement.JEM_ASPECT_CU);
+				} else if (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT) {
+				    index = handleIdentifier.indexOf(JavaElement.JEM_COMPILATIONUNIT);
+				} else { // JEM_CLASSFILE 
+				    index = handleIdentifier.indexOf(JavaElement.JEM_CLASSFILE);
+				}
+				
 				if (index != -1) {
 					IJavaElement je = JavaCore.create(handleIdentifier
 							.substring(0, index));
@@ -147,13 +135,20 @@ public class AspectJCore {
 						if (ind3 != -1) {
 							cuName = cuName.substring(0, ind3);
 						}
-						int ind4 = cuName.indexOf(AspectElement.JEM_DECLARE);
-						if (ind4 != -1) {
-							cuName = cuName.substring(0, ind4);
-						}
+                        int ind4 = cuName.indexOf(AspectElement.JEM_DECLARE);
+                        if (ind4 != -1) {
+                            cuName = cuName.substring(0, ind4);
+                        }
+                        int ind5 = cuName.indexOf(AspectElement.JEM_IMPORTDECLARATION);
+                        if (ind5 != -1) {
+                            cuName = cuName.substring(0, ind5);
+                        }
+                        int ind6 = cuName.indexOf(AspectElement.JEM_PACKAGEDECLARATION);
+                        if (ind6 != -1) {
+                            cuName = cuName.substring(0, ind6);
+                        }
 						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cuName)) {
-							JavaElement cu = new AJCompilationUnit(pf, cuName,
-									owner);
+							JavaElement cu = new AJCompilationUnit(pf, cuName, owner);
 							token = memento.nextToken();
 							if (!memento.hasMoreTokens()) {
 								return cu;
@@ -186,57 +181,61 @@ public class AspectJCore {
 								}
 								return restEl;
 							} else if (ind2 != -1) { // An aspect in a .java file...
-								int index3 = handleIdentifier
-								.indexOf(AspectElement.JEM_ASPECT_TYPE);
+								int index3 = handleIdentifier.indexOf(AspectElement.JEM_ASPECT_TYPE);
 								String aspectName = handleIdentifier.substring(index3 + 1);
 								boolean identifierIsAspect = true;
-								int ind5b = aspectName.indexOf(AspectElement.JEM_DECLARE);
-								if (ind5b != -1) {
-									aspectName = aspectName.substring(0, ind5b);
-									identifierIsAspect = false;
-								}
-								int ind6 = aspectName.indexOf(AspectElement.JEM_ADVICE);
-								if (ind6 != -1) {
-									aspectName = aspectName.substring(0, ind6);
-									identifierIsAspect = false;
-								}
-								int ind7 = aspectName.indexOf(AspectElement.JEM_ITD);
+								int ind7 = aspectName.indexOf(AspectElement.JEM_DECLARE);
 								if (ind7 != -1) {
 									aspectName = aspectName.substring(0, ind7);
 									identifierIsAspect = false;
 								}
-								int ind8 = aspectName.indexOf(AspectElement.JEM_ASPECT_TYPE);
+								int ind8 = aspectName.indexOf(AspectElement.JEM_ADVICE);
 								if (ind8 != -1) {
 									aspectName = aspectName.substring(0, ind8);
 									identifierIsAspect = false;
 								}
-								int ind9 = aspectName.indexOf(AspectElement.JEM_TYPE);
+								int ind9 = aspectName.indexOf(AspectElement.JEM_ITD);
 								if (ind9 != -1) {
 									aspectName = aspectName.substring(0, ind9);
 									identifierIsAspect = false;
 								}
-								int ind10 = aspectName.indexOf(AspectElement.JEM_FIELD);
+								int ind10 = aspectName.indexOf(AspectElement.JEM_ASPECT_TYPE);
 								if (ind10 != -1) {
 									aspectName = aspectName.substring(0, ind10);
 									identifierIsAspect = false;
 								}
-								int ind11 = aspectName.indexOf(AspectElement.JEM_METHOD);
+								int ind11 = aspectName.indexOf(AspectElement.JEM_TYPE);
 								if (ind11 != -1) {
 									aspectName = aspectName.substring(0, ind11);
 									identifierIsAspect = false;
 								}
-								int ind12 = aspectName.indexOf(AspectElement.JEM_POINTCUT);
+								int ind12 = aspectName.indexOf(AspectElement.JEM_FIELD);
 								if (ind12 != -1) {
 									aspectName = aspectName.substring(0, ind12);
 									identifierIsAspect = false;
 								}
-								ICompilationUnit unit = pf.getCompilationUnit(cuName);
+								int ind13 = aspectName.indexOf(AspectElement.JEM_METHOD);
+								if (ind13 != -1) {
+									aspectName = aspectName.substring(0, ind13);
+									identifierIsAspect = false;
+								}
+								int ind14 = aspectName.indexOf(AspectElement.JEM_POINTCUT);
+								if (ind14 != -1) {
+									aspectName = aspectName.substring(0, ind14);
+									identifierIsAspect = false;
+								}
+								IOpenable openable;
+								if (cuName.endsWith(".class")) {
+								    openable = pf.getClassFile(cuName);
+								} else {
+								    openable = pf.getCompilationUnit(cuName);
+								}
 								List l;
-								if(aspectsInJavaFiles.get(unit) instanceof List) {
-									l = (List)aspectsInJavaFiles.get(unit);
+								if(aspectsInJavaFiles.get(openable) instanceof List) {
+									l = (List)aspectsInJavaFiles.get(openable);
 								} else {
 									l = new ArrayList();
-									aspectsInJavaFiles.put(unit, l);
+									aspectsInJavaFiles.put(openable, l);
 								}
 								AspectElement aspectEl = null;
 								for (Iterator iter = l.iterator(); iter.hasNext();) {
@@ -246,105 +245,131 @@ public class AspectJCore {
 									}								
 								}
 								if(aspectEl == null) {
-									AspectElementInfo info = new AspectElementInfo();
-									info.setAJKind(IProgramElement.Kind.ASPECT);
-									info.setSourceRangeStart(0);
-									aspectEl = new MockAspectElement((JavaElement)unit, aspectName, info);						
+									aspectEl = new AspectElement((JavaElement)openable, aspectName);						
 									l.add(aspectEl);
-//									((CompilationUnitElementInfo)((CompilationUnit)unit).getElementInfo()).addChild(aspectEl);
+//									try {
+//                                        ((CompilationUnitElementInfo) ((CompilationUnit) openable).getElementInfo()).addChild((IJavaElement) aspectEl);
+//                                    } catch (JavaModelException e) {
+//                                    }
 								}
+                                int afterAspectIndex = index3 + aspectName.length() + 1;
+
+								
 								if (identifierIsAspect) {
-									return aspectEl;
+								    return aspectEl;
+								} else {
+    								memento.setIndexTo(afterAspectIndex);
+    								return aspectEl.getHandleFromMemento(memento.nextToken(), memento, owner);
 								}
-								IJavaElement mockEl;
-								char[] possibleDelimiters = new char[] {
-										AspectElement.JEM_ADVICE,
-										AspectElement.JEM_DECLARE,
-										AspectElement.JEM_ITD,
-										AspectElement.JEM_METHOD,
-										AspectElement.JEM_POINTCUT
-								};
-								for (int i = 0; i < possibleDelimiters.length; i++) {
-									mockEl = getMockElement(possibleDelimiters[i], handleIdentifier, aspectEl); 
-									if(mockEl != null) {
-										return mockEl;
-									}										
-								}							
-								return null;								
+//								if (identifierIsAspect) {
+//									return aspectEl;
+//								}
+//								IJavaElement mockEl;
+//								char[] possibleDelimiters = new char[] {
+//										AspectElement.JEM_ADVICE,
+//										AspectElement.JEM_DECLARE,
+//										AspectElement.JEM_ITD,
+//										AspectElement.JEM_METHOD,
+//										AspectElement.JEM_POINTCUT
+//								};
+//								for (int i = 0; i < possibleDelimiters.length; i++) {
+//									mockEl = getMockElement(possibleDelimiters[i], handleIdentifier, aspectEl); 
+//									if(mockEl != null) {
+//										return mockEl;
+//									}										
+//								}							
+//								return null;								
 							}
 						}
 					}
 				}
 			}
 		}
+		// XXX can we get here???
 		if (isCodeElement) {
 			// an injar aspect with no parent
 			return new AJInjarElement(codeElementHandle);
 		}
 		return JavaCore.create(handleIdentifier);
 	}
-
-	private static IJavaElement getMockElement(char delimiterChar, String handleIdentifier, AspectElement aspectEl) {
-		String mockElementHandle;
-		int mockElementDelimPos = indexOfIgnoringEscapes(handleIdentifier,
-				delimiterChar);
-		if (mockElementDelimPos != -1) {
-			mockElementHandle = handleIdentifier
-				.substring(mockElementDelimPos + 1);
-			int li = indexOfIgnoringEscapes(mockElementHandle, AspectElement.JEM_EXTRA_INFO);
-			if (li != -1) {
-				String cname = mockElementHandle.substring(0, li);
-				String rest = mockElementHandle.substring(li + 1);
-				String[] extraInfo = rest.split(Character.toString(AspectElement.JEM_EXTRA_INFO));
-				try {
-					int offset = new Integer(extraInfo[0]).intValue();
-					switch (delimiterChar) {
-						case AspectElement.JEM_ADVICE:
-							String[] split = cname.split(Character.toString(AspectElement.JEM_ADVICE)); 
-							String[] parameterTypes = new String[split.length - 1];
-							for (int i = 0; i < parameterTypes.length; i++) {
-								parameterTypes[i] = split[i + 1];
-							}
-							return new MockAdviceElement(aspectEl, offset, split[0], parameterTypes);
-						case AspectElement.JEM_DECLARE:
-							cname = cname.replaceAll("\\\\", "");  //$NON-NLS-1$//$NON-NLS-2$
-							return new MockDeclareElement(aspectEl, offset, cname);
-						case AspectElement.JEM_ITD:
-							String kind = extraInfo.length > 1 ? extraInfo[1] : null;
-							String accessibility = extraInfo.length > 2 ? extraInfo[2] : null;
-							split = cname.split("\\" + Character.toString(AspectElement.JEM_ITD)); //$NON-NLS-1$
-							parameterTypes = new String[split.length - 1];
-							for (int i = 0; i < parameterTypes.length; i++) {
-								parameterTypes[i] = split[i + 1];
-							}
-							return new MockIntertypeElement(aspectEl, offset, split[0], parameterTypes, kind, accessibility);
-						case AspectElement.JEM_METHOD:
-							accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
-							split = cname.split(Character.toString(AspectElement.JEM_METHOD)); 
-							parameterTypes = new String[split.length - 1];
-							for (int i = 0; i < parameterTypes.length; i++) {
-								parameterTypes[i] = split[i + 1];
-							}						
-							return new MockSourceMethod(aspectEl, split[0], parameterTypes, offset, accessibility);
-						case AspectElement.JEM_POINTCUT:
-							accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
-							split = cname.split("\\" + Character.toString(AspectElement.JEM_POINTCUT)); //$NON-NLS-1$
-							parameterTypes = new String[split.length - 1];
-							for (int i = 0; i < parameterTypes.length; i++) {
-								parameterTypes[i] = split[i + 1];
-							}						
-							return new MockPointcutElement(aspectEl, split[0], parameterTypes, offset, accessibility);
-							
-						default:
-							AJLog.log("AspectJCore unable to deserialize: " + mockElementHandle); //$NON-NLS-1$
-					}
-				} catch (NumberFormatException e) {
-				}
-			}
-		}
-		return null;
-	}
-
+	
+	
+	// XXX slated for deletion
+//	private static IJavaElement getMockElement(char delimiterChar, String handleIdentifier, AspectElement aspectEl) {
+//		String mockElementHandle;
+//		int mockElementDelimPos = indexOfIgnoringEscapes(handleIdentifier,
+//				delimiterChar);
+//		if (mockElementDelimPos != -1) {
+//			mockElementHandle = handleIdentifier
+//				.substring(mockElementDelimPos + 1);
+//			int li = indexOfIgnoringEscapes(mockElementHandle, AspectElement.JEM_EXTRA_INFO);
+//			String cname;
+//			String rest;
+//			if (li != -1) {
+//				cname = mockElementHandle.substring(0, li);
+//				rest = mockElementHandle.substring(li + 1);
+//			} else {
+//			    cname = mockElementHandle;
+//			    rest = "";
+//			}
+//			String[] extraInfo = rest.split(Character.toString(AspectElement.JEM_EXTRA_INFO));
+//			int offset;
+//			try {
+//				offset = new Integer(extraInfo[0]).intValue();
+//            } catch (NumberFormatException e) {
+//                offset = -1;
+//            }
+//
+//            String[] nameCountSplit;
+//			switch (delimiterChar) {
+//				case AspectElement.JEM_ADVICE:
+//					String[] nameParamSplit = cname.split(Character.toString(AspectElement.JEM_ADVICE)); 
+//					String[] parameterTypes = new String[nameParamSplit.length - 1];
+//					for (int i = 0; i < parameterTypes.length; i++) {
+//						parameterTypes[i] = nameParamSplit[i + 1];
+//					}
+//					nameCountSplit = nameParamSplit[0].split(Character.toString(AspectElement.JEM_COUNT));
+//					return new MockAdviceElement(aspectEl, offset, nameCountSplit[0], parameterTypes, 
+//					        nameCountSplit.length == 1 ? 0 : Integer.parseInt(nameCountSplit[1]));
+//				case AspectElement.JEM_DECLARE:
+//					cname = cname.replaceAll("\\\\", "");  //$NON-NLS-1$//$NON-NLS-2$
+//					nameCountSplit = cname.split(Character.toString(AspectElement.JEM_COUNT));
+//					return new MockDeclareElement(aspectEl, offset, nameCountSplit[0], 
+//					        nameCountSplit.length == 1 ? 0 : Integer.parseInt(nameCountSplit[1]));
+//					
+//				case AspectElement.JEM_ITD:
+//					String kind = extraInfo.length > 1 ? extraInfo[1] : null;
+//					String accessibility = extraInfo.length > 2 ? extraInfo[2] : null;
+//					nameParamSplit = cname.split("\\" + Character.toString(AspectElement.JEM_ITD)); //$NON-NLS-1$
+//					parameterTypes = new String[nameParamSplit.length - 1];
+//					for (int i = 0; i < parameterTypes.length; i++) {
+//						parameterTypes[i] = nameParamSplit[i + 1];
+//					}
+//					return new MockIntertypeElement(aspectEl, offset, nameParamSplit[0], parameterTypes, kind, accessibility);
+//				case AspectElement.JEM_METHOD:
+//					accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
+//					nameParamSplit = cname.split(Character.toString(AspectElement.JEM_METHOD)); 
+//					parameterTypes = new String[nameParamSplit.length - 1];
+//					for (int i = 0; i < parameterTypes.length; i++) {
+//						parameterTypes[i] = nameParamSplit[i + 1];
+//					}						
+//					return new MockSourceMethod(aspectEl, nameParamSplit[0], parameterTypes, offset, accessibility);
+//				case AspectElement.JEM_POINTCUT:
+//					accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
+//					nameParamSplit = cname.split("\\" + Character.toString(AspectElement.JEM_POINTCUT)); //$NON-NLS-1$
+//					parameterTypes = new String[nameParamSplit.length - 1];
+//					for (int i = 0; i < parameterTypes.length; i++) {
+//						parameterTypes[i] = nameParamSplit[i + 1];
+//					}						
+//					return new MockPointcutElement(aspectEl, nameParamSplit[0], parameterTypes, offset, accessibility);
+//					
+//				default:
+//					AJLog.log("AspectJCore unable to deserialize: " + mockElementHandle); //$NON-NLS-1$
+//			}
+//		}
+//		return null;
+//	}
+//
 }
 
 class AJMementoTokenizer extends MementoTokenizer {
@@ -406,10 +431,12 @@ class AJMementoTokenizer extends MementoTokenizer {
 			.toString(AspectElement.JEM_ITD);
 
 	private static final String DECLARE = Character
-		.toString(AspectElement.JEM_DECLARE);
+		    .toString(AspectElement.JEM_DECLARE);
 
-	private static final String POINTCUT = Character
-		.toString(AspectElement.JEM_POINTCUT);
+    private static final String POINTCUT = Character
+            .toString(AspectElement.JEM_POINTCUT);
+    private static final String EXTRA_INFO = Character
+            .toString(AspectElement.JEM_EXTRA_INFO);
 	// end AspectJ change
 
 	private final char[] memento;
@@ -422,6 +449,10 @@ class AJMementoTokenizer extends MementoTokenizer {
 		super(memento);
 		this.memento = memento.toCharArray();
 		this.length = this.memento.length;
+	}
+	
+	void setIndexTo(int newIndex) {
+	    this.index = newIndex;
 	}
 
 	public boolean hasMoreTokens() {
@@ -480,6 +511,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 			return DECLARE;
 		case AspectElement.JEM_POINTCUT:
 			return POINTCUT;
+		case AspectElement.JEM_EXTRA_INFO:
+		    return EXTRA_INFO;
 		// end AspectJ change
 		}
 		loop: while (this.index < this.length) {
@@ -511,7 +544,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 			case AspectElement.JEM_CODEELEMENT:
 			case AspectElement.JEM_ITD:
 			case AspectElement.JEM_DECLARE:
-			case AspectElement.JEM_POINTCUT:
+            case AspectElement.JEM_POINTCUT:
+            case AspectElement.JEM_EXTRA_INFO:
 			// end AspectJ change
 				break loop;
 			}

@@ -11,6 +11,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import org.aspectj.ajdt.internal.compiler.lookup.EclipseSourceLocation;
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
@@ -27,82 +31,105 @@ import org.eclipse.jdt.internal.core.util.Util;
  */
 public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	private String name;
-	private int line;
 	
-	/**
-	 * @param parent
-	 * @param name
-	 * @param parameterTypes
-	 */
-	public AJCodeElement(JavaElement parent, int line, String name) {
-		// note pass in line number to parent so that it can be stored in the memento
-		// this is a bit of a hack since the parent expects the declarationSourceStart value
-		super(parent,name,line,0,0,0,"I", null); //$NON-NLS-1$
+	private int startLine;
+	
+	public AJCodeElement(JavaElement parent, String name) {
+		super(parent,name,0,0,0,0,"I", null); //$NON-NLS-1$
 		this.name=name;
-		this.line=line;
 	}
+	
+    public AJCodeElement(JavaElement parent, String name, int occurrence) {
+        super(parent,name,0,0,0,0,"I", null); //$NON-NLS-1$
+        this.occurrenceCount = occurrence;
+        this.name=name;
+    }
+
 
 	
 	public ISourceRange getNameRange() {
 		if (nameStart==0) {
-			setStartAndEnd(line);
+			initializeLocations();
 		}
 		return new SourceRange(this.nameStart, this.nameEnd-this.nameStart+1);
 	}
 
-	/**
-	 * Overriding LocalVariable.hashcode() to include
-	 * the line number of the AJCodeElement (since two
-	 * different AJCodeElements can have the same name and 
-	 * parent - must always have different line numbers.
-	 */
 	public int hashCode() {
-		return Util.combineHashCodes(name.hashCode(),line);
+		return Util.combineHashCodes(name.hashCode(),occurrenceCount);
 	}
 
-	/**
-	 * Overriding LocalVariable.equals to include the line number.
-	 * An object is equal to this one if super.equals(o)
-	 * returns true AND the line numbers are the same.
-	 */
 	public boolean equals(Object o) {
 		if (!(o instanceof AJCodeElement)) {
 			return super.equals(o);
 		}
 		AJCodeElement ajce = (AJCodeElement)o;
-		return super.equals(o) && (line == ajce.line);
+		return super.equals(o) && (occurrenceCount == ajce.occurrenceCount);
 	}
 	
-	private void setStartAndEnd(int targetLine) {
-		try {
-			IOpenable openable = this.parent.getOpenableParent();
-			IBuffer buffer = openable.getBuffer();
-			String source = buffer.getContents();
-			int lines = 0;
-			boolean foundLine=false;
-			for (int i = 0; i < source.length(); i++) {
-				if (source.charAt(i) == '\n') {
-					lines++;
-					if (foundLine) {
-						nameEnd=i-1;
-						//System.out.println("end="+nameEnd);
-						return;
-					}
-					if ((lines+1)==targetLine) {
-						nameStart=i+1;
-						foundLine=true;
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-		}
+	private void initializeLocations() {
+	    // try the easy way:
+        IProgramElement ipe = 
+            AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+        ISourceLocation sloc = ipe.getSourceLocation();
+        startLine = sloc.getLine();
+        
+        nameStart = sloc.getOffset();
+        if (sloc instanceof EclipseSourceLocation) {
+            EclipseSourceLocation esloc = (EclipseSourceLocation) sloc;
+            nameEnd = esloc.getEndPos();
+        }
+        
+        // sometimes the start and end values are not set...so do it the hard way
+        // so calculate it from the line
+        if (nameStart <= 0 || nameEnd <= 0) {
+            try {
+                IOpenable openable = this.parent.getOpenableParent();
+                IBuffer buffer;
+                if (openable instanceof AJCompilationUnit) {
+                    AJCompilationUnit ajCompUnit = (AJCompilationUnit) openable;
+                    ajCompUnit.requestOriginalContentMode();
+                    buffer = openable.getBuffer();
+                    ajCompUnit.discardOriginalContentMode();
+                } else {
+                    buffer = openable.getBuffer();
+                }
+                String source = buffer.getContents();
+    
+                int lines = 0;
+    			for (int i = 0; i < source.length(); i++) {
+    				if (source.charAt(i) == '\n') {
+    				    lines++;
+    					if (lines == startLine-1) {
+    					    // starting remove white space
+    					    i++;
+    					    while (i < source.length() && (Character.isWhitespace(source.charAt(i))
+    					            && source.charAt(i) != '\n')) {
+    					        i++;
+    					    }
+    						nameStart=i;
+    						break;
+    					}
+    				}
+    			}
+                
+    			for (int i = nameStart+1; i < source.length(); i++) {
+    			    if (source.charAt(i) == '\n' || source.charAt(i) ==';') {
+    			        nameEnd = i-1;
+    			        break;
+    			    }
+    			}
+    			
+    			nameStart = Math.min(nameStart,nameEnd);
+    		} catch (JavaModelException e) {
+    		}
+	    }
 	}
 	
 	/**
 	 * @return Returns the line in the file of this AJCodeElement.
 	 */
 	public int getLine() {
-		return line;
+	    return startLine;
 	}
 	
 	/**

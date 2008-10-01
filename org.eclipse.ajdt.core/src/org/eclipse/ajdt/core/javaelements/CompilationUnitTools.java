@@ -14,13 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.PackageFragment;
 
@@ -118,5 +121,19 @@ public class CompilationUnitTools {
 			mods.add(IProgramElement.Modifiers.NATIVE);
 		}
 		return mods;
+	}
+	
+	/**
+	 * Attempts to convert the compilation unit into an AJCompilation unit.
+	 * Returns null if not possible.
+	 */
+	public static AJCompilationUnit convertToAJCompilationUnit(ICompilationUnit unit) {
+	    if (unit instanceof AJCompilationUnit) {
+            return (AJCompilationUnit) unit;
+        } else if (unit instanceof CompilationUnit) {
+            return new AJCompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), AJWorkingCopyOwner.INSTANCE);
+        } else {
+            return null;
+        }
 	}
 }

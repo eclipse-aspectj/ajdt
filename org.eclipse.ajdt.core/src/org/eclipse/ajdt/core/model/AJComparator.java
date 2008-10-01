@@ -26,7 +26,8 @@ public class AJComparator implements Comparator {
 	 */
 	public int compare(Object o1, Object o2) {
 		if ((o1 instanceof AJCodeElement) && (o2 instanceof AJCodeElement)) {
-			return ((AJCodeElement)o1).getLine() - ((AJCodeElement)o2).getLine();
+			return ((AJCodeElement)o1).getNameRange().getOffset() - 
+			    ((AJCodeElement)o2).getNameRange().getOffset();
 		} else if ((o1 instanceof IJavaElement) && (o2 instanceof IJavaElement)) {
 			String o1Name = ((IJavaElement)o1).getElementName();
 			String o2Name = ((IJavaElement)o2).getElementName();

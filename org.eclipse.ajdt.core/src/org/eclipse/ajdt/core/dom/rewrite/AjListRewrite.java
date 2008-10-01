@@ -19,6 +19,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
 import org.aspectj.org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.Statement;
 import org.aspectj.org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
+import org.aspectj.org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ListRewriteEvent;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeInfoStore;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent;

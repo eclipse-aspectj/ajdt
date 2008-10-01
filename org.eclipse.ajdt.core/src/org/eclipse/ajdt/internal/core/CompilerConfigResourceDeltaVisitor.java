@@ -13,6 +13,7 @@
 package org.eclipse.ajdt.internal.core;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -44,7 +45,8 @@ public class CompilerConfigResourceDeltaVisitor implements IResourceDeltaVisitor
 				// remove the compiler associated with this project from the factory
 				AspectJPlugin.getDefault().getCompilerFactory()
 						.removeCompilerForProject(myRes.getProject());
-				break;
+				AJProjectModelFactory.getInstance().removeModelForProject(myRes.getProject());
+		        				break;
 			case IResourceDelta.CHANGED:
 				if (!myRes.getProject().isOpen()) {
 					// remove the compiler associated with this project from the 
@@ -52,6 +54,7 @@ public class CompilerConfigResourceDeltaVisitor implements IResourceDeltaVisitor
 					// don't want to hang on to the compiler instance
 					AspectJPlugin.getDefault().getCompilerFactory()
 							.removeCompilerForProject(myRes.getProject());
+					AJProjectModelFactory.getInstance().removeModelForProject(myRes.getProject());
 				}
 				break;
 			}

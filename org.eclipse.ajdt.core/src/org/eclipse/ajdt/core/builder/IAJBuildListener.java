@@ -36,7 +36,7 @@ public interface IAJBuildListener {
 	 * @param project
 	 * @param noSourceChanges
 	 */
-	public void postAJBuild(IProject project, boolean noSourceChanges);
+	public void postAJBuild(int kind, IProject project, boolean noSourceChanges);
 
 	/**
 	 * Add a listener to be notified when there is a change in the set of
@@ -52,4 +52,9 @@ public interface IAJBuildListener {
 	 * @param adviceListener
 	 */
 	public void removeAdviceListener(IAdviceChangedListener adviceListener);
+
+	/**
+	 * Called after a clean has been performed on the AspectJ project
+	 */
+	public void postAJClean(IProject project);
 }
