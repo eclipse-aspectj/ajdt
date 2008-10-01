@@ -14,149 +14,144 @@ package org.eclipse.ajdt.core.tests.model;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.javaelements.AdviceElement;
-import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJProjectModel;
-import org.eclipse.ajdt.core.model.AJRelationship;
+import org.aspectj.asm.IRelationship;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.internal.core.model.BinaryWeavingSupport;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageDeclaration;
 
+
+/**
+ * testing a class that is no longer being used.  keep but, can 
+ * probably delete the commented out methods
+ */
 public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 
-	public void testFindProjectForPath() throws Exception {
-		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
-		IPath base = project.getLocation();
-		IPath loc = base.append("aspects.jar"); //$NON-NLS-1$
+//	public void testFindProjectForPath() throws Exception {
+//		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
+//		IPath base = project.getLocation();
+//		IPath loc = base.append("aspects.jar"); //$NON-NLS-1$
+//
+//		IProject foundProject = BinaryWeavingSupportDELETEME.findProjectForPath(loc);
+//		assertNotNull("Didn't find project for path: " + loc, foundProject); //$NON-NLS-1$
+//		assertEquals("Didn't find correct project for path: " + loc, project, //$NON-NLS-1$
+//				foundProject);
+//
+//		loc = base.append("bin"); //$NON-NLS-1$
+//
+//		foundProject = BinaryWeavingSupportDELETEME.findProjectForPath(loc);
+//		assertNotNull("Didn't find project for path: " + loc, foundProject); //$NON-NLS-1$
+//		assertEquals("Didn't find correct project for path: " + loc, project, //$NON-NLS-1$
+//				foundProject);
+//	}
+//
+//	public void testFindSourceFolderResource() throws Exception {
+//		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
+//		IResource res = BinaryWeavingSupportDELETEME.findSourceFolderResource(project,
+//				"bar", "MyBar.aj"); //$NON-NLS-1$ //$NON-NLS-2$
+//		assertNotNull("Didn't find source folder resource", res); //$NON-NLS-1$
+//		String path = res.getFullPath().toPortableString();
+//		assertEquals("Incorrect path for MyBar.aj", //$NON-NLS-1$
+//				"/MyAspectLibrary/src/bar/MyBar.aj", path); //$NON-NLS-1$
+//	}
+//
+//	public void testFindSourceFolderResourceNoSrcFolder() throws Exception {
+//		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
+//		IResource res = BinaryWeavingSupportDELETEME.findSourceFolderResource(project,
+//				"foo", "Test.java"); //$NON-NLS-1$ //$NON-NLS-2$
+//		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
+//		String path = res.getFullPath().toPortableString();
+//		assertEquals("Incorrect path for Test.java", //$NON-NLS-1$
+//				"/bug153682/foo/Test.java", path); //$NON-NLS-1$
+//	}
 
-		IProject foundProject = BinaryWeavingSupport.findProjectForPath(loc);
-		assertNotNull("Didn't find project for path: " + loc, foundProject); //$NON-NLS-1$
-		assertEquals("Didn't find correct project for path: " + loc, project, //$NON-NLS-1$
-				foundProject);
+//	public void testFindSourceFolderResourceMultipleSrcFolders()
+//			throws Exception {
+//		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
+//		IResource res = BinaryWeavingSupportDELETEME.findSourceFolderResource(project,
+//				"p1", "Class1.java"); //$NON-NLS-1$ //$NON-NLS-2$
+//		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
+//		String path = res.getFullPath().toPortableString();
+//		assertEquals("Incorrect path for Class1.java", //$NON-NLS-1$
+//				"/MultipleOutputFolders/src/p1/Class1.java", path); //$NON-NLS-1$
+//
+//		res = BinaryWeavingSupportDELETEME.findSourceFolderResource(project,
+//				"p2", "GetInfo.aj"); //$NON-NLS-1$ //$NON-NLS-2$
+//		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
+//		path = res.getFullPath().toPortableString();
+//		assertEquals("Incorrect path for GetInfo.aj", //$NON-NLS-1$
+//				"/MultipleOutputFolders/src2/p2/GetInfo.aj", path); //$NON-NLS-1$
+//	}
+//
+//	public void testFindSourceFolderResourcePackages() throws Exception {
+//		IProject project = createPredefinedProject("AJProject83082"); //$NON-NLS-1$
+//		IResource res = BinaryWeavingSupportDELETEME.findSourceFolderResource(project,
+//				"wpstest.aspectj", "A.aj"); //$NON-NLS-1$ //$NON-NLS-2$
+//		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
+//		String path = res.getFullPath().toPortableString();
+//		assertEquals("Incorrect path for A.aj", //$NON-NLS-1$
+//				"/AJProject83082/src/wpstest/aspectj/A.aj", path); //$NON-NLS-1$
+//	}
 
-		loc = base.append("bin"); //$NON-NLS-1$
+//	public void testFindSourceFolderResourceDefaultPackage() throws Exception {
+//		IProject project = createPredefinedProject("MyAspectLibraryDefaultPackage"); //$NON-NLS-1$
+//		IResource res = BinaryWeavingSupportDELETEME.findSourceFolderResource(project,
+//				"", "MyBar.aj"); //$NON-NLS-1$ //$NON-NLS-2$
+//		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
+//		String path = res.getFullPath().toPortableString();
+//		assertEquals("Incorrect path for MyBar.aj", //$NON-NLS-1$
+//				"/MyAspectLibraryDefaultPackage/src/MyBar.aj", path); //$NON-NLS-1$
+//	}
 
-		foundProject = BinaryWeavingSupport.findProjectForPath(loc);
-		assertNotNull("Didn't find project for path: " + loc, foundProject); //$NON-NLS-1$
-		assertEquals("Didn't find correct project for path: " + loc, project, //$NON-NLS-1$
-				foundProject);
-	}
-
-	public void testFindSourceFolderResource() throws Exception {
-		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
-		IResource res = BinaryWeavingSupport.findSourceFolderResource(project,
-				"bar", "MyBar.aj"); //$NON-NLS-1$ //$NON-NLS-2$
-		assertNotNull("Didn't find source folder resource", res); //$NON-NLS-1$
-		String path = res.getFullPath().toPortableString();
-		assertEquals("Incorrect path for MyBar.aj", //$NON-NLS-1$
-				"/MyAspectLibrary/src/bar/MyBar.aj", path); //$NON-NLS-1$
-	}
-
-	public void testFindSourceFolderResourceNoSrcFolder() throws Exception {
-		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
-		IResource res = BinaryWeavingSupport.findSourceFolderResource(project,
-				"foo", "Test.java"); //$NON-NLS-1$ //$NON-NLS-2$
-		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
-		String path = res.getFullPath().toPortableString();
-		assertEquals("Incorrect path for Test.java", //$NON-NLS-1$
-				"/bug153682/foo/Test.java", path); //$NON-NLS-1$
-	}
-
-	public void testFindSourceFolderResourceMultipleSrcFolders()
-			throws Exception {
-		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
-		IResource res = BinaryWeavingSupport.findSourceFolderResource(project,
-				"p1", "Class1.java"); //$NON-NLS-1$ //$NON-NLS-2$
-		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
-		String path = res.getFullPath().toPortableString();
-		assertEquals("Incorrect path for Class1.java", //$NON-NLS-1$
-				"/MultipleOutputFolders/src/p1/Class1.java", path); //$NON-NLS-1$
-
-		res = BinaryWeavingSupport.findSourceFolderResource(project,
-				"p2", "GetInfo.aj"); //$NON-NLS-1$ //$NON-NLS-2$
-		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
-		path = res.getFullPath().toPortableString();
-		assertEquals("Incorrect path for GetInfo.aj", //$NON-NLS-1$
-				"/MultipleOutputFolders/src2/p2/GetInfo.aj", path); //$NON-NLS-1$
-	}
-
-	public void testFindSourceFolderResourcePackages() throws Exception {
-		IProject project = createPredefinedProject("AJProject83082"); //$NON-NLS-1$
-		IResource res = BinaryWeavingSupport.findSourceFolderResource(project,
-				"wpstest.aspectj", "A.aj"); //$NON-NLS-1$ //$NON-NLS-2$
-		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
-		String path = res.getFullPath().toPortableString();
-		assertEquals("Incorrect path for A.aj", //$NON-NLS-1$
-				"/AJProject83082/src/wpstest/aspectj/A.aj", path); //$NON-NLS-1$
-	}
-
-	public void testFindSourceFolderResourceDefaultPackage() throws Exception {
-		IProject project = createPredefinedProject("MyAspectLibraryDefaultPackage"); //$NON-NLS-1$
-		IResource res = BinaryWeavingSupport.findSourceFolderResource(project,
-				"", "MyBar.aj"); //$NON-NLS-1$ //$NON-NLS-2$
-		assertNotNull("Didn't find source folder resource: ", res); //$NON-NLS-1$
-		String path = res.getFullPath().toPortableString();
-		assertEquals("Incorrect path for MyBar.aj", //$NON-NLS-1$
-				"/MyAspectLibraryDefaultPackage/src/MyBar.aj", path); //$NON-NLS-1$
-	}
-
-	public void testFindElementAtLine() throws Exception {
-		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
-		IResource aj = project.findMember("src/bar/MyBar.aj"); //$NON-NLS-1$
-		assertNotNull("Couldn't find MyBar.aj file", aj); //$NON-NLS-1$
-		AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
-				.getAJCompilationUnit((IFile) aj);
-		assertNotNull("Couldn't find AJCompilationUnit for file " //$NON-NLS-1$
-				+ aj, ajcu);
-		Class[] expected = new Class[] { null, null, null,
-				IPackageDeclaration.class, null, AspectElement.class,
-				AspectElement.class, AdviceElement.class, AdviceElement.class,
-				AspectElement.class, AspectElement.class, IMethod.class,
-				IMethod.class, AspectElement.class, null, null, null };
-		for (int i = 0; i < expected.length; i++) {
-			IJavaElement el = BinaryWeavingSupport.findElementAtLine(ajcu, i);
-			if (expected[i] == null) {
-				assertNull("Expected null element at line " + i + " got: " //$NON-NLS-1$ //$NON-NLS-2$
-						+ el, el);
-			} else {
-				assertTrue("Expected instance of " + expected[i] + " got: " //$NON-NLS-1$ //$NON-NLS-2$
-						+ el.getClass(), expected[i].isInstance(el));
-			}
-		}
-	}
+//	public void testFindElementAtLine() throws Exception {
+//		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
+//		IResource aj = project.findMember("src/bar/MyBar.aj"); //$NON-NLS-1$
+//		assertNotNull("Couldn't find MyBar.aj file", aj); //$NON-NLS-1$
+//		AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
+//				.getAJCompilationUnit((IFile) aj);
+//		assertNotNull("Couldn't find AJCompilationUnit for file " //$NON-NLS-1$
+//				+ aj, ajcu);
+//		Class[] expected = new Class[] { null, null, null,
+//				IPackageDeclaration.class, null, AspectElement.class,
+//				AspectElement.class, AdviceElement.class, AdviceElement.class,
+//				AspectElement.class, AspectElement.class, IMethod.class,
+//				IMethod.class, AspectElement.class, null, null, null };
+//		for (int i = 0; i < expected.length; i++) {
+//			IJavaElement el = BinaryWeavingSupportDELETEME.findElementAtLine(ajcu, i);
+//			if (expected[i] == null) {
+//				assertNull("Expected null element at line " + i + " got: " //$NON-NLS-1$ //$NON-NLS-2$
+//						+ el, el);
+//			} else {
+//				assertTrue("Expected instance of " + expected[i] + " got: " //$NON-NLS-1$ //$NON-NLS-2$
+//						+ el.getClass(), expected[i].isInstance(el));
+//			}
+//		}
+//	}
 
 	public void testAspectPathDirWeaving() throws Exception {
-		if (!BinaryWeavingSupport.isActive) {
-			return;
-		}
-		IProject libProject = createPredefinedProject("MyAspectLibrary2"); //$NON-NLS-1$
+		/*IProject libProject = */createPredefinedProject("MyAspectLibrary2"); //$NON-NLS-1$
+//		AJProjectModelFacade libModel = AJProjectModelFactory.getInstance().getModelForProject(libProject);
+        
 		IProject weaveMeProject = createPredefinedProject("WeaveMe2"); //$NON-NLS-1$
-		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List allRels = AJModel.getInstance().getAllRelationships(
-				weaveMeProject, rels);
+        AJProjectModelFacade weaveMeModel = AJProjectModelFactory.getInstance().getModelForProject(weaveMeProject);
+        
+        AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+		List allRels = weaveMeModel.getRelationshipsForProject(rels);
 		IJavaElement mainEl = null;
 		for (Iterator iter = allRels.iterator(); (mainEl == null)
 				&& iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			IJavaElement source = rel.getSource();
+			IRelationship rel = (IRelationship) iter.next();
+			IJavaElement source = weaveMeModel.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("main")) { //$NON-NLS-1$
 				mainEl = source;
 			}
 		}
 		assertNotNull("Didn't find element for advised main method", mainEl); //$NON-NLS-1$
-		List related = AJModel.getInstance().getRelatedElements(
-				AJRelationshipManager.ADVISED_BY, mainEl);
+		List related = weaveMeModel.getRelationshipsForElement(
+		        mainEl, AJRelationshipManager.ADVISED_BY);
 		assertNotNull("getRelatedElements returned null", related); //$NON-NLS-1$
 		boolean found1 = false;
 		boolean found2 = false;
@@ -186,91 +181,94 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 
 		// now look for added "advises" relationships in the aspect library
 		// probject
-		rels = new AJRelationshipType[] { AJRelationshipManager.ADVISES };
-		allRels = AJModel.getInstance().getAllRelationships(libProject, rels);
-		found1 = false;
-		found2 = false;
-		found3 = false;
-		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			String sourceName = rel.getSource().getElementName();
-			String targetName = rel.getTarget().getElementName();
-			if (sourceName.equals("before")) { //$NON-NLS-1$
-				found1 = true;
-				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (sourceName.equals("afterReturning")) { //$NON-NLS-1$
-				found2 = true;
-				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (sourceName.equals("around")) { //$NON-NLS-1$
-				found3 = true;
-				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-		}
-		assertTrue("Didn't find advises before() relationship", found1); //$NON-NLS-1$
-		assertTrue("Didn't find advises afterReturning() relationship", found2); //$NON-NLS-1$
-		assertTrue("Didn't find advises around() relationship", found3); //$NON-NLS-1$
+		// XXX Not doing this any more
+//		rels = new AJRelationshipType[] { AJRelationshipManager.ADVISES };
+//		allRels = libModel.getRelationshipsForProject(rels);
+//		found1 = false;
+//		found2 = false;
+//		found3 = false;
+//		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
+//			IRelationship rel = (IRelationship) iter.next();
+//			String sourceName = libModel.programElementToJavaElement(rel.getSourceHandle()).getElementName();
+//			for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+//    			String targetName = libModel.programElementToJavaElement((String) targetIter.next()).getElementName();
+//    			if (sourceName.equals("before")) { //$NON-NLS-1$
+//    				found1 = true;
+//    				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
+//    			} else if (sourceName.equals("afterReturning")) { //$NON-NLS-1$
+//    				found2 = true;
+//    				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
+//    			} else if (sourceName.equals("around")) { //$NON-NLS-1$
+//    				found3 = true;
+//    				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
+//    			}
+//			}
+//		}
+//		assertTrue("Didn't find advises before() relationship", found1); //$NON-NLS-1$
+//		assertTrue("Didn't find advises afterReturning() relationship", found2); //$NON-NLS-1$
+//		assertTrue("Didn't find advises around() relationship", found3); //$NON-NLS-1$
 
-		AJProjectModel model = AJModel.getInstance().getModelForProject(
-				weaveMeProject);
-		List otherProjectRels = model.getOtherProjectAllRelationships(rels);
-		found1 = false;
-		found2 = false;
-		found3 = false;
-		for (Iterator iter = otherProjectRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			String sourceName = rel.getSource().getElementName();
-			String targetName = rel.getTarget().getElementName();
-			if (sourceName.equals("before")) { //$NON-NLS-1$
-				found1 = true;
-				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (sourceName.equals("afterReturning")) { //$NON-NLS-1$
-				found2 = true;
-				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
-			} else if (sourceName.equals("around")) { //$NON-NLS-1$
-				found3 = true;
-				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-		}
-		assertTrue("Didn't find advises before() relationship", found1); //$NON-NLS-1$
-		assertTrue("Didn't find advises afterReturning() relationship", found2); //$NON-NLS-1$
-		assertTrue("Didn't find advises around() relationship", found3); //$NON-NLS-1$
+		// there is no "getOtherProjectAllRelationships" any more
+//		List otherProjectRels = model.getOtherProjectAllRelationships(rels);
+//		found1 = false;
+//		found2 = false;
+//		found3 = false;
+//		for (Iterator iter = otherProjectRels.iterator(); iter.hasNext();) {
+//			AJRelationship rel = (AJRelationship) iter.next();
+//			String sourceName = rel.getSource().getElementName();
+//			String targetName = rel.getTarget().getElementName();
+//			if (sourceName.equals("before")) { //$NON-NLS-1$
+//				found1 = true;
+//				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
+//			} else if (sourceName.equals("afterReturning")) { //$NON-NLS-1$
+//				found2 = true;
+//				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
+//			} else if (sourceName.equals("around")) { //$NON-NLS-1$
+//				found3 = true;
+//				assertEquals("Incorrect target name", "main", targetName); //$NON-NLS-1$ //$NON-NLS-2$
+//			}
+//		}
+//		assertTrue("Didn't find advises before() relationship", found1); //$NON-NLS-1$
+//		assertTrue("Didn't find advises afterReturning() relationship", found2); //$NON-NLS-1$
+//		assertTrue("Didn't find advises around() relationship", found3); //$NON-NLS-1$
 	}
 
-	// test binary weaving when there is no source
 	public void testBug160236() throws Exception {
-		if (!BinaryWeavingSupport.isActive) {
-			return;
-		}
 		IProject project = createPredefinedProject("bug160236"); //$NON-NLS-1$
-		AJProjectModel model = AJModel.getInstance()
-				.getModelForProject(project);
+		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
+
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List allRels = model.getAllRelationships(rels);
+		List allRels = model.getRelationshipsForProject(rels);
 		boolean found1 = false;
 		boolean found2 = false;
 		boolean found3 = false;
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			String sourceName = rel.getSource().getElementName();
-			String targetName = rel.getTarget().getElementName();
+			IRelationship rel = (IRelationship) iter.next();
+			String sourceName = model.programElementToJavaElement(rel.getSourceHandle()).getElementName();
 			if (sourceName.equals("Sample")) { //$NON-NLS-1$
-				if ((targetName.indexOf("afterReturning") != -1) //$NON-NLS-1$
-						&& (targetName.indexOf("AbstractBeanConfigurerAspect") != -1)) { //$NON-NLS-1$
-					found1 = true;
-				} else if ((targetName.indexOf("before") != -1) //$NON-NLS-1$
-						&& (targetName.indexOf("AbstractBeanConfigurerAspect") != -1)) { //$NON-NLS-1$
-					found2 = true;
-				} else {
-					fail("Unexpected target found: " + targetName); //$NON-NLS-1$
-				}
+			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+			        IJavaElement targetElt = model.programElementToJavaElement((String) targetIter.next());
+    				if ((targetElt.getElementName().equals("afterReturning")) //$NON-NLS-1$
+    						&& (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect"))) { //$NON-NLS-1$
+    					found1 = true;
+    				} else if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
+                            && (targetElt.getParent().getElementName().equals("AbstractBeanConfigurerAspect"))) { //$NON-NLS-1$
+    					found2 = true;
+    				} else {
+    					fail("Unexpected target found: " + targetElt.getHandleIdentifier()); //$NON-NLS-1$
+    				}
+			    }
 			} else if (sourceName.equals("main")) { //$NON-NLS-1$
-				if ((targetName.indexOf("before") != -1) //$NON-NLS-1$
-						&& (targetName
-								.indexOf("AnnotationBeanConfigurerAspect") != -1)) { //$NON-NLS-1$
-					found3 = true;
-				} else {
-					fail("Unexpected target found: " + targetName); //$NON-NLS-1$
-				}
+			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+			        IJavaElement targetElt = model.programElementToJavaElement((String) targetIter.next());
+	                if ((targetElt.getElementName().equals("before")) //$NON-NLS-1$
+	                        && (targetElt.getParent().getElementName()
+								.equals("AnnotationBeanConfigurerAspect"))) { //$NON-NLS-1$
+	                    found3 = true;
+    				} else {
+    					fail("Unexpected target found: " + targetElt.getHandleIdentifier()); //$NON-NLS-1$
+    				}
+			    }
 			}
 		}
 		assertTrue(

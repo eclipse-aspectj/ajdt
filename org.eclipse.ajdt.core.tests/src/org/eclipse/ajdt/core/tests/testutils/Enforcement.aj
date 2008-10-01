@@ -12,12 +12,12 @@
 
 package org.eclipse.ajdt.core.tests.testutils;
 
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
-import org.eclipse.ajdt.core.tests.ajde.CoreCompilerFactoryTests;
-import org.eclipse.ajdt.core.tests.ProjectDeletionTest;
-
 import junit.framework.TestCase;
+
+import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.ProjectDeletionTest;
+import org.eclipse.ajdt.core.tests.ajde.CoreCompilerFactoryTests;
+import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 
 public aspect Enforcement {
 

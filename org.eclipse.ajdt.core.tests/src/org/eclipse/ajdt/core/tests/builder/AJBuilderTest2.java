@@ -59,16 +59,14 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		assertNotSame(
 				"should have set output directory to new place", origOutput, newOutput); //$NON-NLS-1$
 
-		List log = testLog.getMostRecentEntries(3);
+		List log = testLog.getMostRecentEntries(2);
 		// print log to the screen for test case development purposes
 		testLog.printLog();
 
 		assertTrue(
 				"output dir has changed so should have spent time in AJDE", ((String) log.get(0)).indexOf("Total time spent in AJDE") != -1); //$NON-NLS-1$ //$NON-NLS-2$  
 		assertTrue(
-				"output dir has changed so should have created element map", ((String) log.get(1)).indexOf("Create element map") != -1); //$NON-NLS-1$ //$NON-NLS-2$
-		assertTrue(
-				"output dir has changed so should have spent time in AJBuilder.build()", ((String) log.get(2)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$
+				"output dir has changed so should have spent time in AJBuilder.build()", ((String) log.get(1)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// reset the output dir back to its original setting
 		javaProject.setOutputLocation(origOutput, null);
@@ -96,16 +94,14 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 				"library should have been added to classpath", projectHasLibraryOnClasspath(javaProject, "testJar.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// check that a build has in fact occured
-		List log = testLog.getMostRecentEntries(3);
+		List log = testLog.getMostRecentEntries(2);
 		// print log to the screen for test case development purposes
 		testLog.printLog();
 
 		assertTrue(
 				"classpath has changed (new required library) so should have spent time in AJDE", ((String) log.get(0)).indexOf("Total time spent in AJDE") != -1); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue(
-				"classpath has changed (new required library) so should have created element map", ((String) log.get(1)).indexOf("Create element map") != -1); //$NON-NLS-1$ //$NON-NLS-2$
-		assertTrue(
-				"classpath has changed (new required library) so should have spent time in AJBuilder.build()", ((String) log.get(2)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$
+				"classpath has changed (new required library) so should have spent time in AJBuilder.build()", ((String) log.get(1)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// reset the changes
 		javaProject.setRawClasspath(origClasspath, null);
@@ -133,16 +129,14 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 				"project bug91420 should have a project dependency on project bug101481", //$NON-NLS-1$
 				projectHasProjectDependency(javaProject, project2));
 
-		List log = testLog.getMostRecentEntries(3);
+		List log = testLog.getMostRecentEntries(2);
 		// print log to the screen for test case development purposes
 		testLog.printLog();
 
 		assertTrue(
 				"classpath has changed (new project dependency) so should have spent time in AJDE", ((String) log.get(0)).indexOf("Total time spent in AJDE") != -1); //$NON-NLS-1$ //$NON-NLS-2$  
 		assertTrue(
-				"classpath has changed (new project dependency) so should have created element map", ((String) log.get(1)).indexOf("Create element map") != -1); //$NON-NLS-1$ //$NON-NLS-2$
-		assertTrue(
-				"classpath has changed (new project dependency) so should have spent time in AJBuilder.build()", ((String) log.get(2)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$ 
+				"classpath has changed (new project dependency) so should have spent time in AJBuilder.build()", ((String) log.get(1)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$ 
 
 		// reset the changes
 		javaProject.setRawClasspath(origClasspath, null);

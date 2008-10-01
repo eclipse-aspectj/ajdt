@@ -21,7 +21,8 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.model.AJComparator;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -36,7 +37,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 
 	IProject project;
 	IFolder aspectjPackage;
-	AJModel model;
+	AJProjectModelFacade model;
 	
 	/*
 	 * @see TestCase#setUp()
@@ -44,9 +45,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = createPredefinedProject("AJProject83082"); //$NON-NLS-1$
-		model = AJModel.getInstance();
-		model.createMap(project);
-
+		model = AJProjectModelFactory.getInstance().getModelForProject(project);
 		IFolder src = project.getFolder("src"); //$NON-NLS-1$
 		IFolder wpstest = src.getFolder("wpstest"); //$NON-NLS-1$
 		aspectjPackage = wpstest.getFolder("aspectj"); //$NON-NLS-1$
@@ -57,7 +56,6 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		model.clearMap(project, true);
 	}
 
 	public void testCompareTwoAJCodeElements() {
@@ -82,7 +80,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == 23) ){
 					
-					IJavaElement ije = model.getCorrespondingJavaElement(node);
+					IJavaElement ije = model.programElementToJavaElement(node);
 					if (ije instanceof AJCodeElement) {
 						ajce1 = (AJCodeElement) ije;
 					}					
@@ -90,7 +88,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == 24) ){
 					
-					IJavaElement ije = model.getCorrespondingJavaElement(node);
+					IJavaElement ije = model.programElementToJavaElement(node);
 					if (ije instanceof AJCodeElement) {
 						ajce2 = (AJCodeElement) ije;
 					}					
@@ -133,7 +131,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 						.equals("A.after(String): tracedPrint..")  //$NON-NLS-1$
 					&& (sl.getLine() == 30) ){
 					
-					IJavaElement ije = model.getCorrespondingJavaElement(node);
+					IJavaElement ije = model.programElementToJavaElement(node);
 					if (!(ije instanceof AJCodeElement)) {
 						ije1 = ije;
 					}					
@@ -141,7 +139,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 						.equals("A.before(String): tracedPrint..")  //$NON-NLS-1$
 					&& (sl.getLine() == 26) ){
 					
-					IJavaElement ije = model.getCorrespondingJavaElement(node);
+					IJavaElement ije = model.programElementToJavaElement(node);
 					if (!(ije instanceof AJCodeElement)) {
 						ije2 = ije;
 					}					
@@ -180,7 +178,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == 23) ){
 					
-					IJavaElement je = model.getCorrespondingJavaElement(node);
+					IJavaElement je = model.programElementToJavaElement(node);
 					if (je instanceof AJCodeElement) {
 						ajce = (AJCodeElement) je;
 						break;
@@ -205,7 +203,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 						.equals("A.after(String): tracedPrint..")  //$NON-NLS-1$
 					&& (sl.getLine() == 30) ){
 					
-					IJavaElement je = model.getCorrespondingJavaElement(node);
+					IJavaElement je = model.programElementToJavaElement(node);
 					if (!(je instanceof AJCodeElement)) {
 						ije = je;
 						break;

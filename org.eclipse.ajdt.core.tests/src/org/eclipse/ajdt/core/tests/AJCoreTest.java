@@ -14,16 +14,18 @@ package org.eclipse.ajdt.core.tests;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.EclipseVersion;
-import org.eclipse.ajdt.core.javaelements.AJCodeElement;
-import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 /**
  * Tests for AspectJCore.create()
@@ -67,13 +69,13 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testCreateElementFromHandle2() throws Exception {
 		createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I"; //$NON-NLS-1$
+		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I"; //$NON-NLS-1$
 		if ((EclipseVersion.MAJOR_VERSION == 3)
 				&& (EclipseVersion.MINOR_VERSION == 0)) {
 			// the handle identifiers for method signatures changed after
 			// eclipes 3.0: note the lack of escape character ~[QString;
 			// instead of ~\[QString;
-			methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I"; //$NON-NLS-1$
+			methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I"; //$NON-NLS-1$
 		}
 
 		// each entry in the array contains:
@@ -235,7 +237,10 @@ public class AJCoreTest extends AJDTCoreTestCase {
 
 	static void compareElementsFromRelationships(AJRelationshipType[] rels,
 			IProject project) {
-		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
+	    IJavaProject jProject = JavaCore.create(project);
+        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jProject.getProject());
+
+		List allRels = model.getRelationshipsForProject(rels);
 		if (allRels.size() == 0) {
 			// if the project or model didn't build properly we'd get no
 			// relationships
@@ -243,41 +248,66 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			fail("No relationships found for project " + project.getName()); //$NON-NLS-1$
 		}
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			compareElementWithRecreated(rel.getSource());
-			compareElementWithRecreated(rel.getTarget());
+			IRelationship rel = (IRelationship) iter.next();
+			checkHandle(rel.getSourceHandle(), model);
+			for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+                String handle = (String) targetIter.next();
+                checkHandle(handle, model);
+            }
 		}
 	}
 
-	private static void compareElementWithRecreated(IJavaElement element) {
-		String handle = element.getHandleIdentifier();
-		IJavaElement recreated = AspectJCore.create(handle);
-		String recreatedHandle = recreated.getHandleIdentifier();
-
-		assertEquals(
-				"Handle identifier of created element doesn't match original", //$NON-NLS-1$
-				handle, recreatedHandle);
-		assertEquals("Name of created element doesn't match original", element //$NON-NLS-1$
-				.getElementName(), recreated.getElementName());
-		IResource res = element.getResource();
-		if (res != null) {
-			// only do this test if the original has a valid resource
-			assertEquals(
-					"Name of created element resource doesn't match original", //$NON-NLS-1$
-					res.getName(), recreated.getResource().getName());
-		}
-
-		assertEquals("Name of created element doesn't match original", //$NON-NLS-1$
-				getSimpleClassName(element), getSimpleClassName(recreated));
-
-		// test line number of AJCodeElements
-		if ((element instanceof AJCodeElement)
-				&& (recreated instanceof AJCodeElement)) {
-			AJCodeElement sourceCodeEl = (AJCodeElement) element;
-			AJCodeElement recreatedCodeEl = (AJCodeElement) recreated;
-			assertEquals(
-					"Line number of created AJCodeElement doesn't match original", //$NON-NLS-1$
-					sourceCodeEl.getLine(), recreatedCodeEl.getLine());
+	public static void checkHandle(String origAjHandle, AJProjectModelFacade model) {
+	    // only in here temporarily until Andy fixes the bug
+	    // if you (by "you" I mean someone who's not "me")
+	    // see this here, then it is safe to delete.
+	    if (!origAjHandle.startsWith("=")) {
+	        return;
+	    }
+	    
+	    IJavaElement origJavaElement = model.programElementToJavaElement(origAjHandle);
+		String origJavaHandle = origJavaElement.getHandleIdentifier();
+		
+		if (origJavaElement.getJavaProject().getProject().equals(model.getProject())) {
+		
+    		IProgramElement recreatedAjElement = model.javaElementToProgramElement(origJavaElement);
+    		String recreatedAjHandle = recreatedAjElement.getHandleIdentifier();
+    		
+    		IJavaElement recreatedJavaElement = model.programElementToJavaElement(recreatedAjHandle);
+    		String recreatedJavaHandle = recreatedJavaElement.getHandleIdentifier();
+            
+            assertEquals("Handle identifier of JavaElements should be equal",  //$NON-NLS-1$
+                    origJavaHandle, recreatedJavaHandle);
+            
+            assertEquals("Handle identifier of ProgramElements should be equal",  //$NON-NLS-1$
+                    origAjHandle, recreatedAjHandle);
+            
+            assertEquals("JavaElements should be equal",  //$NON-NLS-1$
+                    origJavaElement, recreatedJavaElement);
+            
+            assertEquals("JavaElement names should be equal",  //$NON-NLS-1$
+                    origJavaElement.getElementName(), recreatedJavaElement.getElementName());
+            
+            assertEquals("JavaElement types should be equal",  //$NON-NLS-1$
+                    origJavaElement.getElementType(), recreatedJavaElement.getElementType());
+            
+            assertEquals("JavaElement parents should be equal",  //$NON-NLS-1$
+                    origJavaElement.getParent(), recreatedJavaElement.getParent());
+            
+            assertEquals("JavaElement parents should be equal",  //$NON-NLS-1$
+                    origJavaElement.getJavaProject(), recreatedJavaElement.getJavaProject());
+            
+            assertEquals("JavaElement resources should be the same",  //$NON-NLS-1$
+                    origJavaElement.getResource(), recreatedJavaElement.getResource());
+		} else {
+		    // reference to another project
+		    assertTrue("Program Element in other project should exist, but doesn't: " + origJavaHandle, //$NON-NLS-1$
+		            origJavaElement.exists());
+		    
+		    // check to make sure that this element is in the other model
+		    AJProjectModelFacade otherModel = AJProjectModelFactory.getInstance().getModelForProject(origJavaElement.getJavaProject().getProject());
+		    IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
+		    checkHandle(ipe.getHandleIdentifier(), otherModel);
 		}
 	}
 

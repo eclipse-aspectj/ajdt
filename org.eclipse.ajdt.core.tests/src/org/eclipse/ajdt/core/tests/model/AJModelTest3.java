@@ -22,7 +22,8 @@ import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -45,8 +46,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 				{ "go()", "go" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "field-set(int tjp.Demo.x)", "field-set(int tjp.Demo.x)" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "foo(int,Object)", "foo" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{
-						"exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "bar(Integer)", "bar" } //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		mappingTestForFile(project, filename, results);
@@ -56,9 +56,8 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("MarkersTestWithAspectsInJavaFiles"); //$NON-NLS-1$
 		String filename = "src/tjp/GetInfo.java"; //$NON-NLS-1$
 		String[][] results = {
-				{
-						"declare warning: \"field set\"", "declare warning: \"field set\"" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "declare parents: implements Serializable", "declare parents" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "declare warning: \"field set\"", "declare warning" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "declare parents: implements Serializable", "declare parents" }, // declare statemens always have counts after them //$NON-NLS-1$ //$NON-NLS-2$
 				{ "declare soft: tjp.DemoException", "declare soft" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.itd(int)", "Demo.itd" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.f", "Demo.f" }, //$NON-NLS-1$ //$NON-NLS-2$
@@ -91,6 +90,8 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 		String path = file.getRawLocation().toOSString();
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
 				true, true);
+		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
+        
 
 		assertNotNull(
 				"Didn't get annotations map for file: " + path, annotationsMap); //$NON-NLS-1$
@@ -115,16 +116,14 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 			Object key = it.next();
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = (IProgramElement) it2.next();
-				String peName = node.toLabelString(false).intern();
-				;
-				IJavaElement je = AJModel.getInstance()
-						.getCorrespondingJavaElement(node);
+				IProgramElement pe = (IProgramElement) it2.next();
+				String peName = pe.toLabelString(false).intern();
+
+				IJavaElement je = model.programElementToJavaElement(pe);
 				if (je == null) {
-					System.out.println("je is null"); //$NON-NLS-1$
-					continue;
+					fail("je is null"); //$NON-NLS-1$
 				}
-				String jaName = je.getElementName().intern();
+				String jaName = je.getElementName();
 				int index = toFind.indexOf(peName);
 				if (index == -1) {
 					fail("Unexpected additional IProgramElement name found: " + peName); //$NON-NLS-1$

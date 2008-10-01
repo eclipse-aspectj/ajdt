@@ -18,9 +18,9 @@ import java.util.Set;
 
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -36,6 +36,7 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 	
 	IProject project;
 	AJCodeElement[] ajCodeElements;
+	AJProjectModelFacade model;
 	
 	/*
 	 * @see TestCase#setUp()
@@ -43,15 +44,15 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = createPredefinedProject("AJProject83082"); //$NON-NLS-1$
-		AJModel model = AJModel.getInstance();
-		model.createMap(project);
 
+		model = AJProjectModelFactory.getInstance().getModelForProject(project);
+		
 		IFolder src = project.getFolder("src"); //$NON-NLS-1$
 		IFolder wpstest = src.getFolder("wpstest"); //$NON-NLS-1$
 		IFolder aspectjPackage = wpstest.getFolder("aspectj"); //$NON-NLS-1$
 		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
-		ajCodeElements = createAJCodeElements(model,annotationsMap);
+		ajCodeElements = createAJCodeElements(annotationsMap);
 		
 	}
 
@@ -59,13 +60,13 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		// through the normal running of a program, the hashcode must always return the same answer
 		int hash1 = ajCodeElements[0].hashCode();
 		int hash2 = ajCodeElements[0].hashCode();
-		assertTrue("through the normal running of a program, the hashcodes must always return the same int",hash1 == hash2); //$NON-NLS-1$
+		assertTrue("through the normal running of a program, the hashcodes must always return the same int", //$NON-NLS-1$
+		        hash1 == hash2); 
 
 		// if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()
 		IJavaElement parent = ajCodeElements[0].getParent();
 		String name = ajCodeElements[0].getName();
-		int line = ajCodeElements[0].getLine();
-		AJCodeElement newAJCE = new AJCodeElement((JavaElement) parent,line,name);
+		AJCodeElement newAJCE = new AJCodeElement((JavaElement) parent, name);
 		assertTrue("these should be equal according to equals method", ajCodeElements[0].equals(newAJCE)); //$NON-NLS-1$
 		assertTrue("if A and B are objects such that A.equals(B) then A.hashCode() == B.hashCode()", //$NON-NLS-1$
 				newAJCE.hashCode() == ajCodeElements[0].hashCode());
@@ -83,9 +84,8 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 	public void testEqualsObject() {
 		IJavaElement parent = ajCodeElements[0].getParent();
 		String name = ajCodeElements[0].getName();
-		int line = ajCodeElements[0].getLine();
-		AJCodeElement a1 = new AJCodeElement((JavaElement) parent,line,name);
-		AJCodeElement a2 = new AJCodeElement((JavaElement) parent,line,name);
+		AJCodeElement a1 = new AJCodeElement((JavaElement) parent, name);
+		AJCodeElement a2 = new AJCodeElement((JavaElement) parent, name);
 		AJCodeElement a3 = ajCodeElements[0];
 		
 		// equals must be reflexive: x.equals(x) == true (always)
@@ -117,7 +117,7 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 	 * @param model
 	 * @return
 	 */
-	private AJCodeElement[] createAJCodeElements(AJModel model, Map annotationsMap) {
+	private AJCodeElement[] createAJCodeElements(Map annotationsMap) {
 		AJCodeElement[] arrayOfajce = new AJCodeElement[2];
 		Set keys = annotationsMap.keySet();
 		for (Iterator it = keys.iterator(); it.hasNext();) {
@@ -125,20 +125,19 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
-				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString(false)
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
-					&& (sl.getLine() == 23) ){
+				if (node.getHandleIdentifier()
+						.equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
+					) {
 					
-					IJavaElement ije = model.getCorrespondingJavaElement(node);
+					IJavaElement ije = model.programElementToJavaElement(node);
 					if (ije instanceof AJCodeElement) {
 						arrayOfajce[0] = (AJCodeElement) ije;
 					}					
-				} else if (node.toLinkLabelString(false)
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
-					&& (sl.getLine() == 24) ){
+				} else if (node.getHandleIdentifier()
+						.equals("=AJProject83082/src<wpstest.aspectj{Main.java[Main~main~\\[QString;?method-call(void java.io.PrintStream.println(java.lang.String))!2")  //$NON-NLS-1$
+					) {
 					
-					IJavaElement ije = model.getCorrespondingJavaElement(node);
+					IJavaElement ije = model.programElementToJavaElement(node);
 					if (ije instanceof AJCodeElement) {
 						arrayOfajce[1] = (AJCodeElement) ije;
 					}					

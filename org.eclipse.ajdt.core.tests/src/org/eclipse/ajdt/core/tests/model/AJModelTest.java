@@ -22,7 +22,8 @@ import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -45,8 +46,7 @@ public class AJModelTest extends AJDTCoreTestCase {
 				{ "go()", "go" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "field-set(int tjp.Demo.x)", "field-set(int tjp.Demo.x)" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "foo(int,Object)", "foo" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{
-						"exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "bar(Integer)", "bar" } //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		mappingTestForFile(project, filename, results);
@@ -56,8 +56,7 @@ public class AJModelTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
 		String filename = "src/tjp/GetInfo.aj"; //$NON-NLS-1$
 		String[][] results = {
-				{
-						"declare warning: \"field set\"", "declare warning: \"field set\"" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "declare warning: \"field set\"", "declare warning" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "declare parents: implements Serializable", "declare parents" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "declare soft: tjp.DemoException", "declare soft" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.itd(int)", "Demo.itd" }, //$NON-NLS-1$ //$NON-NLS-2$
@@ -109,6 +108,7 @@ public class AJModelTest extends AJDTCoreTestCase {
 			toMatch.add(results[i][1].intern());
 		}
 
+		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
 		Set keys = annotationsMap.keySet();
 		for (Iterator it = keys.iterator(); it.hasNext();) {
 			Object key = it.next();
@@ -116,9 +116,8 @@ public class AJModelTest extends AJDTCoreTestCase {
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
 				String peName = node.toLabelString(false).intern();
-				;
-				IJavaElement je = AJModel.getInstance()
-						.getCorrespondingJavaElement(node);
+
+				IJavaElement je = model.programElementToJavaElement(node);
 				if (je == null) {
 					System.out.println("je is null"); //$NON-NLS-1$
 					continue;

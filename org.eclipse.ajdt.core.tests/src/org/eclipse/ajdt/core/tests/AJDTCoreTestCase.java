@@ -134,6 +134,9 @@ public class AJDTCoreTestCase extends TestCase {
 			}
 		};
 		getWorkspace().run(populate, null);
+		
+		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
+		
 		IJavaProject javaProject = JavaCore.create(project);
 		return javaProject;
 	}

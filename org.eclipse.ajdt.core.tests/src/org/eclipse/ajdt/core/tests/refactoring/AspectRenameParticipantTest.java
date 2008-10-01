@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.refactoring.AspectRenameParticipant;
 import org.eclipse.core.resources.IFile;
@@ -31,6 +32,10 @@ public class AspectRenameParticipantTest extends AJDTCoreTestCase {
 
 	public void testTJPTypeRename() throws Exception {
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
+		
+		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project.getWorkspace());
+		
+		
 		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
 				"Demo2"); //$NON-NLS-1$
 		IFile file = project.getFile("src/tjp/Demo.java"); //$NON-NLS-1$

@@ -16,12 +16,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
-import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJRelationship;
+import org.aspectj.asm.IRelationship;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.internal.core.model.BinaryWeavingSupport;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
@@ -40,33 +40,37 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	public void testAspectPathDirWeaving() throws Exception {
 		createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
 		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
+		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(weaveMeProject);
+        
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List allRels = AJModel.getInstance().getAllRelationships(
-				weaveMeProject, rels);
+		List/*IRelationship*/ allRels = model.getRelationshipsForProject( rels);
 		boolean gotBinaryAdvice = false;
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			IJavaElement source = rel.getSource();
+		    IRelationship rel = (IRelationship) iter.next();
+			IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("main")) { //$NON-NLS-1$
-				IJavaElement target = rel.getTarget();
-				if (BinaryWeavingSupport.isActive) {
-					if (target.getElementName().indexOf("before") != -1) { //$NON-NLS-1$
-						gotBinaryAdvice = true;
-					}
-				} else {
-					if (target.getElementName().indexOf("binary aspect") != -1) { //$NON-NLS-1$
-						gotBinaryAdvice = true;
-					}
-				}
+			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+	                IJavaElement target = model.programElementToJavaElement(
+	                        (String) targetIter.next());
+//	                if (BinaryWeavingSupport.isActive) {
+	                    if (target.getElementName().indexOf("before") != -1) { //$NON-NLS-1$
+	                        gotBinaryAdvice = true;
+	                    }
+//	                } else {
+//	                    if (target.getElementName().indexOf("binary aspect") != -1) { //$NON-NLS-1$
+//	                        gotBinaryAdvice = true;
+//	                    }
+//	                }
+			    }
 			}
 		}
-		if (BinaryWeavingSupport.isActive) {
+//		if (BinaryWeavingSupport.isActive) {
 			assertTrue("Didn't find main element advised by before advice", //$NON-NLS-1$
 					gotBinaryAdvice);
-		} else {
-			assertTrue("Didn't find main element advised by a binary aspect", //$NON-NLS-1$
-					gotBinaryAdvice);
-		}
+//		} else {
+//			assertTrue("Didn't find main element advised by a binary aspect", //$NON-NLS-1$
+//					gotBinaryAdvice);
+//		}
 	}
 
 	/**
@@ -78,21 +82,25 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	public void testHasRuntimeTest() throws Exception {
 		IProject project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
+        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
+        List/*IRelationship*/ allRels = model.getRelationshipsForProject(rels);
 		boolean gotBeforeAdviceWithoutRuntimeTest = false;
 		boolean gotAroundAdviceWithRuntimeTest = false;
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			IJavaElement source = rel.getSource();
+		    IRelationship rel = (IRelationship) iter.next();
+            IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("bar")) { //$NON-NLS-1$
-				IJavaElement target = rel.getTarget();
-				if (target.getElementName().equals("before") //$NON-NLS-1$
-						&& !rel.hasRuntimeTest()) {
-					gotBeforeAdviceWithoutRuntimeTest = true;
-				} else if (target.getElementName().equals("around") //$NON-NLS-1$
-						&& rel.hasRuntimeTest()) {
-					gotAroundAdviceWithRuntimeTest = true;
-				}
+                for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+                    IJavaElement target = model.programElementToJavaElement(
+                            (String) targetIter.next());
+    				if (target.getElementName().equals("before") //$NON-NLS-1$
+    						&& !rel.hasRuntimeTest()) {
+    					gotBeforeAdviceWithoutRuntimeTest = true;
+    				} else if (target.getElementName().equals("around") //$NON-NLS-1$
+    						&& rel.hasRuntimeTest()) {
+    					gotAroundAdviceWithRuntimeTest = true;
+    				}
+                }
 			}
 		}
 		assertTrue(
@@ -110,20 +118,23 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 			return;
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.USES_POINTCUT };
-		List usesRels = AJModel.getInstance()
-				.getAllRelationships(project, rels);
+        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
+        List/*IRelationship*/ usesRels = model.getRelationshipsForProject(rels);
 		boolean gotUsesDemoExces = false;
 		boolean gotUsesGoCut = false;
 		for (Iterator iter = usesRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			IJavaElement source = rel.getSource();
+		    IRelationship rel = (IRelationship) iter.next();
+            IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("around")) { //$NON-NLS-1$
-				IJavaElement target = rel.getTarget();
-				if (target.getElementName().equals("demoExecs")) { //$NON-NLS-1$
-					gotUsesDemoExces = true;
-				} else if (target.getElementName().equals("goCut")) { //$NON-NLS-1$
-					gotUsesGoCut = true;
-				}
+                for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+                    IJavaElement target = model.programElementToJavaElement(
+                            (String) targetIter.next());
+    				if (target.getElementName().equals("demoExecs")) { //$NON-NLS-1$
+    					gotUsesDemoExces = true;
+    				} else if (target.getElementName().equals("goCut")) { //$NON-NLS-1$
+    					gotUsesGoCut = true;
+    				}
+                }
 			}
 		}
 		assertTrue(
@@ -135,20 +146,22 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 
 		// now test pointcut used by relationships
 		rels = new AJRelationshipType[] { AJRelationshipManager.POINTCUT_USED_BY };
-		List usedByRels = AJModel.getInstance().getAllRelationships(project,
-				rels);
+        List/*IRelationship*/ usedByRels = model.getRelationshipsForProject(rels);
 		boolean gotUsedByDemoExces = false;
 		boolean gotUsedByGoCut = false;
 		for (Iterator iter = usedByRels.iterator(); iter.hasNext();) {
-			AJRelationship rel = (AJRelationship) iter.next();
-			IJavaElement target = rel.getTarget();
-			if (target.getElementName().equals("around")) { //$NON-NLS-1$
-				IJavaElement source = rel.getSource();
-				if (source.getElementName().equals("demoExecs")) { //$NON-NLS-1$
-					gotUsedByDemoExces = true;
-				} else if (source.getElementName().equals("goCut")) { //$NON-NLS-1$
-					gotUsedByGoCut = true;
-				}
+		    IRelationship rel = (IRelationship) iter.next();
+            for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+                IJavaElement target = model.programElementToJavaElement(
+                        (String) targetIter.next());
+    			if (target.getElementName().equals("around")) { //$NON-NLS-1$
+    	            IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
+    				if (source.getElementName().equals("demoExecs")) { //$NON-NLS-1$
+    					gotUsedByDemoExces = true;
+    				} else if (source.getElementName().equals("goCut")) { //$NON-NLS-1$
+    					gotUsedByGoCut = true;
+    				}
+    			}
 			}
 		}
 		assertTrue(
