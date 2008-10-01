@@ -11,9 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.build;
 
-import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation; // AspectJ Change
-import org.eclipse.ajdt.internal.core.exports.ProductExportOperation; // AspectJ Change
-import org.eclipse.pde.internal.core.exports.*;
+import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
+import org.eclipse.ajdt.internal.core.exports.ProductExportOperation;
+import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
 import org.eclipse.pde.internal.core.iproduct.IProduct;
 import org.eclipse.pde.internal.core.iproduct.IProductModel;
 import org.eclipse.pde.internal.ui.PDEUIMessages;

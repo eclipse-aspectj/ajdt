@@ -19,7 +19,6 @@ Export-Package: org.eclipse.ajdt.internal.builder;x-friends:="org.eclipse.ajdt.u
  org.eclipse.ajdt.internal.ui.ajdocexport;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.ui.build;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.ui.dialogs;x-friends:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.internal.ui.diff;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.ui.editor;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.ui.editor.actions;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.ui.editor.contentassist;x-friends:="org.eclipse.ajdt.ui.tests",

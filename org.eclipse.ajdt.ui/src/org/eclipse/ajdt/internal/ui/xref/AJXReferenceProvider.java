@@ -17,9 +17,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
+import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.model.AJComparator;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.builder.AJNode;
@@ -45,13 +49,23 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	}
 
 	public IJavaElement[] getExtraChildren(IJavaElement je) {
-		List l = AJModel.getInstance().getExtraChildren(je);
-		if (l == null) {
-			return null;
-		}
-		// ensuring that the children are sorted
-		Collections.sort(l, new AJComparator());
-		return (IJavaElement[]) (l.toArray(new IJavaElement[] {}));
+	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(je);
+	    IProgramElement ipe = model.javaElementToProgramElement(je);
+	    if (ipe != null) {
+    	    List /*IProgramElement*/ ipeChildren = ipe.getChildren();
+    	    if (ipeChildren != null) {
+    	        SortedSet /*IJavaElement*/ jeChildren = new TreeSet(new AJComparator());
+        	    for (Iterator ipeIter = ipeChildren.iterator(); ipeIter.hasNext();) {
+                    IProgramElement ipeChild = (IProgramElement) ipeIter.next();
+                    if (ipeChild.getKind() == IProgramElement.Kind.CODE) {
+                        jeChildren.add(model.programElementToJavaElement(ipeChild));
+                    }
+                }
+        	    
+                return (IJavaElement[]) (jeChildren.toArray(new IJavaElement[] {}));
+    	    }
+	    }
+	    return null;
 	}
 
 	private List /* AJRelationshipType */getAJRelationshipTypes(List relNames) {
@@ -77,13 +91,13 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 		List visibleAJRelTypes = getAJRelationshipTypes(checkedRelNames);
 		List xrefs = new ArrayList();
 		IJavaElement je = (IJavaElement) o;
+        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(je);
 
-		AJModel model = AJModel.getInstance();
 		for (Iterator it = visibleAJRelTypes.iterator(); it.hasNext();) {
 			AJRelationshipType ajType = (AJRelationshipType) it.next();
 			List associates = new ArrayList();
-			List related = model.getRelatedElements(ajType, je);
-			if (related != null) {
+			List related = model.getRelationshipsForElement(je, ajType);
+			if (related != null && related.size() > 0) {
 				for (Iterator iter = related.iterator(); iter.hasNext();) {
 					IJavaElement javaElement = (IJavaElement) iter.next();
 					AJNode associate = new AJNode(javaElement, model

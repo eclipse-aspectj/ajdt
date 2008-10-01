@@ -30,11 +30,12 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
-import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
+import org.eclipse.ajdt.internal.ui.markers.DeleteAJMarkersJob;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
@@ -68,7 +69,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.pde.core.plugin.IPluginImport;
@@ -593,7 +593,8 @@ public class AJDTUtils {
 	public static void removeAspectJNature(IProject project)
 			throws CoreException {
 
-		MarkerUpdating.deleteAllMarkers(project);
+        Job deleteMarkers = new DeleteAJMarkersJob(project);
+        deleteMarkers.schedule();
 		
 		//remove compilation units for .aj files
 		//(the way it is currently implemented, this must happen before nature
@@ -665,7 +666,8 @@ public class AJDTUtils {
 		}
 		
 		AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
-
+		AJProjectModelFactory.getInstance().removeModelForProject(project);
+        
 		removeMarkerOnReferencingProjects(project);
 
 		//Ensures the project icon refreshes

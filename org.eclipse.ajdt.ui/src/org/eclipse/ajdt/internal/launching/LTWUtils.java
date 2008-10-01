@@ -28,8 +28,7 @@ import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJProjectModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -289,41 +288,38 @@ public class LTWUtils {
 		root.getResource().accept(new IResourceVisitor() {
 
 			public boolean visit(IResource resource) {
-				if (includedFiles.contains(resource)) {
-					AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
-							.getAJCompilationUnit((IFile) resource);
-					if (ajcu != null) {
-						try {
-							IType[] types = ajcu.getAllTypes();
-							for (int i = 0; i < types.length; i++) {
-								IType type = types[i];
-								if (type instanceof AspectElement) {
-									aspects.add(type);
-								}
-							}
-						} catch (JavaModelException e) {
-						}
-					} else {
-						ICompilationUnit cu = JavaCore
-								.createCompilationUnitFrom((IFile) resource);
-						if (cu != null) {
-							AJProjectModel model = AJModel.getInstance()
-									.getModelForProject(resource.getProject());
-							if (model != null) {
-								Set types = model.getAspectsForJavaFile(cu);
-								for (Iterator iter = types.iterator(); iter
-										.hasNext();) {
-									AspectElement element = (AspectElement) iter
-											.next();
-									aspects.add(element);
-								}
-							}
-						}
-					}
-				}
-				return resource.getType() == IResource.FOLDER
-						|| resource.getType() == IResource.PROJECT;
-			}
+                if (includedFiles.contains(resource)) {
+                    AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
+                            .getAJCompilationUnit((IFile) resource);
+                    if (ajcu != null) {
+                        try {
+                            IType[] types = ajcu.getAllTypes();
+                            for (int i = 0; i < types.length; i++) {
+                                IType type = types[i];
+                                if (type instanceof AspectElement) {
+                                    aspects.add(type);
+                                }
+                            }
+                        } catch (JavaModelException e) {}
+                    } else {
+                        ICompilationUnit cu = JavaCore
+                                .createCompilationUnitFrom((IFile) resource);
+                        if (cu != null) {
+                            Set /*IJavaElement*/ types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu)
+                                    .aspectsForFile(cu);
+
+                            for (Iterator iter = types.iterator(); iter
+                                    .hasNext();) {
+                                AspectElement element = (AspectElement) iter
+                                        .next();
+                                aspects.add(element);
+                            }
+                        }
+                    }
+                }
+                return resource.getType() == IResource.FOLDER
+                        || resource.getType() == IResource.PROJECT;
+            }
 		});
 		return aspects;
 	}

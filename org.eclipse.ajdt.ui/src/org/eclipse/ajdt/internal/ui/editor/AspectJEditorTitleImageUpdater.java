@@ -10,11 +10,11 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.ui.ProblemsLabelDecorator;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.graphics.Image;
 
 /*

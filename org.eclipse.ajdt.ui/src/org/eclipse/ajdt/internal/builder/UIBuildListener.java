@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +24,10 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
-import org.eclipse.ajdt.internal.ui.diff.ChangesView;
-import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
+import org.eclipse.ajdt.internal.ui.markers.DeleteAJMarkersJob;
+import org.eclipse.ajdt.internal.ui.markers.UpdateAJMarkersJob;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -45,6 +47,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -95,9 +98,6 @@ public class UIBuildListener implements IAJBuildListener {
 			}
 			UIMessageHandler.clearOtherProjectMarkers(project);
 		}
-
-		MarkerUpdating.deleteAllMarkers(project);
-		
 	}
 
 	
@@ -123,7 +123,8 @@ public class UIBuildListener implements IAJBuildListener {
 	        } catch (CoreException e) {
 	            AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
 	                            + project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
-	        }	    }
+	        }
+	    }
     }
 
     /**
@@ -169,9 +170,8 @@ public class UIBuildListener implements IAJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(final IProject project, /*boolean buildCancelled,*/ boolean noSourceChanges) {
+	public void postAJBuild(int kind, final IProject project, /*boolean buildCancelled,*/ boolean noSourceChanges) {
 		if (noSourceChanges) {
-			MarkerUpdating.addNewMarkers(project);
 			return;
 		}
 		
@@ -197,49 +197,89 @@ public class UIBuildListener implements IAJBuildListener {
 		checkOutJarEntry(project);
 		
 		checkInpathOutFolder(project);
-
-
-		MarkerUpdating.addNewMarkers(project);
+		
+		
+		// update the markers on files, but only the ones that have changed
+		Job deleteMarkers;
+		Job updateMarkers;
+		CoreCompilerConfiguration compilerConfig = getCompilerConfiguration(project);
+		switch (kind) {
+		    case IncrementalProjectBuilder.CLEAN_BUILD:
+		        deleteMarkers = new DeleteAJMarkersJob(project);
+		        deleteMarkers.schedule();
+		        break;
+		        
+		    case IncrementalProjectBuilder.FULL_BUILD:
+                deleteMarkers = new DeleteAJMarkersJob(project);
+                deleteMarkers.schedule();
+		        updateMarkers = new UpdateAJMarkersJob(project);
+		        updateMarkers.schedule();
+		        break;
+		        
+            case IncrementalProjectBuilder.AUTO_BUILD:
+            case IncrementalProjectBuilder.INCREMENTAL_BUILD:
+                File[] touchedFiles = compilerConfig.getChangedFiles();
+                if (touchedFiles == null /* recreate all markers */ || 
+                        touchedFiles.length > 0) {
+                    deleteMarkers = new DeleteAJMarkersJob(project, touchedFiles);
+                    deleteMarkers.schedule();
+                    updateMarkers = new UpdateAJMarkersJob(project, touchedFiles);
+                    updateMarkers.schedule();
+                }
+		}
 		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
 		} else {
-			AspectJUIPlugin.getDefault().getDisplay().syncExec(
+			AspectJUIPlugin.getDefault().getDisplay().asyncExec(
 				new Runnable() {
 					public void run() {
-						// TODO: can we determine whether there were
+				        AJLog.logStart("Post compile");
+
+				        // TODO: can we determine whether there were
 						// actually changes to the set of advised elements?
 						Object[] listeners= fListeners.getListeners();
 						for (int i= 0; i < listeners.length; i++) {
 							((IAdviceChangedListener) listeners[i]).adviceChanged();
 						}
 
-					// refresh Cross References
-					if (AspectJUIPlugin.usingXref) {
-						XReferenceUIPlugin.refresh();
-					}
+    					// refresh Cross References
+    					if (AspectJUIPlugin.usingXref) {
+    						XReferenceUIPlugin.refresh();
+    					}
 
-					// refresh Crosscutting Changes
-					ChangesView.refresh(false,project);
-
-					// refresh Visualiser
-					if (AspectJUIPlugin.usingVisualiser) {
-						Bundle vis = Platform
-								.getBundle(AspectJUIPlugin.VISUALISER_ID);
-						// avoid activating the bundle if it's not active already
-						if ((vis != null) && (vis.getState() == Bundle.ACTIVE)) {
-							if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
-								AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
-										.getContentProvider();
-								provider.reset();
-								VisualiserPlugin.refresh();
-							}
-						}
-					}
-				}
-			});
+    					// refresh Visualiser
+    					if (AspectJUIPlugin.usingVisualiser) {
+    						Bundle vis = Platform
+    								.getBundle(AspectJUIPlugin.VISUALISER_ID);
+    						// avoid activating the bundle if it's not active already
+    						if ((vis != null) && (vis.getState() == Bundle.ACTIVE)) {
+    							if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
+    								AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
+    										.getContentProvider();
+    								provider.reset();
+    								VisualiserPlugin.refresh();
+    							}
+    						}
+    					}
+    			        AJLog.logEnd(AJLog.BUILDER, "Post compile");
+    				}
+    			});
 		}
 	}
+
+
+    public void postAJClean(IProject project) {
+        new DeleteAJMarkersJob(project).schedule();
+    }
+
+
+    private CoreCompilerConfiguration getCompilerConfiguration(
+            final IProject project) {
+        return  (CoreCompilerConfiguration)
+                AspectJPlugin.getDefault().getCompilerFactory()
+                .getCompilerForProject(project).getCompilerConfiguration();
+    }
 
 	public void addAdviceListener(IAdviceChangedListener adviceListener) {
 		fListeners.add(adviceListener);

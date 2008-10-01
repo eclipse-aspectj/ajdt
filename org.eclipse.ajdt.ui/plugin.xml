@@ -591,19 +591,6 @@
                id="openajprojectwizard">
          </action>
         </actionSet>
-        
-        <actionSet
-            label="%ajcrosscutting"
-            visible="true"
-            id="ajcrosscutting">
-         <action
-               label="%SaveCrosscuttingMapAction"
-               class="org.eclipse.ajdt.internal.ui.diff.SaveCrosscuttingMap"
-               menubarPath="project/additions"
-               id="org.eclipse.ajdt.diff.saveMap">
-         </action>
-         
-      </actionSet>
    </extension>
 
  <!-- commands and their bindings
@@ -739,25 +726,6 @@ M4 = Platform-specific fourth key
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>				
     	</perspectiveExtension>
 
-		<!-- Show the crosscutting comparison view in the team synchronizing and the cvs repository browsing perspectives -->    	
-        <perspectiveExtension
-           targetID="org.eclipse.team.ui.TeamSynchronizingPerspective">
-           <view
-              relative="org.eclipse.team.sync.views.SynchronizeView"
-              id="org.eclipse.ajdt.ui.diff.ChangesView"
-              minimized="false"
-              relationship="stack">
-           </view>
-        </perspectiveExtension>
-        <perspectiveExtension
-           targetID="org.eclipse.team.cvs.ui.cvsPerspective">
-           <view
-              relative="org.eclipse.team.ccvs.ui.RepositoriesView"
-              id="org.eclipse.ajdt.ui.diff.ChangesView"
-              minimized="false"
-              relationship="stack">
-           </view>
-        </perspectiveExtension>
    </extension>
 
 <!-- Project properties -->
@@ -1728,48 +1696,8 @@ M4 = Platform-specific fourth key
       </hover>
    </extension>
 
-  <!-- extensions relating to Crosscutting Comparison view -->
-  <extension point="org.eclipse.ui.views">
-    <view name="%CompareCrosscutting.view" 
-    	icon="icons/diff/compare_view.gif" 
-    	category="org.eclipse.ajdt.ui.cat" 
-    	class="org.eclipse.ajdt.internal.ui.diff.ChangesView" 
-    	id="org.eclipse.ajdt.ui.diff.ChangesView" /> 
-  </extension>
   <extension
          point="org.eclipse.ui.popupMenus">
-         <objectContribution
-            objectClass="org.eclipse.core.resources.IFile"
-            nameFilter="*.ajmap"
-            id="ajmap">
-         <menu
-               label="%org.eclipse.ajdt.ui.tools"
-               id="org.eclipse.ajdt.ui.feature.tools">
-            <separator
-                  name="group0">
-            </separator>
-            <separator
-                  name="group1">
-            </separator>
-            <separator
-                  name="group2">
-            </separator>
-         </menu>
-         <action
-               label="%CompareCrosscutting.submenu.eachOther"
-               class="org.eclipse.ajdt.internal.ui.diff.CompareMapFileAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-               enablesFor="2"
-               id="ajmappopup">
-         </action>
-         <action
-               label="%CompareCrosscutting.submenu.currentBuild"
-               class="org.eclipse.ajdt.internal.ui.diff.CompareMapFileAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-               enablesFor="1"
-               id="compareCrosscuttingWithCurrentBuild">
-         </action>
-      </objectContribution>
       <objectContribution
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
@@ -1777,13 +1705,6 @@ M4 = Platform-specific fourth key
          <visibility>
          	<objectState name="nature" value="org.eclipse.ajdt.ui.ajnature"/>
          </visibility>
-         <action
-               label="%SaveCrosscuttingMapAction"
-               class="org.eclipse.ajdt.internal.ui.diff.SaveCrosscuttingMap"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-               id="org.eclipse.ajdt.diff.saveMap"
-               enablesFor="1">
-         </action>
          <action
                label="%ConfigureAdviceMarkersAction"
                class="org.eclipse.ajdt.internal.ui.markers.AJMarkersDialogAction"
@@ -1988,44 +1909,6 @@ M4 = Platform-specific fourth key
       </objectContribution>
       </extension>
       
-    <extension
-         id="editors"
-         point="org.eclipse.ui.editors">
-       <editor
-            name="%AJMapEditor"
-            icon="icons/diff/ajmap_file.gif"
-            extensions="ajmap"
-            class="org.eclipse.ajdt.internal.ui.diff.AJMapEditor"
-            id="AJMapEditor">
-      </editor>
-    </extension>      
-       
-     <!-- Aspect Refactoring Verifier (ARV) -->
-     <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            objectClass="org.eclipse.ajdt.core.javaelements.AspectJMemberElement"
-            id="arv.contribution1">
-            <visibility>
-             <or>
-               	<objectClass name="org.eclipse.ajdt.core.javaelements.AdviceElement"/>
-           		<objectClass name="org.eclipse.ajdt.core.javaelements.DeclareElement"/>
-            </or>	
-       	  </visibility>
-         <menu
-               label="%CompareCrosscutting.context.with"
-               path="additions"
-               id="arv.menu1">
-            <separator name="group1"/>
-         </menu>
-         <action
-               enablesFor="2"
-               label="%CompareCrosscutting.context.eachOther"
-               class="org.eclipse.ajdt.internal.ui.diff.CompareElementAction"
-               menubarPath="arv.menu1/group1"
-               id="arv.sameProject"/>       
-      </objectContribution>
-   </extension>
      <extension
            point="org.eclipse.ui.navigator.navigatorContent">
        <commonFilter

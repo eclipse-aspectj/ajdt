@@ -10,24 +10,19 @@
  *******************************************************************************/
  package org.eclipse.ajdt.internal.ui.dialogs;
 
+import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.ui.dialogs.TypeSelectionExtension;
+import org.eclipse.jface.dialogs.DialogSettings;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.jface.dialogs.DialogSettings;
-import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.operation.IRunnableContext;
-
 import org.eclipse.ui.PlatformUI;
-
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-
-import org.eclipse.jdt.ui.dialogs.TypeSelectionExtension;
-
-import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 
 public class OpenTypeSelectionDialog2 extends TypeSelectionDialog2 {
 

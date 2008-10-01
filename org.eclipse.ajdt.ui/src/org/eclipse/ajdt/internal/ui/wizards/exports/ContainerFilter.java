@@ -12,11 +12,9 @@
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
 import org.eclipse.core.resources.IContainer;
-
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
-
-import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.jarpackager.ContainerFilter

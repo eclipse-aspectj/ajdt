@@ -28,11 +28,11 @@ import org.eclipse.osgi.util.NLS;
 
 public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 	
-	
-	public UIBuildProgressMonitor(IProject project) {
-		this.project = project;
-	}
-	
+    /**
+     * created lazily
+     */
+    private UIMessageHandler messageHandler = null;
+    
 	/**
      * Monitor progress against Ajde max
      */
@@ -46,6 +46,10 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 	 */
 	public static boolean isLocalBuild = false;
 	
+    public UIBuildProgressMonitor(IProject project) {
+        this.project = project;
+    }
+    
     /**
      * Ajde informs us that a compilation has finished. We may under some
      * circumstances get multiple calls to finish. This method is marked
@@ -55,8 +59,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         AJLog.log(AJLog.COMPILER,"AJDE Callback: finish. Was full build: "+wasFullBuild); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
-        ((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).setLastBuildType(wasFullBuild);
+        getMessageHandler().setLastBuildType(wasFullBuild);
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
         	AJLog.log("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$
@@ -78,6 +81,15 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
                     }
                 }
             });
+    }
+
+
+    private UIMessageHandler getMessageHandler() {
+        if (messageHandler == null) {
+            messageHandler = ((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
+				.getCompilerForProject(project).getMessageHandler());
+        } 
+        return messageHandler;
     }
 
 
@@ -124,6 +136,12 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             reportedWovenMessages = true;
             AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_WOVEN);
         }
+        
+        // means that a new compile is starting.  ensure that the
+        // message handler removes all old problems
+        if (text.startsWith("compiling source files")) {
+            getMessageHandler().clearProblems();
+        }
 
         // Three messages are caught here:
         //   compiled:
@@ -161,8 +179,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
                 IFile[] files = workspaceRoot
                         .findFilesForLocation(resourcePath);
                 for (int i = 0; i < files.length; i++) {
-                	((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-            				.getCompilerForProject(project).getMessageHandler()).addAffectedResource(files[i]);
+                	getMessageHandler().addAffectedResource(files[i]);
                 }
             } else {
                 IFile file = workspaceRoot.getFileForLocation(resourcePath);
@@ -170,8 +187,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
                 	AJLog.log(AJLog.COMPILER,"Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
                                     + text);
                 } else {
-                	((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-            				.getCompilerForProject(project).getMessageHandler()).addAffectedResource(file);
+                	getMessageHandler().addAffectedResource(file);
                 }
             }
         }

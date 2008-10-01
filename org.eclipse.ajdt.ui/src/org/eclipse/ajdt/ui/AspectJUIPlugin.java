@@ -385,14 +385,24 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-			IClasspathEntry ajrtLIB = JavaCore.newContainerEntry(
-					new Path(AspectJPlugin.ASPECTJRT_CONTAINER), false);
-			// Update the raw classpath with the new ajrtCP entry.
-			int originalCPLength = originalCP.length;
-			IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
-			System.arraycopy(originalCP, 0, newCP, 0, originalCPLength);
-			newCP[originalCPLength] = ajrtLIB;
-			javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+			IPath ajrtPath = new Path(AspectJPlugin.ASPECTJRT_CONTAINER);
+			boolean found = false;
+			for (int i = 0; i < originalCP.length; i++) {
+                if (originalCP[i].getPath().equals(ajrtPath)) {
+                    found = true;
+                    break;
+                }
+            }
+			if (!found) {
+    			IClasspathEntry ajrtLIB = JavaCore.newContainerEntry(
+    					ajrtPath, false);
+    			// Update the raw classpath with the new ajrtCP entry.
+    			int originalCPLength = originalCP.length;
+    			IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
+    			System.arraycopy(originalCP, 0, newCP, 0, originalCPLength);
+    			newCP[originalCPLength] = ajrtLIB;
+    			javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+			}
 		} catch (JavaModelException e) {
 		}
 	}

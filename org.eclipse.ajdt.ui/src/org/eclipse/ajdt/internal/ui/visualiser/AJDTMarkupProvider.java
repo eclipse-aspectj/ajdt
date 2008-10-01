@@ -9,6 +9,7 @@
 package org.eclipse.ajdt.internal.ui.visualiser;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,9 +17,11 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.javaelements.IAJCodeElement;
-import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -90,82 +93,92 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
-				List allRelationships = AJModel.getInstance().getAllRelationships(jp.getProject(), new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ANNOTATED_BY, AJRelationshipManager.ASPECT_DECLARATIONS, AJRelationshipManager.MATCHES_DECLARE});
+		        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jp.getProject());
+
+				Collection/*List<IRelationship>*/ allRelationships = model.getRelationshipsForProject( 
+				        new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ANNOTATED_BY, 
+				        AJRelationshipManager.ASPECT_DECLARATIONS, AJRelationshipManager.MATCHES_DECLARE});
 				if(allRelationships != null) {
 					for (Iterator iter = allRelationships.iterator(); iter
 							.hasNext();) {
 						List kinds = new ArrayList();
-						AJRelationship element = (AJRelationship) iter.next();
-						IJavaElement target = element.getTarget();
+						IRelationship relationship = (IRelationship) iter.next();
+                        IProgramElement sourceIpe = model.getProgramElement(relationship.getSourceHandle());
+                        if(sourceIpe != null) {
+                            List/*String*/ targets = relationship.getTargets();
+    						for (Iterator targetIter = targets.iterator(); targetIter.hasNext(); ) {
+    						    IJavaElement target = model.programElementToJavaElement((String) targetIter.next());
+        						String aspectFullName;
+        						String aspectName;
+        						
+        						if(!(target instanceof IAJCodeElement)) {
+        							IJavaElement enclosingAspect = target.getAncestor(IJavaElement.TYPE);
+        							
+        							// Get fully qualified name if aspect is an inner aspect
+        							aspectName = enclosingAspect.getElementName();
+        							IJavaElement loopElement = enclosingAspect;
+        							while(loopElement.getParent() instanceof IType) {
+        								loopElement = loopElement.getParent();
+        								aspectName = loopElement.getElementName() + "." + aspectName; //$NON-NLS-1$
+        							}
+        							aspectFullName = aspectName;
+        							String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+        							if(!(aspectPackageName.equals(""))) { //$NON-NLS-1$
+        								aspectFullName = aspectPackageName + "." + aspectFullName; //$NON-NLS-1$
+        							}
+        						} else { // It's an injar aspect so we wno't be able to find the parents
+        							aspectFullName = target.getElementName();
+        							String[] parts = aspectFullName.split(" "); //$NON-NLS-1$
+        							String aNameWithExtension = parts[parts.length - 1];
+        							if(aNameWithExtension.indexOf('.') != -1) { // $NON-NLS-1$
+        								aspectName = aNameWithExtension.substring(0, aNameWithExtension.lastIndexOf('.')); // $NON-NLS-1$
+        							} else {
+        								aspectName = aNameWithExtension;
+        							}
+        						}
 						
-						String aspectFullName;
-						String aspectName;
-						
-						if(!(target instanceof IAJCodeElement)) {
-							IJavaElement enclosingAspect = element.getTarget().getAncestor(IJavaElement.TYPE);
-							
-							// Get fully qualified name if aspect is an inner aspect
-							aspectName = enclosingAspect.getElementName();
-							IJavaElement loopElement = enclosingAspect;
-							while(loopElement.getParent() instanceof IType) {
-								loopElement = loopElement.getParent();
-								aspectName = loopElement.getElementName() + "." + aspectName; //$NON-NLS-1$
-							}
-							aspectFullName = aspectName;
-							String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-							if(!(aspectPackageName.equals(""))) { //$NON-NLS-1$
-								aspectFullName = aspectPackageName + "." + aspectFullName; //$NON-NLS-1$
-							}
-						} else { // It's an injar aspect so we wno't be able to find the parents
-							aspectFullName = target.getElementName();
-							String[] parts = aspectFullName.split(" "); //$NON-NLS-1$
-							String aNameWithExtension = parts[parts.length - 1];
-							if(aNameWithExtension.indexOf('.') != -1) { // $NON-NLS-1$
-								aspectName = aNameWithExtension.substring(0, aNameWithExtension.lastIndexOf('.')); // $NON-NLS-1$
-							} else {
-								aspectName = aNameWithExtension;
-							}
-						}
-						
-						int lineNum = AJModel.getInstance().getJavaElementLineNumber(element.getSource());
-						if(element.getSource() != null) {
-							IJavaElement compilationUnitAncestor = element.getSource().getAncestor(IJavaElement.COMPILATION_UNIT);
-							if(compilationUnitAncestor != null) {
-								String memberName = compilationUnitAncestor.getElementName();
-								memberName = memberName.substring(0, memberName.lastIndexOf(".")); //$NON-NLS-1$
-								String packageName = element.getSource().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-								if(!(packageName.equals(""))) { //$NON-NLS-1$
-									memberName = packageName + "." + memberName; //$NON-NLS-1$
-								}
-								IMarkupKind markupKind = null;
-								if(kindMap == null) {
-									kindMap = new HashMap();
-								}
-								if(element.getRelationship().equals(AJRelationshipManager.MATCHES_DECLARE)) {
-									String sourceName = element.getTarget().getElementName();					
-									boolean errorKind = sourceName.startsWith(aspectJErrorKind);
-									if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) { //$NON-NLS-1$
-										markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); //$NON-NLS-1$
-									} else {
-										markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); //$NON-NLS-1$
-										kindMap.put(sourceName + ":::" + aspectFullName, markupKind); //$NON-NLS-1$
-									}
-								} else {
-									if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
-										markupKind = (IMarkupKind)kindMap.get(aspectFullName);
-									} else {
-										markupKind = new SimpleMarkupKind(aspectName, aspectFullName);
-										kindMap.put(aspectFullName, markupKind);
-									}
-								} 
-								kinds.add(markupKind);
-								Stripe stripe = new Stripe(kinds, lineNum, 1);
-								addMarkup(memberName, stripe);
-							}
-						}
-					}
-				}
-			}
+    						    int lineNum = sourceIpe.getSourceLocation().getLine();
+    						    IJavaElement sourceJe = model.programElementToJavaElement(relationship.getSourceHandle());
+    						    if (sourceJe != null) {
+        							IJavaElement compilationUnitAncestor = sourceJe.getAncestor(IJavaElement.COMPILATION_UNIT);
+        							if(compilationUnitAncestor != null) {
+        								String memberName = compilationUnitAncestor.getElementName();
+        								memberName = memberName.substring(0, memberName.lastIndexOf(".")); //$NON-NLS-1$
+        								String packageName = sourceJe.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+        								if(!(packageName.equals(""))) { //$NON-NLS-1$
+        									memberName = packageName + "." + memberName; //$NON-NLS-1$
+        								}
+        								IMarkupKind markupKind = null;
+        								if(kindMap == null) {
+        									kindMap = new HashMap();
+        								}
+        								if(relationship.getName().equals(AJRelationshipManager.MATCHES_DECLARE.getDisplayName())) {
+        									String sourceName = target.getElementName();					
+        									boolean errorKind = sourceName.startsWith(aspectJErrorKind);
+        									if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) { //$NON-NLS-1$
+        										markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); //$NON-NLS-1$
+        									} else {
+        										markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); //$NON-NLS-1$
+        										kindMap.put(sourceName + ":::" + aspectFullName, markupKind); //$NON-NLS-1$
+        									}
+        								} else {
+        									if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
+        										markupKind = (IMarkupKind)kindMap.get(aspectFullName);
+        									} else {
+        										markupKind = new SimpleMarkupKind(aspectName, aspectFullName);
+        										kindMap.put(aspectFullName, markupKind);
+        									}
+        								} 
+        								kinds.add(markupKind);
+        								Stripe stripe = new Stripe(kinds, lineNum, 1);
+        								addMarkup(memberName, stripe);
+        							}
+        						}
+                            }
+    					}
+    				}
+    			}
+    		}
 		}
 		processMarkups();
 	}

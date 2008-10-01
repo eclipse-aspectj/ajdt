@@ -57,7 +57,22 @@ import org.eclipse.jdt.core.JavaModelException;
  */
 public class UIMessageHandler implements IBuildMessageHandler {
 
-	private List ignoring;
+	// --------------- impl on top of IMessageHandler ----------
+    
+    /**
+     * resources that were affected by the compilation.
+     */
+    private static Set affectedResources = new HashSet();
+    /**
+     * Markers created in projects other than the one under compilation, which
+     * should be cleared next time the compiled project is rebuilt
+     */
+    private static Map otherProjectMarkers = new HashMap();
+    /**
+     * Indicates whether the most recent build was full or incremental
+     */
+    private static boolean lastBuildWasFull;
+    private List ignoring;
 	private List problems = new ArrayList();
 
 	public UIMessageHandler(IProject project) {
@@ -124,22 +139,6 @@ public class UIMessageHandler implements IBuildMessageHandler {
 	
 	// --------------- impl on top of IMessageHandler ----------
 	
-    /**
-     * resources that were affected by the compilation.
-     */
-    private static Set affectedResources = new HashSet();
-    
-    /**
-     * Markers created in projects other than the one under compilation, which
-     * should be cleared next time the compiled project is rebuilt
-     */
-    private static Map otherProjectMarkers = new HashMap();
-    
-    /**
-     * Indicates whether the most recent build was full or incremental
-     */
-    private static boolean lastBuildWasFull;
-    
     protected void addAffectedResource(IResource res) {
     	affectedResources.add(res);
     }
@@ -569,6 +568,19 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
     protected void setLastBuildType(boolean wasFullBuild) {
     	lastBuildWasFull = wasFullBuild;
+    }
+    
+    /**
+     * clear problems made from a previous compilation stage, but
+     * keep any project markers.
+     */
+    void clearProblems() {
+        for (Iterator probIter = problems.iterator(); probIter.hasNext();) {
+            ProblemTracker problem = (ProblemTracker) probIter.next();
+            if (problem.location != null) {
+                probIter.remove();
+            }
+        }
     }
     
     public static void clearOtherProjectMarkers(IProject p) {

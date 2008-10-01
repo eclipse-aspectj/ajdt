@@ -15,21 +15,17 @@ package org.eclipse.ajdt.internal.ui.wizards;
 import java.util.Iterator;
 
 import org.eclipse.core.resources.IFile;
-
-import org.eclipse.swt.widgets.Shell;
-
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PlatformUI;
-
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 
 /**
  * This abstract action delegate offers base functionality used by

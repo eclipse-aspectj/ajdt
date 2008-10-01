@@ -19,7 +19,8 @@ public interface IAJModelMarker {
 	// supertypes
 	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker"; //$NON-NLS-1$
 	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker"; //$NON-NLS-1$
-	
+	public static final String SOURCE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceadvicemarker"; //$NON-NLS-1$
+
 	// concrete marker types
 	public static final String AJDT_PROBLEM_MARKER = "org.eclipse.ajdt.ui.problemmarker"; //$NON-NLS-1$
 	public static final String ITD_MARKER = "org.eclipse.ajdt.ui.itdmarker"; //$NON-NLS-1$
@@ -30,7 +31,6 @@ public interface IAJModelMarker {
 	public static final String BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.beforeadvicemarker"; //$NON-NLS-1$
 	public static final String DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicbeforeadvicemarker"; //$NON-NLS-1$
 	public static final String DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicadvicemarker"; //$NON-NLS-1$
-	public static final String SOURCE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceadvicemarker"; //$NON-NLS-1$
 	public static final String SOURCE_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcebeforeadvicemarker"; //$NON-NLS-1$
 	public static final String SOURCE_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceafteradvicemarker"; //$NON-NLS-1$
 	public static final String SOURCE_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcearoundadvicemarker"; //$NON-NLS-1$
@@ -42,5 +42,5 @@ public interface IAJModelMarker {
 	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker"; //$NON-NLS-1$ 
 	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker"; //$NON-NLS-1$ 
 	public static final String CUSTOM_MARKER = "org.eclipse.ajdt.ui.customadvicemarker"; //$NON-NLS-1$
-	public static final String CHANGED_ADVICE_MARKER = "org.eclipse.ajdt.ui.changedadvicemarker"; //$NON-NLS-1$	
+//	public static final String CHANGED_ADVICE_MARKER = "org.eclipse.ajdt.ui.changedadvicemarker"; //$NON-NLS-1$	
 }

@@ -16,30 +16,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.ui.wizards.AJJarPackageActionDelegate;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
-
-import org.eclipse.core.resources.IFile;
-
-import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.ErrorDialog;
-
-import org.eclipse.ui.PlatformUI;
-
 import org.eclipse.jdt.internal.corext.util.Messages;
-
-import org.eclipse.jdt.ui.jarpackager.IJarDescriptionReader;
-import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
-import org.eclipse.jdt.ui.jarpackager.JarPackageData;
-
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.viewsupport.BasicElementLabels;
+import org.eclipse.jdt.ui.jarpackager.IJarDescriptionReader;
+import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
+import org.eclipse.jdt.ui.jarpackager.JarPackageData;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Adapted from CreateJarActionDelegate

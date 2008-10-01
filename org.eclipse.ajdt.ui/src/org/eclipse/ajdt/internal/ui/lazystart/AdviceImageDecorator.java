@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.ui.lazystart;
 
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.ListenerList;
@@ -46,7 +46,8 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 			IJavaProject jp = je.getJavaProject();
 			// only query the model if the element is in an AJ project
 			if ((jp != null) && Utils.isAJProject(jp.getProject())) {
-				if (AJModel.getInstance().isAdvised(je)) {
+				if (AJProjectModelFactory.getInstance().getModelForJavaElement(je)
+				        .isAdvised(je)) {
 					ensureAdviceListenerIsRegistered();
 					// causes bundle activation
 					AspectJUIPlugin.getDefault();

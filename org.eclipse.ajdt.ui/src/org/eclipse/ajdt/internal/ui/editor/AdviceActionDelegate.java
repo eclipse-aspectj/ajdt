@@ -18,31 +18,31 @@ Contributors:
 package org.eclipse.ajdt.internal.ui.editor;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
-import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.markers.AJMarkersDialog;
-import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -57,6 +57,8 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -69,7 +71,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractRulerActionDelegate;
@@ -140,21 +141,33 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			} else {
 				cu = (ICompilationUnit)JavaCore.create(ifile);
 			}
+			AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(cu);
 			
-			List javaElementsForLine = getJavaElementsForLine(cu, clickedLine.intValue());
 			boolean addedMenu = false;
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISES);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISED_BY);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ANNOTATES);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ANNOTATED_BY);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.DECLARED_ON);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ASPECT_DECLARATIONS);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENS);
-			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENED_BY);
+			if (model.hasModel()) {
+	            List javaElementsForLine = model
+                    .getJavaElementsForLine(cu, clickedLine.intValue());
+
+	            addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISES, model);
+    			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISED_BY, model);
+    			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ANNOTATES, model);
+    			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ANNOTATED_BY, model);
+    			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.DECLARED_ON, model);
+    			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ASPECT_DECLARATIONS, model);
+    			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENS, model);
+                addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENED_BY, model);
+                addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.MATCHED_BY, model);
+    			// note---don't do matches declare because these are provided by error and warning markers
+			} else {
+		        IProject project = cu.getJavaProject().getProject();
+			    createBuildMenu(manager, project);
+			}
 			if(addedMenu) {
-				createAJToolsMenu(manager,haschangedAdviceMarker(ifile,clickedLine));
+			    createAJToolsMenu(manager);
 			}
 			
+			// This next part of the method is nasty.  For one thing, should be using
+			// handle identifiers, not source locations.
 			// Go through the problem markers 
 			IMarker probMarkers[] = ifile.findMarkers(IMarker.MARKER, true, 2);
             MenuManager problemSubmenu = null;
@@ -162,7 +175,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
             if (probMarkers != null && probMarkers.length != 0) {
                  for (int j = 0; j < probMarkers.length; j++) {
                     IMarker m = probMarkers[j];
-                    if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
+                    Object markerLine = m.getAttribute(IMarker.LINE_NUMBER);
+                    if (markerLine != null && markerLine.equals(clickedLine)) {
                         int relCount = 0;
                         String loc = (String) m
                                 .getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
@@ -204,55 +218,57 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                             UIMessages.AdviceActionDelegate_exception_adding_advice_to_context_menu,
                             ce);
         }
+    }
+
+
+	/*
+	 * called when the project model has not been initialized
+	 */
+    private void createBuildMenu(IMenuManager manager, final IProject project) {
+        // cannot find any references because project has not been built
+        MenuManager emptyAJrefs = new MenuManager("AspectJ References");
+        emptyAJrefs.add(new Action() {
+            public String getText() {
+                return "Build project to generate references...";
+            }
+            public void run() {
+                // force a full build
+                Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
+                ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
+                try {
+                    dialog.run(true, true, new IRunnableWithProgress() {
+                        public void run(IProgressMonitor monitor)
+                                throws InvocationTargetException {
+                            monitor.beginTask("", 2); //$NON-NLS-1$
+                            try {
+                                monitor.setTaskName("Build " + project.getName() + " to initialize references.");
+                                project.build(
+                                        IncrementalProjectBuilder.FULL_BUILD,
+                                        new SubProgressMonitor(monitor, 2));
+                            } catch (CoreException e) {
+                                AJDTErrorHandler
+                                        .handleAJDTError(
+                                                UIMessages.OptionsConfigurationBlock_builderror_message,
+                                                e);
+                            } finally {
+                                monitor.done();
+                            }
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    // cancelled by user
+                } catch (InvocationTargetException e) {
+                }
+                
+            }
+        });
+        manager.add(emptyAJrefs);
     }	
 	
-	private boolean haschangedAdviceMarker(IFile file, Integer line) {
-		if (!MarkerUpdating.isChangedAdviceAnnotationActive()) {
-			return false;
-		}
-		try {
-			IMarker changedAdviceMarkers[] = file.findMarkers(
-					IAJModelMarker.CHANGED_ADVICE_MARKER, true, 2);
-			if (changedAdviceMarkers != null
-					&& (changedAdviceMarkers.length > 0)) {
-				for (int i = 0; i < changedAdviceMarkers.length; i++) {
-					if (changedAdviceMarkers[i].getAttribute(
-							IMarker.LINE_NUMBER).equals(line)) {
-						return true;
-					}
-				}
-			}
-		} catch (CoreException e) {
-		}
-		return false;
-	}
-	
-	private void createAJToolsMenu(IMenuManager manager, boolean showComparison) {
+	private void createAJToolsMenu(IMenuManager manager) {
 		MenuManager menu = new MenuManager(UIMessages.AdviceActionDelegate_ajtools);
 		manager.add(menu);
-		if (showComparison) {
-			menu.add(new Action() {
-				public String getText() {
-					return UIMessages.AdviceActionDelegate_show_comparison;
-				}
-
-				public void run() {
-					try {
-						IViewPart view = AspectJUIPlugin.getDefault()
-								.getWorkbench().getActiveWorkbenchWindow()
-								.getActivePage().showView(
-										ChangesView.CROSSCUTTING_VIEW_ID);
-						if (view instanceof ChangesView) {
-							ChangesView changesView = (ChangesView) view;
-							IResource resource = (IResource) ((IFileEditorInput)editor.getEditorInput()).getFile();			
-							changesView.compareWithEarlierBuild(resource.getProject());
-						}
-					} catch (PartInitException e) {
-					}
-				}
-			});
-		}
-		menu.add(new Action(){		
+		menu.add(new Action() {		
 			public String getText() {
 				return UIMessages.AdviceActionDelegate_configure_markers;
 			}
@@ -269,7 +285,6 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 		});
 	}
 
-
 	/**
 	 * 
 	 * @param javaElements
@@ -278,13 +293,13 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	 * @param relationshipType
 	 * @return
 	 */
-	private boolean createMenuForRelationshipType(List javaElements, IMenuManager manager, boolean addedMenu, AJRelationshipType relationshipType) {
+	private boolean createMenuForRelationshipType(List javaElements, IMenuManager manager, boolean addedMenu, AJRelationshipType relationshipType, AJProjectModelFacade model) {
 		boolean menuInitialized = false;
 		MenuManager menu = null;
 		for (Iterator iter = javaElements.iterator(); iter.hasNext();) {
 			IJavaElement element = (IJavaElement) iter.next();
-		
-			List relationships = AJModel.getInstance().getRelatedElements(relationshipType, element);
+			List relationships = model
+                    .getRelationshipsForElement(element, relationshipType);
 			if(relationships != null) {
 				addedMenu = true;
 				for (Iterator iterator = relationships.iterator(); iterator
@@ -295,72 +310,15 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 						manager.add(menu);			
 						menuInitialized = true; 
 					}
-					menu.add(new MenuAction(el));
+					// link might be in a different project
+					String linkName = AJProjectModelFactory.getInstance().getModelForJavaElement(el).getJavaElementLinkName(el);
+					menu.add(new MenuAction(el, linkName));
 				}
 			}
 		}		
 		return addedMenu;
 	}
 
-
-	/**
-	 * @param cu
-	 * @param clickedLine
-	 * @return
-	 */
-	private List getJavaElementsForLine(IJavaElement je, int clickedLine) {
-		AJModel model = AJModel.getInstance();
-		List toReturn = new ArrayList();
-		List extraChildren = model.getExtraChildren(je);
-		if(extraChildren != null) {
-			for (Iterator iter = extraChildren.iterator(); iter.hasNext();) {
-				IJavaElement element = (IJavaElement) iter.next();
-				if(model.getJavaElementLineNumber(element) == clickedLine) {
-					toReturn.add(element);
-				}
-				toReturn.addAll(getJavaElementsForLine(element, clickedLine));
-			}
-		}
-		if(je instanceof ICompilationUnit) {
-			try {
-				IJavaElement[] children = ((ICompilationUnit)je).getChildren();
-				for (int i = 0; i < children.length; i++) {
-					IJavaElement element = children[i];
-					if(model.getJavaElementLineNumber(element) == clickedLine) {
-						toReturn.add(element);
-					}
-					toReturn.addAll(getJavaElementsForLine(element, clickedLine));
-				}
-			} catch (JavaModelException e) {
-			}
-		} else if (je instanceof IType) {
-			try {
-				IJavaElement[] children = ((IType)je).getChildren();
-				for (int i = 0; i < children.length; i++) {
-					IJavaElement element = children[i];
-					if(model.getJavaElementLineNumber(element) == clickedLine) {
-						toReturn.add(element);
-					}
-					toReturn.addAll(getJavaElementsForLine(element, clickedLine));
-				}
-			} catch (JavaModelException e) {
-			}
-		} else if (je instanceof IParent) {
-			try {
-				IJavaElement[] children = ((IParent) je).getChildren();
-				for (int i = 0; i < children.length; i++) {
-					IJavaElement element = children[i];
-					if (model.getJavaElementLineNumber(element) == clickedLine) {
-						toReturn.add(element);
-					}
-					toReturn
-							.addAll(getJavaElementsForLine(element, clickedLine));
-				}
-			} catch (JavaModelException e) {
-			}
-		}
-		return toReturn;
-	}
 
 	/**
 	 * Inner class that represent an entry on the submenu for "Advised By >" 
@@ -376,8 +334,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
         /**
 		 * @param el
 		 */
-		public MenuAction(IJavaElement el) {
-			super (AJModel.getInstance().getJavaElementLinkName(el));
+		public MenuAction(IJavaElement el, String linkName) {
+			super(linkName);
 			Image image = labelProvider.getImage(el);
 			if (image != null) {
 				setImageDescriptor(new ImageImageDescriptor(image));
@@ -386,19 +344,11 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 		}
 		
         public void run() {
-        	IJavaElement parentCU = jumpLocation.getAncestor(IJavaElement.COMPILATION_UNIT);
-        	if(parentCU != null) {
-	        	IResource res = parentCU.getResource();
-	        	try {
-		        	IMarker marker = res.createMarker(IMarker.MARKER);
-		        	int lineNumber = AJModel.getInstance().getJavaElementLineNumber(jumpLocation);
-					if(lineNumber>=0){
-						marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-					}
-		        	IDE.openEditor(AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage(),
-		        			marker);
-	        	} catch (CoreException ce){}
-        	}
+            try {
+                JavaUI.openInEditor(jumpLocation);
+            } catch (PartInitException e) {
+            } catch (JavaModelException e) {
+            }
         }
 	}
 	

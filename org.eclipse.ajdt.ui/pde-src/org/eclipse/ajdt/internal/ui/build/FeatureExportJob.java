@@ -12,10 +12,14 @@
 package org.eclipse.ajdt.internal.ui.build;
 
 
-import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation; // AspectJ Change
+import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
