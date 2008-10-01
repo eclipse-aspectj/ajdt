@@ -14,11 +14,14 @@ package org.eclipse.ajdt.ui.visual.tests;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
-import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -123,8 +126,16 @@ public class RefactoringParticipationTest extends VisualTestCase {
 
 		waitForJobsToComplete();
 		//System.out.println("getting related elements");
-		List rels = AJModel.getInstance().getRelatedElements(
-				AJRelationshipManager.ADVISES, around);
+		AJProjectModelFacade model = AJProjectModelFactory
+                .getInstance().getModelForProject(project);
+		List/*IRelationship*/ rels = model.getRelationshipsForElement(around, AJRelationshipManager.ADVISES);
+		
+		int targetCount = 0;
+		for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+            IRelationship rel = (IRelationship) relIter.next();
+            targetCount += rel.getTargets().size();
+        }
+		
 		assertEquals(
 				"Around advice in GetInfo.aj advises wrong number of elements", 3, rels.size()); //$NON-NLS-1$
 		boolean foundMain = false;
@@ -132,7 +143,9 @@ public class RefactoringParticipationTest extends VisualTestCase {
 		boolean foundBar = false;
 		String expected = "Monkey.java"; //$NON-NLS-1$
 		for (Iterator iter = rels.iterator(); iter.hasNext();) {
-			IJavaElement el = (IJavaElement) iter.next();
+		    IRelationship rel = (IRelationship) iter.next();
+		    
+			IJavaElement el = model.programElementToJavaElement(rel.getSourceHandle());
 			//System.out.println("el: "+el);
 			String name = el.getElementName();
 			String resName = el.getResource().getName();
