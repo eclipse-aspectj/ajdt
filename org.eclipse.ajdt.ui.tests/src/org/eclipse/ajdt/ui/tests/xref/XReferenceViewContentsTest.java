@@ -13,8 +13,9 @@ package org.eclipse.ajdt.ui.tests.xref;
 
 import java.util.List;
 
-import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJRelationship;
+import org.aspectj.asm.IRelationship;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -38,22 +39,21 @@ public class XReferenceViewContentsTest extends UITestCase {
 		XReferenceContentProvider viewContentProvider =
 			new XReferenceContentProvider();
 		
-		AJModel ajmodel = AJModel.getInstance();
-		ajmodel.createMap(project);
+		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
 		waitForJobsToComplete();
 		
 		AJRelationshipType[] rels = new AJRelationshipType[]{
 				AJRelationshipManager.MATCHES_DECLARE,
 				AJRelationshipManager.MATCHED_BY};
 		
-		List listOfRels = ajmodel.getAllRelationships(project,rels);
+		List/*IRelationship*/ listOfRels = model.getRelationshipsForProject(rels);
 		assertTrue("there should be some relationships",!listOfRels.isEmpty()); //$NON-NLS-1$
 
 		// want to get the IJavaElement corresponding to Test
-		AJRelationship rel = (AJRelationship)listOfRels.get(0);
+		IRelationship rel = (IRelationship)listOfRels.get(0);
 		boolean cont = true;
 		IJavaElement source = null;
-		IJavaElement je = rel.getSource();
+		IJavaElement je = model.programElementToJavaElement(rel.getSourceHandle());
 		while (cont) {
 			IJavaElement parent = je.getParent();
 			if (parent.getElementName().equals("Test")) { //$NON-NLS-1$

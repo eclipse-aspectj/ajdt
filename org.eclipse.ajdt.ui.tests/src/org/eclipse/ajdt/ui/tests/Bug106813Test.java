@@ -15,7 +15,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.views.log.AbstractEntry;
-import org.eclipse.ui.internal.views.log.LogEntry;
 import org.eclipse.ui.internal.views.log.LogView;
 
 public class Bug106813Test extends UITestCase {

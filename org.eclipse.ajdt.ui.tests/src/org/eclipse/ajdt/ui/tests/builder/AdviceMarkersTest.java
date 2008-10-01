@@ -25,11 +25,10 @@ public class AdviceMarkersTest extends UITestCase {
 		super.setUp();
 		myProject = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 	}
-	
 	public void testMarkersAreAdded() throws Exception {
 		//myProject.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 		//Utils.waitForJobsToComplete();
-		assertTrue("Simple AJ Project should contain 4 advice markers after building", myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length == 2); //$NON-NLS-1$
+		assertEquals("Simple AJ Project should contain 4 advice markers after building", 2, myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length); //$NON-NLS-1$
 	}
 
 	

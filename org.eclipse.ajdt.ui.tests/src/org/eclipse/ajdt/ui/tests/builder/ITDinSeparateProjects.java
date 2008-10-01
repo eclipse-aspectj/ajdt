@@ -1,15 +1,12 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.internal.views.markers.ProblemsView;
 
 public class ITDinSeparateProjects extends UITestCase {
     

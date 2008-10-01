@@ -1,6 +1,5 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -14,6 +13,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 
 public class BuildPathNavigationTests extends UITestCase {

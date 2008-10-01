@@ -80,7 +80,8 @@ public class AdviceMarkersTest5 extends UITestCase {
 				{ "declared on Demo", new Integer(25)}, //$NON-NLS-1$
 				{ "softens Demo.go()", new Integer(27)}, //$NON-NLS-1$
 				{ "declared on Demo", new Integer(29)}, //$NON-NLS-1$
-				{ "declared on Demo", new Integer(33)} //$NON-NLS-1$
+				{ "declared on Demo", new Integer(33)}, //$NON-NLS-1$
+				{ "matched by Demo: field-set(int tjp.Demo.x)", new Integer(24)} //$NON-NLS-1$ 
 			}
 		};
 
@@ -162,7 +163,4 @@ public class AdviceMarkersTest5 extends UITestCase {
 			}
 		}
 	}
-
-
-	
 }

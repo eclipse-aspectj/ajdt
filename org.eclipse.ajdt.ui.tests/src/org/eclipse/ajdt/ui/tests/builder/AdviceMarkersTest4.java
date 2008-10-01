@@ -59,15 +59,13 @@ public class AdviceMarkersTest4 extends UITestCase {
 					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }			 //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.AFTER_ADVICE_MARKER
-			    { "advised by GetInfo.after(): fieldSet..", new Integer(28) } //$NON-NLS-1$
+			        { "advised by GetInfo.after(): fieldSet..", new Integer(28) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.AROUND_ADVICE_MARKER
 				{}
 			},
 			{ // IAJModelMarker.DYNAMIC_ADVICE_MARKER
-					{ "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
-					{ "3 AspectJ markers at this line", new Integer(32) }, //$NON-NLS-1$
-					{ "2 AspectJ markers at this line", new Integer(41) }, //$NON-NLS-1$
+			    {}
 			},		
 			{ // IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER
 			    {}
@@ -76,7 +74,9 @@ public class AdviceMarkersTest4 extends UITestCase {
 				{}
 			},
 			{ // IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER
-				{}
+                { "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
+                { "3 AspectJ markers at this line", new Integer(32) }, //$NON-NLS-1$
+                { "2 AspectJ markers at this line", new Integer(41) }, //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.DECLARATION_MARKER
 				{ "3 AspectJ markers at this line", new Integer(17) }, //$NON-NLS-1$				
@@ -154,7 +154,7 @@ public class AdviceMarkersTest4 extends UITestCase {
 				String missing = ""; //$NON-NLS-1$
 				for (int j = 0; j < tofindMsg.size(); j++) {
 					missing += System.getProperty("line.separator"); //$NON-NLS-1$
-					missing += (String)tofindMsg.get(j);					
+					missing += (String) tofindMsg.get(j);					
 				}
 				fail("Did not find all expected markers of type " //$NON-NLS-1$
 						+ markerTypes[i] + ". Missing: " + missing); //$NON-NLS-1$

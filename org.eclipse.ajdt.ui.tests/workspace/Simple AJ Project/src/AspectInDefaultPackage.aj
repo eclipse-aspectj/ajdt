@@ -10,7 +10,6 @@
  *     Luzius Meisser  - initial version
  *******************************************************************************/
 
-package p2;
 
 public aspect AspectInDefaultPackage {
 	

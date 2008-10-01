@@ -28,7 +28,7 @@ public class CustomMarkersTest extends UITestCase {
 		assertTrue("Should have found Demo.java", demoFile.exists()); //$NON-NLS-1$
 		
 		IMarker[] markers = boundPointFile.findMarkers(IAJModelMarker.CUSTOM_MARKER, true, 0);
-		assertEquals("BoundPoint.aj should contain 11 custom markers", 11, markers.length); //$NON-NLS-1$
+		assertEquals("BoundPoint.aj should contain one custom marker for each advice and declare declarations", 8, markers.length); //$NON-NLS-1$
 		markers = boundPointFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 0);
 		assertEquals("BoundPoint.aj should contain no advice markers", 0, markers.length); //$NON-NLS-1$
 		markers = boundPointFile.findMarkers(IAJModelMarker.ITD_MARKER, true, 0);

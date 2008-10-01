@@ -43,33 +43,20 @@ public class AdviceMarkersTest3 extends UITestCase {
 	//   third index is expected line number of that marker
 	private static Object[][][] results = {
 			{ // IAJModelMarker.SOURCE_ADVICE_MARKER
-					// Temporary - declare soft should have a different type of marker...
-//					{ "advises Demo.go()", new Integer(28) },
-					{ "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)}, //$NON-NLS-1$
-//					{ "advises Demo.bar(Integer)", new Integer(49) },
-//					{ "advises Demo.foo(int, Object)", new Integer(49) },
-//					{ "advises Demo.go()", new Integer(49) },
-//					{ "advises Demo.main(String[])", new Integer(49) },
-					{ "4 AspectJ markers at this line", new Integer(49) }, //$NON-NLS-1$
-					{ "advises Demo.foo(int,Object) (runtime test)", new Integer(53) }, //$NON-NLS-1$
-					{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
-//					{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
-//					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
-//					{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) },
-					{ "3 AspectJ markers at this line", new Integer(61) }, //$NON-NLS-1$
-					{ "advises GetInfo.printParameters(JoinPoint)", new Integer(74) } //$NON-NLS-1$
+			    { "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)}, //$NON-NLS-1$
+			    { "4 AspectJ markers at this line", new Integer(49) }, //$NON-NLS-1$
+			    { "advises Demo.foo(int,Object) (runtime test)", new Integer(53) }, //$NON-NLS-1$
+			    { "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
+			    { "3 AspectJ markers at this line", new Integer(61) }, //$NON-NLS-1$
+			    { "advises GetInfo.printParameters(JoinPoint)", new Integer(74) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER
-					{ "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)}, //$NON-NLS-1$
-					{ "4 AspectJ markers at this line", new Integer(49) } //$NON-NLS-1$
-//					{ "advises Demo.bar(Integer)", new Integer(49) },
-//					{ "advises Demo.foo(int, Object)", new Integer(49) },
-//					{ "advises Demo.go()", new Integer(49) },
-//					{ "advises Demo.main(String[])", new Integer(49) }
-					},
+			    { "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)}, //$NON-NLS-1$
+			    { "4 AspectJ markers at this line", new Integer(49) } //$NON-NLS-1$
+			},
 			{ // IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER
-			    	{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
-			    	{ "advises GetInfo.printParameters(JoinPoint)", new Integer(74) } //$NON-NLS-1$
+			    { "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
+			    { "advises GetInfo.printParameters(JoinPoint)", new Integer(74) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER
 				{}
@@ -85,20 +72,14 @@ public class AdviceMarkersTest3 extends UITestCase {
 			},
 			{ // IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER
 				{ "3 AspectJ markers at this line", new Integer(61) } //$NON-NLS-1$
-//				{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
-//				{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
-//				{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) }
 			},
 			{ // IAJModelMarker.SOURCE_ITD_MARKER
 				{ "declared on Demo", new Integer(25)}, //$NON-NLS-1$
 				{ "softens Demo.go()", new Integer(27)}, //$NON-NLS-1$
 				{ "declared on Demo", new Integer(29)}, //$NON-NLS-1$
-				{ "declared on Demo", new Integer(33)} //$NON-NLS-1$
-			}//, // IAJModelMarker.ADVICE_MARKER
-//			{
-//				{ "advised by GetInfo.after(): <anonymous pointcut>", new Integer(79)}
-//				{ "advises
-//			}
+				{ "declared on Demo", new Integer(33)}, //$NON-NLS-1$
+                { "matched by Demo: field-set(int tjp.Demo.x)", new Integer(24)} //$NON-NLS-1$ 
+			}
 		};
 
 	/*
@@ -140,6 +121,9 @@ public class AdviceMarkersTest3 extends UITestCase {
 				IMarker m = markers[j];
 				int line = m.getAttribute(IMarker.LINE_NUMBER, -1);
 				String msg = m.getAttribute(IMarker.MESSAGE, "").intern(); //$NON-NLS-1$
+//				System.out.println("Keys: " + m.getAttributes().keySet());
+//				System.out.println("Values: " + m.getAttributes().values());
+                
 				//System.out.println("msg=" + msg + " line=" + line);
 				if (tofindMsg.contains(msg)) {
 					// search for matching message and line number

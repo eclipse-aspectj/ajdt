@@ -10,10 +10,7 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import java.io.ByteArrayInputStream;
-import java.io.StringReader;
 
-import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
-import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -42,25 +39,26 @@ public class ProblemMarkerTest extends UITestCase {
 				.exists());
 	}
 
+	// this test fails because we are no longer placing error markers on in path projects
 	/**
 	 * An incremental build should not grow the list of problem markers against a Java project
 	 * @throws CoreException
 	 */
-	public void testBug111764() throws CoreException {
-		createPredefinedProject("InpathUsingAJProject"); //$NON-NLS-1$
-		IProject javaProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
-		IFile f = javaProject.getFile("src/internal/stuff/MyBuilder.java"); //$NON-NLS-1$
-		IMarker[] markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-		assertEquals("Should be 1 ADJT problem marker again file MyBuilder.java",1,markers.length); //$NON-NLS-1$
-
-		StringReader sr = new StringReader("/* blah blah blah */"); //$NON-NLS-1$
-		f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
-
-		waitForJobsToComplete();
-
-		markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-		assertEquals("Should still be only 1 ADJT problem marker again file MyBuilder.java",1,markers.length); //$NON-NLS-1$
-	}
+//	public void testBug111764() throws CoreException {
+//		createPredefinedProject("InpathUsingAJProject"); //$NON-NLS-1$
+//		IProject javaProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+//		IFile f = javaProject.getFile("src/internal/stuff/MyBuilder.java"); //$NON-NLS-1$
+//		IMarker[] markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+//		assertEquals("Should be 1 ADJT problem marker again file MyBuilder.java",1,markers.length); //$NON-NLS-1$
+//
+//		StringReader sr = new StringReader("/* blah blah blah */"); //$NON-NLS-1$
+//		f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+//
+//		waitForJobsToComplete();
+//
+//		markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+//		assertEquals("Should still be only 1 ADJT problem marker again file MyBuilder.java",1,markers.length); //$NON-NLS-1$
+//	}
 	
 // TODO: Do this another way with new build configs	
 //	/**

@@ -9,7 +9,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 
 public class AdviceMarkersTest6 extends UITestCase {
@@ -23,14 +22,13 @@ public class AdviceMarkersTest6 extends UITestCase {
         
         assertTrue("Should have found RecursiveCatcher.aj", aspectFile.exists()); //$NON-NLS-1$
         
-        ITextEditor editorPart = (ITextEditor) openFileInDefaultEditor(
-                aspectFile, false);
+        openFileInDefaultEditor(aspectFile, false);
 
         // wait for annotation model to be created
         waitForJobsToComplete();
 
-        IMarker[] markers = getMarkers(aspectFile, editorPart);
-        assertTrue("Didn't find any advice markers, but should have found 3", markers.length == 3); //$NON-NLS-1$
+        IMarker[] markers = getMarkers(aspectFile);
+        assertEquals("Didn't find any advice markers, but should have found 3", 3, markers.length); //$NON-NLS-1$
 
         Set lineNumbers = new HashSet();
         lineNumbers.add(new Integer(markers[0].getAttribute(IMarker.LINE_NUMBER, -1)));
@@ -40,13 +38,13 @@ public class AdviceMarkersTest6 extends UITestCase {
         assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
                 lineNumbers.contains(new Integer(22)));
         assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                lineNumbers.contains(new Integer(22)));
+                lineNumbers.contains(new Integer(23)));
         assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                lineNumbers.contains(new Integer(22)));
+                lineNumbers.contains(new Integer(24)));
           
     }
     
-    protected IMarker[] getMarkers(IResource resource, ITextEditor editor)
+    protected IMarker[] getMarkers(IResource resource)
             throws Exception {
             return resource.findMarkers(
                     IAJModelMarker.BEFORE_ADVICE_MARKER, true,

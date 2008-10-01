@@ -31,7 +31,8 @@ public class AdviceMarkersTest2 extends UITestCase {
 	private IProject project;
 
 	// array of marker types to test for
-	private static String[] markerTypes = { IAJModelMarker.ADVICE_MARKER,
+	private static String[] markerTypes = { 
+	        IAJModelMarker.ADVICE_MARKER,
 			IAJModelMarker.BEFORE_ADVICE_MARKER,
 			IAJModelMarker.AFTER_ADVICE_MARKER,
 			IAJModelMarker.AROUND_ADVICE_MARKER,
@@ -39,7 +40,8 @@ public class AdviceMarkersTest2 extends UITestCase {
 			IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER,
 			IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER,
 			IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER,
-			IAJModelMarker.DECLARATION_MARKER, IAJModelMarker.ITD_MARKER };
+			IAJModelMarker.DECLARATION_MARKER, 
+			IAJModelMarker.ITD_MARKER };
 
 	// expected results:
 	//   first index of array is the marker type, as above.
@@ -48,51 +50,23 @@ public class AdviceMarkersTest2 extends UITestCase {
 	private static Object[][][] results = {
 			{ // IAJModelMarker.ADVICE_MARKER
 					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }, //$NON-NLS-1$
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(21) },
-//					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
-//							new Integer(21) },
 					{ "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
-					
 					{ "advised by GetInfo.after(): fieldSet..", new Integer(28) }, //$NON-NLS-1$
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(25) },
-//					{ "softened by GetInfo.declare soft: tjp.DemoException", new Integer(25) },					
 					{ "2 AspectJ markers at this line", new Integer(25) }, //$NON-NLS-1$
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(32) },
-//					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
-//							new Integer(32) },
-//					{ "advised by GetInfo.before(): <anonymous pointcut>.. (runtime test)",
-//							new Integer(32) },
 					{ "3 AspectJ markers at this line", new Integer(32) },					 //$NON-NLS-1$
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(41) },
-//					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
-//							new Integer(41) } },
 					{ "2 AspectJ markers at this line", new Integer(41) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.BEFORE_ADVICE_MARKER
 					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }			 //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.AFTER_ADVICE_MARKER
-			    { "advised by GetInfo.after(): fieldSet..", new Integer(28) } //$NON-NLS-1$
+			        { "advised by GetInfo.after(): fieldSet..", new Integer(28) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.AROUND_ADVICE_MARKER
 				{}
 			},
 			{ // IAJModelMarker.DYNAMIC_ADVICE_MARKER
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(21) },
-//					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
-//							new Integer(21) },
-					{ "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(32) },
-//					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
-//							new Integer(32) },
-//					{ "advised by GetInfo.before(): <anonymous pointcut>.. (runtime test)",
-//							new Integer(32) },
-					{ "3 AspectJ markers at this line", new Integer(32) }, //$NON-NLS-1$
-					
-//					{ "advised by GetInfo.before(): demoExecs..", new Integer(41) },
-//					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
-//							new Integer(41) }, 
-					{ "2 AspectJ markers at this line", new Integer(41) }, //$NON-NLS-1$
+			    {}
 			},		
 			{ // IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER
 			    {}
@@ -101,19 +75,15 @@ public class AdviceMarkersTest2 extends UITestCase {
 				{}
 			},
 			{ // IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER
-				{}
+                { "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
+                { "3 AspectJ markers at this line", new Integer(32) }, //$NON-NLS-1$
+                { "2 AspectJ markers at this line", new Integer(41) }, //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.DECLARATION_MARKER
-//				{ "aspect declarations Demo.itd(int)", new Integer(17) },
-//				{ "aspect declarations Demo.f", new Integer(17) },
-//				{ "aspect declarations declare parents: implements Serializable", new Integer(17) } // bug 79979
 				{ "3 AspectJ markers at this line", new Integer(17) }, //$NON-NLS-1$
 				
 			},
 			{ // IAJModelMarker.ITD_MARKER
-//				{ "aspect declarations Demo.itd(int)", new Integer(17) },
-//				{ "aspect declarations Demo.f", new Integer(17) },
-//				{ "aspect declarations declare parents: implements Serializable", new Integer(17) } // bug 79979
 				{ "3 AspectJ markers at this line", new Integer(17) }, //$NON-NLS-1$
 				
 			}
