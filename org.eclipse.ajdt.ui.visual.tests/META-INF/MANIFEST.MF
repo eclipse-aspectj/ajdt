@@ -26,8 +26,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.console,
  org.aspectj.runtime,
  org.eclipse.ui.views.log;bundle-version="1.0.0",
- org.aspectj.ajde;bundle-version="92.2.29",
- org.aspectj.weaver;bundle-version="92.2.29"
+ org.aspectj.ajde,
+ org.aspectj.weaver
 Eclipse-LazyStart: true
 Bundle-Vendor: Eclipse.org
 Export-Package: org.eclipse.ajdt.ui.visual.tests
