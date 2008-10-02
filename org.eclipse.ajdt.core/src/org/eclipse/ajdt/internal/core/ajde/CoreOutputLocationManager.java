@@ -319,7 +319,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
         IPath sourceFilePath = new Path(sourceFile.getAbsolutePath());
         IPath projLoc = project.getLocation();
         if (projLoc.isPrefixOf(sourceFilePath)) {
-            sourceFilePath = sourceFilePath.removeFirstSegments(projLoc.segmentCount()).makeRelative();
+            sourceFilePath = sourceFilePath.setDevice(null).removeFirstSegments(projLoc.segmentCount()).makeRelative();        
         }
         
         for (Iterator pathIter = allSourceFolders.iterator(); pathIter.hasNext();) {
