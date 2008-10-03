@@ -119,7 +119,7 @@ public class AspectJPlugin extends Plugin {
 		checkForCUprovider();
 		getWorkspace().addResourceChangeListener(
 				new CompilerConfigResourceChangeListener(),
-				IResourceChangeEvent.POST_CHANGE);
+				IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
 		setCompilerFactory(new CoreCompilerFactory());
 	}
 

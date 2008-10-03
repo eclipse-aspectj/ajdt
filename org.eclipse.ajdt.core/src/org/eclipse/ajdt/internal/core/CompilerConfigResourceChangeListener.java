@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.internal.core;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -36,7 +37,17 @@ public class CompilerConfigResourceChangeListener implements IResourceChangeList
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {
-		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+		if (event.getType()==IResourceChangeEvent.PRE_DELETE) {
+			// Before an AJ project is deleted we must tell the compiler to tidy up - so that any jar locks are released, otherwise
+			// the delete may not succeed
+			if (event.getResource()!=null && event.getResource() instanceof IProject) {
+				IProject project = (IProject)event.getResource();
+				if (!project.isAccessible() || AspectJPlugin.isAJProject(project)) {
+					AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
+					AJProjectModelFactory.getInstance().removeModelForProject(project);
+				}
+			}
+		} else if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
 			IResourceDelta delta = event.getDelta();
 			// avoid processing deltas for non-AspectJ projects,
 			if (delta != null) {
