@@ -18,8 +18,10 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.aspectj.bridge.IProgressListener;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -141,6 +143,27 @@ public class AJDTCoreTestCase extends TestCase {
 		return javaProject;
 	}
 	
+	
+	// A dumb progressmonitor we can use - if we dont pass one it may create a UI one...
+	static class DumbProgressMonitor implements IProgressMonitor {
+
+		public void beginTask(String name, int totalWork) {/*dontcare*/}
+
+		public void done() {/*dontcare*/}
+
+		public void internalWorked(double work) {/*dontcare*/}
+
+		public boolean isCanceled() {/*dontcare*/return false;}
+
+		public void setCanceled(boolean value) {/*dontcare*/}
+
+		public void setTaskName(String name) {/*dontcare*/}
+
+		public void subTask(String name) {/*dontcare*/}
+
+		public void worked(int work) {/*dontcare*/}
+		
+	}
 
 	/**
 	 * Wait for autobuild notification to occur
@@ -149,7 +172,7 @@ public class AJDTCoreTestCase extends TestCase {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, new DumbProgressMonitor());
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();
@@ -163,7 +186,7 @@ public class AJDTCoreTestCase extends TestCase {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new DumbProgressMonitor());
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();
@@ -271,7 +294,7 @@ public class AJDTCoreTestCase extends TestCase {
 		waitForAutoBuild();
 		CoreException lastException = null;
 		try {
-		    resource.refreshLocal(IResource.DEPTH_INFINITE, null);
+//		    resource.refreshLocal(IResource.DEPTH_INFINITE, null);
 			resource.delete(false, null);
 		} catch (CoreException e) {
 			lastException = e;
