@@ -44,6 +44,7 @@ public class TestLogger implements IAJLogger {
         if (log == null) {
             log = new ArrayList();
         }
+        msg = msg.replaceAll("\\\\","/");
         log.add(msg);
         
         if (buildLog == null) {
