@@ -1,5 +1,6 @@
 package org.eclipse.ajdt.core.tests.builder;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -76,7 +77,7 @@ public class AspectPathTests extends AJDTCoreTestCase {
 
         String[] aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(makeContainer);
         
-        assertTrue("Should have lib.jar on the aspect path", aspectPath[0].endsWith("lib.jar:"));  //$NON-NLS-1$//$NON-NLS-2$
+        assertTrue("Should have lib.jar on the aspect path", aspectPath[0].endsWith("lib.jar"+File.pathSeparator));  //$NON-NLS-1$//$NON-NLS-2$
     }
     
     /**
