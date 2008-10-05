@@ -48,10 +48,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -92,12 +95,12 @@ public class AJProjectModelFacade {
     /**
      * The aspectj program hierarchy
      */
-    private IHierarchy structureModel;
+    IHierarchy structureModel;
     
     /**
      * stores crosscutting relationships between structure elements
      */
-    private IRelationshipMap relationshipMap;
+    IRelationshipMap relationshipMap;
     
     /**
      * the java project that this project model is associated with
@@ -224,6 +227,9 @@ public class AJProjectModelFacade {
                     AspectElement.JEM_ASPECT_CU);
         }
         
+        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
+
+        
         IProgramElement ipe = structureModel.findElementForHandle(ajHandle);
         if (ipe == null) {
             // occurs when the handles are not working properly
@@ -305,6 +311,8 @@ public class AJProjectModelFacade {
             }
         }
         
+        jHandle = jHandle.replaceFirst("declare @", "declare \\\\@");
+        
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {
             // occurs when the handles are not working properly
@@ -346,49 +354,111 @@ public class AJProjectModelFacade {
             // this gives us the type in the current project,
             // but we don't want this if the type exists as source in 
             // some other project in the workspace.
-            IType type = JavaCore.create(project).findType(qualifiedName);
+            ITypeRoot unit = getTypeFromQualifiedName(qualifiedName);
             
-            // search the rest of the workspace for this type
-            ITypeRoot unit = type.getTypeRoot();
-            IResource file = unit.getResource();
             
-            // try to find the source
-            if (file != null && !file.getFileExtension().equals("jar")) {
-                // can we find this as a source file in some project?
-                IPath path = unit.getPath();
-                IJavaProject otherProject = JavaCore.create(project).getJavaModel().getJavaProject(path.segment(0));
-                if (otherProject.exists()) {
-                    type = otherProject.findType(qualifiedName);
-                    unit = type.getTypeRoot();
-                    if (unit instanceof ICompilationUnit) {
-                        AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) unit);
-                        unit = newUnit != null ? newUnit : unit;
-                    }
+            if (unit instanceof ICompilationUnit) {
+                // we're in luck...
+                // all this work has taken us straight to the compilaiton unit
+                if (unit instanceof ICompilationUnit) {
+                    AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) unit);
+                    unit = newUnit != null ? newUnit : unit;
                 }
                 return unit.getElementAt(offsetFromLine(unit, ipe.getSourceLocation()));
-
-            } else {
-                // try finding the source by creating a handle identiier
-                int classIndex = jHandle.indexOf(".class");
-                String newHandle = unit.getHandleIdentifier() + 
-                        jHandle.substring(classIndex+".class".length());
                 
-                IJavaElement newElt = (IJavaElement) AspectJCore.create(newHandle);
-                if (newElt instanceof AspectJMemberElement) {
-                    AspectJMemberElement ajElt = (AspectJMemberElement) newElt;
-                    Object info = ajElt.getElementInfo();
-                    if (info instanceof AspectJMemberElementInfo) {
-                        AspectJMemberElementInfo ajInfo = (AspectJMemberElementInfo) info;
-                        ajInfo.setSourceRangeStart(offsetFromLine(unit, ipe.getSourceLocation()));
+            } else {
+                // we have a class file.
+                // search the rest of the workspace for this type
+                IResource file = unit.getResource();
+                
+                // try to find the source
+                if (file != null && !file.getFileExtension().equals("jar")) {
+                    // we have a class file that is not in a jar.
+                    // can we find this as a source file in some project?
+                    IPath path = unit.getPath();
+                    IJavaProject otherProject = JavaCore.create(project).getJavaModel().getJavaProject(path.segment(0));
+                    if (otherProject.exists()) {
+                        IType type = otherProject.findType(qualifiedName);
+                        unit = type.getTypeRoot();
+                        if (unit instanceof ICompilationUnit) {
+                            AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) unit);
+                            unit = newUnit != null ? newUnit : unit;
+                        }
                     }
+                    return unit.getElementAt(offsetFromLine(unit, ipe.getSourceLocation()));
+    
+                } else {
+                    // we have a class file in a jar
+                    // try finding the source by creating a handle identifier
+                    // if the source is not found, this will bring up a class file editor
+                    int classIndex = jHandle.indexOf(".class");
+                    String newHandle = unit.getHandleIdentifier() + 
+                            jHandle.substring(classIndex+".class".length());
+                    
+                    IJavaElement newElt = (IJavaElement) AspectJCore.create(newHandle);
+                    if (newElt instanceof AspectJMemberElement) {
+                        AspectJMemberElement ajElt = (AspectJMemberElement) newElt;
+                        Object info = ajElt.getElementInfo();
+                        if (info instanceof AspectJMemberElementInfo) {
+                            AspectJMemberElementInfo ajInfo = (AspectJMemberElementInfo) info;
+                            ajInfo.setSourceRangeStart(offsetFromLine(unit, ipe.getSourceLocation()));
+                        }
+                    }
+                    return newElt;
                 }
-                return newElt;
             }
         } catch (JavaModelException e) {
             return null;
         } catch (NullPointerException e) {
             return null;
         }
+    }
+
+    private ITypeRoot getTypeFromQualifiedName(String qualifiedName)
+            throws JavaModelException {
+        IJavaProject jproj = JavaCore.create(project);
+        IType type = jproj.findType(qualifiedName);
+        // won't work if type is in a .aj file
+        if (type != null) {
+            return type.getTypeRoot();
+        }
+        
+        // try by looking for the package instead
+        // will not work for inner types
+        // but that's ok, because we are only working
+        // top-level types
+        int dotIndex = qualifiedName.lastIndexOf('.');
+        String typeName = qualifiedName.substring(dotIndex+1);
+        String packageName = qualifiedName.substring(0,dotIndex);
+        IPackageFragmentRoot[] pkgRoots = jproj.getAllPackageFragmentRoots();
+        IPackageFragment pkg = null;
+        for (int i = 0; i < pkgRoots.length; i++) {
+            IPackageFragment candidate = pkgRoots[i].getPackageFragment(packageName);
+            if (candidate.exists()) {
+                pkg = candidate;
+                break;
+            }
+        }
+        if (pkg == null) {
+            return null;
+        }
+        ICompilationUnit[] cus = pkg.getCompilationUnits();
+        for (int i = 0; i < cus.length; i++) {
+            IType[] types = cus[i].getAllTypes();
+            for (int j = 0; j < types.length; j++) {
+                if (types[j].getElementName().equals(typeName)) {
+                    return cus[i];
+                }
+            }
+        }
+        IClassFile[] cfs = pkg.getClassFiles();
+        for (int i = 0; i < cfs.length; i++) {
+            IType cType = cfs[i].getType();
+            if (cType.getElementName().equals(typeName)) {
+                    return cfs[i];
+            }
+        }
+        return null;
     }
     
     private int offsetFromLine(ITypeRoot unit, ISourceLocation sloc) throws JavaModelException {
@@ -516,7 +586,7 @@ public class AJProjectModelFacade {
                                 .hasNext();) {
                             String handle = (String) targetIter.next();
                             IJavaElement targetJe = programElementToJavaElement(handle);
-                            if (targetJe != null) {
+                            if (targetJe != null && targetJe != AJProjectModelFacade.ERROR_JAVA_ELEMENT) {
                                 relatedJavaElements.add(targetJe);
                             } else {
                                 AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, "Could not create a Java element with handle:\n" + handle 
