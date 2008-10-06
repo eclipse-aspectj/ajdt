@@ -165,7 +165,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		if (kind != FULL_BUILD) {
-		    if (!sourceFilesChanged(dta, project) && !classpathChanged(dta, project)){
+		    if (!sourceFilesChanged(dta, project) && !classpathChanged(dta) && !projectSpecificSettingsChanged(dta)){
 				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file or classpath changes for project "  //$NON-NLS-1$
 								+ project.getName() );
 				
@@ -254,6 +254,28 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	}
 
 	/**
+	 * 
+	 * @param dta the resource delta for this build
+	 * @param project
+	 * @return
+	 */
+	private boolean projectSpecificSettingsChanged(IResourceDelta dta) {
+        IResourceDelta[] children = dta.getAffectedChildren();
+        for (int i = 0; i < children.length; i++) {
+            IResourceDelta child = children[i];
+            if (child.getResource().getName().equals(".settings")) {
+                if (child.getAffectedChildren().length > 0) {
+                    // assume that if something in this folder has changed, then
+                    // it is a project specific setting
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
 	 * Check to see if the class paths are valid
 	 * @param progressMonitor
 	 * @param project
@@ -277,7 +299,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 	// check to see if the .classpath has changed.
 	// we know exactly where it is located, so no need for a visitor
-    private boolean classpathChanged(IResourceDelta dta, IProject project) {
+    private boolean classpathChanged(IResourceDelta dta) {
         IResourceDelta[] children = dta.getAffectedChildren();
         for (int i = 0; i < children.length; i++) {
             IResourceDelta child = children[i];
@@ -1276,12 +1298,25 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         compilerConfiguration.configurationChanged(
                                 CompilerConfigurationChangeFlags.CLASSPATH_CHANGED |
                                 CompilerConfigurationChangeFlags.ASPECTPATH_CHANGED |
-                                CompilerConfigurationChangeFlags.INPATH_CHANGED);
+                                CompilerConfigurationChangeFlags.INPATH_CHANGED | 
+                                CompilerConfigurationChangeFlags.OUTPUTDESTINATIONS_CHANGED);
                     }
                 }
                 return false;
             } else {
-                
+                if (resname.endsWith(".settings")) {
+                    // checks for changes with project specific settings
+                    IContainer parent = delta.getResource().getParent();
+                    if (parent.getFullPath().equals(affectedProject.getFullPath())) {
+                        if (delta.getAffectedChildren().length > 0) {
+                            compilerConfiguration.configurationChanged(
+                                    CompilerConfigurationChangeFlags.JAVAOPTIONS_CHANGED |
+                                    CompilerConfigurationChangeFlags.NONSTANDARDOPTIONS_CHANGED |
+                                    CompilerConfigurationChangeFlags.OUTJAR_CHANGED);
+                        }
+                        return false;
+                    }
+                } 
                 // want to fully traverse this delta if not 
                 // a leaf node
                 return true;

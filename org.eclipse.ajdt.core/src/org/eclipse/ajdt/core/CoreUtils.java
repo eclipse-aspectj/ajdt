@@ -38,6 +38,10 @@ import org.osgi.framework.Bundle;
  */
 public class CoreUtils {
 
+    public static final String PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$
+    public static final String ID_NATURE = PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+
+    
 	/**
 	 * Computed classpath to aspectjrt.jar
 	 */
@@ -286,4 +290,15 @@ public class CoreUtils {
 		return (IPath[])paths.toArray(new IPath[paths.size()]);
 	}
 	
+	   public static boolean isAJProject(IProject project) {
+	        if((project!=null) && project.isOpen()) {           
+	            try {
+	                if (project.hasNature(ID_NATURE)) { 
+	                    return true;
+	                }
+	            } catch (CoreException e) {
+	            }
+	        }
+	        return false;
+	    }
 }
