@@ -66,6 +66,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 			// perform Apply - expect there to be a build
 			testLog.clearLog();
 			page.performApply();
+			waitForJobsToComplete();
 			boolean didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertTrue(
@@ -74,6 +75,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 			// pressing "Ok" now should not result in a build
 			testLog.clearLog();
 			page.performOk();
+            waitForJobsToComplete();
 			didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
@@ -178,6 +180,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// perform Apply - expect there to be a build
 		testLog.clearLog();
 		page.performApply();
+        waitForJobsToComplete();
 		boolean didBuild = testLog
 				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
@@ -185,6 +188,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// pressing "Ok" now should not result in a build
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
 				+ " already applied changes but build happened anyway", //$NON-NLS-1$
@@ -200,12 +204,14 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		page.setIsUsingProjectSettings(true);
 		page.setBuildNow(true);
 		page.performOk();
+        waitForJobsToComplete();
 
 		// now change back to using workspace settings
 		page.setIsUsingProjectSettings(false);
 		// perform Apply - expect there to be a build
 		testLog.clearLog();
 		page.performApply();
+        waitForJobsToComplete();
 		boolean didBuild = testLog
 				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
@@ -213,6 +219,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// pressing "Ok" now should not result in a build
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
 				+ " already applied changes but build happened anyway", //$NON-NLS-1$
@@ -259,11 +266,13 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
 		page.setNonStandardOption("-showWeaveInfo"); //$NON-NLS-1$
+        waitForJobsToComplete();
 		// want to do a build when asked
 		page.setBuildNow(true);
 		// perform Apply - expect there to be a build
 		testLog.clearLog();
 		page.performApply();
+        waitForJobsToComplete();
 		boolean didBuild = testLog
 				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
@@ -271,6 +280,7 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// pressing "Ok" now should not result in a build
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
 				+ " already applied changes but build happened anyway", //$NON-NLS-1$

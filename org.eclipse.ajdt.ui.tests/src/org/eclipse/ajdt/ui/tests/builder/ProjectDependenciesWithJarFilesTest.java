@@ -485,13 +485,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
-		assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
 		assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
@@ -622,14 +615,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
 		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
@@ -648,13 +633,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// setup the outjar
 		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar2);
-		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists()); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
 		waitForJobsToComplete();
 
 		assertTrue("Output jar should exist! (path=" + outJar2 + ")",new File(outJar2).exists()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -750,13 +728,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
-		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
 		waitForJobsToComplete();
 		
 		// check that outjar exists etc, but that the jar only appears

@@ -56,6 +56,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		// perform Apply - expect there to be a build
 		testLog.clearLog();			
 		page.performApply();
+		waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply but did not",didBuild);		 //$NON-NLS-1$
 	}
@@ -71,6 +72,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		// perform Ok - expect there to be a build
 		testLog.clearLog();			
 		page.performOk();
+        waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performOky but did not",didBuild);		 //$NON-NLS-1$
 	}
@@ -86,6 +88,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		// perform cancel - dont expect there to be a build
 		testLog.clearLog();			
 		page.performCancel();
+        waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("didn't expect build to occur after performCancel " + //$NON-NLS-1$
 				"but a build happened",didBuild);		 //$NON-NLS-1$
@@ -103,6 +106,7 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		// nothing has changed
 		testLog.clearLog();			
 		page.performDefaults();
+        waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("didn't expect build to occur after performDefaults " + //$NON-NLS-1$
 				"but a build happened",didBuild);		 //$NON-NLS-1$
@@ -117,13 +121,15 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
 				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Apply - expect there to be a build
-		testLog.clearLog();			
+		testLog.clearLog();	
 		page.performApply();
+        waitForJobsToComplete();
 		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply but did not",didBuild);		 //$NON-NLS-1$
 		// clear the log and performOk which shouldn't result in a build
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("didn't expect build to occur after performOk because " + //$NON-NLS-1$
 				"already done one but one happened",didBuild);		 //$NON-NLS-1$

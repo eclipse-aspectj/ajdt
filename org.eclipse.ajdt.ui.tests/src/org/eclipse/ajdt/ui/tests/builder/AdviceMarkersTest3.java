@@ -88,6 +88,7 @@ public class AdviceMarkersTest3 extends UITestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
+		waitForJobsToComplete();
 	}
 
 	public void testMarkers() throws Exception {
@@ -99,12 +100,11 @@ public class AdviceMarkersTest3 extends UITestCase {
 		IMarker[] allMarkers = file.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
 		for (int x = 0; x < allMarkers.length; x++) {
 			IMarker marker = allMarkers[x];
-			System.out.println(marker.getType());
+			System.out.println(marker.getType() + " : " + allMarkers[0].getAttribute(IMarker.MESSAGE)); //$NON-NLS-1$
 		}
 		for (int i = 0; i < markerTypes.length; i++) {
 			IMarker[] markers = file.findMarkers(markerTypes[i], true,
 					IResource.DEPTH_INFINITE);
-			//System.out.println("type=" + markerTypes[i]);
 			
 			// create lists of messages and lines we need to search for
 			List tofindMsg = new ArrayList();
