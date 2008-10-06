@@ -162,7 +162,7 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         
         // look at AJDT Event trace
         // the configuration should have registered a change:
-        assertEquals(1, testLog.numberOfEntriesForMessage("CoreCompilerConfiguration for project Bean Example registered a configuration change: [ASPECTPATH_CHANGED, CLASSPATH_CHANGED, INPATH_CHANGED]"));
+        assertEquals(1, testLog.numberOfEntriesForMessage("CoreCompilerConfiguration for project Bean Example registered a configuration change: [ASPECTPATH_CHANGED, CLASSPATH_CHANGED, INPATH_CHANGED, OUTPUTDESTINATIONS_CHANGED]"));
         
         // classpath has been changed, so should not see this message
         assertEquals(0, testLog.numberOfEntriesForMessage("build: Examined delta - no source file or classpath changes for project Bean Example"));
