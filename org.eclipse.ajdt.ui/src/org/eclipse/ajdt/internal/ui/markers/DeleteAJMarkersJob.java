@@ -3,6 +3,8 @@ package org.eclipse.ajdt.internal.ui.markers;
 import java.io.File;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
@@ -102,7 +104,7 @@ public class DeleteAJMarkersJob extends Job {
             // inner loop---if a single file is mapped to several linked files in the workspace
             for (int j = 0; j < files.length; j++) {
                 IFile file = files[j];
-                if (file.exists()) {
+                if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getFileExtension())) {
                     subMonitor.subTask("Delete markers for " + file.getName());
                     file.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
                             true, IResource.DEPTH_INFINITE);

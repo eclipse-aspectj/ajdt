@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -29,8 +30,8 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.ListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogField;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.TreeListDialogField;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -72,7 +73,7 @@ aspect PreferencePageBuilder {
 	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of SelectionButtonDialogField -> Boolean)*/selectionButtonOriginalValues = new Hashtable();
 
 	// manage tree list dialog fields on all pages
-	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of ListDialogField -> List)*/dialogFieldOriginalValues = new Hashtable();
+	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of TreeListDialogField -> List)*/dialogFieldOriginalValues = new Hashtable();
 
 	private boolean useProjectSettingsOriginalValue;
 
@@ -203,19 +204,19 @@ aspect PreferencePageBuilder {
 	//        }    
 	//    }
 
-	pointcut setElements(ListDialogField dialogField, Collection elements,
+	pointcut setElements(TreeListDialogField dialogField, List elements,
 			AJDTPathBlockPage basePage) :
-        call(* setElements(Collection)) && args(elements) && target(dialogField) && this(basePage);
+        call(* setElements(List)) && args(elements) && target(dialogField) && this(basePage);
 
 	// remember the first value put into the TreeListDialogFields
-	before(ListDialogField dialogField, Collection elements,
+	before(TreeListDialogField dialogField, List elements,
 			AJDTPathBlockPage basePage) :
-        setElements(dialogField,elements,basePage) && interestingPathBlockPages() {
+        setElements(dialogField, elements, basePage) && interestingPathBlockPages() {
 
 		IWorkbenchPropertyPage page = null;
-		// We need to associate the ListDialogField with the related IWorkbenchPropertyPage object
+		// We need to associate the TreeListDialogField with the related IWorkbenchPropertyPage object
 		// rather than the related AJDTPathBlockPage (so we can check if the contents
-		// of the ListDialogField more easily in settingsHaveChanged(IWorkbenchPropertyPage)).
+		// of the TreeListDialogField more easily in settingsHaveChanged(IWorkbenchPropertyPage)).
 		// We therefore iterate through the active pages.       
 		for (Iterator iter = activePages.iterator(); iter.hasNext();) {
 			IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter
@@ -308,7 +309,7 @@ aspect PreferencePageBuilder {
 		if (dialogFieldsOnPage != null) {
 			Enumeration fields = dialogFieldsOnPage.keys();
 			while (fields.hasMoreElements()) {
-				ListDialogField f = (ListDialogField) fields.nextElement();
+				TreeListDialogField f = (TreeListDialogField) fields.nextElement();
 				List currentLibs = f.getElements();
 				List originalLibs = (List) dialogFieldsOnPage.get(f);
 				if (currentLibs.size() != originalLibs.size()) {
@@ -383,7 +384,7 @@ aspect PreferencePageBuilder {
 		if (fieldsOnPage != null) {
 			Enumeration fields = fieldsOnPage.keys();
 			while (fields.hasMoreElements()) {
-				ListDialogField f = (ListDialogField) fields.nextElement();
+				TreeListDialogField f = (TreeListDialogField) fields.nextElement();
 				fieldsOnPage.put(f, f.getElements());
 			}
 		}
@@ -475,32 +476,9 @@ aspect PreferencePageBuilder {
 		}
 		final IProject project = tempProject;
 		if (project != null) {
-			ProgressMonitorDialog dialog = new ProgressMonitorDialog(
-					((PreferencePage) prefPage).getShell());
-			try {
-				dialog.run(true, true, new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor)
-							throws InvocationTargetException {
-						monitor.beginTask("", 2); //$NON-NLS-1$
-						try {
-							monitor
-									.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
-							project.build(IncrementalProjectBuilder.FULL_BUILD,
-									new SubProgressMonitor(monitor, 2));
-						} catch (CoreException e) {
-							AJDTErrorHandler
-									.handleAJDTError(
-											UIMessages.OptionsConfigurationBlock_builderror_message,
-											e);
-						} finally {
-							monitor.done();
-						}
-					}
-				});
-			} catch (InterruptedException e) {
-				// cancelled by user
-			} catch (InvocationTargetException e) {
-			}
+//            AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
+            AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.INCREMENTAL_BUILD);
+		    job.schedule();
 		}
 	}
 

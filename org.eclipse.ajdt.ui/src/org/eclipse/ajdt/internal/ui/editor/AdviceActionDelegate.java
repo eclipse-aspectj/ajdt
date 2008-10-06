@@ -18,10 +18,10 @@ Contributors:
 package org.eclipse.ajdt.internal.ui.editor;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -38,8 +38,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -57,8 +55,6 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -233,33 +229,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
             }
             public void run() {
                 // force a full build
-                Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
-                ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
-                try {
-                    dialog.run(true, true, new IRunnableWithProgress() {
-                        public void run(IProgressMonitor monitor)
-                                throws InvocationTargetException {
-                            monitor.beginTask("", 2); //$NON-NLS-1$
-                            try {
-                                monitor.setTaskName("Build " + project.getName() + " to initialize references.");
-                                project.build(
-                                        IncrementalProjectBuilder.FULL_BUILD,
-                                        new SubProgressMonitor(monitor, 2));
-                            } catch (CoreException e) {
-                                AJDTErrorHandler
-                                        .handleAJDTError(
-                                                UIMessages.OptionsConfigurationBlock_builderror_message,
-                                                e);
-                            } finally {
-                                monitor.done();
-                            }
-                        }
-                    });
-                } catch (InterruptedException e) {
-                    // cancelled by user
-                } catch (InvocationTargetException e) {
-                }
-                
+                AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
+                job.schedule();
             }
         });
         manager.add(emptyAJrefs);

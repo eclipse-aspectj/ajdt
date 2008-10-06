@@ -1364,7 +1364,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		this.isTesting = isTesting;
 	}
 	public void setIsUsingProjectSettings(boolean useProjectSettings) {
-		testingProjectSettings = isTesting;
+		testingProjectSettings = useProjectSettings;
 	}
 	// changes one of the button values to simulate user input
 	public void setButtonChanged() {

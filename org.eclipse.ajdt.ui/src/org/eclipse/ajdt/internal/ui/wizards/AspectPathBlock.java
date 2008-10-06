@@ -80,7 +80,7 @@ public class AspectPathBlock extends PathBlock {
         return UIMessages.AspectPathBlock_note;
     }
     
-    protected String getBlockTitle() {
+    public String getBlockTitle() {
         return UIMessages.AspectPathBlock_tab_libraries;
     }
 

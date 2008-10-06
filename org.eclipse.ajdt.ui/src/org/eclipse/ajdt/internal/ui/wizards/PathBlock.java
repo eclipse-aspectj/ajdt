@@ -193,7 +193,7 @@ public abstract class PathBlock {
     
     protected abstract String getBlockNote();
 
-    protected abstract String getBlockTitle();
+    public abstract String getBlockTitle();
 
 
     

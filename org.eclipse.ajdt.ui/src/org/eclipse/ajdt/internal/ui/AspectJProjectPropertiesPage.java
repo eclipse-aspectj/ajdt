@@ -25,6 +25,7 @@ import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
+import org.eclipse.ajdt.internal.ui.wizards.PathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -37,6 +38,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -72,6 +74,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
 import org.eclipse.ui.dialogs.PropertyPage;
+import org.eclipse.ui.progress.UIJob;
 
 /**
  * The properties page for the AspectJ build path options that can be set.
@@ -84,6 +87,9 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     /**
      * Listens for changes that require a refresh or a commit of
      * the properties page.
+     * 
+     * If the page has changes, then commit those changes before moving 
+     * to another page.
      */
     private class PageChangeListener implements Listener, IResourceChangeListener {
         public void handleEvent(Event event) {
@@ -105,31 +111,19 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
         /**
          * runs resetPathBlocks() in the UI thread
+         * must reload the path block from the .classpath file before
+         * showing the page
          */
         private void refreshPathBlock() {
             if (hasChangesInClasspathFile()) {
                 // must run from the UI thread
-                Display.getDefault().asyncExec(new Runnable() {
+                Display.getDefault().syncExec(new Runnable() {
                 	public void run() {
                         resetPathBlocks();
                 	}
                 });
-                // would be better to use a runnable that has a progress bar here, but
-                // this is giving me invocation errors. so not using it.
-//                IRunnableWithProgress runnable = new IRunnableWithProgress() {
-//                    public void run(IProgressMonitor monitor) {
-//                        resetPathBlocks();
-//                    }
-//                };
-//                try {
-//                    PlatformUI.getWorkbench().getProgressService().runInUI(
-//                    		new ProgressMonitorDialog(null), runnable, null);
-//                } catch (InvocationTargetException e) {
-//                } catch (InterruptedException e) {
-//                	// cancelled
-//                }
             }
-        }
+        } 
     }
 
 	private static final String INDEX = "pageIndex"; //$NON-NLS-1$
@@ -512,26 +506,27 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     		    AspectJCorePreferences.setProjectOutJar(thisProject, outputJarEditor
     		            .getStringValue());
     		}
+    		
+    		class ConfigurePathBlockJob extends UIJob {
+    		    PathBlock block;
+    		    ConfigurePathBlockJob(PathBlock block) {
+    		        super("Configure " + block.getBlockTitle());
+    		        this.block = block;
+                }
+                public IStatus runInUIThread(IProgressMonitor monitor) {
+                    try {
+                        fInPathBlock.configureJavaProject(monitor);
+                        return Status.OK_STATUS;
+                    } catch (CoreException e) {
+                        return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, "Error configuring in path.", e);
+                    } catch (InterruptedException e) {
+                        return Status.CANCEL_STATUS;
+                    }
+                }
+    		    
+    		}
     		if (fInPathBlock != null) {
-    			IRunnableWithProgress runnable = new IRunnableWithProgress() {
-    				public void run(IProgressMonitor monitor)
-    						throws InvocationTargetException, InterruptedException {
-    					try {
-    						fInPathBlock.configureJavaProject(monitor);
-    					} catch (CoreException e) {
-    						throw new InvocationTargetException(e);
-    					}
-    				}
-    			};
-    			
-    			try {
-    			    PlatformUI.getWorkbench().getProgressService().run(false, true, runnable);
-    			} catch (InvocationTargetException e) {
-    				return false;
-    			} catch (InterruptedException e) {
-    				// cancelled
-    				return false;
-    			}
+                new ConfigurePathBlockJob(fInPathBlock).schedule();
     			
     			// set the inpath's output folder
     			// we should only be setting the out path if it is different
@@ -541,30 +536,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     		}
     
     		if (fAspectPathBlock != null) {
+    		    new ConfigurePathBlockJob(fAspectPathBlock).schedule();
     			getSettings().put(INDEX, fAspectPathBlock.getPageIndex());
-    
-    			IRunnableWithProgress runnable = new IRunnableWithProgress() {
-    				public void run(IProgressMonitor monitor)
-    						throws InvocationTargetException, InterruptedException {
-    					try {
-    						fAspectPathBlock.configureJavaProject(monitor);
-    					} catch (CoreException e) {
-    						AJDTErrorHandler.handleAJDTError(
-    										PreferencesMessages.BuildPathsPropertyPage_error_message,
-    										e);
-    					}
-    				}
-    			};
-    			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
-    					runnable);
-    			try {
-    			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
-    			} catch (InvocationTargetException e) {
-    				return false;
-    			} catch (InterruptedException e) {
-    				// cancelled
-    				return false;
-    			}
     		}
     		AJDTUtils.refreshPackageExplorer();
     		initializeTimeStamps();

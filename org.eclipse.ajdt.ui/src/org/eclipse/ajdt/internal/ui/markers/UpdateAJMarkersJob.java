@@ -423,13 +423,15 @@ public class UpdateAJMarkersJob extends Job {
 
         for (Iterator aspectIter = aspectEntities.iterator(); aspectIter.hasNext();) {
             IJavaElement elt = (IJavaElement) aspectIter.next();
-            IType typeElement = (IType) elt.getAncestor(IJavaElement.TYPE);
-            if (typeElement != null) {
-                String customImage = AspectJPreferences.getSavedIcon(typeElement.getJavaProject()
-                        .getProject(), AJMarkersDialog
-                        .getFullyQualifiedAspectName(typeElement));
-                if (customImage != null) {
-                    return customImage;
+            if (elt != null) {  // will be null if the referent is not found.  Should only be in error cases
+                IType typeElement = (IType) elt.getAncestor(IJavaElement.TYPE);
+                if (typeElement != null) {
+                    String customImage = AspectJPreferences.getSavedIcon(typeElement.getJavaProject()
+                            .getProject(), AJMarkersDialog
+                            .getFullyQualifiedAspectName(typeElement));
+                    if (customImage != null) {
+                        return customImage;
+                    }
                 }
             }
         }

@@ -263,7 +263,7 @@ public class InPathBlock extends PathBlock {
         return UIMessages.InPathBlock_note;
     }
     
-    protected String getBlockTitle() {
+    public String getBlockTitle() {
         return UIMessages.InPathBlock_tab_inpath_order;
     }
 
