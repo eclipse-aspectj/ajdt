@@ -122,7 +122,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
                 AspectJPreferences.VALUE_FALSE);
         defaultValueMap.put(
                 AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations,
-                AspectJPreferences.VALUE_FALSE);
+                AspectJPreferences.VALUE_TRUE);
         defaultValueMap.put(
                 AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
                 AspectJPreferences.VALUE_WARNING);
@@ -318,7 +318,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 */ 
 	public static void initDefaults(IPreferenceStore store) {
         getAspectJCorePLuginPreferences().setDefault(AspectJCorePreferences.OPTION_AutobuildSuppressed, 
-                AspectJPreferences.VALUE_FALSE);
+                AspectJPreferences.VALUE_TRUE);
         store.setDefault(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, 
                 AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_ReportShadowNotInStructure, 
@@ -429,13 +429,15 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
     		excomposite.setClient(othersComposite);
     		othersComposite.setLayout(new GridLayout(nColumns, false));
     		
+    		Preferences prefs = getAspectJCorePLuginPreferences();
+    		
     		// suppress autobuild
             label = UIMessages.CompilerConfigurationBlock_aj_suppressAutoBuild;
             Button b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_AutobuildSuppressed, enableDisableValues, 0, false);
             useAspectJCorePreferences(b);
             // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
             // ignoring the original value.
-            b.setSelection(getAspectJCorePLuginPreferences().getBoolean(AspectJCorePreferences.OPTION_AutobuildSuppressed));
+            b.setSelection(prefs.getBoolean(AspectJCorePreferences.OPTION_AutobuildSuppressed));
 
             // incremental compiler optimizations
             label = UIMessages.CompilerConfigurationBlock_aj_incrementalCompilerOptimizations;
@@ -443,7 +445,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
             useAspectJCorePreferences(b);
             // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
             // ignoring the original value.
-            b.setSelection(getAspectJCorePLuginPreferences().getBoolean(AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations));
+            b.setSelection(prefs.getBoolean(AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations));  // default is true
 
 		}
 		
@@ -759,7 +761,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				        store.getBoolean(data.getKey());
 				if (currValue != storedValue) {
 				    // check to see if we should ignore the change in the checkbox
-				    // change should be ignored if the NO_BUILD_ON_CHANGE flad exists
+				    // change should be ignored if the NO_BUILD_ON_CHANGE flag exists
 				    if (curr.getData(NO_BUILD_ON_CHANGE) == null) {
 				        advancedOrOtherChanges = true;
 				    }
