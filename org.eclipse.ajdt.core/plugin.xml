@@ -59,5 +59,11 @@
          </enablement>
       </renameParticipant>
    </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.ajdt.core.AJDTPreferencesInitializer">
+      </initializer>
+   </extension>
  
 </plugin>
