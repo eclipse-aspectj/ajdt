@@ -54,7 +54,8 @@ public aspect ErrorsTest {
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
 						if (entry.getMessage().indexOf("org.eclipse.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
 						        entry.getMessage().indexOf("One or more bundles are not resolved because the following root constraints are not resolved") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1) { //$NON-NLS-1$ 
+						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1 && //$NON-NLS-1$
+						        entry.getMessage().indexOf("The test added errors to the log: Plug-in org.eclipse.contribution.xref.core.tests was unable to load class org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1) { //$NON-NLS-1$
 							// ignore warnings that are regarding a known missing class.
 							failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						}
