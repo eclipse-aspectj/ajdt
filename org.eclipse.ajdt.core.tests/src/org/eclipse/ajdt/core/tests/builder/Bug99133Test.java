@@ -75,7 +75,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	/**
 	 * A depends on B and in particular calls a method in B
 	 * and that method body changes. Ultimately, no build of project A should 
-	 * occurr. However, AJDT can't tell whether to build or not and so we 
+	 * occur. However, AJDT can't tell whether to build or not and so we 
 	 * pass it down to the compiler. The compiler then uses A's incremental
 	 * state to say that nothing has structurely changed and 
 	 * returns quickly. 
