@@ -8,7 +8,6 @@ public class AJDTPreferencesInitializer extends AbstractPreferenceInitializer {
     public void initializeDefaultPreferences() {
         Preferences store = AspectJPlugin.getDefault()
             .getPluginPreferences();
-        store.setDefault(AspectJCorePreferences.OPTION_AutobuildSuppressed, false);
         store.setDefault(AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations, true);
     }
 

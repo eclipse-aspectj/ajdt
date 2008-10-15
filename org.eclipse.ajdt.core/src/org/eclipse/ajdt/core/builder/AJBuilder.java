@@ -109,13 +109,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				
 		IProject[] requiredProjects = getRequiredProjects(project,true);
 
-		if (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD) {
-		    if (AspectJCorePreferences.isAutobuildSuppressed()) {
-		        AJLog.log(AJLog.BUILDER,"Autobuild suppressed by user for project " + project.getName()); //$NON-NLS-1$
-		        return requiredProjects;
-		    }
-		}
-
 		// must call this after checking whether a full build has been requested,
 		// otherwise the listeners are called with a different build kind than
 		// is actually carried out. In the case of the ui, then this means that 
