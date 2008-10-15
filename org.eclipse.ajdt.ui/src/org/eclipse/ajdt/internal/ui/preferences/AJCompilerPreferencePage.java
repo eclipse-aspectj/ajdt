@@ -118,9 +118,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private static final Map defaultValueMap = new HashMap();
 	static {
         defaultValueMap.put(
-                AspectJCorePreferences.OPTION_AutobuildSuppressed,
-                AspectJPreferences.VALUE_FALSE);
-        defaultValueMap.put(
                 AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations,
                 AspectJPreferences.VALUE_TRUE);
         defaultValueMap.put(
@@ -231,7 +228,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * List of all the preference keys for this page
 	 */
 	private static final String[] keys = new String[] {
-	        AspectJCorePreferences.OPTION_AutobuildSuppressed,
+	        AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations,
 			AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
 			AspectJPreferences.OPTION_ReportShadowNotInStructure,
 			AspectJPreferences.OPTION_ReportCannotImplementLazyTJP,
@@ -317,7 +314,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * "restore defaults" is clicked.
 	 */ 
 	public static void initDefaults(IPreferenceStore store) {
-        getAspectJCorePLuginPreferences().setDefault(AspectJCorePreferences.OPTION_AutobuildSuppressed, 
+        getAspectJCorePLuginPreferences().setDefault(AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations, 
                 AspectJPreferences.VALUE_TRUE);
         store.setDefault(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, 
                 AspectJPreferences.VALUE_WARNING);
@@ -431,17 +428,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
     		
     		Preferences prefs = getAspectJCorePLuginPreferences();
     		
-    		// suppress autobuild
-            label = UIMessages.CompilerConfigurationBlock_aj_suppressAutoBuild;
-            Button b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_AutobuildSuppressed, enableDisableValues, 0, false);
-            useAspectJCorePreferences(b);
-            // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
-            // ignoring the original value.
-            b.setSelection(prefs.getBoolean(AspectJCorePreferences.OPTION_AutobuildSuppressed));
-
             // incremental compiler optimizations
             label = UIMessages.CompilerConfigurationBlock_aj_incrementalCompilerOptimizations;
-            b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations, enableDisableValues, 0, false);
+            Button b = addCheckBox(othersComposite, label, AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations, enableDisableValues, 0, false);
             useAspectJCorePreferences(b);
             // a little kludgy, but here we re-set the selection to be what is stored in AJ core preferences.
             // ignoring the original value.
