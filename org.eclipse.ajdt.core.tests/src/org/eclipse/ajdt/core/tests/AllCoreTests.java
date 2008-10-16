@@ -93,7 +93,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJBuilderTest.class));
         suite.addTest(new TestSuite(AJBuilderTest2.class));
         suite.addTest(new TestSuite(AspectPathTests.class));
-		suite.addTest(new TestSuite(Bug99133Test.class));
+        
+//		suite.addTest(new TestSuite(Bug99133Test.class));
         suite.addTest(new TestSuite(Bug159197Test.class));
         suite.addTest(new TestSuite(Bug43711Test.class));
 
