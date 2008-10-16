@@ -20,9 +20,11 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -33,35 +35,28 @@ import org.eclipse.jdt.core.JavaModelException;
  * Bug 99133 - if A depends on B, and you make a change to
  * B such that A should notice, A was not being built
  * 
+ * This test has been known to fail intermittently due to the timing checks in AjState.
+ * 
  * The tests in this testcase are different scenarios around this.
  */
 public class Bug99133Test extends AJDTCoreTestCase {
 	
 	IProject pA,pB;
 	TestLogger testLog;
-	int numberOfBuilds;
 	
 	/*
 	 * @see TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+		pB = createPredefinedProject("bug99133b"); //$NON-NLS-1$
+        Utils.sleep(1000);  // sleep to ensure timestamps are sufficiently far apart so that AjState thinks the builds are separate
+		pA = createPredefinedProject("bug99133a"); //$NON-NLS-1$
+
 		testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
-		pB = createPredefinedProject("bug99133b"); //$NON-NLS-1$
-		waitForAutoBuild();
-		waitForAutoBuild();
-		pA = createPredefinedProject("bug99133a"); //$NON-NLS-1$
-		waitForAutoBuild();
-		waitForAutoBuild();
-		
-		// Adds 2 errors to the log when the dependency is removed.
-		checkForJDTBug84214(pA,pB);
-		waitForAutoBuild();
-		waitForAutoBuild();
-		numberOfBuilds = testLog.getNumberOfBuildsRun();
 	}
-
+	
 	/*
 	 * @see TestCase#tearDown()
 	 */
@@ -69,9 +64,14 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		super.tearDown();
 		AspectJPlugin.getDefault().setAJLogger(null);
 		testLog = null;
-		numberOfBuilds = 0;
 	}
 	
+    public void testBug84214() throws Exception {
+        // Adds 2 errors to the log when the dependency is removed.
+        checkForJDTBug84214(pA,pB);
+        waitForAutoBuild();
+    }
+
 	/**
 	 * A depends on B and in particular calls a method in B
 	 * and that method body changes. Ultimately, no build of project A should 
@@ -82,6 +82,8 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	 * (both A and B are AJ projects)
 	 */
 	public void testBug99133a() throws Exception {
+	    testLog.clearLog();
+	    
 		// change the contents of the method m1() in 
 		// bug99133b\src\p\C1.java to include a sysout call
 		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -103,11 +105,10 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		br1.close();
 		StringReader reader1 = new StringReader(sb1.toString());
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
-		waitForAutoBuild();
-		waitForAutoBuild();
+        waitForAutoBuild();
+        
 		assertEquals("two more builds should have occured", //$NON-NLS-1$
-				numberOfBuilds + 2,
-				testLog.getNumberOfBuildsRun());
+				2, testLog.getNumberOfBuildsRun());
 		
 		// At the moment, can at least check that the build of the
 		// dependent project is an incremental build.
@@ -207,6 +208,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	 * The method body of a method not referenced in A changes. 
 	 */
 	public void testBug99133c() throws Exception {
+	    testLog.clearLog();
 		// change the contents of the method m1() in 
 		// bug99133b\src\p\C1.java to include a sysout call
 		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -229,11 +231,9 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		StringReader reader1 = new StringReader(sb1.toString());
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
 		waitForAutoBuild();
-		waitForAutoBuild();
 		
 		assertEquals("two more builds should have occured", //$NON-NLS-1$
-				numberOfBuilds + 2,
-				testLog.getNumberOfBuildsRun());
+				2, testLog.getNumberOfBuildsRun());
 
 		// At the moment, can at least check that the build is an
 		// incremental build.
@@ -460,10 +460,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	private void checkForJDTBug84214(IProject projectWhichShouldHaveDependency, IProject projectDependedOn) throws JavaModelException {
 		if (projectDependedOn.getReferencingProjects().length == 0) {
 			removeProjectDependency(projectWhichShouldHaveDependency,projectDependedOn);
-			waitForAutoBuild();
 			addProjectDependency(projectWhichShouldHaveDependency,projectDependedOn);
-			waitForAutoBuild();
-			waitForAutoBuild();
 		}
 		assertEquals(" " + projectDependedOn  + " should have "  //$NON-NLS-1$ //$NON-NLS-2$
 				+ projectWhichShouldHaveDependency 

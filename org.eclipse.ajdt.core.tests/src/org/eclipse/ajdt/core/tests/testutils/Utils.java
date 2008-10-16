@@ -28,5 +28,11 @@ public class Utils {
 	public static boolean isAutobuilding() {
 	    return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
 	}
-	
+
+    public synchronized static void sleep(int millis) {
+        try {
+            Utils.class.wait(millis);
+        } catch (InterruptedException e) {
+        }
+    }
 }

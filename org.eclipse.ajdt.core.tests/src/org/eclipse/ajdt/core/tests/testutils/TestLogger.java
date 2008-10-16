@@ -160,6 +160,9 @@ public class TestLogger implements IAJLogger {
         if (log != null) {
             log.clear();
         }
+        if (buildLog != null) {
+            buildLog.clear();
+        }
     }
     
     public boolean isEmpty() {
