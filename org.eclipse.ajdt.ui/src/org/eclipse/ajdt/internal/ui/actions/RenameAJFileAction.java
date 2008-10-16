@@ -10,9 +10,14 @@
 package org.eclipse.ajdt.internal.ui.actions;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.corext.refactoring.RefactoringAvailabilityTester;
+import org.eclipse.jdt.internal.corext.refactoring.rename.RenameCompilationUnitProcessor;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.refactoring.RefactoringSaveHelper;
 import org.eclipse.jdt.internal.ui.refactoring.UserInterfaceStarter;
@@ -21,7 +26,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
-import org.eclipse.ltk.internal.core.refactoring.resource.RenameResourceProcessor;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -45,8 +49,9 @@ public class RenameAJFileAction implements IActionDelegate {
 				if (!RefactoringAvailabilityTester.isRenameAvailable(resource)) {
 					return;
 				}
-				RenameResourceProcessor processor= new RenameResourceProcessor(resource);
+//				RenameResourceProcessor processor= new RenameResourceProcessor(resource);
 				try {
+				    RenameCompilationUnitProcessor processor = new RenameCompilationUnitProcessor(getUnit(resource));
 					if(!processor.isApplicable())
 						return;
 					RenameRefactoring refactoring= new RenameRefactoring(processor);
@@ -74,5 +79,14 @@ public class RenameAJFileAction implements IActionDelegate {
             return ((AJCompilationUnit)first).getResource();
         } 
 		return null;
+	}
+	
+	private AJCompilationUnit getUnit(IResource resource) {
+	    IJavaElement elt = JavaCore.create(resource);
+	    if (elt instanceof ICompilationUnit) {
+            return CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) elt);
+        } else {
+            return null;
+        }
 	}
 }
