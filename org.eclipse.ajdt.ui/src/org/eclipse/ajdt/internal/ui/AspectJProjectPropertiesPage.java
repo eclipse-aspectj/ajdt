@@ -126,6 +126,25 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         } 
     }
 
+    private class ConfigurePathBlockJob extends UIJob {
+        PathBlock block;
+        ConfigurePathBlockJob(PathBlock block) {
+            super("Configure " + block.getBlockTitle());
+            this.block = block;
+        }
+        public IStatus runInUIThread(IProgressMonitor monitor) {
+            try {
+                block.configureJavaProject(monitor);
+                return Status.OK_STATUS;
+            } catch (CoreException e) {
+                return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, "Error configuring in path.", e);
+            } catch (InterruptedException e) {
+                return Status.CANCEL_STATUS;
+            }
+        }
+        
+    }
+
 	private static final String INDEX = "pageIndex"; //$NON-NLS-1$
 
 	private int fPageIndex;
@@ -456,6 +475,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         
         // ignore changes to .classpath that occur during commits
         thisProject.getWorkspace().removeResourceChangeListener(fListener);
+        
+        // update the output jar
         try {
     		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);
     		IClasspathEntry oldEntry = null;
@@ -507,26 +528,9 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     		            .getStringValue());
     		}
     		
-    		class ConfigurePathBlockJob extends UIJob {
-    		    PathBlock block;
-    		    ConfigurePathBlockJob(PathBlock block) {
-    		        super("Configure " + block.getBlockTitle());
-    		        this.block = block;
-                }
-                public IStatus runInUIThread(IProgressMonitor monitor) {
-                    try {
-                        fInPathBlock.configureJavaProject(monitor);
-                        return Status.OK_STATUS;
-                    } catch (CoreException e) {
-                        return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, "Error configuring in path.", e);
-                    } catch (InterruptedException e) {
-                        return Status.CANCEL_STATUS;
-                    }
-                }
-    		    
-    		}
-    		if (fInPathBlock != null) {
+    		if (fInPathBlock != null && fInPathBlock.hasChangesInDialog()) {
                 new ConfigurePathBlockJob(fInPathBlock).schedule();
+                getSettings().put(INDEX, fInPathBlock.getPageIndex());
     			
     			// set the inpath's output folder
     			// we should only be setting the out path if it is different
@@ -535,7 +539,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
     			AspectJCorePreferences.setProjectInpathOutFolder(getProject(), fInPathBlock.getOutputFolder());
     		}
     
-    		if (fAspectPathBlock != null) {
+    		if (fAspectPathBlock != null && fAspectPathBlock.hasChangesInDialog()) {
     		    new ConfigurePathBlockJob(fAspectPathBlock).schedule();
     			getSettings().put(INDEX, fAspectPathBlock.getPageIndex());
     		}

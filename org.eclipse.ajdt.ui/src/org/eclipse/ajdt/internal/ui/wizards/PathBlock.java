@@ -210,36 +210,10 @@ public abstract class PathBlock {
     private void libaryPageDialogFieldChanged(DialogField field) {
         if (fCurrJProject != null) {
             // already initialized
-//            updatePathList();
             updatePathStatus();
             doStatusLineUpdate();
         }
     }
-  
-    // don't think thisis needed any more because we accept 
-    // all kinds of classpath entries now (ie- projects and containers)
-//  private void updatePathList() {
-//        List projelements = fPathList.getElements();
-//        List cpelements = fPathList.getElements();
-//        
-//        int nEntries = cpelements.size();
-//        // backwards, as entries will be deleted
-//        int lastRemovePos = nEntries;
-//        for (int i = nEntries - 1; i >= 0; i--) {
-//            CPListElement cpe = (CPListElement) cpelements.get(i);
-//            if (!projelements.remove(cpe)) {
-//                cpelements.remove(i);
-//                lastRemovePos = i;
-//            }
-//        }
-//
-//        cpelements.addAll(lastRemovePos, projelements);
-//
-//        if (lastRemovePos != nEntries || !projelements.isEmpty()) {
-//            fPathList.setElements(cpelements);
-//        }
-//    }
-
 
 
 
