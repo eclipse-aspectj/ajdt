@@ -104,7 +104,7 @@ public class DeleteAJMarkersJob extends Job {
             // inner loop---if a single file is mapped to several linked files in the workspace
             for (int j = 0; j < files.length; j++) {
                 IFile file = files[j];
-                if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getFileExtension())) {
+                if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())) {
                     subMonitor.subTask("Delete markers for " + file.getName());
                     file.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
                             true, IResource.DEPTH_INFINITE);

@@ -165,8 +165,8 @@ public class UpdateAJMarkersJob extends Job {
                 if (unit != null && unit.exists() && unit instanceof ICompilationUnit) {
                     subMonitor.subTask("Add markers for " + unit.getElementName());
                     addMarkersForFile((ICompilationUnit) unit, files[j]);
-                    subMonitor.worked(1);
                 }
+                subMonitor.worked(1);
             }
         }
     }
@@ -270,7 +270,7 @@ public class UpdateAJMarkersJob extends Job {
      * Get the marker type that should be used for the given relationship
      * 
      * @param relationship
-     * @param runtimeTest
+     * @param target
      * @return
      */
     private String getMarkerTypeForRelationship(IRelationship relationship, String target) {
@@ -321,6 +321,15 @@ public class UpdateAJMarkersJob extends Job {
                 ak = AdviceKind.stringToKind(advice.getExtraInfo().getExtraAdviceInformation());
             } else {
                 ak = null;
+                // hmmm...sometmes ExtradviceInformtion is null.  
+                // try to get the advice kind by the name
+                if (advice.getName().startsWith("before")) {
+                    ak = AdviceKind.Before;
+                } else if (advice.getName().startsWith("after")) {
+                    ak = AdviceKind.After;
+                } else if (advice.getName().startsWith("around")) {
+                    ak = AdviceKind.Around;
+                }
             }
             if (runtimeTest) {
                 if (ak == null) {
