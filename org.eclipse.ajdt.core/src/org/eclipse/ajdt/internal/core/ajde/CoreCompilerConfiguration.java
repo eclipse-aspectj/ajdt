@@ -637,9 +637,15 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 	
 	public File[] getChangedFiles() {
-	    Set changedFiles = AsmManager.getDefault().getAspectsWeavingFilesOnLastBuild();
-	    changedFiles.addAll(AsmManager.getDefault().getModelChangesOnLastBuild());
-
-	    return (File[]) changedFiles.toArray(new File[changedFiles.size()]);
+//	    Set changedFiles = AsmManager.getDefault().getAspectsWeavingFilesOnLastBuild();
+//	    changedFiles.addAll(AsmManager.getDefault().getModelChangesOnLastBuild());
+//
+//	    return (File[]) changedFiles.toArray(new File[changedFiles.size()]);
+	    CoreOutputLocationManager coreOutputLocationManager = (CoreOutputLocationManager) getOutputLocationManager();
+        File[] touchedFiles = 
+	        coreOutputLocationManager.getTouchedClassFiles();
+        coreOutputLocationManager.resetTouchedClassFiles();
+        return touchedFiles;
+	    
 	}
 }

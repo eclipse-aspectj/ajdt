@@ -78,12 +78,6 @@ import org.eclipse.jdt.internal.core.JavaElement;
  */
 public class AJProjectModelFacade {
     
-    /**
-     * This aspect ensures that the class is initialized before any 
-     * public operation is performed
-     */
-    // Commented out because this aspect is causing debugguing problems
-
     
     public final static IProgramElement ERROR_PROGRAM_ELEMENT = new ProgramElement();
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);

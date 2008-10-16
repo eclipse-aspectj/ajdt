@@ -15,9 +15,11 @@ package org.eclipse.ajdt.internal.core.ajde;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -64,7 +66,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// I am waiting for an extension to the compiler so
 	// that I can grab this information directly.
 	// NO LONGER MANAGING THIS
-//	private Set /*String*/ touchedCUs = new HashSet();
+	private Set /*String*/ touchedCUs = new HashSet();
 	
 	private boolean outputIsRoot;
 	// if there is only one output directory then this is recorded in the
@@ -171,8 +173,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public File getOutputLocationForClass(File compilationUnit) {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
-	    // no longer managing this
-//	    touchedCUs.add(compilationUnit.getAbsolutePath());
+	    touchedCUs.add(compilationUnit);
 	    
 		return getOutputLocationForResource(compilationUnit);
 	}
@@ -294,14 +295,13 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
         return inpathOutFolder;
     }
 
-	// no longer managing this
-//	public String[] getTouchedClassFiles() {
-//        return (String[]) touchedCUs.toArray(new String[touchedCUs.size()]);
-//    }
-//
-//	public void resetTouchedClassFiles() {
-//	    touchedCUs.clear();
-//	}
+	public File[] getTouchedClassFiles() {
+        return (File[]) touchedCUs.toArray(new File[touchedCUs.size()]);
+    }
+
+	public void resetTouchedClassFiles() {
+	    touchedCUs.clear();
+	}
 	
 	/**
 	 * If there's only one output directory return this one, otherwise
