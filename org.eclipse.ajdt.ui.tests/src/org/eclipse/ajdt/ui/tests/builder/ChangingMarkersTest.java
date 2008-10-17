@@ -21,7 +21,6 @@ import org.eclipse.core.runtime.CoreException;
  * Tests that after a project has some relationships that change
  * the advice and problem markers are updated appropriately
  */
-// FAILS because warning markers appearing twice if the source is not reset twice
 public class ChangingMarkersTest extends UITestCase {
 
 
@@ -115,8 +114,8 @@ public class ChangingMarkersTest extends UITestCase {
         // warnings
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         for (int i = 0; i < warningMarkers.length; i++) {
-            System.out.println(warningMarkers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarkers[i].getAttribute(IMarker.MESSAGE) + 
-            " : " + warningMarkers[i].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX+"0"));
+            System.out.println(warningMarkers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarkers[i].getAttribute(IMarker.MESSAGE) +  //$NON-NLS-1$
+            " : " + warningMarkers[i].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX+"0")); //$NON-NLS-1$ //$NON-NLS-2$
             System.out.println(warningMarkers[i].getAttributes().keySet());
             System.out.println(warningMarkers[i].getAttributes().values());
         }

@@ -19,7 +19,7 @@ import org.eclipse.core.resources.IResource;
 
 /**
  * Tests for source advice markers with aspects in .java files
- * Duplicate of AdviceMarkersTest3, except that the proeject used contains
+ * Duplicate of AdviceMarkersTest3, except that the project used contains
  * an aspect in a .java file.
  */
 public class AdviceMarkersTest5 extends UITestCase {
@@ -56,7 +56,7 @@ public class AdviceMarkersTest5 extends UITestCase {
 			{ // IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER
 					{ "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)}, //$NON-NLS-1$
 					{ "4 AspectJ markers at this line", new Integer(49) } //$NON-NLS-1$
-					},
+			},
 			{ // IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER
 			    	{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
 			    	{ "advises GetInfo.printParameters(JoinPoint)", new Integer(74) } //$NON-NLS-1$
