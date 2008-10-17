@@ -24,6 +24,8 @@ import java.util.Set;
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -173,7 +175,9 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public File getOutputLocationForClass(File compilationUnit) {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
-	    touchedCUs.add(compilationUnit);
+	    if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(compilationUnit.getName())) {     
+	        touchedCUs.add(compilationUnit);
+	    }
 	    
 		return getOutputLocationForResource(compilationUnit);
 	}
