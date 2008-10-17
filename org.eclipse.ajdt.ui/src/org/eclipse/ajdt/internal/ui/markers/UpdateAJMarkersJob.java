@@ -95,7 +95,9 @@ public class UpdateAJMarkersJob extends Job {
             try {
                 // make sure that there are no marker deletion jobs running
                 // before we start
-                manager.join(DeleteAJMarkersJob.DELETE_AJ_MARKERS_FAMILY, monitor);
+                manager.join(DeleteAJMarkersJob.DELETE_AJ_MARKERS_FAMILY, new SubProgressMonitor(monitor, 1));
+                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
+                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
             } catch (InterruptedException e) {
             }
             
@@ -402,8 +404,8 @@ public class UpdateAJMarkersJob extends Job {
      * @return
      */
     private String getMarkerLabel(IRelationship relationship) {
-        IProgramElement target = AsmManager.getDefault().getHierarchy().findElementForHandle(
-                       (String) relationship.getTargets().get(0));
+        IProgramElement target = model.getProgramElement(
+                (String) relationship.getTargets().get(0));
         return relationship.getName()
                 + " " //$NON-NLS-1$
                 + target.toLinkLabelString(false)

@@ -357,7 +357,7 @@ public class AspectJImages  {
 	 * (copied from AJDTStructureViewNodeFactory.changeIconIfAdviceNode and adjustet) (Luzius)
 	 */
 	public AJDTIcon getAdviceIcon(IProgramElement.ExtraInformation extraInfo, boolean hasDynamicTests) {
-		if (extraInfo.getExtraAdviceInformation()!=null) {				
+		if (extraInfo != null && extraInfo.getExtraAdviceInformation()!=null) {				
 				if(extraInfo.getExtraAdviceInformation().equals("before")) { //$NON-NLS-1$
 					if(hasDynamicTests) {
 						return AspectJImages.DYNAMIC_BEFORE_ADVICE;
