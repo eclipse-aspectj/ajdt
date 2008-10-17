@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.weaver.AdviceKind;
@@ -173,8 +172,23 @@ public class UpdateAJMarkersJob extends Job {
         }
     }
 	
+	/**
+	 * checks to see if there are any deletion jobs on this project that have been
+	 * started since this job started
+	 */
+	private void checkForDeletionJobs() {
+	    Job[] deletions = manager.find(DeleteAJMarkersJob.DELETE_AJ_MARKERS_FAMILY);
+	    for (int i = 0; i < deletions.length; i++) {
+            DeleteAJMarkersJob job = (DeleteAJMarkersJob) deletions[i];
+            if (job.deletionForProject(project)) {
+                throw new OperationCanceledException();
+            }
+        }
+	}
+	
 	
     private void addMarkersForFile(ICompilationUnit cu, IResource resource) {
+        checkForDeletionJobs();  // may cancel this job
 	    Map/*Integer,List<IRelationship>*/ annotationMap = 
 	        model.getRelationshipsForFile(cu);
 	    for (Iterator annotationIter = annotationMap.entrySet().iterator(); annotationIter.hasNext();) {

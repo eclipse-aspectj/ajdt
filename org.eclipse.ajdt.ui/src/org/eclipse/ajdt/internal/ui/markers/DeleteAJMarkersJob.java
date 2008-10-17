@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
@@ -43,6 +42,14 @@ public class DeleteAJMarkersJob extends Job {
     
     protected IStatus run(IProgressMonitor monitor) {
         try {
+            
+            try {
+                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
+                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
+            } catch (InterruptedException e) {
+            }
+
+            
             AJLog.logStart("Delete markers: " + project.getName());
             if (sourceFiles != null) {
                 deleteMarkersForFiles(monitor);
@@ -127,5 +134,9 @@ public class DeleteAJMarkersJob extends Job {
             }
         }
         subMonitor.done();
+    }
+
+    boolean deletionForProject(IProject otherProject) {
+        return this.project.equals(otherProject);
     }
 }
