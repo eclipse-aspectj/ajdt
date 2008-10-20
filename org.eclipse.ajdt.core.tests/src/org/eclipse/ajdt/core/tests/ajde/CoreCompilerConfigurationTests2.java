@@ -52,13 +52,11 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         ap3 = createPredefinedProject("AspectProj3-Has Outjar");
         myProj = createPredefinedProject("AspectProjWeCareAbout");
        
-        AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(true);
     }
 
     protected void tearDown() throws Exception {
         super.tearDown();
         Utils.setAutobuilding(true);
-        AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(false);
     }
     
     /*

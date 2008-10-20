@@ -20,6 +20,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -58,7 +59,9 @@ public class AJProjectModelTest2 extends AJDTCoreTestCase {
 		IFolder wpstest = src.getFolder("wpstest"); //$NON-NLS-1$
 		IFolder aspectjPackage = wpstest.getFolder("aspectj"); //$NON-NLS-1$
 		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(
+
+		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+		Map annotationsMap = asm.getInlineAnnotations(
 				main.getRawLocation().toOSString(), true, true);
 		ajCodeElements = createAJCodeElements(annotationsMap);
 	}

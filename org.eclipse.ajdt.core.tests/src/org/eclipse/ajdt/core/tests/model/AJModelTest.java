@@ -21,6 +21,7 @@ import java.util.Set;
 import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -70,14 +71,6 @@ public class AJModelTest extends AJDTCoreTestCase {
 				{ "printParameters(JoinPoint)", "printParameters" } //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		mappingTestForFile(project, filename, results);
-		// see pr148027
-		if (AsmHierarchyBuilder.shouldAddUsesPointcut) {
-			String[][] pcdResults = { { "goCut()", "goCut" }, //$NON-NLS-1$ //$NON-NLS-2$
-					{ "fieldSet()", "fieldSet" }, //$NON-NLS-1$ //$NON-NLS-2$
-					{ "demoExecs()", "demoExecs" }, //$NON-NLS-1$ //$NON-NLS-2$	
-			};
-			mappingTestForFile(project, filename, pcdResults);
-		}
 	}
 
 	private void mappingTestForFile(IProject project, String filename,
@@ -87,7 +80,9 @@ public class AJModelTest extends AJDTCoreTestCase {
 			fail("Required file not found: " + filename); //$NON-NLS-1$
 
 		String path = file.getRawLocation().toOSString();
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
+
+		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+		Map annotationsMap = asm.getInlineAnnotations(path,
 				true, true);
 
 		assertNotNull(

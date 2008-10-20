@@ -33,40 +33,41 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         Utils.setAutobuilding(false);
         testLog = new TestLogger();
         AspectJPlugin.getDefault().setAJLogger(testLog);
-        AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(true);
     }
 
     protected void tearDown() throws Exception {
         super.tearDown();
         Utils.setAutobuilding(true);
-        AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(false);
     }
     
     // test to ensure that when the switch is turned off, optimization does not occur
     public void testIncrementalCompilationOptimizationsEnabled() throws Exception {
-        
-        assertTrue(AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled());
-        AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(false);
-        assertFalse(AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled());
-        
-        // load project and full build
-        IProject proj = createPredefinedProject("Bean Example");
-
-        testLog.clearLog();
-        
-        proj.getFile("src/bean/Point.java").touch(null);
-        
-        // incremental build
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
-
-        // ensure that the classpath entries list has not been set
-        assertEquals(0, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
-        assertEquals(1, testLog.numberOfEntriesForMessage("Optimizations turned off, so assuming all parts of configuration have changed"));
-        assertEquals(1, testLog.numberOfEntriesForMessage("Configuration was []"));
-        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {
-                "Resetting list of modified source files.  Was [",
-                "Bean Example/src/bean/Point.java]"}));
+        try {
+	        assertTrue(AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled());
+	        AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(false);
+	        assertFalse(AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled());
+	        
+	        // load project and full build
+	        IProject proj = createPredefinedProject("Bean Example");
+	
+	        testLog.clearLog();
+	        
+	        proj.getFile("src/bean/Point.java").touch(null);
+	        
+	        // incremental build
+	        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+	        waitForAutoBuild();
+	
+	        // ensure that the classpath entries list has not been set
+	        assertEquals(0, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
+	        assertEquals(1, testLog.numberOfEntriesForMessage("Optimizations turned off, so assuming all parts of configuration have changed"));
+	        assertEquals(1, testLog.numberOfEntriesForMessage("Configuration was []"));
+	        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {
+	                "Resetting list of modified source files.  Was [",
+	                "Bean Example/src/bean/Point.java]"}));
+        } finally {
+            AspectJCorePreferences.setIncrementalCompilationOptimizationsEnabled(true);
+        }
     }
     
     

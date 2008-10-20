@@ -19,6 +19,7 @@ import java.util.Set;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -63,7 +64,8 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		// get the class file and create the map for the file (the underlying one)		
 		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
 
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
+		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+		Map annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
 		assertNotNull("annotation map should not be null for Main.java",annotationsMap); //$NON-NLS-1$
 		// for the two IProgramElements which correspond to the two calls
 		// in main - create the IJavaElements (or AJCodeElements)
@@ -114,7 +116,8 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		// for the two IProgramElements which correspond to the two calls
 		// in main - create the IJavaElements
 
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(aspect.getRawLocation().toOSString(),true, true);
+		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+		Map annotationsMap = asm.getInlineAnnotations(aspect.getRawLocation().toOSString(),true, true);
 		assertNotNull("annotation map should not be null for Main.java",annotationsMap); //$NON-NLS-1$
 		// for the two IProgramElements which correspond to the two pieces
 		// of advice (before and after) in A.aj - create the IJavaElements 
@@ -164,8 +167,9 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 
 		// get the aspect and create the map for the file (the underlying one)
 		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
-				
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
+
+		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+		Map annotationsMap = asm.getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
 		assertNotNull("annotation map should not be null for Main.java",annotationsMap); //$NON-NLS-1$
 		Set keys = annotationsMap.keySet();
 		for (Iterator it = keys.iterator(); it.hasNext();) {
@@ -189,7 +193,8 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		
 		IFile aspect = aspectjPackage.getFile("A.aj"); //$NON-NLS-1$
 
-		Map annotationsMap2 = AsmManager.getDefault().getInlineAnnotations(aspect.getRawLocation().toOSString(),true, true);
+		asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+		Map annotationsMap2 = asm.getInlineAnnotations(aspect.getRawLocation().toOSString(),true, true);
 		assertNotNull("annotation map should not be null for Main.java",annotationsMap2); //$NON-NLS-1$
 
 		Set keys2 = annotationsMap2.keySet();

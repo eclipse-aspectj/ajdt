@@ -19,6 +19,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
@@ -39,7 +40,9 @@ public class AJModelTest4 extends AJDTCoreTestCase {
         final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
 
         final List/*String*/ accumulatedErrors = new ArrayList();
-        IHierarchy hierarchy = AsmManager.getDefault().getHierarchy();
+
+		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+        IHierarchy hierarchy = asm.getHierarchy();
         hierarchy.getRoot().walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 if (node.getKind() != IProgramElement.Kind.IMPORT_REFERENCE) {
