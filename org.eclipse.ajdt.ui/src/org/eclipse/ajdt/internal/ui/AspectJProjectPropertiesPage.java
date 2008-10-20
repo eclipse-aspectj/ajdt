@@ -103,10 +103,12 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
         public void resourceChanged(IResourceChangeEvent event) {
             // should traverse the resource delta to make sure it
             // is the .classpath
-            if (event.getDelta().findMember(thisProject.getFile(
-                    new Path(".classpath")).getFullPath()) != null) { //$NON-NLS-1$
-                refreshPathBlock();
-            }
+        	if (event.getDelta() != null) {
+	            if (event.getDelta().findMember(thisProject.getFile(
+	                    new Path(".classpath")).getFullPath()) != null) { //$NON-NLS-1$
+	                refreshPathBlock();
+	            }
+        	}
         }
 
         /**
