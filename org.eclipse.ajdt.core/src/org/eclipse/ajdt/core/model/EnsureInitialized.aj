@@ -9,9 +9,9 @@ aspect EnsureInitialized {
         if (!model.isInitialized) {
             model.init();
         }
-        if (model.isInitialized) {
-            AsmManager.getDefault().setRelationshipMap(model.relationshipMap);
-            AsmManager.getDefault().setHierarchy(model.structureModel);
-        }
+//        if (model.isInitialized) {
+//            AsmManager.getDefault().setRelationshipMap(model.relationshipMap);
+//            AsmManager.getDefault().setHierarchy(model.structureModel);
+//        }
     }
 }

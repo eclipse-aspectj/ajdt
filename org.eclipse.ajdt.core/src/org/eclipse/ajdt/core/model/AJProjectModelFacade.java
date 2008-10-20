@@ -123,8 +123,8 @@ public class AJProjectModelFacade {
             String compilerId = compiler.getId();
             AjState existingState = IncrementalStateManager.retrieveStateFor(compilerId);
             if (existingState != null) {
-                relationshipMap = existingState.getRelationshipMap();
-                structureModel = existingState.getStructureModel();
+                relationshipMap = existingState.getStructureModel().getRelationshipMap();
+                structureModel = existingState.getStructureModel().getHierarchy();
                 if (relationshipMap != null && structureModel != null) {
                     isInitialized = true;
                 }
