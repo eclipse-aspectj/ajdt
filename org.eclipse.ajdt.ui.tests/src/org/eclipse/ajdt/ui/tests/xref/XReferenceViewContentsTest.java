@@ -25,6 +25,8 @@ import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProv
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 public class XReferenceViewContentsTest extends UITestCase {
 
@@ -49,20 +51,8 @@ public class XReferenceViewContentsTest extends UITestCase {
 		List/*IRelationship*/ listOfRels = model.getRelationshipsForProject(rels);
 		assertTrue("there should be some relationships",!listOfRels.isEmpty()); //$NON-NLS-1$
 
-		// want to get the IJavaElement corresponding to Test
-		IRelationship rel = (IRelationship)listOfRels.get(0);
-		boolean cont = true;
-		IJavaElement source = null;
-		IJavaElement je = model.programElementToJavaElement(rel.getSourceHandle());
-		while (cont) {
-			IJavaElement parent = je.getParent();
-			if (parent.getElementName().equals("Test")) { //$NON-NLS-1$
-				source = parent;
-				cont = false;
-			} else {
-				je = parent;
-			}			
-		}
+		IJavaProject jProject = JavaCore.create(project);
+		IJavaElement source = jProject.findType("pack.Test");
 		
 		XReferenceAdapter xra = new XReferenceAdapter(source);
 		viewContentProvider.inputChanged(null,null,xra);
