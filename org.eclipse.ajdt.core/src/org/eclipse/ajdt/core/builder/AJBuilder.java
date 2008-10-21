@@ -28,7 +28,6 @@ import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
-import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -100,7 +99,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 */
 	protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
 		IProject project = getProject();
-		// AsmManager.recordingLastActiveStructureModel=false; // we ought to do this but I *think* it will mess up ajdoc
 		AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
 		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
 		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
@@ -1227,7 +1225,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		}
         AJLog.logEnd(AJLog.BUILDER,"SourceFilesChanged");
-		return true;
+		return false;
 	}
 	
 	private class SourceFilesChangedVisitor implements IResourceDeltaVisitor {

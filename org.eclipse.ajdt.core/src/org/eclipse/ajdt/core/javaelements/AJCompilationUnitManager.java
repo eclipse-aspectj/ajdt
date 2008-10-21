@@ -119,7 +119,7 @@ public class AJCompilationUnitManager {
 	
 				public boolean visit(IResource resource) {
 					if(resource instanceof IFile) {
-						if (((IFile)resource).getFileExtension().equals(AspectJPlugin.AJ_FILE_EXT)) {
+						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
 							ajcus.add(getAJCompilationUnit((IFile)resource));
 						}
 					}

@@ -24,6 +24,7 @@ import java.util.Set;
 import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
+import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
@@ -120,11 +121,10 @@ public class AJProjectModelFacade {
     void init() {
         try {
             AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject());
-            String compilerId = compiler.getId();
-            AjState existingState = IncrementalStateManager.retrieveStateFor(compilerId);
+            AsmManager existingState = compiler.getModel();
             if (existingState != null) {
-                relationshipMap = existingState.getStructureModel().getRelationshipMap();
-                structureModel = existingState.getStructureModel().getHierarchy();
+                relationshipMap = existingState.getRelationshipMap();
+                structureModel = existingState.getHierarchy();
                 if (relationshipMap != null && structureModel != null) {
                     isInitialized = true;
                 }
