@@ -74,7 +74,9 @@ public class EventTraceView extends ViewPart
 	 * @see IWorkbenchPart#createPartControl(Composite)
 	 */
 	public void createPartControl(Composite parent) {
-		text = new StyledText( parent, SWT.MULTI | SWT.READ_ONLY | SWT.VERTICAL | SWT.HORIZONTAL );		
+		text = new StyledText( parent, SWT.MULTI | SWT.READ_ONLY | SWT.VERTICAL | SWT.HORIZONTAL );
+        text.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+
 		DebugTracing.setDebug(true);
 		startup();
 		EventTrace.addListener( this );

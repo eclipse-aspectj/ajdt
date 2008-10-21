@@ -35,7 +35,7 @@ import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
-import org.eclipse.ajdt.internal.ui.markers.DeleteAJMarkersJob;
+import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
@@ -593,8 +593,9 @@ public class AJDTUtils {
 	public static void removeAspectJNature(IProject project)
 			throws CoreException {
 
-        Job deleteMarkers = new DeleteAJMarkersJob(project);
-        deleteMarkers.schedule();
+	    DeleteAndUpdateAJMarkersJob deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+        deleteUpdateMarkers.doDeleteOnly(true);
+        deleteUpdateMarkers.schedule();
 		
 		//remove compilation units for .aj files
 		//(the way it is currently implemented, this must happen before nature

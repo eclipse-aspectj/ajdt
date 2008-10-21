@@ -26,8 +26,7 @@ import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
-import org.eclipse.ajdt.internal.ui.markers.DeleteAJMarkersJob;
-import org.eclipse.ajdt.internal.ui.markers.UpdateAJMarkersJob;
+import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -47,7 +46,6 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -200,20 +198,18 @@ public class UIBuildListener implements IAJBuildListener {
 		
 		
 		// update the markers on files, but only the ones that have changed
-		Job deleteMarkers;
-		Job updateMarkers;
+		DeleteAndUpdateAJMarkersJob deleteUpdateMarkers;
 		CoreCompilerConfiguration compilerConfig = getCompilerConfiguration(project);
 		switch (kind) {
 		    case IncrementalProjectBuilder.CLEAN_BUILD:
-		        deleteMarkers = new DeleteAJMarkersJob(project);
-		        deleteMarkers.schedule();
+		        deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+		        deleteUpdateMarkers.doDeleteOnly(true);
+		        deleteUpdateMarkers.schedule();
 		        break;
 		        
 		    case IncrementalProjectBuilder.FULL_BUILD:
-                deleteMarkers = new DeleteAJMarkersJob(project);
-                deleteMarkers.schedule();
-		        updateMarkers = new UpdateAJMarkersJob(project);
-		        updateMarkers.schedule();
+		        deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+		        deleteUpdateMarkers.schedule();
 		        break;
 		        
             case IncrementalProjectBuilder.AUTO_BUILD:
@@ -221,10 +217,9 @@ public class UIBuildListener implements IAJBuildListener {
                 File[] touchedFiles = compilerConfig.getChangedFiles();
                 if (touchedFiles == null /* recreate all markers */ || 
                         touchedFiles.length > 0) {
-                    deleteMarkers = new DeleteAJMarkersJob(project, touchedFiles);
-                    deleteMarkers.schedule();
-                    updateMarkers = new UpdateAJMarkersJob(project, touchedFiles);
-                    updateMarkers.schedule();
+                    
+                    deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project, touchedFiles);
+                    deleteUpdateMarkers.schedule();
                 }
 		}
 		
@@ -270,7 +265,9 @@ public class UIBuildListener implements IAJBuildListener {
 
 
     public void postAJClean(IProject project) {
-        new DeleteAJMarkersJob(project).schedule();
+        DeleteAndUpdateAJMarkersJob job = new DeleteAndUpdateAJMarkersJob(project);
+        job.doDeleteOnly(true);
+        job.schedule();
     }
 
 

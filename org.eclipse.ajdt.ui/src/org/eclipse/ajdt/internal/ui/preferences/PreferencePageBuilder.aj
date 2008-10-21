@@ -11,11 +11,10 @@ package org.eclipse.ajdt.internal.ui.preferences;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuildJob;
@@ -61,19 +60,19 @@ aspect PreferencePageBuilder {
 	private List remainingActivePages = new ArrayList();
 
 	// manage buttons on all pages
-	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of Button -> Boolean)*/buttonOriginalValues = new Hashtable();
+	private Map /* IWorkbenchPropertyPage -> (Map of Button -> Boolean)*/buttonOriginalValues = new HashMap();
 
 	// manage combo boxes on all pages
-	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of Combo -> Integer)*/comboOriginalValues = new Hashtable();
+	private Map /* IWorkbenchPropertyPage -> (Map of Combo -> Integer)*/comboOriginalValues = new HashMap();
 
 	// manage string field editors on all pages
-	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of StringFieldEditors -> String)*/stringFieldEditorsOriginalValues = new Hashtable();
+	private Map /* IWorkbenchPropertyPage -> (Map of StringFieldEditors -> String)*/stringFieldEditorsOriginalValues = new HashMap();
 
 	// manage selection buttons on all pages
-	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of SelectionButtonDialogField -> Boolean)*/selectionButtonOriginalValues = new Hashtable();
+	private Map /* IWorkbenchPropertyPage -> (Map of SelectionButtonDialogField -> Boolean)*/selectionButtonOriginalValues = new HashMap();
 
 	// manage tree list dialog fields on all pages
-	private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of TreeListDialogField -> List)*/dialogFieldOriginalValues = new Hashtable();
+	private Map /* IWorkbenchPropertyPage -> (Map of TreeListDialogField -> List)*/dialogFieldOriginalValues = new HashMap();
 
 	private boolean useProjectSettingsOriginalValue;
 
@@ -137,11 +136,11 @@ aspect PreferencePageBuilder {
 	    }
 	    
 		if (!buttonOriginalValues.containsKey(page)) {
-			Hashtable buttonValues = new Hashtable();
+			Map buttonValues = new HashMap();
 			buttonValues.put(b, new Boolean(val));
 			buttonOriginalValues.put(page, buttonValues);
 		} else {
-			Hashtable buttonValues = (Hashtable) buttonOriginalValues.get(page);
+			Map buttonValues = (Map) buttonOriginalValues.get(page);
 			if (!buttonValues.containsKey(b)) {
 				buttonValues.put(b, new Boolean(val));
 			}
@@ -155,11 +154,11 @@ aspect PreferencePageBuilder {
 	before(Combo combo, int selection, IWorkbenchPropertyPage page) :
         comboSelect(combo,selection,page) && interestingPage() {
 		if (!comboOriginalValues.containsKey(page)) {
-			Hashtable comboValues = new Hashtable();
+			Map comboValues = new HashMap();
 			comboValues.put(combo, new Integer(selection));
 			comboOriginalValues.put(page, comboValues);
 		} else {
-			Hashtable comboValues = (Hashtable) comboOriginalValues.get(page);
+			Map comboValues = (Map) comboOriginalValues.get(page);
 			if (!comboValues.containsKey(combo)) {
 				comboValues.put(combo, new Integer(selection));
 			}
@@ -174,11 +173,11 @@ aspect PreferencePageBuilder {
 	before(StringFieldEditor editor, String value, IWorkbenchPropertyPage page) :
         setStringValue(editor,value,page) && interestingPage() {
 		if (!stringFieldEditorsOriginalValues.containsKey(page)) {
-			Hashtable editorValues = new Hashtable();
+			Map editorValues = new HashMap();
 			editorValues.put(editor, value);
 			stringFieldEditorsOriginalValues.put(page, editorValues);
 		} else {
-			Hashtable editorValues = (Hashtable) stringFieldEditorsOriginalValues
+			Map editorValues = (Map) stringFieldEditorsOriginalValues
 					.get(page);
 			if (!editorValues.containsKey(editor)) {
 				editorValues.put(editor, value);
@@ -193,11 +192,11 @@ aspect PreferencePageBuilder {
 	//    before(SelectionButtonDialogField button, boolean value, IWorkbenchPropertyPage page) :
 	//        setButtonSelection(button,value,page) && interestingPage() {
 	//        if (!selectionButtonOriginalValues.containsKey(page)) {
-	//            Hashtable buttonValues = new Hashtable();
+	//            Map buttonValues = new HashMap();
 	//            buttonValues.put(button,new Boolean(value));
 	//            selectionButtonOriginalValues.put(page,buttonValues);
 	//        } else {
-	//            Hashtable buttonValues = (Hashtable)selectionButtonOriginalValues.get(page);
+	//            Map buttonValues = (Map)selectionButtonOriginalValues.get(page);
 	//            if (!buttonValues.containsKey(button)) {
 	//                buttonValues.put(button, new Boolean(value)); 
 	//            }
@@ -228,13 +227,13 @@ aspect PreferencePageBuilder {
 		}
 
 		if (!dialogFieldOriginalValues.containsKey(page)) {
-			Hashtable fieldValues = new Hashtable();
+			Map fieldValues = new HashMap();
 			List listOfElements = new ArrayList();
 			listOfElements.addAll(elements);
 			fieldValues.put(dialogField, listOfElements);
 			dialogFieldOriginalValues.put(page, fieldValues);
 		} else {
-			Hashtable fieldValues = (Hashtable) dialogFieldOriginalValues
+			Map fieldValues = (Map) dialogFieldOriginalValues
 					.get(page);
 			if (!fieldValues.containsKey(dialogField)) {
 				List listOfElements = new ArrayList();
@@ -257,59 +256,59 @@ aspect PreferencePageBuilder {
 	}
 
 	private boolean settingsHaveChangedOnPage(IWorkbenchPropertyPage page) {
-		Hashtable buttonsOnPage = (Hashtable) buttonOriginalValues.get(page);
+		Map buttonsOnPage = (Map) buttonOriginalValues.get(page);
 		if (buttonsOnPage != null) {
-			Enumeration buttons = buttonsOnPage.keys();
-			while (buttons.hasMoreElements()) {
-				Button b = (Button) buttons.nextElement();
+			Iterator buttons = buttonsOnPage.keySet().iterator();
+			while (buttons.hasNext()) {
+				Button b = (Button) buttons.next();
 				if (b.getSelection() != ((Boolean) buttonsOnPage.get(b))
 						.booleanValue())
 					return true;
 			}
 		}
 
-		Hashtable comboBoxesOnPage = (Hashtable) comboOriginalValues.get(page);
+		Map comboBoxesOnPage = (Map) comboOriginalValues.get(page);
 		if (comboBoxesOnPage != null) {
-			Enumeration comboboxes = comboBoxesOnPage.keys();
-			while (comboboxes.hasMoreElements()) {
-				Combo c = (Combo) comboboxes.nextElement();
+			Iterator comboboxes = comboBoxesOnPage.keySet().iterator();
+			while (comboboxes.hasNext()) {
+				Combo c = (Combo) comboboxes.next();
 				if (c.getSelectionIndex() != ((Integer) comboBoxesOnPage.get(c))
 						.intValue())
 					return true;
 			}
 		}
 
-		Hashtable editorsOnPage = (Hashtable) stringFieldEditorsOriginalValues
+		Map editorsOnPage = (Map) stringFieldEditorsOriginalValues
 				.get(page);
 		if (editorsOnPage != null) {
-			Enumeration editors = editorsOnPage.keys();
-			while (editors.hasMoreElements()) {
-				StringFieldEditor e = (StringFieldEditor) editors.nextElement();
+			Iterator editors = editorsOnPage.keySet().iterator();
+			while (editors.hasNext()) {
+				StringFieldEditor e = (StringFieldEditor) editors.next();
 				if (!(e.getStringValue()
 						.equals(((String) editorsOnPage.get(e)))))
 					return true;
 			}
 		}
 
-		Hashtable selectionButtonsOnPage = (Hashtable) selectionButtonOriginalValues
+		Map selectionButtonsOnPage = (Map) selectionButtonOriginalValues
 				.get(page);
 		if (selectionButtonsOnPage != null) {
-			Enumeration buttons = selectionButtonsOnPage.keys();
-			while (buttons.hasMoreElements()) {
+			Iterator buttons = selectionButtonsOnPage.keySet().iterator();
+			while (buttons.hasNext()) {
 				SelectionButtonDialogField b = (SelectionButtonDialogField) buttons
-						.nextElement();
+						.next();
 				if (b.isSelected() != ((Boolean) selectionButtonsOnPage.get(b))
 						.booleanValue())
 					return true;
 			}
 		}
 
-		Hashtable dialogFieldsOnPage = (Hashtable) dialogFieldOriginalValues
+		Map dialogFieldsOnPage = (Map) dialogFieldOriginalValues
 				.get(page);
 		if (dialogFieldsOnPage != null) {
-			Enumeration fields = dialogFieldsOnPage.keys();
-			while (fields.hasMoreElements()) {
-				TreeListDialogField f = (TreeListDialogField) fields.nextElement();
+			Iterator fields = dialogFieldsOnPage.keySet().iterator();
+			while (fields.hasNext()) {
+				TreeListDialogField f = (TreeListDialogField) fields.next();
 				List currentLibs = f.getElements();
 				List originalLibs = (List) dialogFieldsOnPage.get(f);
 				if (currentLibs.size() != originalLibs.size()) {
@@ -332,59 +331,59 @@ aspect PreferencePageBuilder {
 	}
 
 	private void resetButtonsOnPage(IWorkbenchPropertyPage page) {
-		Hashtable buttonsOnPage = (Hashtable) buttonOriginalValues.get(page);
+		Map buttonsOnPage = (Map) buttonOriginalValues.get(page);
 		if (buttonsOnPage != null) {
-			Enumeration buttons = buttonsOnPage.keys();
-			while (buttons.hasMoreElements()) {
-				Button b = (Button) buttons.nextElement();
+			Iterator buttons = buttonsOnPage.keySet().iterator();
+			while (buttons.hasNext()) {
+				Button b = (Button) buttons.next();
 				buttonsOnPage.put(b, new Boolean(b.getSelection()));
 			}
 		}
 	}
 
 	private void resetComboBoxesOnPage(IWorkbenchPropertyPage page) {
-		Hashtable comboBoxesOnPage = (Hashtable) comboOriginalValues.get(page);
+		Map comboBoxesOnPage = (Map) comboOriginalValues.get(page);
 		if (comboBoxesOnPage != null) {
-			Enumeration boxes = comboBoxesOnPage.keys();
-			while (boxes.hasMoreElements()) {
-				Combo c = (Combo) boxes.nextElement();
+			Iterator boxes = comboBoxesOnPage.keySet().iterator();
+			while (boxes.hasNext()) {
+				Combo c = (Combo) boxes.next();
 				comboBoxesOnPage.put(c, new Integer(c.getSelectionIndex()));
 			}
 		}
 	}
 
 	private void resetEditorsOnPage(IWorkbenchPropertyPage page) {
-		Hashtable editorsOnPage = (Hashtable) stringFieldEditorsOriginalValues
+		Map editorsOnPage = (Map) stringFieldEditorsOriginalValues
 				.get(page);
 		if (editorsOnPage != null) {
-			Enumeration editors = editorsOnPage.keys();
-			while (editors.hasMoreElements()) {
-				StringFieldEditor e = (StringFieldEditor) editors.nextElement();
+			Iterator editors = editorsOnPage.keySet().iterator();
+			while (editors.hasNext()) {
+				StringFieldEditor e = (StringFieldEditor) editors.next();
 				editorsOnPage.put(e, e.getStringValue());
 			}
 		}
 	}
 
 	private void resetSelectionButtonsOnPage(IWorkbenchPropertyPage page) {
-		Hashtable buttonsOnPage = (Hashtable) selectionButtonOriginalValues
+		Map buttonsOnPage = (Map) selectionButtonOriginalValues
 				.get(page);
 		if (buttonsOnPage != null) {
-			Enumeration buttons = buttonsOnPage.keys();
-			while (buttons.hasMoreElements()) {
+			Iterator buttons = buttonsOnPage.keySet().iterator();
+			while (buttons.hasNext()) {
 				SelectionButtonDialogField b = (SelectionButtonDialogField) buttons
-						.nextElement();
+						.next();
 				buttonsOnPage.put(b, new Boolean(b.isSelected()));
 			}
 		}
 	}
 
 	private void resetDialogFieldsOnPage(IWorkbenchPropertyPage page) {
-		Hashtable fieldsOnPage = (Hashtable) dialogFieldOriginalValues
+		Map fieldsOnPage = (Map) dialogFieldOriginalValues
 				.get(page);
 		if (fieldsOnPage != null) {
-			Enumeration fields = fieldsOnPage.keys();
-			while (fields.hasMoreElements()) {
-				TreeListDialogField f = (TreeListDialogField) fields.nextElement();
+			Iterator fields = fieldsOnPage.keySet().iterator();
+			while (fields.hasNext()) {
+				TreeListDialogField f = (TreeListDialogField) fields.next();
 				fieldsOnPage.put(f, f.getElements());
 			}
 		}

@@ -11,9 +11,11 @@ package org.eclipse.ajdt.internal.ui.markers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.aspectj.asm.IProgramElement;
@@ -21,7 +23,6 @@ import org.aspectj.asm.IRelationship;
 import org.aspectj.weaver.AdviceKind;
 import org.aspectj.weaver.AsmRelationshipProvider;
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
@@ -41,7 +42,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -55,9 +55,8 @@ import org.eclipse.jdt.core.JavaModelException;
  * Class responsible for advice and declaration markers. Updates the markers for
  * a given project when it is built.
  */
-public class UpdateAJMarkersJob extends Job {
+public class UpdateAJMarkers {
 
-    public static Object UPDATE_AJ_MARKERS_FAMILY = new Object();
 
     private final AJProjectModelFacade model;
 	private final IProject project;
@@ -68,8 +67,7 @@ public class UpdateAJMarkersJob extends Job {
 	 * 
      * @param project the poject that needs updating
 	 */
-    public UpdateAJMarkersJob(IProject project) {
-        super("Updating AJ markers for " + project.getName());
+    public UpdateAJMarkers(IProject project) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = null;
@@ -82,40 +80,22 @@ public class UpdateAJMarkersJob extends Job {
      * @param sourceFiles List of Strings of absolute paths of files that 
      * need updating 
      */
-    public UpdateAJMarkersJob(IProject project, File[] sourceFiles) {
-        super("Updating AJ markers for " + project.getName());
+    public UpdateAJMarkers(IProject project, File[] sourceFiles) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = sourceFiles;        
     }
 	
 	protected IStatus run(IProgressMonitor monitor) {
-        try {
-            try {
-                // make sure that there are no marker deletion jobs running
-                // before we start
-                manager.join(DeleteAJMarkersJob.DELETE_AJ_MARKERS_FAMILY, new SubProgressMonitor(monitor, 1));
-                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
-                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
-            } catch (InterruptedException e) {
-            }
-            
-            AJLog.logStart("Create markers: " + project.getName());
-            if (sourceFiles != null) {
-                addMarkersForFiles(monitor);
-            } else {
-                addMarkersForProject(monitor);
-            }
-            AJLog.logEnd(AJLog.BUILDER, "Create markers: " + project.getName(), "Finished creating markers for " + project.getName());
-            
-            return Status.OK_STATUS;
-        } catch (OperationCanceledException e) {
-            // we've been canceled.  Just exit.  No need to clean markers that have already been placed
-            if (monitor != null) {
-                monitor.setCanceled(true);
-            }
-            return Status.CANCEL_STATUS;
-        } 
+        AJLog.logStart("Create markers: " + project.getName());
+        if (sourceFiles != null) {
+            addMarkersForFiles(monitor);
+        } else {
+            addMarkersForProject(monitor);
+        }
+        AJLog.logEnd(AJLog.BUILDER, "Create markers: " + project.getName(), "Finished creating markers for " + project.getName());
+        
+        return Status.OK_STATUS;
     }
 	
 	
@@ -135,15 +115,20 @@ public class UpdateAJMarkersJob extends Job {
                 if (fragRoots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
                     IJavaElement[] frags = fragRoots[i].getChildren();
                     for (int j = 0; j < frags.length; j++) {
+                        Set completedCUNames = new HashSet(frags.length, 1.0f);
                         IJavaElement[] cus = ((IPackageFragment) frags[j]).getChildren();
                         for (int k = 0; k < cus.length; k++) {
                             // ignore duplicate compilation units
-                            if (cus[k].getElementName().endsWith(".java") ||
-                                    (cus[k] instanceof AJCompilationUnit)) {
+                            IResource resource = cus[k].getResource();
+                            if (!completedCUNames.contains(resource.getName())) {
                                 subMonitor.subTask("Add markers for " + cus[k].getElementName());
                                 addMarkersForFile((ICompilationUnit) cus[k], ((ICompilationUnit) cus[k]).getResource());
+                                completedCUNames.add(resource.getName());
                             }
                         }
+                    }
+                    if (subMonitor.isCanceled()) {
+                        throw new OperationCanceledException();
                     }
                     subMonitor.worked(1);
                 }
@@ -167,28 +152,17 @@ public class UpdateAJMarkersJob extends Job {
                     subMonitor.subTask("Add markers for " + unit.getElementName());
                     addMarkersForFile((ICompilationUnit) unit, files[j]);
                 }
+                if (subMonitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                }
                 subMonitor.worked(1);
             }
         }
     }
 	
-	/**
-	 * checks to see if there are any deletion jobs on this project that have been
-	 * started since this job started
-	 */
-	private void checkForDeletionJobs() {
-	    Job[] deletions = manager.find(DeleteAJMarkersJob.DELETE_AJ_MARKERS_FAMILY);
-	    for (int i = 0; i < deletions.length; i++) {
-            DeleteAJMarkersJob job = (DeleteAJMarkersJob) deletions[i];
-            if (job.deletionForProject(project)) {
-                throw new OperationCanceledException();
-            }
-        }
-	}
 	
 	
     private void addMarkersForFile(ICompilationUnit cu, IResource resource) {
-        checkForDeletionJobs();  // may cancel this job
 	    Map/*Integer,List<IRelationship>*/ annotationMap = 
 	        model.getRelationshipsForFile(cu);
 	    for (Iterator annotationIter = annotationMap.entrySet().iterator(); annotationIter.hasNext();) {
@@ -499,9 +473,5 @@ public class UpdateAJMarkersJob extends Job {
                         : IAJModelMarker.ADVICE_MARKER;
             }
 		}
-	}
-	
-	public boolean belongsTo(Object family) {
-	    return family == UPDATE_AJ_MARKERS_FAMILY;
 	}
 }

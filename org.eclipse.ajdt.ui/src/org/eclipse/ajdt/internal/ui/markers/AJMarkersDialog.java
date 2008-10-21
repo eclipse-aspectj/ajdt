@@ -269,10 +269,8 @@ public class AJMarkersDialog extends Dialog {
 			}
 		}
 		if(pageChanged) {
-			Job deleteMarkers = new DeleteAJMarkersJob(project);
-			deleteMarkers.schedule();
-			Job updateMarkers = new UpdateAJMarkersJob(project);
-			updateMarkers.schedule();
+			Job deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+			deleteUpdateMarkers.schedule();
 		}
 		super.okPressed();
 		for (Iterator iter = imagesToDispose.iterator(); iter.hasNext();) {

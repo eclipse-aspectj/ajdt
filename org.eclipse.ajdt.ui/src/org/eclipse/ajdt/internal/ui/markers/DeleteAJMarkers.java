@@ -15,41 +15,28 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
-public class DeleteAJMarkersJob extends Job {
-    
-    public static Object DELETE_AJ_MARKERS_FAMILY = new Object();
-    
-
+public class DeleteAJMarkers {
     private IProject project;
     private final File[] sourceFiles;
 
-    public DeleteAJMarkersJob(IProject project) {
-        super("Deleting markers for project " + project.getName());
+    public DeleteAJMarkers(IProject project) {
         this.project = project;
         this.sourceFiles = null;
     }
     
-    public DeleteAJMarkersJob(IProject project, File[] sourceFiles) {
-        super("Deleting markers for project " + project.getName());
+    public DeleteAJMarkers(IProject project, File[] sourceFiles) {
         this.project = project;
         this.sourceFiles = sourceFiles;
     }
     
     protected IStatus run(IProgressMonitor monitor) {
         try {
-            
-            try {
-                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
-                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
-            } catch (InterruptedException e) {
-            }
-
-            
             AJLog.logStart("Delete markers: " + project.getName());
             if (sourceFiles != null) {
                 deleteMarkersForFiles(monitor);
@@ -62,10 +49,6 @@ public class DeleteAJMarkersJob extends Job {
             return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, 
                     "Error while deleting markers from project " + project.getName(), e);
         }
-    }
-    
-    public boolean belongsTo(Object family) {
-        return family == DELETE_AJ_MARKERS_FAMILY;
     }
     
     /**
@@ -97,6 +80,10 @@ public class DeleteAJMarkersJob extends Job {
         project.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
                 true, IResource.DEPTH_INFINITE);
         subMonitor.worked(1);
+
+        if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+        }
 
         subMonitor.done();
     }
@@ -130,6 +117,10 @@ public class DeleteAJMarkersJob extends Job {
                     file.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
                             true, IResource.DEPTH_INFINITE);
                     subMonitor.worked(1);
+
+                    if (subMonitor.isCanceled()) {
+                        throw new OperationCanceledException();
+                    }
                 }
             }
         }
