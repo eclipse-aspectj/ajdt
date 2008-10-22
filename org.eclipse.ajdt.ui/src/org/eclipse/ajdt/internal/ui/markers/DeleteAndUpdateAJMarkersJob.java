@@ -36,35 +36,44 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     protected IStatus run(IProgressMonitor monitor) {
         try {
             
+            // do not need to explicitly join with build jobs because
+            // getting the workspace lock does the same thing
+//            try {
+//                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
+//                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
+//            } catch (InterruptedException e) {
+//            }
+//            
+//            if (monitor.isCanceled()) {
+//                throw new OperationCanceledException();
+//            }
+
             try {
-                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
-                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
-            } catch (InterruptedException e) {
+                // get a lock on the workspace so that no other marker operations can be performed at the same time
+                manager.beginRule(ResourcesPlugin.getWorkspace().getRoot(), monitor);
+                
+                IStatus deleteStatus = delete.run(monitor);
+                
+                if (monitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                }
+                
+                IStatus updateStatus;
+                if (!deleteOnly) {
+                    updateStatus = update.run(monitor);
+                } else {
+                    updateStatus = Status.OK_STATUS;
+                }
+                
+                
+                return new MultiStatus(
+                        AspectJUIPlugin.PLUGIN_ID, 
+                        Math.max(updateStatus.getCode(), deleteStatus.getCode()), 
+                        new IStatus[] { deleteStatus, updateStatus }, 
+                        "Finished deleting and updating markers", null);
+            } finally {
+                manager.endRule(ResourcesPlugin.getWorkspace().getRoot());
             }
-            
-            if (monitor.isCanceled()) {
-                throw new OperationCanceledException();
-            }
-            
-            IStatus deleteStatus = delete.run(monitor);
-            
-            if (monitor.isCanceled()) {
-                throw new OperationCanceledException();
-            }
-            
-            IStatus updateStatus;
-            if (!deleteOnly) {
-                updateStatus = update.run(monitor);
-            } else {
-                updateStatus = Status.OK_STATUS;
-            }
-            
-            
-            return new MultiStatus(
-                    AspectJUIPlugin.PLUGIN_ID, 
-                    Math.max(updateStatus.getCode(), deleteStatus.getCode()), 
-                    new IStatus[] { deleteStatus, updateStatus }, 
-                    "Finished deleting and updating markers", null);
         } catch (OperationCanceledException e) {
             // we've been canceled.  Just exit.  No need to clean markers that have already been placed
             return Status.CANCEL_STATUS;
