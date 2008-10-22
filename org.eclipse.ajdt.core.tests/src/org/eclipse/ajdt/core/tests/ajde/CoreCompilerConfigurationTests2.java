@@ -182,21 +182,24 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // is a binary folder dependency.  
         // In general, we don't recommend binary folder dependencies for
         // this reason (should use project dependencies instead)
+        // this second build should bypass the compiler since there are no changes.
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
 
         
         // check log
-        // this message comes from the project we care about on the first build
-        // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
-        // should occur twice: once alone and once with /JavaProj3-ClassFolder/bin (tested below)
-        assertEquals(2, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj2-On Inpath/bin]"}));
+        // This message should occur only once during the first build of jp3.
+        // This project should be recompiled and its classpath will be checked.
+        // The second build of AspectProjWeCareAbout should bypass the compiler and therefore
+        // the classpath is not checked.
+        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj2-On Inpath/bin]"}));
 
-        // this message comes from the project we care about on the second build
-        assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj3-ClassFolder/bin", "/JavaProj2-On Inpath/bin]"}));
+        // this message should not appear because the build of AspectProjWeCareAbout bypasses the compiler
+        // because no source files have changed
+        assertEquals(0, testLog.numberOfEntriesForMessage(new String[] {"/JavaProj3-ClassFolder/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that this is the only time the list has been set
-        assertEquals(2, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
+        assertEquals(1, testLog.numberOfEntriesForMessage("Setting list of classpath elements with modified contents:"));
     }
     
     public void testChangeJar() throws Exception {

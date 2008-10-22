@@ -575,8 +575,8 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 
 		boolean incA = listContainsString(buildLogA,
 				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
-		assertTrue("AJDT should have called the compiler, and therefore " //$NON-NLS-1$
-				+ "AspectJ should have reported that an " //$NON-NLS-1$
+		assertFalse("AJDT should not have called the compiler, and therefore " //$NON-NLS-1$
+				+ "AspectJ should not have reported that an " //$NON-NLS-1$
 				+ "incremental build happened", incA); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
 				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
