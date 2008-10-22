@@ -437,10 +437,22 @@ public class AJProjectModelFacade {
             return null;
         }
         ICompilationUnit[] cus = pkg.getCompilationUnits();
+        int dollarIndex = typeName.lastIndexOf('$');
+        
+        // for compilation units, use the type name
+        // without the top level type
+        String typeNameNoParent;
+        if (dollarIndex > -1) {
+            typeNameNoParent = typeName.substring(dollarIndex+1);
+        } else {
+            typeNameNoParent = typeName;
+        }
+        // XXX uh-oh, will not find types declared in
+        // methods.  Worry about this later
         for (int i = 0; i < cus.length; i++) {
             IType[] types = cus[i].getAllTypes();
             for (int j = 0; j < types.length; j++) {
-                if (types[j].getElementName().equals(typeName)) {
+                if (types[j].getElementName().equals(typeNameNoParent)) {
                     return cus[i];
                 }
             }

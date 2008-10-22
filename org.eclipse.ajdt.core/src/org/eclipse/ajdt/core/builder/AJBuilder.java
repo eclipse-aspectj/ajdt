@@ -167,8 +167,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				// also to build the current project				
 				boolean continueToBuild = false;
 				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
-					IResourceDelta delta = getDelta(requiredProjects[i]);
-					continueToBuild = sourceFilesChanged(delta,requiredProjects[i]);
+					IResourceDelta otherProjDelta = getDelta(requiredProjects[i]);
+					continueToBuild = sourceFilesChanged(otherProjDelta,requiredProjects[i]) ||
+					                  classpathChanged(otherProjDelta) ||
+					                  projectSpecificSettingsChanged(otherProjDelta);
 				}
 				
 				// no compilation units found.  end the compilation!
@@ -1194,7 +1196,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @return true if a source file has changed.  False otherwise
 	 */
 	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) {
-	    AJLog.logStart("SourceFilesChanged");
 		if (delta != null && delta.getAffectedChildren().length != 0) {
 		    
 		    // XXX might be better if this were a Set.
@@ -1224,7 +1225,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			                    AspectJPlugin.PLUGIN_ID, "Error finding source file changes", e));
 			}
 		}
-        AJLog.logEnd(AJLog.BUILDER,"SourceFilesChanged");
 		return false;
 	}
 	
