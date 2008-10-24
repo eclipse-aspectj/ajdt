@@ -128,7 +128,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (!isWorthBuilding(project, requiredProjects)) {
 			postCallListeners(kind, true);
 			AJLog.log(AJLog.BUILDER,
-					"build: Abort due to missing inpath/aspectpath entries"); //$NON-NLS-1$
+					"build: Abort due to missing classpath/inpath/aspectpath entries"); //$NON-NLS-1$
 			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 			progressMonitor.done();
 			return requiredProjects;
@@ -168,9 +168,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				boolean continueToBuild = false;
 				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
 					IResourceDelta otherProjDelta = getDelta(requiredProjects[i]);
-					continueToBuild = sourceFilesChanged(otherProjDelta,requiredProjects[i]) ||
+					continueToBuild = otherProjDelta != null &&
+					                 (sourceFilesChanged(otherProjDelta,requiredProjects[i]) ||
 					                  classpathChanged(otherProjDelta) ||
-					                  projectSpecificSettingsChanged(otherProjDelta);
+					                  projectSpecificSettingsChanged(otherProjDelta));
 				}
 				
 				// no compilation units found.  end the compilation!
@@ -1225,7 +1226,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			                    AspectJPlugin.PLUGIN_ID, "Error finding source file changes", e));
 			}
 		}
-		return false;
+ 		return false;
 	}
 	
 	private class SourceFilesChangedVisitor implements IResourceDeltaVisitor {
