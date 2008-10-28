@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2006 IBM Corporation and others.
+ * Copyright (c) 2005, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.pde.internal.build.tasks;
 
+import java.util.Properties;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.eclipse.core.runtime.CoreException;
@@ -25,7 +26,8 @@ import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
 public class PackagerTask extends Task {
 
 	protected PackagerGenerator generator;
-
+	private Properties antProperties = new Properties();
+	
 	{
 		generator = new PackagerGenerator();
 		generator.setReportResolutionErrors(true);
@@ -79,6 +81,10 @@ public class PackagerTask extends Task {
 
 	public void execute() throws BuildException {
 		try {
+			initializeAntProperties(antProperties);
+			generator.setImmutableAntProperties(antProperties);
+			generator.setProduct(getProject().getProperty("product")); //$NON-NLS-1$
+			generator.setGenerateVersionsList(Boolean.valueOf(getProject().getProperty("generateVersionsList")).booleanValue()); //$NON-NLS-1$
 			BundleHelper.getDefault().setLog(this);
 			generator.generate();
 			BundleHelper.getDefault().setLog(null);
@@ -87,6 +93,18 @@ public class PackagerTask extends Task {
 		}
 	}
 
+	private void initializeAntProperties(Properties properties) {
+		properties.setProperty(IBuildPropertiesConstants.PROPERTY_PACKAGER_MODE, "true"); //$NON-NLS-1$
+		
+		String value = getProject().getProperty(IBuildPropertiesConstants.RESOLVER_DEV_MODE);
+		if (Boolean.valueOf(value).booleanValue())
+			properties.put(IBuildPropertiesConstants.RESOLVER_DEV_MODE, "true"); //$NON-NLS-1$
+		
+		value = getProject().getProperty(IBuildPropertiesConstants.PROPERTY_ALLOW_BINARY_CYCLES);
+		if (Boolean.valueOf(value).booleanValue())
+			properties.put(IBuildPropertiesConstants.PROPERTY_ALLOW_BINARY_CYCLES, "true"); //$NON-NLS-1$
+	}
+	
 	/**
 	 *  Set the property file containing information about packaging
 	 * @param propertyFile the path to a property file
@@ -98,5 +116,16 @@ public class PackagerTask extends Task {
 	public void setDeltaPack(boolean value) {
 		generator.includePlatformIndependent(! value);
 		generator.groupConfigs(value);
+	}
+	
+	public void setFilteredDependencyCheck(boolean value) {
+		generator.setFilterState(value);
+	}
+	
+	public void setNormalize(boolean value) {
+		if (value)
+			antProperties.setProperty(IBuildPropertiesConstants.PROPERTY_PACKAGER_AS_NORMALIZER, "true"); //$NON-NLS-1$
+		else
+			antProperties.setProperty(IBuildPropertiesConstants.PROPERTY_PACKAGER_AS_NORMALIZER, "false"); //$NON-NLS-1$
 	}
 }

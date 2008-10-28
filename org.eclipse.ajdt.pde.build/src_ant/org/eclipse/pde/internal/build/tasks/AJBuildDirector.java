@@ -14,7 +14,6 @@ import org.eclipse.pde.internal.build.SourceFeatureInformation;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.builder.BuildDirector;
 import org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator;
-import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator;
 import org.eclipse.pde.internal.build.site.BuildTimeFeature;
 import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;
@@ -134,7 +133,7 @@ public class AJBuildDirector extends BuildDirector {
 		try {
 			if (generateFeatureVersionSuffixMethod == null) {
 				generateFeatureVersionSuffixMethod = BuildDirector.class.getDeclaredMethod(
-						"generateFeatureVersionSuffix", new Class[]{ BuildTimeFeature.class } );
+						"generateFeatureVersionSuffix", new Class[]{ BuildTimeFeature.class } ); //$NON-NLS-1$
 				generateFeatureVersionSuffixMethod.setAccessible(true);
 			}
 			return (String) generateFeatureVersionSuffixMethod.invoke(this, new Object[] { buildFeature });

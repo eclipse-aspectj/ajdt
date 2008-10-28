@@ -179,7 +179,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			return;
 
 		try {
-			OutputStream scriptStream = new BufferedOutputStream(new FileOutputStream(scriptLocation + '/' + scriptName)); //$NON-NLS-1$
+			OutputStream scriptStream = new BufferedOutputStream(new FileOutputStream(scriptLocation + '/' + scriptName));
 			try {
 				script = new AJAntScript(scriptStream);
 			} catch (IOException e) {

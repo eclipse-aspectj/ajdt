@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,20 +32,24 @@ public class IdReplaceTask extends Task {
 	private static final String INCLUDES_START_TAG = "<includes"; //$NON-NLS-1$
 	private static final String COMMENT_START_TAG = "<!--"; //$NON-NLS-1$
 	private static final String COMMENT_END_TAG = "-->"; //$NON-NLS-1$
-	
+
 	//Path of the file where we are replacing the values
 	private String featureFilePath;
-	//Map of the plugin ids (key) and their version number (value)  
+	//Map of the plugin ids and version (key) and their version number (value)
+	//  the key is id:version  and the value is the actual version of the element
+	// the keys are such that a regular lookup will always return the appropriate value if available
 	private Map pluginIds = new HashMap(10);
-	//Map of the feature ids (key) and their version number (value)
+	//Map of the feature ids and version (key) and their version number (value)
+	//  the key is id:version  and the value is the actual version of the element
+	// the keys are such that a regular lookup will always return the appropriate value if available    
 	private Map featureIds = new HashMap(4);
 	//The new version number for this feature
 	private String selfVersion;
 
 	private boolean contentChanged = false;
-	
+
 	private final static String GENERIC_VERSION_NUMBER = "0.0.0"; //$NON-NLS-1$
-	private final static String DOT_QUALIFIER = ".qualifier"; //$NON-NLS-1$
+	private final static String QUALIFIER = "qualifier"; //$NON-NLS-1$
 
 	/**
 	 * The location of a feature.xml file 
@@ -68,20 +72,20 @@ public class IdReplaceTask extends Task {
 	 * Note all the pluginIds that have a generic number into the feature.xml must be
 	 * listed in <param>values</param>.
 	 * @param values a comma separated list alternating pluginId and versionNumber.
-	 * For example: org.eclipse.pde.build:0.0.0,2.1.0,org.eclipse.core.resources:0.0.0,1.2.0
+	 * For example: org.eclipse.pde.build,2.1.0,org.eclipse.core.resources,1.2.0
 	 */
 	public void setPluginIds(String values) {
 		pluginIds = new HashMap(10);
-		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) { 
-			
+		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) {
 			String token = tokens.nextToken().trim();
-			String[] split = token.split(":");
-			if (split.length != 2) {
-				continue;
-			}
-			String id = split[0];
-			String version = tokens.nextToken().trim();
-			
+			String id = EMPTY;
+			if (!token.equals(EMPTY))
+				id = token;
+
+			String version = EMPTY;
+			token = tokens.nextToken().trim();
+			if (!token.equals(EMPTY))
+				version = token;
 			pluginIds.put(id, version);
 		}
 	}
@@ -94,16 +98,16 @@ public class IdReplaceTask extends Task {
 	 */
 	public void setFeatureIds(String values) {
 		featureIds = new HashMap(10);
-		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) { 
-			
+		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) {
 			String token = tokens.nextToken().trim();
-			String[] split = token.split(":");
-			if (split.length != 2) {
-				continue;
-			}
-			String id = split[0];
-			String version = tokens.nextToken().trim();
-			
+			String id = EMPTY;
+			if (!token.equals(EMPTY))
+				id = token;
+
+			String version = EMPTY;
+			token = tokens.nextToken().trim();
+			if (!token.equals(EMPTY))
+				version = token;
 			featureIds.put(id, version);
 		}
 	}
@@ -160,6 +164,7 @@ public class IdReplaceTask extends Task {
 				int startVersionId = scan(buffer, startVersionWord + 1, BACKSLASH);
 				int endVersionId = scan(buffer, startVersionId + 1, BACKSLASH);
 				buffer.replace(startVersionId + 1, endVersionId, selfVersion);
+				endFeature = endFeature + (selfVersion.length() - (endVersionId - startVersionId));
 				contentChanged = true;
 				versionFound = true;
 			}
@@ -199,46 +204,68 @@ public class IdReplaceTask extends Task {
 				continue;
 			}
 
+			int startElementId, endElementId;
+			int startVersionWord, startVersionId, endVersionId;
+
 			startId = scan(buffer, foundElement, ID);
-			if (startId == -1)
+			startVersionWord = scan(buffer, foundElement, VERSION);
+			// Which comes first, version or id.
+			if (startId < startVersionWord) {
+				startElementId = scan(buffer, startId + 1, BACKSLASH);
+				endElementId = scan(buffer, startElementId + 1, BACKSLASH);
+
+				// search for version again since the id could have "version" in it.
+				startVersionWord = scan(buffer, endElementId + 1, VERSION);
+				startVersionId = scan(buffer, startVersionWord + 1, BACKSLASH);
+				endVersionId = scan(buffer, startVersionId + 1, BACKSLASH);
+			} else {
+				startVersionId = scan(buffer, startVersionWord + 1, BACKSLASH);
+				endVersionId = scan(buffer, startVersionId + 1, BACKSLASH);
+
+				// search for id again since the version qualifier could contain "id"
+				startId = scan(buffer, endVersionId + 1, ID);
+				startElementId = scan(buffer, startId + 1, BACKSLASH);
+				endElementId = scan(buffer, startElementId + 1, BACKSLASH);
+			}
+
+			if (startId == -1 || startVersionWord == -1)
 				break;
 
-			int startElementId = scan(buffer, startId + 1, BACKSLASH);
-			int endElementId = scan(buffer, startElementId + 1, BACKSLASH);
 			char[] elementId = new char[endElementId - startElementId - 1];
 			buffer.getChars(startElementId + 1, endElementId, elementId, 0);
 
-			int startVersionWord = scan(buffer, endElementId + 1, VERSION);
-			int startVersionId = scan(buffer, startVersionWord + 1, BACKSLASH);
-			int endVersionId = scan(buffer, startVersionId + 1, BACKSLASH);
 			char[] versionId = new char[endVersionId - startVersionId - 1];
 			buffer.getChars(startVersionId + 1, endVersionId, versionId, 0);
-			if (!new String(versionId).equals(GENERIC_VERSION_NUMBER) && !new String(versionId).endsWith(DOT_QUALIFIER)) {
+			
+			if (!new String(versionId).equals(GENERIC_VERSION_NUMBER) && !new String(versionId).endsWith(QUALIFIER)) {
 				startElement = startVersionId;
 				continue;
 			}
 
 			startVersionId++;
 			String replacementVersion = null;
+			Version v = new Version(new String(versionId));
+			String lookupKey = new String(elementId) + ':' + v.getMajor() + '.' + v.getMinor() + '.' + v.getMicro();
 			if (isPlugin) {
-				replacementVersion = (String) pluginIds.get(new String(elementId));
+				replacementVersion = (String) pluginIds.get(lookupKey);
 			} else {
-				replacementVersion = (String) featureIds.get(new String(elementId));
+				replacementVersion = (String) featureIds.get(lookupKey);
 			}
+			int change = 0;
 			if (replacementVersion == null) {
-				System.err.println("Could not find" + new String(elementId)); //$NON-NLS-1$
+				System.err.println("Could not find " + new String(elementId)); //$NON-NLS-1$
 			} else {
 				buffer.replace(startVersionId, endVersionId, replacementVersion);
 				contentChanged = true;
+				change = endVersionId - startVersionId - replacementVersion.length();
 			}
-
-			startElement = startVersionId;
+			startElement = (endElementId > endVersionId) ? endElementId - change: endVersionId - change;
 		}
 
 		if (!contentChanged)
 			return;
-		
-		try {	
+
+		try {
 			OutputStreamWriter w = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(featureFilePath)), UTF_8);
 			w.write(buffer.toString());
 			w.close();
@@ -285,22 +312,5 @@ public class IdReplaceTask extends Task {
 			}
 		}
 		return result;
-	}
-
-	public static void main(String[] args) {
-		String values = "org.aspectj.ajde:0.0.0,1.6.2.20080807114600,org.aspectj.runtime:0.0.0,1.6.2.20080807114600,org.aspectj.weaver:0.0.0,1.6.2.20080807114600,org.eclipse.ajdt.core:0.0.0,1.6.0.200808181436,org.eclipse.contribution.visualiser:0.0.0,2.2.0.200808181436,org.eclipse.contribution.xref.core:0.0.0,1.5.0.200808181436,org.eclipse.contribution.xref.ui:0.0.0,1.5.0.200808181436,org.eclipse.ajdt.ui:0.0.0,1.6.0.200808181436,org.eclipse.ajdt.examples:0.0.0,1.6.0.200808181436,org.eclipse.aspectj:0.0.0,1.5.0.200808181436,org.eclipse.ajdt.pde.build:0.0.0,1.5.3.200808181436,org.eclipse.ajdt.doc.user:0.0.0,1.6.0.200808181436,org.eclipse.ajdt.mylyn.ui:0.0.0,1.6.0.200808181436,";
-		for (StringTokenizer tokens = new StringTokenizer(values, COMMA); tokens.hasMoreTokens();) { 
-			
-			String token = tokens.nextToken().trim();
-			String[] split = token.split(":");
-			if (split.length != 2) {
-				System.out.println("skipped !");
-				continue;
-			}
-			String id = split[0];
-			String version = split[1];
-			token = tokens.nextToken().trim();
-			System.out.println(id + " : " + version + " , " + token);
-		}
 	}
 }
