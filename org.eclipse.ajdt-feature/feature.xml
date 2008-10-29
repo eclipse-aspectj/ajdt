@@ -6,7 +6,7 @@
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
-   <description url="%descriptionURL">
+   <description url="http://eclipse.org/ajdt">
       %description
    </description>
 
@@ -19,7 +19,7 @@
    </license>
 
    <url>
-      <update label="%updateLabel" url="%updateURL"/>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
    </url>
 
    <includes
