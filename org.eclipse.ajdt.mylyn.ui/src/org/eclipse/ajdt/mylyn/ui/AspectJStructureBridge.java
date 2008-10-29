@@ -12,7 +12,6 @@ package org.eclipse.ajdt.mylyn.ui;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.IAJCodeElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
-import org.eclipse.core.internal.resources.Marker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
