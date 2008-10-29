@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.aspectj.feature_tests"
       label="%featureName"
-      version="1.5.0.qualifier"
+      version="1.6.1.qualifier"
       provider-name="%providerName">
 
    <description>
