@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
-import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.eclipse.ajdt.core.text.CoreMessages;
 
 /**
@@ -123,5 +122,45 @@ public class AJRelationshipManager {
 			return USES_POINTCUT;
 		}
 		return null;
+	}
+	
+	public static AJRelationshipType toRelationshipType(String displayName) {
+	    if (displayName.equals(DECLARED_ON.getDisplayName())) {
+	        return DECLARED_ON;
+	    }
+	    if (displayName.equals(MATCHES_DECLARE.getDisplayName())) {
+	        return MATCHES_DECLARE;
+	    }
+        if (displayName.equals(ADVISED_BY.getDisplayName())) {
+            return ADVISED_BY;
+        }
+        if (displayName.equals(ADVISES.getDisplayName())) {
+            return ADVISES;
+        }
+        if (displayName.equals(ASPECT_DECLARATIONS.getDisplayName())) {
+            return ASPECT_DECLARATIONS;
+        }
+        if (displayName.equals(MATCHED_BY.getDisplayName())) {
+            return MATCHED_BY;
+        }
+        if (displayName.equals(ANNOTATED_BY.getDisplayName())) {
+            return ANNOTATED_BY;
+        }
+        if (displayName.equals(ANNOTATES.getDisplayName())) {
+            return ANNOTATES;
+        }
+        if (displayName.equals(SOFTENED_BY.getDisplayName())) {
+            return SOFTENED_BY;
+        }
+        if (displayName.equals(SOFTENS.getDisplayName())) {
+            return SOFTENS;
+        }
+        if (displayName.equals(POINTCUT_USED_BY.getDisplayName())) {
+            return POINTCUT_USED_BY;
+        }
+        if (displayName.equals(USES_POINTCUT.getDisplayName())) {
+            return USES_POINTCUT;
+        }
+        return null;
 	}
 }

@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.ajde.core.AjCompiler;
-import org.aspectj.ajdt.internal.core.builder.AjState;
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
@@ -550,7 +548,6 @@ public class AJProjectModelFacade {
         final List/*IProgramElement*/ elementsOnLine = new LinkedList();
         
         // walk the program element to get all ipes on the source line
-        // XXX may have an off by 1 error
         ipe.walk(new CancellableHierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 ISourceLocation sourceLocation = node.getSourceLocation();
