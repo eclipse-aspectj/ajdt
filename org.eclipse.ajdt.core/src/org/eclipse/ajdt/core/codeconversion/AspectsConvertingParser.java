@@ -480,12 +480,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     IJavaElement je = (IJavaElement) eltIter.next();
                     IProgramElement pe = model.javaElementToProgramElement(je);
                     if (pe.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
-                        // XXX need a way to get fully qualified name here
-                        String[] details = pe.getDetails().split(" ");
-                        if (details[0].equals(EXTENDS)) {
-                            declareExtends.add(details[1]);
-                        } else if (details[0].equals(IMPLEMENTS)) {
-                            declareImplements.add(details[1]);
+                        List/*String*/ parentTypes = pe.getParentTypes();
+                        String details = pe.getDetails();
+                        if (details.startsWith(EXTENDS)) {
+                            declareExtends.addAll(parentTypes);
+                        } else if (details.startsWith(IMPLEMENTS)) {
+                            declareImplements.add(parentTypes);
                         }
                     }
                 }
