@@ -11,6 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
@@ -24,8 +27,8 @@ import org.eclipse.jdt.core.IJavaElement;
  */
 public class AJProjectModelFactory {
     
-//    private Map/*IJavaProject,AJProjectModelFacade*/
-//        projectModelMap = new HashMap();
+    private Map/*IJavaProject,AJProjectModelFacade*/
+        projectModelMap = new HashMap();
     
     private final static AJProjectModelFactory INSTANCE = new AJProjectModelFactory();
     
@@ -41,13 +44,13 @@ public class AJProjectModelFactory {
      * it does not already exist.
      */
     public AJProjectModelFacade getModelForProject(IProject project) {
-//        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.get(project);
-//        if (model == null) {
-//            model = new AJProjectModelFacade(project);
-//            projectModelMap.put(project, model);
-//        }
-//        return model;
-        return new AJProjectModelFacade(project);
+        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.get(project);
+        if (model == null) {
+            model = new AJProjectModelFacade(project);
+            projectModelMap.put(project, model);
+        }
+        return model;
+//        return new AJProjectModelFacade(project);
     }
     
     /**
@@ -58,9 +61,9 @@ public class AJProjectModelFactory {
     }
     
     public void removeModelForProject(IProject project) {
-//        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.remove(project);
-//        if (model != null) {
-//            model.dispose();
-//        }
+        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.remove(project);
+        if (model != null) {
+            model.dispose();
+        }
     }
 }

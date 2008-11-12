@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.BufferChangedEvent;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IBufferChangedListener;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -140,6 +141,11 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 			
 			fakeBuffer.setContents((char[])realBuffer.getCharacters().clone());
 			AspectsConvertingParser conv = new AspectsConvertingParser((char[])realBuffer.getCharacters().clone());
+			
+			IOpenable owner = getOwner();
+			if (owner instanceof ICompilationUnit) {
+			    conv.setUnit((ICompilationUnit) owner);
+			}
 			insertionTable = conv.convert(conversionOptions);
 			fakeBuffer.setContents(conv.content);
 			upToDate = true;

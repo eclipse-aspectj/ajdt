@@ -18,7 +18,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IRelationship;
+import org.eclipse.ajdt.core.AspectJCore;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaCore;
 
 
 /**
@@ -69,15 +73,27 @@ public class AJModel {
 	        List/*IRelationship*/ allRels = model.getRelationshipsForProject(relTypes);
 	        List/*AJRelationship*/ ajRels = new ArrayList(allRels.size());
 	        for (Iterator relIter = allRels.iterator(); relIter.hasNext();) {
-	            IRelationship relElt = (IRelationship) relIter.next();
-	            for (Iterator targetIter = relElt.getTargets().iterator(); targetIter.hasNext();) {
-                    String target = (String) targetIter.next();
-                    AJRelationship ajRel = new AJRelationship(
-                            model.programElementToJavaElement(relElt.getSourceHandle()), 
-                            AJRelationshipManager.toRelationshipType(relElt.getName()), 
-                            model.programElementToJavaElement(target), 
-                            relElt.hasRuntimeTest());
-                   ajRels.add(ajRel);
+	            IRelationship rel = (IRelationship) relIter.next();
+	            IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
+	            if (source instanceof IntertypeElement) {
+    	            for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+                        String target = (String) targetIter.next();
+                        // ensure a Java handle is used here.
+                        // because the things being compared to are 
+                        // Java handles.
+                        // This is avoiding problems when Type is in a .aj file
+                        IJavaElement elt = model.programElementToJavaElement(target);
+                        elt = JavaCore.create(AspectJCore.convertToJavaCUHandle(target, elt));
+                        if (elt != null) {
+                            // will be null if type is an aspect type or contained in an aspect type
+                            AJRelationship ajRel = new AJRelationship(
+                                    source, 
+                                    AJRelationshipManager.toRelationshipType(rel.getName()), 
+                                    elt, 
+                                    rel.hasRuntimeTest());
+                            ajRels.add(ajRel);
+                        }
+    	            }
                 }
             }
 	        return ajRels;

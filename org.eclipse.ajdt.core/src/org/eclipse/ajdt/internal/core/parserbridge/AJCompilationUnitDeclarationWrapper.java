@@ -128,19 +128,18 @@ public class AJCompilationUnitDeclarationWrapper extends
 	 * Bytecode generation
 	 */
 	public void generateCode() {
-delegate.generateCode();
+	    delegate.generateCode();
 	}
 
 	public char[] getFileName() {
-return delegate.getFileName();
+	    return delegate.getFileName();
 	}
 
 	public char[] getMainTypeName() {
-return delegate.getMainTypeName();
+	    return delegate.getMainTypeName();
 	}
 
 	public boolean isEmpty() {
-
 		return delegate.isEmpty();
 	}
 
@@ -156,7 +155,7 @@ return delegate.getMainTypeName();
 	 * Force inner local types to update their innerclass emulation
 	 */
 	public void propagateInnerEmulationForAllLocalTypes() {
-delegate.propagateInnerEmulationForAllLocalTypes();
+	    delegate.propagateInnerEmulationForAllLocalTypes();
 	}
 
 	/*
