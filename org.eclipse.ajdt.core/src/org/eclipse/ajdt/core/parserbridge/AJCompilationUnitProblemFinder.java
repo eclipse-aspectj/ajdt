@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -370,6 +371,16 @@ public class AJCompilationUnitProblemFinder extends
                 validAJNames.contains(firstArg)) {
             // the implements or extends clause of a declare statement
             return false;
+        }
+        
+        try {
+            if (numArgs == 1 && id == IProblem.UndefinedName &&
+                    unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement) {
+                // this is an intertype element inside of an aspect.
+                // it is likely that the problem is actually a reference to something added by an ITD
+                return false;
+            }
+        } catch(JavaModelException e) {
         }
         
         return true;
