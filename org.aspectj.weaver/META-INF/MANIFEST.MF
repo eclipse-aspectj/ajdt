@@ -25,4 +25,5 @@ Export-Package: org.aspectj.apache.bcel,
  org.aspectj.weaver.loadtime.definition,
  org.aspectj.weaver.patterns,
  org.aspectj.weaver.reflect,
+ org.aspectj.weaver.model,
  org.aspectj.weaver.tools
