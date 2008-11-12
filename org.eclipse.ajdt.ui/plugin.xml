@@ -1929,6 +1929,14 @@ M4 = Platform-specific fourth key
               </contentExtension>
            </includes>
         </viewerContentBinding>
+     </extension>
+     <extension
+           point="org.eclipse.ui.editors.documentProviders">
+        <provider
+              class="org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider"
+              extensions="aj"
+              id="org.eclipse.ajdt.ui.provider">
+        </provider>
      </extension>  
 
 <!-- EXPERIMENTAL (for debugging purposes only)
