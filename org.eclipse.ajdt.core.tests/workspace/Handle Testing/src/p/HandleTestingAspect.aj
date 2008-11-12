@@ -34,6 +34,13 @@ public aspect HandleTestingAspect {
 	
 	public void doNothing() {}
 	
+	// testing ITDs
+	int X.X = 6;
+    int X.itd() { }
+    X.new() { }
+    int X.itd(int x) { }
+    X.new(int x) { }
+	
 	
 	declare parents : HandleTestingClass extends InnerClass;
 	declare parents : HandleTestingClass implements X;

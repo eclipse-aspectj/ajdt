@@ -11,9 +11,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeconversion;
 
+import java.util.List;
+
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.jdt.core.IType;
 
 public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 
@@ -64,4 +67,86 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 		assertTrue("Parser should not have considered TestCase as an import", //$NON-NLS-1$
 				converted.indexOf("TestCase x") == -1); //$NON-NLS-1$
 	}
+	
+	
+	/**
+	 * inserts arbitrary conversion text at the proper places in the code
+	 * @author andrew
+	 *
+	 */
+    class MockITDConvertingParser extends AspectsConvertingParser {
+        public MockITDConvertingParser(char[] content) {
+            super(content);
+        }
+
+        protected char[] getInterTypeDecls(char[] currentTypeName) {
+            return "Here I am!".toCharArray();
+        }
+    };
+    class MockDeclareConvertingParser extends AspectsConvertingParser {
+        public MockDeclareConvertingParser(char[] content) {
+            super(content);
+        }
+
+        protected char[] createImplementExtendsITDs(char[] typeName) {
+            return "Here I am!".toCharArray();
+        }
+    };
+
+
+	
+	/**
+	 * test that ITD insertions appear in the right place
+	 */
+	public void testITDInsertions() {
+        char[] contents = "public class Foo { aspect Bar { interface X { } } } @interface Y { } ".toCharArray();
+        char[] expectedContents = "public class Foo {Here I am! class  Bar {Here I am! interface X {Here I am! } } } @interface Y {Here I am! } ".toCharArray();
+	    
+        AspectsConvertingParser parser = new MockITDConvertingParser(contents);
+
+	    parser.convert(ConversionOptions.CODE_COMPLETION);
+	    char[] convertedContents = parser.content;
+        System.out.println(new String(convertedContents));
+        System.out.println(new String(expectedContents));
+	    assertEquals(new String(expectedContents), new String(convertedContents));
+	}
+	
+	
+	
+    public void testSuperTypeInsertionsNoExistingClause() {
+        char[] contents = "public class Foo { aspect Bar { interface X { } } } @interface Y { } ".toCharArray();
+        char[] expectedContents = "public Here I am!{ Here I am!{ Here I am!{ } } } @Here I am!{ } ".toCharArray();
+
+        AspectsConvertingParser parser = new MockDeclareConvertingParser(contents);
+        parser.convert(ConversionOptions.CODE_COMPLETION);
+        char[] convertedContents = parser.content;
+        assertEquals(new String(expectedContents), new String(convertedContents));
+    }
+    public void testSuperTypeInsertionsExtendsExistingClause() {
+        char[] contents = "public class Foo extends X { aspect Bar extends X { interface X extends Y, Z { } } } @interface Z { } ".toCharArray();
+        char[] expectedContents = "public Here I am!{ Here I am!{ Here I am!{ } } } @Here I am!{ } ".toCharArray();
+
+        AspectsConvertingParser parser = new MockDeclareConvertingParser(contents);
+        parser.convert(ConversionOptions.CODE_COMPLETION);
+        char[] convertedContents = parser.content;
+        assertEquals(new String(expectedContents), new String(convertedContents));
+    }
+    public void testSuperTypeInsertionsImplementsExistingClause() {
+        char[] contents = "public class Foo implements X{ aspect Bar implements X{ interface X extends X, Y{ } } } @interface Z{ } ".toCharArray();
+        char[] expectedContents = "public Here I am!{ Here I am!{ Here I am!{ } } } @Here I am!{ } ".toCharArray();
+
+        AspectsConvertingParser parser = new MockDeclareConvertingParser(contents);
+        parser.convert(ConversionOptions.CODE_COMPLETION);
+        char[] convertedContents = parser.content;
+        assertEquals(new String(expectedContents), new String(convertedContents));
+    }
+    public void testSuperTypeInsertionsExtendsAndImplementsExistingClause() {
+        char[] contents = "public class Foo extends X implements Y { aspect Bar extends X implements Y, B { interface X extends X, A, B { } } } @interface Z{ }".toCharArray();
+        char[] expectedContents = "public Here I am!{ Here I am!{ Here I am!{ } } } @Here I am!{ }".toCharArray();
+
+        AspectsConvertingParser parser = new MockDeclareConvertingParser(contents);
+        parser.convert(ConversionOptions.CODE_COMPLETION);
+        char[] convertedContents = parser.content;
+        assertEquals(new String(expectedContents), new String(convertedContents));
+    }
 }

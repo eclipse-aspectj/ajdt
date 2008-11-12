@@ -39,6 +39,8 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
+import org.eclipse.ajdt.core.tests.reconciling.ProblemFinderTests;
+import org.eclipse.ajdt.core.tests.reconciling.ProblemFinderTests2;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
 
 /**
@@ -102,6 +104,10 @@ public class AllCoreTests {
 		
 		// refactoring tests
 		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
+		
+		// reconciling and eager parsing tests
+        suite.addTest(new TestSuite(ProblemFinderTests.class));
+        suite.addTest(new TestSuite(ProblemFinderTests2.class));
 		
 		return suite;
 	}

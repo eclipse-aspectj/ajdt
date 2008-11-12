@@ -125,6 +125,9 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	   
     /**
      * Tests that the backwards compatibility of Using AJModel works properly
+     * 
+     * This uses the old style of AJModel.
+     * The AJModel api will go away in the future
      * @throws Exception
      */
     public void testBug253245() throws Exception {
@@ -155,7 +158,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
         myAspectSet = getDeclaredMethods(myAspect);
         otherClassSet = getDeclaredMethods(otherClass);
         
-        assertEquals("ITDs have not been found.", 2, demoSet.size());
+        assertEquals("ITDs have not been found.", 5, demoSet.size());
         assertEquals("Shouldn't have any ITDs", 0, myAspectSet.size());
         assertEquals("Shouldn't have any ITDs.", 0, otherClassSet.size());
     }
