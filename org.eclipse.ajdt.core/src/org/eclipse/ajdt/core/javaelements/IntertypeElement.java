@@ -10,11 +10,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.jdt.internal.core.SourceConstructorInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -52,6 +54,7 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setName(name.toCharArray());
             info.setAJKind(ipe.getKind());
             info.setAJModifiers(ipe.getModifiers());
+            info.setFlags(getProgramElementModifiers(ipe));
             info.setAJAccessibility(ipe.getAccessibility());
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             info.setSourceRangeStart(sourceLocation.getOffset());
@@ -68,6 +71,21 @@ public class IntertypeElement extends AspectJMemberElement {
 	    return info;
 	}
 
+	static Field modfiersField = null;
+	static int getProgramElementModifiers(IProgramElement ipe) {
+	    try {
+            if (modfiersField == null) {
+                modfiersField = ProgramElement.class.getDeclaredField("modifiers");
+                modfiersField.setAccessible(true);
+            }
+            return modfiersField.getInt(ipe);
+        } catch (SecurityException e) {
+        } catch (IllegalArgumentException e) {
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+        return -1;
+	}
 	
 	
 	/**
@@ -184,30 +202,6 @@ public class IntertypeElement extends AspectJMemberElement {
 	        return new char[0][];
 	    }
 
-	
-	private String[] charArrayToStringArray(char[][] chars) {
-	    if (chars != null) {
-    	    String[] strings = new String[chars.length];
-    	    for (int i = 0; i < chars.length; i++) {
-                strings[i] = new String(chars[i]);
-            }
-    	    return strings;
-	    } else {
-	        return new String[0];
-	    }
-	}
-
-	private String[] toSignatures(char[][] strings) {
-	    if (strings != null) {
-    	    String[] sigs = new String[strings.length];
-    	    for (int i = 0; i < sigs.length; i++) {
-                sigs[i] = Signature.createTypeSignature(strings[i], true);
-            }
-    	    return sigs;
-	    } else {
-	        return new String[0];
-	    }
-	}
 	
 	/**
 	 * @author andrew

@@ -423,6 +423,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         String superClass = type.getSuperclassName();
                         if (declareExtends.size() > 0) {
                             superClass = (String) declareExtends.get(0);
+                            superClass = superClass.replace('$', '.');
                         }
                         if (superClass != null) {
                             sb.append(" " + EXTENDS + " " + superClass);
@@ -439,12 +440,13 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         if (type.isInterface()) {
                             sb.append(" " + EXTENDS + " ");
                         } else {
-                            sb.append(" " + IMPLEMENTS);
+                            sb.append(" " + IMPLEMENTS +  " ");
                         }
                     
                         for (Iterator interfaceIter = declareImplements.iterator(); interfaceIter
                                 .hasNext();) {
                             String interName = (String) interfaceIter.next();
+                            interName = interName.replace('$', '.');
                             sb.append(" " + interName);
                             if (interfaceIter.hasNext()) {
                                 sb.append(",");
@@ -501,7 +503,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 IType type = unit.getType(new String(currentTypeName));
                 if (type.exists()) {
                     List /*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
-                    StringBuffer sb = new StringBuffer();
+                    StringBuffer sb = new StringBuffer("\n\t");
                     for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
                         IJavaElement je = (IJavaElement) relIter.next();
                         IProgramElement declareElt = model.javaElementToProgramElement(je);
