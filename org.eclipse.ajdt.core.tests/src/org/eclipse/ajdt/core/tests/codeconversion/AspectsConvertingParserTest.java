@@ -11,12 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeconversion;
 
-import java.util.List;
-
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.jdt.core.IType;
 
 public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 
