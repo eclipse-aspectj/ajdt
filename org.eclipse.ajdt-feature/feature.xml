@@ -18,10 +18,14 @@
       %license
    </license>
 
+<!--
    <url>
-      <update label="%updateLabel" url="%updateURL"/>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update/" />
    </url>
-
+-->
+   <url>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/dev/weaving/" />
+   </url>
    <includes
          id="org.eclipse.ajdt.source"
          version="0.0.0"
@@ -120,6 +124,35 @@
 
    <plugin
          id="org.eclipse.ajdt.mylyn.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.equinox.weaving.aspectj"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.equinox.weaving.caching"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.equinox.weaving.hook"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.contribution.weaving.jdt"
          download-size="0"
          install-size="0"
          version="0.0.0"
