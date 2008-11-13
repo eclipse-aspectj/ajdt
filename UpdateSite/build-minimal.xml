@@ -53,6 +53,10 @@ Creates an update site structure for AspectJ
   <ant dir="../org.eclipse.ajdt.mylyn.ui" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.aspectj" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.equinox.weaving.aspectj" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.equinox.weaving.caching" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.equinox.weaving.hook" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.weaving.jdt" inheritAll="true" target="clean"/>
 </target>
 
 	
