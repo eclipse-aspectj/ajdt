@@ -30,7 +30,7 @@ import org.eclipse.jdt.internal.core.UserLibraryClasspathContainerInitializer;
  * @author andrew
  * @created Jul 2, 2008
  * These tests collectively ensure that the aspect and in paths
- * can contain various classpath entries
+ * can contain various kinds of classpath entries
  *
  */
 public class BuildPathTests extends UITestCase {
@@ -56,11 +56,6 @@ public class BuildPathTests extends UITestCase {
 
         // build all projects
         setAutobuilding(true);
-        containerProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        varProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        projProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        jarProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-
     }   
 
     public void testInpath() throws Exception {

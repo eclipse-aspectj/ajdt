@@ -1,0 +1,9 @@
+<aspectj>
+<aspects>
+<aspect name="org.eclipse.ajdt.ui.tests.ErrorsTest"/>
+<aspect name="org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest$TestFFDCAspect"/>
+<aspect name="org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest$RogueFFDCAspect"/>
+<aspect name="org.eclipse.ajdt.ui.tests.testutils.Enforcement"/>
+</aspects>
+</aspectj>
+
