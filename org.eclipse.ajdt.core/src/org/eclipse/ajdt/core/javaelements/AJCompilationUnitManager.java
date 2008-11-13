@@ -73,7 +73,7 @@ public class AJCompilationUnitManager {
 	 * @return
 	 */
 	public static ICompilationUnit mapToAJCompilationUnit(ICompilationUnit cu) {
-		if (AspectJPlugin.usingCUprovider) { // mapping not required
+		if (AspectJPlugin.USING_CU_PROVIDER) { // mapping not required
 			return cu;
 		}
 		if (cu == null) {

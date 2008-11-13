@@ -95,7 +95,7 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; //$NON-NLS-1$
 
-	public static boolean usingCUprovider = false;
+	public static final boolean USING_CU_PROVIDER = checkForCUprovider();
 	
 
 	/**
@@ -127,16 +127,17 @@ public class AspectJPlugin extends Plugin {
 	 * Sets the usingCUprovider flag if the experimental JDT extension is available
 	 *
 	 */
-	private void checkForCUprovider() {
-		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.jdt.core.compilationUnitProvider"; //$NON-NLS-1$
+	private static boolean checkForCUprovider() {
+		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.contribution.weaving.jdt.cuprovider"; //$NON-NLS-1$
 		IExtensionPoint exP = Platform.getExtensionRegistry()
 			.getExtensionPoint(EJDT_CU_PROVIDER_EXTENSION);
 		if (exP!=null) {
 			// extension exists, check that org.eclipse.ajdt.cuprovider is there to use it
-			if (Platform.getBundle("org.eclipse.ajdt.cuprovider")!=null) { //$NON-NLS-1$
-				usingCUprovider = true;
+			if (Platform.getBundle("org.eclipse.contribution.weaving.jdt") != null) { //$NON-NLS-1$
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**

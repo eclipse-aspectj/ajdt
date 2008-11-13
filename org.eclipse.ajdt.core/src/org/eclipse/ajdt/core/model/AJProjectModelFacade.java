@@ -81,7 +81,7 @@ public class AJProjectModelFacade {
     
     
     public final static IProgramElement ERROR_PROGRAM_ELEMENT = new ProgramElement();
-    public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
+    public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT.java", null);
     static {
         ERROR_PROGRAM_ELEMENT.setName("ERROR_PROGRAM_ELEMENT");
         ERROR_PROGRAM_ELEMENT.setKind(IProgramElement.Kind.FILE);
@@ -192,10 +192,7 @@ public class AJProjectModelFacade {
         
         
         // check to see if we need to replace { (compilation unit) with * (aj compilation unit)
-        // must always have a * if the CU ends in .aj even if there are no Aspect elements
-        // in the file
-        // this occurs because AJDT does not have always have control over 
-        // the creation of ICompilationUnits.  See PackageFragment.getCompilationUnit()
+        // if using cuprovider, then aj compilation units have {, but needs to change to *
         ICompilationUnit cu =  null;
         if (je instanceof IMember) {
             cu = ((IMember) je).getCompilationUnit();
@@ -282,6 +279,12 @@ public class AJProjectModelFacade {
                     return getElementFromClassFile(jHandle);
                 }
             }
+        }
+
+        // if using cuprovider, then we don not use the * for Aspect compilation units,
+        // it uses the standard {
+        if (AspectJPlugin.USING_CU_PROVIDER) {
+            jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_COMPILATIONUNIT);
         }
 
         
@@ -452,7 +455,7 @@ public class AJProjectModelFacade {
         for (int i = 0; i < cus.length; i++) {
             IType[] types = cus[i].getAllTypes();
             for (int j = 0; j < types.length; j++) {
-                if (types[j].getElementName().equals(typeNameNoParent)) {
+                if (types[j].getElementName().equals(typeName)) {
                     return cus[i];
                 }
             }

@@ -25,6 +25,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.ajdt.core.AJMementoTokenizer;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
@@ -126,7 +127,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	public char[] getMainTypeName(){
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getMainTypeName();
 		}
 		String elementName = name;
@@ -165,7 +166,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	public IResource getResource(){
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getResource();
 		}
 		return ajFile;
@@ -175,14 +176,14 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * needs to return real path for organize imports 
 	 */
 	public IPath getPath() {
-		if (AspectJPlugin.usingCUprovider || ajFile == null) {
+		if (AspectJPlugin.USING_CU_PROVIDER || ajFile == null) {
 			return super.getPath();
 		}
 		return ajFile.getFullPath();
 	}
 	
 	public IResource getUnderlyingResource() throws JavaModelException {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getUnderlyingResource();
 		}
 		return ajFile;
@@ -553,13 +554,19 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * @see JavaElement
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
-		JavaElement type = this;
-		
-		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
+        
+        if (! (memento instanceof AJMementoTokenizer)) {
+            memento = new AJMementoTokenizer(memento);
+            token = memento.nextToken();
+        }
+        
+        JavaElement type = this;
+        
+        if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
 		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
-		
+        
 		// need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
 		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||
@@ -613,18 +620,17 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * @see JavaElement#getHandleMementoDelimiter()
 	 */
 	protected char getHandleMementoDelimiter() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleMementoDelimiter();
 		}
 		return AspectElement.JEM_ASPECT_CU;
 	}
 	
 	public String getHandleIdentifier() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleIdentifier();
 		}
-		String callerName = (new RuntimeException()).getStackTrace()[1]
-				.getClassName();
+		String callerName = (new RuntimeException()).getStackTrace()[1].getClassName();
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		// are we being called in the context of a delete operation?
 		if (callerName.equals(deletionClass)) {
@@ -638,6 +644,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		// are we being called in the context of a move/DnD operation?
 		final String moveClass = "org.eclipse.jdt.internal.corext.refactoring.changes.CompilationUnitReorgChange"; //$NON-NLS-1$
 		if (callerName.equals(moveClass)) {
+
 			// need to return a handle identifier that JDT can use (bug 121533)
 			String modifiedHandle = super.getHandleIdentifier().replace(
 					AspectElement.JEM_ASPECT_CU,
