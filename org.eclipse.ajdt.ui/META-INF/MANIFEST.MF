@@ -75,15 +75,16 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ant.core,
  org.apache.ant,
  org.eclipse.ltk.core.refactoring,
- org.eclipse.ajdt.core;bundle-version="1.6.1",
+ org.eclipse.ajdt.core,
  org.aspectj.runtime,
  org.eclipse.contribution.xref.core;resolution:=optional,
  org.eclipse.contribution.xref.ui;resolution:=optional,
  org.eclipse.help,
  org.aspectj.weaver,
  org.eclipse.core.filesystem,
- org.eclipse.ui.navigator
-Eclipse-LazyStart: true; exceptions="org.eclipse.ajdt.internal.ui.lazystart"
+ org.eclipse.ui.navigator,
+ org.eclipse.contribution.weaving.jdt
+Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.internal.ui.lazystart"
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 Import-Package: com.ibm.icu.text,
  com.ibm.icu.util

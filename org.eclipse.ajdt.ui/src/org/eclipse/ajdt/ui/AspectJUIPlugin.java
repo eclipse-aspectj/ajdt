@@ -275,14 +275,14 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// notified if resources are added/deleted or their content changed.
 
 		// listener for aspectj model
-		if (!AspectJPlugin.usingCUprovider) {
+//		if (!AspectJPlugin.USING_CU_PROVIDER) {
 			AspectJPlugin.getWorkspace().addResourceChangeListener(
 					new AJCompilationUnitResourceChangeListener(),
 					IResourceChangeEvent.PRE_CLOSE
 							| IResourceChangeEvent.PRE_DELETE
 							| IResourceChangeEvent.POST_CHANGE
 							| IResourceChangeEvent.PRE_BUILD);
-		}
+//		}
 		
 		// set the UI version of core operations
 		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
@@ -304,7 +304,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		checkAspectJVersion();
 
-		if (!AspectJPlugin.usingCUprovider) {
+		if (!AspectJPlugin.USING_CU_PROVIDER) {
 			AJCompilationUnitManager.INSTANCE
 					.initCompilationUnits(AspectJPlugin.getWorkspace());
 			AJDTUtils.refreshPackageExplorer();

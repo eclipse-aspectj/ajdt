@@ -67,7 +67,7 @@ public class CompilationUnitFilter extends ViewerFilter {
 			return true;
 		}
 		
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return true;
 		}
 

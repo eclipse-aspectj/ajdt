@@ -80,7 +80,7 @@ public class DebugTracing {
 		eventData.append( Version.text );
 		eventData.append( "\n   usingVisualiser="+AspectJUIPlugin.usingVisualiser ); //$NON-NLS-1$
 		eventData.append( "\n   usingXref="+AspectJUIPlugin.usingXref ); //$NON-NLS-1$
-		eventData.append( "\n   usingCUprovider="+AspectJPlugin.usingCUprovider ); //$NON-NLS-1$
+		eventData.append( "\n   usingCUprovider="+AspectJPlugin.USING_CU_PROVIDER ); //$NON-NLS-1$
 		
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		String[] props = AspectJUIPlugin.getDefault().getPluginPreferences().propertyNames();
