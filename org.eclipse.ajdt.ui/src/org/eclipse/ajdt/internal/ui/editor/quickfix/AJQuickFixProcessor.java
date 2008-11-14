@@ -23,13 +23,14 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Adapted from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
  */
-public class AJQuickFixProcessor extends QuickFixProcessor {
+public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssistProcessor {
 
 	public boolean hasCorrections(ICompilationUnit cu, int problemId) {
 		switch (problemId) {
@@ -119,4 +120,28 @@ public class AJQuickFixProcessor extends QuickFixProcessor {
 		default:
 		}
 	}
+
+    public IJavaCompletionProposal[] getAssists(IInvocationContext context,
+            IProblemLocation[] locations) throws CoreException {
+        return getCorrections(context, locations);
+    }
+
+    public boolean hasAssists(IInvocationContext context) throws CoreException {
+        IProblem[] problems = context.getASTRoot().getProblems();
+        for (int i = 0; i < problems.length; i++) {
+            if (hasCorrections(null, problems[i].getID()) && 
+                    overlaps(context.getSelectionOffset(), 
+                            context.getSelectionOffset() + context.getSelectionLength(), 
+                            problems[i].getSourceStart(),
+                            problems[i].getSourceEnd())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean overlaps(int selStart, int selEnd, int sourceStart,
+            int sourceEnd) {
+        return true;
+    }
 }

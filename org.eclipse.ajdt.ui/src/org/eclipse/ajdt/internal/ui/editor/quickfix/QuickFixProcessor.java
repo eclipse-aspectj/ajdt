@@ -35,6 +35,7 @@ import org.eclipse.jdt.internal.ui.text.correction.proposals.TaskMarkerProposal;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
@@ -43,7 +44,7 @@ import org.eclipse.ui.PlatformUI;
  * Copied from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
  * Any changes marked with // AspectJ Change
  */
-public class QuickFixProcessor implements IQuickFixProcessor {
+public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProcessor {
 
 
 	public boolean hasCorrections(ICompilationUnit cu, int problemId) {
@@ -543,4 +544,19 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			SuppressWarningsSubProcessor.addSuppressWarningsProposals(context, problem, proposals);
 		}
 	}
+
+    public IJavaCompletionProposal[] getAssists(IInvocationContext context,
+            IProblemLocation[] locations) throws CoreException {
+        return getCorrections(context, locations);
+    }
+
+    public boolean hasAssists(IInvocationContext context) throws CoreException {
+        IProblem[] problems = context.getASTRoot().getProblems();
+        for (int i = 0; i < problems.length; i++) {
+            if (hasCorrections(context.getCompilationUnit(), problems[i].getID())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
