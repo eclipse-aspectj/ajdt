@@ -81,7 +81,10 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 	   model = AJProjectModelFactory.getInstance().getModelForProject(project);
        assertFalse("Should not have a model if the project has not been built", model.hasModel());
        project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-       assertTrue("Model should have been disposed if the project has been built", model.isDisposed());
+       
+       // no longer automatically disposing of project models when they get stale.
+//       assertTrue("Model should have been disposed if the project has been built", model.isDisposed());
+       
        // get a new model that is not disposed
        model = AJProjectModelFactory.getInstance().getModelForProject(project);
        assertTrue("Should have a model if the project has been built", model.hasModel());
