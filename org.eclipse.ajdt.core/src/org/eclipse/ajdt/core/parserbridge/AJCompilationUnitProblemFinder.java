@@ -241,15 +241,21 @@ public class AJCompilationUnitProblemFinder extends
 	 */
 	private static CategorizedProblem[] removeAJNonProblems(
             CategorizedProblem[] categorizedProblems, AJCompilationUnit unit) {
-        Set ajIdentifiers = gatherITDsForCU(unit);
-        boolean hasModel;
-        if (ajIdentifiers == null) {
-            // project hasn't had a successful build yet
-            hasModel = false;
-            ajIdentifiers = new HashSet();
-        } else {
-            hasModel = true;
-        }
+	    
+	    // too many corner cases.  can't get ITD aware content assist working
+//        Set ajIdentifiers = gatherITDsForCU(unit);
+//        boolean hasModel;
+//        if (ajIdentifiers == null) {
+//            // project hasn't had a successful build yet
+//            hasModel = false;
+//            ajIdentifiers = new HashSet();
+//        } else {
+//            hasModel = true;
+//        }
+	    
+	    // instead, just remove all problems that might be related to ITDs
+	    boolean hasModel = false;
+	    Set ajIdentifiers = new HashSet();
         ajIdentifiers.addAll(validAJNames);
         List newProblems = new LinkedList();
         for (int i = 0; i < categorizedProblems.length; i++) {
@@ -265,6 +271,7 @@ public class AJCompilationUnitProblemFinder extends
 
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
+	// XXX we are not doing ITD aware yet.  hasModel is always false
     private static boolean isARealProblem(
             CategorizedProblem categorizedProblem, Set ajIdentifiers, AJCompilationUnit unit, boolean hasModel) {
         
@@ -274,8 +281,6 @@ public class AJCompilationUnitProblemFinder extends
         String secondArg = numArgs > 1 ? categorizedProblem.getArguments()[1] : null;
         
         int id = categorizedProblem.getID();
-        
-        
         
         if (!hasModel && 
             (id == IProblem.UndefinedType ||

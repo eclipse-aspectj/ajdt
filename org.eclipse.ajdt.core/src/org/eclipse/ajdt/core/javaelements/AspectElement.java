@@ -69,7 +69,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
         info.setSourceRangeStart(0);
         
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
-        if (ipe != IHierarchy.NO_STRUCTURE) {
+        if (ipe != null && ipe != IHierarchy.NO_STRUCTURE) {
             info.setAJExtraInfo(ipe.getExtraInfo());
             info.setAJModifiers(ipe.getModifiers());
             info.setFlags(getProgramElementModifiers(ipe));
