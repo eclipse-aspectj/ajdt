@@ -30,7 +30,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Adapted from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
  */
-public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssistProcessor {
+public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssistProcessor { // AspectJ Change
 
 	public boolean hasCorrections(ICompilationUnit cu, int problemId) {
 		switch (problemId) {
@@ -121,6 +121,9 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 		}
 	}
 
+
+    // begin AspectJ Change
+    // implementing methods of IQuickAssistProcessor
     public IJavaCompletionProposal[] getAssists(IInvocationContext context,
             IProblemLocation[] locations) throws CoreException {
         return getCorrections(context, locations);
@@ -129,19 +132,11 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
     public boolean hasAssists(IInvocationContext context) throws CoreException {
         IProblem[] problems = context.getASTRoot().getProblems();
         for (int i = 0; i < problems.length; i++) {
-            if (hasCorrections(null, problems[i].getID()) && 
-                    overlaps(context.getSelectionOffset(), 
-                            context.getSelectionOffset() + context.getSelectionLength(), 
-                            problems[i].getSourceStart(),
-                            problems[i].getSourceEnd())) {
+            if (hasCorrections(context.getCompilationUnit(), problems[i].getID())) {
                 return true;
             }
         }
         return false;
     }
-
-    private boolean overlaps(int selStart, int selEnd, int sourceStart,
-            int sourceEnd) {
-        return true;
-    }
+    // end AspectJ Change
 }

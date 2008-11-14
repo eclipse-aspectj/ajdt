@@ -532,6 +532,7 @@ public class UnresolvedElementsSubProcessor {
 		}
 		// AspectJ Change Begin
 		// need to add non-null checks for quick fix inside aspects
+		// ensures Aspects in java files fail gracefully
 		if (selectedNode.getParent() == null) {
 			return;
 		}

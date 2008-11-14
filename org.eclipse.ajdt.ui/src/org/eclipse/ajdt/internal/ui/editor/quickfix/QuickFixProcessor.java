@@ -44,7 +44,7 @@ import org.eclipse.ui.PlatformUI;
  * Copied from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
  * Any changes marked with // AspectJ Change
  */
-public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProcessor {
+public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProcessor { // AspectJ Change
 
 
 	public boolean hasCorrections(ICompilationUnit cu, int problemId) {
@@ -545,6 +545,8 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 		}
 	}
 
+	// begin AspectJ Change
+	// implementing methods of IQuickAssistProcessor
     public IJavaCompletionProposal[] getAssists(IInvocationContext context,
             IProblemLocation[] locations) throws CoreException {
         return getCorrections(context, locations);
@@ -559,4 +561,5 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
         }
         return false;
     }
+    // end AspectJ Change
 }
