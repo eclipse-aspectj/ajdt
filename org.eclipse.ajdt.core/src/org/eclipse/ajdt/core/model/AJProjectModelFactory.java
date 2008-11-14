@@ -26,9 +26,10 @@ import org.eclipse.jdt.core.IJavaElement;
  * efficiency improvements.
  */
 public class AJProjectModelFactory {
-    
-    private Map/*IJavaProject,AJProjectModelFacade*/
-        projectModelMap = new HashMap();
+
+    // no caching
+//    private Map/*IJavaProject,AJProjectModelFacade*/
+//        projectModelMap = new HashMap();
     
     private final static AJProjectModelFactory INSTANCE = new AJProjectModelFactory();
     
@@ -40,17 +41,18 @@ public class AJProjectModelFactory {
     private AJProjectModelFactory() { }
     
     /**
-     * Gets the model for this project from the cache.  Creates the model if
-     * it does not already exist.
+     * creates a new project model
+     * 
+     * may introduce caching in the future
      */
     public AJProjectModelFacade getModelForProject(IProject project) {
-        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.get(project);
-        if (model == null) {
-            model = new AJProjectModelFacade(project);
-            projectModelMap.put(project, model);
-        }
-        return model;
-//        return new AJProjectModelFacade(project);
+//        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.get(project);
+//        if (model == null) {
+//            model = new AJProjectModelFacade(project);
+//            projectModelMap.put(project, model);
+//        }
+//        return model;
+        return new AJProjectModelFacade(project);
     }
     
     /**
@@ -60,10 +62,14 @@ public class AJProjectModelFactory {
         return getModelForProject(elt.getJavaProject().getProject());
     }
     
+    /**
+     * does nothing since there is no caching
+     * @param project
+     */
     public void removeModelForProject(IProject project) {
-        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.remove(project);
-        if (model != null) {
-            model.dispose();
-        }
+//        AJProjectModelFacade model = (AJProjectModelFacade) projectModelMap.remove(project);
+//        if (model != null) {
+//            model.dispose();
+//        }
     }
 }

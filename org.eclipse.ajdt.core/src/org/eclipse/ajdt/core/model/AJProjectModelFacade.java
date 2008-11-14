@@ -185,7 +185,7 @@ public class AJProjectModelFacade {
                 }
             }
         } else {
-            System.out.println("Can't initialize...building");
+            // can't initialize...building
         }
     }    
 
