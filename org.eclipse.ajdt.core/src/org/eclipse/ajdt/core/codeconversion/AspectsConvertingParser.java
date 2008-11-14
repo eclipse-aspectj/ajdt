@@ -976,28 +976,40 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	// position before the inserted area
 	public static int translatePositionToBeforeChanges(int posAfter,
 			ArrayList replacements) {
-		Replacement ins;
-		int offset = 0, i;
+	    return translatePositionToBeforeChanges(posAfter, replacements, false);
+	}
+	
+	// as above, but if the position doesn't exist in the original,
+	// return -1
+	public static int translatePositionToBeforeChanges(int posAfter,
+            ArrayList replacements, boolean faultOnNonExistantPosition) {
+        Replacement ins;
+        int offset = 0, i;
 
-		for (i = 0; i < replacements.size(); i++) {
-			ins = (Replacement) replacements.get(i);
-			if (ins.posAfter > posAfter)
-				break;
-			offset += ins.lengthAdded;
-		}
-		if (i > 0) {
-			ins = (Replacement) replacements.get(i - 1);
-			if (ins.posAfter + ins.text.length > posAfter) {
-				//diff must be > 0
-				int diff = posAfter - ins.posAfter;
-				if (diff > ins.length)
-					//we are in inserted area -> return pos directly before
-					// that area
-					offset += diff - ins.length;
-			}
-		}
+        for (i = 0; i < replacements.size(); i++) {
+            ins = (Replacement) replacements.get(i);
+            if (ins.posAfter > posAfter)
+                break;
+            offset += ins.lengthAdded;
+        }
+        if (i > 0) {
+            ins = (Replacement) replacements.get(i - 1);
+            if (ins.posAfter + ins.text.length > posAfter) {
+                //diff must be > 0
+                int diff = posAfter - ins.posAfter;
+                if (diff > ins.length) {
+                    // we are in inserted area
+                    if (faultOnNonExistantPosition) {
+                        return -1;
+                    } else {
+                        // return pos directly before that area
+                        offset += diff - ins.length;
+                    }
+                }
+            }
+        }
 
-		return posAfter - offset;
+        return posAfter - offset;
 	}
 
 	//translates a position from before to after changes

@@ -12,30 +12,27 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.parserbridge;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit.ClonedAJCU;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -48,7 +45,9 @@ import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.eclipse.jdt.internal.core.CancelableProblemFactory;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
@@ -97,10 +96,10 @@ public class AJCompilationUnitProblemFinder extends
     		 CompilerOptions compilerOptions = new CompilerOptions(options);
              try {
             	 if (ajcu.getElementInfo() instanceof AJCompilationUnitInfo) {
-            	     ajcu.discardOriginalContentMode();
-            		 this.parser = new AJSourceElementParser2(
-            				 new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
-            		 ajcu.requestOriginalContentMode();
+                		 this.parser = new AJSourceElementParser2(
+                				 new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo) ajcu.getElementInfo(), null), 
+                				 new DefaultProblemFactory(), 
+                				 compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
             	 } else {
             	     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
             	 }
@@ -151,7 +150,8 @@ public class AJCompilationUnitProblemFinder extends
                             ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
                     getRequestor(), problemFactory, unitElement);
             CompilationUnitDeclaration unit = null;
-            if (parser != null) {
+            
+             if (parser != null) {
                 problemFinder.parser = parser;
                 try {
                     unit = parser.parseCompilationUnit(
@@ -169,13 +169,13 @@ public class AJCompilationUnitProblemFinder extends
                         true, // analyze code
                         true); // generate code
             }
+
             CompilationResult unitResult = unit.compilationResult;
             CategorizedProblem[] unitProblems = unitResult.getProblems();
             int length = unitProblems == null ? 0 : unitProblems.length;
             if (length > 0) {
-                CategorizedProblem[] categorizedProblems = new CategorizedProblem[length];
-                System.arraycopy(unitProblems, 0, categorizedProblems, 0,
-                        length);
+                CategorizedProblem[] categorizedProblems = updateProblemLocations(unitProblems, unitElement);
+                
                 categorizedProblems = removeAJNonProblems(categorizedProblems, unitElement);
                 if (categorizedProblems.length > 0) {
                     problems.put(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
@@ -230,31 +230,58 @@ public class AJCompilationUnitProblemFinder extends
 	}
 
 	/**
-	 * removes all problems that have come from 
-	 * valid ITDs
+	 * convert from fake positions to real positions
 	 * 
-	 * Not quite right...this will assume that all ITDs apply to all 
-	 * types declared here.  So, it may erroneously remove errors.
+	 * removes those problems that occur in fake positions
+	 * @param problems
+	 * @param unitElement
+	 * @return
+	 */
+	private static CategorizedProblem[] updateProblemLocations(
+            CategorizedProblem[] problems, AJCompilationUnit unitElement) {
+	    if (unitElement instanceof ClonedAJCU) {
+	        ClonedAJCU clonedUnit = (ClonedAJCU) unitElement;
+	        List translatedProblems = new ArrayList(problems.length);
+            for (int i = 0; i < problems.length; i++) {
+                DefaultProblem problem = (DefaultProblem) problems[i];
+                int newStart = clonedUnit.translatePositionToReal(problem.getSourceStart());
+                int newEnd = clonedUnit.translatePositionToReal(problem.getSourceEnd());
+                if (newStart >= 0 && newEnd >= 0) {
+                    int newLine = clonedUnit.getLineOfOffsetInOriginal(newStart);
+                    int newColumn = clonedUnit.getColumnOfOffsetInOriginal(newStart);
+                    translatedProblems.add(new DefaultProblem(problem.getOriginatingFileName(), 
+                            problem.getMessage(), problem.getID(), 
+                            problem.getArguments(), problem.isError() ? ProblemSeverities.Error : 0, 
+                            newStart, newEnd, 
+                            newLine >= 0 ? newLine : problem.getSourceLineNumber(), 
+                            newColumn >= 0 ? newColumn : problem.getSourceColumnNumber()));
+                }
+            }
+            return (CategorizedProblem[]) translatedProblems.toArray(new CategorizedProblem[translatedProblems.size()]);
+	    }        
+        CategorizedProblem[] categorizedProblems = new CategorizedProblem[problems.length];
+        System.arraycopy(problems, 0, categorizedProblems, 0,
+                problems.length);
+
+        return problems;
+    }
+
+    /**
+	 * removes all problems that have come from 
+	 * aj identifiers such as before, after, etc
+	 * 
 	 * 
 	 * @param categorizedProblems
 	 * @return
 	 */
 	private static CategorizedProblem[] removeAJNonProblems(
             CategorizedProblem[] categorizedProblems, AJCompilationUnit unit) {
-        Set ajIdentifiers = gatherITDsForCU(unit);
-        boolean hasModel;
-        if (ajIdentifiers == null) {
-            // project hasn't had a successful build yet
-            hasModel = false;
-            ajIdentifiers = new HashSet();
-        } else {
-            hasModel = true;
-        }
-        ajIdentifiers.addAll(validAJNames);
+        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+        boolean hasModel = model.hasModel();
         List newProblems = new LinkedList();
         for (int i = 0; i < categorizedProblems.length; i++) {
             // determine if this problem should be filtered
-            if (isARealProblem(categorizedProblems[i], ajIdentifiers, unit, hasModel)) {
+            if (isARealProblem(categorizedProblems[i], unit, hasModel)) {
                 newProblems.add(categorizedProblems[i]);
             }
         }
@@ -266,7 +293,7 @@ public class AJCompilationUnitProblemFinder extends
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, Set ajIdentifiers, AJCompilationUnit unit, boolean hasModel) {
+            CategorizedProblem categorizedProblem, AJCompilationUnit unit, boolean hasModel) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -289,37 +316,6 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        if ((id == IProblem.UndefinedName ||
-             id == IProblem.UndefinedField) &&
-                   numArgs > 0 &&
-                   ajIdentifiers.contains(firstArg)) {
-               // possibly from an ITD
-               return false;
-           }
-
-        
-        if ((id == IProblem.UndefinedType ||
-             id == IProblem.UndefinedMethod) &&
-                numArgs >= 1 &&
-                ajIdentifiers.contains(firstArg) ||
-                ajIdentifiers.contains(secondArg)) {
-            // possibly from an ITD
-            return false;
-        }
-        
-        if (id == IProblem.UndefinedConstructor &&
-                numArgs > 0) {
-            String[] nameParts = firstArg.split("\\.");
-            if (nameParts.length > 0 && 
-                    ajIdentifiers.contains(nameParts[nameParts.length-1])) {
-                // sometimes the error for an undefined constructor uses 
-                // a fully qualified name in the error text.
-                return false;
-            }
-        }
-                
-                
-                
         if (numArgs > 1 &&
                 (id == IProblem.DuplicateField ||
                  id == IProblem.DuplicateMethod) &&
@@ -398,38 +394,38 @@ public class AJCompilationUnitProblemFinder extends
     }
 
     
-    private static Set gatherITDsForCU(AJCompilationUnit unit) {
-        try {
-            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
-            if (model.hasModel()) {
-                Set/*String*/ allITDNames = new HashSet();
-                IType[] types = unit.getAllTypes();
-                for (int i = 0; i < types.length; i++) {
-                    if (model.hasProgramElement(types[i])) {
-                        List /*IRelationship*/ rels = model.getRelationshipsForElement(types[i], AJRelationshipManager.ASPECT_DECLARATIONS);
-                        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                            IJavaElement je = (IJavaElement) relIter.next();
-                            IProgramElement declareElt = model.javaElementToProgramElement(je);
-                            if (declareElt != null && declareElt.getParent() != null && declareElt.getKind().isInterTypeMember()) { // checks to see if this element is valid
-                                // should be fully qualified type and simple name
-                                int lastDot = declareElt.getName().lastIndexOf('.');
-                                String name = declareElt.getName().substring(lastDot+1);
-                                allITDNames.add(name);
-                            }
-                        }
-                    } else {
-                        // there is a problem with one of the types 
-                        // forget the whole thing and assume there is no model
-                        return null;
-                    }
-                    
-                }
-                return allITDNames;
-            }
-        } catch (JavaModelException e) {
-        }
-        return null;
-    }
+//    private static Set gatherITDsForCU(AJCompilationUnit unit) {
+//        try {
+//            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+//            if (model.hasModel()) {
+//                Set/*String*/ allITDNames = new HashSet();
+//                IType[] types = unit.getAllTypes();
+//                for (int i = 0; i < types.length; i++) {
+//                    if (model.hasProgramElement(types[i])) {
+//                        List /*IRelationship*/ rels = model.getRelationshipsForElement(types[i], AJRelationshipManager.ASPECT_DECLARATIONS);
+//                        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+//                            IJavaElement je = (IJavaElement) relIter.next();
+//                            IProgramElement declareElt = model.javaElementToProgramElement(je);
+//                            if (declareElt != null && declareElt.getParent() != null && declareElt.getKind().isInterTypeMember()) { // checks to see if this element is valid
+//                                // should be fully qualified type and simple name
+//                                int lastDot = declareElt.getName().lastIndexOf('.');
+//                                String name = declareElt.getName().substring(lastDot+1);
+//                                allITDNames.add(name);
+//                            }
+//                        }
+//                    } else {
+//                        // there is a problem with one of the types 
+//                        // forget the whole thing and assume there is no model
+//                        return null;
+//                    }
+//                    
+//                }
+//                return allITDNames;
+//            }
+//        } catch (JavaModelException e) {
+//        }
+//        return null;
+//    }
     
     static Set validAJNames = new HashSet();
     static {

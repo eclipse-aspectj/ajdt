@@ -20,6 +20,10 @@ import org.eclipse.jdt.core.IBufferChangedListener;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.DocumentAdapter;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * This Wrapper forwards changes to the real buffer, but
@@ -162,8 +166,9 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 		this.ensureUpToDate();
 		return AspectsConvertingParser.translatePositionToAfterChanges(pos, insertionTable);
 	}
+
 	
-	/* (non-Javadoc)
+   /* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IBufferChangedListener#bufferChanged(org.eclipse.jdt.core.BufferChangedEvent)
 	 */
 	public void bufferChanged(BufferChangedEvent event) {
@@ -179,5 +184,9 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	public void setConversionOptions(ConversionOptions conversionOptions) {
 		this.conversionOptions = conversionOptions;
 		upToDate = false;
+	}
+	
+	public IBuffer getRealBuffer() {
+	    return realBuffer;
 	}
 }

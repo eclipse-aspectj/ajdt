@@ -15,14 +15,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
 import org.eclipse.ajdt.core.reconcile.AJReconcileWorkingCopyOperation;
@@ -69,6 +72,11 @@ import org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.util.MementoTokenizer;
+import org.eclipse.jdt.internal.core.util.SimpleDocument;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 
 
 /**
@@ -85,7 +93,67 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
  */
 public class AJCompilationUnit extends CompilationUnit{
 	
-	int originalContentMode = 0;
+    /**
+     * Cloned Unit for doing reconciling.
+     * Always want to use CODE_COMPLETE style of conversion
+     * @author andrew
+     *
+     */
+	public final class ClonedAJCU extends AJCompilationUnit {
+        private char[] cachedFakeContents;
+        private IDocument cachedOrigDocument;
+        private ArrayList/*Replacement*/ replacements;
+
+        public ClonedAJCU(PackageFragment fragment, String elementName,
+                WorkingCopyOwner workingCopyOwner) {
+            super(fragment, elementName, workingCopyOwner);
+        }
+
+        public char[] getContents() {
+            if (this.cachedFakeContents == null) {
+                AJCompilationUnit.this.requestOriginalContentMode();
+                char[] cachedOrigContents = AJCompilationUnit.this.getContents();
+                AJCompilationUnit.this.discardOriginalContentMode();
+                cachedOrigDocument = new Document(new String(cachedOrigContents));
+                
+                AspectsConvertingParser transformer = new AspectsConvertingParser(cachedOrigContents);
+                transformer.setUnit(AJCompilationUnit.this);
+                replacements = transformer.convert(ConversionOptions.CODE_COMPLETION);
+                this.cachedFakeContents = transformer.content;
+                
+            }
+            return this.cachedFakeContents;
+        }
+
+        public CompilationUnit originalFromClone() {
+            return AJCompilationUnit.this;
+        }
+        
+        public int translatePositionToReal(int pos){
+            return AspectsConvertingParser.translatePositionToBeforeChanges(pos, replacements, true);
+        }
+
+        public int getLineOfOffsetInOriginal(int offset) {
+            if (cachedOrigDocument != null) {
+                try {
+                    return cachedOrigDocument.getLineOfOffset(offset);
+                } catch (BadLocationException e) {
+                }
+            }
+            return -1;
+        }
+        public int getColumnOfOffsetInOriginal(int offset) {
+            if (cachedOrigDocument != null) {
+                try {
+                    IRegion region = cachedOrigDocument.getLineInformationOfOffset(offset);
+                    return offset - region.getOffset();
+                } catch (BadLocationException e) {
+                }
+            }
+            return -1;
+        }
+    }
+    int originalContentMode = 0;
 	private IFile ajFile;
 	protected JavaCompatibleBuffer javaCompBuffer;
 	
@@ -850,17 +918,14 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * DO NOT PASS TO CLIENTS
 	 */
 	public AJCompilationUnit ajCloneCachingContents() {
-	    return new AJCompilationUnit((PackageFragment) this.parent, this.name, this.owner) {
-	        private char[] cachedContents;
-	        public char[] getContents() {
-	            if (this.cachedContents == null)
-	                this.cachedContents = AJCompilationUnit.this.getContents();
-	            return this.cachedContents;
-	        }
-	        public CompilationUnit originalFromClone() {
-	            return AJCompilationUnit.this;
-	        }
-	    };
+	    return new ClonedAJCU((PackageFragment) this.parent, this.name, this.owner);
 	}
+
+    public void setConversionOptions(ConversionOptions conversionOptions) {
+        javaCompBuffer.setConversionOptions(conversionOptions);
+    }
+    public ConversionOptions getConversionOptions() {
+        return javaCompBuffer.getConversionOptions();
+    }
 
 }
