@@ -70,11 +70,5 @@ public class InpathOutFolderTest extends UITestCase {
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
 	}
-	    
-	public static void setAutobuilding(boolean autobuild) throws CoreException {
-	    IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
-	    workspaceDesc.setAutoBuilding(autobuild);
-	    AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
-	}
 
 }

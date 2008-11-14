@@ -152,11 +152,5 @@ public class BuildPathTests extends UITestCase {
         assertTrue("Did not find expected string '"+exp+"' in console output:\n"+console,console.indexOf(exp)!=-1);  //$NON-NLS-1$//$NON-NLS-2$
         exp = "from container aspect"; //$NON-NLS-1$
         assertTrue("Did not find expected string '"+exp+"' in console output:\n"+console,console.indexOf(exp)!=-1);  //$NON-NLS-1$//$NON-NLS-2$
-    }
-    
-    public static void setAutobuilding(boolean autobuild) throws CoreException {
-        IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
-        workspaceDesc.setAutoBuilding(autobuild);
-        AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
-    }
+    }    
 }

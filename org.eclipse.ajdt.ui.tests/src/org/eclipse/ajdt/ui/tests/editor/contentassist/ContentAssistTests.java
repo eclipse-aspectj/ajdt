@@ -38,7 +38,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author Luzius Meisser
  */
-public class ContentAssistTest extends UITestCase {
+public class ContentAssistTests extends UITestCase {
 
 	IProject fProject;
 	

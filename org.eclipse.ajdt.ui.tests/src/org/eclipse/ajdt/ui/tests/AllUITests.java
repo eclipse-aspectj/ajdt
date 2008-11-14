@@ -41,7 +41,8 @@ import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
-import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTest;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests2;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
@@ -64,6 +65,8 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests2;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
@@ -151,7 +154,8 @@ public class AllUITests {
 
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));
-		suite.addTest(new TestSuite(ContentAssistTest.class));
+		suite.addTest(new TestSuite(ContentAssistTests.class));
+        suite.addTest(new TestSuite(ContentAssistTests2.class));
 		
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
@@ -203,6 +207,10 @@ public class AllUITests {
 
 		// AJDT visualiser content provider tests
 		suite.addTest(new TestSuite(AJDTContentProviderTest.class));
+		
+        suite.addTest(new TestSuite(ProblemFinderTests.class));
+        suite.addTest(new TestSuite(ProblemFinderTests2.class));
+
 		
 		//$JUnit-END$
 		return suite;
