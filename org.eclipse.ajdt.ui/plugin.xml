@@ -1937,6 +1937,14 @@ M4 = Platform-specific fourth key
               extensions="aj"
               id="org.eclipse.ajdt.ui.provider">
         </provider>
+     </extension>
+     <extension
+           point="org.eclipse.ui.console.consoleFactories">
+        <consoleFactory
+              class="org.eclipse.ajdt.internal.ui.tracing.AJDTConsoleFactory"
+              icon="icons/actions/perspective.gif"
+              label="AJDT Console">
+        </consoleFactory>
      </extension>  
 
 <!-- EXPERIMENTAL (for debugging purposes only)

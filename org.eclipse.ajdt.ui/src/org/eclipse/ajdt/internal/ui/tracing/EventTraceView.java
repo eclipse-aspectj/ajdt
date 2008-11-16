@@ -112,7 +112,14 @@ public class EventTraceView extends ViewPart
 		text.setFocus();
 	}
 
-	public void ajdtEvent(String msg, final int category, Date time) {
+	public Object getAdapter(Class key) {
+    	if (key.equals(IContextProvider.class)) {
+    		return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.EVENT_TRACE_VIEW);
+    	}
+    	return super.getAdapter(key);
+    }
+
+    public void ajdtEvent(String msg, final int category, Date time) {
 		/*
 		 * This code no longer dependent on either java.util.DateFormat, nor its ICU4J 
 		 * version, while avoiding the deprecated methods in java.util.Date, hence the 
@@ -198,12 +205,5 @@ public class EventTraceView extends ViewPart
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(clearEventTraceAction);
 		filterAction.fillActionBars(getViewSite().getActionBars());
-	}
-	
-	public Object getAdapter(Class key) {
-		if (key.equals(IContextProvider.class)) {
-			return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.EVENT_TRACE_VIEW);
-		}
-		return super.getAdapter(key);
 	}
 }
