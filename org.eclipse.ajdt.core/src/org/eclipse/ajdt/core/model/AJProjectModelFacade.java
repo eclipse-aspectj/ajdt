@@ -298,6 +298,8 @@ public class AJProjectModelFacade {
         
         ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
+        // XXX this is a hack in place until Bug 249216 #22 is addressed
+        ajHandle = removeEscapesFromPaths(ajHandle);
   
         IProgramElement ipe = null;
         try {
@@ -311,6 +313,26 @@ public class AJProjectModelFacade {
             return IHierarchy.NO_STRUCTURE;
         }
         return ipe;
+    }
+
+    /**
+     * remove escape charaters from the handle that are inside the
+     * path to the source folder
+     * @param ajHandle
+     * @return
+     */
+    private String removeEscapesFromPaths(String ajHandle) {
+        int sourceFolderStart = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENTROOT);
+        int sourceFolderEnd = Math.max(ajHandle.indexOf(JavaElement.JEM_COMPILATIONUNIT), ajHandle.indexOf(AspectElement.JEM_ASPECT_CU));
+        if (sourceFolderEnd >= 0) {
+            String sourcePath = ajHandle.substring(sourceFolderStart, sourceFolderEnd);
+            String newSourcePath = sourcePath.replaceAll("\\\\", "");
+            if (!newSourcePath.equals(sourcePath)) {
+                return ajHandle.substring(0, sourceFolderStart) + 
+                    newSourcePath + ajHandle.substring(sourceFolderEnd);
+            }
+        }
+        return ajHandle;
     }
 
     /**
