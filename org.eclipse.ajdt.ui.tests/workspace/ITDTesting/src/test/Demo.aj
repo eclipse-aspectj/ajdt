@@ -9,5 +9,8 @@ public class Demo {
         x++;
         this.x++;
     }
-
+    @Override
+    public String toString() {
+    	return "";
+    }
 }

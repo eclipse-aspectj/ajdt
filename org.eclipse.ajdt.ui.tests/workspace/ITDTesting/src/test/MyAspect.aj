@@ -1,7 +1,7 @@
 package test;
 import java.util.List;
 
-public aspect MyAspect {
+public privileged aspect MyAspect {
     java.util.List<String> Demo.list = null;
 	int Demo.x = 5;
 	
@@ -9,7 +9,9 @@ public aspect MyAspect {
 		
 	}
 	
-	public Demo.new(int x) { }
+	public Demo.new(int x) {
+		this();
+	}
 	
     declare warning : execution(* *.nothing(..)) : "blah";
     
@@ -17,16 +19,23 @@ public aspect MyAspect {
     
 	declare soft : Exception : execution(* *.nothing(..));
 	
+	declare @type: (Demo): @Deprecated;
+//	declare @field: (int Demo.x): @Deprecated;
+//	declare @method: (void Demo.foo(..): @Deprecated;
+//	declare @constructor: (public Demo.new(int)): @Deprecated;
+
 	
-    protected pointcut s():
-        call(String Demo.toString(..));
+	   protected pointcut s():
+	        execution(String Object+.toString(..));
+	   protected pointcut t():
+	        execution(void Demo.g(..));
 
     before (): s() {
     }
     after (): s() {
     }
-    void around (): s() {
-        proceed();
+    void around (Demo d): t() && target(d) {
+        proceed(d);
         return;
     }
     after () returning(): s() {
