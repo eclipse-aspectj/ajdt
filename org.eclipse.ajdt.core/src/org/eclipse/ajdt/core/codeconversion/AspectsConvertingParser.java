@@ -487,7 +487,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         if (details.startsWith(EXTENDS)) {
                             declareExtends.addAll(parentTypes);
                         } else if (details.startsWith(IMPLEMENTS)) {
-                            declareImplements.add(parentTypes);
+                            declareImplements.addAll(parentTypes);
                         }
                     }
                 }
@@ -526,13 +526,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                                 sb.append("(");
                                 List/*String*/ names = declareElt.getParameterNames();
                                 List/*String*/ types = declareElt.getParameterTypes();
-                                for (Iterator typeIter = types.iterator(), nameIter = names.iterator(); 
-                                     typeIter.hasNext();) {
-                                    String paramType = new String((char[]) typeIter.next());
-                                    String paramName = (String) nameIter.next();
-                                    sb.append(paramType + " " + paramName);
-                                    if (typeIter.hasNext()) {
-                                        sb.append(", ");
+                                if (types != null && names != null) {
+                                    for (Iterator typeIter = types.iterator(), nameIter = names.iterator(); 
+                                         typeIter.hasNext();) {
+                                        String paramType = new String((char[]) typeIter.next());
+                                        String paramName = (String) nameIter.next();
+                                        sb.append(paramType + " " + paramName);
+                                        if (typeIter.hasNext()) {
+                                            sb.append(", ");
+                                        }
                                     }
                                 }
                                 sb.append(") { }\n");

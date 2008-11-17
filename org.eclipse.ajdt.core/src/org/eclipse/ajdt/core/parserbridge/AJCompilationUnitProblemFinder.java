@@ -378,6 +378,16 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
+        if (numArgs == 1 && id == IProblem.ParsingErrorDeleteToken && 
+                firstArg.equals("@")) {
+            // likely to be declare annotation declaration
+            // declare @type, declare @constructor, declare @method, declare @field
+            String problemRegion = extractNextJavaIdentifier(unit, categorizedProblem.getSourceEnd());
+            if (declareAnnotationKinds.contains(problemRegion)) {
+                return false;
+            }
+        }
+        
         try {
             if (numArgs == 1 && id == IProblem.UndefinedName &&
                     unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement) {
@@ -401,42 +411,57 @@ public class AJCompilationUnitProblemFinder extends
         }
         return sb.toString();
     }
-
     
-    private static Set gatherITDsForCU(AJCompilationUnit unit) {
-        try {
-            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
-            if (model.hasModel()) {
-                Set/*String*/ allITDNames = new HashSet();
-                IType[] types = unit.getAllTypes();
-                for (int i = 0; i < types.length; i++) {
-                    if (model.hasProgramElement(types[i])) {
-                        List /*IRelationship*/ rels = model.getRelationshipsForElement(types[i], AJRelationshipManager.ASPECT_DECLARATIONS);
-                        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                            IJavaElement je = (IJavaElement) relIter.next();
-                            IProgramElement declareElt = model.javaElementToProgramElement(je);
-                            if (declareElt != null && declareElt.getParent() != null && declareElt.getKind().isInterTypeMember()) { // checks to see if this element is valid
-                                // should be fully qualified type and simple name
-                                int lastDot = declareElt.getName().lastIndexOf('.');
-                                String name = declareElt.getName().substring(lastDot+1);
-                                allITDNames.add(name);
-                            }
-                        }
-                    } else {
-                        // there is a problem with one of the types 
-                        // forget the whole thing and assume there is no model
-                        return null;
-                    }
-                    
-                }
-                return allITDNames;
-            }
-        } catch (JavaModelException e) {
+    private static String extractNextJavaIdentifier(AJCompilationUnit unit, int start) {
+        char[] contents = unit.getContents();
+        StringBuffer sb = new StringBuffer();
+        int next = start;
+        while (! Character.isJavaIdentifierStart(contents[next]) &&
+                next < contents.length) {
+            next++;
         }
-        return null;
+        while (Character.isJavaIdentifierPart(contents[next]) &&
+                next < contents.length) {
+            sb.append(contents[next++]);
+        }
+        return sb.toString();
     }
+
+    // unused, but keep here in case we want to turn on ITD-aware problem reporting
+//    private static Set gatherITDsForCU(AJCompilationUnit unit) {
+//        try {
+//            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+//            if (model.hasModel()) {
+//                Set/*String*/ allITDNames = new HashSet();
+//                IType[] types = unit.getAllTypes();
+//                for (int i = 0; i < types.length; i++) {
+//                    if (model.hasProgramElement(types[i])) {
+//                        List /*IRelationship*/ rels = model.getRelationshipsForElement(types[i], AJRelationshipManager.ASPECT_DECLARATIONS);
+//                        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+//                            IJavaElement je = (IJavaElement) relIter.next();
+//                            IProgramElement declareElt = model.javaElementToProgramElement(je);
+//                            if (declareElt != null && declareElt.getParent() != null && declareElt.getKind().isInterTypeMember()) { // checks to see if this element is valid
+//                                // should be fully qualified type and simple name
+//                                int lastDot = declareElt.getName().lastIndexOf('.');
+//                                String name = declareElt.getName().substring(lastDot+1);
+//                                allITDNames.add(name);
+//                            }
+//                        }
+//                    } else {
+//                        // there is a problem with one of the types 
+//                        // forget the whole thing and assume there is no model
+//                        return null;
+//                    }
+//                    
+//                }
+//                return allITDNames;
+//            }
+//        } catch (JavaModelException e) {
+//        }
+//        return null;
+//    }
     
-    static Set validAJNames = new HashSet();
+    static final Set validAJNames = new HashSet();
     static {
         // there will be more...
         validAJNames.add("thisJoinPoint");
@@ -453,6 +478,14 @@ public class AJCompilationUnitProblemFinder extends
         validAJNames.add("implements");
         validAJNames.add("extends");
         validAJNames.add("proceed");
+        validAJNames.add("privileged");
+    }
+    
+    static final Set declareAnnotationKinds = new HashSet();
+    static {
+        declareAnnotationKinds.add("constructor");
+        declareAnnotationKinds.add("field");
+        declareAnnotationKinds.add("method");
+        declareAnnotationKinds.add("type");
     }
 }
- 
