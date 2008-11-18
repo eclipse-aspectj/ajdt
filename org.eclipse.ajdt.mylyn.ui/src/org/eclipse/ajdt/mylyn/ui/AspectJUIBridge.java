@@ -23,7 +23,6 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.ui.JavaUI;
@@ -31,7 +30,6 @@ import org.eclipse.jface.text.TextSelection;
 import org.eclipse.mylyn.commons.core.StatusHandler;
 import org.eclipse.mylyn.context.core.IInteractionElement;
 import org.eclipse.mylyn.internal.java.ui.JavaUiBridge;
-import org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin;
 import org.eclipse.ui.IEditorPart;
 
 /**
