@@ -597,17 +597,17 @@ public class AJDTUtils {
         deleteUpdateMarkers.doDeleteOnly(true);
         deleteUpdateMarkers.schedule();
 		
-		//remove compilation units for .aj files
+        // bug 129553: exclude .aj files so that the java builder doesnt try to
+        // compile them
+        excludeAJfiles(project);
+
+        //remove compilation units for .aj files
 		//(the way it is currently implemented, this must happen before nature
 		// gets removed)
 		AJCompilationUnitUtils.removeCUsfromJavaModelAndCloseEditors(project);
 
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
 		AJDTUtils.clearProjectMarkers(project, true);
-
-		// bug 129553: exclude .aj files so that the java builder doesnt try to
-		// compile them
-		excludeAJfiles(project);
 		
 		// remove the AspectJ Nature
 		IProjectDescription description = project.getDescription();
