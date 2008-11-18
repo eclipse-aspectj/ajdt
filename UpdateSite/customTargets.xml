@@ -5,7 +5,7 @@
 	<!-- Add on <ant> task for each top level element being built. -->
 	<!-- ===================================================================== -->
 	<property name="allElementsFile" value="${builder}/allElements.xml"/>
-	<import file="${allElementsFile}" />
+	<import file="allElements.xml" />
 	<target name="allElements">
 		<antcall target="allElementsDelegator" />
 	</target>
@@ -149,6 +149,10 @@
 		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.ui.tests">
 			<fileset dir="${builder}/../org.eclipse.contribution.xref.ui.tests"/>
 		</copy>
+		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt">
+			<fileset dir="${builder}/../org.eclipse.contribution.weaving.jdt"/>
+		</copy>
+		<!--
 		<copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching">
 			<fileset dir="${builder}/../org.eclipse.equinox.weaving.caching"/>
 		</copy>
@@ -158,9 +162,7 @@
 		<copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook">
 			<fileset dir="${builder}/../org.eclipse.equinox.weaving.hook"/>
 		</copy>
-		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt">
-			<fileset dir="${builder}/../org.eclipse.contribution.weaving.jdt"/>
-		</copy>
+		-->
 	</target>
 
 	<!-- ===================================================================== -->
@@ -216,6 +218,10 @@
 	<!-- Steps to do before running package. -->
 	<!-- ===================================================================== -->
 	<target name="prePackage">
+		<!-- copy equinox aspects bundles to the update site -->
+		<copy todir="${buildDirectory}/updateSite/plugins">
+			<fileset dir="${builder}/../org.eclipse.contribution.weaving.jdt/equinox-aspects/plugins"/>
+		</copy>
 	</target>
 
 	<!-- ===================================================================== -->
