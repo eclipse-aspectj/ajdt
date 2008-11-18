@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (c) 2008 SpringSource and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *      SpringSource
+ *      Andrew Eisenberg (initial implementation)
+ *******************************************************************************/
 package org.eclipse.contribution.jdt.imagedescriptor;
 
 import java.util.Iterator;
@@ -8,11 +19,13 @@ import org.eclipse.swt.graphics.Image;
 
 public privileged aspect ImageDescriptorSelectorAspect {
     
-    // getting the image for open type dialogs
-    // note that if multiple image descriptor registries can work on the same kind of element,
-    // then there is potential for conflicting.
-    // all we do here is return the first descriptor that we find.  Conflicts be damned!
-    // If there ever is a conflict (unlikely), we will deal with the consequences as it comes.
+    /**
+     * getting the image for open type dialogs
+     * note that if multiple image descriptor registries can work on the same kind of element,
+     * then there is potential for conflicting.
+     * all we do here is return the first descriptor that we find.  Conflicts be damned!
+     * If there ever is a conflict (unlikely), we will deal with the consequences as it comes.
+     */
     ImageDescriptor around(boolean isInner, boolean isInInterfaceOrAnnotation, int flags, boolean useLightIcons, Object element) : 
         execution(public static ImageDescriptor JavaElementImageProvider.getTypeImageDescriptor(boolean, boolean, int, boolean)) &&
         args(isInner, isInInterfaceOrAnnotation, flags, useLightIcons) && cflow(typeSelectionDialogGettingLabel(element)) {
@@ -39,7 +52,9 @@ public privileged aspect ImageDescriptorSelectorAspect {
                  && args(element);
 
 
-    // getting for other standard places where java elements go
+    /** 
+     * getting for other standard places where java elements go
+     */
     ImageDescriptor around(Object element, int flags) : execution(ImageDescriptor JavaElementImageProvider.computeDescriptor(Object, int)) &&
             args(element, flags) {
         for (Iterator iter = ImageDescriptorSelectorRegistry.getInstance().getAllSelectors(); iter.hasNext(); ) {
