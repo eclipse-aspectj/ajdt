@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
-import org.eclipse.contribution.jdt.cuprovider.ICompilationUnitProvider;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;

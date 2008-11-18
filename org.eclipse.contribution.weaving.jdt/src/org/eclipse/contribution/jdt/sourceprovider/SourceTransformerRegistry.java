@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
-import org.eclipse.contribution.jdt.cuprovider.ICompilationUnitProvider;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;

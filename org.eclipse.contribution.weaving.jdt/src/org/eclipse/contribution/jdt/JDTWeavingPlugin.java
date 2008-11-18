@@ -1,8 +1,5 @@
 package org.eclipse.contribution.jdt;
 
-import org.eclipse.contribution.jdt.cuprovider.CompilationUnitProviderRegistry;
-import org.eclipse.contribution.jdt.imagedescriptor.ImageDescriptorSelectorRegistry;
-import org.eclipse.contribution.jdt.sourceprovider.SourceTransformerRegistry;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
