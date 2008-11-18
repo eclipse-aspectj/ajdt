@@ -76,6 +76,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.progress.UIJob;
+import org.eclipse.ui.texteditor.DocumentProviderRegistry;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 /**
@@ -94,6 +95,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private AspectJEditorTitleImageUpdater aspectJEditorErrorTickUpdater;
 
+	private AJCompiltionUnitDocumentProvider provider;
+	
 	/**
 	 * Constructor for AspectJEditor
 	 */
@@ -373,7 +376,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
-				JavaUI.getWorkingCopyManager().connect(input);	
+			    JavaUI.getWorkingCopyManager().connect(input);	
 				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
 				if (unit != null){
@@ -535,6 +538,25 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 	}
 	
+	public IDocumentProvider getDocumentProvider() {
+	    return provider == null ? super.getDocumentProvider() : provider;
+	}
+	
+	protected void setDocumentProvider(IEditorInput input) {
+	    IDocumentProvider provider = DocumentProviderRegistry.getDefault().getDocumentProvider(input);
+	    if (provider instanceof AJCompiltionUnitDocumentProvider) {
+	        this.provider = (AJCompiltionUnitDocumentProvider) provider;
+	    } else {
+	        super.setDocumentProvider(input);
+	    }
+	}
+	
+	protected void disposeDocumentProvider() {
+	    super.disposeDocumentProvider();
+	    provider = null;
+	}
+	
+	
 	public synchronized void updatedTitleImage(Image image) {
 		// only let us update the image (fix for 105299)
 	}
@@ -568,7 +590,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 		
 		public IStatus runInUIThread(IProgressMonitor monitor) {
-			if (elem != null) {
+			if (elem != null && aspectJEditorErrorTickUpdater != null) {
 				aspectJEditorErrorTickUpdater.updateEditorImage(elem);
 			}
 			return Status.OK_STATUS;

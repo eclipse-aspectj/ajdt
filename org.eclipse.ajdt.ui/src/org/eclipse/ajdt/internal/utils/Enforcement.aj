@@ -24,6 +24,7 @@ public aspect Enforcement {
 	
 	declare warning : call(void org.eclipse.ajdt.internal.ui.tracing.EventTrace.*(..)) 
 		&& !call(void *.startup(..))
+		&& !within(org.eclipse.ajdt.internal.ui.tracing.AJDTEventTraceConsolePage)
 		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTrace) 
 		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTraceView)
 		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger) :

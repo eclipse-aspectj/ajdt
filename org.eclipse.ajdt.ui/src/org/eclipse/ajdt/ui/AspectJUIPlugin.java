@@ -14,6 +14,7 @@ package org.eclipse.ajdt.ui;
 // --- imports ---
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -26,6 +27,7 @@ import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
+import org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
@@ -45,6 +47,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
+import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -129,7 +133,17 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	
 	public static final int PROGRESS_MONITOR_MAX = 100;
 
-	/**
+    /**
+     * Creates an AspectJPlugin instance and initializes the supporting Ajde
+     * tools - Compatible with Eclipse 3.0. Note the rest of the contents of the
+     * 2.x constructor now resides in the start(BundleContext) method.
+     */
+    public AspectJUIPlugin() {
+        super();
+        plugin = this;
+    }
+
+    /**
 	 * Return the single default instance of this plugin
 	 */
 	public static AspectJUIPlugin getDefault() {
@@ -154,15 +168,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		AJDTUtils.removeAspectJNature(project);
 	}
 
-	/**
-	 * Creates an AspectJPlugin instance and initializes the supporting Ajde
-	 * tools - Compatible with Eclipse 3.0. Note the rest of the contents of the
-	 * 2.x constructor now resides in the start(BundleContext) method.
-	 */
-	public AspectJUIPlugin() {
-		super();
-		plugin = this;
-	}
 
 	/**
 	 * This function checks to see if the workbench is starting with a new
@@ -269,6 +274,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();
+		
+		insertAJCompilationUnitDocumentProvider();
 
 		// Create and register the resource change listener if necessary, it
 		// will be
@@ -310,6 +317,42 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			AJDTUtils.refreshPackageExplorer();
 		}
 	}
+	
+	public void stop(BundleContext context) throws Exception {
+	    super.stop(context);
+	}
+	
+
+	// use reflection to insert our own
+	// document provider so that 
+	// AJ CUs are properly created from .aj files
+	// XXX This *MUST* be set before any Java files are opened
+	private void insertAJCompilationUnitDocumentProvider() {
+	    try {
+	        
+	        Field javaPluginDocumentProviderField = JavaPlugin.class.getDeclaredField("fCompilationUnitDocumentProvider");
+	        javaPluginDocumentProviderField.setAccessible(true);
+	        ICompilationUnitDocumentProvider oldProvider = (ICompilationUnitDocumentProvider) javaPluginDocumentProviderField.get(JavaPlugin.getDefault());
+	        if (oldProvider != null) {
+	            oldProvider.shutdown();
+	        }
+	        ICompilationUnitDocumentProvider newProvider = new AJCompiltionUnitDocumentProvider();
+	        javaPluginDocumentProviderField.set(JavaPlugin.getDefault(), newProvider);
+
+            WorkingCopyManager manager = (WorkingCopyManager) JavaPlugin.getDefault().getWorkingCopyManager();
+            Field managerDocumentProviderField = manager.getClass().getDeclaredField("fDocumentProvider");
+            managerDocumentProviderField.setAccessible(true);
+            oldProvider = (ICompilationUnitDocumentProvider) managerDocumentProviderField.get(manager);
+            if (! (oldProvider instanceof AJCompiltionUnitDocumentProvider)) {
+                oldProvider.shutdown();
+                managerDocumentProviderField.set(manager, newProvider);
+            }
+        } catch (SecurityException e) {
+        } catch (IllegalArgumentException e) {
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+    }
 	
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$

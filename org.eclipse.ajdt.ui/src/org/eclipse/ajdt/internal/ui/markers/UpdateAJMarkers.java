@@ -21,7 +21,7 @@ import java.util.Map.Entry;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.weaver.AdviceKind;
-import org.aspectj.weaver.AsmRelationshipProvider;
+import org.aspectj.weaver.model.AsmRelationshipProvider;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -169,7 +169,6 @@ public class UpdateAJMarkers {
             Entry entry = (Entry) annotationIter.next();
             createMarker(resource, ((Integer) entry.getKey()).intValue(), (List) entry.getValue()); 
         }
-	    
     }
 
 	private void createMarker(IResource resource, int lineNumber, List/*IRelationship*/ relationships) {
