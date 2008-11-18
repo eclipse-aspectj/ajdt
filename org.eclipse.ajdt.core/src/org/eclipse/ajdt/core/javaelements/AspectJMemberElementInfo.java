@@ -32,6 +32,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	private char[] name;
 	private char[] returnType;
 	private boolean isConstructor;
+	private char[][] argumentTypeNames;
 	
 	public Kind getAJKind() {
 		return kind;
@@ -79,21 +80,28 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		this.extra = extra;
 	}
 	
-	public void setArgumentNames(char[][] names) {
-		this.argumentNames = names;
+	public void setArgumentTypeNames(char[][] types) {
+		this.argumentTypeNames = types;
 	}
-//	public void setArgumentTypeNames(char[][] types) {
-//		this.argumentTypeNames = types;
-//	}
 	public void setConstructor(boolean isConstructor) {
 		this.isConstructor = isConstructor;
 	}
+	
+	// make public
 	public void setExceptionTypeNames(char[][] types) {
 		this.exceptionTypes = types;
 	}
+
+	// make public
 	public void setReturnType(char[] type) {
 		this.returnType = type;
 	}
+	
+    // make public
+	public void setArgumentNames(char[][] names) {
+	    this.argumentNames = names;
+	}
+
 	public ISourceRange getSourceRange() {
 		if (fSourceRangeEnd == 0)
 			return new SourceRange(fSourceRangeStart, name.length);
@@ -139,6 +147,10 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		this.nameStart= start;
 	}
 	
+	public char[][] getArgumentTypeNames() {
+        return argumentTypeNames;
+    }
+	
 //	public String getSignature() {
 //
 //		String[] paramSignatures = new String[this.argumentTypeNames.length];
@@ -158,5 +170,5 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	
 	public char[] getReturnTypeName() {
 		return returnType;
-	}
+	}	
 }

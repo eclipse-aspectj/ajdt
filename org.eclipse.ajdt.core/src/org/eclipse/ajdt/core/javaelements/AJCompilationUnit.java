@@ -17,22 +17,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.aspectj.ajdt.internal.compiler.lookup.AjLookupEnvironment;
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
-import org.eclipse.ajdt.core.AJMementoTokenizer;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
-import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
-import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser2;
+import org.eclipse.ajdt.core.reconcile.AJReconcileWorkingCopyOperation;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.internal.core.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.core.contentassist.ProposalRequestorWrapper;
@@ -43,14 +37,14 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.PerformanceStats;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IProblemRequestor;
-import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -59,16 +53,20 @@ import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
-import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
+import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.NameLookup;
+import org.eclipse.jdt.internal.core.Openable;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.core.PackageFragment;
+import org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
+import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
@@ -97,11 +95,19 @@ public class AJCompilationUnit extends CompilationUnit{
 		return originalContentMode > 0;
 	}
 	
-	public void requestOriginalContentMode(){
+	/**
+	 * ensure that the next time the buffer is asked for,
+	 * the actual AJ contents are returned (not the 
+	 * converted contents)
+	 */
+	public synchronized void requestOriginalContentMode(){
 		originalContentMode++;
 	}
 	
-	public void discardOriginalContentMode(){
+	/**
+	 * discard this request for original contents
+	 */
+	public synchronized void discardOriginalContentMode(){
 		originalContentMode--;
 	}
 
@@ -196,131 +202,269 @@ public class AJCompilationUnit extends CompilationUnit{
 		super.generateInfos(info, newElements, monitor);
 	}
 	
-	
+	/**
+	 * builds the structure of this Compilation unit.  We need to use an aspect-aware parser for this (in the org.aspectj.org.eclipse... world, which
+	 * makes things a little messy
+	 */
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-		
-		if(ajFile == null) {
-			return false;
-		}
-		this.requestOriginalContentMode();
-		
-		AJCompilationUnitInfo unitInfo;
-		try {
-			// check if this compilation unit can be opened
-			if (!isWorkingCopy()) { // no check is done on root kind or exclusion pattern for working copies
-				IStatus status = validateCompilationUnit(underlyingResource);
-				if (!status.isOK()) throw newJavaModelException(status);
-			}
-			
-			// prevents reopening of non-primary working copies (they are closed when they are discarded and should not be reopened)
-			if (!isPrimary() && getPerWorkingCopyInfo() == null) {
-				throw newNotPresentException();
-			}
+	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info;
 
-			unitInfo = (AJCompilationUnitInfo) info;
+       if(ajFile == null) {
+           return false;
+       }
+	    
+	    // ensure buffer is opened
+	    IBuffer buffer = getBufferManager().getBuffer(this);
+	    if (buffer == null) {
+	        openBuffer(pm, unitInfo); // open buffer independently from the info, since we are building the info
+	    }
 
-			// get buffer contents
-			IBuffer buffer = getBufferManager().getBuffer(AJCompilationUnit.this);
-			if (buffer == null) {
-				buffer = openBuffer(pm, unitInfo); // open buffer independently from the info, since we are building the info
-			}
-			final char[] contents = buffer == null ? null : buffer.getCharacters();
+	    // generate structure and compute syntax problems if needed
+	    AJCompilationUnitStructureRequestor requestor = new AJCompilationUnitStructureRequestor(this, unitInfo, newElements);
+	    JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = getPerWorkingCopyInfo();
+	    IJavaProject project = getJavaProject();
 
-			// generate structure and compute syntax problems if needed
-			AJCompilationUnitStructureRequestor requestor = new AJCompilationUnitStructureRequestor(this, unitInfo, newElements);
-			JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = getPerWorkingCopyInfo();
-			IJavaProject project = getJavaProject();
-			boolean computeProblems = JavaProject.hasJavaNature(project.getProject()) && perWorkingCopyInfo != null && perWorkingCopyInfo.isActive();
-			IProblemFactory problemFactory = new DefaultProblemFactory();
-			Map options = project.getOptions(true);
-			AJSourceElementParser parser = new AJSourceElementParser(
-				requestor, 
-				problemFactory, 
-				new CompilerOptions(options),
-				true/*report local declarations*/,false);
-			parser.reportOnlyOneSyntaxError = !computeProblems;
-			
-			//we need to set the source already here so the requestor can init
-			//its jdt version of the parser (see requestor.setParser)
-			parser.scanner.source = contents;
-			requestor.setParser(parser);
-			
-			CompilationUnitDeclaration unit = parser.parseCompilationUnit(new org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit() {
+		boolean createAST;
+        boolean resolveBindings;
+        int reconcileFlags;
+//        HashMap problems;
+        AJCompilationUnitInfo astHolder = (AJCompilationUnitInfo) info;
+        createAST = astHolder.getASTLevel() != NO_AST;
+        resolveBindings = astHolder.doResolveBindings();
+        reconcileFlags = astHolder.getReconcileFlags();
+//        problems = astHolder.getProblems();
+
+        boolean computeProblems = perWorkingCopyInfo != null && perWorkingCopyInfo.isActive() && project != null && 
+                AspectJPlugin.isAJProject(project.getProject());
+        org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory problemFactory = 
+            new org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory();
+        Map options = project == null ? JavaCore.getOptions() : project.getOptions(true);
+        if (!computeProblems) {
+            // disable task tags checking to speed up parsing
+            options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
+        }
+        
+        // ensure parser sees the real contents (not the fake java buffer)
+        this.requestOriginalContentMode();
+        
+        // use an aspectj aware source parser
+        AJSourceElementParser ajdtParser = new AJSourceElementParser(
+                requestor, 
+                problemFactory,
+                new org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), 
+                true/*report local declarations*/,
+                !createAST /*optimize string literals only if not creating a DOM AST*/);
+
+        ajdtParser.reportOnlyOneSyntaxError = !computeProblems;
+        ajdtParser.setMethodsFullRecovery(true);
+        ajdtParser.setStatementsRecovery((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0);
+
+        if (!computeProblems && !resolveBindings && !createAST) {
+            // disable javadoc parsing if not computing problems, not resolving and not creating ast
+            ajdtParser.javadocParser.checkDocComment = false;
+        }
+        requestor.setParser(ajdtParser);
+        
+        // update timestamp (might be IResource.NULL_STAMP if original does not exist)
+        if (underlyingResource == null) {
+            underlyingResource = getResource();
+        }
+        // underlying resource is null in the case of a working copy on a class file in a jar
+        if (underlyingResource != null)
+            unitInfo.setTimestamp(((IFile)underlyingResource).getModificationStamp());
+        
+        // compute other problems if needed
+        CompilationUnitDeclaration compilationUnitDeclaration = null;
+        final AJCompilationUnit source = ajCloneCachingContents();
+        requestor.setSource(source.getContents());
+        try {
+            if (false) {  
+                // for now, don't go here
+                // the problem is that we can't find problems and build structure at the same time
+                // they require difference kinds of parsers.
+//            if (computeProblems) {
+//                if (problems == null) {
+//                    // report problems to the problem requestor
+//                    problems = new HashMap();
+//                    compilationUnitDeclaration = AJCompilationUnitProblemFinder.processAJ(
+//                            source, ajdtParser, this.owner, problems, createAST, reconcileFlags, pm);
+//                    try {
+//                        perWorkingCopyInfo.beginReporting();
+//                        for (Iterator iteraror = problems.values().iterator(); iteraror.hasNext();) {
+//                            CategorizedProblem[] categorizedProblems = (CategorizedProblem[]) iteraror.next();
+//                            if (categorizedProblems == null) continue;
+//                            for (int i = 0, length = categorizedProblems.length; i < length; i++) {
+//                                perWorkingCopyInfo.acceptProblem(categorizedProblems[i]);
+//                            }
+//                        }
+//                    } finally {
+//                        perWorkingCopyInfo.endReporting();
+//                    }
+//                } else {
+//                    // collect problems
+//                    compilationUnitDeclaration = AJCompilationUnitProblemFinder.processAJ(source, ajdtParser, this.owner, problems, createAST, reconcileFlags, pm);
+//                }
+            } else {
+                // since we are doing n aspectj aware parse with the AJ parser
+                // need to wrap the results in a JDT CompilationUnitDeclaration
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration
+            		  ajDeclaration = ajdtParser.parseCompilationUnit(new org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit() {
 					public char[] getContents() {
-						return contents;
+						return source.getContents();
 					}
 					public char[] getMainTypeName() {
-						return AJCompilationUnit.this.getMainTypeName();
+						return source.getMainTypeName();
 					}
 					public char[][] getPackageName() {
-						return AJCompilationUnit.this.getPackageName();
+						return source.getPackageName();
 					}
 					public char[] getFileName() {
-						return AJCompilationUnit.this.getFileName();
+						return source.getFileName();
 					}
 				}, true /*full parse to find local elements*/);
-			
-			
-			// update timestamp (might be IResource.NULL_STAMP if original does not exist)
-			if (underlyingResource == null) {
-				underlyingResource = getResource();
-			}
-			unitInfo.setTimestamp(((IFile)underlyingResource).getModificationStamp());
-			
-			// compute other problems if needed
-			org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration compilationUnitDeclaration = null;
-			try {
-			if (computeProblems){
-				perWorkingCopyInfo.beginReporting();
-				
-				AJCompilationUnitDeclarationWrapper ajcudw = new AJCompilationUnitDeclarationWrapper(unit, this);
-				AJCompilationUnitStructureRequestor ajcusr = new AJCompilationUnitStructureRequestor(this, (AJCompilationUnitInfo)getElementInfo(), null);
-				AJSourceElementParser2 parser2 = new AJSourceElementParser2(ajcusr, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), true,false); 
+            	compilationUnitDeclaration = new AJCompilationUnitDeclarationWrapper(ajDeclaration, source);	
+            }
+            
+            if (createAST) {
+                // XXX hmmmm...may not work
+                int astLevel = unitInfo.getASTLevel();
+                org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, options, computeProblems, source, reconcileFlags, pm);
+                unitInfo.setAST(cu);
+            }
+        } finally {
+            discardOriginalContentMode();
+            if (compilationUnitDeclaration != null) {
+                compilationUnitDeclaration.cleanUp();
+            }
+        }
 
-				AjLookupEnvironment le =
-					new AjLookupEnvironment(null, new CompilerOptions(options), null, null);		
-				unit.scope = new CompilationUnitScope(unit, le);
-				compilationUnitDeclaration = AJCompilationUnitProblemFinder.process(ajcudw, this, contents, parser2, null, perWorkingCopyInfo, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), false/*don't cleanup cu*/, null);
-				
-//				provisional -- only reports syntax errors				
-				IProblem[] problems = unit.compilationResult.problems;
-				if (problems != null){
-				for (int i = 0; i < problems.length; i++) {
-					IProblem problem = problems[i];
-					if (problem == null)
-						continue;
-					perWorkingCopyInfo.acceptProblem(new DefaultProblem(
-					problem.getOriginatingFileName(),
-					problem.getMessage(),
-					problem.getID(),
-					problem.getArguments(),
-					problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
-					problem.getSourceStart(),
-					problem.getSourceEnd(),
-					problem.getSourceLineNumber(),
-					0)); // unknown column
-				}
-				}
-				perWorkingCopyInfo.endReporting();
-				
-			}
-				
-				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
-					ASTHolderAJCUInfo astHolder = (ASTHolderAJCUInfo) info;
-					int astLevel = astHolder.astLevel;
-					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), astHolder.reconcileFlags, pm);
-					((ASTHolderAJCUInfo) info).ast = cu;
-				} 
-			} finally {
-			    if (compilationUnitDeclaration != null) {
-			        compilationUnitDeclaration.cleanUp();
-			    }
-			}
-		} finally {
-		    this.discardOriginalContentMode();
-		}
-			
-		return unitInfo.isStructureKnown();
+        return unitInfo.isStructureKnown();
+        
+        
+        
+        
+//
+//        
+//        
+//		
+//		try {
+//			// check if this compilation unit can be opened
+//			if (!isWorkingCopy()) { // no check is done on root kind or exclusion pattern for working copies
+//				IStatus status = validateCompilationUnit(underlyingResource);
+//				if (!status.isOK()) throw newJavaModelException(status);
+//			}
+//			
+//			// prevents reopening of non-primary working copies (they are closed when they are discarded and should not be reopened)
+//			if (!isPrimary() && getPerWorkingCopyInfo() == null) {
+//				throw newNotPresentException();
+//			}
+//
+//			unitInfo = (AJCompilationUnitInfo) info;
+//
+//			// get buffer contents
+//			IBuffer buffer = getBufferManager().getBuffer(AJCompilationUnit.this);
+//			if (buffer == null) {
+//				buffer = openBuffer(pm, unitInfo); // open buffer independently from the info, since we are building the info
+//			}
+//			final char[] contents = buffer == null ? null : buffer.getCharacters();
+//
+//			// generate structure and compute syntax problems if needed
+//			AJCompilationUnitStructureRequestor requestor = new AJCompilationUnitStructureRequestor(this, unitInfo, newElements);
+//			JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = getPerWorkingCopyInfo();
+//			IJavaProject project = getJavaProject();
+//			boolean computeProblems = JavaProject.hasJavaNature(project.getProject()) && perWorkingCopyInfo != null && perWorkingCopyInfo.isActive();
+//			IProblemFactory problemFactory = new DefaultProblemFactory();
+//			Map options = project.getOptions(true);
+//			AJSourceElementParser parser = new AJSourceElementParser(
+//				requestor, 
+//				problemFactory, 
+//				new CompilerOptions(options),
+//				true/*report local declarations*/,false);
+//			parser.reportOnlyOneSyntaxError = !computeProblems;
+//			
+//			//we need to set the source already here so the requestor can init
+//			//its jdt version of the parser (see requestor.setParser)
+//			parser.scanner.source = contents;
+//			requestor.setParser(parser);
+//			
+//			CompilationUnitDeclaration unit = parser.parseCompilationUnit(new org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit() {
+//					public char[] getContents() {
+//						return contents;
+//					}
+//					public char[] getMainTypeName() {
+//						return AJCompilationUnit.this.getMainTypeName();
+//					}
+//					public char[][] getPackageName() {
+//						return AJCompilationUnit.this.getPackageName();
+//					}
+//					public char[] getFileName() {
+//						return AJCompilationUnit.this.getFileName();
+//					}
+//				}, true /*full parse to find local elements*/);
+//			
+//			
+//			// update timestamp (might be IResource.NULL_STAMP if original does not exist)
+//			if (underlyingResource == null) {
+//				underlyingResource = getResource();
+//			}
+//			unitInfo.setTimestamp(((IFile)underlyingResource).getModificationStamp());
+//			
+//			// compute other problems if needed
+//			org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration compilationUnitDeclaration = null;
+//			try {
+//			if (computeProblems){
+//				perWorkingCopyInfo.beginReporting();
+//				
+//				AJCompilationUnitDeclarationWrapper ajcudw = new AJCompilationUnitDeclarationWrapper(unit, this);
+//				AJCompilationUnitStructureRequestor ajcusr = new AJCompilationUnitStructureRequestor(this, (AJCompilationUnitInfo)getElementInfo(), null);
+//				AJSourceElementParser2 parser2 = new AJSourceElementParser2(ajcusr, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), true,false); 
+//
+//				AjLookupEnvironment le =
+//					new AjLookupEnvironment(null, new CompilerOptions(options), null, null);		
+//				unit.scope = new CompilationUnitScope(unit, le);
+//				compilationUnitDeclaration = AJCompilationUnitProblemFinder.process(ajcudw, this, contents, parser2, null, perWorkingCopyInfo, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), false/*don't cleanup cu*/, null);
+//				Map problems = new HashMap();
+//				compilationUnitDeclaration = AJCompilationUnitProblemFinder.process(ajcudw, parser, this.owner, problems, createAST, reconcileFlags, pm);
+//				
+////				provisional -- only reports syntax errors				
+//				IProblem[] problems = unit.compilationResult.problems;
+//				if (problems != null){
+//				for (int i = 0; i < problems.length; i++) {
+//					IProblem problem = problems[i];
+//					if (problem == null)
+//						continue;
+//					perWorkingCopyInfo.acceptProblem(new DefaultProblem(
+//					problem.getOriginatingFileName(),
+//					problem.getMessage(),
+//					problem.getID(),
+//					problem.getArguments(),
+//					problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
+//					problem.getSourceStart(),
+//					problem.getSourceEnd(),
+//					problem.getSourceLineNumber(),
+//					0)); // unknown column
+//				}
+//				}
+//				perWorkingCopyInfo.endReporting();
+//				
+//			}
+//				
+//				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
+//					ASTHolderAJCUInfo astHolder = (ASTHolderAJCUInfo) info;
+//					int astLevel = astHolder.astLevel;
+//					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), astHolder.reconcileFlags, pm);
+//					((ASTHolderAJCUInfo) info).ast = cu;
+//				} 
+//			} finally {
+//			    if (compilationUnitDeclaration != null) {
+//			        compilationUnitDeclaration.cleanUp();
+//			    }
+//			}
+//		} finally {
+//		    this.discardOriginalContentMode();
+//		}
+//			
+//		return unitInfo.isStructureKnown();
 
 	}
 
@@ -403,20 +547,23 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
 		if (workingCopyOwner == null) workingCopyOwner = AJWorkingCopyOwner.INSTANCE;
 		
-		boolean createAST = false;
-		if (astLevel == AST.JLS2) {
-			// client asking for level 2 AST; these are supported
-			createAST = true;
-		} else if (astLevel == AST.JLS3) {
-			// client asking for level 3 ASTs; these are supported
-			createAST = true;
-		} else {
-			// client asking for no AST (0) or unknown ast level
-			// either way, request denied
-			createAST = false;
+		PerformanceStats stats = null;
+		if(ReconcileWorkingCopyOperation.PERF) {
+		    stats = PerformanceStats.getStats(JavaModelManager.RECONCILE_PERF, this);
+		    stats.startRun(new String(this.getFileName()));
 		}
-		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, true, workingCopyOwner);
-		op.runOperation(monitor);
+
+		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, astLevel, reconcileFlags, workingCopyOwner);
+	    JavaModelManager manager = JavaModelManager.getJavaModelManager();
+	    try {
+	        manager.cacheZipFiles(); // cache zip files for performance (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=134172)
+	        op.runOperation(monitor);
+	    } finally {
+	        manager.flushZipFiles();
+	    }
+	    if(ReconcileWorkingCopyOperation.PERF) {
+	        stats.endRun();
+	    }
 		return op.ast;
 	}
 
@@ -475,7 +622,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
 		
 		//check if inside intertype method declaration
-		char[] targetType = isInIntertypeMethodDeclaration(position, this);
+		char[] targetType = getITDTargetType(position);
 		if (targetType != null){
 			
 			//we are inside an intertype method declaration -> simulate context switch to target class
@@ -484,7 +631,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			pos = javaCompBuffer.translatePositionToFake(position);
 			// we call codeComplete twice in this case to combine the context specific completions with the
 			// completions for things like local variables.
-			super.codeComplete(cu, unitToSkip, pos, requestor, owner, this);				
+			internalCodeComplete(cu, unitToSkip, pos, requestor, owner, this);				
 			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
@@ -496,9 +643,63 @@ public class AJCompilationUnit extends CompilationUnit{
 		javaCompBuffer.setConversionOptions(myConversionOptions);
 		pos = javaCompBuffer.translatePositionToFake(position);
 		
-		super.codeComplete(cu, unitToSkip, pos, requestor, owner, this);
+		internalCodeComplete(cu, unitToSkip, pos, requestor, owner, this);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
+	}
+	
+	/**
+	 * this method is a copy of {@link Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, CompletionRequestor, WorkingCopyOwner, ITypeRoot)}
+	 * The only change is that we need to create an {@link ITDAwareCancelableNameEnvironment}, not  standard {@link SearchableEnvironment}.
+     * 
+	 * @param cu
+	 * @param unitToSkip
+	 * @param position
+	 * @param requestor
+	 * @param owner
+	 * @param typeRoot
+	 * @throws JavaModelException
+	 */
+	private void internalCodeComplete(
+            org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
+            org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
+            int position, CompletionRequestor requestor,
+            WorkingCopyOwner owner,
+            ITypeRoot typeRoot) throws JavaModelException {
+
+	    if (requestor == null) {
+	        throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
+	    }
+	    PerformanceStats performanceStats = CompletionEngine.PERF
+	        ? PerformanceStats.getStats(JavaModelManager.COMPLETION_PERF, this)
+	        : null;
+	    if(performanceStats != null) {
+	        performanceStats.startRun(new String(cu.getFileName()) + " at " + position); //$NON-NLS-1$
+	    }
+	    IBuffer buffer = getBuffer();
+	    if (buffer == null) {
+	        return;
+	    }
+	    if (position < -1 || position > buffer.getLength()) {
+	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
+	    }
+	    JavaProject project = (JavaProject) getJavaProject();
+	    ITDAwareCancelableNameEnvironment environment = new ITDAwareCancelableNameEnvironment((JavaProject) getJavaProject(), owner, null);
+
+	    // set unit to skip
+	    environment.setUnitToSkip(unitToSkip);
+
+	    // code complete
+	    CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner);
+	    engine.complete(cu, position, 0, typeRoot);
+	    if(performanceStats != null) {
+	        performanceStats.endRun();
+	    }
+	    if (NameLookup.VERBOSE) {
+	        AJLog.log(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInSourcePackage: " + environment.nameLookup.timeSpentInSeekTypesInSourcePackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
+	        AJLog.log(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInBinaryPackage: " + environment.nameLookup.timeSpentInSeekTypesInBinaryPackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
+	    }
+
 	}
 	
 	
@@ -514,22 +715,17 @@ public class AJCompilationUnit extends CompilationUnit{
     }
 
 	//return null if outside intertype method declaration or the name of the target type otherwise
-	private char[] isInIntertypeMethodDeclaration(int pos, JavaElement elem) throws JavaModelException{
-		IJavaElement[] elems = elem.getChildren();
-		for (int i = 0; i < elems.length; i++) {
-			IJavaElement element = elems[i];
-			if (element instanceof IntertypeElement){
-				if (((IAspectJElement)element).getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD){
-					ISourceRange range = ((IntertypeElement)element).getSourceRange();
-					if ((pos >= range.getOffset()) && (pos < range.getOffset() + range.getLength()))
-						return ((IntertypeElement)element).getTargetType();
-				}
-			}
-			char[] res = isInIntertypeMethodDeclaration(pos, (JavaElement)element);
-			if (res != null)
-				return res;
-		}
-		return null;
+	private char[] getITDTargetType(int pos) throws JavaModelException{
+	    IJavaElement elt = this.getElementAt(pos);
+	    if (elt instanceof IntertypeElement) {
+            IntertypeElement itd = (IntertypeElement) elt;
+            if (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD ||
+                itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+                
+                return itd.getTargetType();
+            }
+        }
+	    return null;
 	}
 
 
@@ -554,19 +750,13 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * @see JavaElement
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
-        
-        if (! (memento instanceof AJMementoTokenizer)) {
-            memento = new AJMementoTokenizer(memento);
-            token = memento.nextToken();
-        }
-        
-        JavaElement type = this;
-        
-        if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
+		JavaElement type = this;
+		
+		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
 		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
-        
+		
 		// need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
 		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||
@@ -654,4 +844,23 @@ public class AJCompilationUnit extends CompilationUnit{
 		return super.getHandleIdentifier();
 	}
 	
+	
+	/*
+	 * Clone this handle so that it caches its contents in memory.
+	 * DO NOT PASS TO CLIENTS
+	 */
+	public AJCompilationUnit ajCloneCachingContents() {
+	    return new AJCompilationUnit((PackageFragment) this.parent, this.name, this.owner) {
+	        private char[] cachedContents;
+	        public char[] getContents() {
+	            if (this.cachedContents == null)
+	                this.cachedContents = AJCompilationUnit.this.getContents();
+	            return this.cachedContents;
+	        }
+	        public CompilationUnit originalFromClone() {
+	            return AJCompilationUnit.this;
+	        }
+	    };
+	}
+
 }

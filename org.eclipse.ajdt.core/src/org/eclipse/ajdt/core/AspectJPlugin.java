@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
@@ -121,6 +122,8 @@ public class AspectJPlugin extends Plugin {
 				new CompilerConfigResourceChangeListener(),
 				IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
 		setCompilerFactory(new CoreCompilerFactory());
+		
+		AJProjectModelFacade.installListener();
 	}
 
 	/**

@@ -11,5 +11,60 @@
 package org.eclipse.ajdt.core.javaelements;
 
 public class DeclareElementInfo extends AspectJMemberElementInfo {
+    private boolean extendz = false;
+    private boolean implementz = false;
+    
+    private char[][] types;
+    
+    /**
+     * @return true if this is an extends declare parent
+     */
+    public boolean isExtends() {
+        return extendz;
+    }
+    
+    public void setExtends(boolean extendz) {
+        this.extendz = extendz;
+    }
+    
+    /**
+     * @return true if this is an extends declare parent
+     */
+    public boolean isImplements() {
+        return implementz;
+    }
+    
+    public void setImplements(boolean implementz) {
+        this.implementz = implementz;
+    }
+    
+	public void setTypes(String[] types) {
+	    this.types = new char[types.length][];
+	    for (int i = 0; i < types.length; i++) {
+	        this.types[i] = types[i].toCharArray();
+        }
+    }
+	
+	public char[][] getTypes() {
+        return types;
+    }
+	
+	/**
+	 * convenience method for extends declare parents
+	 * @param type
+	 */
+    public void setType(String type) {
+        this.types = new char[][] { type.toCharArray() };
+    }
+    
+    /**
+     * convenience method for extends declare parents
+     * @param type
+     */
+    public char[] getType() {
+        return types[0];
+    }
+    
+	
 	
 }

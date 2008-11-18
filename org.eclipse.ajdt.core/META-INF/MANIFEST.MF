@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.ajdt.core; singleton:=true
-Bundle-Version: 1.6.1.qualifier
+Bundle-Version: 1.6.2.qualifier
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -34,6 +34,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.aspectj.ajde,
  org.eclipse.pde.core;bundle-version="3.4.0";resolution:=optional,
  org.eclipse.contribution.weaving.jdt;bundle-version="1.0.0"
-Eclipse-LazyStart: true; exceptions="org.eclipse.ajdt.core.lazystart"
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"

@@ -10,13 +10,18 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.internal.ProgramElement;
+import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
@@ -62,6 +67,20 @@ public class AspectElement extends SourceType implements IAspectJElement {
         info.setAJKind(IProgramElement.Kind.ASPECT);
         info.setHandle(this);
         info.setSourceRangeStart(0);
+        
+        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+        if (ipe != null && ipe != IHierarchy.NO_STRUCTURE) {
+            info.setAJExtraInfo(ipe.getExtraInfo());
+            info.setAJModifiers(ipe.getModifiers());
+            info.setFlags(getProgramElementModifiers(ipe));
+            info.setAJAccessibility(ipe.getAccessibility());
+            ISourceLocation sourceLocation = ipe.getSourceLocation();
+            info.setSourceRangeStart(sourceLocation.getOffset());
+            info.setNameSourceStart(sourceLocation.getOffset());
+            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+        }
+        
+        
         return info;
     }
 
@@ -374,4 +393,21 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
+	
+	   static Field modfiersField = null;
+	    static int getProgramElementModifiers(IProgramElement ipe) {
+	        try {
+	            if (modfiersField == null) {
+	                modfiersField = ProgramElement.class.getDeclaredField("modifiers");
+	                modfiersField.setAccessible(true);
+	            }
+	            return modfiersField.getInt(ipe);
+	        } catch (SecurityException e) {
+	        } catch (IllegalArgumentException e) {
+	        } catch (NoSuchFieldException e) {
+	        } catch (IllegalAccessException e) {
+	        }
+	        return -1;
+	    }
+
 }

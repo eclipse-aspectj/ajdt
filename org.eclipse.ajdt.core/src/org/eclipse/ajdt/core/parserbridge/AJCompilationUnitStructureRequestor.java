@@ -72,10 +72,17 @@ public class AJCompilationUnitStructureRequestor extends
 	public void setParser(Parser parser){
 		CompilerOptions options = new CompilerOptions();
 		ProblemReporter probrep = new ProblemReporter(null, options, null);
-		this.parser = new org.eclipse.jdt.internal.compiler.parser.Parser(probrep, false);
-		//this.parser = new org.eclipse.jdt.internal.compiler.parser.Parser(parser.problemReporter(), false);
-		this.parser.scanner = new Scanner();
-		this.parser.scanner.source = parser.scanner.source;
+		org.eclipse.jdt.internal.compiler.parser.Parser otherParser = 
+		    new org.eclipse.jdt.internal.compiler.parser.Parser(probrep, false);
+		setJDTParser(otherParser);
+	}
+	
+	private void setJDTParser(org.eclipse.jdt.internal.compiler.parser.Parser parser) {
+	    this.parser = parser;
+	}
+	
+	public void setSource(char[] source) {
+	    this.parser.scanner.source = source;
 	}
 
 	/* (non-Javadoc)

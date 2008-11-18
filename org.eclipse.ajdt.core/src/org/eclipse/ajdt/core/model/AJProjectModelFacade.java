@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,29 +24,32 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.ajde.core.AjCompiler;
-import org.aspectj.ajdt.internal.core.builder.AjState;
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
-import org.aspectj.asm.internal.ProgramElement;
+import org.aspectj.asm.internal.AspectJElementHierarchy;
 import org.aspectj.asm.internal.Relationship;
 import org.aspectj.asm.internal.RelationshipMap;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.builder.AJBuilder;
+import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -79,13 +84,50 @@ import org.eclipse.jdt.internal.core.JavaElement;
  */
 public class AJProjectModelFacade {
     
-    
-    public final static IProgramElement ERROR_PROGRAM_ELEMENT = new ProgramElement();
-    public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT.java", null);
+    private static Method findElementForHandleOrCreate;
     static {
-        ERROR_PROGRAM_ELEMENT.setName("ERROR_PROGRAM_ELEMENT");
-        ERROR_PROGRAM_ELEMENT.setKind(IProgramElement.Kind.FILE);
+        try {
+            findElementForHandleOrCreate = AspectJElementHierarchy.class.getDeclaredMethod("findElementForHandleOrCreate", new Class[] { String.class, boolean.class });
+            findElementForHandleOrCreate.setAccessible(true);
+        } catch (SecurityException e) {
+        } catch (NoSuchMethodException e) {
+        }
     }
+    
+    
+    public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
+    
+    private static class ProjectModelBuildListener implements IAJBuildListener {
+        private Set/*IProject*/ beingBuilt = new HashSet();
+        private Set/*IProject*/ beingCleaned = new HashSet();
+        
+        public synchronized void postAJBuild(int kind, IProject project,
+                boolean noSourceChanges) {
+            beingBuilt.remove(project);
+        }
+
+        public synchronized void postAJClean(IProject project) {
+            beingCleaned.remove(project);
+        }
+
+        public synchronized void preAJBuild(int kind, IProject project,
+                IProject[] requiredProjects) {
+            if (kind == IncrementalProjectBuilder.CLEAN_BUILD) {
+                beingCleaned.add(project);
+            } else {
+                beingBuilt.add(project);
+            }
+        }
+
+        public void addAdviceListener(IAdviceChangedListener adviceListener) { }
+        public void removeAdviceListener(IAdviceChangedListener adviceListener) { }
+        
+        
+        synchronized boolean isCurrentlyBuilding(IProject project) {
+            return beingBuilt.contains(project) || beingCleaned.contains(project);
+        }
+    }
+    
 
     /**
      * The aspectj program hierarchy
@@ -102,24 +144,33 @@ public class AJProjectModelFacade {
      */
     private final IProject project;
     
-
     boolean isInitialized;
+    
+    boolean disposed;
+    
+    private static ProjectModelBuildListener buildListener = new ProjectModelBuildListener();
     
     /**
      * creates a new project model facade for this project
      */
     AJProjectModelFacade(IProject project) {
         this.project = project;
-//        this.init();
+        this.disposed = false;
+        this.isInitialized = false;
     }
     
+    public static void installListener() {
+        AJBuilder.addAJBuildListener(buildListener);
+    }
+    
+
     /**
      * grabs the structure and relationships for this project
      * <p> 
      * called by the before advice in EnsureInitialized aspect
      */
-    void init() {
-        try {
+    synchronized void init() {
+        if (!buildListener.isCurrentlyBuilding(project)) {
             AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject());
             AsmManager existingState = compiler.getModel();
             if (existingState != null) {
@@ -129,16 +180,17 @@ public class AJProjectModelFacade {
                     isInitialized = true;
                 }
             }
-        } catch(Exception e) {
-            // catch trying to access the model before it is created
+        } else {
+            // can't initialize...building
         }
-    }
-    
+    }    
+
     /**
      * @return true if the AspectJ project model has been found.  false otherwise.
      */
     public boolean hasModel() {
-        return isInitialized;
+        return isInitialized && !disposed && 
+                !buildListener.isCurrentlyBuilding(project);
     }
     
     /**
@@ -147,7 +199,15 @@ public class AJProjectModelFacade {
      * if the program element is not found
      */
     public IProgramElement getProgramElement(String handle) {
-        return structureModel.findElementForHandle(handle);
+        IProgramElement ipe = null;
+        try {
+            ipe = (IProgramElement) findElementForHandleOrCreate.invoke(structureModel, new Object[] { handle, Boolean.FALSE } );
+        } catch (IllegalArgumentException e) {
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        }
+//        return structureModel.findElementForHandle(handle);
+        return ipe;
     }
     
     /**
@@ -190,6 +250,17 @@ public class AJProjectModelFacade {
             ajHandle = convertToAspectJBinaryHandle(ajHandle);
         }
         
+        // fragile and may not work if an ITD field really ends with _new,
+        // but keep for now.
+        // ITD constructors have _new appended to them. should remove it
+        if (je instanceof IntertypeElement) {
+            IntertypeElement itd = (IntertypeElement) je;
+            if (itd.getElementName().endsWith("_new")) {
+                int _newIndex = ajHandle.indexOf("_new");
+                ajHandle = ajHandle.substring(0, _newIndex) + ajHandle.substring(_newIndex + 4);
+            }
+        }
+        
         
         // check to see if we need to replace { (compilation unit) with * (aj compilation unit)
         // if using cuprovider, then aj compilation units have {, but needs to change to *
@@ -220,15 +291,31 @@ public class AJProjectModelFacade {
         
         ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
-        
-        IProgramElement ipe = structureModel.findElementForHandle(ajHandle);
+  
+        IProgramElement ipe = null;
+        try {
+            ipe = (IProgramElement) findElementForHandleOrCreate.invoke(structureModel, new Object[] { ajHandle, Boolean.FALSE } );
+        } catch (IllegalArgumentException e) {
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        }
+//        IProgramElement ipe = structureModel.findElementForHandle(ajHandle);
         if (ipe == null) {
-            // occurs when the handles are not working properly
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-                    "Could not find the AspectJ program element for handle: " + ajHandle));
-            return ERROR_PROGRAM_ELEMENT;
+            return IHierarchy.NO_STRUCTURE;
         }
         return ipe;
+    }
+
+    /**
+     * This will return false in the cases where a java elt exists, but
+     * a program elt does not.  This may happen when there are some kinds
+     * of errors in the file that prevent the aspectj compiler from running, but
+     * the Java compiler can still run.
+     * @param je
+     * @return
+     */
+    public boolean hasProgramElement(IJavaElement je) {
+        return IHierarchy.NO_STRUCTURE != javaElementToProgramElement(je);
     }
     
     
@@ -263,17 +350,29 @@ public class AJProjectModelFacade {
             return ERROR_JAVA_ELEMENT;
         }
         
-        
         String jHandle = ajHandle;
+        
+        // is this an ITD constructor?
+        int itdNameStart = jHandle.indexOf(AspectElement.JEM_ITD) + 1;
+        if (itdNameStart > 0) {
+            int itdNameEnd = jHandle.indexOf(AspectElement.JEM_ITD, itdNameStart);
+            itdNameEnd = itdNameEnd == -1 ? jHandle.length() : itdNameEnd;
+            String itdName = jHandle.substring(itdNameStart, itdNameEnd);
+            String[] names = itdName.split("\\.");
+            if (names.length == 2 && names[0].equals(names[1])) {
+                jHandle = jHandle.substring(0, itdNameEnd) + "_new" + jHandle.substring(itdNameEnd);
+            }
+        }
+        
         // are we dealing with something inside of a classfile?
         // if so, then we have to handle it specially
         // because we want to convert this into a source reference if possible
         int classFileIndex = jHandle.indexOf(JavaElement.JEM_CLASSFILE);
         if (classFileIndex != -1) {
             // now make sure this isn't a code element
-            int dotClassIndex = ajHandle.indexOf(".class");
+            int dotClassIndex = jHandle.indexOf(".class");
             if (dotClassIndex != -1) {
-                char typeChar = ajHandle.charAt(dotClassIndex + ".class".length());
+                char typeChar = jHandle.charAt(dotClassIndex + ".class".length());
                 if (typeChar == AspectElement.JEM_ASPECT_TYPE ||
                         typeChar == JavaElement.JEM_TYPE) {
                     return getElementFromClassFile(jHandle);
@@ -322,7 +421,15 @@ public class AJProjectModelFacade {
 
     
     private IJavaElement getElementFromClassFile(String jHandle) {
-        IProgramElement ipe = structureModel.findElementForHandle(jHandle);
+        IProgramElement ipe = null;
+        try {
+            ipe = (IProgramElement) findElementForHandleOrCreate.invoke(structureModel, new Object[] { jHandle, Boolean.FALSE } );
+        } catch (IllegalArgumentException e) {
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        }
+//        IProgramElement ipe = structureModel.findElementForHandle(jHandle);
+
         String packageName = ipe.getPackageName();
         // need to find the top level type
         IProgramElement candidate = ipe;
@@ -455,7 +562,7 @@ public class AJProjectModelFacade {
         for (int i = 0; i < cus.length; i++) {
             IType[] types = cus[i].getAllTypes();
             for (int j = 0; j < types.length; j++) {
-                if (types[j].getElementName().equals(typeName)) {
+                if (types[j].getElementName().equals(typeNameNoParent)) {
                     return cus[i];
                 }
             }
@@ -553,7 +660,6 @@ public class AJProjectModelFacade {
         final List/*IProgramElement*/ elementsOnLine = new LinkedList();
         
         // walk the program element to get all ipes on the source line
-        // XXX may have an off by 1 error
         ipe.walk(new CancellableHierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 ISourceLocation sourceLocation = node.getSourceLocation();
@@ -678,19 +784,33 @@ public class AJProjectModelFacade {
         }
         
         IProgramElement ipe = javaElementToProgramElement(elt);
-        List rels = relationshipMap.get(ipe);
-        if (rels != null && rels.size() > 0) {
-            return true;
-        } else {
-            // check children
-            List /*IProgramElement*/ ipeChildren = ipe.getChildren();
-            if (ipeChildren != null) {
-                for (Iterator childIter = ipeChildren.iterator(); childIter
-                        .hasNext();) {
-                    IProgramElement child = (IProgramElement) childIter.next();
-                    rels = relationshipMap.get(child);
-                    if (rels != null && rels.size() > 0) {
+        if (ipe != IHierarchy.NO_STRUCTURE) {
+            List/*IRelationship*/ rels = relationshipMap.get(ipe);
+            if (rels != null && rels.size() > 0) {
+                for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+                    IRelationship rel = (IRelationship) relIter.next();
+                    if (!rel.isAffects()) {
                         return true;
+                    }
+                }
+            }
+            // check children if the children would not otherwise be in 
+            // outline view (ie- code elements)
+            if (ipe.getKind() != IProgramElement.Kind.CLASS && ipe.getKind() != IProgramElement.Kind.ASPECT) {
+                List /*IProgramElement*/ ipeChildren = ipe.getChildren();
+                if (ipeChildren != null) {
+                    for (Iterator childIter = ipeChildren.iterator(); childIter
+                            .hasNext();) {
+                        IProgramElement child = (IProgramElement) childIter.next();
+                        if (child.getKind() == IProgramElement.Kind.CODE) {
+                            rels = relationshipMap.get(child);
+                            for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+                                IRelationship rel = (IRelationship) relIter.next();
+                                if (!rel.isAffects()) {
+                                    return true;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -717,8 +837,13 @@ public class AJProjectModelFacade {
         structureModel = null;
         relationshipMap = null;
         isInitialized = false;
+        disposed = true;
     }
 
+    public boolean isDisposed() {
+        return disposed;
+    }
+    
     public IProject getProject() {
         return project;
     }

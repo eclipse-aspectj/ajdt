@@ -10,6 +10,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -38,11 +42,27 @@ public class DeclareElement extends AspectJMemberElement{
                     .javaElementToProgramElement(this);
 
     	    DeclareElementInfo elementInfo = new DeclareElementInfo();
-    	    
-    	    elementInfo.setSourceRangeStart(ipe.getSourceLocation().getOffset());
-    	    elementInfo.setName(name.toCharArray());
-    	    elementInfo.setAJKind(getKindForString(name));
-        
+    	    if (ipe != IHierarchy.NO_STRUCTURE) {
+        	    elementInfo.setSourceRangeStart(ipe.getSourceLocation().getOffset());
+        	    elementInfo.setName(name.toCharArray());
+        	    elementInfo.setAJKind(getKindForString(name));
+        	    String details = ipe.getDetails();
+                elementInfo.setExtends(details.startsWith("extends"));
+                elementInfo.setImplements(details.startsWith("implements"));
+                if (elementInfo.isImplements() || elementInfo.isExtends()) {
+                    List/*String*/ types = ipe.getParentTypes();
+                    if (types != null) {
+                        int index = 0;
+                        for (Iterator typeIter = types.iterator(); typeIter
+                                .hasNext();) {
+                            String type = (String) typeIter.next();
+                            type = type.replaceAll("\\$", "\\.");
+                            types.set(index++, type);
+                        }
+                        elementInfo.setTypes((String[]) types.toArray(new String[types.size()]));
+                    }
+                }
+    	    }        
             return elementInfo;
         } catch (Exception e) {
             // can fail for any of a number of reasons.
