@@ -38,11 +38,7 @@ public class AdviceMarkersTest6 extends UITestCase {
         waitForJobsToComplete();
 
         IMarker[] markers = getMarkers(aspectFile);
-        for (int i = 0; i < markers.length; i++) {
-            System.out.println(markers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + markers[i].getAttribute(IMarker.MESSAGE));
-        }
-        assertEquals("Should have found 3 advice markers", 3, markers.length); //$NON-NLS-1$
-        
+        assertEquals("Didn't find any advice markers, but should have found 3", 3, markers.length); //$NON-NLS-1$
 
         Set lineNumbers = new HashSet();
         lineNumbers.add(new Integer(markers[0].getAttribute(IMarker.LINE_NUMBER, -1)));

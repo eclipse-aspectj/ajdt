@@ -30,7 +30,7 @@ import org.eclipse.jdt.internal.core.UserLibraryClasspathContainerInitializer;
  * @author andrew
  * @created Jul 2, 2008
  * These tests collectively ensure that the aspect and in paths
- * can contain various kinds of classpath entries
+ * can contain various classpath entries
  *
  */
 public class BuildPathTests extends UITestCase {
@@ -56,6 +56,11 @@ public class BuildPathTests extends UITestCase {
 
         // build all projects
         setAutobuilding(true);
+        containerProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        varProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        projProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        jarProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
     }   
 
     public void testInpath() throws Exception {
@@ -147,11 +152,5 @@ public class BuildPathTests extends UITestCase {
         assertTrue("Did not find expected string '"+exp+"' in console output:\n"+console,console.indexOf(exp)!=-1);  //$NON-NLS-1$//$NON-NLS-2$
         exp = "from container aspect"; //$NON-NLS-1$
         assertTrue("Did not find expected string '"+exp+"' in console output:\n"+console,console.indexOf(exp)!=-1);  //$NON-NLS-1$//$NON-NLS-2$
-    }
-    
-    public static void setAutobuilding(boolean autobuild) throws CoreException {
-        IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
-        workspaceDesc.setAutoBuilding(autobuild);
-        AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
-    }
+    }    
 }

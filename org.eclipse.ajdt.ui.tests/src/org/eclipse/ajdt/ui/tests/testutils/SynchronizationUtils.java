@@ -23,6 +23,7 @@ import org.eclipse.ui.PlatformUI;
 // Adapted from org.eclipse.jdt.ui.tests.performance.JdtPerformanceTestCase
 public class SynchronizationUtils {
 
+		
 	public static void joinBackgroudActivities()  {
 		// Join Building
 		boolean interrupted= true;
