@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="plugin_export" name="build">
+	<target name="plugin_export">
+		<pde.exportPlugins destination="/Users/andrew/Eclipse/Workspaces/workspaceAJDT1.6weaving/org.eclipse.contribution.weaving.jdt/equinox-aspects" 
+			exportSource="true" exportType="directory" plugins="org.eclipse.equinox.weaving.aspectj,org.eclipse.equinox.weaving.caching,org.eclipse.equinox.weaving.hook" qualifier="200808060918" useJARFormat="true"/>
+	</target>
+</project>
