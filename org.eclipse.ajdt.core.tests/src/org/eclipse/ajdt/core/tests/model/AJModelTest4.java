@@ -63,13 +63,6 @@ public class AJModelTest4 extends AJDTCoreTestCase {
     }
     
     public static List checkHandle(String origAjHandle, AJProjectModelFacade model) {
-        // only in here temporarily until Andy fixes the bug
-        // if you (by "you" I mean someone who's not "me")
-        // see this here, then it is safe to delete.
-        if (!origAjHandle.startsWith("=")) {
-            return Collections.EMPTY_LIST;
-        }
-        
         
         List/*String*/ accumulatedErrors = new ArrayList();
         

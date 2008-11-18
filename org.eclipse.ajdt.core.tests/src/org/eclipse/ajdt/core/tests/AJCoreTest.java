@@ -311,7 +311,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			assertEquals(
 					"Handle identifier of created element doesn't match original", //$NON-NLS-1$
 					testHandles[i][0], el.getHandleIdentifier());
-			assertEquals("Name of created element doesn't match expected", //$NON-NLS-1$`
+			assertEquals("Name of created element doesn't match expected", //$NON-NLS-1$
 					testHandles[i][1], el.getElementName());
 			assertEquals(
 					"Name of created element resource doesn't match expected", //$NON-NLS-1$

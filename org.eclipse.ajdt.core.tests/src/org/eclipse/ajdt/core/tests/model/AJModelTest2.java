@@ -12,18 +12,29 @@
 
 package org.eclipse.ajdt.core.tests.model;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.IRelationship;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * More tests for mapping between IProgramElement and IJavaElements.
@@ -110,5 +121,60 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 				"Didn't find \"bar\" element advised by around advice with a runtime test", //$NON-NLS-1$
 				gotAroundAdviceWithRuntimeTest);
 	}
+	
+	   
+    /**
+     * Tests that the backwards compatibility of Using AJModel works properly
+     * 
+     * This uses the old style of AJModel.
+     * The AJModel api will go away in the future
+     * @throws Exception
+     */
+    public void testBug253245() throws Exception {
+        Utils.setAutobuilding(false);
+        IProject project = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
+        IJavaProject jProject = JavaCore.create(project);
+        project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+        
+        
+        IType demo = jProject.findType("test.Demo");
+        IType myAspect = jProject.findType("test.MyAspect");
+        IType otherClass = jProject.findType("test.OtherClass");
 
+        // no build yet. should return empty sets for each
+        Set demoSet = getDeclaredMethods(demo);
+        Set myAspectSet = getDeclaredMethods(myAspect);
+        Set otherClassSet = getDeclaredMethods(otherClass);
+        
+        assertEquals("Project hasn't been built, so no relationships should have been found.", 0, demoSet.size());
+        assertEquals("Project hasn't been built, so no relationships should have been found.", 0, myAspectSet.size());
+        assertEquals("Project hasn't been built, so no relationships should have been found.", 0, otherClassSet.size());
+        
+        Utils.setAutobuilding(true);
+        waitForAutoBuild();
+
+        // ensure that all classes have the proper declare methods on it
+        demoSet = getDeclaredMethods(demo);
+        myAspectSet = getDeclaredMethods(myAspect);
+        otherClassSet = getDeclaredMethods(otherClass);
+        
+        assertEquals("ITDs have not been found.", 5, demoSet.size());
+        assertEquals("Shouldn't have any ITDs", 0, myAspectSet.size());
+        assertEquals("Shouldn't have any ITDs.", 0, otherClassSet.size());
+    }
+
+    public static Set/*IMethod*/ getDeclaredMethods(IType type) throws JavaModelException {
+        Set methods = new HashSet/*IMethod*/();
+        AJRelationshipType[] types = new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON };
+        List/*AJRelationship*/ rels = AJModel.getInstance().getAllRelationships(
+                type.getResource().getProject(), types);
+        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+            AJRelationship rel = (AJRelationship) relIter.next();
+            if (rel.getTarget().equals(type)) {
+                IntertypeElement iType = (IntertypeElement) rel.getSource();
+                methods.add(iType);
+            }
+        }
+        return methods;
+    }
 }
