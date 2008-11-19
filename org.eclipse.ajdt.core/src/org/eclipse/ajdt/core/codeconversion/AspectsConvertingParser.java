@@ -576,14 +576,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		int pos = findInsertionPosition(position - 1) + 1;
 		//if code completion on 'this' -> overwrite the this keyword
 		int len = 0;
+		boolean dotRequired = true;
 		if ((content[pos] == 't') && (content[pos + 1] == 'h')
 				&& (content[pos + 2] == 'i') && (content[pos + 3] == 's')
-				&& !Character.isJavaIdentifierPart(content[pos + 4]))
-			len = 4;
+				&& !Character.isJavaIdentifierPart(content[pos + 4])) {
+		    len = 4;
+		    dotRequired = false;
+		}
 
 		String ident = findFreeIdentifier();
-		char[] toInsert = (new String(targetType) + ' ' + ident + ';' + ident + '.')
-				.toCharArray();
+		char[] toInsert = (new String(targetType) + ' ' + ident + "; " + ident +
+		        (dotRequired ? "." : "")).toCharArray();
 		addReplacement(pos, len, toInsert);
 
 	}

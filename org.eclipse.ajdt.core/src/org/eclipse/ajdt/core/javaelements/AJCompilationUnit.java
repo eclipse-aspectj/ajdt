@@ -629,9 +629,11 @@ public class AJCompilationUnit extends CompilationUnit{
 			myConversionOptions = ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType);
 			javaCompBuffer.setConversionOptions(myConversionOptions);
 			pos = javaCompBuffer.translatePositionToFake(position);
+			
 			// we call codeComplete twice in this case to combine the context specific completions with the
 			// completions for things like local variables.
-			internalCodeComplete(cu, unitToSkip, pos, requestor, owner, this);				
+			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+			internalCodeComplete(cu, unitToSkip, pos, wrappedRequestor, owner, this);				
 			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);

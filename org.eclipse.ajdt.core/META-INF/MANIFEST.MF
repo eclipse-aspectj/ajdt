@@ -21,7 +21,6 @@ Export-Package: org.eclipse.ajdt.core,
  org.eclipse.ajdt.internal.core.ajde;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.builder;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.contentassist;x-friends:="org.eclipse.ajdt.core.tests",
- org.eclipse.ajdt.internal.core.model;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.parserbridge;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.ras;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.refactoring;x-friends:="org.eclipse.ajdt.core.tests"
