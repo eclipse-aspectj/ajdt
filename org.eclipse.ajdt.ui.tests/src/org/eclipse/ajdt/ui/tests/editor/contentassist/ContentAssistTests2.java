@@ -21,9 +21,11 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 public class ContentAssistTests2 extends UITestCase {
     AJCompilationUnit hasITDsUnit;
     AJCompilationUnit usesITDsUnit;
+    AJCompilationUnit aspectITDsUnit;
     
     String hasITDsContents;
     String usesITDsContents;
+    String aspectITDsContents;
     
     protected void setUp() throws Exception {
         super.setUp();
@@ -37,6 +39,10 @@ public class ContentAssistTests2 extends UITestCase {
         usesITDsUnit.becomeWorkingCopy(null);
         JavaModelManager.getJavaModelManager().getPerWorkingCopyInfo(usesITDsUnit, true, false, null);
         
+        aspectITDsUnit = (AJCompilationUnit) AspectJCore.create(proj.getFile("src/itds/ITDAspect.aj"));
+        aspectITDsUnit.becomeWorkingCopy(null);
+        JavaModelManager.getJavaModelManager().getPerWorkingCopyInfo(aspectITDsUnit, true, false, null);
+        
         hasITDsUnit.requestOriginalContentMode();
         hasITDsContents = new String(hasITDsUnit.getContents());
         hasITDsUnit.discardOriginalContentMode();
@@ -44,6 +50,10 @@ public class ContentAssistTests2 extends UITestCase {
         usesITDsUnit.requestOriginalContentMode();
         usesITDsContents = new String(usesITDsUnit.getContents());
         usesITDsUnit.discardOriginalContentMode();
+
+        aspectITDsUnit.requestOriginalContentMode();
+        aspectITDsContents = new String(aspectITDsUnit.getContents());
+        aspectITDsUnit.discardOriginalContentMode();
     }
     
     public void testITDField() throws Exception {
@@ -187,6 +197,28 @@ public class ContentAssistTests2 extends UITestCase {
                 "value", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
     }
 
+    public void testITDInITD() throws Exception {
+        MockCompletionRequestor requestor = new MockCompletionRequestor();
+        int offset = aspectITDsContents.indexOf("makeLis") + "makeLis".length();
+        aspectITDsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
+        
+        assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+
+        assertEquals("Proposal should have been the 'makeList' method\n" + requestor.accepted.get(0), 
+                "makeList", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
+    }
+    
+    public void testITDInITDWithThis() throws Exception {
+        MockCompletionRequestor requestor = new MockCompletionRequestor();
+        int offset = aspectITDsContents.indexOf("this.makeLis") + "this.makeLis".length();
+        aspectITDsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
+        
+        assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+
+        assertEquals("Proposal should have been the 'makeList' method\n" + requestor.accepted.get(0), 
+                "makeList", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
+    }
+    
 }
 
 class MockCompletionRequestor extends CompletionRequestor {
