@@ -44,7 +44,7 @@
       <import plugin="org.eclipse.jdt.debug.ui"/>
       <import plugin="org.eclipse.swt"/>
    </requires>
-
+ 
    <plugin
          id="org.aspectj.ajde"
          download-size="0"
