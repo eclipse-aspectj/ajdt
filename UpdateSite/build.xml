@@ -29,7 +29,7 @@ The key targets are:
 <property name="ajdt.version" value="1.4.1.${cctimestamp}" />
 <property name="ajde.version" value="1.6.0.${cctimestamp}" />
 <property name="xref.version" value="1.4.1.${cctimestamp}" />
-<property name="equinox.aspects.version" value="1.0.0.${cctimestamp}" />
+<!--<property name="equinox.aspects.version" value="1.0.0.${cctimestamp}" />-->
 <property name="aspectj.release.name" value="1.6.0.20080117011434" />
 <property name="aspectj.version" value="1.6.0" />
 <property name="visualiser.version" value="2.2.0.${cctimestamp}"/>
@@ -64,9 +64,9 @@ Creates an update site structure for AspectJ
   <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.core.tests" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.ui.tests" inheritAll="true" target="clean"/>
-  <ant dir="../org.eclipse.equinox.weaving.aspectj" inheritAll="true" target="clean"/>
+  <!--<ant dir="../org.eclipse.equinox.weaving.aspectj" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.equinox.weaving.caching" inheritAll="true" target="clean"/>
-  <ant dir="../org.eclipse.equinox.weaving.hook" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.equinox.weaving.hook" inheritAll="true" target="clean"/>-->
   <ant dir="../org.eclipse.contribution.weaving.jdt" inheritAll="true" target="clean"/>
 <!--  <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" target="clean"/> -->
   <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true" target="clean"/>
@@ -134,9 +134,9 @@ Creates an update site structure for AspectJ
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core_${xref.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui_${xref.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.visualiser" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.visualiser_${visualiser.version}"/>
-	<move file="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.aspectj" tofile="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.aspectj_${equinox.aspects.version}"/>
+	<!--<move file="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.aspectj" tofile="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.aspectj_${equinox.aspects.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.caching" tofile="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.caching_${equinox.aspects.version}"/>
-	<move file="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.hook" tofile="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.hook_${equinox.aspects.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.hook" tofile="../org.eclipse.ajdt.source/src/org.eclipse.equinox.weaving.hook_${equinox.aspects.version}"/>-->
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.weaving.jdt" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.weaving.jdt_${equinox.aspects.version}"/>
 		
 	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}"/>
@@ -302,13 +302,13 @@ Creates an update site structure for AspectJ
 	   	 todir="dist/plugins" />
  <copy file="../org.eclipse.contribution.xref.ui/org.eclipse.contribution.xref.ui_${xref.version}.jar"
 	   	 todir="dist/plugins" />
- <copy file="../org.eclipse.ajdt.ui/org.eclipse.equinox.weaving.aspectj_${equinox.aspects.version}.jar"
+ <!--<copy file="../org.eclipse.ajdt.ui/org.eclipse.equinox.weaving.aspectj_${equinox.aspects.version}.jar"
 	   	 todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.ui/org.eclipse.equinox.weaving.weaving_${equinox.aspects.version}.jar"
 	   	 todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.ui/org.eclipse.equinox.weaving.hook_${equinox.aspects.version}.jar"
-	   	 todir="dist/plugins" />
- <copy file="../org.eclipse.ajdt.ui/org.eclipse.contribution.weaving.jdt_${equinox.aspects.version}.jar"
+	   	 todir="dist/plugins" />-->
+ <copy file="../org.eclipse.ajdt.ui/org.eclipse.contribution.weaving.jdt_${ajdt.version}.jar"
 	   	 todir="dist/plugins" />
 </target>
 
