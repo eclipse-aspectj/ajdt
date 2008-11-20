@@ -44,7 +44,7 @@
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.jdt.debug.ui"/>
       <import plugin="org.eclipse.swt"/>
-      <import feature="org.eclipse.equinox.weaving" version="1.0.0"/>
+      <import feature="org.eclipse.equinox.weaving"/>
    </requires>
 
    <plugin
