@@ -135,6 +135,7 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.parameterNames = parameterNames;
 		mi.parameterTypes = parameterTypes;
 		mi.exceptionTypes = exceptionTypes;
+		mi.returnType = returnType;
 		
 		super.enterMethod(mi);
 	}
