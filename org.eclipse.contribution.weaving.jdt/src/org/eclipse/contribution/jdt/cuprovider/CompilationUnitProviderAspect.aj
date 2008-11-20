@@ -36,12 +36,12 @@ public aspect CompilationUnitProviderAspect {
         } else {
             extension = ""; //$NON-NLS-1$
         }
-        
-        if (extension.equals("java")) { //$NON-NLS-1$
+        CompilationUnit unit = CompilationUnitProviderRegistry.getInstance().getProvider(extension).
+                create(parent, name, owner);
+        if (unit == null) {
             return proceed(parent, name, owner);
         } else {
-            return CompilationUnitProviderRegistry.getInstance().getProvider(extension).
-                   create(parent, name, owner);
+            return unit; 
         }        
     }
     
