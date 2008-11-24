@@ -487,7 +487,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         if (details.startsWith(EXTENDS)) {
                             declareExtends.addAll(parentTypes);
                         } else if (details.startsWith(IMPLEMENTS)) {
-                            declareImplements.add(parentTypes);
+                            declareImplements.addAll(parentTypes);
                         }
                     }
                 }
@@ -514,9 +514,21 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                             String name = declareElt.getName().substring(lastDot+1);
     
                             if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
+                                List modifiers = declareElt.getModifiers();
+                                for (Iterator iterator = modifiers.iterator(); iterator
+                                        .hasNext();) {
+                                    sb.append(iterator.next() + " ");
+                                }
                                 sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n");
                             } else if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD || 
                                        declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+                                
+                                sb.append(declareElt.getAccessibility() + " ");
+                                List modifiers = declareElt.getModifiers();
+                                for (Iterator iterator = modifiers.iterator(); iterator
+                                        .hasNext();) {
+                                    sb.append(iterator.next() + " ");
+                                }
                                 // need to add a return statement?
                                 if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
                                     sb.append(declareElt.getCorrespondingType(true) + " " + name);
@@ -526,13 +538,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                                 sb.append("(");
                                 List/*String*/ names = declareElt.getParameterNames();
                                 List/*String*/ types = declareElt.getParameterTypes();
-                                for (Iterator typeIter = types.iterator(), nameIter = names.iterator(); 
-                                     typeIter.hasNext();) {
-                                    String paramType = new String((char[]) typeIter.next());
-                                    String paramName = (String) nameIter.next();
-                                    sb.append(paramType + " " + paramName);
-                                    if (typeIter.hasNext()) {
-                                        sb.append(", ");
+                                if (types != null && names != null) {
+                                    for (Iterator typeIter = types.iterator(), nameIter = names.iterator(); 
+                                         typeIter.hasNext();) {
+                                        String paramType = new String((char[]) typeIter.next());
+                                        String paramName = (String) nameIter.next();
+                                        sb.append(paramType + " " + paramName);
+                                        if (typeIter.hasNext()) {
+                                            sb.append(", ");
+                                        }
                                     }
                                 }
                                 sb.append(") { }\n");
@@ -574,14 +588,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		int pos = findInsertionPosition(position - 1) + 1;
 		//if code completion on 'this' -> overwrite the this keyword
 		int len = 0;
+		boolean dotRequired = true;
 		if ((content[pos] == 't') && (content[pos + 1] == 'h')
 				&& (content[pos + 2] == 'i') && (content[pos + 3] == 's')
-				&& !Character.isJavaIdentifierPart(content[pos + 4]))
-			len = 4;
+				&& !Character.isJavaIdentifierPart(content[pos + 4])) {
+		    len = 4;
+		    dotRequired = false;
+		}
 
 		String ident = findFreeIdentifier();
-		char[] toInsert = (new String(targetType) + ' ' + ident + ';' + ident + '.')
-				.toCharArray();
+		char[] toInsert = (new String(targetType) + ' ' + ident + "; " + ident +
+		        (dotRequired ? "." : "")).toCharArray();
 		addReplacement(pos, len, toInsert);
 
 	}

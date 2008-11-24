@@ -12,6 +12,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
@@ -25,6 +27,16 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
+import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
+import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.SearchableEnvironment;
+import org.eclipse.jdt.internal.core.SourceType;
+import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
  * The main plugin class to be used in the desktop.
@@ -122,6 +134,31 @@ public class AspectJPlugin extends Plugin {
 				new CompilerConfigResourceChangeListener(),
 				IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
 		setCompilerFactory(new CoreCompilerFactory());
+		
+		ITDAwarenessAspect.provider = new INameEnvironmentProvider() {
+            public SearchableEnvironment getNameEnvironment(
+                    JavaProject project, WorkingCopyOwner owner) {
+                try {
+                    return new ITDAwareCancelableNameEnvironment(project, owner, null);
+                } catch (JavaModelException e) {
+                    return null;
+                }
+            }
+
+            public SearchableEnvironment getNameEnvironment(
+                    JavaProject project, ICompilationUnit[] workingCopies) {
+                try {
+                    return new ITDAwareCancelableNameEnvironment(project, workingCopies);
+                } catch (JavaModelException e) {
+                    return null;
+                }
+            }
+            
+            public ISourceType transformSourceTypeInfo(ISourceType info) {
+                return new ITDAwareSourceTypeInfo(info, 
+                        (SourceType) ((SourceTypeElementInfo) info).getHandle());
+            }
+		};
 		
 		AJProjectModelFacade.installListener();
 	}

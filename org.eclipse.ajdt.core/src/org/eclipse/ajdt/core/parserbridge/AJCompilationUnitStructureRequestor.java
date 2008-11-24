@@ -342,6 +342,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setNameSourceEnd(nameSourceEnd);
 				info.setTargetType(decl.getOnType().getTypeName()[0]);
 				info.setFlags(flags);
+				info.setDeclaredModifiers(decl.declaredModifiers);
 				info.setArgumentNames(parameterNames);
 				//info.setArgumentTypeNames(parameterTypes);
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);

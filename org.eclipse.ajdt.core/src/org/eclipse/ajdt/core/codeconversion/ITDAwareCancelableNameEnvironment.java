@@ -19,7 +19,9 @@ import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.NameLookup;
 import org.eclipse.jdt.internal.core.SourceType;
@@ -33,7 +35,15 @@ public class ITDAwareCancelableNameEnvironment extends
             throws JavaModelException {
         super(project, owner, monitor);
     }
+    
+    public ITDAwareCancelableNameEnvironment(JavaProject project, org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+        this(project, workingCopies == null || workingCopies.length == 0 ? 
+                DefaultWorkingCopyOwner.PRIMARY : workingCopies[0].getOwner(), 
+                null);
+    }
 
+
+    
 
     protected NameEnvironmentAnswer find(String typeName, String packageName) {
         if (packageName == null)
