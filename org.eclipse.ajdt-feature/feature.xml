@@ -20,7 +20,7 @@
 
    <url>
       <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
-      <discovery label="Equinox Aspects" url="http://download.eclipse.org/tools/ajdt/34/dev/equinox-aspects"/>
+      <discovery label="Equinox Aspects Update Site" url="http://download.eclipse.org/tools/ajdt/34/dev/equinox-aspects"/>
    </url>
 
    <includes
