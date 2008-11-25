@@ -14,32 +14,26 @@ package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
-import org.eclipse.ajdt.core.model.AJProjectModelFacade;
-import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
 import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
@@ -52,6 +46,7 @@ import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.eclipse.jdt.internal.core.CancelableProblemFactory;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.NameLookup;
 import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
@@ -65,7 +60,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder {
 
-	private AJCompilationUnit ajcu; // AspectJ Change
+	private ICompilationUnit cu; // AspectJ Change
 
 	/**
 	 * @param environment
@@ -80,9 +75,9 @@ public class AJCompilationUnitProblemFinder extends
 			CompilerOptions compilerOptions,
 			ICompilerRequestor requestor, 
 			IProblemFactory problemFactory,
-			AJCompilationUnit ajcu) { // AspectJ Change
+			ICompilationUnit ajcu) { // AspectJ Change
 		super(environment, policy, compilerOptions, requestor, problemFactory);
-		this.ajcu = ajcu; // AspectJ Change
+		this.cu = ajcu; // AspectJ Change
 		initializeParser();
 	}
 
@@ -92,14 +87,16 @@ public class AJCompilationUnitProblemFinder extends
 	 */
 	public void initializeParser() {
 		// AspectJ Change Begin
-	    if (ajcu != null) {  // wait until object is initialized to initialize parser
-    		 Map options = ajcu.getJavaProject().getOptions(true);
+	    if (cu != null) {  // wait until object is initialized to initialize parser
+    		 Map options = cu.getJavaProject().getOptions(true);
     		 CompilerOptions compilerOptions = new CompilerOptions(options);
              try {
-            	 if (ajcu.getElementInfo() instanceof AJCompilationUnitInfo) {
+            	 Object elementInfo = ((JavaElement) cu).getElementInfo();
+                if (elementInfo instanceof AJCompilationUnitInfo) {
+            	     AJCompilationUnit ajcu = (AJCompilationUnit) cu;
             	     ajcu.discardOriginalContentMode();
             		 this.parser = new AJSourceElementParser2(
-            				 new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
+            				 new AJCompilationUnitStructureRequestor(cu, (AJCompilationUnitInfo) elementInfo, null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
             		 ajcu.requestOriginalContentMode();
             	 } else {
             	     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
@@ -112,7 +109,7 @@ public class AJCompilationUnitProblemFinder extends
 
 
 	public static CompilationUnitDeclaration processAJ(
-	        AJCompilationUnit unitElement, // AspectJ Change
+	        ICompilationUnit unitElement, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
 	        HashMap problems,
 	        boolean creatingAST,
@@ -124,7 +121,7 @@ public class AJCompilationUnitProblemFinder extends
 	}
 	
 	public static CompilationUnitDeclaration processAJ(
-            AJCompilationUnit unitElement, // AspectJ Change
+            ICompilationUnit unitElement, // AspectJ Change
 	        AJSourceElementParser2 parser, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
 	        HashMap problems,
@@ -151,12 +148,13 @@ public class AJCompilationUnitProblemFinder extends
                             ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
                     getRequestor(), problemFactory, unitElement);
             CompilationUnitDeclaration unit = null;
+            org.eclipse.jdt.internal.compiler.env.ICompilationUnit compilerUnit = (org.eclipse.jdt.internal.compiler.env.ICompilationUnit) unitElement;
             if (parser != null) {
                 problemFinder.parser = parser;
                 try {
                     unit = parser.parseCompilationUnit(
-                            unitElement, true/* full parse */, monitor);
-                    problemFinder.resolve(unit, unitElement,
+                            compilerUnit, true/* full parse */, monitor);
+                    problemFinder.resolve(unit, compilerUnit,
                             true, // verify methods
                             true, // analyze code
                             true); // generate code
@@ -164,7 +162,7 @@ public class AJCompilationUnitProblemFinder extends
                     problemFinder.handleInternalException(e, unit);
                 }
             } else {
-                unit = problemFinder.resolve(unitElement, 
+                unit = problemFinder.resolve(compilerUnit, 
                         true, // verify methods
                         true, // analyze code
                         true); // generate code
@@ -240,7 +238,7 @@ public class AJCompilationUnitProblemFinder extends
 	 * @return
 	 */
 	private static CategorizedProblem[] removeAJNonProblems(
-            CategorizedProblem[] categorizedProblems, AJCompilationUnit unit) {
+            CategorizedProblem[] categorizedProblems, ICompilationUnit unit) {
 	    
 	    // too many corner cases.  can't get ITD aware content assist working
 //        Set ajIdentifiers = gatherITDsForCU(unit);
@@ -273,7 +271,7 @@ public class AJCompilationUnitProblemFinder extends
 	// it is better to discard.  because the real errors will show up when a compile happens
 	// XXX we are not doing ITD aware yet.  hasModel is always false
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, Set ajIdentifiers, AJCompilationUnit unit, boolean hasModel) {
+            CategorizedProblem categorizedProblem, Set ajIdentifiers, ICompilationUnit unit, boolean hasModel) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -402,8 +400,8 @@ public class AJCompilationUnitProblemFinder extends
     }
 
     private static String extractProblemRegion(
-            CategorizedProblem categorizedProblem, AJCompilationUnit unit) {
-        char[] contents = unit.getContents();
+            CategorizedProblem categorizedProblem, ICompilationUnit unit) {
+        char[] contents = ((org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         for (int i = categorizedProblem.getSourceStart(); 
                 i < categorizedProblem.getSourceEnd()+1 && i < contents.length; i++) {
@@ -412,8 +410,8 @@ public class AJCompilationUnitProblemFinder extends
         return sb.toString();
     }
     
-    private static String extractNextJavaIdentifier(AJCompilationUnit unit, int start) {
-        char[] contents = unit.getContents();
+    private static String extractNextJavaIdentifier(ICompilationUnit unit, int start) {
+        char[] contents = ((org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         int next = start;
         while (! Character.isJavaIdentifierStart(contents[next]) &&
