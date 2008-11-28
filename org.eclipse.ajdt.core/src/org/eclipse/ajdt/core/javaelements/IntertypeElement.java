@@ -54,7 +54,7 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setName(name.toCharArray());
             info.setAJKind(ipe.getKind());
             info.setAJModifiers(ipe.getModifiers());
-            info.setFlags(getProgramElementModifiers(ipe));
+            info.setFlags(ipe.getRawModifiers());
             info.setAJAccessibility(ipe.getAccessibility());
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             info.setSourceRangeStart(sourceLocation.getOffset());
@@ -71,21 +71,6 @@ public class IntertypeElement extends AspectJMemberElement {
 	    return info;
 	}
 
-	static Field modfiersField = null;
-	static int getProgramElementModifiers(IProgramElement ipe) {
-	    try {
-            if (modfiersField == null) {
-                modfiersField = ProgramElement.class.getDeclaredField("modifiers");
-                modfiersField.setAccessible(true);
-            }
-            return modfiersField.getInt(ipe);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
-        } catch (IllegalAccessException e) {
-        }
-        return -1;
-	}
 	
 	
 	/**
