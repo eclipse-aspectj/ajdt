@@ -199,7 +199,10 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (!(info instanceof AJCompilationUnitInfo)){
 			info = new AJCompilationUnitInfo();
 		}
-		super.generateInfos(info, newElements, monitor);
+		// only generate infos if on build path of the project.
+		if (getJavaProject().isOnClasspath(this)) {
+		    super.generateInfos(info, newElements, monitor);
+		}
 	}
 	
 	/**
@@ -207,7 +210,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * makes things a little messy
 	 */
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info;
+	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info; 
 
        if(ajFile == null) {
            return false;

@@ -14,28 +14,24 @@ package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -44,6 +40,7 @@ import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
 import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.eclipse.jdt.internal.compiler.IProblemFactory;
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -51,7 +48,9 @@ import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.eclipse.jdt.internal.core.CancelableProblemFactory;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.NameLookup;
 import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
@@ -65,7 +64,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder {
 
-	private AJCompilationUnit ajcu; // AspectJ Change
+	private CompilationUnit cu; // AspectJ Change
 
 	/**
 	 * @param environment
@@ -80,10 +79,16 @@ public class AJCompilationUnitProblemFinder extends
 			CompilerOptions compilerOptions,
 			ICompilerRequestor requestor, 
 			IProblemFactory problemFactory,
-			AJCompilationUnit ajcu) { // AspectJ Change
+			CompilationUnit cu) { // AspectJ Change
 		super(environment, policy, compilerOptions, requestor, problemFactory);
-		this.ajcu = ajcu; // AspectJ Change
+		this.cu = cu; // AspectJ Change
 		initializeParser();
+		
+		// begin AspectJ Change
+		// the custom lookup environment will insert mock ITD elements
+		lookupEnvironment = 
+		    new ITDAwareLookupEnvironment(lookupEnvironment, environment);
+        // end AspectJ Change
 	}
 
 	/* (non-Javadoc)
@@ -92,14 +97,16 @@ public class AJCompilationUnitProblemFinder extends
 	 */
 	public void initializeParser() {
 		// AspectJ Change Begin
-	    if (ajcu != null) {  // wait until object is initialized to initialize parser
-    		 Map options = ajcu.getJavaProject().getOptions(true);
+	    if (cu != null) {  // wait until object is initialized to initialize parser
+    		 Map options = cu.getJavaProject().getOptions(true);
     		 CompilerOptions compilerOptions = new CompilerOptions(options);
              try {
-            	 if (ajcu.getElementInfo() instanceof AJCompilationUnitInfo) {
+            	 Object elementInfo = ((JavaElement) cu).getElementInfo();
+                if (elementInfo instanceof AJCompilationUnitInfo) {
+            	     AJCompilationUnit ajcu = (AJCompilationUnit) cu;
             	     ajcu.discardOriginalContentMode();
             		 this.parser = new AJSourceElementParser2(
-            				 new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
+            				 new AJCompilationUnitStructureRequestor(cu, (AJCompilationUnitInfo) elementInfo, null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
             		 ajcu.requestOriginalContentMode();
             	 } else {
             	     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
@@ -110,9 +117,20 @@ public class AJCompilationUnitProblemFinder extends
 	    // AspectJ Change End
 	}
 
-
+	
+	protected void internalBeginToCompile(
+	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits,
+	        int maxUnits) {
+	    // only insert ITDs for the units we are compiling directly
+	    // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
+	    // don't want to insert ITDs twice.
+	    ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(true);
+	    super.internalBeginToCompile(sourceUnits, maxUnits);
+        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
+	}
+	
 	public static CompilationUnitDeclaration processAJ(
-	        AJCompilationUnit unitElement, // AspectJ Change
+	        CompilationUnit unitElement, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
 	        HashMap problems,
 	        boolean creatingAST,
@@ -124,8 +142,8 @@ public class AJCompilationUnitProblemFinder extends
 	}
 	
 	public static CompilationUnitDeclaration processAJ(
-            AJCompilationUnit unitElement, // AspectJ Change
-	        AJSourceElementParser2 parser, // AspectJ Change
+            CompilationUnit unitElement, // AspectJ Change
+	        CommentRecorderParser parser, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
 	        HashMap problems,
 	        boolean creatingAST,
@@ -139,8 +157,10 @@ public class AJCompilationUnitProblemFinder extends
         CancelableProblemFactory problemFactory = null;
         AJCompilationUnitProblemFinder problemFinder = null; // AspectJ Change
         try {
+            // use an ITDAware environment to ensure that ITDs are included for source types
             environment = new ITDAwareCancelableNameEnvironment(project,
-                    workingCopyOwner, monitor);
+                    workingCopyOwner, monitor);  
+
             problemFactory = new CancelableProblemFactory(monitor);
             problemFinder = new AJCompilationUnitProblemFinder( // AspectJ Change
                     environment,
@@ -154,12 +174,14 @@ public class AJCompilationUnitProblemFinder extends
             if (parser != null) {
                 problemFinder.parser = parser;
                 try {
-                    unit = parser.parseCompilationUnit(
-                            unitElement, true/* full parse */, monitor);
-                    problemFinder.resolve(unit, unitElement,
-                            true, // verify methods
-                            true, // analyze code
-                            true); // generate code
+                    if (parser instanceof SourceElementParser) {
+                        unit = ((SourceElementParser) parser).parseCompilationUnit(
+                                unitElement, true/* full parse */, monitor);
+                        problemFinder.resolve(unit, unitElement,
+                                true, // verify methods
+                                true, // analyze code
+                                true); // generate code
+                    }
                 } catch (AbortCompilation e) {
                     problemFinder.handleInternalException(e, unit);
                 }
@@ -169,6 +191,10 @@ public class AJCompilationUnitProblemFinder extends
                         true, // analyze code
                         true); // generate code
             }
+            
+            // revert the compilation units that have ITDs in them
+            ((ITDAwareLookupEnvironment) problemFinder.lookupEnvironment).revertCompilationUnits();
+            
             CompilationResult unitResult = unit.compilationResult;
             CategorizedProblem[] unitProblems = unitResult.getProblems();
             int length = unitProblems == null ? 0 : unitProblems.length;
@@ -240,21 +266,11 @@ public class AJCompilationUnitProblemFinder extends
 	 * @return
 	 */
 	private static CategorizedProblem[] removeAJNonProblems(
-            CategorizedProblem[] categorizedProblems, AJCompilationUnit unit) {
+            CategorizedProblem[] categorizedProblems, CompilationUnit unit) {
 	    
-	    // too many corner cases.  can't get ITD aware content assist working
-//        Set ajIdentifiers = gatherITDsForCU(unit);
-//        boolean hasModel;
-//        if (ajIdentifiers == null) {
-//            // project hasn't had a successful build yet
-//            hasModel = false;
-//            ajIdentifiers = new HashSet();
-//        } else {
-//            hasModel = true;
-//        }
-	    
-	    // instead, just remove all problems that might be related to ITDs
-	    boolean hasModel = false;
+	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+	    boolean hasModel = model.hasModel();
+
 	    Set ajIdentifiers = new HashSet();
         ajIdentifiers.addAll(validAJNames);
         List newProblems = new LinkedList();
@@ -271,9 +287,8 @@ public class AJCompilationUnitProblemFinder extends
 
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
-	// XXX we are not doing ITD aware yet.  hasModel is always false
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, Set ajIdentifiers, AJCompilationUnit unit, boolean hasModel) {
+            CategorizedProblem categorizedProblem, Set ajIdentifiers, CompilationUnit unit, boolean hasModel) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -294,36 +309,6 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        if ((id == IProblem.UndefinedName ||
-             id == IProblem.UndefinedField) &&
-                   numArgs > 0 &&
-                   ajIdentifiers.contains(firstArg)) {
-               // possibly from an ITD
-               return false;
-           }
-
-        
-        if ((id == IProblem.UndefinedType ||
-             id == IProblem.UndefinedMethod) &&
-                numArgs >= 1 &&
-                ajIdentifiers.contains(firstArg) ||
-                ajIdentifiers.contains(secondArg)) {
-            // possibly from an ITD
-            return false;
-        }
-        
-        if (id == IProblem.UndefinedConstructor &&
-                numArgs > 0) {
-            String[] nameParts = firstArg.split("\\.");
-            if (nameParts.length > 0 && 
-                    ajIdentifiers.contains(nameParts[nameParts.length-1])) {
-                // sometimes the error for an undefined constructor uses 
-                // a fully qualified name in the error text.
-                return false;
-            }
-        }
-                
-                
                 
         if (numArgs > 1 &&
                 (id == IProblem.DuplicateField ||
@@ -372,14 +357,55 @@ public class AJCompilationUnitProblemFinder extends
             }
         }
 
+        if (numArgs > 0 && id == IProblem.UndefinedMethod && 
+                ("proceed".equals(firstArg) || "proceed".equals(secondArg))) {
+            // proceed statement
+            return false;
+        }
+        
+        
         if (numArgs == 1 && id == IProblem.ParsingErrorDeleteToken &&
                 validAJNames.contains(firstArg)) {
             // the implements or extends clause of a declare statement
             return false;
         }
         
+        if (numArgs == 1 && 
+                id == IProblem.ParsingErrorDeleteToken &&
+                firstArg.equals("@")) {
+            // likely to be declare annotation declaration
+            // declare @type, declare @constructor, declare @method, declare @field
+            String problemRegion = extractNextJavaIdentifier(unit, categorizedProblem.getSourceEnd());
+            if (declareAnnotationKinds.contains(problemRegion)) {
+                return false;
+            }
+        }
+        
+        if (numArgs == 1 && id == IProblem.UndefinedType && declareAnnotationKinds.contains(firstArg)) {
+            // alternate error of declare annotations
+            return false;
+        }
+                
+        
+        
+        if (numArgs == 1 && id == IProblem.UndefinedType && firstArg.equals("declare")) {
+            // from a declare declaration
+            return false;
+        }
+        
+        if (numArgs == 1 && id == IProblem.UndefinedType && firstArg.equals("pointcut")) {
+            // from a pointcut declaration
+            return false;
+        }
+        
         try {
-            if (numArgs == 1 && id == IProblem.UndefinedName &&
+            if (numArgs == 1 && 
+                    (id == IProblem.UndefinedName || 
+                     id == IProblem.UndefinedField ||
+                     id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedType ||
+                     id == IProblem.UndefinedConstructor)
+                    &&
                     unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement) {
                 // this is an intertype element inside of an aspect.
                 // it is likely that the problem is actually a reference to something added by an ITD
@@ -388,12 +414,33 @@ public class AJCompilationUnitProblemFinder extends
         } catch(JavaModelException e) {
         }
         
+        if (hasModel && id == IProblem.ShouldReturnValue && 
+                categorizedProblem.getSourceStart() == 0 && 
+                categorizedProblem.getSourceEnd() == 0) {
+            // from an inserted ITD that has already been removed
+            // this problem comes because the bodies of the inserted ITDs 
+            // are always empty even when there should be a return value
+            return false;
+        }
+        
+        if (hasModel && (
+                id == IProblem.NotVisibleType ||
+                id == IProblem.MethodReducesVisibility
+                ) && 
+                categorizedProblem.getSourceStart() == 0) {
+            // declare parents type that is not visible by current
+            // type.  this is fine as long as it is visible
+            // in the scope of the declare parents declaration.
+            return false;
+        }
+        
+        
         return true;
     }
 
     private static String extractProblemRegion(
-            CategorizedProblem categorizedProblem, AJCompilationUnit unit) {
-        char[] contents = unit.getContents();
+            CategorizedProblem categorizedProblem, CompilationUnit unit) {
+        char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         for (int i = categorizedProblem.getSourceStart(); 
                 i < categorizedProblem.getSourceEnd()+1 && i < contents.length; i++) {
@@ -401,42 +448,23 @@ public class AJCompilationUnitProblemFinder extends
         }
         return sb.toString();
     }
-
     
-    private static Set gatherITDsForCU(AJCompilationUnit unit) {
-        try {
-            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
-            if (model.hasModel()) {
-                Set/*String*/ allITDNames = new HashSet();
-                IType[] types = unit.getAllTypes();
-                for (int i = 0; i < types.length; i++) {
-                    if (model.hasProgramElement(types[i])) {
-                        List /*IRelationship*/ rels = model.getRelationshipsForElement(types[i], AJRelationshipManager.ASPECT_DECLARATIONS);
-                        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                            IJavaElement je = (IJavaElement) relIter.next();
-                            IProgramElement declareElt = model.javaElementToProgramElement(je);
-                            if (declareElt != null && declareElt.getParent() != null && declareElt.getKind().isInterTypeMember()) { // checks to see if this element is valid
-                                // should be fully qualified type and simple name
-                                int lastDot = declareElt.getName().lastIndexOf('.');
-                                String name = declareElt.getName().substring(lastDot+1);
-                                allITDNames.add(name);
-                            }
-                        }
-                    } else {
-                        // there is a problem with one of the types 
-                        // forget the whole thing and assume there is no model
-                        return null;
-                    }
-                    
-                }
-                return allITDNames;
-            }
-        } catch (JavaModelException e) {
+    private static String extractNextJavaIdentifier(CompilationUnit unit, int start) {
+        char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
+        StringBuffer sb = new StringBuffer();
+        int next = start;
+        while (! Character.isJavaIdentifierStart(contents[next]) &&
+                next < contents.length) {
+            next++;
         }
-        return null;
+        while (Character.isJavaIdentifierPart(contents[next]) &&
+                next < contents.length) {
+            sb.append(contents[next++]);
+        }
+        return sb.toString();
     }
-    
-    static Set validAJNames = new HashSet();
+
+    static final Set validAJNames = new HashSet();
     static {
         // there will be more...
         validAJNames.add("thisJoinPoint");
@@ -453,6 +481,14 @@ public class AJCompilationUnitProblemFinder extends
         validAJNames.add("implements");
         validAJNames.add("extends");
         validAJNames.add("proceed");
+        validAJNames.add("privileged");
+    }
+    
+    static final Set declareAnnotationKinds = new HashSet();
+    static {
+        declareAnnotationKinds.add("constructor");
+        declareAnnotationKinds.add("field");
+        declareAnnotationKinds.add("method");
+        declareAnnotationKinds.add("type");
     }
 }
- 

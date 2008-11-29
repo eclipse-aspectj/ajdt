@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.compiler.CompilationParticipant;
 import org.eclipse.jdt.core.compiler.ReconcileContext;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
 
 /**
@@ -48,10 +49,11 @@ import org.eclipse.jdt.internal.core.JavaProject;
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  */
+// XXX Not using this class any more.  Instead using ReconcileContext
 public class AJReconcileContext extends ReconcileContext { // AspectJ change
     
     private AJReconcileWorkingCopyOperation operation;  // AspectJ change
-    private AJCompilationUnit workingCopy;
+    private CompilationUnit workingCopy;
 
 /**
  * Creates a reconcile context for the given reconcile operation.
@@ -61,8 +63,8 @@ public class AJReconcileContext extends ReconcileContext { // AspectJ change
  * 
  * @param operation the reconcile operation
  */
-public AJReconcileContext(AJReconcileWorkingCopyOperation operation, AJCompilationUnit workingCopy) { // AspectJ change
-    super(null, workingCopy);  // AspectJ change
+public AJReconcileContext(AJReconcileWorkingCopyOperation operation, CompilationUnit workingCopy) { // AspectJ change
+    super(operation, workingCopy);  // AspectJ change
     this.operation = operation;
     this.workingCopy = workingCopy;
 }

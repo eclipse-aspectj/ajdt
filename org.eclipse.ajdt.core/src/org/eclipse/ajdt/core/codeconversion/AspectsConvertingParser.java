@@ -11,16 +11,12 @@
 package org.eclipse.ajdt.core.codeconversion;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IRelationship;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
@@ -29,7 +25,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
-import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -93,7 +88,6 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     private final static char[] endThrow = new char[] { '(', ':' };
 
-    private final static Pattern perClausePattern = Pattern.compile("(percflow)|(percflowbelow)|(pertarget)|(pertypewithin)|(perthis)|(issingleton)");
     
     public class Replacement {
     	//the position in the original char[]

@@ -32,6 +32,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.CompilationParticipant;
+import org.eclipse.jdt.core.compiler.ReconcileContext;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -41,6 +42,7 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaModelOperation;
 import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.util.Messages;
 import org.eclipse.jdt.internal.core.util.Util;
 
@@ -49,7 +51,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  * AJCompilationUnitProblemFinder.  Changes marked with "// AspectJ Change".
  */
 public class AJReconcileWorkingCopyOperation extends
-		JavaModelOperation {
+		ReconcileWorkingCopyOperation {
 
     
     public static boolean PERF = false;
@@ -74,7 +76,7 @@ public class AJReconcileWorkingCopyOperation extends
 	public AJReconcileWorkingCopyOperation(IJavaElement workingCopy,
 			int astLevel, int reconcileFlags,
 			WorkingCopyOwner workingCopyOwner) {
-		super(new IJavaElement[] {workingCopy});
+		super(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
 		this.astLevel = astLevel;
 		this.workingCopyOwner = workingCopyOwner;
 		this.reconcileFlags = reconcileFlags;
@@ -91,7 +93,7 @@ public class AJReconcileWorkingCopyOperation extends
 	    try {
 	        beginTask(Messages.element_reconciling, 2);
 	        
-	        AJCompilationUnit workingCopy = getWorkingCopy();
+	        CompilationUnit workingCopy = getWorkingCopy();
 	        boolean wasConsistent = workingCopy.isConsistent();
 	        
 	        // check is problem requestor is active
@@ -193,8 +195,8 @@ public class AJReconcileWorkingCopyOperation extends
 	/**
 	 * Returns the working copy this operation is working on.
 	 */
-	protected AJCompilationUnit getWorkingCopy() {
-		return (AJCompilationUnit)getElementToProcess();
+	protected CompilationUnit getWorkingCopy() {
+		return (CompilationUnit)getElementToProcess();
 	}
 	/**
 	 * @see JavaModelOperation#isReadOnly
@@ -209,7 +211,7 @@ public class AJReconcileWorkingCopyOperation extends
      * Makes the given working copy consistent, computes the delta and computes an AST if needed.
      * Returns the AST.
      */
-    public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(AJCompilationUnit workingCopy) throws JavaModelException {
+    public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(CompilationUnit workingCopy) throws JavaModelException {
         if (!workingCopy.isConsistent()) {
             // make working copy consistent
             if (this.problems == null) this.problems = new HashMap();
@@ -226,7 +228,12 @@ public class AJReconcileWorkingCopyOperation extends
         CompilationUnitDeclaration unit = null;
         try {
             JavaModelManager.getJavaModelManager().abortOnMissingSource.set(Boolean.TRUE);
-            AJCompilationUnit source = workingCopy.ajCloneCachingContents();
+            CompilationUnit source ;
+            if (workingCopy instanceof AJCompilationUnit) {
+                source = ((AJCompilationUnit) workingCopy).ajCloneCachingContents();
+            } else {
+                source = workingCopy.cloneCachingContents();
+            }
             // find problems if needed
             if (JavaProject.hasJavaNature(workingCopy.getJavaProject().getProject()) 
                     && (this.reconcileFlags & ICompilationUnit.FORCE_PROBLEM_DETECTION) != 0) {
@@ -280,12 +287,12 @@ public class AJReconcileWorkingCopyOperation extends
         return this.ast;
     }
     
-    private void notifyParticipants(final AJCompilationUnit workingCopy) {
+    private void notifyParticipants(final CompilationUnit workingCopy) {
         IJavaProject javaProject = getWorkingCopy().getJavaProject();
         CompilationParticipant[] participants = JavaModelManager.getJavaModelManager().compilationParticipants.getCompilationParticipants(javaProject);
         if (participants == null) return;
 
-        final AJReconcileContext context = new AJReconcileContext(this, workingCopy); // AspectJ change
+        final ReconcileContext context = new ReconcileContext(this, workingCopy); // AspectJ change
         for (int i = 0, length = participants.length; i < length; i++) {
             final CompilationParticipant participant = participants[i];
             SafeRunner.run(new ISafeRunnable() {

@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +28,6 @@ import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
-import org.aspectj.asm.internal.AspectJElementHierarchy;
 import org.aspectj.asm.internal.Relationship;
 import org.aspectj.asm.internal.RelationshipMap;
 import org.aspectj.bridge.ISourceLocation;
@@ -45,7 +42,6 @@ import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
-import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -83,17 +79,6 @@ import org.eclipse.jdt.internal.core.JavaElement;
  * {@link AJProjectModelFactory} class.
  */
 public class AJProjectModelFacade {
-    
-    private static Method findElementForHandleOrCreate;
-    static {
-        try {
-            findElementForHandleOrCreate = AspectJElementHierarchy.class.getDeclaredMethod("findElementForHandleOrCreate", new Class[] { String.class, boolean.class });
-            findElementForHandleOrCreate.setAccessible(true);
-        } catch (SecurityException e) {
-        } catch (NoSuchMethodException e) {
-        }
-    }
-    
     
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
     
@@ -199,15 +184,7 @@ public class AJProjectModelFacade {
      * if the program element is not found
      */
     public IProgramElement getProgramElement(String handle) {
-        IProgramElement ipe = null;
-        try {
-            ipe = (IProgramElement) findElementForHandleOrCreate.invoke(structureModel, new Object[] { handle, Boolean.FALSE } );
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
-//        return structureModel.findElementForHandle(handle);
-        return ipe;
+        return structureModel.findElementForHandleOrCreate(handle, false);
     }
     
     /**
@@ -250,18 +227,6 @@ public class AJProjectModelFacade {
             ajHandle = convertToAspectJBinaryHandle(ajHandle);
         }
         
-        // fragile and may not work if an ITD field really ends with _new,
-        // but keep for now.
-        // ITD constructors have _new appended to them. should remove it
-        if (je instanceof IntertypeElement) {
-            IntertypeElement itd = (IntertypeElement) je;
-            if (itd.getElementName().endsWith("_new")) {
-                int _newIndex = ajHandle.indexOf("_new");
-                ajHandle = ajHandle.substring(0, _newIndex) + ajHandle.substring(_newIndex + 4);
-            }
-        }
-        
-        
         // check to see if we need to replace { (compilation unit) with * (aj compilation unit)
         // if using cuprovider, then aj compilation units have {, but needs to change to *
         ICompilationUnit cu =  null;
@@ -291,15 +256,7 @@ public class AJProjectModelFacade {
         
         ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
-  
-        IProgramElement ipe = null;
-        try {
-            ipe = (IProgramElement) findElementForHandleOrCreate.invoke(structureModel, new Object[] { ajHandle, Boolean.FALSE } );
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
-//        IProgramElement ipe = structureModel.findElementForHandle(ajHandle);
+        IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
             return IHierarchy.NO_STRUCTURE;
         }
@@ -352,17 +309,6 @@ public class AJProjectModelFacade {
         
         String jHandle = ajHandle;
         
-        // is this an ITD constructor?
-        int itdNameStart = jHandle.indexOf(AspectElement.JEM_ITD) + 1;
-        if (itdNameStart > 0) {
-            int itdNameEnd = jHandle.indexOf(AspectElement.JEM_ITD, itdNameStart);
-            itdNameEnd = itdNameEnd == -1 ? jHandle.length() : itdNameEnd;
-            String itdName = jHandle.substring(itdNameStart, itdNameEnd);
-            String[] names = itdName.split("\\.");
-            if (names.length == 2 && names[0].equals(names[1])) {
-                jHandle = jHandle.substring(0, itdNameEnd) + "_new" + jHandle.substring(itdNameEnd);
-            }
-        }
         
         // are we dealing with something inside of a classfile?
         // if so, then we have to handle it specially
@@ -421,14 +367,7 @@ public class AJProjectModelFacade {
 
     
     private IJavaElement getElementFromClassFile(String jHandle) {
-        IProgramElement ipe = null;
-        try {
-            ipe = (IProgramElement) findElementForHandleOrCreate.invoke(structureModel, new Object[] { jHandle, Boolean.FALSE } );
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
-//        IProgramElement ipe = structureModel.findElementForHandle(jHandle);
+        IProgramElement ipe = structureModel.findElementForHandleOrCreate(jHandle, false);
 
         String packageName = ipe.getPackageName();
         // need to find the top level type

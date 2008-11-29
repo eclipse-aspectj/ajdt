@@ -35,16 +35,24 @@ import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
  */
 public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     
+    private final class ITDAwareSourceType extends SourceType {
+        final ITDAwareSourceTypeInfo info;
+        private ITDAwareSourceType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
+            super(parent, name);
+            this.info = info;
+        }
+
+        public Object getElementInfo() throws JavaModelException {
+            return info;
+        }
+    }
+
     public ITDAwareSourceTypeInfo(SourceType type) throws JavaModelException {
         this((ISourceType) type.getElementInfo(), type);
     }
 
     public ITDAwareSourceTypeInfo(ISourceType toCopy, SourceType type) {
-        this.handle = new SourceType((JavaElement) type.getParent(), type.getElementName()) {
-            public Object getElementInfo() throws JavaModelException {
-                return ITDAwareSourceTypeInfo.this;
-            }
-        };
+        this.handle = new ITDAwareSourceType((JavaElement) type.getParent(), type.getElementName(), this);
 
         this.setFlags(toCopy.getModifiers());
         this.setSuperclassName(toCopy.getSuperclassName());
@@ -68,14 +76,11 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             for (int i = 0; i < origChildren.length; i++) {
                 if (origChildren[i].getElementType() == IJavaElement.TYPE) {
                     final SourceType innerType = (SourceType) origChildren[i];
-                    final ITDAwareSourceTypeInfo innerInfo = new ITDAwareSourceTypeInfo(innerType);
-                    origChildren[i] = 
-                            new SourceType(type, 
-                                    innerType.getElementName()) {
-                        public Object getElementInfo() throws JavaModelException {
-                            return innerInfo;
-                        }
-                    };                                
+                    if (!(innerType instanceof ITDAwareSourceType)) {
+                        final ITDAwareSourceTypeInfo innerInfo = new ITDAwareSourceTypeInfo(innerType);
+                        origChildren[i] = 
+                                new ITDAwareSourceType(type, innerType.getElementName(), innerInfo);
+                    }
                 }
             }
             

@@ -12,9 +12,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import java.util.HashMap;
+
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
@@ -24,16 +28,21 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
@@ -158,6 +167,20 @@ public class AspectJPlugin extends Plugin {
                 return new ITDAwareSourceTypeInfo(info, 
                         (SourceType) ((SourceTypeElementInfo) info).getHandle());
             }
+
+            public CompilationUnitDeclaration problemFind(
+                    CompilationUnit unitElement, SourceElementParser parser,
+                    WorkingCopyOwner workingCopyOwner, HashMap problems,
+                    boolean creatingAST, int reconcileFlags,
+                    IProgressMonitor monitor) throws JavaModelException {
+                return AJCompilationUnitProblemFinder.processAJ(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+            }
+
+//            public ReconcileWorkingCopyOperation createReconcileOperation(
+//                    IJavaElement workingCopy, int astLevel, int reconcileFlags,
+//                    WorkingCopyOwner workingCopyOwner) {
+//                return new AJReconcileWorkingCopyOperation(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
+//            }
 		};
 		
 		AJProjectModelFacade.installListener();
