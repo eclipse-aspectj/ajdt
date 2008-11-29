@@ -1,14 +1,23 @@
 package org.eclipse.contribution.jdt.itdawareness;
 
+import java.util.HashMap;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
-import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
+import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
+
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE
@@ -114,6 +123,53 @@ public aspect ITDAwarenessAspect {
      * the computation of a type hierarchy
      */
     pointcut typeHierarchyComputing() : execution(protected void TypeHierarchy.compute());
+
     
+    
+    /********************************************
+     * This section handles reconciling of java CompilationUnits. 
+     * Ensure that the Java compilation unit is reconciled with an AJReconcileWorkingCopyOperation
+     * so that ITDs are properly ignored.
+     */
+
+    pointcut findProblemsInJava(
+            CompilationUnit unitElement,
+            SourceElementParser parser,
+            WorkingCopyOwner workingCopyOwner,
+            HashMap problems,
+            boolean creatingAST,
+            int reconcileFlags,
+            IProgressMonitor monitor) : execution(public static CompilationUnitDeclaration CompilationUnitProblemFinder.process(CompilationUnit, SourceElementParser, WorkingCopyOwner, HashMap, boolean, int, IProgressMonitor)) &&
+            args(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+
+    
+    CompilationUnitDeclaration around(
+            CompilationUnit unitElement, 
+            SourceElementParser parser,
+            WorkingCopyOwner workingCopyOwner,
+            HashMap problems,
+            boolean creatingAST,
+            int reconcileFlags,
+            IProgressMonitor monitor) throws JavaModelException : findProblemsInJava(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor) {
+                if (provider != null) {
+                    return provider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+                } else {
+                    return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+                }
+            }
+    
+//    pointcut reconcileOperationCreation(IJavaElement workingCopy, int astLevel, int reconcileFlags, WorkingCopyOwner workingCopyOwner) :
+//        call(ReconcileWorkingCopyOperation.new(IJavaElement, int, int, WorkingCopyOwner)) &&
+//        args(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
+//    
+//    ReconcileWorkingCopyOperation around(IJavaElement workingCopy, int astLevel, int reconcileFlags, WorkingCopyOwner workingCopyOwner) :
+//        reconcileOperationCreation(workingCopy, astLevel, reconcileFlags, workingCopyOwner) {
+//        
+//        if (provider != null) {
+//            return provider.createReconcileOperation(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
+//        } else {
+//            return proceed(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
+//        }
+//    }
     
 }

@@ -1,9 +1,15 @@
 package org.eclipse.contribution.jdt.itdawareness;
 
+import java.util.HashMap;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 
@@ -23,4 +29,17 @@ public interface INameEnvironmentProvider {
             ICompilationUnit[] workingCopies);
     
     public ISourceType transformSourceTypeInfo(ISourceType info);
+    
+    public CompilationUnitDeclaration problemFind(          
+            CompilationUnit unitElement, 
+            SourceElementParser parer,
+            WorkingCopyOwner workingCopyOwner,
+            HashMap problems,
+            boolean creatingAST,
+            int reconcileFlags,
+            IProgressMonitor monitor) throws JavaModelException;
+
+    
+//    public ReconcileWorkingCopyOperation createReconcileOperation(
+//            IJavaElement workingCopy, int astLevel, int reconcileFlags, WorkingCopyOwner workingCopyOwner);
 }
