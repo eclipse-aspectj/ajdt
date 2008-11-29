@@ -44,7 +44,8 @@
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.jdt.debug.ui"/>
       <import plugin="org.eclipse.swt"/>
-      <import feature="org.eclipse.equinox.weaving"/>
+      <import plugin="org.eclipse.equinox.weaving.aspectj"/>
+      <import plugin="org.eclipse.equinox.weaving.caching"/>
    </requires>
 
    <plugin
