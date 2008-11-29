@@ -33,4 +33,12 @@ public aspect MyAspect {
     }
     after () throwing(): s() {
     }
+    
+    @interface MyAnnotation { }
+
+    // try out declare annotation
+    declare @field: int Demo.x: @MyAnnotation;
+    declare @method: void Demo.foo(..): @MyAnnotation;
+    declare @constructor: public Demo.new(int): @MyAnnotation; 
+
 }
