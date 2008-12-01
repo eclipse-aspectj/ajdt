@@ -19,8 +19,7 @@
    </license>
 
    <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"  fp="bar"/> 
-      <update label="%eaUpdateLabel" url="http://download.eclipse.org/tools/ajdt/34/dev/equinox-aspects"/>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/> 
    </url>
 
    <includes
