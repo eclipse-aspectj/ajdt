@@ -402,7 +402,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	 */
 	protected char[] createImplementExtendsITDs(char[] typeName) {
 
-	    if (unit != null) {
+	    if (unit != null && typeName != null) {
 	        IType type = unit.getType(new String(typeName));
 	        if (type.exists()) {
         	    try {

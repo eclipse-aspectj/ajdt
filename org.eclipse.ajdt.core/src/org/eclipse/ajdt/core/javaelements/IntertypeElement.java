@@ -10,13 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.IField;
