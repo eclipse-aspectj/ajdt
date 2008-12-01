@@ -33,7 +33,6 @@ import org.eclipse.ui.views.markers.internal.ConcreteMarker;
  * @author andrew eisenberg
  *
  */
-@SuppressWarnings("restriction")
 public class AspectJStructureBridge extends JavaStructureBridge {
 
 	public final static String CONTENT_TYPE = "aspectj";
