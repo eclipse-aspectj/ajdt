@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<site associateSitesURL="http://download.eclipse.org/tools/ajdt/34/dev/equinox-aspects">
+<site associateSitesURL="http://download.eclipse.org/tools/ajdt/34/update/associates34.xml">
    <description>
       This update site provides the AspectJ feature and related
  tools.
