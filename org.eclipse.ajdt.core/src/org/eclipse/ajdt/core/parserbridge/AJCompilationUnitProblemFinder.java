@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
+import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -311,12 +312,18 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
+        if(numArgs > 0 && 
+                id == IProblem.UndefinedMethod &&
+                (extraAspectMethods.contains(firstArg)) || extraAspectMethods.contains(secondArg)) {
+            // probably hasAspect or aspectOf
+            return false;
+        }
                 
         if (numArgs > 1 &&
                 (id == IProblem.DuplicateField ||
                  id == IProblem.DuplicateMethod) &&
-                (validAJNames.contains(firstArg) ||
-                 validAJNames.contains(secondArg))) {
+                (aspectMemberNames.contains(firstArg) ||
+                 aspectMemberNames.contains(secondArg))) {
             // declare statement if more than one exist in a file
             // advice if more than one of the same kind exists in the aspect
             return false;
@@ -333,7 +340,7 @@ public class AJCompilationUnitProblemFinder extends
             }
             String[] parts = problemRegion.split("\\(");
             String name = parts[0].trim();
-            if (validAJNames.contains(name)) {
+            if (aspectMemberNames.contains(name)) {
                 // advice---before or after
                 return false;
             }
@@ -354,20 +361,26 @@ public class AJCompilationUnitProblemFinder extends
                 firstArg.equals(";") && secondArg.equals("FieldDeclaration")) {
             // might be a declare statement
             String problemRegion = extractProblemRegion(categorizedProblem, unit);
-            if (validAJNames.contains(problemRegion)) {
+            if (aspectMemberNames.contains(problemRegion)) {
                 return false;
             }
         }
 
-        if (numArgs > 0 && id == IProblem.UndefinedMethod && 
-                ("proceed".equals(firstArg) || "proceed".equals(secondArg))) {
-            // proceed statement
-            return false;
+        try {
+            if (numArgs > 0 && 
+                    (id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedName) &&
+                   (adviceBodyNames.contains(firstArg) || adviceBodyNames.contains(secondArg) ) &&
+                   unit.getElementAt(categorizedProblem.getSourceStart()) instanceof AdviceElement) {
+                // proceed/thisJoinPoint... statement
+                return false;
+            }
+        } catch(JavaModelException e) {
         }
         
         
         if (numArgs == 1 && id == IProblem.ParsingErrorDeleteToken &&
-                validAJNames.contains(firstArg)) {
+                aspectMemberNames.contains(firstArg)) {
             // the implements or extends clause of a declare statement
             return false;
         }
@@ -466,28 +479,35 @@ public class AJCompilationUnitProblemFinder extends
         return sb.toString();
     }
 
-    static final Set validAJNames = new HashSet();
+    static final Set aspectMemberNames = new HashSet();
     static {
-        // there will be more...
-        validAJNames.add("thisJoinPoint");
-        validAJNames.add("thisJoinPointStaticPart");
-        validAJNames.add("thisEnclosingJoinPointStaticPart");
-        validAJNames.add("parents");
-        validAJNames.add("declare");
-        validAJNames.add("after");
-        validAJNames.add("around");
-        validAJNames.add("before");
-        validAJNames.add("soft");
-        validAJNames.add("error");
-        validAJNames.add("pointcut");
-        validAJNames.add("implements");
-        validAJNames.add("extends");
-        validAJNames.add("proceed");
-        validAJNames.add("hasAspect");
-        validAJNames.add("aspectOf");
-        validAJNames.add("privileged");
+        aspectMemberNames.add("parents");
+        aspectMemberNames.add("declare");
+        aspectMemberNames.add("after");
+        aspectMemberNames.add("around");
+        aspectMemberNames.add("before");
+        aspectMemberNames.add("soft");
+        aspectMemberNames.add("error");
+        aspectMemberNames.add("pointcut");
+        aspectMemberNames.add("implements");
+        aspectMemberNames.add("extends");
+        aspectMemberNames.add("privileged");
     }
     
+    static final Set adviceBodyNames = new HashSet();
+    static {
+        adviceBodyNames.add("proceed");
+        adviceBodyNames.add("thisJoinPoint");
+        adviceBodyNames.add("thisJoinPointStaticPart");
+        adviceBodyNames.add("thisEnclosingJoinPointStaticPart");
+    }
+    
+    static final Set extraAspectMethods = new HashSet();
+    static {
+        extraAspectMethods.add("hasAspect");
+        extraAspectMethods.add("aspectOf");
+    }
+
     static final Set declareAnnotationKinds = new HashSet();
     static {
         declareAnnotationKinds.add("constructor");
