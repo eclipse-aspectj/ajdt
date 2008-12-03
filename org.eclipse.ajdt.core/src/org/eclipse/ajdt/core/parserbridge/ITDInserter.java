@@ -80,15 +80,15 @@ public class ITDInserter extends ASTVisitor {
         }
     }
 
-    private final ProblemReporter reporter;
-    
     private final ICompilationUnit unit;
 
     private Map /*TypeDeclaration -> OrigContents*/ origMap = new HashMap();
+
+    private final ITDTypeConverter typeConverter;
     
     public ITDInserter(ICompilationUnit unit, ProblemReporter reporter) {
         this.unit = unit;
-        this.reporter = reporter;
+        typeConverter = new ITDTypeConverter(reporter);
     }
     
     public boolean visit(TypeDeclaration type, BlockScope blockScope) {
@@ -114,60 +114,65 @@ public class ITDInserter extends ASTVisitor {
         orig.superClass = type.superclass;
         orig.superInterfaces = type.superInterfaces;
         
-        List/*FieldDeclaration*/ itdFields = new LinkedList();
-        List/*MethodDeclaration*/ itdMethods = new LinkedList();
-        
-        List/*IProgramElement*/ ipes = getITDs(type);
-        for (Iterator iterator = ipes.iterator(); iterator.hasNext();) {
-            IProgramElement elt = (IProgramElement) iterator.next();
-            if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
-                itdMethods.add(createMethod(elt, type));
-            } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
-                itdMethods.add(createConstructor(elt, type));
-            } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
-                itdFields.add(createField(elt, type));
-            } else if (elt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
-                String details = elt.getDetails();
-                boolean isExtends = details != null && details.startsWith("extends");
-                if (elt.getParentTypes() != null && elt.getParentTypes().size() > 0) {
-                    if (isExtends && TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
-                        addSuperClass(elt, type);
-                    } else {
-                        addSuperInterfaces(elt, type);
+        try {
+            List/*FieldDeclaration*/ itdFields = new LinkedList();
+            List/*MethodDeclaration*/ itdMethods = new LinkedList();
+            
+            List/*IProgramElement*/ ipes = getITDs(type);
+            for (Iterator iterator = ipes.iterator(); iterator.hasNext();) {
+                IProgramElement elt = (IProgramElement) iterator.next();
+                if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
+                    itdMethods.add(createMethod(elt, type));
+                } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+                    itdMethods.add(createConstructor(elt, type));
+                } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
+                    itdFields.add(createField(elt, type));
+                } else if (elt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
+                    String details = elt.getDetails();
+                    boolean isExtends = details != null && details.startsWith("extends");
+                    if (elt.getParentTypes() != null && elt.getParentTypes().size() > 0) {
+                        if (isExtends && TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
+                            addSuperClass(elt, type);
+                        } else {
+                            addSuperInterfaces(elt, type);
+                        }
                     }
                 }
             }
-        }
-        
-        if (ipes.size() > 0) {
             
-            origMap.put(type, orig);
-            
-            // now add the ITDs into the declaration
-            if (itdFields.size() > 0) {
-                int numFields = type.fields == null ? 0 : type.fields.length;
-                FieldDeclaration[] fields = new FieldDeclaration[numFields + itdFields.size()];
-                if (numFields > 0) {
-                    System.arraycopy(type.fields, 0, fields, 0, numFields);
+            if (ipes.size() > 0) {
+                origMap.put(type, orig);
+                
+                // now add the ITDs into the declaration
+                if (itdFields.size() > 0) {
+                    int numFields = type.fields == null ? 0 : type.fields.length;
+                    FieldDeclaration[] fields = new FieldDeclaration[numFields + itdFields.size()];
+                    if (numFields > 0) {
+                        System.arraycopy(type.fields, 0, fields, 0, numFields);
+                    }
+                    for (int i = 0; i < itdFields.size(); i++) {
+                        fields[i + numFields] = 
+                            (FieldDeclaration) itdFields.get(i);
+                    }
+                    type.fields = fields;
+                }    
+                if (itdMethods.size() > 0) {
+                    int numMethods = type.methods == null ? 0 : type.methods.length;
+                    AbstractMethodDeclaration[] methods = new AbstractMethodDeclaration[numMethods + itdMethods.size()];
+                    if (numMethods > 0) {
+                        System.arraycopy(type.methods, 0, methods, 0, numMethods);
+                    }
+                    for (int i = 0; i < itdMethods.size(); i++) {
+                        methods[i + numMethods] = 
+                            (AbstractMethodDeclaration) itdMethods.get(i);
+                    }
+                    type.methods = methods;
                 }
-                for (int i = 0; i < itdFields.size(); i++) {
-                    fields[i + numFields] = 
-                        (FieldDeclaration) itdFields.get(i);
-                }
-                type.fields = fields;
-            }    
-            if (itdMethods.size() > 0) {
-                int numMethods = type.methods == null ? 0 : type.methods.length;
-                AbstractMethodDeclaration[] methods = new AbstractMethodDeclaration[numMethods + itdMethods.size()];
-                if (numMethods > 0) {
-                    System.arraycopy(type.methods, 0, methods, 0, numMethods);
-                }
-                for (int i = 0; i < itdMethods.size(); i++) {
-                    methods[i + numMethods] = 
-                        (AbstractMethodDeclaration) itdMethods.get(i);
-                }
-                type.methods = methods;
             }
+        } catch (Exception e) {
+            // back out what we have done
+            origMap.remove(type);
+            revertType(type, orig);
         }
     }
     
@@ -256,7 +261,7 @@ public class ITDInserter extends ASTVisitor {
         if (model.hasModel()) {
             IType handle = getHandle(type);
             if (model.hasProgramElement(handle)) {
-                List /* IRelationship */rels = model
+                List/*IRelationship*/ rels = model
                         .getRelationshipsForElement(handle,
                                 AJRelationshipManager.ASPECT_DECLARATIONS);
                 List elts = new ArrayList();
@@ -279,7 +284,7 @@ public class ITDInserter extends ASTVisitor {
             origTypeName = origTypeName.substring(0, origTypeName.length()-4);
         }
         
-        return new ITDTypeConverter(reporter).createTypeReference(origTypeName.toCharArray());
+        return typeConverter.createTypeReference(origTypeName.toCharArray());
     }
 
 
@@ -292,11 +297,14 @@ public class ITDInserter extends ASTVisitor {
             Map.Entry entry = (Map.Entry) origIter.next();
             TypeDeclaration type = (TypeDeclaration) entry.getKey();
             OrigContents orig = (OrigContents) entry.getValue();
-            type.methods = orig.methods;
-            type.fields = orig.fields;
-            type.superclass = orig.superClass;
-            type.superInterfaces = orig.superInterfaces;
-            
+             
         }
+    }
+
+    private void revertType(TypeDeclaration type, OrigContents orig) {
+        type.methods = orig.methods;
+        type.fields = orig.fields;
+        type.superclass = orig.superClass;
+        type.superInterfaces = orig.superInterfaces;
     }
 }

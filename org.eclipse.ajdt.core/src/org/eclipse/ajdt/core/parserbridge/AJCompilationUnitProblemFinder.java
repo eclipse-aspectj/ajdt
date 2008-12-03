@@ -121,12 +121,16 @@ public class AJCompilationUnitProblemFinder extends
 	protected void internalBeginToCompile(
 	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits,
 	        int maxUnits) {
-	    // only insert ITDs for the units we are compiling directly
-	    // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
-	    // don't want to insert ITDs twice.
-	    ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(true);
-	    super.internalBeginToCompile(sourceUnits, maxUnits);
-        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
+	    
+	    try {
+    	    // only insert ITDs for the units we are compiling directly
+    	    // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
+    	    // don't want to insert ITDs twice.
+    	    ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(true);
+    	    super.internalBeginToCompile(sourceUnits, maxUnits);
+	    } finally {
+	        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
+	    }
 	}
 	
 	public static CompilationUnitDeclaration processAJ(
@@ -271,12 +275,10 @@ public class AJCompilationUnitProblemFinder extends
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
 	    boolean hasModel = model.hasModel();
 
-	    Set ajIdentifiers = new HashSet();
-        ajIdentifiers.addAll(validAJNames);
         List newProblems = new LinkedList();
         for (int i = 0; i < categorizedProblems.length; i++) {
             // determine if this problem should be filtered
-            if (isARealProblem(categorizedProblems[i], ajIdentifiers, unit, hasModel)) {
+            if (isARealProblem(categorizedProblems[i], unit, hasModel)) {
                 newProblems.add(categorizedProblems[i]);
             }
         }
@@ -288,7 +290,7 @@ public class AJCompilationUnitProblemFinder extends
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, Set ajIdentifiers, CompilationUnit unit, boolean hasModel) {
+            CategorizedProblem categorizedProblem, CompilationUnit unit, boolean hasModel) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -481,6 +483,8 @@ public class AJCompilationUnitProblemFinder extends
         validAJNames.add("implements");
         validAJNames.add("extends");
         validAJNames.add("proceed");
+        validAJNames.add("hasAspect");
+        validAJNames.add("aspectOf");
         validAJNames.add("privileged");
     }
     

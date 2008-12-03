@@ -117,27 +117,6 @@ public class ITDAwareCancelableNameEnvironment extends
     }
 
 
-    public NameEnvironmentAnswer findType(char[] name, char[][] packageName) {
-        return super.findType(name, packageName);
-    }
-
-    public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
-        return super.findType(compoundTypeName);
-    }
-
-    public void findTypes(char[] prefix, boolean findMembers,
-            boolean camelCaseMatch, int searchFor, ISearchRequestor storage) {
-        super.findTypes(prefix, findMembers, camelCaseMatch, searchFor, storage);
-//        throw new NotImplementedException();
-
-    }
-
-    public void findExactTypes(char[] name, boolean findMembers, int searchFor,
-            ISearchRequestor storage) {
-//        super.findExactTypes(name, findMembers, searchFor, storage);
-        throw new NotImplementedException();
-    }
-
     private static Field restrictionField;
     private AccessRestriction getRestriction(NameLookup.Answer answer) {
         try {

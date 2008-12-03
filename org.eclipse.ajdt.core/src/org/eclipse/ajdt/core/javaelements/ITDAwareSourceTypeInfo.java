@@ -62,13 +62,16 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         this.setSourceRangeEnd(toCopy.getDeclarationSourceEnd());
         this.setSourceRangeStart(toCopy.getDeclarationSourceStart());
         
-        this.setChildren(augmentChildren(type));
+        IJavaElement[] children = augmentChildrenAndHierarchy(type);
+        if (children != null) {
+            this.setChildren(children);
+        }
 
         // still some more fields, but left unset
     } 
     
     
-    private IJavaElement[] augmentChildren(SourceType type) {
+    private IJavaElement[] augmentChildrenAndHierarchy(SourceType type) {
         try {
             IJavaElement[] origChildren = type.getChildren();
             // recur through original children
@@ -85,7 +88,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             }
             
             
-            List itdChildren = initializeITDs(type);
+            List itdChildren = getITDs(type);
             if (itdChildren.size() > 0 ) {
                 IJavaElement[] allChildren = new IJavaElement[origChildren.length + itdChildren.size()];
                 System.arraycopy(origChildren, 0, allChildren, 0, origChildren.length);
@@ -98,67 +101,64 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             } else {
                 return origChildren;
             }
-        } catch (JavaModelException e) {
+        } catch (Exception e) {
             return null;
         }
     }
     
-    private List/*IJavaElement*/ initializeITDs(SourceType type) {
+    private List/*IJavaElement*/ getITDs(SourceType type) throws JavaModelException {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(type);
         if (model.hasModel()) {
-            try {
-                List/*IJavaElement*/ itds = new ArrayList();
-                List/*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
-                for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                    IJavaElement ije = (IJavaElement) relIter.next();
-                    if (ije instanceof IntertypeElement) {
-                        IntertypeElement elt = (IntertypeElement) ije;
-                        IMember member = elt.createMockDeclaration(type);
-                        // null if the ITD doesn't exist in the AspectJ hierarchy
-                        // will happen if the Java side has partial compilation 
-                        // and aspectj sode does not
-                        if (member != null) { 
-                            switch (member.getElementType()) {
-                            case IJavaElement.METHOD:
-                                if (((IMethod) member).isConstructor()) {
-                                    itds.add(member);
-                                } else {
-                                    itds.add(member);
-                                }
-                                break;
-                            case IJavaElement.FIELD:
+            List/*IJavaElement*/ itds = new ArrayList();
+            List/*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
+            for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+                IJavaElement ije = (IJavaElement) relIter.next();
+                if (ije instanceof IntertypeElement) {
+                    IntertypeElement elt = (IntertypeElement) ije;
+                    IMember member = elt.createMockDeclaration(type);
+                    // null if the ITD doesn't exist in the AspectJ hierarchy
+                    // will happen if the Java side has partial compilation 
+                    // and aspectj sode does not
+                    if (member != null) { 
+                        switch (member.getElementType()) {
+                        case IJavaElement.METHOD:
+                            if (((IMethod) member).isConstructor()) {
                                 itds.add(member);
-                                break;
-                            }
-                        }
-                    } else if (ije instanceof DeclareElement) {
-                        DeclareElement elt = (DeclareElement) ije;
-                        
-                        // use createElementInfo, not getElementInfo because the element info doesn't seem to be created properly
-                        // XXX in the future, change back to using getElementInfo for efficiency
-                        DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
-                        if (info.isExtends()) {
-                            this.setSuperclassName(info.getType());
-                        } else if (info.isImplements()) {
-                            char[][] origInterfaces = this.getInterfaceNames();
-                            char[][] itdInterfaces = info.getTypes();
-                            char[][] newInterfaces;
-                            if (origInterfaces == null) {
-                                newInterfaces = itdInterfaces;
-                            } else if (itdInterfaces == null) {
-                                newInterfaces = origInterfaces;
                             } else {
-                                newInterfaces = new char[origInterfaces.length + info.getTypes().length][];
-                                System.arraycopy(origInterfaces, 0, newInterfaces, 0, origInterfaces.length);
-                                System.arraycopy(itdInterfaces, 0, newInterfaces, origInterfaces.length, itdInterfaces.length);
+                                itds.add(member);
                             }
-                            setSuperInterfaceNames(newInterfaces);
+                            break;
+                        case IJavaElement.FIELD:
+                            itds.add(member);
+                            break;
                         }
                     }
+                } else if (ije instanceof DeclareElement) {
+                    DeclareElement elt = (DeclareElement) ije;
+                    
+                    // use createElementInfo, not getElementInfo because the element info doesn't seem to be created properly
+                    // XXX in the future, change back to using getElementInfo for efficiency
+                    DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
+                    if (info.isExtends()) {
+                        this.setSuperclassName(info.getType());
+                    } else if (info.isImplements()) {
+                        char[][] origInterfaces = this.getInterfaceNames();
+                        char[][] itdInterfaces = info.getTypes();
+                        char[][] newInterfaces;
+                        if (origInterfaces == null) {
+                            newInterfaces = itdInterfaces;
+                        } else if (itdInterfaces == null) {
+                            newInterfaces = origInterfaces;
+                        } else {
+                            newInterfaces = new char[origInterfaces.length + info.getTypes().length][];
+                            System.arraycopy(origInterfaces, 0, newInterfaces, 0, origInterfaces.length);
+                            System.arraycopy(itdInterfaces, 0, newInterfaces, origInterfaces.length, itdInterfaces.length);
+                        }
+                        setSuperInterfaceNames(newInterfaces);
+                    }
                 }
-                return itds;
-            } catch (JavaModelException e) {
             }
+            return itds;
         } 
         return Collections.EMPTY_LIST;
     }
