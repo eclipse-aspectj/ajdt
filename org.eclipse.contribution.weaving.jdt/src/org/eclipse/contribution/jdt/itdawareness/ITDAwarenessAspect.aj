@@ -158,18 +158,4 @@ public aspect ITDAwarenessAspect {
                 }
             }
     
-//    pointcut reconcileOperationCreation(IJavaElement workingCopy, int astLevel, int reconcileFlags, WorkingCopyOwner workingCopyOwner) :
-//        call(ReconcileWorkingCopyOperation.new(IJavaElement, int, int, WorkingCopyOwner)) &&
-//        args(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
-//    
-//    ReconcileWorkingCopyOperation around(IJavaElement workingCopy, int astLevel, int reconcileFlags, WorkingCopyOwner workingCopyOwner) :
-//        reconcileOperationCreation(workingCopy, astLevel, reconcileFlags, workingCopyOwner) {
-//        
-//        if (provider != null) {
-//            return provider.createReconcileOperation(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
-//        } else {
-//            return proceed(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
-//        }
-//    }
-    
 }

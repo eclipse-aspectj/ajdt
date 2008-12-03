@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.jdt.sourceprovider;
 
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
@@ -18,25 +19,35 @@ import org.eclipse.jdt.internal.compiler.parser.Scanner;
 
 public aspect SourceTransformerAspect {
     
-    /**
-     * Captures setting the source of a Scanner just before a parse is starting
-     */
-    void around(char[] sourceString, ICompilationUnit sourceUnit) : execution(public final void Scanner+.setSource(char[])) && 
-            cflowbelow(startingParse(sourceUnit)) && args(sourceString) {
-        String extension = getExtension(sourceUnit);
-        ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
-        if (transformer != null) {
-            proceed(transformer.convert(sourceString), sourceUnit);
-        } else {
-            proceed(sourceString, sourceUnit);
-        }
-    }
-    
+    pointcut settingSource(char[] sourceString) : 
+            execution(public final void Scanner+.setSource(char[])) &&
+            args(sourceString);
     
     pointcut startingParse(ICompilationUnit sourceUnit) : 
         execution(public CompilationUnitDeclaration parse(
                 ICompilationUnit, CompilationResult)) &&
                 args(sourceUnit, ..);
+
+    /**
+     * Captures setting the source of a Scanner just before a parse is starting.
+     * Transforms the source to something that is Java-compatible before sending it
+     * to the scanner 
+     */
+    void around(char[] sourceString, ICompilationUnit sourceUnit) : settingSource(sourceString) && 
+            cflowbelow(startingParse(sourceUnit)) {
+        String extension = getExtension(sourceUnit);
+        ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
+        if (transformer != null) {
+            try {
+                char[] transformedSource = transformer.convert(sourceString);
+                proceed(transformedSource, sourceUnit);
+            } catch (Throwable t) {
+                JDTWeavingPlugin.logException(t);
+            }
+        }
+        proceed(sourceString, sourceUnit);
+    }
+    
     
     private static String getExtension(ICompilationUnit sourceUnit) {
         char[] name = sourceUnit.getFileName();

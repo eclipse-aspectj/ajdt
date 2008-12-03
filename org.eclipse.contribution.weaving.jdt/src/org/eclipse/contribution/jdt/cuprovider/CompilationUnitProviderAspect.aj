@@ -11,24 +11,38 @@
  *******************************************************************************/
 package org.eclipse.contribution.jdt.cuprovider;
 
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.PackageFragment;
 
+/**
+ * Captures all creations of {@link CompilationUnit}.  Uses a registry to determine 
+ * what kind of CompilationUnit to create.  Clients can provide their own
+ * CompilationUnit by using the cuprovider extension and associating a CompilationUnit
+ * subclass with a file extension.
+ * 
+ * @author andrew
+ * @created Dec 2, 2008
+ */
 public aspect CompilationUnitProviderAspect {
     
     /**
      * Captures creations of Compilation units
      */
+    pointcut compilationUnitCreations(PackageFragment parent, String name, WorkingCopyOwner owner) : 
+            call(public CompilationUnit.new(PackageFragment, String, WorkingCopyOwner)) &&
+            within(org.eclipse.jdt..*) &&
+            args(parent, name, owner);
+    
     CompilationUnit around(PackageFragment parent, String name, WorkingCopyOwner owner) : 
-            call(public CompilationUnit.new(PackageFragment, String, WorkingCopyOwner)) && 
-            args(parent, name, owner) {
+        compilationUnitCreations(parent, name, owner) {
         
         int mementoIndex = name.indexOf('}');
         int extensionIndex = name.lastIndexOf('.');
         String extension;
         if (extensionIndex >= 0) {
-            if (mementoIndex >= 0) {
+            if (mementoIndex >= extensionIndex) {
                 extension = name.substring(extensionIndex+1, mementoIndex);
             } else {
                 extension = name.substring(extensionIndex+1);
@@ -37,11 +51,14 @@ public aspect CompilationUnitProviderAspect {
             extension = ""; //$NON-NLS-1$
         }
         ICompilationUnitProvider provider = CompilationUnitProviderRegistry.getInstance().getProvider(extension);
-        if (provider == null) {
-            return proceed(parent, name, owner);
-        } else {
-            return provider.create(parent, name, owner); 
+        if (provider != null) {
+            try {
+                return provider.create(parent, name, owner);
+            } catch (Throwable t) {
+                JDTWeavingPlugin.logException(t);
+            }
         }        
+        return proceed(parent, name, owner);
     }
     
 }

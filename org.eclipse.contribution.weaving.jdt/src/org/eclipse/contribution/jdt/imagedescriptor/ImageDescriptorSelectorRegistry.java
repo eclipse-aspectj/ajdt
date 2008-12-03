@@ -22,7 +22,7 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 
-public class ImageDescriptorSelectorRegistry {
+public class ImageDescriptorSelectorRegistry implements Iterable<IImageDescriptorSelector> {
     private static final ImageDescriptorSelectorRegistry INSTANCE = 
         new ImageDescriptorSelectorRegistry();
     private static final String SELECTORS_EXTENSION_POINT = "org.eclipse.contribution.weaving.jdt.imagedescriptorselector"; //$NON-NLS-1$
@@ -35,17 +35,10 @@ public class ImageDescriptorSelectorRegistry {
         // do nothing
     }
     
-    private Set/* IImageDescriptorSelector */ registry;
+    private Set<IImageDescriptorSelector> registry;
     
     void registerSelector(IImageDescriptorSelector provider) {
         registry.add(provider);
-    }
-    
-    Iterator getAllSelectors() {
-        if (!isRegistered()) {
-            registerSelectors();
-        }
-        return registry.iterator();
     }
     
     public boolean isRegistered() {
@@ -53,7 +46,7 @@ public class ImageDescriptorSelectorRegistry {
     }
     
     public void registerSelectors() {
-        registry = new HashSet();
+        registry = new HashSet<IImageDescriptorSelector>();
         IExtensionPoint exP =
             Platform.getExtensionRegistry().getExtensionPoint(SELECTORS_EXTENSION_POINT);
         if (exP != null) {
@@ -74,5 +67,12 @@ public class ImageDescriptorSelectorRegistry {
                 }
             }
         }
+    }
+
+    public Iterator<IImageDescriptorSelector> iterator() {
+        if (!isRegistered()) {
+            registerSelectors();
+        }
+        return registry.iterator();
     }
 }

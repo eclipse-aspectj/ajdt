@@ -35,7 +35,7 @@ public class SourceTransformerRegistry {
         // do nothing
     }
     
-    private Map/* String, ISourceTransformer */ registry;
+    private Map<String, ISourceTransformer> registry;
     
     void registerSelector(String key, ISourceTransformer transformer) {
         registry.put(key, transformer);
@@ -53,7 +53,7 @@ public class SourceTransformerRegistry {
     }
     
     public void registerTransformers() {
-        registry = new HashMap();
+        registry = new HashMap<String, ISourceTransformer>();
         
         IExtensionPoint exP =
             Platform.getExtensionRegistry().getExtensionPoint(SOURCETRANSFORMERS_EXTENSION_POINT);

@@ -35,7 +35,7 @@ public class CompilationUnitProviderRegistry {
         // do nothing
     }
     
-    private Map/* String, ICompilationUnitProvider */ registry; 
+    private Map<String, ICompilationUnitProvider> registry; 
     
     void registerCompilationUnitProvider(String key, ICompilationUnitProvider provider) {
         registry.put(key, provider);
@@ -54,7 +54,7 @@ public class CompilationUnitProviderRegistry {
     }
     
     public void registerProviders() {
-        registry = new HashMap();
+        registry = new HashMap<String, ICompilationUnitProvider>();
         IExtensionPoint exP =
             Platform.getExtensionRegistry().getExtensionPoint(CUPROVIDERS_EXTENSION_POINT);
         if (exP != null) {

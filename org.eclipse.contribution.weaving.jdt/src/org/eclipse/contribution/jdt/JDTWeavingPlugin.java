@@ -28,8 +28,8 @@ public class JDTWeavingPlugin extends Plugin {
     }
 
     
-    public static void logException(Exception e) {
-        INSTANCE.getLog().log(new Status(IStatus.ERROR, ID, e.getMessage(), e));
+    public static void logException(Throwable t) {
+        INSTANCE.getLog().log(new Status(IStatus.ERROR, ID, t.getMessage(), t));
     }
     
     
