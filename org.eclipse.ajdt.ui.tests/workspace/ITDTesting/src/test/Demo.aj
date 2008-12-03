@@ -8,6 +8,8 @@ public class Demo {
         new Demo(7).foo(null);
         x++;
         this.x++;
+        MyAspect.aspectOf();
+        MyAspect.hasAspect();
     }
 
 }

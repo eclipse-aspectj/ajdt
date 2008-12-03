@@ -6,7 +6,7 @@ public aspect MyAspect {
 	int Demo.x = 5;
 	
 	void Demo.foo(java.util.List<String> x) {
-		
+		MyAspect.hasAspect();
 	}
 	
 	public Demo.new(int x) { }
@@ -32,6 +32,9 @@ public aspect MyAspect {
     after () returning(): s() {
     }
     after () throwing(): s() {
+    	thisEnclosingJoinPointStaticPart.getClass();
+    	thisJoinPoint.getClass();
+    	thisJoinPointStaticPart.getClass();
     }
     
     @interface MyAnnotation { }
