@@ -186,7 +186,15 @@ public class AJProjectModelFacade {
      * if the program element is not found
      */
     public IProgramElement getProgramElement(String handle) {
-        return structureModel.findElementForHandleOrCreate(handle, false);
+        IProgramElement ipe = structureModel.findElementForHandleOrCreate(handle, false);
+        if (ipe != null) {
+            return ipe;
+        } else {
+            // occurs when the handles are not working properly
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+                    "Could not find the AspectJ program element for handle: " + handle));
+            return IHierarchy.NO_STRUCTURE;
+        }
     }
     
     /**
@@ -194,7 +202,7 @@ public class AJProjectModelFacade {
      */
     public int getJavaElementLineNumber(IJavaElement je) {
         IProgramElement ipe = javaElementToProgramElement(je);
-        return ipe.getSourceLocation().getLine();
+        return ipe.getSourceLocation() != null ? ipe.getSourceLocation().getLine() : 1;
     }
 
     /**
@@ -203,7 +211,7 @@ public class AJProjectModelFacade {
      */
     public String getJavaElementLinkName(IJavaElement je) {
         IProgramElement ipe = javaElementToProgramElement(je);
-        if (ipe != null) {  // null if model isn't initialized
+        if (ipe != IHierarchy.NO_STRUCTURE) {  // null if model isn't initialized
             String name = ipe.toLinkLabelString(false);
             if ((name != null) && (name.length() > 0)) {
                 return name;
@@ -263,8 +271,9 @@ public class AJProjectModelFacade {
         
         ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
-        // XXX this is a hack in place until Bug 249216 #22 is addressed
-        ajHandle = removeEscapesFromPaths(ajHandle);
+        // this is a hack in place until Bug 249216 #22 is addressed
+        // Has been addressed, but keeping for now
+//        ajHandle = removeEscapesFromPaths(ajHandle);
   
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
@@ -276,6 +285,7 @@ public class AJProjectModelFacade {
     /**
      * remove escape charaters from the handle that are inside the
      * path to the source folder
+     * See bug 249216 #22
      * @param ajHandle
      * @return
      */
@@ -284,7 +294,7 @@ public class AJProjectModelFacade {
         int sourceFolderEnd = Math.max(ajHandle.indexOf(JavaElement.JEM_COMPILATIONUNIT), ajHandle.indexOf(AspectElement.JEM_ASPECT_CU));
         if (sourceFolderEnd >= 0) {
             String sourcePath = ajHandle.substring(sourceFolderStart, sourceFolderEnd);
-            String newSourcePath = sourcePath.replaceAll("\\\\", "");
+            String newSourcePath = sourcePath.replaceAll("\\\\", "");   
             if (!newSourcePath.equals(sourcePath)) {
                 return ajHandle.substring(0, sourceFolderStart) + 
                     newSourcePath + ajHandle.substring(sourceFolderEnd);
