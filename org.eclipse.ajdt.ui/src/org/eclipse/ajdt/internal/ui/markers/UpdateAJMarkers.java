@@ -395,7 +395,7 @@ public class UpdateAJMarkers {
                 (String) relationship.getTargets().get(0));
         return relationship.getName()
                 + " " //$NON-NLS-1$
-                + target.toLinkLabelString(false)
+                + (target != null ? target.toLinkLabelString(false) : "null") 
                 + (relationship.hasRuntimeTest() ? " " + //$NON-NLS-1$
                         UIMessages.AspectJEditor_runtimetest 
                         : ""); //$NON-NLS-1$
