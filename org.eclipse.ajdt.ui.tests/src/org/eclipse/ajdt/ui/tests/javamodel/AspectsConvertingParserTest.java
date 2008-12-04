@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2008 IBM Corporation, SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Luzius Meisser - initial implementation
+ *     Andrew Eisenberg - tests for ITD replacement
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.javamodel;
 
@@ -14,10 +15,9 @@ import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 
 /**
- * Test 
- * 
  * 
  * @author Luzius Meisser
+ * @author andrew
  */
 public class AspectsConvertingParserTest extends AbstractTestCase {
 	
@@ -77,7 +77,7 @@ public class AspectsConvertingParserTest extends AbstractTestCase {
 	
 	public void testConvert4() {
  		myParser.convert(ConversionOptions.CODE_COMPLETION);
-		assertEquals("Wrong size of content.",1167,myParser.content.length); //$NON-NLS-1$
+		assertEquals("Wrong size of content.",1163,myParser.content.length); //$NON-NLS-1$
 		if (new String(myParser.content).indexOf(':') != -1)
 			fail("Some pointcut designators have not been removed."); //$NON-NLS-1$
 	}
@@ -166,10 +166,28 @@ public class AspectsConvertingParserTest extends AbstractTestCase {
 	}
 	
 
-//	public void testReplace() {
-//		AspectsConvertingParser pars = new AspectsConvertingParser("It's not the long fall that kills you, it's the sudden stop.".toCharArray());
-//		pars.addReplacement(2, 2, " is".toCharArray());
-//		pars.convert(true, true);
-//		System.out.println(new String(pars.content));		
-//	}
+    public void testITDReplace1() {
+        char[] testContent = "aspect Foo { void foo.bar.Circle<java.util.List<String>>.nothing(h.y.Z f, h.y.Z y) }".toCharArray(); //$NON-NLS-1$
+        String target      = "class  Foo { void foo$bar$Circle$java$util$List$String$$$nothing(h.y.Z f, h.y.Z y) }"; //$NON-NLS-1$
+        AspectsConvertingParser parser = new AspectsConvertingParser(testContent);
+        parser.content = testContent;
+        parser.convert(ConversionOptions.CONSTANT_SIZE);
+        assertEquals(target, new String(parser.content));
+    }
+    public void testITDReplace2() {
+        char[] testContent = "aspect Foo { void foo .  bar .   Circle <   java .  util  .  List  <  String  >  >  .  nothing(h.y.Z f, h.y.Z y) }".toCharArray(); //$NON-NLS-1$
+        String target      = "class  Foo { void foo$$$$bar$$$$$Circle$$$$$java$$$$util$$$$$List$$$$$String$$$$$$$$$$$nothing(h.y.Z f, h.y.Z y) }"; //$NON-NLS-1$
+        AspectsConvertingParser parser = new AspectsConvertingParser(testContent);
+        parser.content = testContent;
+        parser.convert(ConversionOptions.CONSTANT_SIZE);
+        assertEquals(target, new String(parser.content));
+    }
+    public void testITDReplace3() {
+        char[] testContent = "aspect Foo { void foo .  bar .   Circle <   java .  util  .  List  <  String  >  >  .  nothing<? extends java.util.List<String> >(h.y.Z f, h.y.Z y) }".toCharArray(); //$NON-NLS-1$
+        String target      = "class  Foo { void foo$$$$bar$$$$$Circle$$$$$java$$$$util$$$$$List$$$$$String$$$$$$$$$$$nothing<? extends java.util.List<String> >(h.y.Z f, h.y.Z y) }"; //$NON-NLS-1$
+        AspectsConvertingParser parser = new AspectsConvertingParser(testContent);
+        parser.content = testContent;
+        parser.convert(ConversionOptions.CONSTANT_SIZE);
+        assertEquals(target, new String(parser.content));
+    }
 }

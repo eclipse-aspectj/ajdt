@@ -34,7 +34,7 @@ public aspect MyAspect {
     after () throwing(): s() {
     	thisEnclosingJoinPointStaticPart.getClass();
     	thisJoinPoint.getClass();
-    	thisJoinPointStaticPart.getClass();
+    	thisJoinPointStaticPart.getClass(); 
     }
     
     @interface MyAnnotation { }
