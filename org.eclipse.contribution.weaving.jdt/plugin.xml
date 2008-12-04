@@ -4,4 +4,12 @@
    <extension-point id="cuprovider" name="Compilation Unit Provider" schema="schema/cuprovider.exsd"/>
    <extension-point id="sourcetransformer" name="Source Code Provider" schema="schema/sourcetransformer.exsd"/>
    <extension-point id="imagedescriptorselector" name="Image Descriptor Selector" schema="schema/imagedescriptorselector.exsd"/>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.eclipse.contribution.weaving.jdt.preferences.JDTWeavingPreferences"
+            id="org.eclipse.contribution.weaving.jdt.preferences.JDTWeavingPreferences"
+            name="JDT Weaving">
+      </page>
+   </extension>
 </plugin>
