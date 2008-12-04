@@ -35,6 +35,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.pde.core;bundle-version="3.4.0";resolution:=optional
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"
-Import-Package: org.eclipse.contribution.jdt.cuprovider,
+Import-Package: org.eclipse.contribution.jdt,
+ org.eclipse.contribution.jdt.cuprovider,
  org.eclipse.contribution.jdt.itdawareness,
  org.eclipse.contribution.jdt.sourceprovider

@@ -184,7 +184,15 @@ public class AJProjectModelFacade {
      * if the program element is not found
      */
     public IProgramElement getProgramElement(String handle) {
-        return structureModel.findElementForHandleOrCreate(handle, false);
+        IProgramElement ipe = structureModel.findElementForHandleOrCreate(handle, false);
+        if (ipe != null) {
+            return ipe;
+        } else {
+            // occurs when the handles are not working properly
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+                    "Could not find the AspectJ program element for handle: " + handle));
+            return IHierarchy.NO_STRUCTURE;
+        }
     }
     
     /**
@@ -192,7 +200,7 @@ public class AJProjectModelFacade {
      */
     public int getJavaElementLineNumber(IJavaElement je) {
         IProgramElement ipe = javaElementToProgramElement(je);
-        return ipe.getSourceLocation().getLine();
+        return ipe.getSourceLocation() != null ? ipe.getSourceLocation().getLine() : 1;
     }
 
     /**
@@ -201,7 +209,7 @@ public class AJProjectModelFacade {
      */
     public String getJavaElementLinkName(IJavaElement je) {
         IProgramElement ipe = javaElementToProgramElement(je);
-        if (ipe != null) {  // null if model isn't initialized
+        if (ipe != IHierarchy.NO_STRUCTURE) {  // null if model isn't initialized
             String name = ipe.toLinkLabelString(false);
             if ((name != null) && (name.length() > 0)) {
                 return name;
@@ -219,7 +227,7 @@ public class AJProjectModelFacade {
      */
     public IProgramElement javaElementToProgramElement(IJavaElement je) {
         if (!isInitialized) {
-            return null;
+            return IHierarchy.NO_STRUCTURE;
         }
         String ajHandle = je.getHandleIdentifier();
         
@@ -258,6 +266,9 @@ public class AJProjectModelFacade {
 
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
+            // occurs when the handles are not working properly
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+                    "Could not find the AspectJ program element for handle: " + ajHandle));
             return IHierarchy.NO_STRUCTURE;
         }
         return ipe;
@@ -451,9 +462,9 @@ public class AJProjectModelFacade {
                 }
             }
         } catch (JavaModelException e) {
-            return null;
+            return ERROR_JAVA_ELEMENT;
         } catch (NullPointerException e) {
-            return null;
+            return ERROR_JAVA_ELEMENT;
         }
     }
 
@@ -483,7 +494,7 @@ public class AJProjectModelFacade {
             }
         }
         if (pkg == null) {
-            return null;
+            return (ICompilationUnit) ERROR_JAVA_ELEMENT;
         }
         ICompilationUnit[] cus = pkg.getCompilationUnits();
         int dollarIndex = typeName.lastIndexOf('$');
@@ -513,7 +524,7 @@ public class AJProjectModelFacade {
                     return cfs[i];
             }
         }
-        return null;
+        return (ICompilationUnit) ERROR_JAVA_ELEMENT;
     }
     
     private int offsetFromLine(ITypeRoot unit, ISourceLocation sloc) throws JavaModelException {
@@ -626,7 +637,7 @@ public class AJProjectModelFacade {
      */
     public List/*IJavaElement*/ getRelationshipsForElement(IJavaElement je, AJRelationshipType relType) {
         if (!isInitialized) {
-            return null;
+            return Collections.EMPTY_LIST;
         }
         IProgramElement ipe = javaElementToProgramElement(je);
         List/*Relationship*/ relationships = relationshipMap.get(ipe);
@@ -640,7 +651,7 @@ public class AJProjectModelFacade {
                                 .hasNext();) {
                             String handle = (String) targetIter.next();
                             IJavaElement targetJe = programElementToJavaElement(handle);
-                            if (targetJe != null && targetJe != AJProjectModelFacade.ERROR_JAVA_ELEMENT) {
+                            if (targetJe != null && targetJe != ERROR_JAVA_ELEMENT) {
                                 relatedJavaElements.add(targetJe);
                             } else {
                                 AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, "Could not create a Java element with handle:\n" + handle 

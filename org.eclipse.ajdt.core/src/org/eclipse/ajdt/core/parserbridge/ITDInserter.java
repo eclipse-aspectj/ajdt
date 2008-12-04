@@ -122,7 +122,13 @@ public class ITDInserter extends ASTVisitor {
             for (Iterator iterator = ipes.iterator(); iterator.hasNext();) {
                 IProgramElement elt = (IProgramElement) iterator.next();
                 if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
-                    itdMethods.add(createMethod(elt, type));
+                    // ignore if type is an interface.
+                    // assumption is that this ITD is an implementation of an interface method
+                    // adding it here would cause a duplicate method error.
+                    // See bug 257437
+                    if (TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
+                        itdMethods.add(createMethod(elt, type));
+                    }
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
                     itdMethods.add(createConstructor(elt, type));
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {

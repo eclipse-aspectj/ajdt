@@ -61,6 +61,9 @@ import org.eclipse.jdt.internal.core.util.Util;
  * Problem finder for AspectJ problems
  * Mostly copied from CompilationUnitProblemFinder
  * Changes Marked "// AspectJ Change"
+ * 
+ * Responsible for resolving types inside a compilation unit being reconciled,
+ * reporting the discovered problems to a given IProblemRequestor.
  */
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder {
@@ -118,7 +121,10 @@ public class AJCompilationUnitProblemFinder extends
 	    // AspectJ Change End
 	}
 
-	
+	// AspectJ Change Begin
+	/**
+	 * Sets a flag so that ITDs will be inserted into units 
+	 */
 	protected void internalBeginToCompile(
 	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits,
 	        int maxUnits) {
@@ -133,6 +139,8 @@ public class AJCompilationUnitProblemFinder extends
 	        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
 	    }
 	}
+	// AspectJ Change End
+	
 	
 	public static CompilationUnitDeclaration processAJ(
 	        CompilationUnit unitElement, // AspectJ Change
@@ -146,7 +154,7 @@ public class AJCompilationUnitProblemFinder extends
 
 	}
 	
-	public static CompilationUnitDeclaration processAJ(
+	public static CompilationUnitDeclaration processAJ( // AspectJ Change
             CompilationUnit unitElement, // AspectJ Change
 	        CommentRecorderParser parser, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
@@ -162,18 +170,18 @@ public class AJCompilationUnitProblemFinder extends
         CancelableProblemFactory problemFactory = null;
         AJCompilationUnitProblemFinder problemFinder = null; // AspectJ Change
         try {
+            
+            // AspectJ Change begin
             // use an ITDAware environment to ensure that ITDs are included for source types
             environment = new ITDAwareCancelableNameEnvironment(project,
                     workingCopyOwner, monitor);  
+            // AspectJ Change end
 
             problemFactory = new CancelableProblemFactory(monitor);
             problemFinder = new AJCompilationUnitProblemFinder( // AspectJ Change
                     environment,
                     getHandlingPolicy(),
-                    getCompilerOptions(
-                            project.getOptions(true),
-                            creatingAST,
-                            ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
+                    getCompilerOptions(project.getOptions(true), creatingAST, ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
                     getRequestor(), problemFactory, unitElement);
             CompilationUnitDeclaration unit = null;
             if (parser != null) {
@@ -197,13 +205,17 @@ public class AJCompilationUnitProblemFinder extends
                         true); // generate code
             }
             
+            // AspectJ Change begin
             // revert the compilation units that have ITDs in them
             ((ITDAwareLookupEnvironment) problemFinder.lookupEnvironment).revertCompilationUnits();
+            // AspectJ Change end
             
             CompilationResult unitResult = unit.compilationResult;
             CategorizedProblem[] unitProblems = unitResult.getProblems();
             int length = unitProblems == null ? 0 : unitProblems.length;
             if (length > 0) {
+                // AspectJ Change begin
+                // filter out spurious problems
                 CategorizedProblem[] categorizedProblems = new CategorizedProblem[length];
                 System.arraycopy(unitProblems, 0, categorizedProblems, 0,
                         length);
@@ -212,6 +224,7 @@ public class AJCompilationUnitProblemFinder extends
                     problems.put(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
                             categorizedProblems);
                 }
+                // AspectJ Change end
             }
             unitProblems = unitResult.getTasks();
             length = unitProblems == null ? 0 : unitProblems.length;
@@ -260,6 +273,9 @@ public class AJCompilationUnitProblemFinder extends
         }
 	}
 
+	
+	// AspectJ Change to the end---removes spurious problems
+	
 	/**
 	 * removes all problems that have come from 
 	 * valid ITDs
@@ -414,7 +430,7 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         try {
-            if (numArgs == 1 && 
+            if (numArgs > 0 && 
                     (id == IProblem.UndefinedName || 
                      id == IProblem.UndefinedField ||
                      id == IProblem.UndefinedMethod ||

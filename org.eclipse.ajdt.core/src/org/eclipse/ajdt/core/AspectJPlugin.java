@@ -14,7 +14,6 @@ package org.eclipse.ajdt.core;
 
 import java.util.HashMap;
 
-import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -22,35 +21,34 @@ import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
+import org.eclipse.contribution.jdt.IsWovenTester;
+import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
-import org.osgi.framework.BundleContext;
-import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
-import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
+import org.osgi.framework.BundleContext;
 
 /**
  * The main plugin class to be used in the desktop.
  */
-public class AspectJPlugin extends Plugin {
+public class AspectJPlugin extends Plugin implements NoFFDC {
 	//The shared instance.
 	private static AspectJPlugin plugin;
 
@@ -176,11 +174,6 @@ public class AspectJPlugin extends Plugin {
                 return AJCompilationUnitProblemFinder.processAJ(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
             }
 
-//            public ReconcileWorkingCopyOperation createReconcileOperation(
-//                    IJavaElement workingCopy, int astLevel, int reconcileFlags,
-//                    WorkingCopyOwner workingCopyOwner) {
-//                return new AJReconcileWorkingCopyOperation(workingCopy, astLevel, reconcileFlags, workingCopyOwner);
-//            }
 		};
 		
 		AJProjectModelFacade.installListener();
@@ -191,16 +184,12 @@ public class AspectJPlugin extends Plugin {
 	 *
 	 */
 	private static boolean checkForCUprovider() {
-		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.contribution.weaving.jdt.cuprovider"; //$NON-NLS-1$
-		IExtensionPoint exP = Platform.getExtensionRegistry()
-			.getExtensionPoint(EJDT_CU_PROVIDER_EXTENSION);
-		if (exP!=null) {
-			// extension exists, check that org.eclipse.ajdt.cuprovider is there to use it
-			if (Platform.getBundle("org.eclipse.contribution.weaving.jdt") != null) { //$NON-NLS-1$
-				return true;
-			}
-		}
-		return false;
+	    
+	    try {
+	        return IsWovenTester.isWeavingActive();
+	    } catch (Exception e) {
+	        return false;
+	    }
 	}
 
 	/**
