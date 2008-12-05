@@ -1,4 +1,4 @@
-package org.eclipse.contribution.weaving.jdt.preferences;
+package org.eclipse.contribution.jdt.preferences;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -99,6 +99,12 @@ public class JDTWeavingPreferences
             }
         });
         
+        Label warningLabel = new Label(area, SWT.NONE);
+        warningLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
+                false));
+        warningLabel.setText("Note that disabling the weaving service may disable some features " +
+        		"in the workbench.");
+
         return area;
     }
 

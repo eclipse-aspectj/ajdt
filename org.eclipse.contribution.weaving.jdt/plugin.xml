@@ -7,7 +7,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="org.eclipse.contribution.weaving.jdt.preferences.JDTWeavingPreferences"
+            class="org.eclipse.contribution.jdt.preferences.JDTWeavingPreferences"
             id="org.eclipse.contribution.weaving.jdt.preferences.JDTWeavingPreferences"
             name="JDT Weaving">
       </page>
