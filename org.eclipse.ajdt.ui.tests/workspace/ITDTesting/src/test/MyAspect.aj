@@ -2,14 +2,16 @@ package test;
 import java.util.List;
 
 public aspect MyAspect {
-    java.util.List<String> Demo.list = null;
+	List<String> Demo.list = null;
 	int Demo.x = 5;
 	
-	void Demo.foo(java.util.List<String> x) {
+	void Demo.foo(List<String> x) {
 		MyAspect.hasAspect();
 	}
 	
-	public Demo.new(int x) { }
+	public Demo.new(int x) { 
+		this();
+	}
 	
     declare warning : execution(* *.nothing(..)) : "blah";
     
@@ -34,7 +36,7 @@ public aspect MyAspect {
     after () throwing(): s() {
     	thisEnclosingJoinPointStaticPart.getClass();
     	thisJoinPoint.getClass();
-    	thisJoinPointStaticPart.getClass(); 
+    	thisJoinPointStaticPart.getClass();  
     }
     
     @interface MyAnnotation { }

@@ -1,7 +1,7 @@
 package test;
 
 import java.util.List;
-
+ 
 public class Demo {
     
     void g() {
@@ -11,5 +11,4 @@ public class Demo {
         MyAspect.aspectOf();
         MyAspect.hasAspect();
     }
-
-}
+} 

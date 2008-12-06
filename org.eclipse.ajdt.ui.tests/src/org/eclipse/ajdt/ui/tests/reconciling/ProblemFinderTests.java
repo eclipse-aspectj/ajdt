@@ -1,9 +1,16 @@
+/*******************************************************************************
+ * Copyright (c) 2008 SpringSource and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *      Andrew Eisenberg - Initial implementation
+ *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.reconciling;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
@@ -12,11 +19,8 @@ import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 
 /**
  * Tests AJCompilationUnitProblemFinder
@@ -37,18 +41,18 @@ public class ProblemFinderTests extends UITestCase {
     private IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
-        proj = createPredefinedProject("ITDTesting");
+        proj = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
         waitForJobsToComplete();
         setAutobuilding(false);
-        demoFile = proj.getFile("src/test/Demo.aj");
+        demoFile = proj.getFile("src/test/Demo.aj"); //$NON-NLS-1$
         demoCU = new AJCompilationUnit(demoFile);
-        myAspectFile = proj.getFile("src/test/MyAspect.aj");
+        myAspectFile = proj.getFile("src/test/MyAspect.aj"); //$NON-NLS-1$
         myAspectCU = new AJCompilationUnit(myAspectFile);
-        otherClassFile = proj.getFile("src/test/OtherClass.aj");
+        otherClassFile = proj.getFile("src/test/OtherClass.aj"); //$NON-NLS-1$
         otherClassCU = new AJCompilationUnit(otherClassFile);
-        myAspectFile2 = proj.getFile("src/test2/MyAspect2.aj");
+        myAspectFile2 = proj.getFile("src/test2/MyAspect2.aj"); //$NON-NLS-1$
         myAspectCU2 = new AJCompilationUnit(myAspectFile2);
-        otherClassFile2 = proj.getFile("src/test2/OtherClass2.aj");
+        otherClassFile2 = proj.getFile("src/test2/OtherClass2.aj"); //$NON-NLS-1$
         otherClassCU2 = new AJCompilationUnit(otherClassFile2);
     }
     protected void tearDown() throws Exception {
@@ -66,7 +70,7 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, filterProblems(problems).size());
+        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
     }
     public void testNoProblemsOtherClass() throws Exception {
         HashMap problems = new HashMap();
@@ -74,7 +78,7 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should not have any problems", 0, filterProblems(problems).size());
+        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
     }
     public void testNoProblemsDemo() throws Exception {
         HashMap problems = new HashMap();
@@ -82,7 +86,7 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should not have any problems", 0, filterProblems(problems).size());
+        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
     }
     public void testNoProblemsMyAspectCU() throws Exception {
         HashMap problems = new HashMap();
@@ -91,7 +95,7 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, filterProblems(problems).size());
+        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
     }
     public void testNoProblemsOtherClass2() throws Exception {
         HashMap problems = new HashMap();
@@ -99,7 +103,7 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should not have any problems", 0, filterProblems(problems).size());
+        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
 
     }
     
@@ -108,29 +112,29 @@ public class ProblemFinderTests extends UITestCase {
      * @throws Exception
      */
     public void testSyntaxError() throws Exception {
-        otherClassCU.getBuffer().setContents(otherClassCU.getBuffer().getContents() + "gggg");
+        otherClassCU.getBuffer().setContents(otherClassCU.getBuffer().getContents() + "gggg"); //$NON-NLS-1$
 
         HashMap problems = new HashMap();
         AJCompilationUnitProblemFinder.processAJ(otherClassCU, 
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should have one syntax error", 1, filterProblems(problems).size());
+        assertEquals("Should have one syntax error", 1, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
     }
     
     public void testNoReturnTypeError() throws Exception {
         String contents = otherClassCU.getBuffer().getContents();
         try {
-            otherClassCU.getBuffer().setContents(contents.substring(0, contents.length()-2) + "t() { } }\n");
+            otherClassCU.getBuffer().setContents(contents.substring(0, contents.length()-2) + "t() { } }\n"); //$NON-NLS-1$
     
             HashMap problems = new HashMap();
             AJCompilationUnitProblemFinder.processAJ(otherClassCU, 
                     AJWorkingCopyOwner.INSTANCE, problems, true, 
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
     
-            assertEquals("Should have one syntax error.", 1, filterProblems(problems).size());
+            assertEquals("Should have one syntax error.", 1, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
             CategorizedProblem prob = ((CategorizedProblem[]) problems.values().iterator().next())[0];
-            assertEquals("Return type for the method is missing", prob.getMessage());
+            assertEquals("Return type for the method is missing", prob.getMessage()); //$NON-NLS-1$
         } finally {
             // reset contents
             otherClassCU.getBuffer().setContents(contents);
@@ -143,18 +147,18 @@ public class ProblemFinderTests extends UITestCase {
         otherClassCU.becomeWorkingCopy(new MockProblemRequestor(), null);
         otherClassCU.reconcile(AST.JLS3, true, true, null, null);
         MockProblemRequestor requestor = (MockProblemRequestor) otherClassCU.getPerWorkingCopyInfo().getProblemRequestor();
-        assertEquals("Problem requestor should have found no problems: " + requestor.problemString(), 0, filterProblems(requestor.problems).size());
+        assertEquals("Problem requestor should have found no problems: " + requestor.problemString(), 0, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
     }
     
     public void testReconcilerWithErrors() throws Exception {
         String contents = otherClassCU.getBuffer().getContents();
         try {
             otherClassCU.becomeWorkingCopy(new MockProblemRequestor(), null);
-            otherClassCU.getBuffer().setContents(contents + "gggg");
+            otherClassCU.getBuffer().setContents(contents + "gggg"); //$NON-NLS-1$
             
             otherClassCU.reconcile(AST.JLS3, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) otherClassCU.getPerWorkingCopyInfo().getProblemRequestor();
-            assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, filterProblems(requestor.problems).size());
+            assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
         } finally {
             // reset contents
             otherClassCU.getBuffer().setContents(contents);
@@ -167,67 +171,13 @@ public class ProblemFinderTests extends UITestCase {
         try {
             demoCU.becomeWorkingCopy(new MockProblemRequestor(), null);
             String s = contents;
-            s = s.replaceFirst("foo", "fffffff");
+            s = s.replaceFirst("foo", "fffffff"); //$NON-NLS-1$ //$NON-NLS-2$
             demoCU.getBuffer().setContents(s);
             demoCU.reconcile(AST.JLS3, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) demoCU.getPerWorkingCopyInfo().getProblemRequestor();
-            assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, filterProblems(requestor.problems).size());
+            assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
         } finally {
             demoCU.getBuffer().setContents(contents);
-        }
-    }
-    
-    /**
-     * we can't get around having an unused import
-     * we should be able to remove this soon
-     */
-    private HashMap filterProblems(HashMap problems) {
-        for (Iterator iterator = problems.values().iterator(); iterator.hasNext();) {
-            if (((CategorizedProblem[]) iterator.next())[0].toString()
-                    .equals("Pb(388) The import java.util.List is never used")) {
-                iterator.remove();
-            }
-        }
-        return problems;
-    }
-    
-    private List filterProblems(List problems) {
-        for (Iterator iterator = problems.iterator(); iterator.hasNext();) {
-            if (((CategorizedProblem) iterator.next()).toString()
-                    .equals("Pb(388) The import java.util.List is never used")) {
-                iterator.remove();
-            }
-        }
-        return problems;
-    }
-    
-    private class MockProblemRequestor implements IProblemRequestor {
-
-        List problems = new LinkedList();
-        
-        public void acceptProblem(IProblem problem) {
-            problems.add(problem);
-        }
-
-        public String problemString() {
-            StringBuffer sb = new StringBuffer();
-            sb.append("[");
-            for (Iterator probIter = problems.iterator(); probIter.hasNext();) {
-                DefaultProblem prob = (DefaultProblem) probIter.next();
-                sb.append("\n\t" + prob.toString());
-            }
-            sb.append("\n]");
-            return sb.toString();
-        }
-
-        public void beginReporting() {
-        }
-
-        public void endReporting() {
-        }
-
-        public boolean isActive() {
-            return true;
         }
     }
 }
