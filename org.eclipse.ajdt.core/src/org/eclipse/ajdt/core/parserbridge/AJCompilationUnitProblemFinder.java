@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
@@ -173,7 +173,7 @@ public class AJCompilationUnitProblemFinder extends
             
             // AspectJ Change begin
             // use an ITDAware environment to ensure that ITDs are included for source types
-            environment = new ITDAwareCancelableNameEnvironment(project,
+            environment = new ITDAwareNameEnvironment(project,
                     workingCopyOwner, monitor);  
             // AspectJ Change end
 
@@ -322,7 +322,9 @@ public class AJCompilationUnitProblemFinder extends
              id == IProblem.UndefinedField ||
              id == IProblem.UndefinedMethod ||
              id == IProblem.UndefinedConstructor ||
-             id == IProblem.IllegalCast)) {
+             id == IProblem.IllegalCast ||
+             id == IProblem.AbstractMethodMustBeImplemented)  // anonymous interface with ITDs implementing abstract method
+             ) {
             // if there is no model, don't take any chances.
             // everything that might be an ITD reference is ignored
             return false;
@@ -465,6 +467,27 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
+        if (hasModel && id == IProblem.SuperInterfaceMustBeAnInterface && 
+                categorizedProblem.getSourceStart() == 0) {
+            // this error is from an declare parent interface
+            // that has been turned into a class because this
+            // interface has ITDs on it.
+            // See ITDAwareSourceTypeInfo
+            return false;
+        }
+        
+        
+        // casting from a class to an interface that has been converted
+        // to a class (See ITDAwareSourceTypeInfo will be an error in the reconciler
+        // this is because the interface, which the compiler thinks is a class, is not
+        // added to the class's hierarchy and therefore a cast cannot occur.
+        // ignore for now.
+        // solution:
+        //  1. pass model into method
+        //  2. convert the type of the thing being casted into IProgramElement (maybe use JavaProject)
+        //  3. get all AspectDeclarations on it
+        //  4. see if the other type is added as a declare parent on it.
+        // problem: this is time consuming to perform, so don't do it now.
         
         return true;
     }

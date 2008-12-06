@@ -22,7 +22,7 @@ import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
-import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
@@ -655,7 +655,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	/**
 	 * this method is a copy of {@link Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, CompletionRequestor, WorkingCopyOwner, ITypeRoot)}
-	 * The only change is that we need to create an {@link ITDAwareCancelableNameEnvironment}, not  standard {@link SearchableEnvironment}.
+	 * The only change is that we need to create an {@link ITDAwareNameEnvironment}, not  standard {@link SearchableEnvironment}.
      * 
 	 * @param cu
 	 * @param unitToSkip
@@ -689,7 +689,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
 	    JavaProject project = (JavaProject) getJavaProject();
-	    ITDAwareCancelableNameEnvironment environment = new ITDAwareCancelableNameEnvironment((JavaProject) getJavaProject(), owner, null);
+	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment((JavaProject) getJavaProject(), owner, null);
 
 	    // set unit to skip
 	    environment.setUnitToSkip(unitToSkip);

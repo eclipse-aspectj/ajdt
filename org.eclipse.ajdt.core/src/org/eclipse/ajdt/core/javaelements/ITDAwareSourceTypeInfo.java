@@ -20,8 +20,9 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
-import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceType;
@@ -35,9 +36,27 @@ import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
  */
 public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     
-    private final class ITDAwareSourceType extends SourceType {
+    // if this type is an interface and there are ITD methods or 
+    // fields on it, then remove the interface flag on it
+    // since compiler will think these declarations are static
+    boolean shouldRemoveInterfaceFlag = false;
+    
+    private interface ITDAwareType { }
+    
+    private final class ITDAwareSourceType extends SourceType implements ITDAwareType {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareSourceType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
+            super(parent, name);
+            this.info = info;
+        }
+
+        public Object getElementInfo() throws JavaModelException {
+            return info;
+        }
+    }
+    private final class ITDAwareAspectType extends AspectElement implements ITDAwareType {
+        final ITDAwareSourceTypeInfo info;
+        private ITDAwareAspectType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
             super(parent, name);
             this.info = info;
         }
@@ -52,7 +71,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     }
 
     public ITDAwareSourceTypeInfo(ISourceType toCopy, SourceType type) {
-        this.handle = new ITDAwareSourceType((JavaElement) type.getParent(), type.getElementName(), this);
+        this.handle = createITDAwareType(type, this);
 
         this.setFlags(toCopy.getModifiers());
         this.setSuperclassName(toCopy.getSuperclassName());
@@ -61,37 +80,48 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         this.setNameSourceStart(toCopy.getNameSourceStart());
         this.setSourceRangeEnd(toCopy.getDeclarationSourceEnd());
         this.setSourceRangeStart(toCopy.getDeclarationSourceStart());
+        try {
+            ITypeParameter[] parameters = type.getTypeParameters();
+            this.typeParameters = new ITypeParameter[parameters.length];
+            System.arraycopy(parameters, 0, this.typeParameters, 0, parameters.length);
+        } catch (JavaModelException e) {
+        }
         
         IJavaElement[] children = augmentChildrenAndHierarchy(type);
         if (children != null) {
             this.setChildren(children);
         }
+        
+        if (shouldRemoveInterfaceFlag) {
+            setFlags(removeInterfaceFlag(getModifiers()));
+        }
+    }
 
-        // still some more fields, but left unset
-    } 
-    
-    
     private IJavaElement[] augmentChildrenAndHierarchy(SourceType type) {
         try {
             IJavaElement[] origChildren = type.getChildren();
+            IJavaElement[] newChildren = new IJavaElement[origChildren.length];
+            boolean hasChanges = false;
             // recur through original children
             // ensure that children are also ITD aware
             for (int i = 0; i < origChildren.length; i++) {
                 if (origChildren[i].getElementType() == IJavaElement.TYPE) {
                     final SourceType innerType = (SourceType) origChildren[i];
                     if (!(innerType instanceof ITDAwareSourceType)) {
-                        final ITDAwareSourceTypeInfo innerInfo = new ITDAwareSourceTypeInfo(innerType);
-                        origChildren[i] = 
-                                new ITDAwareSourceType(type, innerType.getElementName(), innerInfo);
-                    }
+                        ITDAwareSourceTypeInfo innerInfo = new ITDAwareSourceTypeInfo(innerType);
+                        newChildren[i] = createITDAwareType(innerType, innerInfo);
+                        hasChanges = true;
+                        continue;
+                    } 
                 }
+                newChildren[i] = origChildren[i];
             }
             
             
             List itdChildren = getITDs(type);
-            if (itdChildren.size() > 0 ) {
+            if (itdChildren.size() > 0 || hasChanges) {
                 IJavaElement[] allChildren = new IJavaElement[origChildren.length + itdChildren.size()];
-                System.arraycopy(origChildren, 0, allChildren, 0, origChildren.length);
+                System.arraycopy(newChildren, 0, allChildren, 0, newChildren.length);
                 int i = origChildren.length;
                 for (Iterator childIter = itdChildren.iterator(); childIter.hasNext();) {
                     IJavaElement elt = (IJavaElement) childIter.next();
@@ -120,24 +150,24 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     // will happen if the Java side has partial compilation 
                     // and aspectj sode does not
                     if (member != null) { 
-                        switch (member.getElementType()) {
-                        case IJavaElement.METHOD:
-                            if (((IMethod) member).isConstructor()) {
-                                itds.add(member);
-                            } else {
-                                itds.add(member);
-                            }
-                            break;
-                        case IJavaElement.FIELD:
-                            itds.add(member);
-                            break;
+                        itds.add(member);
+
+                        // Interfaces will show ITD methods and fields 
+                        // as being static.  Convert interfaces to 
+                        // classes and this goes away.
+                        // but this conversion causes other problems
+                        // Since stored as a class, it is not actually inherited
+                        // and causes class cast exceptions 
+                        // See AJCompilationUnitProblemFinder.isARealProblem()
+                        if (handle.isInterface()) {
+                            shouldRemoveInterfaceFlag = true;
                         }
                     }
                 } else if (ije instanceof DeclareElement) {
                     DeclareElement elt = (DeclareElement) ije;
                     
-                    // use createElementInfo, not getElementInfo because the element info doesn't seem to be created properly
-                    // XXX in the future, change back to using getElementInfo for efficiency
+                    // use createElementInfo, not getElementInfo because 
+                    // we don't want it cached
                     DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
                     if (info.isExtends()) {
                         this.setSuperclassName(info.getType());
@@ -162,6 +192,17 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         } 
         return Collections.EMPTY_LIST;
     }
+
+    private SourceType createITDAwareType(SourceType type, ITDAwareSourceTypeInfo info) {
+        if (type instanceof AspectElement) {
+            return new ITDAwareAspectType((JavaElement) type.getParent(), type.getElementName(), info);
+        } else {
+            return new ITDAwareSourceType((JavaElement) type.getParent(), type.getElementName(), info);
+        }
+    }
     
+    private int removeInterfaceFlag(int flags) {
+        return flags & (~ClassFileConstants.AccInterface);
+    }
     
 }

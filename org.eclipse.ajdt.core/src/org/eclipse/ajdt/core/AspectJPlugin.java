@@ -14,7 +14,7 @@ package org.eclipse.ajdt.core;
 
 import java.util.HashMap;
 
-import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
@@ -146,7 +146,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
             public SearchableEnvironment getNameEnvironment(
                     JavaProject project, WorkingCopyOwner owner) {
                 try {
-                    return new ITDAwareCancelableNameEnvironment(project, owner, null);
+                    return new ITDAwareNameEnvironment(project, owner, null);
                 } catch (JavaModelException e) {
                     return null;
                 }
@@ -155,7 +155,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
             public SearchableEnvironment getNameEnvironment(
                     JavaProject project, ICompilationUnit[] workingCopies) {
                 try {
-                    return new ITDAwareCancelableNameEnvironment(project, workingCopies);
+                    return new ITDAwareNameEnvironment(project, workingCopies);
                 } catch (JavaModelException e) {
                     return null;
                 }

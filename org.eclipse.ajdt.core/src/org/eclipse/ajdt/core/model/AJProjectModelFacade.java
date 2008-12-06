@@ -797,4 +797,38 @@ public class AJProjectModelFacade {
     public IProject getProject() {
         return project;
     }
+    
+    public static String printHierarchy(IHierarchy h) {
+        final StringBuffer sb = new StringBuffer();
+        HierarchyWalker walker = new HierarchyWalker() {
+            int depth = 0;
+            int MAX = 200;
+            int curr = 0;
+            
+            protected void preProcess(IProgramElement node) {
+                if (curr < MAX) {
+                    sb.append(spaces(depth));
+                    sb.append(node.getHandleIdentifier());
+                    sb.append("\n");
+                } if (curr == MAX) {
+                    sb.append("...");
+                }
+                curr++;
+                depth+=2;
+            }
+            protected void postProcess(IProgramElement node) {
+                depth-=2;
+            }
+            
+            String spaces(int depth) {
+                StringBuffer sb = new StringBuffer();
+                for (int i = 0; i < depth; i++) {
+                    sb.append(" ");
+                }
+                return sb.toString();
+            }
+        };
+        h.getRoot().walk(walker);
+        return sb.toString();
+    }
 }

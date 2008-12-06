@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
@@ -257,8 +258,18 @@ public class ITDInserter extends ASTVisitor {
         }
     }
     
-    
+
+    // will this get inner types properly???
     private IType getHandle(TypeDeclaration type) {
+        try {
+            IType[] types = unit.getAllTypes();
+            for (int i = 0; i < types.length; i++) {
+                if (types[i].getElementName().equals(new String(type.name))) {
+                    return types[i];
+                }
+            }
+        } catch (JavaModelException e) {
+        }
         return unit.getType(new String(type.name));
     }
     
@@ -303,7 +314,7 @@ public class ITDInserter extends ASTVisitor {
             Map.Entry entry = (Map.Entry) origIter.next();
             TypeDeclaration type = (TypeDeclaration) entry.getKey();
             OrigContents orig = (OrigContents) entry.getValue();
-             
+            revertType(type, orig);
         }
     }
 

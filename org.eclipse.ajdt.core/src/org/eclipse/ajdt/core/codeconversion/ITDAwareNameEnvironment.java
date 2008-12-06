@@ -7,7 +7,9 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.javaelements.NotImplementedException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -27,16 +29,16 @@ import org.eclipse.jdt.internal.core.NameLookup;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
-public class ITDAwareCancelableNameEnvironment extends
+public class ITDAwareNameEnvironment extends
         CancelableNameEnvironment {
 
-    public ITDAwareCancelableNameEnvironment(JavaProject project,
+    public ITDAwareNameEnvironment(JavaProject project,
             WorkingCopyOwner owner, IProgressMonitor monitor)
             throws JavaModelException {
         super(project, owner, monitor);
     }
     
-    public ITDAwareCancelableNameEnvironment(JavaProject project, org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+    public ITDAwareNameEnvironment(JavaProject project, org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
         this(project, workingCopies == null || workingCopies.length == 0 ? 
                 DefaultWorkingCopyOwner.PRIMARY : workingCopies[0].getOwner(), 
                 null);
@@ -70,16 +72,16 @@ public class ITDAwareCancelableNameEnvironment extends
                     IType[] types;
                     
                     try {
+                        sourceType = maybeConvertToAspectType(sourceType);
+                        
                         // retrieve the requested type
                         sourceTypeInfo = (SourceTypeElementInfo) sourceType.getElementInfo();
-                        // find all siblings (other types declared in same unit, since may be used for name resolution)
+                        // find all siblings (other types declared at top level in same unit, since may be used for name resolution)
                         types = sourceTypeInfo.getHandle().getCompilationUnit().getTypes();
                     } catch (JavaModelException e) {
-                        // this might be an AspectElement
-                        // convert to an aspect element handle
-                        // and then try to recreate
-                        //  XXX this will only work if the type is a top-level aspect
-                        //  OK for now.
+                        // exception thrown if weaving turned off and element is AspectElement
+                        // try to recreate as AspectElement.
+                        // This will only work if the type is a top-level aspect
                         String ajHandle = sourceType.getHandleIdentifier();
                         sourceType = ((SourceType) AspectJCore.create(
                                 AspectJCore.convertToAspectHandle(ajHandle, sourceType)));
@@ -135,6 +137,21 @@ public class ITDAwareCancelableNameEnvironment extends
     
     public void setUnitToSkip(ICompilationUnit unit) {
         this.unitToSkip = unit;
+    }
+    
+    // checks to see if this is really an aspect
+    private SourceType maybeConvertToAspectType(SourceType type) throws JavaModelException {
+        IParent parent = (IParent) type.getParent();
+        IJavaElement[] children = parent.getChildren();
+        String typeName = type.getElementName();
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementName().equals(typeName) &&
+                    children[i].getElementType() == IJavaElement.TYPE) {
+                // this can be an aspect type
+                return (SourceType) children[i];
+            }
+        }
+        return type;
     }
 
 }
