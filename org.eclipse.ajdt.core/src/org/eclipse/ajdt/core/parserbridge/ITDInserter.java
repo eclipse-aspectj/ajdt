@@ -300,6 +300,8 @@ public class ITDInserter extends ASTVisitor {
         if (origTypeName .endsWith("#RAW")) {
             origTypeName = origTypeName.substring(0, origTypeName.length()-4);
         }
+        // can't use the binary name
+        origTypeName = origTypeName.replace('$', '.');
         
         return typeConverter.createTypeReference(origTypeName.toCharArray());
     }

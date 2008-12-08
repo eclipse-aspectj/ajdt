@@ -439,7 +439,7 @@ public class AJCompilationUnitProblemFinder extends
                      id == IProblem.UndefinedType ||
                      id == IProblem.UndefinedConstructor)
                     &&
-                    unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement) {
+                    insideITD(categorizedProblem, unit)) {
                 // this is an intertype element inside of an aspect.
                 // it is likely that the problem is actually a reference to something added by an ITD
                 return false;
@@ -476,6 +476,16 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
+        try {
+            if (id == IProblem.ParameterMismatch && 
+                    insideITD(categorizedProblem, unit)) {
+                // Probably a reference to 'this' inside an ITD
+                // compiler thinks 'this' refers to the containing aspect
+                // not the target type
+                return false;
+            }
+        } catch (JavaModelException e) {
+        }
         
         // casting from a class to an interface that has been converted
         // to a class (See ITDAwareSourceTypeInfo will be an error in the reconciler
@@ -490,6 +500,11 @@ public class AJCompilationUnitProblemFinder extends
         // problem: this is time consuming to perform, so don't do it now.
         
         return true;
+    }
+
+    private static boolean insideITD(CategorizedProblem categorizedProblem,
+            CompilationUnit unit) throws JavaModelException {
+        return unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement;
     }
 
     private static String extractProblemRegion(
