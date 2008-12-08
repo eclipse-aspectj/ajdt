@@ -85,7 +85,7 @@ public class JDTWeavingPreferences
         if (isWeaving) {
             changeWeavingButton.setText("Click to DISABLE (requires restart)");
         } else {
-            changeWeavingButton.setText("Click to ENSABLE (requires restart)");
+            changeWeavingButton.setText("Click to ENABLE (requires restart)");
         }
         
         changeWeavingButton.addSelectionListener(new SelectionListener() {
