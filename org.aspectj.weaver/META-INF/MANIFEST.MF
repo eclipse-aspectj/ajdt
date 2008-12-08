@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
-Bundle-SymbolicName: org.aspectj.weaver;singleton:=true
+Bundle-SymbolicName: org.aspectj.weaver
 Bundle-Version: 92.2.29
 Bundle-ClassPath: aspectjweaver.jar
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Require-Bundle: org.aspectj.runtime;visibility:=reexport
+Require-Bundle: org.aspectj.runtime;bundle-version="1.6.3";visibility:=reexport
 Export-Package: org.aspectj.apache.bcel,
  org.aspectj.apache.bcel.classfile,
  org.aspectj.apache.bcel.classfile.annotation,
