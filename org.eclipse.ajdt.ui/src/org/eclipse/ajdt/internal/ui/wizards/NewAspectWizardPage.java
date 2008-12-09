@@ -17,6 +17,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.ui.wizards.NewTypeWizardPage.ImportsManager;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -54,7 +55,8 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 
 	private final static String PAGE_NAME= "NewAspectWizardPage"; //$NON-NLS-1$
 	private final static String SETTINGS_CREATEMAIN= "create_main"; //$NON-NLS-1$
-	private final static String SETTINGS_CREATEUNIMPLEMENTED= "create_unimplemented"; //$NON-NLS-1$
+    private final static String SETTINGS_CREATEUNIMPLEMENTED_PC = "create_unimplemented_pc"; //$NON-NLS-1$
+    private final static String SETTINGS_CREATEUNIMPLEMENTED_METH = "create_unimplemented_meth"; //$NON-NLS-1$
 
 	private final int ISSINGLETON_INDEX= 0, PERTHIS_INDEX= 1, PERTARGET_INDEX= 2;
 	private final int PERCFLOW_INDEX= 3, PERCFLOWBELOW_INDEX= 4, PERTYPEWITHIN_INDEX= 5;
@@ -74,7 +76,8 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 		
 		String[] buttonNames3= new String[] {
 				NewWizardMessages.NewClassWizardPage_methods_main,
-				UIMessages.NewAspectCreationWizardPage_pointcuts_inherited
+				UIMessages.NewAspectCreationWizardPage_pointcuts_inherited,
+				NewWizardMessages.NewClassWizardPage_methods_inherited
 			};		
 		fStubsButtons= new SelectionButtonDialogFieldGroup(SWT.CHECK, buttonNames3, 1);
 		fStubsButtons.setLabelText(UIMessages.NewAspectCreationWizardPage_stubs_label);
@@ -108,14 +111,16 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 		doStatusUpdate();
 		
 		boolean createMain= false;
-		boolean createUnimplemented= true;
+        boolean createUnimplementedPointcuts = true;
+        boolean createUnimplementedMethods = true;
 		IDialogSettings section= getDialogSettings().getSection(PAGE_NAME);
 		if (section != null) {
 			createMain= section.getBoolean(SETTINGS_CREATEMAIN);
-			createUnimplemented= section.getBoolean(SETTINGS_CREATEUNIMPLEMENTED);
+            createUnimplementedPointcuts = section.getBoolean(SETTINGS_CREATEUNIMPLEMENTED_PC);
+            createUnimplementedMethods = section.getBoolean(SETTINGS_CREATEUNIMPLEMENTED_PC);
 		}
 		
-		setMethodStubSelection(createMain, createUnimplemented, true);
+		setMethodStubSelection(createMain, createUnimplementedPointcuts, createUnimplementedMethods, true);
 	}
 	
 	// ------ validation --------
@@ -165,8 +170,7 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 				if (folder != null) {
 					IResource res = folder.findMember(typeName + ".aj"); //$NON-NLS-1$
 					if (res != null) {
-						status
-								.setError(NewWizardMessages.NewTypeWizardPage_error_TypeNameExists);
+						status.setError(NewWizardMessages.NewTypeWizardPage_error_TypeNameExists);
 						return status;
 					}
 				}
@@ -242,15 +246,25 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 		return fStubsButtons.isSelected(0);
 	}
 	
-	/**
-	 * Returns the current selection state of the 'Create inherited abstract pointcuts' 
-	 * checkbox.
-	 * 
-	 * @return the selection state of the 'Create inherited abstract pointcuts' checkbox
-	 */
-	public boolean isCreateInherited() {
-		return fStubsButtons.isSelected(1);
-	}	
+    /**
+     * Returns the current selection state of the 'Create inherited abstract pointcuts' 
+     * checkbox.
+     * 
+     * @return the selection state of the 'Create inherited abstract pointcuts' checkbox
+     */
+    public boolean isCreateInheritedPointcuts() {
+        return fStubsButtons.isSelected(1);
+    }   
+
+    /**
+     * Returns the current selection state of the 'Create inherited abstract methods' 
+     * checkbox.
+     * 
+     * @return the selection state of the 'Create inherited abstract methods' checkbox
+     */
+    public boolean isCreateInheritedMethods() {
+        return fStubsButtons.isSelected(2);
+    }   
 
 	/**
 	 * Sets the selection state of the method stub checkboxes.
@@ -260,10 +274,11 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 	 * @param canBeModified if <code>true</code> the method stub checkboxes can be changed by 
 	 * the user. If <code>false</code> the buttons are "read-only"
 	 */
-	public void setMethodStubSelection(boolean createMain, boolean createInherited, boolean canBeModified) {
+	public void setMethodStubSelection(boolean createMain, boolean createInheritedPointcuts, boolean createInheritedMethods, boolean canBeModified) {
 		fStubsButtons.setSelection(0, createMain);
-		fStubsButtons.setSelection(1, createInherited);
-		
+		fStubsButtons.setSelection(1, createInheritedPointcuts);
+		fStubsButtons.setSelection(2, createInheritedMethods);
+        
 		fStubsButtons.setEnabled(canBeModified);
 	}
 	
@@ -289,16 +304,15 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 	}
 
 	private void createStubSelectionControls(Composite composite, int nColumns) {
-		Control labelControl= fStubsButtons.getLabelControl(composite);
+		Control labelControl = fStubsButtons.getLabelControl(composite);
 		LayoutUtil.setHorizontalSpan(labelControl, nColumns);
 		
 		DialogField.createEmptySpace(composite);
 		
-		Control buttonGroup= fStubsButtons.getSelectionButtonsGroup(composite);
+		Control buttonGroup = fStubsButtons.getSelectionButtonsGroup(composite);
 		LayoutUtil.setHorizontalSpan(buttonGroup, nColumns - 1);	
 	}
 	
-	// TODO: refactor to use PointcutUtilities
 	private void createInheritedPointcuts(IType type, ImportsManager imports,
 			IProgressMonitor monitor) {
 		String supertype = getSuperClass();
@@ -309,7 +323,14 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 			IType stype = type.getJavaProject().findType(supertype,
 					AJCompilationUnitManager.defaultAJWorkingCopyOwner());
 			if (stype == null) {
-				return;
+	            // might be an aspect in same package
+			    String packageName = type.getPackageFragment().getElementName();
+			    supertype = packageName + "." + supertype;
+	            stype = type.getJavaProject().findType(supertype,
+	                    AJCompilationUnitManager.defaultAJWorkingCopyOwner());
+			    if (stype == null) {
+			        return;
+			    }
 			}
 			String simpleName = stype.getElementName();
 			ICompilationUnit cu = stype.getCompilationUnit();
@@ -348,10 +369,15 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 	 * @see NewTypeWizardPage#createTypeMembers
 	 */
 	protected void createTypeMembers(IType type, ImportsManager imports, IProgressMonitor monitor) throws CoreException {
-		boolean doInherited = isCreateInherited();
-		if (doInherited) {
-			createInheritedPointcuts(type, imports, new SubProgressMonitor(monitor, 1));
-		}
+        boolean doInheritedPointcuts = isCreateInheritedPointcuts();
+        if (doInheritedPointcuts) {
+            createInheritedPointcuts(type, imports, new SubProgressMonitor(monitor, 1));
+        }
+        boolean doInheritedMethods = isCreateInheritedMethods();
+        if (doInheritedMethods) {
+            super.createInheritedMethods(type, false, 
+                    doInheritedMethods, imports, new SubProgressMonitor(monitor, 1));
+        }
 		boolean doMain = isCreateMain();
 		if (doMain) {
 			StringBuffer buf= new StringBuffer();
@@ -378,14 +404,15 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 			section= getDialogSettings().addNewSection(PAGE_NAME);
 		}
 		section.put(SETTINGS_CREATEMAIN, doMain);
-		section.put(SETTINGS_CREATEUNIMPLEMENTED, doInherited);
+        section.put(SETTINGS_CREATEUNIMPLEMENTED_PC, doInheritedPointcuts);
+        section.put(SETTINGS_CREATEUNIMPLEMENTED_METH, doInheritedMethods);
 		
 		if (monitor != null) {
 			monitor.done();
 		}	
 	}
 
-	protected void writePerClause(StringBuffer buf) {
+    protected void writePerClause(StringBuffer buf) {
 		String s = ""; //$NON-NLS-1$
 		if (fPerClauseSelection.isSelected()) {
 			if (fPerClauseButtons.isSelected(ISSINGLETON_INDEX)) {
