@@ -15,11 +15,13 @@ import java.util.Map;
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -33,6 +35,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.Version;
 
 /**
  * This class represents a preference page that
@@ -54,6 +58,8 @@ public class JDTWeavingPreferences
 
     private final boolean isWeaving = IsWovenTester.isWeavingActive();
     private Shell shell;
+    
+    private final static Version MIN_WEAVER_VERSION = new Version(1, 6, 3);
     
 	public JDTWeavingPreferences() {
 		super("JDT Weaving preferences");
@@ -99,11 +105,32 @@ public class JDTWeavingPreferences
             }
         });
         
+        
+        Label reindexLabel = new Label(area, SWT.NONE);
+        reindexLabel.setText("Click here if you want to reindex your workspace so\n" +
+        		"that all Java-like compilation units can be located by the indexer\n " +
+        		"(e.g., during Java searches)");
+        
+        Button reindexButton = new Button(area, SWT.PUSH );
+        reindexButton.setText("Reindex now");
+        reindexButton.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(SelectionEvent e) {
+                new ReindexingJob().schedule();
+            }
+            public void widgetDefaultSelected(SelectionEvent e) {
+                new ReindexingJob().schedule();
+            }
+        });
+        
+        // warning label if wrong version of the weaver is being used.
         Label warningLabel = new Label(area, SWT.NONE);
         warningLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
                 false));
         warningLabel.setText("Note that disabling the weaving service may disable some features " +
         		"in the workbench.");
+        
+        Label weaverVersion = new Label(area, SWT.NONE);
+        weaverVersion.setText(getWeaverVersionInfo());
 
         return area;
     }
@@ -165,6 +192,25 @@ public class JDTWeavingPreferences
         } else {
             ErrorDialog.openError(shell, "Error", "Could not " + (isWeaving ? "DISABLE" : "ENABLE") + 
                     " JDT Weaving", success);
+        }
+    }
+    
+    private String getWeaverVersionInfo() {
+        BundleDescription weaver = 
+            Platform.getPlatformAdmin().getState(false).
+            getBundle("org.aspectj.weaver", null);
+        
+        if (weaver != null) {
+            if (MIN_WEAVER_VERSION.compareTo(weaver.getVersion()) <= 0) {
+                return "";
+//                return "AspectJ weaver version " + weaver.getVersion().toString() + " OK!";
+            } else {
+                return "No compatible version of org.aspectj.weaver found.  " +
+                "JDT Weaving requires 1.6.3 or higher.  Found version " +
+                weaver.getVersion();
+            }
+        } else {
+            return "org.aspectj.weaver not installed.  JDT Weaving requires 1.6.3 or higher.";
         }
     }
 
