@@ -4,7 +4,7 @@ public class ActionExecutor {
 	public static void main(String[] args) {
 		DeleteAction<String> d = new DeleteAction<String>() {
 			public String getSelected() {
-				return null; 
+				throw new RuntimeException();
 			}
 			
 		};

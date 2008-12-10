@@ -15,4 +15,16 @@ public aspect DeleteActionAspect {
 	
 	public List<String> DeleteAction.delete3;
 	
+	
+	public static void main(String[] args) {
+		DeleteAction<String> d = new DeleteAction<String>() {
+			public String getSelected() {
+				throw new RuntimeException();
+			}
+			
+		};
+		d.delete2++; 
+		d.delete3.add(null);
+	}
+
 } 
