@@ -137,6 +137,11 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			} else {
 				cu = (ICompilationUnit)JavaCore.create(ifile);
 			}
+			
+			if (cu == null) {
+			    // happens if the underlying resource has been deleted
+			    return;
+			}
 			AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(cu);
 			
 			boolean addedMenu = false;
