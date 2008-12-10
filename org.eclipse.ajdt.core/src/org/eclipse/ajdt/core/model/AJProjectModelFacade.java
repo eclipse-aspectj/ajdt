@@ -189,9 +189,9 @@ public class AJProjectModelFacade {
             return ipe;
         } else {
             // occurs when the handles are not working properly
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-                    "Could not find the AspectJ program element for handle: " + 
-                    handle, new RuntimeException()));
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+//                    "Could not find the AspectJ program element for handle: " + 
+//                    handle, new RuntimeException()));
             return IHierarchy.NO_STRUCTURE;
         }
     }
@@ -268,9 +268,9 @@ public class AJProjectModelFacade {
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
             // occurs when the handles are not working properly
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-                    "Could not find the AspectJ program element for handle: " + 
-                    ajHandle, new RuntimeException()));
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+//                    "Could not find the AspectJ program element for handle: " + 
+//                    ajHandle, new RuntimeException()));
             return IHierarchy.NO_STRUCTURE;
         }
         return ipe;
@@ -371,9 +371,9 @@ public class AJProjectModelFacade {
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {
             // occurs when the handles are not working properly
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-                    "Could not find the Java program element for handle: " + 
-                    jHandle, new RuntimeException()));
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+//                    "Could not find the Java program element for handle: " + 
+//                    jHandle, new RuntimeException()));
             return ERROR_JAVA_ELEMENT;
         }
         return je;
@@ -663,9 +663,7 @@ public class AJProjectModelFacade {
                             } else {
                                 AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
                                         AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
-                                        "with handle:\n" + handle +
-                                        "\nthis probably means that something is wrong with " +
-                                        "AspectJ's handle creation mechansim.", new RuntimeException()));
+                                        "with handle:\n" + handle, new RuntimeException()));
                             }
                         }
                     }
