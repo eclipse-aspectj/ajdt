@@ -94,7 +94,7 @@ public class ITDAwareNameEnvironment extends
                         topLevelType = topLevelType.getEnclosingType();
                     }
                     
-                    ISourceType[] sourceTypes = new ISourceType[types.length];
+                    ISourceType[] sourceTypes = new ISourceType[Math.max(types.length, 1)];
                     
                     // in the resulting collection, ensure the requested type is the first one
                     ITDAwareSourceTypeInfo newInfo = new ITDAwareSourceTypeInfo(sourceTypeInfo, sourceType); // AspectJ Change

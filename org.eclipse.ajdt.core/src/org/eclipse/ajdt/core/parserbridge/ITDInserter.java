@@ -23,6 +23,7 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -259,24 +260,43 @@ public class ITDInserter extends ASTVisitor {
     }
     
 
-    // will this get inner types properly???
-    private IType getHandle(TypeDeclaration type) {
+    // Do it this way in order to ensure that Aspects are returned as AspectElements
+    private IType getHandle(String typeName) {
         try {
-            IType[] types = unit.getAllTypes();
-            for (int i = 0; i < types.length; i++) {
-                if (types[i].getElementName().equals(new String(type.name))) {
-                    return types[i];
-                }
+            IType type = getHandleFromChild(typeName, unit);
+            if (type != null) {
+                return type;
             }
         } catch (JavaModelException e) {
         }
-        return unit.getType(new String(type.name));
+        // this type may not exist
+        return unit.getType(new String(typeName));
+    }
+    
+    private IType getHandleFromChild(String typeName, IParent parent) 
+            throws JavaModelException {
+        IJavaElement[] children = parent.getChildren();
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementType() == IJavaElement.TYPE &&
+                    typeName.equals(children[i].getElementName())) {
+                return (IType) children[i];
+            }
+        }
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementType() == IJavaElement.TYPE) {
+                IType type = getHandleFromChild(typeName, (IParent) children[i]);
+                if (type != null) {
+                    return type;
+                }
+            }
+        }
+        return null;
     }
     
     private List/*IProgramElement*/ getITDs(TypeDeclaration type) {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
         if (model.hasModel()) {
-            IType handle = getHandle(type);
+            IType handle = getHandle(new String(type.name));
             if (model.hasProgramElement(handle)) {
                 List/*IRelationship*/ rels = model
                         .getRelationshipsForElement(handle,

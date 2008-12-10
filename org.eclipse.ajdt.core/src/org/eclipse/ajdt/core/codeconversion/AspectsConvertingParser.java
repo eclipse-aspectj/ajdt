@@ -30,6 +30,7 @@ import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -410,16 +411,14 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	}
 	
 	/**
-	 * 
 	 * @param typeName name of the type
 	 * @return new type declaration string to replace the original
 	 * that contains all of the types that are declared parents of this one
 	 * returns null if could not find the super types and super interfaces
 	 */
 	protected char[] createImplementExtendsITDs(char[] typeName) {
-
 	    if (unit != null && typeName != null) {
-	        IType type = unit.getType(new String(typeName));
+	        IType type = getHandle(new String(typeName));
 	        if (type.exists()) {
         	    try {
         	        StringBuffer sb = new StringBuffer();
@@ -474,6 +473,40 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	}
 	
 	
+	// copied from ITDInserter...make a utility method?
+    private IType getHandle(String typeName) {
+        try {
+            IType type = getHandleFromChild(typeName, unit);
+            if (type != null) {
+                return type;
+            }
+        } catch (JavaModelException e) {
+        }
+        // this type may not exist
+        return unit.getType(new String(typeName));
+    }
+    
+    private IType getHandleFromChild(String typeName, IParent parent) 
+            throws JavaModelException {
+        IJavaElement[] children = parent.getChildren();
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementType() == IJavaElement.TYPE &&
+                    typeName.equals(children[i].getElementName())) {
+                return (IType) children[i];
+            }
+        }
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementType() == IJavaElement.TYPE) {
+                IType type = getHandleFromChild(typeName, (IParent) children[i]);
+                if (type != null) {
+                    return type;
+                }
+            }
+        }
+        return null;
+    }
+
+	
 
 	
 	/**
@@ -510,7 +543,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (unit != null) {
             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
             if (model.hasModel()) {
-                IType type = unit.getType(new String(currentTypeName));
+                IType type = getHandle(new String(currentTypeName));
                 if (type.exists()) {
                     List /*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
                     StringBuffer sb = new StringBuffer("\n\t");
