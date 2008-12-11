@@ -17,6 +17,7 @@ import org.eclipse.jdt.internal.debug.ui.console.JavaStackTraceConsole;
 import org.eclipse.jdt.internal.debug.ui.console.JavaStackTraceConsoleFactory;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IHyperlink;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -29,7 +30,18 @@ public class JavaConsoleHyperlinkTest extends UITestCase {
         JavaStackTraceConsoleFactory factory = new JavaStackTraceConsoleFactory();
         factory.openConsole();
         IConsoleManager consoleManager =  ConsolePlugin.getDefault().getConsoleManager();
-        JavaStackTraceConsole console = (JavaStackTraceConsole) consoleManager.getConsoles()[0];
+        JavaStackTraceConsole console = null;
+        IConsole[] consoles = consoleManager.getConsoles();
+        for (int i = 0; i < consoles.length; i++) {
+            if (consoles[i] instanceof JavaStackTraceConsole) {
+                console = (JavaStackTraceConsole) consoles[i];
+                break;
+            }
+        }
+        if (console == null) {
+            fail("Couldn't find the Java Stack Trace console"); //$NON-NLS-1$
+        }
+        
         console.getDocument().set("Exception in thread \"main\" java.lang.NullPointerException\n" + //$NON-NLS-1$
                 "at generics.DeleteActionAspect.main(DeleteActionAspect.aj:28)\n" + //$NON-NLS-1$
                 "at generics.DeleteActionAspect.main(DeleteActionAspect.aj:8)\n" + //$NON-NLS-1$

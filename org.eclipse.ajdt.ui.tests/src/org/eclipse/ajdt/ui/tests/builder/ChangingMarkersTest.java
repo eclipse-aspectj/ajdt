@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2008 SpringSource and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Andrew Eisenberg - initial API and implementation
+ *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
 import java.io.BufferedReader;
@@ -51,15 +61,15 @@ public class ChangingMarkersTest extends UITestCase {
         
         // warnings---declare warning declarations target markers are an ajdt problem marker
         warningMarkers = javaFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-//        for (int i = 0; i < warningMarkers.length; i++) {
-//            System.out.println(warningMarkers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarkers[i].getAttribute(IMarker.MESSAGE) + 
-//                    " : " + warningMarkers[i].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX+"0"));
-//                    System.out.println(warningMarkers[i].getAttributes().keySet());
-//                    System.out.println(warningMarkers[i].getAttributes().values());
-//        }
         assertEquals("Didn't find correct number of warning markers in " + javaFile, 1, warningMarkers.length); //$NON-NLS-1$
         warningMarkers = ajFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + ajFile, 0, warningMarkers.length); //$NON-NLS-1$
+//      for (int i = 0; i < warningMarkers.length; i++) {
+//      System.out.println(warningMarkers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarkers[i].getAttribute(IMarker.MESSAGE) + 
+//              " : " + warningMarkers[i].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX+"0"));
+//              System.out.println(warningMarkers[i].getAttributes().keySet());
+//              System.out.println(warningMarkers[i].getAttributes().values());
+//  }
         
         // change class so that none of them apply
         String origContents = getContents(javaFile);
@@ -93,10 +103,6 @@ public class ChangingMarkersTest extends UITestCase {
         javaFile.setContents(new ReaderInputStream(new StringReader(
                 origContents)), true, false, null);
         waitForJobsToComplete();
-        // again
-//        javaFile.setContents(new ReaderInputStream(new StringReader(
-//                origContents)), true, false, null);
-//        waitForJobsToComplete();
         
         // check that markers have returned
         // advice markers
