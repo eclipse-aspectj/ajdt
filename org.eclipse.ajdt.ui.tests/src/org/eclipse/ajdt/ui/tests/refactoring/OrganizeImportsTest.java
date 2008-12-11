@@ -13,7 +13,9 @@ package org.eclipse.ajdt.ui.tests.refactoring;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
@@ -34,7 +36,54 @@ public class OrganizeImportsTest extends UITestCase {
         assertEquals("Should start off with 2 import statements", 2, cu.getImportContainer().getChildren().length); //$NON-NLS-1$
         OrganizeImportsAction action = new OrganizeImportsAction(editor);
         action.run(cu);
+        editor.doSave(null);
+        
+        // hmmm...why do I need to do a full build here?  That's odd
+        // If I don't, then I am getting some error markers.
+        proj.build(org.eclipse.core.resources.IncrementalProjectBuilder.FULL_BUILD, null);
+
         waitForJobsToComplete();
         assertEquals("Should have only 1 import statement after reorganizing", 1, cu.getImportContainer().getChildren().length); //$NON-NLS-1$
+
+        IMarker[] markers = concrete.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
+        if (markers.length > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append("No markers should have been found, but the following markers were found on A.aj:\n"); //$NON-NLS-1$
+            for (int i = 0; i < markers.length; i++) {
+                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+            assertEquals(sb.toString(), 0, markers.length); 
+        }
+
     }
+    
+    /**
+     * should add the LinkedList import statement in the proper location (not above the package declaration)
+     */
+    public void testBug236352() throws Exception {
+        IProject proj = createPredefinedProject("Bug 188845"); //$NON-NLS-1$
+        IFile concrete = proj.getFile("src/tmp/b/ConcreteAspect2.aj"); //$NON-NLS-1$
+        ICompilationUnit cu = (ICompilationUnit) AspectJCore.create(concrete);
+        
+        JavaEditor editor = (JavaEditor) EditorUtility.openInEditor(cu);
+        
+        assertEquals("Should start off with 2 import statements", 2, cu.getImportContainer().getChildren().length); //$NON-NLS-1$
+        OrganizeImportsAction action = new OrganizeImportsAction(editor);
+        action.run(cu);
+        editor.doSave(null);
+
+        waitForJobsToComplete();
+        assertEquals("Should have 3 import statements after reorganizing", 3, cu.getImportContainer().getChildren().length); //$NON-NLS-1$
+
+        IMarker[] markers = concrete.findMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
+        if (markers.length > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append("No markers should have been found, but the following markers were found on A.aj:\n"); //$NON-NLS-1$
+            for (int i = 0; i < markers.length; i++) {
+                sb.append("\t" + markers[i].getAttribute(IMarker.MESSAGE) + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+            assertEquals(sb.toString(), 0, markers.length); 
+        }
+    }
+    
 }
