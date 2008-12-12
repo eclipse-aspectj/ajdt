@@ -28,10 +28,12 @@ import org.eclipse.jdt.core.ICompilationUnit;
  *
  */
 public class ProblemFinderTests4 extends UITestCase {
-    AJCompilationUnit inAspectFileCU;
-    AJCompilationUnit inJavaFileCU;
+    private AJCompilationUnit inAspectFileCU;
+    private AJCompilationUnit inJavaFileCU;
+    private AJCompilationUnit inSwitchFileCU;
     private IFile inAspectFile;
     private IFile inJavaFile;
+    private IFile inSwitchFile;
     private IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
@@ -43,6 +45,9 @@ public class ProblemFinderTests4 extends UITestCase {
 
         inJavaFile = proj.getFile("src/none/AspectWithThisJava.java"); //$NON-NLS-1$
         inJavaFileCU = new AJCompilationUnit(inJavaFile);
+        
+        inSwitchFile = proj.getFile("src/none/AspectWithSwitch.aj"); //$NON-NLS-1$
+        inSwitchFileCU = new AJCompilationUnit(inSwitchFile);
         
     }
     protected void tearDown() throws Exception {
@@ -63,6 +68,16 @@ public class ProblemFinderTests4 extends UITestCase {
     public void testJavaFile() throws Exception {
         HashMap problems = new HashMap();
         AJCompilationUnitProblemFinder.processAJ(inJavaFileCU, 
+                AJWorkingCopyOwner.INSTANCE, problems, true, 
+                ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
+        
+        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+    }
+    
+    // tests for switch statements, bug 258685
+    public void testSwitchStatement() throws Exception {
+        HashMap problems = new HashMap();
+        AJCompilationUnitProblemFinder.processAJ(inSwitchFileCU, 
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
