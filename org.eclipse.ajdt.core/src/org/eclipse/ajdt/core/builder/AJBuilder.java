@@ -744,7 +744,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				switch (sourceDelta.getKind()) {
 					case IResourceDelta.ADDED :
 						IPath addedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
-						createFolder(addedPackagePath, outputFolder); // ensure package exists in the output folder
+						IContainer folder = createFolder(addedPackagePath, outputFolder); // ensure package exists in the output folder
+						
+						if (!outputFolder.equals(srcContainer)) {
+						    folder.setDerived(true);
+						}
 						// fall thru & collect all the resource files
 					case IResourceDelta.CHANGED :
 						IResourceDelta[] children = sourceDelta.getAffectedChildren();

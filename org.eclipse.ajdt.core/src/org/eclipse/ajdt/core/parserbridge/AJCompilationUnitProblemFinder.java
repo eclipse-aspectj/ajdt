@@ -497,7 +497,7 @@ public class AJCompilationUnitProblemFinder extends
         //  2. convert the type of the thing being casted into IProgramElement (maybe use JavaProject)
         //  3. get all AspectDeclarations on it
         //  4. see if the other type is added as a declare parent on it.
-        // problem: this is time consuming to perform, so don't do it now.
+        // problem: this is time consuming to perform, so don't do it now.  Wait until someone asks for it.
         
         return true;
     }
