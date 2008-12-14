@@ -203,6 +203,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 			}
 			AJProjectModelFactory.getInstance().removeModelForProject(project);
+			
+			copyResources(ijp);
 	        
 		} else {
 		    // doing an incremental build
@@ -654,6 +656,82 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	}
 
 	/**
+	 * Copies over all non-excluded resources into the out folders.
+	 * 
+	 * Called during a full build
+	 * 
+	 * @param javaProject
+	 */
+	private void copyResources(IJavaProject project) throws CoreException {
+	    IClasspathEntry[] srcEntries = getSrcClasspathEntry(project);
+
+        for (int i = 0, l = srcEntries.length; i < l; i++) {
+            IClasspathEntry srcEntry = srcEntries[i];
+            IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
+            IPath outPath = srcEntry.getOutputLocation();
+            if (outPath == null) {
+               outPath = project.getOutputLocation();
+            }
+            outPath = outPath.removeFirstSegments(1);
+            if (!srcPath.equals(outPath)) {
+                final char[][] inclusionPatterns = ((ClasspathEntry) srcEntry)
+                        .fullInclusionPatternChars();
+                final char[][] exclusionPatterns = ((ClasspathEntry) srcEntry)
+                        .fullExclusionPatternChars();
+        
+                final IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
+                final int segmentsToRemove = srcContainer.getLocation().segmentCount();
+                final IContainer outContainer = getContainerForGivenPath(outPath,project.getProject());
+                IResourceVisitor copyVisitor = new IResourceVisitor() {
+                    public boolean visit(IResource resource) throws CoreException {
+                        if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
+                            return false;
+                        }
+
+                        switch (resource.getType()) {
+                        case IResource.FOLDER:
+                            // ensure folder exists and is derived
+                            IPath outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                            IFolder outFolder = (IFolder) createFolder(outPath, outContainer);
+                            
+                            if (!outFolder.equals(outContainer)) {
+                                outFolder.setDerived(true);
+                            }
+                            break;
+
+                        case IResource.FILE:
+                            // if this is not a CU, then copy over and mark as derived
+                            if (! isSourceFile(resource)) {
+                                outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                                IFile outFile = outContainer.getFile(outPath);
+                                if (!outFile.exists()) {
+                                    resource.copy(outFile.getFullPath(), true, null);
+                                }
+                                outFile.setDerived(true);
+                            }
+                            break;
+                        }
+                        return true;
+                    }
+
+                };
+                
+                srcContainer.accept(copyVisitor);
+                
+            }
+        }
+	}
+    
+    boolean isSourceFile(IResource resource) {
+        String extension = resource.getFileExtension();
+        return extension != null && (
+                extension.equals("java") ||
+                extension.equals("aj"));
+    }
+    
+    
+
+    /**
 	 * Copies non-src resources to the output directory (bug 78579). The main
 	 * part of this method was taken from 
 	 * {@link org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta)}
@@ -707,6 +785,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return true;
 	}
 
+	
 	/**
 	 * Copies non-src resources to the output directory (bug 78579). The main
 	 * part of this method was taken from 
