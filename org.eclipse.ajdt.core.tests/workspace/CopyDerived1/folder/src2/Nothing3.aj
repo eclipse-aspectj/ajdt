@@ -1,0 +1,4 @@
+
+public aspect Nothing3 {
+
+}
