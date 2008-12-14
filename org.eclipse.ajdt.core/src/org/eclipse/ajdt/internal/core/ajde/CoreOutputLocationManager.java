@@ -138,12 +138,15 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		boolean isUsingNonDefaultInpathOutfolder = inpathOutFolder != null;
 
 		try {
-			defaultOutput = workspacePathToFile(jProject.getOutputLocation());
+			IPath outputLocationPath = jProject.getOutputLocation();
+            defaultOutput = workspacePathToFile(outputLocationPath);
 			allOutputFolders.add(defaultOutput);
 			
 			
 			fileSystemPathToIContainer.put(defaultOutput.getAbsolutePath(), 
-			        workspaceRoot.getFolder(jProject.getOutputLocation()));
+			        project.getFullPath().equals(outputLocationPath) 
+			                ? (IContainer) project
+			                : (IContainer) workspaceRoot.getFolder(outputLocationPath));
 
 			
 			// store separate output folders in map

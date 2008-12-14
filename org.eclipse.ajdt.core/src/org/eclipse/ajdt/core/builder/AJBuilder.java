@@ -682,6 +682,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 final IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
                 final int segmentsToRemove = srcContainer.getLocation().segmentCount();
                 final IContainer outContainer = getContainerForGivenPath(outPath,project.getProject());
+                if (outContainer.getType() == IResource.FOLDER && (! outContainer.exists())) {
+                    // also ensure parent folders exist
+                    createFolder(outPath, getProject(), false);
+                }
                 IResourceVisitor copyVisitor = new IResourceVisitor() {
                     public boolean visit(IResource resource) throws CoreException {
                         if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
@@ -692,7 +696,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         case IResource.FOLDER:
                             // ensure folder exists and is derived
                             IPath outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
-                            IFolder outFolder = (IFolder) createFolder(outPath, outContainer);
+                            IFolder outFolder = (IFolder) createFolder(outPath, outContainer, true);
                             
                             if (!outFolder.equals(outContainer)) {
                                 outFolder.setDerived(true);
@@ -823,7 +827,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				switch (sourceDelta.getKind()) {
 					case IResourceDelta.ADDED :
 						IPath addedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
-						createFolder(addedPackagePath, outputFolder); // ensure package exists in the output folder
+						createFolder(addedPackagePath, outputFolder, true); // ensure package exists in the output folder
 						// fall thru & collect all the resource files
 					case IResourceDelta.CHANGED :
 						IResourceDelta[] children = sourceDelta.getAffectedChildren();
@@ -840,7 +844,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 								IFolder srcFolder = javaProject.getProject().getFolder(srcPath);
 								if (srcFolder.getFolder(removedPackagePath).exists()) {
 									// only a package fragment was removed, same as removing multiple source files
-									createFolder(removedPackagePath, outputFolder); // ensure package exists in the output folder
+									createFolder(removedPackagePath, outputFolder, true); // ensure package exists in the output folder
 									IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
 									for (int j = 0, m = removedChildren.length; j < m; j++) {
 										copyResources(javaProject,removedChildren[j], srcEntry, segmentCount);
@@ -876,7 +880,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 								outputFile.delete(IResource.FORCE, null);
 							}
 							AJLog.log(AJLog.BUILDER,"Copying added file " + resourcePath);//$NON-NLS-1$
-							createFolder(resourcePath.removeLastSegments(1), outputFolder); 
+							createFolder(resourcePath.removeLastSegments(1), outputFolder, true); 
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
 							Util.setReadOnly(outputFile, false); // just in case the original was read only
@@ -906,7 +910,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 								outputFile.delete(IResource.FORCE, null);
 							}
 							AJLog.log(AJLog.BUILDER,"Copying changed file " + resourcePath);//$NON-NLS-1$
-							createFolder(resourcePath.removeLastSegments(1), outputFolder);
+							createFolder(resourcePath.removeLastSegments(1), outputFolder, true);
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
 							Util.setReadOnly(outputFile, false); // just in case the original was read only
@@ -935,7 +939,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * Creates folder with the given path in the given output folder. This method is taken
 	 * from org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.createFolder(..)
 	 */
-	private IContainer createFolder(IPath packagePath, IContainer outputFolder) throws CoreException {
+	private IContainer createFolder(IPath packagePath, IContainer outputFolder, boolean derived) throws CoreException {
 		// Fix for 98663 - create the bin folder if it doesn't exist
 		if(!outputFolder.exists() && outputFolder instanceof IFolder) {
 			((IFolder)outputFolder).create(true, true, null);
@@ -944,9 +948,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		IFolder folder = outputFolder.getFolder(packagePath);
 		folder.refreshLocal(IResource.DEPTH_ZERO,null);
 		if (!folder.exists()) {
-			createFolder(packagePath.removeLastSegments(1), outputFolder);
+			createFolder(packagePath.removeLastSegments(1), outputFolder, derived);
 			folder.create(true, true, null);
-			folder.setDerived(true);
+			folder.setDerived(derived);
 			folder.refreshLocal(IResource.DEPTH_ZERO,null);
 		}
 		return folder;
