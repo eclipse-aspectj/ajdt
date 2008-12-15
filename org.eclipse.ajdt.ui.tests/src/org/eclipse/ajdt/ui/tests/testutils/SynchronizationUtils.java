@@ -79,10 +79,9 @@ public class SynchronizationUtils {
 		for (int i= 0; i < jobs.length; i++) {
 			Job job= jobs[i];
 			int state= job.getState();
-			// ignore Mylyn's Flush Cache Job
-			// it is always running and we don't 
-			// care about it
+			//ignore jobs we don't care about
 			if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+			        !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
 					(state == Job.RUNNING || state == Job.WAITING)) {
 				return false;
 			}
