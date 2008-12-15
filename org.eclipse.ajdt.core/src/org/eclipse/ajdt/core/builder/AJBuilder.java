@@ -203,6 +203,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 			}
 			AJProjectModelFactory.getInstance().removeModelForProject(project);
+			
+			copyResources(ijp);
 	        
 		} else {
 		    // doing an incremental build
@@ -654,6 +656,99 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	}
 
 	/**
+	 * Copies over all non-excluded resources into the out folders.
+	 * 
+	 * Called during a full build
+	 * 
+	 * @param javaProject
+	 */
+	private void copyResources(IJavaProject project) throws CoreException {
+	    IClasspathEntry[] srcEntries = getSrcClasspathEntry(project);
+
+        for (int i = 0, l = srcEntries.length; i < l; i++) {
+            IClasspathEntry srcEntry = srcEntries[i];
+            IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
+            IPath outPath = srcEntry.getOutputLocation();
+            if (outPath == null) {
+               outPath = project.getOutputLocation();
+            }
+            outPath = outPath.removeFirstSegments(1);
+            if (!srcPath.equals(outPath)) {
+                final char[][] inclusionPatterns = ((ClasspathEntry) srcEntry)
+                        .fullInclusionPatternChars();
+                final char[][] exclusionPatterns = ((ClasspathEntry) srcEntry)
+                        .fullExclusionPatternChars();
+        
+                final IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
+                final int segmentsToRemove = srcContainer.getLocation().segmentCount();
+                final IContainer outContainer = getContainerForGivenPath(outPath,project.getProject());
+                if (outContainer.getType() == IResource.FOLDER && (! outContainer.exists())) {
+                    // also ensure parent folders exist
+                    createFolder(outPath, getProject(), false);
+                }
+                IResourceVisitor copyVisitor = new IResourceVisitor() {
+                    public boolean visit(IResource resource) throws CoreException {
+                        if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
+                            return false;
+                        } else if (resource.getType() == IResource.PROJECT) {
+                            return true;
+                        }
+                        
+                        if (resource.getType() == IResource.FOLDER || !isSourceFile(resource)) {
+                            // refresh to ensure that resource has not been deleted from file system
+                            resource.refreshLocal(IResource.DEPTH_ZERO, null);
+    
+                            if (resource.exists()) {
+                                switch (resource.getType()) {
+                                case IResource.FOLDER:
+                                    // ensure folder exists and is derived
+                                    IPath outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                                    IFolder outFolder = (IFolder) createFolder(outPath, outContainer, true);
+                                    
+                                    // outfolder itself should not be derived
+                                    if (!outFolder.equals(outContainer)) {
+                                        outFolder.setDerived(true);
+                                    }
+                                    break;
+        
+                                case IResource.FILE:
+                                    // if this is not a CU, then copy over and mark as derived
+                                    if (! isSourceFile(resource)) {
+                                        outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                                        IFile outFile = outContainer.getFile(outPath);
+                                        // check to make sure that resource has not been deleted from the file
+                                        // system without a refresh
+                                        if (!outFile.exists()) {
+                                            resource.copy(outFile.getFullPath(), true, null);
+                                        }
+                                        outFile.setDerived(true);
+                                    }
+                                    break;
+                                }
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+
+                };
+                
+                srcContainer.accept(copyVisitor);
+                
+            }
+        }
+	}
+    
+    boolean isSourceFile(IResource resource) {
+        String extension = resource.getFileExtension();
+        return extension != null && (
+                extension.equals("java") ||
+                extension.equals("aj"));
+    }
+    
+    
+
+    /**
 	 * Copies non-src resources to the output directory (bug 78579). The main
 	 * part of this method was taken from 
 	 * {@link org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta)}
@@ -707,6 +802,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return true;
 	}
 
+	
 	/**
 	 * Copies non-src resources to the output directory (bug 78579). The main
 	 * part of this method was taken from 
@@ -744,11 +840,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				switch (sourceDelta.getKind()) {
 					case IResourceDelta.ADDED :
 						IPath addedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
-						IContainer folder = createFolder(addedPackagePath, outputFolder); // ensure package exists in the output folder
-						
-						if (!outputFolder.equals(srcContainer)) {
-						    folder.setDerived(true);
-						}
+						createFolder(addedPackagePath, outputFolder, true); // ensure package exists in the output folder
 						// fall thru & collect all the resource files
 					case IResourceDelta.CHANGED :
 						IResourceDelta[] children = sourceDelta.getAffectedChildren();
@@ -765,7 +857,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 								IFolder srcFolder = javaProject.getProject().getFolder(srcPath);
 								if (srcFolder.getFolder(removedPackagePath).exists()) {
 									// only a package fragment was removed, same as removing multiple source files
-									createFolder(removedPackagePath, outputFolder); // ensure package exists in the output folder
+									createFolder(removedPackagePath, outputFolder, true); // ensure package exists in the output folder
 									IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
 									for (int j = 0, m = removedChildren.length; j < m; j++) {
 										copyResources(javaProject,removedChildren[j], srcEntry, segmentCount);
@@ -801,7 +893,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 								outputFile.delete(IResource.FORCE, null);
 							}
 							AJLog.log(AJLog.BUILDER,"Copying added file " + resourcePath);//$NON-NLS-1$
-							createFolder(resourcePath.removeLastSegments(1), outputFolder); 
+							createFolder(resourcePath.removeLastSegments(1), outputFolder, true); 
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
 							Util.setReadOnly(outputFile, false); // just in case the original was read only
@@ -831,7 +923,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 								outputFile.delete(IResource.FORCE, null);
 							}
 							AJLog.log(AJLog.BUILDER,"Copying changed file " + resourcePath);//$NON-NLS-1$
-							createFolder(resourcePath.removeLastSegments(1), outputFolder);
+							createFolder(resourcePath.removeLastSegments(1), outputFolder, true);
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
 							Util.setReadOnly(outputFile, false); // just in case the original was read only
@@ -860,7 +952,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * Creates folder with the given path in the given output folder. This method is taken
 	 * from org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.createFolder(..)
 	 */
-	private IContainer createFolder(IPath packagePath, IContainer outputFolder) throws CoreException {
+	private IContainer createFolder(IPath packagePath, IContainer outputFolder, boolean derived) throws CoreException {
 		// Fix for 98663 - create the bin folder if it doesn't exist
 		if(!outputFolder.exists() && outputFolder instanceof IFolder) {
 			((IFolder)outputFolder).create(true, true, null);
@@ -869,9 +961,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		IFolder folder = outputFolder.getFolder(packagePath);
 		folder.refreshLocal(IResource.DEPTH_ZERO,null);
 		if (!folder.exists()) {
-			createFolder(packagePath.removeLastSegments(1), outputFolder);
+			createFolder(packagePath.removeLastSegments(1), outputFolder, derived);
 			folder.create(true, true, null);
-			folder.setDerived(true);
+			folder.setDerived(derived);
 			folder.refreshLocal(IResource.DEPTH_ZERO,null);
 		}
 		return folder;
@@ -935,8 +1027,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			    numberDeleted += cleanFolder(project, inpathOutfolder, refresh);
 			}
 			
-			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), deleted " //$NON-NLS-1$
-							+ numberDeleted + " .class files"); //$NON-NLS-1$
+			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), removed class files and derived resources"); //$NON-NLS-1$
 		}
 	}
 	
@@ -982,6 +1073,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * directories, recursively calls itself.
 	 * 
 	 * BUG 101489---also delete files marked as derived
+	 * BUG 253528---all folders below the output folder is marked as derived.
+	 * so entire out folder is wiped.
 	 */
 	private static int wipeFiles(IResource outputResource, final String fileExtension) {
        class WipeResources implements IResourceVisitor {
