@@ -691,31 +691,41 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
                             return false;
                         }
-
-                        switch (resource.getType()) {
-                        case IResource.FOLDER:
-                            // ensure folder exists and is derived
-                            IPath outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
-                            IFolder outFolder = (IFolder) createFolder(outPath, outContainer, true);
-                            
-                            if (!outFolder.equals(outContainer)) {
-                                outFolder.setDerived(true);
-                            }
-                            break;
-
-                        case IResource.FILE:
-                            // if this is not a CU, then copy over and mark as derived
-                            if (! isSourceFile(resource)) {
-                                outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
-                                IFile outFile = outContainer.getFile(outPath);
-                                if (!outFile.exists()) {
-                                    resource.copy(outFile.getFullPath(), true, null);
+                        
+                        if (resource.getType() == IResource.FOLDER || isSourceFile(resource)) {
+                            resource.refreshLocal(IResource.DEPTH_ZERO, null);
+    
+                            if (resource.exists()) {
+                                switch (resource.getType()) {
+                                case IResource.FOLDER:
+                                    // ensure folder exists and is derived
+                                    IPath outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                                    IFolder outFolder = (IFolder) createFolder(outPath, outContainer, true);
+                                    
+                                    // outfolder itself should not be derived
+                                    if (!outFolder.equals(outContainer)) {
+                                        outFolder.setDerived(true);
+                                    }
+                                    break;
+        
+                                case IResource.FILE:
+                                    // if this is not a CU, then copy over and mark as derived
+                                    if (! isSourceFile(resource)) {
+                                        outPath = resource.getLocation().removeFirstSegments(segmentsToRemove);
+                                        IFile outFile = outContainer.getFile(outPath);
+                                        // check to make sure that resource has not been deleted from the file
+                                        // system without a refresh
+                                        if (!outFile.exists()) {
+                                            resource.copy(outFile.getFullPath(), true, null);
+                                        }
+                                        outFile.setDerived(true);
+                                    }
+                                    break;
                                 }
-                                outFile.setDerived(true);
+                                return true;
                             }
-                            break;
                         }
-                        return true;
+                        return false;
                     }
 
                 };

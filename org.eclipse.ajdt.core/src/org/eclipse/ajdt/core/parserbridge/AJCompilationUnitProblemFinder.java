@@ -401,7 +401,7 @@ public class AJCompilationUnitProblemFinder extends
 
     private static String extractProblemRegion(
             CategorizedProblem categorizedProblem, ICompilationUnit unit) {
-        char[] contents = ((org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
+        char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         for (int i = categorizedProblem.getSourceStart(); 
                 i < categorizedProblem.getSourceEnd()+1 && i < contents.length; i++) {
@@ -411,7 +411,7 @@ public class AJCompilationUnitProblemFinder extends
     }
     
     private static String extractNextJavaIdentifier(ICompilationUnit unit, int start) {
-        char[] contents = ((org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
+        char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         int next = start;
         while (! Character.isJavaIdentifierStart(contents[next]) &&
