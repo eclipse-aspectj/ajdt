@@ -1014,8 +1014,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			    numberDeleted += cleanFolder(project, inpathOutfolder, refresh);
 			}
 			
-			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), deleted " //$NON-NLS-1$
-							+ numberDeleted + " .class files"); //$NON-NLS-1$
+			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), removed class files and derived resources"); //$NON-NLS-1$
 		}
 	}
 	
@@ -1061,6 +1060,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * directories, recursively calls itself.
 	 * 
 	 * BUG 101489---also delete files marked as derived
+	 * BUG 253528---all folders below the output folder is marked as derived.
+	 * so entire out folder is wiped.
 	 */
 	private static int wipeFiles(IResource outputResource, final String fileExtension) {
        class WipeResources implements IResourceVisitor {
