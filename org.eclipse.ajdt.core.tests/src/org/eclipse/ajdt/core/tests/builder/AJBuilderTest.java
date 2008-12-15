@@ -228,6 +228,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	}
 
 	public void testBug153682() throws Exception {
+	    Utils.setAutobuilding(false);
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
