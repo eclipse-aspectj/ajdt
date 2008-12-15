@@ -690,9 +690,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     public boolean visit(IResource resource) throws CoreException {
                         if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
                             return false;
+                        } else if (resource.getType() == IResource.PROJECT) {
+                            return true;
                         }
                         
-                        if (resource.getType() == IResource.FOLDER || isSourceFile(resource)) {
+                        if (resource.getType() == IResource.FOLDER || !isSourceFile(resource)) {
                             resource.refreshLocal(IResource.DEPTH_ZERO, null);
     
                             if (resource.exists()) {
