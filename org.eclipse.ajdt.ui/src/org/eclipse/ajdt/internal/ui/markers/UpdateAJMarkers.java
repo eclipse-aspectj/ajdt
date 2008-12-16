@@ -118,12 +118,15 @@ public class UpdateAJMarkers {
                         Set completedCUNames = new HashSet(frags.length, 1.0f);
                         IJavaElement[] cus = ((IPackageFragment) frags[j]).getChildren();
                         for (int k = 0; k < cus.length; k++) {
-                            // ignore duplicate compilation units
-                            IResource resource = cus[k].getResource();
-                            if (!completedCUNames.contains(resource.getName())) {
-                                subMonitor.subTask("Add markers for " + cus[k].getElementName());
-                                addMarkersForFile((ICompilationUnit) cus[k], ((ICompilationUnit) cus[k]).getResource());
-                                completedCUNames.add(resource.getName());
+                            // ignore any class files in the source folder (Bug 258698)
+                            if (cus[k].getElementType() == IJavaElement.COMPILATION_UNIT) {
+                                // ignore duplicate compilation units
+                                IResource resource = cus[k].getResource();
+                                if (!completedCUNames.contains(resource.getName())) {
+                                    subMonitor.subTask("Add markers for " + cus[k].getElementName());
+                                    addMarkersForFile((ICompilationUnit) cus[k], ((ICompilationUnit) cus[k]).getResource());
+                                    completedCUNames.add(resource.getName());
+                                }
                             }
                         }
                     }
