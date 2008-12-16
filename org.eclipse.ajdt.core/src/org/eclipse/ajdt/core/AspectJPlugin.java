@@ -23,8 +23,8 @@ import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.contribution.jdt.IsWovenTester;
-import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
+import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspace;
@@ -107,8 +107,13 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 		// variables
 		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		// Associations
-		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		// Declare annotation
+		"@type", "@method", "@field" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    
+    
+    public static final String[] declareAnnotationKeywords = { "type", "method", "field" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    
 	/**
 	 * Folder separator used by Eclipse in paths irrespective if on Windows or
 	 * *nix.

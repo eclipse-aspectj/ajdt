@@ -16,7 +16,6 @@ package org.eclipse.ajdt.core.reconcile;
 
 import java.util.HashMap;
 
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaModelMarker;

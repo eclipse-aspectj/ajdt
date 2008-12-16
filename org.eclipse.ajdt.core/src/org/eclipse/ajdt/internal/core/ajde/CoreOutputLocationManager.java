@@ -25,11 +25,14 @@ import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
@@ -45,15 +48,19 @@ import org.eclipse.jdt.core.JavaModelException;
 public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	private String projectName;
-	private IProject project;
-	private IJavaProject jProject;
-	
+	private final IProject project;
+	private final IJavaProject jProject;
+
 	// if there is more than one output directory then the default output
 	// location to use is recorded in the 'defaultOutput' field
 	private File defaultOutput;
 	
 	private Map /*String,File*/ srcFolderToOutput = new HashMap();
 	
+	// maps files in the file system to IFolders in the workspace
+	// this keeps track of output locations
+    private final Map /* String,IFolder */ fileSystemPathToIContainer = new HashMap();
+
 	private List /*File*/ allOutputFolders = new ArrayList();
 	
 	private List /*IPath*/ allSourceFolders = new ArrayList();
@@ -73,15 +80,30 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// if there is only one output directory then this is recorded in the
 	// 'commonOutputDir' field.
 	private File commonOutputDir;
-	
+    private IWorkspaceRoot workspaceRoot;
+
 	public CoreOutputLocationManager(IProject project) {
 		this.project = project;
+		this.workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		jProject = JavaCore.create(project);
         initSourceFolders();
 		if (!isUsingSeparateOutputFolders(jProject)) {
 			// using the same output directory therefore record this one
 			setCommonOutputDir();
 			allOutputFolders.add(commonOutputDir);
+
+			if (commonOutputDir != null) {
+    			try {
+    			    if (outputIsRoot) {
+                        fileSystemPathToIContainer.put(commonOutputDir.getAbsolutePath(), 
+                                project);
+    			    } else {
+                        fileSystemPathToIContainer.put(commonOutputDir.getAbsolutePath(), 
+                                workspaceRoot.getFolder(jProject.getOutputLocation()));
+    			    }
+                } catch (JavaModelException e) {
+                }
+			}
 		} else {
 			// need to record all possible output directories
 			init();
@@ -116,8 +138,17 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		boolean isUsingNonDefaultInpathOutfolder = inpathOutFolder != null;
 
 		try {
-			defaultOutput = workspacePathToFile(jProject.getOutputLocation());
+			IPath outputLocationPath = jProject.getOutputLocation();
+            defaultOutput = workspacePathToFile(outputLocationPath);
 			allOutputFolders.add(defaultOutput);
+			
+			
+			fileSystemPathToIContainer.put(defaultOutput.getAbsolutePath(), 
+			        project.getFullPath().equals(outputLocationPath) 
+			                ? (IContainer) project
+			                : (IContainer) workspaceRoot.getFolder(outputLocationPath));
+
+			
 			// store separate output folders in map
 			IClasspathEntry[] cpe = jProject.getRawClasspath();
 			outer: for (int i = 0; i < cpe.length; i++) {
@@ -154,13 +185,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 							srcFolder = path.toPortableString();
 						}
 						File out = workspacePathToFile(output);
-						srcFolderToOutput.put(srcFolder,out);
-						if(!allOutputFolders.contains(out)) {
-						    allOutputFolders.add(out);
+						srcFolderToOutput.put(srcFolder, out);
+						if (!allOutputFolders.contains(out)) {
+							allOutputFolders.add(out);
+
+							fileSystemPathToIContainer.put(out.getAbsolutePath(), 
+				                    workspaceRoot.getFolder(output));
 						}
 						if (outputIsRoot) {
 							// bug 153682: if the project is the source folder
-							//  then this output folder will always apply
+							// then this output folder will always apply
 							defaultOutput = out;
 						}
 						
@@ -185,21 +219,20 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		if (!isUsingSeparateOutputFolders(jProject)) {
 			return commonOutputDir;
 		}
-		if (resource==null || resource.toString()==null) {
+		if (resource == null || resource.toString() == null) {
 			return defaultOutput;
 		}
 		String fileName = resource.toString().replace('\\', '/');
-		if (projectName==null) {
-			projectName= jProject.getProject().getName();
-			if (projectName==null) {
-				AJLog.log(AJLog.DEFAULT,"CoreOutputLocationManager: cannot determine project name of this project: "+jProject); //$NON-NLS-1$
+		if (projectName == null) {
+			projectName = jProject.getProject().getName();
+			if (projectName == null) {
+				AJLog.log(AJLog.DEFAULT, "CoreOutputLocationManager: cannot determine project name of this project: " + jProject); //$NON-NLS-1$
 			}
 		}
 		int ind = fileName.indexOf(projectName);
 		if (ind != -1) {
 			String rest = fileName.substring(ind + projectName.length() + 1);
-			for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter
-					.hasNext();) {
+			for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
 				String src = (String) iter.next();
 				if (rest.startsWith(src)) {
 					File out = (File) srcFolderToOutput.get(src);
@@ -207,22 +240,21 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 				}
 			}
 		} else {
-		    // we might have a folder from a different project
-		    for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter
-                    .hasNext();) {
-                String src = (String) iter.next();
-                if (fileName.startsWith(src)) {
-                    File out = (File) srcFolderToOutput.get(src);
-                    return out;
-                }
-            }
+			// we might have a folder from a different project
+			for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
+				String src = (String) iter.next();
+				if (fileName.startsWith(src)) {
+					File out = (File) srcFolderToOutput.get(src);
+					return out;
+				}
+			}
 		}
 		return defaultOutput;
 	}
 
 	/**
-	 * @return true if there is more than one output directory being used
-	 * by this project and false otherwise
+	 * @return true if there is more than one output directory being used by
+	 *         this project and false otherwise
 	 */
 	private boolean isUsingSeparateOutputFolders(IJavaProject jp) {
 		if (getInpathOutputFolder() != null) {
@@ -241,10 +273,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Record the 'common output directory', namely the one where all 
-	 * the output goes
+	 * Record the 'common output directory', namely the one where all the output
+	 * goes
 	 */
 	private void setCommonOutputDir() {
 		IJavaProject jProject = JavaCore.create(project);
@@ -253,36 +285,35 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			workspaceRelativeOutputPath = jProject.getOutputLocation();
 		} catch (JavaModelException e) {
 			commonOutputDir = project.getLocation().toFile();
+            outputIsRoot = true;
 			return;
 		}
-		if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-			// root
+		if (workspaceRelativeOutputPath.segmentCount() == 1) { 
 			commonOutputDir = jProject.getResource().getLocation().toFile();
+			outputIsRoot = true;
 			return;
 		}
-		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
-				workspaceRelativeOutputPath);
+		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(workspaceRelativeOutputPath);
 		commonOutputDir = out.getLocation().toFile();
 	}
-	
+
 	private File workspacePathToFile(IPath path) {
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		if (path.segmentCount() == 1) {
 			// bug 153682: getFolder fails when the path is a project
-			IResource res = root.findMember(path);
+			IResource res = workspaceRoot.findMember(path);
 			outputIsRoot = true;
 			return res.getLocation().toFile();
 		}
-		IFolder out = root.getFolder(path);
-		
+		IFolder out = workspaceRoot.getFolder(path);
+
 		IPath outPath = out.getLocation();
 		if (outPath != null) {
-		    return outPath.toFile();
+			return outPath.toFile();
 		} else {
-		    return null;
+			return null;
 		}
-		
 	}
+	
 
 	/**
 	 * return all output directories used by this project
@@ -290,25 +321,25 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public List getAllOutputLocations() {
 		return allOutputFolders;
 	}
-	
+
 	public String getInpathOutputFolder() {
-        String inpathOutFolder = AspectJCorePreferences.getProjectInpathOutFolder(project);
-        // assume that the folder is valid...
-        // null means that the default out folder is used
-        return inpathOutFolder;
-    }
+		String inpathOutFolder = AspectJCorePreferences.getProjectInpathOutFolder(project);
+		// assume that the folder is valid...
+		// null means that the default out folder is used
+		return inpathOutFolder;
+	}
 
 	public File[] getTouchedClassFiles() {
-        return (File[]) touchedCUs.toArray(new File[touchedCUs.size()]);
-    }
+		return (File[]) touchedCUs.toArray(new File[touchedCUs.size()]);
+	}
 
 	public void resetTouchedClassFiles() {
-	    touchedCUs.clear();
+		touchedCUs.clear();
 	}
-	
+
 	/**
-	 * If there's only one output directory return this one, otherwise
-	 * return the one marked as default
+	 * If there's only one output directory return this one, otherwise return
+	 * the one marked as default
 	 */
 	public File getDefaultOutputLocation() {
 		if (!isUsingSeparateOutputFolders(jProject)) {
@@ -318,19 +349,68 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 	}
 
-    public String getSourceFolderForFile(File sourceFile) {
-        IPath sourceFilePath = new Path(sourceFile.getAbsolutePath());
-        IPath projLoc = project.getLocation();
-        if (projLoc.isPrefixOf(sourceFilePath)) {
-            sourceFilePath = sourceFilePath.setDevice(null).removeFirstSegments(projLoc.segmentCount()).makeRelative();        
-        }
-        
-        for (Iterator pathIter = allSourceFolders.iterator(); pathIter.hasNext();) {
-            IPath sourceFolderPath = (IPath) pathIter.next();
-            if (sourceFolderPath.isPrefixOf(sourceFilePath)) {
-                return sourceFolderPath.toPortableString();
+	public String getSourceFolderForFile(File sourceFile) {
+		IPath sourceFilePath = new Path(sourceFile.getAbsolutePath());
+		IPath projLoc = project.getLocation();
+		if (projLoc.isPrefixOf(sourceFilePath)) {
+			sourceFilePath = sourceFilePath.setDevice(null).removeFirstSegments(projLoc.segmentCount()).makeRelative();
+		}
+
+		for (Iterator pathIter = allSourceFolders.iterator(); pathIter.hasNext();) {
+			IPath sourceFolderPath = (IPath) pathIter.next();
+			if (sourceFolderPath.isPrefixOf(sourceFilePath)) {
+				return sourceFolderPath.toPortableString();
+			}
+		}
+		return null;
+	}
+
+	public void reportClassFileWrite(String outFileStr) {
+	    try {
+            outer:
+            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+                Map.Entry entry = (Map.Entry) pathIter.next();
+                String outFolderStr = (String)entry.getKey();
+                if (outFileStr.startsWith(outFolderStr)) {
+                    IContainer outFolder = (IContainer) entry.getValue();
+                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+                    
+                    if (! outFile.exists()) {
+                        outFile.refreshLocal(0, null);
+                    }
+                    
+                    if (outFile.exists()) {
+                        outFile.setDerived(true);
+                        
+                        String pathFromProject;
+                        IPath projectPath = project.getLocation();
+                        IPath outFilePath = new Path(outFileStr);
+                        if (projectPath.isPrefixOf(outFilePath)) {
+                            pathFromProject = outFilePath.removeFirstSegments(
+                                    projectPath.segmentCount()).makeRelative().toPortableString();
+                        } else {
+                            // location is outside of the workspace
+                            pathFromProject = outFileStr;
+                        }
+                        
+                        // only do this if output is not a source folder
+                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
+                            IContainer parent = outFile.getParent();
+                            inner:
+                            while (! parent.equals(outFolder) ) {
+                                parent.setDerived(true);
+                                parent = parent.getParent();
+                                if (parent == null) {
+                                    break inner;
+                                }
+                            }
+                        }
+                        break outer;
+                    }
+                }
+                
             }
+        } catch (CoreException e) {
         }
-        return null;
-    }
+	}
 }

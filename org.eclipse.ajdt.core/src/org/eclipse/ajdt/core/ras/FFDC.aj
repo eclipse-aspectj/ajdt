@@ -12,7 +12,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.ras;
 
-import org.aspectj.lang.*;
+import org.aspectj.lang.JoinPoint;
 import org.eclipse.core.runtime.OperationCanceledException;
 
 public abstract aspect FFDC {
