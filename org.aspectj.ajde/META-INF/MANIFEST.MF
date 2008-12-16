@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
-Bundle-SymbolicName: org.aspectj.ajde;singleton:=true
+Bundle-SymbolicName: org.aspectj.ajde; singleton:=true
 Bundle-Version: 92.2.29
 Bundle-ClassPath: ajde.jar
 Bundle-Activator: org.eclipse.core.internal.compatibility.PluginActivator
@@ -71,5 +71,5 @@ Require-Bundle: org.apache.ant,
  org.eclipse.core.runtime,
  org.eclipse.core.runtime.compatibility,
  org.eclipse.text,
- org.aspectj.weaver;bundle-version="1.6.3";visibility:=reexport
-Bundle-ActivationPolicy: lazy
+ org.aspectj.weaver;bundle-version="92.2.29";visibility:=reexport
+Eclipse-LazyStart: true
