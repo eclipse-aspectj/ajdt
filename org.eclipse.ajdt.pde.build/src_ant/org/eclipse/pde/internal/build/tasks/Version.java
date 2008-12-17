@@ -1,5 +1,5 @@
 /*
- * $Header: /home/data/cvs/tools/org.eclipse.ajdt/AJDT_src/org.eclipse.ajdt.pde.build/src_ant/org/eclipse/pde/internal/build/tasks/Attic/Version.java,v 1.1 2008/10/28 16:08:55 aclement Exp $
+ * $Header: /home/data/cvs/tools/org.eclipse.ajdt/AJDT_src/org.eclipse.ajdt.pde.build/src_ant/org/eclipse/pde/internal/build/tasks/Attic/Version.java,v 1.2 2008/12/17 00:57:42 aeisenberg Exp $
  * 
  * Copyright (c) OSGi Alliance (2004, 2006). All Rights Reserved.
  * 
@@ -37,7 +37,7 @@ import java.util.StringTokenizer;
  * <p>
  * <code>Version</code> objects are immutable.
  * 
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @since 1.3
  */
 

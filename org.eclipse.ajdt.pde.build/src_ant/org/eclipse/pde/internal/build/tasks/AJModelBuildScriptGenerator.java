@@ -45,6 +45,7 @@ import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.AntScript;
 import org.eclipse.pde.internal.build.ant.FileSet;
 import org.eclipse.pde.internal.build.ant.JavacTask;
+import org.eclipse.pde.internal.build.builder.BuildDirector;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer2_1;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
 import org.eclipse.pde.internal.build.builder.IClasspathComputer;
@@ -996,8 +997,9 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	 * Sets the featureGenerator.
 	 * @param featureGenerator The featureGenerator to set
 	 */
-	public void setFeatureGenerator(AJBuildDirector featureGenerator) {  // AspectJ Change
-		this.featureGenerator = featureGenerator;
+	public void setFeatureGenerator(BuildDirector featureGenerator) {  
+	    super.setFeatureGenerator(featureGenerator);  // AspectJ Change
+		this.featureGenerator = (AJBuildDirector) featureGenerator;  // AspectJ Change
 	}
 
 	/**
