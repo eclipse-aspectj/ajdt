@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<site pack200="true">
-	<description>
-	This update site provides the AspectJ feature and related
-	tools.
-	</description>
-	<!-- VERSION-STRING -->	
-	<feature id="org.eclipse.ajdt" version="@AJFVERSION@"
-	         url="features/org.eclipse.ajdt_@AJFVERSION@.jar">
-		<category name="org.eclipse.ajdt"/>
-	</feature>
-	<feature id="org.eclipse.ajdt.source" version="@AJFVERSION@"
-	         url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar">
-		<category name="org.eclipse.ajdt"/>
-	</feature>
-
-	<category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
+<site associateSitesURL="http://download.eclipse.org/tools/ajdt/34/update/associates34.xml">
+   <description>
+      This update site provides the AspectJ feature and related
+ tools.
+   </description>
+   <feature url="features/org.eclipse.ajdt_@AJFVERSION@.jar" id="org.eclipse.ajdt" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt"/>
+   </feature>
+   <feature url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar" id="org.eclipse.ajdt.source" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt"/>
+   </feature>
+   <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
 </site>
-  
