@@ -104,7 +104,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 
 	public ISourceRange getSourceRange() {
 		if (fSourceRangeEnd == 0)
-			return new SourceRange(fSourceRangeStart, name.length);
+			return new SourceRange(fSourceRangeStart, name != null ? name.length : 0);
 		return new SourceRange(fSourceRangeStart, fSourceRangeEnd - fSourceRangeStart + 1);
 	}
 

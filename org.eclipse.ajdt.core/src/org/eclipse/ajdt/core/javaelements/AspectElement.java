@@ -187,8 +187,15 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	}
 
 	public Accessibility getAJAccessibility() throws JavaModelException {
-		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
-		return info.getAJAccessibility();
+	    Object info = getElementInfo();
+	    if (info instanceof IAspectJElementInfo) {
+            IAspectJElementInfo ajInfo = (IAspectJElementInfo) info;
+            return ajInfo.getAJAccessibility();
+        } else {
+            // this happens when an aspect is converted to a class in the working copy
+            // but compiler is not aware of it.
+            return Accessibility.PUBLIC;
+        }
 	}
 
 	/* (non-Javadoc)

@@ -78,6 +78,10 @@ public class AspectRenameParticipant extends RenameParticipant {
 		pm.beginTask(CoreMessages.renameTypeReferences, ajs.size());
 		for (Iterator iter = ajs.iterator(); iter.hasNext();) {
 			AJCompilationUnit cu = (AJCompilationUnit) iter.next();
+			// ignore self because that is taken care of by other rename participants
+			if (fType.getParent().equals(cu) && fType.getElementName().equals(new String(cu.getMainTypeName()))) {
+			    continue;
+			}
 			IResource res = cu.getUnderlyingResource();
 			if (res.getType() == IResource.FILE) {
 				IFile file = (IFile)res;
