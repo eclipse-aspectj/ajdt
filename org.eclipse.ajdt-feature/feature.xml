@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<feature 
+<feature
       id="org.eclipse.ajdt"
       label="%featureName"
       version="1.6.2.qualifier"
@@ -19,7 +19,7 @@
    </license>
 
    <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/> 
    </url>
 
    <includes
@@ -43,8 +43,10 @@
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.jdt.debug.ui"/>
       <import plugin="org.eclipse.swt"/>
+      <import plugin="org.eclipse.equinox.weaving.aspectj"/>
+      <import plugin="org.eclipse.equinox.weaving.caching"/>
    </requires>
- 
+
    <plugin
          id="org.aspectj.ajde"
          download-size="0"
@@ -120,6 +122,13 @@
 
    <plugin
          id="org.eclipse.ajdt.mylyn.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.contribution.weaving.jdt"
          download-size="0"
          install-size="0"
          version="0.0.0"
