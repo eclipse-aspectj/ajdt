@@ -28,6 +28,7 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest5;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest6;
 import org.eclipse.ajdt.ui.tests.builder.Bug128803Test;
 import org.eclipse.ajdt.ui.tests.builder.Bug151818Test;
+import org.eclipse.ajdt.ui.tests.builder.Bug243376Test;
 import org.eclipse.ajdt.ui.tests.builder.BuildPathTests;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.CustomMarkersTest;
@@ -168,7 +169,8 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest6.class));
 		suite.addTest(new TestSuite(Bug128803Test.class));
-		suite.addTest(new TestSuite(Bug151818Test.class));
+        suite.addTest(new TestSuite(Bug151818Test.class));
+        suite.addTest(new TestSuite(Bug243376Test.class));
         suite.addTest(new TestSuite(BuilderTest.class));
         suite.addTest(new TestSuite(BuildPathTests.class));
         suite.addTest(new TestSuite(CustomMarkersTest.class));
@@ -182,6 +184,8 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
 		suite.addTest(new TestSuite(Bug154339Test.class));
+		
+		
 		if(is50) {
 			suite.addTest(new TestSuite(Bug117327Test.class));
 		}
