@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2008 SpringSource and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *      Andrew Eisenberg - Initial implementation
+ *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.reconciling;
 
 import java.util.HashMap;
@@ -37,18 +47,18 @@ public class ProblemFinderTests2 extends UITestCase {
     private IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
-        proj = createPredefinedProject("ITDTesting");
+        proj = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
         waitForJobsToComplete();
         setAutobuilding(false);
-        demoFile = proj.getFile("src/test/Demo.aj");
+        demoFile = proj.getFile("src/test/Demo.aj"); //$NON-NLS-1$
         demoCU = new AJCompilationUnit(demoFile);
-        myAspectFile = proj.getFile("src/test/MyAspect.aj");
+        myAspectFile = proj.getFile("src/test/MyAspect.aj"); //$NON-NLS-1$
         myAspectCU = new AJCompilationUnit(myAspectFile);
-        otherClassFile = proj.getFile("src/test/OtherClass.aj");
+        otherClassFile = proj.getFile("src/test/OtherClass.aj"); //$NON-NLS-1$
         otherClassCU = new AJCompilationUnit(otherClassFile);
-        myAspectFile2 = proj.getFile("src/test2/MyAspect2.aj");
+        myAspectFile2 = proj.getFile("src/test2/MyAspect2.aj"); //$NON-NLS-1$
         myAspectCU2 = new AJCompilationUnit(myAspectFile2);
-        otherClassFile2 = proj.getFile("src/test2/OtherClass2.aj");
+        otherClassFile2 = proj.getFile("src/test2/OtherClass2.aj"); //$NON-NLS-1$
         otherClassCU2 = new AJCompilationUnit(otherClassFile2);
         setAutobuilding(false);
         // remove the model
@@ -60,7 +70,7 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size());
+        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems2() throws Exception {
@@ -69,7 +79,7 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size());
+        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems3() throws Exception {
@@ -78,7 +88,7 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size());
+        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems4() throws Exception {
@@ -87,7 +97,7 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size());
+        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems5() throws Exception {
@@ -96,6 +106,6 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size());
+        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
     }
 }

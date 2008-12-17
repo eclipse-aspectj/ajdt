@@ -7,18 +7,14 @@ import hasitds.HasITDs;
 
 public aspect ITDAspect {
 	public List<String> HasITDs.list;
-	
-	public HasITDs.new(int x) {
-		this();
-		list = new ArrayList<String>();
-		makeList(5);
-		this.makeList(5);
-	} 
-	 
 	public java.util.List<String> HasITDs.makeList(int size) {
 		return new ArrayList<String>();
 	} 
-
+	public HasITDs.new(int x) {
+		this();
+		list = new ArrayList<String>(); 
+	} 
+	 
 	public static class Super {
 		public int inside =9;
 	}

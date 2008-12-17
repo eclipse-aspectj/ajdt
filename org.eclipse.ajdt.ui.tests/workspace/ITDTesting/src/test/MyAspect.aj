@@ -1,15 +1,15 @@
 package test;
 import java.util.List;
 
-public privileged aspect MyAspect {
-    java.util.List<String> Demo.list = null;
+public aspect MyAspect {
+	List<String> Demo.list = null;
 	int Demo.x = 5;
 	
-	void Demo.foo(java.util.List<String> x) {
-		
+	void Demo.foo(List<String> x) {
+		MyAspect.hasAspect();
 	}
 	
-	public Demo.new(int x) {
+	public Demo.new(int x) { 
 		this();
 	}
 	
@@ -19,27 +19,31 @@ public privileged aspect MyAspect {
     
 	declare soft : Exception : execution(* *.nothing(..));
 	
-	declare @type: (Demo): @Deprecated;
-//	declare @field: (int Demo.x): @Deprecated;
-//	declare @method: (void Demo.foo(..): @Deprecated;
-//	declare @constructor: (public Demo.new(int)): @Deprecated;
-
 	
-	   protected pointcut s():
-	        execution(String Object+.toString(..));
-	   protected pointcut t():
-	        execution(void Demo.g(..));
+    protected pointcut s():
+        call(String Demo.toString(..));
 
     before (): s() {
     }
     after (): s() {
     }
-    void around (Demo d): t() && target(d) {
-        proceed(d);
+    void around (): s() {
+        proceed();
         return;
     }
     after () returning(): s() {
     }
     after () throwing(): s() {
+    	thisEnclosingJoinPointStaticPart.getClass();
+    	thisJoinPoint.getClass();
+    	thisJoinPointStaticPart.getClass();  
     }
+    
+    @interface MyAnnotation { }
+
+    // try out declare annotation
+    declare @field: int Demo.x: @MyAnnotation;
+    declare @method: void Demo.foo(..): @MyAnnotation;
+    declare @constructor: public Demo.new(int): @MyAnnotation; 
+
 }
