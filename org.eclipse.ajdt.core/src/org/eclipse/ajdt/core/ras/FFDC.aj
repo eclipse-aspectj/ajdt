@@ -12,11 +12,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.ras;
 
-import org.aspectj.lang.*;
+import org.aspectj.lang.JoinPoint;
 import org.eclipse.core.runtime.OperationCanceledException;
 
 public abstract aspect FFDC {
-	
 	/** 
 	 * Scope of FFDC policy e.g. packages, classes, methods is declared by
 	 * sub-aspect.

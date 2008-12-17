@@ -4,15 +4,14 @@ import java.lang.reflect.Field;
 
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
-import org.eclipse.ajdt.core.javaelements.NotImplementedException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
-import org.eclipse.jdt.internal.codeassist.ISearchRequestor;
 import org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
@@ -20,21 +19,30 @@ import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.NameLookup;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
-public class ITDAwareCancelableNameEnvironment extends
+public class ITDAwareNameEnvironment extends
         CancelableNameEnvironment {
 
-    public ITDAwareCancelableNameEnvironment(JavaProject project,
+    public ITDAwareNameEnvironment(JavaProject project,
             WorkingCopyOwner owner, IProgressMonitor monitor)
             throws JavaModelException {
         super(project, owner, monitor);
     }
+    
+    public ITDAwareNameEnvironment(JavaProject project, org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+        this(project, workingCopies == null || workingCopies.length == 0 ? 
+                DefaultWorkingCopyOwner.PRIMARY : workingCopies[0].getOwner(), 
+                null);
+    }
 
+
+    
 
     protected NameEnvironmentAnswer find(String typeName, String packageName) {
         if (packageName == null)
@@ -61,16 +69,16 @@ public class ITDAwareCancelableNameEnvironment extends
                     IType[] types;
                     
                     try {
+                        sourceType = maybeConvertToAspectType(sourceType);
+                        
                         // retrieve the requested type
                         sourceTypeInfo = (SourceTypeElementInfo) sourceType.getElementInfo();
-                        // find all siblings (other types declared in same unit, since may be used for name resolution)
+                        // find all siblings (other types declared at top level in same unit, since may be used for name resolution)
                         types = sourceTypeInfo.getHandle().getCompilationUnit().getTypes();
                     } catch (JavaModelException e) {
-                        // this might be an AspectElement
-                        // convert to an aspect element handle
-                        // and then try to recreate
-                        //  XXX this will only work if the type is a top-level aspect
-                        //  OK for now.
+                        // exception thrown if weaving turned off and element is AspectElement
+                        // try to recreate as AspectElement.
+                        // This will only work if the type is a top-level aspect
                         String ajHandle = sourceType.getHandleIdentifier();
                         sourceType = ((SourceType) AspectJCore.create(
                                 AspectJCore.convertToAspectHandle(ajHandle, sourceType)));
@@ -83,7 +91,7 @@ public class ITDAwareCancelableNameEnvironment extends
                         topLevelType = topLevelType.getEnclosingType();
                     }
                     
-                    ISourceType[] sourceTypes = new ISourceType[types.length];
+                    ISourceType[] sourceTypes = new ISourceType[Math.max(types.length, 1)];
                     
                     // in the resulting collection, ensure the requested type is the first one
                     ITDAwareSourceTypeInfo newInfo = new ITDAwareSourceTypeInfo(sourceTypeInfo, sourceType); // AspectJ Change
@@ -108,27 +116,6 @@ public class ITDAwareCancelableNameEnvironment extends
     }
 
 
-    public NameEnvironmentAnswer findType(char[] name, char[][] packageName) {
-        return super.findType(name, packageName);
-    }
-
-    public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
-        return super.findType(compoundTypeName);
-    }
-
-    public void findTypes(char[] prefix, boolean findMembers,
-            boolean camelCaseMatch, int searchFor, ISearchRequestor storage) {
-        super.findTypes(prefix, findMembers, camelCaseMatch, searchFor, storage);
-//        throw new NotImplementedException();
-
-    }
-
-    public void findExactTypes(char[] name, boolean findMembers, int searchFor,
-            ISearchRequestor storage) {
-//        super.findExactTypes(name, findMembers, searchFor, storage);
-        throw new NotImplementedException();
-    }
-
     private static Field restrictionField;
     private AccessRestriction getRestriction(NameLookup.Answer answer) {
         try {
@@ -147,6 +134,21 @@ public class ITDAwareCancelableNameEnvironment extends
     
     public void setUnitToSkip(ICompilationUnit unit) {
         this.unitToSkip = unit;
+    }
+    
+    // checks to see if this is really an aspect
+    private SourceType maybeConvertToAspectType(SourceType type) throws JavaModelException {
+        IParent parent = (IParent) type.getParent();
+        IJavaElement[] children = parent.getChildren();
+        String typeName = type.getElementName();
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementName().equals(typeName) &&
+                    children[i].getElementType() == IJavaElement.TYPE) {
+                // this can be an aspect type
+                return (SourceType) children[i];
+            }
+        }
+        return type;
     }
 
 }

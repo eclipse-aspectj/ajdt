@@ -20,10 +20,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
+import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -33,11 +37,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
 import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.eclipse.jdt.internal.compiler.IProblemFactory;
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -45,6 +49,7 @@ import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.eclipse.jdt.internal.core.CancelableProblemFactory;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -56,11 +61,14 @@ import org.eclipse.jdt.internal.core.util.Util;
  * Problem finder for AspectJ problems
  * Mostly copied from CompilationUnitProblemFinder
  * Changes Marked "// AspectJ Change"
+ * 
+ * Responsible for resolving types inside a compilation unit being reconciled,
+ * reporting the discovered problems to a given IProblemRequestor.
  */
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder {
 
-	private ICompilationUnit cu; // AspectJ Change
+	private CompilationUnit cu; // AspectJ Change
 
 	/**
 	 * @param environment
@@ -75,10 +83,16 @@ public class AJCompilationUnitProblemFinder extends
 			CompilerOptions compilerOptions,
 			ICompilerRequestor requestor, 
 			IProblemFactory problemFactory,
-			ICompilationUnit ajcu) { // AspectJ Change
+			CompilationUnit cu) { // AspectJ Change
 		super(environment, policy, compilerOptions, requestor, problemFactory);
-		this.cu = ajcu; // AspectJ Change
+		this.cu = cu; // AspectJ Change
 		initializeParser();
+		
+		// begin AspectJ Change
+		// the custom lookup environment will insert mock ITD elements
+		lookupEnvironment = 
+		    new ITDAwareLookupEnvironment(lookupEnvironment, environment);
+        // end AspectJ Change
 	}
 
 	/* (non-Javadoc)
@@ -107,9 +121,29 @@ public class AJCompilationUnitProblemFinder extends
 	    // AspectJ Change End
 	}
 
-
+	// AspectJ Change Begin
+	/**
+	 * Sets a flag so that ITDs will be inserted into units 
+	 */
+	protected void internalBeginToCompile(
+	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits,
+	        int maxUnits) {
+	    
+	    try {
+    	    // only insert ITDs for the units we are compiling directly
+    	    // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
+    	    // don't want to insert ITDs twice.
+    	    ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(true);
+    	    super.internalBeginToCompile(sourceUnits, maxUnits);
+	    } finally {
+	        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
+	    }
+	}
+	// AspectJ Change End
+	
+	
 	public static CompilationUnitDeclaration processAJ(
-	        ICompilationUnit unitElement, // AspectJ Change
+	        CompilationUnit unitElement, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
 	        HashMap problems,
 	        boolean creatingAST,
@@ -120,9 +154,9 @@ public class AJCompilationUnitProblemFinder extends
 
 	}
 	
-	public static CompilationUnitDeclaration processAJ(
-            ICompilationUnit unitElement, // AspectJ Change
-	        AJSourceElementParser2 parser, // AspectJ Change
+	public static CompilationUnitDeclaration processAJ( // AspectJ Change
+            CompilationUnit unitElement, // AspectJ Change
+	        CommentRecorderParser parser, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
 	        HashMap problems,
 	        boolean creatingAST,
@@ -136,41 +170,52 @@ public class AJCompilationUnitProblemFinder extends
         CancelableProblemFactory problemFactory = null;
         AJCompilationUnitProblemFinder problemFinder = null; // AspectJ Change
         try {
-            environment = new ITDAwareCancelableNameEnvironment(project,
-                    workingCopyOwner, monitor);
+            
+            // AspectJ Change begin
+            // use an ITDAware environment to ensure that ITDs are included for source types
+            environment = new ITDAwareNameEnvironment(project,
+                    workingCopyOwner, monitor);  
+            // AspectJ Change end
+
             problemFactory = new CancelableProblemFactory(monitor);
             problemFinder = new AJCompilationUnitProblemFinder( // AspectJ Change
                     environment,
                     getHandlingPolicy(),
-                    getCompilerOptions(
-                            project.getOptions(true),
-                            creatingAST,
-                            ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
+                    getCompilerOptions(project.getOptions(true), creatingAST, ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
                     getRequestor(), problemFactory, unitElement);
             CompilationUnitDeclaration unit = null;
-            org.eclipse.jdt.internal.compiler.env.ICompilationUnit compilerUnit = (org.eclipse.jdt.internal.compiler.env.ICompilationUnit) unitElement;
             if (parser != null) {
                 problemFinder.parser = parser;
                 try {
-                    unit = parser.parseCompilationUnit(
-                            compilerUnit, true/* full parse */, monitor);
-                    problemFinder.resolve(unit, compilerUnit,
-                            true, // verify methods
-                            true, // analyze code
-                            true); // generate code
+                    if (parser instanceof SourceElementParser) {
+                        unit = ((SourceElementParser) parser).parseCompilationUnit(
+                                unitElement, true/* full parse */, monitor);
+                        problemFinder.resolve(unit, unitElement,
+                                true, // verify methods
+                                true, // analyze code
+                                true); // generate code
+                    }
                 } catch (AbortCompilation e) {
                     problemFinder.handleInternalException(e, unit);
                 }
             } else {
-                unit = problemFinder.resolve(compilerUnit, 
+                unit = problemFinder.resolve(unitElement, 
                         true, // verify methods
                         true, // analyze code
                         true); // generate code
             }
+            
+            // AspectJ Change begin
+            // revert the compilation units that have ITDs in them
+            ((ITDAwareLookupEnvironment) problemFinder.lookupEnvironment).revertCompilationUnits();
+            // AspectJ Change end
+            
             CompilationResult unitResult = unit.compilationResult;
             CategorizedProblem[] unitProblems = unitResult.getProblems();
             int length = unitProblems == null ? 0 : unitProblems.length;
             if (length > 0) {
+                // AspectJ Change begin
+                // filter out spurious problems
                 CategorizedProblem[] categorizedProblems = new CategorizedProblem[length];
                 System.arraycopy(unitProblems, 0, categorizedProblems, 0,
                         length);
@@ -179,6 +224,7 @@ public class AJCompilationUnitProblemFinder extends
                     problems.put(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
                             categorizedProblems);
                 }
+                // AspectJ Change end
             }
             unitProblems = unitResult.getTasks();
             length = unitProblems == null ? 0 : unitProblems.length;
@@ -227,6 +273,9 @@ public class AJCompilationUnitProblemFinder extends
         }
 	}
 
+	
+	// AspectJ Change to the end---removes spurious problems
+	
 	/**
 	 * removes all problems that have come from 
 	 * valid ITDs
@@ -238,27 +287,15 @@ public class AJCompilationUnitProblemFinder extends
 	 * @return
 	 */
 	private static CategorizedProblem[] removeAJNonProblems(
-            CategorizedProblem[] categorizedProblems, ICompilationUnit unit) {
+            CategorizedProblem[] categorizedProblems, CompilationUnit unit) {
 	    
-	    // too many corner cases.  can't get ITD aware content assist working
-//        Set ajIdentifiers = gatherITDsForCU(unit);
-//        boolean hasModel;
-//        if (ajIdentifiers == null) {
-//            // project hasn't had a successful build yet
-//            hasModel = false;
-//            ajIdentifiers = new HashSet();
-//        } else {
-//            hasModel = true;
-//        }
-	    
-	    // instead, just remove all problems that might be related to ITDs
-	    boolean hasModel = false;
-	    Set ajIdentifiers = new HashSet();
-        ajIdentifiers.addAll(validAJNames);
+	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+	    boolean hasModel = model.hasModel();
+
         List newProblems = new LinkedList();
         for (int i = 0; i < categorizedProblems.length; i++) {
             // determine if this problem should be filtered
-            if (isARealProblem(categorizedProblems[i], ajIdentifiers, unit, hasModel)) {
+            if (isARealProblem(categorizedProblems[i], unit, hasModel)) {
                 newProblems.add(categorizedProblems[i]);
             }
         }
@@ -269,9 +306,8 @@ public class AJCompilationUnitProblemFinder extends
 
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
-	// XXX we are not doing ITD aware yet.  hasModel is always false
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, Set ajIdentifiers, ICompilationUnit unit, boolean hasModel) {
+            CategorizedProblem categorizedProblem, CompilationUnit unit, boolean hasModel) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -286,48 +322,26 @@ public class AJCompilationUnitProblemFinder extends
              id == IProblem.UndefinedField ||
              id == IProblem.UndefinedMethod ||
              id == IProblem.UndefinedConstructor ||
-             id == IProblem.IllegalCast)) {
+             id == IProblem.IllegalCast ||
+             id == IProblem.AbstractMethodMustBeImplemented)  // anonymous interface with ITDs implementing abstract method
+             ) {
             // if there is no model, don't take any chances.
             // everything that might be an ITD reference is ignored
             return false;
         }
         
-        if ((id == IProblem.UndefinedName ||
-             id == IProblem.UndefinedField) &&
-                   numArgs > 0 &&
-                   ajIdentifiers.contains(firstArg)) {
-               // possibly from an ITD
-               return false;
-           }
-
-        
-        if ((id == IProblem.UndefinedType ||
-             id == IProblem.UndefinedMethod) &&
-                numArgs >= 1 &&
-                ajIdentifiers.contains(firstArg) ||
-                ajIdentifiers.contains(secondArg)) {
-            // possibly from an ITD
+        if(numArgs > 0 && 
+                id == IProblem.UndefinedMethod &&
+                (extraAspectMethods.contains(firstArg)) || extraAspectMethods.contains(secondArg)) {
+            // probably hasAspect or aspectOf
             return false;
         }
-        
-        if (id == IProblem.UndefinedConstructor &&
-                numArgs > 0) {
-            String[] nameParts = firstArg.split("\\.");
-            if (nameParts.length > 0 && 
-                    ajIdentifiers.contains(nameParts[nameParts.length-1])) {
-                // sometimes the error for an undefined constructor uses 
-                // a fully qualified name in the error text.
-                return false;
-            }
-        }
-                
-                
                 
         if (numArgs > 1 &&
                 (id == IProblem.DuplicateField ||
                  id == IProblem.DuplicateMethod) &&
-                (validAJNames.contains(firstArg) ||
-                 validAJNames.contains(secondArg))) {
+                (aspectMemberNames.contains(firstArg) ||
+                 aspectMemberNames.contains(secondArg))) {
             // declare statement if more than one exist in a file
             // advice if more than one of the same kind exists in the aspect
             return false;
@@ -344,7 +358,7 @@ public class AJCompilationUnitProblemFinder extends
             }
             String[] parts = problemRegion.split("\\(");
             String name = parts[0].trim();
-            if (validAJNames.contains(name)) {
+            if (aspectMemberNames.contains(name)) {
                 // advice---before or after
                 return false;
             }
@@ -365,18 +379,32 @@ public class AJCompilationUnitProblemFinder extends
                 firstArg.equals(";") && secondArg.equals("FieldDeclaration")) {
             // might be a declare statement
             String problemRegion = extractProblemRegion(categorizedProblem, unit);
-            if (validAJNames.contains(problemRegion)) {
+            if (aspectMemberNames.contains(problemRegion)) {
                 return false;
             }
         }
 
+        try {
+            if (numArgs > 0 && 
+                    (id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedName) &&
+                   (adviceBodyNames.contains(firstArg) || adviceBodyNames.contains(secondArg) ) &&
+                   unit.getElementAt(categorizedProblem.getSourceStart()) instanceof AdviceElement) {
+                // proceed/thisJoinPoint... statement
+                return false;
+            }
+        } catch(JavaModelException e) {
+        }
+        
+        
         if (numArgs == 1 && id == IProblem.ParsingErrorDeleteToken &&
-                validAJNames.contains(firstArg)) {
+                aspectMemberNames.contains(firstArg)) {
             // the implements or extends clause of a declare statement
             return false;
         }
         
-        if (numArgs == 1 && id == IProblem.ParsingErrorDeleteToken && 
+        if (numArgs == 1 && 
+                id == IProblem.ParsingErrorDeleteToken &&
                 firstArg.equals("@")) {
             // likely to be declare annotation declaration
             // declare @type, declare @constructor, declare @method, declare @field
@@ -386,9 +414,32 @@ public class AJCompilationUnitProblemFinder extends
             }
         }
         
+        if (numArgs == 1 && id == IProblem.UndefinedType && declareAnnotationKinds.contains(firstArg)) {
+            // alternate error of declare annotations
+            return false;
+        }
+                
+        
+        
+        if (numArgs == 1 && id == IProblem.UndefinedType && firstArg.equals("declare")) {
+            // from a declare declaration
+            return false;
+        }
+        
+        if (numArgs == 1 && id == IProblem.UndefinedType && firstArg.equals("pointcut")) {
+            // from a pointcut declaration
+            return false;
+        }
+        
         try {
-            if (numArgs == 1 && id == IProblem.UndefinedName &&
-                    unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement) {
+            if (numArgs > 0 && 
+                    (id == IProblem.UndefinedName || 
+                     id == IProblem.UndefinedField ||
+                     id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedType ||
+                     id == IProblem.UndefinedConstructor)
+                    &&
+                    insideITD(categorizedProblem, unit)) {
                 // this is an intertype element inside of an aspect.
                 // it is likely that the problem is actually a reference to something added by an ITD
                 return false;
@@ -396,11 +447,68 @@ public class AJCompilationUnitProblemFinder extends
         } catch(JavaModelException e) {
         }
         
+        if (hasModel && id == IProblem.ShouldReturnValue && 
+                categorizedProblem.getSourceStart() == 0 && 
+                categorizedProblem.getSourceEnd() == 0) {
+            // from an inserted ITD that has already been removed
+            // this problem comes because the bodies of the inserted ITDs 
+            // are always empty even when there should be a return value
+            return false;
+        }
+        
+        if (hasModel && (
+                id == IProblem.NotVisibleType ||
+                id == IProblem.MethodReducesVisibility
+                ) && 
+                categorizedProblem.getSourceStart() == 0) {
+            // declare parents type that is not visible by current
+            // type.  this is fine as long as it is visible
+            // in the scope of the declare parents declaration.
+            return false;
+        }
+        
+        if (hasModel && id == IProblem.SuperInterfaceMustBeAnInterface && 
+                categorizedProblem.getSourceStart() == 0) {
+            // this error is from an declare parent interface
+            // that has been turned into a class because this
+            // interface has ITDs on it.
+            // See ITDAwareSourceTypeInfo
+            return false;
+        }
+        
+        try {
+            if (id == IProblem.ParameterMismatch && 
+                    insideITD(categorizedProblem, unit)) {
+                // Probably a reference to 'this' inside an ITD
+                // compiler thinks 'this' refers to the containing aspect
+                // not the target type
+                return false;
+            }
+        } catch (JavaModelException e) {
+        }
+        
+        // casting from a class to an interface that has been converted
+        // to a class (See ITDAwareSourceTypeInfo will be an error in the reconciler
+        // this is because the interface, which the compiler thinks is a class, is not
+        // added to the class's hierarchy and therefore a cast cannot occur.
+        // ignore for now.
+        // solution:
+        //  1. pass model into method
+        //  2. convert the type of the thing being casted into IProgramElement (maybe use JavaProject)
+        //  3. get all AspectDeclarations on it
+        //  4. see if the other type is added as a declare parent on it.
+        // problem: this is time consuming to perform, so don't do it now.  Wait until someone asks for it.
+        
         return true;
     }
 
+    private static boolean insideITD(CategorizedProblem categorizedProblem,
+            CompilationUnit unit) throws JavaModelException {
+        return unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement;
+    }
+
     private static String extractProblemRegion(
-            CategorizedProblem categorizedProblem, ICompilationUnit unit) {
+            CategorizedProblem categorizedProblem, CompilationUnit unit) {
         char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         for (int i = categorizedProblem.getSourceStart(); 
@@ -410,7 +518,7 @@ public class AJCompilationUnitProblemFinder extends
         return sb.toString();
     }
     
-    private static String extractNextJavaIdentifier(ICompilationUnit unit, int start) {
+    private static String extractNextJavaIdentifier(CompilationUnit unit, int start) {
         char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
         StringBuffer sb = new StringBuffer();
         int next = start;
@@ -425,60 +533,35 @@ public class AJCompilationUnitProblemFinder extends
         return sb.toString();
     }
 
-    // unused, but keep here in case we want to turn on ITD-aware problem reporting
-//    private static Set gatherITDsForCU(AJCompilationUnit unit) {
-//        try {
-//            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
-//            if (model.hasModel()) {
-//                Set/*String*/ allITDNames = new HashSet();
-//                IType[] types = unit.getAllTypes();
-//                for (int i = 0; i < types.length; i++) {
-//                    if (model.hasProgramElement(types[i])) {
-//                        List /*IRelationship*/ rels = model.getRelationshipsForElement(types[i], AJRelationshipManager.ASPECT_DECLARATIONS);
-//                        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-//                            IJavaElement je = (IJavaElement) relIter.next();
-//                            IProgramElement declareElt = model.javaElementToProgramElement(je);
-//                            if (declareElt != null && declareElt.getParent() != null && declareElt.getKind().isInterTypeMember()) { // checks to see if this element is valid
-//                                // should be fully qualified type and simple name
-//                                int lastDot = declareElt.getName().lastIndexOf('.');
-//                                String name = declareElt.getName().substring(lastDot+1);
-//                                allITDNames.add(name);
-//                            }
-//                        }
-//                    } else {
-//                        // there is a problem with one of the types 
-//                        // forget the whole thing and assume there is no model
-//                        return null;
-//                    }
-//                    
-//                }
-//                return allITDNames;
-//            }
-//        } catch (JavaModelException e) {
-//        }
-//        return null;
-//    }
-    
-    static final Set validAJNames = new HashSet();
+    static final Set aspectMemberNames = new HashSet();
     static {
-        // there will be more...
-        validAJNames.add("thisJoinPoint");
-        validAJNames.add("thisJoinPointStaticPart");
-        validAJNames.add("thisEnclosingJoinPointStaticPart");
-        validAJNames.add("parents");
-        validAJNames.add("declare");
-        validAJNames.add("after");
-        validAJNames.add("around");
-        validAJNames.add("before");
-        validAJNames.add("soft");
-        validAJNames.add("error");
-        validAJNames.add("pointcut");
-        validAJNames.add("implements");
-        validAJNames.add("extends");
-        validAJNames.add("proceed");
-        validAJNames.add("privileged");
+        aspectMemberNames.add("parents");
+        aspectMemberNames.add("declare");
+        aspectMemberNames.add("after");
+        aspectMemberNames.add("around");
+        aspectMemberNames.add("before");
+        aspectMemberNames.add("soft");
+        aspectMemberNames.add("error");
+        aspectMemberNames.add("pointcut");
+        aspectMemberNames.add("implements");
+        aspectMemberNames.add("extends");
+        aspectMemberNames.add("privileged");
     }
     
+    static final Set adviceBodyNames = new HashSet();
+    static {
+        adviceBodyNames.add("proceed");
+        adviceBodyNames.add("thisJoinPoint");
+        adviceBodyNames.add("thisJoinPointStaticPart");
+        adviceBodyNames.add("thisEnclosingJoinPointStaticPart");
+    }
+    
+    static final Set extraAspectMethods = new HashSet();
+    static {
+        extraAspectMethods.add("hasAspect");
+        extraAspectMethods.add("aspectOf");
+    }
+
     static final Set declareAnnotationKinds = new HashSet();
     static {
         declareAnnotationKinds.add("constructor");

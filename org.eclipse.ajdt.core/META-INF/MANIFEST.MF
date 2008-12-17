@@ -24,12 +24,17 @@ Export-Package: org.eclipse.ajdt.core,
  org.eclipse.ajdt.internal.core.parserbridge;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.ras;x-friends:="org.eclipse.ajdt.core.tests",
  org.eclipse.ajdt.internal.core.refactoring;x-friends:="org.eclipse.ajdt.core.tests"
-Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.pde.build;resolution:=optional,
- org.eclipse.core.resources,
- org.eclipse.jdt.core,
- org.eclipse.text,
- org.eclipse.ltk.core.refactoring,
- org.aspectj.ajde
-Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"
+Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.4.0,3.5.0)",
+ org.eclipse.pde.build;bundle-version="[3.4.0,3.5.0)";resolution:=optional,
+ org.eclipse.core.resources;bundle-version="[3.4.0,3.5.0)",
+ org.eclipse.jdt.core;bundle-version="[3.4.0,3.5.0)",
+ org.eclipse.text;bundle-version="[3.4.0,3.5.0)",
+ org.eclipse.ltk.core.refactoring;bundle-version="[3.4.0,3.5.0)",
+ org.aspectj.ajde;bundle-version="1.6.3";visibility:=reexport,
+ org.eclipse.pde.core;bundle-version="[3.4.0,3.5.0)";resolution:=optional
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"
+Import-Package: org.eclipse.contribution.jdt,
+ org.eclipse.contribution.jdt.cuprovider,
+ org.eclipse.contribution.jdt.itdawareness,
+ org.eclipse.contribution.jdt.sourceprovider

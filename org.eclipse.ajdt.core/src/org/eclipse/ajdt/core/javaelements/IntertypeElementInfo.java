@@ -15,6 +15,11 @@ package org.eclipse.ajdt.core.javaelements;
  */
 public class IntertypeElementInfo extends AspectJMemberElementInfo {
 	
+    int declaredModifiers;
+    
+    public IntertypeElementInfo() {
+    }
+    
 	protected char[] targetType;
 
 	public char[] getTargetType() {
@@ -23,4 +28,12 @@ public class IntertypeElementInfo extends AspectJMemberElementInfo {
 	public void setTargetType(char[] targetType) {
 		this.targetType = targetType;
 	}
+	
+	public void setDeclaredModifiers(int declaredModifiers) {
+        this.declaredModifiers = declaredModifiers;
+    }
+	public int getDeclaredModifiers() {
+        return declaredModifiers;
+    }
+	
 }

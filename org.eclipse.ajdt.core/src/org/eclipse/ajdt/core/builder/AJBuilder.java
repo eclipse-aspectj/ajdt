@@ -695,6 +695,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         }
                         
                         if (resource.getType() == IResource.FOLDER || !isSourceFile(resource)) {
+                            // refresh to ensure that resource has not been deleted from file system
                             resource.refreshLocal(IResource.DEPTH_ZERO, null);
     
                             if (resource.exists()) {

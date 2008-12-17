@@ -60,10 +60,23 @@
       </renameParticipant>
    </extension>
    <extension
+         point="org.eclipse.contribution.weaving.jdt.cuprovider">
+      <provider
+            class="org.eclipse.ajdt.core.javaelements.AJCompilationUnitProvider"
+            file_extension="aj">
+      </provider>
+   </extension>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.sourcetransformer">
+      <transformer
+            class="org.eclipse.ajdt.core.AJSourceTransformer"
+            file_extension="aj">
+      </transformer>
+   </extension>
+   <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
             class="org.eclipse.ajdt.core.AJDTPreferencesInitializer">
       </initializer>
    </extension>
- 
 </plugin>

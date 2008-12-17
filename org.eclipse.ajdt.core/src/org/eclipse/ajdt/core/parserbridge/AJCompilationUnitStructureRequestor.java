@@ -49,7 +49,6 @@ import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.jdt.internal.core.AnnotatableInfo;
 import org.eclipse.jdt.internal.core.CompilationUnitStructureRequestor;
@@ -135,6 +134,7 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.parameterNames = parameterNames;
 		mi.parameterTypes = parameterTypes;
 		mi.exceptionTypes = exceptionTypes;
+		mi.returnType = returnType;
 		
 		super.enterMethod(mi);
 	}
@@ -341,6 +341,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setNameSourceEnd(nameSourceEnd);
 				info.setTargetType(decl.getOnType().getTypeName()[0]);
 				info.setFlags(flags);
+				info.setDeclaredModifiers(decl.declaredModifiers);
 				info.setArgumentNames(parameterNames);
 				//info.setArgumentTypeNames(parameterTypes);
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);

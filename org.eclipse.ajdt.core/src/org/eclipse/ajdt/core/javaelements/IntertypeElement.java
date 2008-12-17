@@ -10,24 +10,20 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
-import org.eclipse.jdt.internal.core.SourceConstructorInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.SourceConstructorInfo;
 import org.eclipse.jdt.internal.core.SourceField;
 import org.eclipse.jdt.internal.core.SourceFieldElementInfo;
 import org.eclipse.jdt.internal.core.SourceMethod;
@@ -55,6 +51,7 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setAJKind(ipe.getKind());
             info.setAJModifiers(ipe.getModifiers());
             info.setFlags(ipe.getRawModifiers());
+            info.setDeclaredModifiers(info.getModifiers());
             info.setAJAccessibility(ipe.getAccessibility());
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             info.setSourceRangeStart(sourceLocation.getOffset());
@@ -65,13 +62,26 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setArgumentTypeNames(listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
             info.setReturnType(ipe.getCorrespondingType(true).toCharArray());
 	    } else {
+	        // no successful build yet, we don't know the contents
 	        info.setName(name.toCharArray());
 	        info.setAJKind(IProgramElement.Kind.ERROR);
 	    }
 	    return info;
 	}
-
 	
+	/**
+	 * override this cached info because it was before we had a successful build
+	 */
+	public Object getElementInfo() throws JavaModelException {
+	    IntertypeElementInfo info = (IntertypeElementInfo) super.getElementInfo();
+	    if (info.getAJKind() == IProgramElement.Kind.ERROR &&
+	            AJProjectModelFactory.getInstance().getModelForJavaElement(this).hasModel()) {
+	        // we have structure model now, but didn't before
+	        info = (IntertypeElementInfo) openWhenClosed(createElementInfo(), null);
+	    }
+	    return info;
+	}
+
 	
 	/**
 	 * @see JavaElement#getHandleMemento()
@@ -98,7 +108,7 @@ public class IntertypeElement extends AspectJMemberElement {
                     protected Object createElementInfo() {
                         ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo();
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setFlags(info.getModifiers());
+                        newInfo.setFlags(info.getDeclaredModifiers());
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setArgumentNames(info.getArgumentNames());
@@ -121,7 +131,7 @@ public class IntertypeElement extends AspectJMemberElement {
                         ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo();
                         newInfo.setChildren(info.getChildren());
                         newInfo.setReturnType(info.getReturnTypeName());
-                        newInfo.setFlags(info.getModifiers());
+                        newInfo.setFlags(info.getDeclaredModifiers());
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setArgumentNames(info.getArgumentNames());
@@ -142,7 +152,7 @@ public class IntertypeElement extends AspectJMemberElement {
                     protected Object createElementInfo() {
                         ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo();
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setFlags(info.getModifiers());
+                        newInfo.setFlags(info.getDeclaredModifiers());
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setTypeName(info.getReturnTypeName());

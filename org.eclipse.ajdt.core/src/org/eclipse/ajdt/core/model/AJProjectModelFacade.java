@@ -42,7 +42,6 @@ import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
-import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -80,7 +79,6 @@ import org.eclipse.jdt.internal.core.JavaElement;
  * {@link AJProjectModelFactory} class.
  */
 public class AJProjectModelFacade {
-    
     
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
     
@@ -191,8 +189,9 @@ public class AJProjectModelFacade {
             return ipe;
         } else {
             // occurs when the handles are not working properly
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-                    "Could not find the AspectJ program element for handle: " + handle));
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+//                    "Could not find the AspectJ program element for handle: " + 
+//                    handle, new RuntimeException()));
             return IHierarchy.NO_STRUCTURE;
         }
     }
@@ -229,7 +228,7 @@ public class AJProjectModelFacade {
      */
     public IProgramElement javaElementToProgramElement(IJavaElement je) {
         if (!isInitialized) {
-            return null;
+            return IHierarchy.NO_STRUCTURE;
         }
         String ajHandle = je.getHandleIdentifier();
         
@@ -237,13 +236,8 @@ public class AJProjectModelFacade {
             ajHandle = convertToAspectJBinaryHandle(ajHandle);
         }
         
-        
-        
         // check to see if we need to replace { (compilation unit) with * (aj compilation unit)
-        // must always have a * if the CU ends in .aj even if there are no Aspect elements
-        // in the file
-        // this occurs because AJDT does not have always have control over 
-        // the creation of ICompilationUnits.  See PackageFragment.getCompilationUnit()
+        // if using cuprovider, then aj compilation units have {, but needs to change to *
         ICompilationUnit cu =  null;
         if (je instanceof IMember) {
             cu = ((IMember) je).getCompilationUnit();
@@ -271,36 +265,15 @@ public class AJProjectModelFacade {
         
         ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
-        // this is a hack in place until Bug 249216 #22 is addressed
-        // Has been addressed, but keeping for now
-//        ajHandle = removeEscapesFromPaths(ajHandle);
-  
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
+            // occurs when the handles are not working properly
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+//                    "Could not find the AspectJ program element for handle: " + 
+//                    ajHandle, new RuntimeException()));
             return IHierarchy.NO_STRUCTURE;
         }
         return ipe;
-    }
-
-    /**
-     * remove escape charaters from the handle that are inside the
-     * path to the source folder
-     * See bug 249216 #22
-     * @param ajHandle
-     * @return
-     */
-    private String removeEscapesFromPaths(String ajHandle) {
-        int sourceFolderStart = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENTROOT);
-        int sourceFolderEnd = Math.max(ajHandle.indexOf(JavaElement.JEM_COMPILATIONUNIT), ajHandle.indexOf(AspectElement.JEM_ASPECT_CU));
-        if (sourceFolderEnd >= 0) {
-            String sourcePath = ajHandle.substring(sourceFolderStart, sourceFolderEnd);
-            String newSourcePath = sourcePath.replaceAll("\\\\", "");   
-            if (!newSourcePath.equals(sourcePath)) {
-                return ajHandle.substring(0, sourceFolderStart) + 
-                    newSourcePath + ajHandle.substring(sourceFolderEnd);
-            }
-        }
-        return ajHandle;
     }
 
     /**
@@ -346,7 +319,7 @@ public class AJProjectModelFacade {
         if (ajHandle.charAt(0) != '=') {
             return ERROR_JAVA_ELEMENT;
         }
-
+        
         String jHandle = ajHandle;
         
         
@@ -364,6 +337,12 @@ public class AJProjectModelFacade {
                     return getElementFromClassFile(jHandle);
                 }
             }
+        }
+
+        // if using cuprovider, then we don not use the * for Aspect compilation units,
+        // it uses the standard {
+        if (AspectJPlugin.USING_CU_PROVIDER) {
+            jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_COMPILATIONUNIT);
         }
 
         
@@ -392,8 +371,9 @@ public class AJProjectModelFacade {
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {
             // occurs when the handles are not working properly
-            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-                    "Could not find the Java program element for handle: " + jHandle));
+//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
+//                    "Could not find the Java program element for handle: " + 
+//                    jHandle, new RuntimeException()));
             return ERROR_JAVA_ELEMENT;
         }
         return je;
@@ -485,9 +465,13 @@ public class AJProjectModelFacade {
                 }
             }
         } catch (JavaModelException e) {
-            return null;
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                    AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
+            return ERROR_JAVA_ELEMENT;
         } catch (NullPointerException e) {
-            return null;
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                    AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
+            return ERROR_JAVA_ELEMENT;
         }
     }
 
@@ -517,7 +501,7 @@ public class AJProjectModelFacade {
             }
         }
         if (pkg == null) {
-            return null;
+            return (ICompilationUnit) ERROR_JAVA_ELEMENT;
         }
         ICompilationUnit[] cus = pkg.getCompilationUnits();
         int dollarIndex = typeName.lastIndexOf('$');
@@ -547,7 +531,7 @@ public class AJProjectModelFacade {
                     return cfs[i];
             }
         }
-        return null;
+        return (ICompilationUnit) ERROR_JAVA_ELEMENT;
     }
     
     private int offsetFromLine(ITypeRoot unit, ISourceLocation sloc) throws JavaModelException {
@@ -600,7 +584,7 @@ public class AJProjectModelFacade {
         }
         return false;
     }
-    
+
     /**
      * A hierarchy walker that trim off branches and cut its walk
      * short
@@ -660,7 +644,7 @@ public class AJProjectModelFacade {
      */
     public List/*IJavaElement*/ getRelationshipsForElement(IJavaElement je, AJRelationshipType relType) {
         if (!isInitialized) {
-            return null;
+            return Collections.EMPTY_LIST;
         }
         IProgramElement ipe = javaElementToProgramElement(je);
         List/*Relationship*/ relationships = relationshipMap.get(ipe);
@@ -674,12 +658,12 @@ public class AJProjectModelFacade {
                                 .hasNext();) {
                             String handle = (String) targetIter.next();
                             IJavaElement targetJe = programElementToJavaElement(handle);
-                            if (targetJe != null && targetJe != AJProjectModelFacade.ERROR_JAVA_ELEMENT) {
+                            if (targetJe != null && targetJe != ERROR_JAVA_ELEMENT) {
                                 relatedJavaElements.add(targetJe);
                             } else {
-                                AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, "Could not create a Java element with handle:\n" + handle 
-                                        + "\nthis probably means that something is wrong with AspectJ's handle creation mechansim.\n" +
-                                        "Post this to the AJDT mailing list and an AJDT developer can provide some feedback on this."));
+                                AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                                        AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
+                                        "with handle:\n" + handle, new RuntimeException()));
                             }
                         }
                     }
@@ -819,5 +803,39 @@ public class AJProjectModelFacade {
     
     public IProject getProject() {
         return project;
+    }
+    
+    public static String printHierarchy(IHierarchy h) {
+        final StringBuffer sb = new StringBuffer();
+        HierarchyWalker walker = new HierarchyWalker() {
+            int depth = 0;
+            int MAX = 200;
+            int curr = 0;
+            
+            protected void preProcess(IProgramElement node) {
+                if (curr < MAX) {
+                    sb.append(spaces(depth));
+                    sb.append(node.getHandleIdentifier());
+                    sb.append("\n");
+                } if (curr == MAX) {
+                    sb.append("...");
+                }
+                curr++;
+                depth+=2;
+            }
+            protected void postProcess(IProgramElement node) {
+                depth-=2;
+            }
+            
+            String spaces(int depth) {
+                StringBuffer sb = new StringBuffer();
+                for (int i = 0; i < depth; i++) {
+                    sb.append(" ");
+                }
+                return sb.toString();
+            }
+        };
+        h.getRoot().walk(walker);
+        return sb.toString();
     }
 }

@@ -21,7 +21,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
-import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
@@ -133,7 +133,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	public char[] getMainTypeName(){
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getMainTypeName();
 		}
 		String elementName = name;
@@ -172,7 +172,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	public IResource getResource(){
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getResource();
 		}
 		return ajFile;
@@ -182,14 +182,14 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * needs to return real path for organize imports 
 	 */
 	public IPath getPath() {
-		if (AspectJPlugin.usingCUprovider || ajFile == null) {
+		if (AspectJPlugin.USING_CU_PROVIDER || ajFile == null) {
 			return super.getPath();
 		}
 		return ajFile.getFullPath();
 	}
 	
 	public IResource getUnderlyingResource() throws JavaModelException {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getUnderlyingResource();
 		}
 		return ajFile;
@@ -199,7 +199,10 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (!(info instanceof AJCompilationUnitInfo)){
 			info = new AJCompilationUnitInfo();
 		}
-		super.generateInfos(info, newElements, monitor);
+		// only generate infos if on build path of the project.
+		if (getJavaProject().isOnClasspath(this)) {
+		    super.generateInfos(info, newElements, monitor);
+		}
 	}
 	
 	/**
@@ -207,7 +210,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * makes things a little messy
 	 */
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info;
+	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info; 
 
        if(ajFile == null) {
            return false;
@@ -652,7 +655,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	/**
 	 * this method is a copy of {@link Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, CompletionRequestor, WorkingCopyOwner, ITypeRoot)}
-	 * The only change is that we need to create an {@link ITDAwareCancelableNameEnvironment}, not  standard {@link SearchableEnvironment}.
+	 * The only change is that we need to create an {@link ITDAwareNameEnvironment}, not  standard {@link SearchableEnvironment}.
      * 
 	 * @param cu
 	 * @param unitToSkip
@@ -686,7 +689,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
 	    JavaProject project = (JavaProject) getJavaProject();
-	    ITDAwareCancelableNameEnvironment environment = new ITDAwareCancelableNameEnvironment((JavaProject) getJavaProject(), owner, null);
+	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment((JavaProject) getJavaProject(), owner, null);
 
 	    // set unit to skip
 	    environment.setUnitToSkip(unitToSkip);
@@ -812,18 +815,17 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * @see JavaElement#getHandleMementoDelimiter()
 	 */
 	protected char getHandleMementoDelimiter() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleMementoDelimiter();
 		}
 		return AspectElement.JEM_ASPECT_CU;
 	}
 	
 	public String getHandleIdentifier() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleIdentifier();
 		}
-		String callerName = (new RuntimeException()).getStackTrace()[1]
-				.getClassName();
+		String callerName = (new RuntimeException()).getStackTrace()[1].getClassName();
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		// are we being called in the context of a delete operation?
 		if (callerName.equals(deletionClass)) {
