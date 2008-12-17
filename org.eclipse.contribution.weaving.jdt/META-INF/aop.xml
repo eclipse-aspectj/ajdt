@@ -1,0 +1,10 @@
+<aspectj>
+<aspects>
+<aspect name="org.eclipse.contribution.jdt.IsWovenTester"/>
+<aspect name="org.eclipse.contribution.jdt.sourceprovider.SourceTransformerAspect"/>
+<aspect name="org.eclipse.contribution.jdt.cuprovider.CompilationUnitProviderAspect"/>
+<aspect name="org.eclipse.contribution.jdt.imagedescriptor.ImageDescriptorSelectorAspect"/>
+<aspect name="org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect"/>
+</aspects>
+</aspectj>
+

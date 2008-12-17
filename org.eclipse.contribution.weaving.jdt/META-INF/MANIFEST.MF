@@ -1,0 +1,35 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JDT Weaving
+Bundle-SymbolicName: org.eclipse.contribution.weaving.jdt;singleton:=true
+Bundle-Version: 1.6.2.qualifier
+Require-Bundle: 
+ org.aspectj.runtime,
+ org.eclipse.equinox.weaving.aspectj;bundle-version="1.0.0";resolution:=optional,
+ org.eclipse.equinox.weaving.caching;bundle-version="1.0.0";resolution:=optional,
+ org.eclipse.osgi;bundle-version="3.4.0",
+ org.eclipse.core.runtime;bundle-version="3.4.0",
+ org.eclipse.jdt.core;bundle-version="3.4.0",
+ org.eclipse.jdt.ui;bundle-version="3.4.0",
+ org.eclipse.jface;bundle-version="3.4.0",
+ org.eclipse.ui;bundle-version="3.4.0",
+ org.eclipse.debug.ui;bundle-version="3.4.0";resolution:=optional
+Bundle-Activator: org.eclipse.contribution.jdt.JDTWeavingPlugin
+Export-Package: 
+ org.eclipse.contribution.jdt;uses:="org.osgi.framework,org.eclipse.core.runtime",
+ org.eclipse.contribution.jdt.cuprovider;uses:="org.eclipse.jdt.core,org.eclipse.jdt.internal.core",
+ org.eclipse.contribution.jdt.imagedescriptor;uses:="org.eclipse.jface.resource",
+ org.eclipse.contribution.jdt.itdawareness;
+  uses:="org.eclipse.jdt.internal.compiler.env,
+   org.eclipse.jdt.core,
+   org.eclipse.jdt.internal.core,
+   org.eclipse.jdt.internal.compiler,
+   org.eclipse.jdt.internal.compiler.ast,
+   org.eclipse.core.runtime",
+ org.eclipse.contribution.jdt.sourceprovider;uses:="org.eclipse.jdt.internal.compiler.env"
+Eclipse-SupplementBundle: org.eclipse.jdt.core,
+ org.eclipse.jdt.ui,
+ org.eclipse.jdt.debug.ui
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-Vendor: eclipse.org
+Bundle-ActivationPolicy: lazy
