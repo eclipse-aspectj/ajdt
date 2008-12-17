@@ -376,7 +376,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
-			    JavaUI.getWorkingCopyManager().connect(input);	
 				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
 				if (unit != null){

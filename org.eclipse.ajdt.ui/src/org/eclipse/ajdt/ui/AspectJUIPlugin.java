@@ -239,8 +239,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * point, but there doesn't seem to be one.
 	 */
 	private void checkTemplatesInstalled() {
-		TemplateStore codeTemplates = JavaPlugin.getDefault()
-				.getTemplateStore();
+	    TemplateStore codeTemplates = null;
+	    try {
+    		codeTemplates = JavaPlugin.getDefault()
+    				.getTemplateStore();
+	    } catch (Exception e) {
+	        // a problem occurred while loading templates (Bug 259033)
+	        // just ignore and try the next time.
+	        return;
+	    }
 		// bug 90791: don't add templates if they are already there
 		// bug 125998: using pertypewithin because it was the most recently added
 		if (codeTemplates.findTemplate("pertypewithin") == null) { //$NON-NLS-1$
