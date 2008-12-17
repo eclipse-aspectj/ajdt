@@ -41,6 +41,7 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.ajdt.core.tests.weaving.ITDAwareHierarchyTests;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -104,6 +105,9 @@ public class AllCoreTests {
 		
 		// refactoring tests
 		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
+
+		
+		suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
 		
 		return suite;
 	}

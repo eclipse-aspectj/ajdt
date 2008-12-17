@@ -50,13 +50,13 @@ public class AJCoreTest extends AJDTCoreTestCase {
 						"Demo.java", "CompilationUnit" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "=TJP Example/src<tjp{Demo.java[Demo~main", "main", //$NON-NLS-1$ //$NON-NLS-2$
 						"Demo.java", "SourceMethod" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "=TJP Example/src<tjp*GetInfo.aj", "GetInfo.aj", //$NON-NLS-1$ //$NON-NLS-2$
+				{ "=TJP Example/src<tjp{GetInfo.aj", "GetInfo.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"GetInfo.aj", "AJCompilationUnit" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "=TJP Example/src<tjp*GetInfo.aj}GetInfo", "GetInfo", //$NON-NLS-1$ //$NON-NLS-2$
+				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo", "GetInfo", //$NON-NLS-1$ //$NON-NLS-2$
 						"GetInfo.aj", "AspectElement" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "=TJP Example/src<tjp*GetInfo.aj}GetInfo~println", //$NON-NLS-1$
+				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo~println", //$NON-NLS-1$
 						"println", "GetInfo.aj", "SourceMethod" }, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				{ "=TJP Example/src<tjp*GetInfo.aj}GetInfo&around", //$NON-NLS-1$
+				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo&around", //$NON-NLS-1$
 						"around", "GetInfo.aj", "AdviceElement" } }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		compareWithHandles(testHandles);
 	}
@@ -87,18 +87,18 @@ public class AJCoreTest extends AJDTCoreTestCase {
 				{ methodHandle, "method-call(void bean.Point.setX(int))", //$NON-NLS-1$
 						"Demo.java", "AJCodeElement" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{
-						"=Bean Example/src<bean*BoundPoint.aj}BoundPoint&around&QPoint;", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;", //$NON-NLS-1$
 						"around", "BoundPoint.aj", "AdviceElement" }, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				{
-						"=Bean Example/src<bean*BoundPoint.aj}BoundPoint)Point.hasListeners)QString;", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint)Point.hasListeners)QString;", //$NON-NLS-1$
 						"Point.hasListeners", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"IntertypeElement" }, //$NON-NLS-1$
 				{
-						"=Bean Example/src<bean*BoundPoint.aj}BoundPoint`declare parents", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents", //$NON-NLS-1$
 						"declare parents", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"DeclareElement" }, //$NON-NLS-1$
 				{
-						"=Bean Example/src<bean*BoundPoint.aj}BoundPoint`declare parents!2", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents!2", //$NON-NLS-1$
 						"declare parents", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"DeclareElement" } //$NON-NLS-1$
 
@@ -120,7 +120,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		// note that the elements referred to by the handles need to exist
 		// in the workspace
 		String[][] testHandles = { {
-				"=Spacewar Example/src<spacewar*Ship.aj[Ship+helmCommandsCut+QShip;", "helmCommandsCut", //$NON-NLS-1$ //$NON-NLS-2$
+				"=Spacewar Example/src<spacewar{Ship.aj[Ship+helmCommandsCut+QShip;", "helmCommandsCut", //$NON-NLS-1$ //$NON-NLS-2$
 				"Ship.aj", "PointcutElement" }, //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		compareWithHandles(testHandles);
@@ -258,12 +258,6 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	}
 
 	public static void checkHandle(String origAjHandle, AJProjectModelFacade model) {
-	    // only in here temporarily until Andy fixes the bug
-	    // if you (by "you" I mean someone who's not "me")
-	    // see this here, then it is safe to delete.
-	    if (!origAjHandle.startsWith("=")) {
-	        return;
-	    }
 	    
 	    IJavaElement origJavaElement = model.programElementToJavaElement(origAjHandle);
 		String origJavaHandle = origJavaElement.getHandleIdentifier();
