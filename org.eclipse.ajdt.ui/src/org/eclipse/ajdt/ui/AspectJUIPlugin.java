@@ -25,7 +25,6 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
-import org.eclipse.ajdt.internal.core.parserbridge.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
 import org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider;
@@ -48,6 +47,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
+import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -60,9 +61,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
-import org.eclipse.jdt.ui.JavaUI;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -125,8 +123,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
-	
-	
+
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
 
@@ -242,8 +239,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * point, but there doesn't seem to be one.
 	 */
 	private void checkTemplatesInstalled() {
-		TemplateStore codeTemplates = JavaPlugin.getDefault()
-				.getTemplateStore();
+	    TemplateStore codeTemplates = null;
+	    try {
+    		codeTemplates = JavaPlugin.getDefault()
+    				.getTemplateStore();
+	    } catch (Exception e) {
+	        // a problem occurred while loading templates (Bug 259033)
+	        // just ignore and try the next time.
+	        return;
+	    }
 		// bug 90791: don't add templates if they are already there
 		// bug 125998: using pertypewithin because it was the most recently added
 		if (codeTemplates.findTemplate("pertypewithin") == null) { //$NON-NLS-1$
@@ -285,14 +289,14 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// notified if resources are added/deleted or their content changed.
 
 		// listener for aspectj model
-		if (!AspectJPlugin.usingCUprovider) {
+//		if (!AspectJPlugin.USING_CU_PROVIDER) {
 			AspectJPlugin.getWorkspace().addResourceChangeListener(
 					new AJCompilationUnitResourceChangeListener(),
 					IResourceChangeEvent.PRE_CLOSE
 							| IResourceChangeEvent.PRE_DELETE
 							| IResourceChangeEvent.POST_CHANGE
 							| IResourceChangeEvent.PRE_BUILD);
-		}
+//		}
 		
 		// set the UI version of core operations
 		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
@@ -314,7 +318,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		checkAspectJVersion();
 
-		if (!AspectJPlugin.usingCUprovider) {
+		if (!AspectJPlugin.USING_CU_PROVIDER) {
 			AJCompilationUnitManager.INSTANCE
 					.initCompilationUnits(AspectJPlugin.getWorkspace());
 			AJDTUtils.refreshPackageExplorer();

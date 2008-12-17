@@ -1931,6 +1931,12 @@ M4 = Platform-specific fourth key
         </viewerContentBinding>
      </extension>
      <extension
+           point="org.eclipse.contribution.weaving.jdt.imagedescriptorselector">
+        <selector
+              class="org.eclipse.ajdt.internal.ui.resources.AJImageDescriptorSelector">
+        </selector>
+     </extension>  
+     <extension
            point="org.eclipse.ui.editors.documentProviders">
         <provider
               class="org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider"

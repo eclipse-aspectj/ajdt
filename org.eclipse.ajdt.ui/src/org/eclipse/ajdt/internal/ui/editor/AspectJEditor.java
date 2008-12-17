@@ -376,7 +376,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
-			    JavaUI.getWorkingCopyManager().connect(input);	
 				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
 				if (unit != null){
@@ -485,7 +484,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		// Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files 
 		if(isEditingAjFile) {
 			IViewPart view = getEditorSite().getPage().findView(JavaUI.ID_PACKAGES);
-			if(view != null) {
+			if(view != null && view instanceof IPackagesViewPart) {  // can be ErrorViewPart
 				IPackagesViewPart packageExplorer = (IPackagesViewPart)view;
 				if(packageExplorer.isLinkingEnabled()) {
 					IFileEditorInput fInput = (IFileEditorInput) input;

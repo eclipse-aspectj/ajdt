@@ -218,6 +218,23 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		private final IToken fAnnotationToken;
 		private final String fVersion;
 		private boolean fIsVersionMatch;
+		
+		// begin AspectJ change
+		private final IToken fDeclareAnnotationToken;
+		private String[] exceptions;
+		public void setExceptions(String[] exceptions) {
+		    this.exceptions = exceptions;
+		}
+		
+		private boolean isException(String candidate) {
+		    for (int i = 0; i < exceptions.length; i++) {
+                if (candidate.equals(exceptions[i])) {
+                    return true;
+                }
+            }
+		    return false;
+		}
+        // end AspectJ change
 
 		/**
 		 * Creates a new rule.
@@ -231,9 +248,10 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		 * @param currentVersion the current
 		 *        <code>JavaCore.COMPILER_SOURCE</code> version
 		 */
-		public AnnotationRule(IToken interfaceToken, Token annotationToken, String version, String currentVersion) {
+		public AnnotationRule(IToken interfaceToken, Token annotationToken, String version, String currentVersion) {  // AspectJ Change
 			fInterfaceToken= interfaceToken;
 			fAnnotationToken= annotationToken;
+			fDeclareAnnotationToken = interfaceToken;  // AspectJ Change
 			fVersion= version;
 			setSourceVersion(currentVersion);
 		}
@@ -261,10 +279,15 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 				scanner.reset();
 				return Token.UNDEFINED;
 			}
-
+			
 			if ("interface".equals(buffer.toString())) //$NON-NLS-1$
 				return fInterfaceToken;
 
+			// begin AspectJ Change
+			if (isException(buffer.toString())) {
+			    return fDeclareAnnotationToken;
+			}
+			// end AspectJ Change
 			while (readSegment(new ResettableScanner(scanner))) {
 				// do nothing
 			}
@@ -447,10 +470,12 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 			wordRule.addWord(fgConstants[i], token);
 	
 		// AspectJ Change begin - add AJ keywords
+		atInterfaceRule.setExceptions(AspectJPlugin.declareAnnotationKeywords);
+		
 		WordRule ajDotWordRule = new DotWordRule(new JavaWordDetector());
 		
-		WordRule ajBracketRule = new BracketWordRule(new JavaWordDetector());
-		
+        WordRule ajBracketRule = new BracketWordRule(new JavaWordDetector());
+        
 		// This is a bit fragile because it depends on positions in the ajKeywords array
 		// but they don't change very often so should be ok..
 		for (int i = 0; i < AspectJPlugin.ajKeywords.length; i++) {

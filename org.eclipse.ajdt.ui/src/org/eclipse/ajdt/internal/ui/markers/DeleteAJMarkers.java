@@ -6,6 +6,7 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -58,26 +59,42 @@ public class DeleteAJMarkers {
         SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, 4);
 
         // Delete all the existing markers
-        subMonitor.subTask("Delete advises markers");
-        project.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
-                true, IResource.DEPTH_INFINITE);
+        try {
+            subMonitor.subTask("Delete advises markers");
+            project.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
+                    true, IResource.DEPTH_INFINITE);
+        } catch (ResourceException e) {
+            // project has been closed
+        }
         subMonitor.worked(1);
         
-        subMonitor.subTask("Delete advice markers");
-        project.deleteMarkers(
-                IAJModelMarker.SOURCE_ADVICE_MARKER, true,
-                IResource.DEPTH_INFINITE);
+        try {
+            subMonitor.subTask("Delete advice markers");
+            project.deleteMarkers(
+                    IAJModelMarker.SOURCE_ADVICE_MARKER, true,
+                    IResource.DEPTH_INFINITE);
+        } catch (ResourceException e) {
+            // project has been closed
+        }
         subMonitor.worked(1);
 
-        subMonitor.subTask("Delete declare markers");
-        project.deleteMarkers(
-                IAJModelMarker.DECLARATION_MARKER, true,
-                IResource.DEPTH_INFINITE);
+        try {
+            subMonitor.subTask("Delete declare markers");
+            project.deleteMarkers(
+                    IAJModelMarker.DECLARATION_MARKER, true,
+                    IResource.DEPTH_INFINITE);
+        } catch (ResourceException e) {
+            // project has been closed
+        }
         subMonitor.worked(1);
         
-        subMonitor.subTask("Delete custom markers");
-        project.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
-                true, IResource.DEPTH_INFINITE);
+        try {
+            subMonitor.subTask("Delete custom markers");
+            project.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
+                    true, IResource.DEPTH_INFINITE);
+        } catch (ResourceException e) {
+            // project has been closed
+        }
         subMonitor.worked(1);
 
         if (subMonitor.isCanceled()) {

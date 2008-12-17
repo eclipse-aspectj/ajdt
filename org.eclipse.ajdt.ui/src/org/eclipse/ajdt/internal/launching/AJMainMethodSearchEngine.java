@@ -64,39 +64,43 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 				.getProjects();
 		List mainList = new ArrayList(Arrays.asList(mainTypes));
 
-		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
-		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
-		double ticksPerProject = Math.floor(100F / (float) projects.length);
-		if (ticksPerProject < 1) {
-			ticksPerProject = 1;
+		// when using the CU provider, then main methods in aspect types are properly found
+		// so doing this again would give duplicates
+		if (!AspectJPlugin.USING_CU_PROVIDER) {
+    		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
+    		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
+    		double ticksPerProject = Math.floor(100F / (float) projects.length);
+    		if (ticksPerProject < 1) {
+    			ticksPerProject = 1;
+    		}
+    		for (int i = 0; i < projects.length; i++) {
+    			try {
+    				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
+    					includedFiles = BuildConfig.getIncludedSourceFiles(projects[i]);
+    					IJavaProject jp = JavaCore.create(projects[i]);
+    					if (jp != null) {
+    						if (scope.encloses(jp)) {
+    							Set aspects = getAllAspects(jp);
+    							mainList.addAll(aspects);
+    						} else {
+    							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
+    							for (int j = 0; j < enclosingPaths.length; j++) {
+    								IPath path = enclosingPaths[j];
+    								if (path.equals(jp.getPath())) {
+    									IJavaElement[] children = jp.getChildren();
+    									mainList
+    											.addAll(searchJavaElements(scope, children));
+    								}
+    							}
+    						}
+    					}
+    				}
+    			} catch (Exception e) {
+    			}
+    			ajSearchMonitor.internalWorked(ticksPerProject);
+    		}
+    		ajSearchMonitor.done();
 		}
-		for (int i = 0; i < projects.length; i++) {
-			try {
-				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
-					includedFiles = BuildConfig.getIncludedSourceFiles(projects[i]);
-					IJavaProject jp = JavaCore.create(projects[i]);
-					if (jp != null) {
-						if (scope.encloses(jp)) {
-							Set aspects = getAllAspects(jp);
-							mainList.addAll(aspects);
-						} else {
-							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
-							for (int j = 0; j < enclosingPaths.length; j++) {
-								IPath path = enclosingPaths[j];
-								if (path.equals(jp.getPath())) {
-									IJavaElement[] children = jp.getChildren();
-									mainList
-											.addAll(searchJavaElements(scope, children));
-								}
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-			}
-			ajSearchMonitor.internalWorked(ticksPerProject);
-		}
-		ajSearchMonitor.done();
 		pm.done();
 		Object[] objects = mainList.toArray();
 		IType[] types = new IType[objects.length];

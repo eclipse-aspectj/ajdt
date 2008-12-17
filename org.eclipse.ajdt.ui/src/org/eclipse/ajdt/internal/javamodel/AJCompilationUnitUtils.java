@@ -39,7 +39,10 @@ public class AJCompilationUnitUtils {
 
 	protected static void removeFileFromModelAndCloseEditors(IFile file) {
 		AJCompilationUnitManager.INSTANCE.removeFileFromModel(file);
-		closeEditorForFile(file);
+		
+		// XXX don't know what the ramifications for commenting this out are
+		// This allows us to keep the editor open after a rename.
+//		closeEditorForFile(file);
 	}
 
 	private static void closeEditorForFile(IFile file) {
