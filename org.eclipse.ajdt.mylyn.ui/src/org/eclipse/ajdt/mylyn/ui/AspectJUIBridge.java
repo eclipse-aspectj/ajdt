@@ -37,7 +37,6 @@ import org.eclipse.ui.IEditorPart;
  * @author andrew
  *
  */
-@SuppressWarnings("restriction")
 public class AspectJUIBridge extends JavaUiBridge {
 
 	public AspectJUIBridge() {
