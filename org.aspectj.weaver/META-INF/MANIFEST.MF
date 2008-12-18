@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
-Bundle-SymbolicName: org.aspectj.weaver
+Bundle-SymbolicName: org.aspectj.weaver;singleton:=true
 Bundle-Version: 92.2.29
 Bundle-ClassPath: aspectjweaver.jar
 Bundle-Vendor: %providerName
@@ -25,4 +25,5 @@ Export-Package: org.aspectj.apache.bcel,
  org.aspectj.weaver.loadtime.definition,
  org.aspectj.weaver.patterns,
  org.aspectj.weaver.reflect,
+ org.aspectj.weaver.model,
  org.aspectj.weaver.tools

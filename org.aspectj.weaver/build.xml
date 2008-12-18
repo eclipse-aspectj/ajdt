@@ -16,7 +16,7 @@ Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
 
 	<target name="init">
 		<mkdir dir="${build.dir}" />
-		<mkdir dir="dist" /> 
+		<mkdir dir="dist" />
 	</target>
 
 	<target name="clean" depends="init">
