@@ -1,6 +1,6 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>thisJoinPoint</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="language.html" title="Chapter 2. The AspectJ Language"><link rel="previous" href="language-interType.html" title="Inter-type declarations"><link rel="next" href="examples.html" title="Chapter 3. Examples"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">thisJoinPoint</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="language-interType.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 2. The AspectJ Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="examples.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="language-thisJoinPoint"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="language-thisJoinPoint"></a>thisJoinPoint</h2></div></div><p>
+   <title>thisJoinPoint</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="language.html" title="Chapter 2. The AspectJ Language"><link rel="previous" href="language-interType.html" title="Inter-type declarations"><link rel="next" href="examples.html" title="Chapter 3. Examples"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">thisJoinPoint</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="language-interType.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 2. The AspectJ Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="examples.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="language-thisJoinPoint"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="language-thisJoinPoint"></a>thisJoinPoint</h2></div></div><p>
       AspectJ provides a special reference variable,
       <tt>thisJoinPoint</tt>, that contains reflective
       information about the current join point for the advice to use. The
@@ -13,7 +13,7 @@
       <tt>thisJoinPoint</tt> has a <tt>toString()</tt>
       method that makes quick-and-dirty tracing easy:
     </p><pre class="programlisting">
-  class TraceNonStaticMethods {
+  aspect TraceNonStaticMethods {
       before(Point p): target(p) &amp;&amp; call(* *(..)) {
           System.out.println("Entering " + thisJoinPoint + " in " + p);
       }

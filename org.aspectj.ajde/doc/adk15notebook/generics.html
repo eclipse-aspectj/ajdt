@@ -28,13 +28,13 @@
             all of its type parameters (for example, <tt>List&lt;String&gt;</tt> or <tt>List&lt;Food&gt;</tt>).
         </p><p>A generic type may be declared with multiple type parameters. In addition to simple type parameter names, type
         parameter declarations can also constrain the set of types allowed by using the <tt>extends</tt> 
-        keyword. Some examples follow:</p><div class="variablelist"><dl><dt><a name="d0e1722"></a><span class="term">class Foo&lt;T&gt; {...}</span></dt><dd><p><a name="d0e1725"></a>A class <tt>Foo</tt> with one type parameter, <tt>T</tt>.
-            </p></dd><dt><a name="d0e1734"></a><span class="term">class Foo&lt;T,S&gt; {...}</span></dt><dd><p><a name="d0e1737"></a>A class <tt>Foo</tt> with two type parameters, <tt>T</tt> and <tt>S</tt>.
-            </p></dd><dt><a name="d0e1749"></a><span class="term">class Foo&lt;T extends Number&gt; {...}</span></dt><dd><p><a name="d0e1752"></a>A class <tt>Foo</tt> with one type parameter <tt>T</tt>, where <tt>T</tt> must be
+        keyword. Some examples follow:</p><div class="variablelist"><dl><dt><a name="d0e1700"></a><span class="term">class Foo&lt;T&gt; {...}</span></dt><dd><p><a name="d0e1703"></a>A class <tt>Foo</tt> with one type parameter, <tt>T</tt>.
+            </p></dd><dt><a name="d0e1712"></a><span class="term">class Foo&lt;T,S&gt; {...}</span></dt><dd><p><a name="d0e1715"></a>A class <tt>Foo</tt> with two type parameters, <tt>T</tt> and <tt>S</tt>.
+            </p></dd><dt><a name="d0e1727"></a><span class="term">class Foo&lt;T extends Number&gt; {...}</span></dt><dd><p><a name="d0e1730"></a>A class <tt>Foo</tt> with one type parameter <tt>T</tt>, where <tt>T</tt> must be
             instantiated as the type <tt>Number</tt> or a subtype of <tt>Number</tt>.
-            </p></dd><dt><a name="d0e1770"></a><span class="term">class Foo&lt;T, S extends T&gt; {...}</span></dt><dd><p><a name="d0e1773"></a>A class <tt>Foo</tt> with two type parameters, <tt>T</tt> and <tt>S</tt>. <tt>Foo</tt>
+            </p></dd><dt><a name="d0e1748"></a><span class="term">class Foo&lt;T, S extends T&gt; {...}</span></dt><dd><p><a name="d0e1751"></a>A class <tt>Foo</tt> with two type parameters, <tt>T</tt> and <tt>S</tt>. <tt>Foo</tt>
             must be instantiated with a type <tt>S</tt> that is a subtype of the type specified for parameter <tt>T</tt>.
-            </p></dd><dt><a name="d0e1794"></a><span class="term">class Foo&lt;T extends Number &amp; Comparable&gt; {...}</span></dt><dd><p><a name="d0e1797"></a>A class <tt>Foo</tt> with one type parameter, <tt>T</tt>. <tt>Foo</tt>
+            </p></dd><dt><a name="d0e1772"></a><span class="term">class Foo&lt;T extends Number &amp; Comparable&gt; {...}</span></dt><dd><p><a name="d0e1775"></a>A class <tt>Foo</tt> with one type parameter, <tt>T</tt>. <tt>Foo</tt>
             must be instantiated with a type that is a subtype of <tt>Number</tt> and that implements <tt>Comparable</tt>.
             </p></dd></dl></div></div><div class="sect2"><a name="using-generic-and-parameterized-types"></a><div class="titlepage"><div><h3 class="title"><a name="using-generic-and-parameterized-types"></a>Using Generic and Parameterized Types</h3></div></div><p>You declare a variable (or a method/constructor argument) of a parameterized type  by specifying a concrete type specfication for each type parameter in
 	        the generic type. The following example declares a list of strings and a list of numbers:</p><pre class="programlisting">
@@ -53,25 +53,25 @@
 	     When declaring parameterized types, the <tt>?</tt> wildcard may be used, which stands for "some type".
 	     The <tt>extends</tt> and <tt>super</tt> keywords may be used in conjunction with the wildcard
 	     to provide upper and lower bounds on the types that may satisfy the type constraints. For example:
-	    </p><div class="variablelist"><dl><dt><a name="d0e1849"></a><span class="term">List&lt;?&gt;</span></dt><dd><p><a name="d0e1852"></a>A list containing elements of some type, the type of the elements in the list is unknown.
-            </p></dd><dt><a name="d0e1855"></a><span class="term">List&lt;? extends Number&gt;</span></dt><dd><p><a name="d0e1858"></a>A list containing elements of some type that extends Number, the exact type of the elements in the list is unknown.
-            </p></dd><dt><a name="d0e1861"></a><span class="term">List&lt;? super Double&gt;</span></dt><dd><p><a name="d0e1864"></a>A list containing elements of some type that is a super-type of Double, the exact type of the elements in the list is unknown.
+	    </p><div class="variablelist"><dl><dt><a name="d0e1827"></a><span class="term">List&lt;?&gt;</span></dt><dd><p><a name="d0e1830"></a>A list containing elements of some type, the type of the elements in the list is unknown.
+            </p></dd><dt><a name="d0e1833"></a><span class="term">List&lt;? extends Number&gt;</span></dt><dd><p><a name="d0e1836"></a>A list containing elements of some type that extends Number, the exact type of the elements in the list is unknown.
+            </p></dd><dt><a name="d0e1839"></a><span class="term">List&lt;? super Double&gt;</span></dt><dd><p><a name="d0e1842"></a>A list containing elements of some type that is a super-type of Double, the exact type of the elements in the list is unknown.
             </p></dd></dl></div><p>
       	  A generic type may be extended as any other type. Given a generic type <tt>Foo&lt;T&gt;</tt> then
       	  a subtype <tt>Goo</tt> may be declared in one of the following ways:      	
-      	</p><div class="variablelist"><dl><dt><a name="d0e1876"></a><span class="term">class Goo extends Foo</span></dt><dd><p><a name="d0e1879"></a>Here <tt>Foo</tt> is used as a raw type, and the appropriate warning messages will be
+      	</p><div class="variablelist"><dl><dt><a name="d0e1854"></a><span class="term">class Goo extends Foo</span></dt><dd><p><a name="d0e1857"></a>Here <tt>Foo</tt> is used as a raw type, and the appropriate warning messages will be
             issued by the compiler on attempting to invoke methods in <tt>Foo</tt>.
-            </p></dd><dt><a name="d0e1888"></a><span class="term">class Goo&lt;E&gt; extends Foo</span></dt><dd><p><a name="d0e1891"></a><tt>Goo</tt> is a generic type, but the super-type <tt>Foo</tt> is used as a raw
+            </p></dd><dt><a name="d0e1866"></a><span class="term">class Goo&lt;E&gt; extends Foo</span></dt><dd><p><a name="d0e1869"></a><tt>Goo</tt> is a generic type, but the super-type <tt>Foo</tt> is used as a raw
             type and the appropriate warning messages will be
             issued by the compiler on attempting to invoke methods defined by <tt>Foo</tt>.            
-            </p></dd><dt><a name="d0e1902"></a><span class="term">class Goo&lt;E&gt; extends Foo&lt;E&gt;</span></dt><dd><p><a name="d0e1905"></a>This is the most usual form. <tt>Goo</tt> is a generic type with one parameter that extends
+            </p></dd><dt><a name="d0e1880"></a><span class="term">class Goo&lt;E&gt; extends Foo&lt;E&gt;</span></dt><dd><p><a name="d0e1883"></a>This is the most usual form. <tt>Goo</tt> is a generic type with one parameter that extends
             the generic type <tt>Foo</tt> with that same parameter. So <tt>Goo&lt;String&lt;</tt> is 
             a subclass of <tt>Foo&lt;String&gt;</tt>.
-            </p></dd><dt><a name="d0e1920"></a><span class="term">class Goo&lt;E,F&gt; extends Foo&lt;E&gt;</span></dt><dd><p><a name="d0e1923"></a><tt>Goo</tt> is a generic type with two parameters that extends
+            </p></dd><dt><a name="d0e1898"></a><span class="term">class Goo&lt;E,F&gt; extends Foo&lt;E&gt;</span></dt><dd><p><a name="d0e1901"></a><tt>Goo</tt> is a generic type with two parameters that extends
             the generic type <tt>Foo</tt> with the first type parameter of <tt>Goo</tt> being used
             to parameterize <tt>Foo</tt>. So <tt>Goo&lt;String,Integer&lt;</tt> is 
             a subclass of <tt>Foo&lt;String&gt;</tt>.
-            </p></dd><dt><a name="d0e1943"></a><span class="term">class Goo extends Foo&lt;String&gt;</span></dt><dd><p><a name="d0e1946"></a><tt>Goo</tt> is a type that extends
+            </p></dd><dt><a name="d0e1921"></a><span class="term">class Goo extends Foo&lt;String&gt;</span></dt><dd><p><a name="d0e1924"></a><tt>Goo</tt> is a type that extends
             the parameterized type <tt>Foo&lt;String&gt;</tt>.
             </p></dd></dl></div><p>A generic type may implement one or more generic interfaces, following the type binding
 	    rules given above. A type may also implement one or more parameterized interfaces (for example,

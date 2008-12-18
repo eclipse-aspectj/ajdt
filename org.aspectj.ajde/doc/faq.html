@@ -165,8 +165,6 @@
 			  won't pick out a call using reflection, like
 			  ((Method)run).invoke(null, args).
           </a></dt><dt>23.  <a href="#q:currentbugs">What are the bugs now most affecting users?</a></dt><dt>24.  <a href="#q:runtimeMemory">What extra memory is required at runtime?
-          </a></dt><dt>25.  <a href="#q:weavingcglib">I get a VerifyError when running CGLIB generated code that has been woven by
-          AspectJ. Why is this?
           </a></dt></dl></dd><dt>12 <a href="#aj11">AspectJ 1.1 and eclipse.org</a></dt><dd><dl><dt>1.  <a href="#q:whyeclipse">Why did the AspectJ project move to eclipse.org?
           </a></dt><dt>2.  <a href="#q:eclipserequired">Do I have to download Eclipse to use AspectJ?
           </a></dt><dt>3.  <a href="#q:eclipseetc">What are the relationships between AspectJ, JDT, 
@@ -2584,28 +2582,8 @@ aspect A {
               strategies for minimizing this (with different trade-off's),
               so the time and memory required for load-time weaving will
               vary as load-time weaving evolves.
-		  </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:weavingcglib"></a><b>25. </b>I get a VerifyError when running CGLIB generated code that has been woven by
-          AspectJ. Why is this?
-          </p></div><div class="answer"><p><a name="d0e2403"></a><b></b>When weaving after advice into any piece of code, the AspectJ strategy is to make all
-          exit points from that code jump to a single exit point that executes the advice
-          before returning.  There is a verifier rule in the JVM specification that specifies
-          that all routes to a jump destination must have the same height stack when they get there,
-          regardless of the route taken to get there through the bytecode.  The CGLIB generated code has different
-          stack heights at the various exit points.  This is not a problem with the CGLIB generated code,
-          it is perfectly valid - it is just unusual and the AspectJ weaving strategy causes the
-          verify error to trigger when it makes all exits jump to a single destination.
-          </p><p>AspectJ could cope with this and instead implement after advice by calling the
-          advice and returning at each exit point.  However, it is unlikely that the user
-          actually meant to weave the CGLIB generated code in the first place - and so usually
-          the right thing to do is to exclude CGLIB generate code from the weaving process by
-          appropriate use of the exclude element in the aop.xml.  A typical clause in the aop.xml might
-          look as follows:
-          </p><pre class="programlisting">
-&lt;weaver&gt;
-  &lt;exclude within="*CGLIB*" /&gt; 
-&lt;/weaver&gt;
-          </pre></div></div></div><div class="qandadiv"><h3 class="title"><a name="aj11"></a>12 AspectJ 1.1 and eclipse.org</h3><div class="qandaentry"><div class="question"><p><a name="q:whyeclipse"></a><b>1. </b>Why did the AspectJ project move to eclipse.org?
-          </p></div><div class="answer"><p><a name="d0e2417"></a><b></b>From the message sent to users:
+		  </p></div></div></div><div class="qandadiv"><h3 class="title"><a name="aj11"></a>12 AspectJ 1.1 and eclipse.org</h3><div class="qandaentry"><div class="question"><p><a name="q:whyeclipse"></a><b>1. </b>Why did the AspectJ project move to eclipse.org?
+          </p></div><div class="answer"><p><a name="d0e2406"></a><b></b>From the message sent to users:
           </p><p>
             AspectJ has come a long way -- the language has
             stabilized; there are a rapidly growing number of
@@ -2641,13 +2619,13 @@ aspect A {
             in the Java space. Once development moves to
             Eclipse.org, others will be able to contribute more easily.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:eclipserequired"></a><b>2. </b>Do I have to download Eclipse to use AspectJ?
-          </p></div><div class="answer"><p><a name="d0e2432"></a><b></b>No.  The AspectJ tools download is completely self-contained
+          </p></div><div class="answer"><p><a name="d0e2421"></a><b></b>No.  The AspectJ tools download is completely self-contained
                 and does not require that you work in Eclipse.
                 For information on IDE support, see
                  <a href="#q:integrateWithDevTools">Q: How well does AspectJ integrate with existing Java development tools?</a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:eclipseetc"></a><b>3. </b>What are the relationships between AspectJ, JDT, 
                 Eclipse, AJDT, and IDE support generally?
-          </p></div><div class="answer"><p><a name="d0e2441"></a><b></b>Eclipse is a software platform.
+          </p></div><div class="answer"><p><a name="d0e2430"></a><b></b>Eclipse is a software platform.
           </p><p>JDT is an eclipse project to support Java development.  
 			JDT has a Java compiler.
           </p><p>AspectJ 1.1 is built on Eclipse/JDT's Java compiler
@@ -2677,7 +2655,7 @@ aspect A {
           through a common API, AJDE.
           </p></div></div></div><div class="qandadiv"><div class="qandaentry"><div class="question"><p><a name="q:aspectj5features"></a><b>1. </b>
             What are the new features of AspectJ 5?
-          </p></div><div class="answer"><p><a name="d0e2468"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e2457"></a><b></b>
                 All the new features are documented in the 
                 <a href="adk15notebook/index.html" target="_top">
               AspectJ 5 Developer's Notebook</a>
@@ -2685,21 +2663,21 @@ aspect A {
                 <a href="devguide/index.html" target="_top">
               AspectJ Development Environment Guide</a>.
                 To summarize:
-            </p><div class="itemizedlist"><ul><li><p><a name="d0e2478"></a>
+            </p><div class="itemizedlist"><ul><li><p><a name="d0e2467"></a>
                     Java 5 support: as an extension to Java, AspectJ supports
                     all the new language features of Java 5, including generics
                     (parameterized types), autoboxing, covariant return types,
                     enhanced for-loops, enums, varargs, and of course 
                     annotations.
-				</p></li><li><p><a name="d0e2481"></a>
+				</p></li><li><p><a name="d0e2470"></a>
                     Java 5 extensions: the AspectJ language has been extended
                     to make use of Java 5 language features.
-                    <div class="itemizedlist"><ul><li><p><a name="d0e2485"></a>
+                    <div class="itemizedlist"><ul><li><p><a name="d0e2474"></a>
                             Generic aspects: an abstract aspect can be declared
                             with a generic type parameter which can be used 
                             in pointcuts and when declaring members on the aspect
                             (but not when declaring members on other types).
-        				</p></li><li><p><a name="d0e2488"></a>
+        				</p></li><li><p><a name="d0e2477"></a>
                             Annotations: pointcuts can now pick out join points
                             based on the associated annotations, annotation
                             values can be bound in the same way that other
@@ -2707,30 +2685,30 @@ aspect A {
                             and annotations may be declared on other types in
                             an aspect.
         				</p></li></ul></div>                    
-				</p></li><li><p><a name="d0e2492"></a>
+				</p></li><li><p><a name="d0e2481"></a>
                     Annotation-style aspects: AspectJ 5 integrates AspectWerkz-style
                     aspects declared in annotations.  This permits aspects to 
                     be written and compiled in pure-java code and woven using
                     build-time or load-time weaving with the AspectJ weaver.
                     (The original AspectJ language aspects are distinguished
                     as "code-style" aspects.)
-				</p></li><li><p><a name="d0e2495"></a>
+				</p></li><li><p><a name="d0e2484"></a>
                     AspectWerkz load-time weaving: Load-time weaving is
                     greatly improved for all versions of Java, and now supports
                     an XML configuration file which can declare concrete aspects.
                     This means developers can deploy binary abstract aspects
                     that deployers configure using only XML.
-				</p></li><li><p><a name="d0e2498"></a>
+				</p></li><li><p><a name="d0e2487"></a>
                     pertypewithin instantiation model: aspects may now be instantiated
                     on a per-class basis.
-				</p></li><li><p><a name="d0e2501"></a>
+				</p></li><li><p><a name="d0e2490"></a>
                     Reflection and runtime support: AspectJ 5 supports reflection
                     on aspects using the Aspect class, and also support runtime
                     evaluation of pointcuts using a pointcut parser.
 				</p></li></ul></div><p>
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:codeversusannotationstyles"></a><b>2. </b>
             Should I use code- or annotation-style aspects?
-          </p></div><div class="answer"><p><a name="d0e2510"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e2499"></a><b></b>
             To use AspectJ, you can use the original code-style aspects
             or the annotation-style aspects new in AspectJ 5.  
           </p><p>
@@ -2759,7 +2737,7 @@ aspect A {
               for viewing crosscutting structure.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:aspectj5ltw"></a><b>3. </b>
             What's new about the load-time weaving support in AspectJ 5?
-          </p></div><div class="answer"><p><a name="d0e2521"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e2510"></a><b></b>
               While the AspectJ weaver could be used at load-time in previous
               releases, the AspectJ 5 release supports much better integration
               with the Java 5 VM and the BEA JRocket JVM.  It also supports
@@ -2792,7 +2770,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
                 <a href="devguide/index.html" target="_top">
               AspectJ Development Environment Guide</a>.
             </p></div></div></div><div class="qandadiv"><h3 class="title"><a name="Technology"></a>14 Understanding AspectJ Technology</h3><div class="qandaentry"><div class="question"><p><a name="q:implementation"></a><b>1. </b>Do I need to know how the compiler or weaver works?
-          </p></div><div class="answer"><p><a name="d0e2548"></a><b></b>Writing AspectJ programs only requires understanding the
+          </p></div><div class="answer"><p><a name="d0e2537"></a><b></b>Writing AspectJ programs only requires understanding the
           <a href="progguide/index.html" target="_top">Programming Guide</a>.
           However, current implementations do not control everything in
           a system, so AspectJ program semantics may be limited to code
@@ -2818,7 +2796,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
 		  For more information, see
 		      <a href="#Developers">AspectJ Project Development</a>.     
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:whitepapers"></a><b>2. </b>How does the compiler/weaver work? Are there any white papers?
-          </p></div><div class="answer"><p><a name="d0e2565"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e2554"></a><b></b>
           There are currently no documents describing this process in detail.  
           You can compile programs and inspect the generated source or bytecode,
           or view the source code (see <a href="#Developers">AspectJ Project Development</a>).
@@ -2840,7 +2818,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
           </p><p>
 			Each .class file is woven independently.  
 			A .class file is woven by the following steps:
-			<div class="itemizedlist"><ul><li><p><a name="d0e2581"></a>
+			<div class="itemizedlist"><ul><li><p><a name="d0e2570"></a>
 					Collect all of the joinpoint shadows in the .class file.  
 					For every dynamic joinpoint in the AspectJ language model, 
 					there is a corresponding static shadow of that joinpoint 
@@ -2849,16 +2827,16 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
 					bytecode as its static shadow.  Some joinpoints 
 					(such as initialization) have much more 
 					complicated static shadows.
-				</p></li><li><p><a name="d0e2584"></a>
+				</p></li><li><p><a name="d0e2573"></a>
 					Each piece of advice is matched to each static shadow.  
 					There are three results possible from this match.
-					<div class="itemizedlist"><ul><li><p><a name="d0e2588"></a>
+					<div class="itemizedlist"><ul><li><p><a name="d0e2577"></a>
 							Never matches,
 							in which case nothing is done to the shadow
-						</p></li><li><p><a name="d0e2591"></a>
+						</p></li><li><p><a name="d0e2580"></a>
 							Always matches, 
 							in which case the advice is woven into this joinpoint shadow
-						</p></li><li><p><a name="d0e2594"></a>
+						</p></li><li><p><a name="d0e2583"></a>
 							Sometimes matches,
 							in which case the advice is woven into the shadow 
 							along with the minimal dynamic tests to determine 
@@ -2867,7 +2845,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
 							The simplest example of sometimes matches is 
 							when the pointcut uses if(test()).
 						</p></li></ul></div>
-				</p></li><li><p><a name="d0e2598"></a>
+				</p></li><li><p><a name="d0e2587"></a>
 					If any advice matched any static shadows in the .class file, 
 					then the transformed .class file is written out, 
 					otherwise it is left unchanged.
@@ -2883,12 +2861,12 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
 			It also ignores performance optimizations such as fast-match 
 			or pipelining that speed up the process.
 		</p></div></div><div class="qandaentry"><div class="question"><p><a name="q:reflection"></a><b>3. </b>Does AspectJ use reflection at runtime?
-          </p></div><div class="answer"><p><a name="d0e2617"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e2606"></a><b></b>
           The only time that reflection is used during run-time is when the special 
           thisJoinPoint object is used to discover reflective information about the 
           join point.  If you don't use thisJoinPoint then no reflection will be used.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:loadtimeWeaving"></a><b>4. </b>What about load-time weaving? Can I weave aspects at runtime?
-          </p></div><div class="answer"><p><a name="d0e2624"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e2613"></a><b></b>
           Since the 1.1 release, AspectJ can weave binary aspects
           into classes in bytecode form.  Hooked up to a class loader,
           this can weave class bytecodes after they are read in,
@@ -2918,7 +2896,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
           to modify .class files protected by license,
           without permission from the licensor.
           </p></div></div></div><div class="qandadiv"><h3 class="title"><a name="Developers"></a>15 AspectJ Project Development</h3><div class="qandaentry"><div class="question"><p><a name="q:howitworks"></a><b>1. </b>I'm interested in the code implementing AspectJ.
-          </p></div><div class="answer"><p><a name="d0e2640"></a><b></b>Most people do not need to see the code for AspectJ;
+          </p></div><div class="answer"><p><a name="d0e2629"></a><b></b>Most people do not need to see the code for AspectJ;
           they can download the binary distribution for documentation
           and tools for writing AspectJ programs.
           </p><p>For people who want to know how the AspectJ technology works,
@@ -2933,9 +2911,9 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
 		  might be an initial version of a new architecture (e.g., bytecode
 		  weaving).
 		  </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:contributions"></a><b>2. </b>How can I get involved with developing the AspectJ project?
-          </p></div><div class="answer"><p><a name="d0e2655"></a><b></b>For those who want to contribute to the project,
+          </p></div><div class="answer"><p><a name="d0e2644"></a><b></b>For those who want to contribute to the project,
           here's a general list of ways to do so, in no particular order:
-          <div class="itemizedlist"><ul><li><p><a name="d0e2659"></a>Participate effectively in the mailing lists.
+          <div class="itemizedlist"><ul><li><p><a name="d0e2648"></a>Participate effectively in the mailing lists.
                  The quality of the mailing lists makes a huge difference
                  in the ability of new and experienced AspectJ users
                  to write good code.  For guidance on effective
@@ -2945,13 +2923,13 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
                  Also, the time that experienced users take in answering emails
                  can directly translate to time developers can use (instead)
                  for fixing bugs or adding features.
-              </p></li><li><p><a name="d0e2666"></a>Write bugs.  Good bugs, especially with test cases, 
+              </p></li><li><p><a name="d0e2655"></a>Write bugs.  Good bugs, especially with test cases, 
               	are always appreciated.  We especially like proposals for
               	new <tt>XLint</tt> messages, since they are
               	sometimes easy to implement and help users learn
               	AspectJ, and for other implementable features
               	grounded in a compelling use-case.  
-              </p></li><li><p><a name="d0e2672"></a>Write test cases for compiler bugs without test cases.
+              </p></li><li><p><a name="d0e2661"></a>Write test cases for compiler bugs without test cases.
               Compiler bugs without test cases are much less likely to be fixed;
               until they are rendered in code, they might be user mistakes,
               and they might duplicate another bug or actually cover many bugs.
@@ -2965,7 +2943,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
               </a>
               </p><p>For how to write test cases, see
                  <a href="#q:harnesstestcases">Q:How should I submit test cases for bugs?</a>.
-              </p></li><li><p><a name="d0e2686"></a>Write patches to fix bugs.
+              </p></li><li><p><a name="d0e2675"></a>Write patches to fix bugs.
               If you particularly need a bug to be fixed, or if you're interested in 
               learning about the system, then get the source code and try to fix the
               bug.  Most likely you'll want to email aspectj-dev@eclipse.org to 
@@ -2976,7 +2954,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
               the bug.  (When creating patches, do so on a per-module basis; that 
               means if fixing the bug involves changes to three modules, submit
               three patches.)
-              </p></li><li><p><a name="d0e2689"></a>Write patches for other reasons.
+              </p></li><li><p><a name="d0e2678"></a>Write patches for other reasons.
               Often documentation needs to be fixed, or there may be a small new 
               feature you'd like to see.  You can just do it and then submit it
               as a patch to a bug you create.  As with bugs, in some cases you
@@ -2985,7 +2963,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
               on an approach that will be fruitless.
               </p></li></ul></div>
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:buildingsource"></a><b>3. </b>How do I get and compile the source code for AspectJ?
-          </p></div><div class="answer"><p><a name="d0e2697"></a><b></b>AspectJ 1.0 source code is available in an archive available 
+          </p></div><div class="answer"><p><a name="d0e2686"></a><b></b>AspectJ 1.0 source code is available in an archive available 
            with the 1.0 downloads.  It contains instructions for building
            from sources.
           </p><p>AspectJ 1.1+ source code is available through CVS using the 
@@ -3010,13 +2988,13 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
           </p><p>
             To get the modules to build you have to set some classpath variables (<tt>Window &gt; Preferences &gt; Java &gt; Build Path &gt; Classpath Variables</tt>):
           </p><p>
-		  <div class="itemizedlist"><ul><li><p><a name="d0e2742"></a>
+		  <div class="itemizedlist"><ul><li><p><a name="d0e2731"></a>
 			Name: <tt>JAVA_HOME</tt>, Value: (wherever your Java JDK is installed)
-			</p></li><li><p><a name="d0e2748"></a>
+			</p></li><li><p><a name="d0e2737"></a>
 			Name: <tt>JRE14_LIB</tt>, Value: (wherever your Java 4 Runtime is installed)<tt>\jre\lib\rt.jar</tt>
-			</p></li><li><p><a name="d0e2757"></a>
+			</p></li><li><p><a name="d0e2746"></a>
 			Name: <tt>JRE15_LIB</tt>, Value: (wherever your Java 5 Runtime is installed)<tt>\jre\lib\rt.jar</tt>
-			</p></li><li><p><a name="d0e2766"></a>
+			</p></li><li><p><a name="d0e2755"></a>
 			Name: <tt>ASPECTJRT_LIB</tt>, Value: (wherever your workspace is)<tt>\lib\aspectj\lib\aspectjrt.jar</tt>. To find out where your workspace is go to <tt>File &gt; Switch Workspace</tt>.
 			</p></li></ul></div>
 		  </p><p>
@@ -3044,19 +3022,19 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
           all modules; as of this writing, here are the modules to get 
           for building the specific parts of AspectJ:
           </p><p>
-          <div class="itemizedlist"><ul><li><p><a name="d0e2817"></a>For any builds: build, lib
-            </p></li><li><p><a name="d0e2820"></a>For the documentation: docs
-            </p></li><li><p><a name="d0e2823"></a>For the compiler: bridge, util, testing-util,
+          <div class="itemizedlist"><ul><li><p><a name="d0e2806"></a>For any builds: build, lib
+            </p></li><li><p><a name="d0e2809"></a>For the documentation: docs
+            </p></li><li><p><a name="d0e2812"></a>For the compiler: bridge, util, testing-util,
             weaver, asm, org.eclipse.jdt.core, org.aspectj.ajdt.core,
             and runtime.
-            </p></li><li><p><a name="d0e2826"></a>For ajbrowser: the compiler modules, plus
+            </p></li><li><p><a name="d0e2815"></a>For ajbrowser: the compiler modules, plus
             ajbrowser, ajdoc, taskdefs, and ajde.
-            </p></li><li><p><a name="d0e2829"></a>For the AspectJ distribution, the ajbrowser modules, 
+            </p></li><li><p><a name="d0e2818"></a>For the AspectJ distribution, the ajbrowser modules, 
 				plus aspectj5rt and org.aspectj.lib.
-            </p></li><li><p><a name="d0e2832"></a>For the test harness (or to run the release build
+            </p></li><li><p><a name="d0e2821"></a>For the test harness (or to run the release build
 				scripts and tests): the ajbrowser modules, plus
             testing, testing-client, and testing-drivers.
-            </p></li><li><p><a name="d0e2835"></a>To run the test suite: the test harness modules, plus
+            </p></li><li><p><a name="d0e2824"></a>To run the test suite: the test harness modules, plus
             tests.
             </p></li></ul></div>
           </p><p>
@@ -3066,7 +3044,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
            files and may
           change, so the list above may not be correct when you read it.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:buildingAspectJAndAJDT"></a><b>4. </b>How do I build AspectJ and integrate it into AJDT?
-          </p></div><div class="answer"><p><a name="d0e2848"></a><b></b>To build AspectJ, first get the source tree as
+          </p></div><div class="answer"><p><a name="d0e2837"></a><b></b>To build AspectJ, first get the source tree as
           described in <a href="#q:buildingsource">Q:How do I get and compile the source code for AspectJ?</a>. Once you have
           a development environment set up, copy the 
           <tt>build/sample-local.properties</tt> file
@@ -3076,16 +3054,16 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
           </p><p>
              To build AspectJ on the command line:
           </p><p>
-		  <div class="itemizedlist"><ul><li><p><a name="d0e2870"></a>
+		  <div class="itemizedlist"><ul><li><p><a name="d0e2859"></a>
 			Open a command prompt
-			</p></li><li><p><a name="d0e2873"></a>
+			</p></li><li><p><a name="d0e2862"></a>
 			Navigate to the <tt>build</tt> directory within your AspectJ workspace 
 			(to find out where your workspace is go to <tt>File &gt; 
 			Switch Workspace</tt> within Eclipse).
-			</p></li><li><p><a name="d0e2882"></a>
+			</p></li><li><p><a name="d0e2871"></a>
 			Run <tt>ant clean</tt> to remove the files from 
 			previously built AspectJ versions. 
-			</p></li><li><p><a name="d0e2888"></a>
+			</p></li><li><p><a name="d0e2877"></a>
 			Run <tt>ant</tt> to build AspectJ. The built files are created in 
 			<tt>your_eclipse_installation_directory/aspectj_development_workspace/aj-build</tt>.
 			</p></li></ul></div>
@@ -3096,7 +3074,7 @@ java -javaagent:aspectjweaver.jar -classpath "aspects.jar:${CLASSPATH}" ..
 			for setting up an AJDT development environment and running the 
 			correctness tests. Then:
 			</p><p>
-		  <div class="itemizedlist"><ul><li><p><a name="d0e2906"></a>
+		  <div class="itemizedlist"><ul><li><p><a name="d0e2895"></a>
 			Create a file <tt>aspectjlib.properties</tt> within 
 			the <tt>org.aspectj.ajde</tt> project and add the following two lines
 			<pre class="programlisting">
@@ -3104,52 +3082,52 @@ aspectj.lib.dir=C:/eclipse/aspectj-workspace/aj-build/dist/tools/lib
 aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspectj.ajde.doc/doc
 			</pre>
   			making sure to change the path to correspond to your set up.
-			</p></li><li><p><a name="d0e2918"></a>
+			</p></li><li><p><a name="d0e2907"></a>
 			Run the <tt>build.xml</tt> file in <tt>org.aspectj.ajde</tt> 
 			with the <tt>plugin jars</tt> target:
-			<div class="itemizedlist"><ul><li><p><a name="d0e2931"></a>
+			<div class="itemizedlist"><ul><li><p><a name="d0e2920"></a>
 	 			Right click on the <tt>build.xml</tt> file in the 
 	 			<tt>org.aspectj.ajde</tt> plugin
-	 			</p></li><li><p><a name="d0e2940"></a>
+	 			</p></li><li><p><a name="d0e2929"></a>
 				Select <tt>Run As &gt; Ant build...</tt>
-				</p></li><li><p><a name="d0e2946"></a>
+				</p></li><li><p><a name="d0e2935"></a>
 				In the resultant dialog navigate to the <tt>Targets</tt> tab
-				</p></li><li><p><a name="d0e2952"></a>
+				</p></li><li><p><a name="d0e2941"></a>
 				Ensure <tt>plugin jars</tt> is the only selected target
-				</p></li><li><p><a name="d0e2958"></a>
+				</p></li><li><p><a name="d0e2947"></a>
 				Click <tt>Run</tt>
 				</p></li></ul></div>	
-			</p></li><li><p><a name="d0e2965"></a>
+			</p></li><li><p><a name="d0e2954"></a>
 			Refresh the <tt>org.aspectj.ajde, org.aspectj.runtime</tt> 
 			and <tt>org.aspectj.weaver</tt> plugins.
 			</p></li></ul></div>
 		  </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:devDocs"></a><b>5. </b>Where do I find developer documentation on building and testing AspectJ source code?
-          </p></div><div class="answer"><p><a name="d0e2979"></a><b></b>Find the developer documentation in HTML files in the CVS tree,
+          </p></div><div class="answer"><p><a name="d0e2968"></a><b></b>Find the developer documentation in HTML files in the CVS tree,
           inside the <tt>build</tt> and <tt>testing</tt> modules 
           (i.e., in <tt>org.aspectj/modules/build/...</tt>).
           Most pertinant:          
-            <div class="itemizedlist"><ul><li><p><a name="d0e2992"></a>
+            <div class="itemizedlist"><ul><li><p><a name="d0e2981"></a>
               	<tt>../build/readme-build-and-test-aspectj.html</tt>
                   describes how to build the AspectJ distribution in Eclipse
                   and in Ant.
-              </p></li><li><p><a name="d0e2998"></a><tt>../build/readme-docs-module.html</tt>
+              </p></li><li><p><a name="d0e2987"></a><tt>../build/readme-docs-module.html</tt>
                   describes the AspectJ documentation sources and
                   how to build the documentation using Ant.
-              </p></li><li><p><a name="d0e3003"></a><tt>../build/readme-tests-module.html</tt>
+              </p></li><li><p><a name="d0e2992"></a><tt>../build/readme-tests-module.html</tt>
                   describes the all the tests 
                   in the <tt>tests</tt> module.
-              </p></li><li><p><a name="d0e3011"></a><tt>../build/readme-writing-compiler-tests.html</tt>
+              </p></li><li><p><a name="d0e3000"></a><tt>../build/readme-writing-compiler-tests.html</tt>
                   describes how to write compiler tests that can be run by
                   the AspectJ test harness.
-              </p></li><li><p><a name="d0e3016"></a><tt>../build/readme-testing-drivers-module.html</tt>
+              </p></li><li><p><a name="d0e3005"></a><tt>../build/readme-testing-drivers-module.html</tt>
                   describes the test harness used to run the compiler tests
                   in the <tt>tests</tt> module.
-              </p></li><li><p><a name="d0e3024"></a><tt>../build/readme-testing-drivers-module.html</tt>
+              </p></li><li><p><a name="d0e3013"></a><tt>../build/readme-testing-drivers-module.html</tt>
                   describes the test harness used to run the compiler tests
                   in the <tt>testing</tt> module.
               </p></li></ul></div>
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:harnesstestcases"></a><b>6. </b>How should I submit test cases for bugs?
-          </p></div><div class="answer"><p><a name="d0e3037"></a><b></b>You can attach files to a bug after it has been created.
+          </p></div><div class="answer"><p><a name="d0e3026"></a><b></b>You can attach files to a bug after it has been created.
           The code of course should replicate the actual behavior
           described in the bug when run on the target version.
           If you have a single source file, you can attach it directly,
@@ -3258,7 +3236,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
 
           </pre>
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:testharness"></a><b>7. </b>I'd like to run my test case.  How do I get the test harness?
-          </p></div><div class="answer"><p><a name="d0e3054"></a><b></b>The test harness is not distributed.
+          </p></div><div class="answer"><p><a name="d0e3043"></a><b></b>The test harness is not distributed.
           To build it, get the source tree as
           described in <a href="#q:buildingsource">Q:How do I get and compile the source code for AspectJ?</a> and then
           build the <tt>build-testing-drivers</tt> target:
@@ -3271,7 +3249,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
           which you can run as described in
           <tt>tests/readme-tests-module.html</tt>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:bcel"></a><b>8. </b>BCEL is used by AspectJ but it's not actively developed.  Will you change?
-          </p></div><div class="answer"><p><a name="d0e3075"></a><b></b>The AspectJ bytecode weaver has used BCEL for bytecode manipulation
+          </p></div><div class="answer"><p><a name="d0e3064"></a><b></b>The AspectJ bytecode weaver has used BCEL for bytecode manipulation
 			  since its first release.  We have upgraded it extensively, to improve 
 			  performance, support Java 5, etc.  The BCEL developers have not
 			  incorporated our patches, so we continue to maintain our own version.
@@ -3288,9 +3266,9 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
 			  memory after our evaluation completes.
           </p></div></div></div><div class="qandadiv"><h3 class="title"><a name="help"></a>16 Getting Help</h3><div class="qandaentry"><div class="question"><p><a name="q:moreaboutaj"></a><b>1. </b>
             How do I find out more about AspectJ?
-          </p></div><div class="answer"><p><a name="d0e3087"></a><b></b>Visit the AspectJ project web site:
+          </p></div><div class="answer"><p><a name="d0e3076"></a><b></b>Visit the AspectJ project web site:
             <a href="http://eclipse.org/aspectj" target="_top">http://eclipse.org/aspectj</a>.
-          </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:bugreports"></a><b>2. </b>How do I submit a bug report?</p></div><div class="answer"><p><a name="d0e3097"></a><b></b>You can submit a bug from 
+          </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:bugreports"></a><b>2. </b>How do I submit a bug report?</p></div><div class="answer"><p><a name="d0e3086"></a><b></b>You can submit a bug from 
               <a href="http://bugs.eclipse.org/bugs/enter_bug.cgi?product=AspectJ" target="_top">
                           http://bugs.eclipse.org/bugs/enter_bug.cgi?product=AspectJ
               </a>.
@@ -3304,7 +3282,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             <a href="pdguide/index.html" target="_top">AspectJ Problem Diagnosis Guide</a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:talktousers"></a><b>3. </b>
             How do I communicate with other AspectJ users?
-          </p></div><div class="answer"><p><a name="d0e3112"></a><b></b>You can reach other AspectJ users by using the
+          </p></div><div class="answer"><p><a name="d0e3101"></a><b></b>You can reach other AspectJ users by using the
             aspectj-users mailing list.  You can subscribe to the list or view the
             list archives from the AspectJ home page
             <a href="http://eclipse.org/aspectj" target="_top">
@@ -3312,7 +3290,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             </a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:searchingsite"></a><b>4. </b>
             How can I search the email archives or the web site?
-          </p></div><div class="answer"><p><a name="d0e3122"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e3111"></a><b></b>
 			It is very effective to do a google search of the form,
             <a href="http://www.google.com/search?q=site:eclipse.org+cflowbelow" target="_top">
               http://www.google.com/search?q=site:eclipse.org+cflowbelow
@@ -3328,14 +3306,14 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             </a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:writingbugsandemails"></a><b>5. </b>
             How should I write email queries?
-          </p></div><div class="answer"><p><a name="d0e3138"></a><b></b>Here's the general form of a good email:
-              </p><div class="orderedlist"><ol type="1"><li><p><a name="d0e3142"></a>
+          </p></div><div class="answer"><p><a name="d0e3127"></a><b></b>Here's the general form of a good email:
+              </p><div class="orderedlist"><ol type="1"><li><p><a name="d0e3131"></a>
                 Describe the big picture of what you are trying to do...
-              </p></li><li><p><a name="d0e3145"></a>
+              </p></li><li><p><a name="d0e3134"></a>
   	Describe what you think it takes, in AspectJ terms
   	(concepts, syntax, and semantics) from the 
             <a href="progguide/index.html" target="_top">Programming Guide</a>...
-              </p></li><li><p><a name="d0e3151"></a>
+              </p></li><li><p><a name="d0e3140"></a>
 	Show the AspectJ code you are using, what output it
   	produces when run, and what output you expect...
               </p></li></ol></div><p>
@@ -3361,7 +3339,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             </a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:idebugs"></a><b>6. </b>
             How do I write bugs for IDE support?
-          </p></div><div class="answer"><p><a name="d0e3168"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e3157"></a><b></b>
           Bugs appearing in the IDE's may apply to the affected IDE
           or to the compiler.  Compiler stack traces in IDE message windows
           are prefixed "Internal Compiler Error" and should be written up
@@ -3393,29 +3371,29 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
     You can submit a patch by attaching it to the bug.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:ajcbugs"></a><b>7. </b>
             How do I write bugs for the AspectJ compiler?
-          </p></div><div class="answer"><p><a name="d0e3189"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e3178"></a><b></b>
 	The best compiler bug report is a reproducible test case, 
 	standalone code that demonstrates the problem.
 	Sometimes with aspects, a test case requires several 
 	files, if not some way to capture the behavior.
 	Here's how we recommend submitting test cases:
-            <div class="orderedlist"><ol type="1"><li><p><a name="d0e3193"></a>
+            <div class="orderedlist"><ol type="1"><li><p><a name="d0e3182"></a>
 	Write the test case so that when the compiler bug 
   	is fixed, the test completes normally without output
   	(e.g., expected compiler errors are issued,
    	or classes produced run correctly).  This usually
     means writing one or more source files.
-                </p></li><li><p><a name="d0e3196"></a>
+                </p></li><li><p><a name="d0e3185"></a>
 	In the bug report, briefly summarize the bug.
 	If it is not obvious, be sure to specify 
 	the expected output/behavior (e.g., compiler error on line 32)
 	and, if the compile should complete, the main class to run.
-                </p></li><li><p><a name="d0e3199"></a>
+                </p></li><li><p><a name="d0e3188"></a>
 	Submit the bugs via the web form 
             <a href="http://bugs.eclipse.org/bugs/enter_bug.cgi?product=AspectJ" target="_top">
                         http://bugs.eclipse.org/bugs/enter_bug.cgi?product=AspectJ
             </a>.
-                </p></li><li><p><a name="d0e3205"></a>Attach the test case to the bug.
+                </p></li><li><p><a name="d0e3194"></a>Attach the test case to the bug.
                 The test case may be a single file
                 or it may be multiple files in a single zip archive,
                 of the form discussed in
@@ -3423,7 +3401,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
                 </p></li></ol></div>
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:teachingmaterials"></a><b>8. </b>
             Can you recommend reading or teaching material for AspectJ?
-          </p></div><div class="answer"><p><a name="d0e3215"></a><b></b>The documentation available in the distribution is the 
+          </p></div><div class="answer"><p><a name="d0e3204"></a><b></b>The documentation available in the distribution is the 
           best source for language and usage questions.  You can also find
           selected AspectJ papers and presentations on the 
           <a href="http://www.parc.com/groups/csl/projects/aspectj/index.html" target="_top">
@@ -3432,31 +3410,31 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
           <a href="http://aosd.net" target="_top">http://aosd.net</a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:consulting"></a><b>9. </b>
             Where can our group get consulting and support?
-          </p></div><div class="answer"><p><a name="d0e3228"></a><b></b>The best thing to to is join and email the
+          </p></div><div class="answer"><p><a name="d0e3217"></a><b></b>The best thing to to is join and email the
            <tt>aspectj-dev@eclipse.org</tt> mailing list.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:faqchanges"></a><b>10. </b>
             What has changed since the last FAQ version?
-          </p></div><div class="answer"><p><a name="d0e3238"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e3227"></a><b></b>
           Entries changed recently:
-            <div class="itemizedlist"><ul><li><p><a name="d0e3242"></a><a href="#q:license">Q:How is AspectJ licensed?</a></p></li><li><p><a name="d0e3245"></a><a href="#q:productplans">Q:Is it safe to use AspectJ in my product plans??</a></p></li><li><p><a name="d0e3248"></a><a href="#q:whitepapers">Q:How does the compiler/weaver work? Are there any white papers?</a></p></li><li><p><a name="d0e3251"></a><a href="#q:bugreports">Q:How do I submit a bug report?</a></p></li></ul></div>
+            <div class="itemizedlist"><ul><li><p><a name="d0e3231"></a><a href="#q:license">Q:How is AspectJ licensed?</a></p></li><li><p><a name="d0e3234"></a><a href="#q:productplans">Q:Is it safe to use AspectJ in my product plans??</a></p></li><li><p><a name="d0e3237"></a><a href="#q:whitepapers">Q:How does the compiler/weaver work? Are there any white papers?</a></p></li><li><p><a name="d0e3240"></a><a href="#q:bugreports">Q:How do I submit a bug report?</a></p></li></ul></div>
           </p></div></div></div><div class="qandadiv"><h3 class="title"><a name="project"></a>17 About the AspectJ Project</h3><div class="qandaentry"><div class="question"><p><a name="q:opensource"></a><b>1. </b>What does the fact that AspectJ is an Open Source
             Project mean to me?
-          </p></div><div class="answer"><p><a name="d0e3262"></a><b></b>Open source protects your interest in a correct, long-lived,
+          </p></div><div class="answer"><p><a name="d0e3251"></a><b></b>Open source protects your interest in a correct, long-lived,
 		up-to-date, and widely-accepted implementation of AspectJ.
-            <div class="itemizedlist"><ul><li><p><a name="d0e3266"></a>With the source code, you control your own destiny
+            <div class="itemizedlist"><ul><li><p><a name="d0e3255"></a>With the source code, you control your own destiny
                 in perpetuity.  You can continue to use the implementation
 		and update it as necessary to fix bugs and add things you need.
-                </p></li><li><p><a name="d0e3269"></a>Because the code is available to all, anyone can find
+                </p></li><li><p><a name="d0e3258"></a>Because the code is available to all, anyone can find
 		and fix bugs.  There is no need to hope for it to be fixed
 		in the next product release.  Those who encounter the bugs
 		are motivated to fix them, and there are more eyeballs on 
 		the code than in closed-source, so the quality tends to be high.
 		This can be particularly true for the AspectJ community,
 		which tends to be highly skilled.
-                </p></li><li><p><a name="d0e3272"></a>The same is true of new features or behavior, so the
+                </p></li><li><p><a name="d0e3261"></a>The same is true of new features or behavior, so the
 		implementation should be up-to-date.  This is important as
 		the field of AOP develops, to capture the latest solutions.
-                </p></li><li><p><a name="d0e3275"></a>For a programming language which forms the basis of 
+                </p></li><li><p><a name="d0e3264"></a>For a programming language which forms the basis of 
 		an entire solution stack, open source facilitates the kind
 		of adoption -- tool integrations and significant projects --
 		that develop and prove the technology for wider adoption.  This 
@@ -3467,7 +3445,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:standardization"></a><b>2. </b>What are your plans to make AspectJ a general feature
             of Java supported by Sun and the other key players in the Java
             Industry?
-          </p></div><div class="answer"><p><a name="d0e3283"></a><b></b>Although we are committed to making AspectJ available to a wide
+          </p></div><div class="answer"><p><a name="d0e3272"></a><b></b>Although we are committed to making AspectJ available to a wide
             range of users, it is too early to decide on a strategy. Some
             options include continuing AspectJ as a stand-alone product,
             integrating it into IDEs, or possibly incorporating it into
@@ -3486,7 +3464,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             for AspectJ in the long term.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:bytecodeweaving"></a><b>3. </b>When will AspectJ work from class files?
 	        When will it work at class-loading time?
-          </p></div><div class="answer"><p><a name="d0e3296"></a><b></b>Bytecode weaving is in AspectJ 1.1.  We believe it
+          </p></div><div class="answer"><p><a name="d0e3285"></a><b></b>Bytecode weaving is in AspectJ 1.1.  We believe it
 	   works as described in an email to the users list by Jim Hugugin:
           </p><p>
               The AspectJ language was designed to support weaving at many different times: 
@@ -3508,12 +3486,12 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
               the 1.1 release or soon thereafter.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:differences"></a><b>4. </b>What are the differences between the current and
             previously released versions of AspectJ?
-          </p></div><div class="answer"><p><a name="d0e3309"></a><b></b>The AspectJ team aims to keep the implementation bug-free and 
+          </p></div><div class="answer"><p><a name="d0e3298"></a><b></b>The AspectJ team aims to keep the implementation bug-free and 
 	  	up-to-date with the Java language, 
 	 	to limit AspectJ language changes to those that 
 		are carefully considered, compelling, and backwards-compatible,
 		and to deliver those language changes only in significant releases (1.0, 1.1).
-	  </p><div class="table"><p><a name="d0e3312"></a><b>Table 2. </b></p><table summary="" border="1"><colgroup><col><col></colgroup><tbody><tr><td align="left">Version</td><td align="left">Description</td></tr><tr><td>AspectJ 1.5</td><td>Upgrade to support Java 5 language and much better
+	  </p><div class="table"><p><a name="d0e3301"></a><b>Table 2. </b></p><table summary="" border="1"><colgroup><col><col></colgroup><tbody><tr><td align="left">Version</td><td align="left">Description</td></tr><tr><td>AspectJ 1.5</td><td>Upgrade to support Java 5 language and much better
                       load-time weaving.
                   	See <a href="README-150.html" target="_top">README-150.html</a>
                   	for more details.
@@ -3548,7 +3526,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             <a href="changes.html" target="_top">changes.html</a>.
           </p></div></div><div class="qandaentry"><div class="question"><p><a name="q:schedule"></a><b>5. </b>
             What is the AspectJ development schedule?
-          </p></div><div class="answer"><p><a name="d0e3400"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e3389"></a><b></b>
             Below is a table describing the goals for the major releases.
             For information about specific features, search the bug database
             for <tt>RFE</tt>'s ("requests for enhancement") by
@@ -3559,7 +3537,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
             schedules, but we do follow a pattern of issuing preview releases 
             which can give observers an idea of when
             a particular release might be available.
-          </p><div class="table"><p><a name="d0e3409"></a><b>Table 3. The AspectJ Development Schedule</b></p><table summary="The AspectJ Development Schedule" border="1"><colgroup><col><col></colgroup><tbody><tr><td align="left">Version</td><td align="left">Description</td></tr><tr><td align="center" valign="top">1.0</td><td>Final syntax and semantic changes. Standalone structure
+          </p><div class="table"><p><a name="d0e3398"></a><b>Table 3. The AspectJ Development Schedule</b></p><table summary="The AspectJ Development Schedule" border="1"><colgroup><col><col></colgroup><tbody><tr><td align="left">Version</td><td align="left">Description</td></tr><tr><td align="center" valign="top">1.0</td><td>Final syntax and semantic changes. Standalone structure
                     browser. Complete documentation.
                   </td></tr><tr><td align="center" valign="top">1.1</td><td>Faster incremental compilation, bytecode weaving,
 	                 and a small number of language changes.</td></tr><tr><td align="center" valign="top">1.2</td><td>Faster weaving, -inpath option, better error messages,
@@ -3570,7 +3548,7 @@ aspectj.doc.dir=C:/eclipse/aspectj-workspace/aj-build/dist/ide/eclipse/org.aspec
                       load-time weaving.
                   </td></tr></tbody></table></div></div></div><div class="qandaentry"><div class="question"><p><a name="q:java5"></a><b>6. </b>
             Will AspectJ support Java 5?
-          </p></div><div class="answer"><p><a name="d0e3443"></a><b></b>
+          </p></div><div class="answer"><p><a name="d0e3432"></a><b></b>
           Yes.  Java 5 is supported in AspectJ 5.
           </p></div></div></div></div><p>AspectJ is a registered trademark of Palo Alto Research Center, Incorporated (PARC),
   	used with permission.

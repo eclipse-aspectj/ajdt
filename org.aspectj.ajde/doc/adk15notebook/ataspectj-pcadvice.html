@@ -36,7 +36,7 @@
      pointcut anyCall() : call(* *.*(..));
              </pre><p>When binding arguments, simply declare the arguments as normal in the annotated method:</p><pre class="programlisting">
      @Pointcut("call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; target(callee)")
-     void anyCall(int i, Foo callee) {}
+     void someCall(int i, Foo callee) {}
          </pre><p>is equivalent to...</p><pre class="programlisting">
      pointcut anyCall(int i, Foo callee) : call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; target(callee);
              </pre><p>An example with modifiers (Remember that Java 5 annotations are not
@@ -46,7 +46,7 @@
      protected abstract void anyCall();
          </pre><p>is equivalent to...</p><pre class="programlisting">
      protected abstract pointcut anyCall();
-             </pre><div class="sect3"><a name="d0e3713"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3713"></a>Type references inside @AspectJ annotations</h4></div></div><p>
+             </pre><div class="sect3"><a name="d0e3691"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3691"></a>Type references inside @AspectJ annotations</h4></div></div><p>
                     Using the code style, types referenced in pointcut expressions are
                     resolved with respect to the imported types in the compilation unit.
                     When using the annotation style, types referenced in pointcut
@@ -88,7 +88,7 @@
        void anyUtilityCall() {}
 
      }
-             </pre></div><div class="sect3"><a name="d0e3729"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3729"></a>if() pointcut expressions</h4></div></div><p>In code style, it is possible to use the
+             </pre></div><div class="sect3"><a name="d0e3707"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3707"></a>if() pointcut expressions</h4></div></div><p>In code style, it is possible to use the
                     <tt>if(...)</tt>
                     poincut to define
                     a conditional pointcut expression which will be evaluated at runtime for each candidate join point.
@@ -349,10 +349,10 @@
             </p><p>In code style, the proceed method has the same signature as the advice, any reordering of
             actual arguments to the joinpoint that is done in the advice signature must be respected.  Annotation
             style is different.  The proceed(..) call takes, in this order:
-            <div class="itemizedlist"><ul><li><a name="d0e3946"></a>If 'this()' was used in the pointcut <span class="emphasis"><i>for binding</i></span>, it must be passed first in proceed(..).
-          		</li><li><a name="d0e3951"></a>If 'target()' was used in the pointcut <span class="emphasis"><i>for binding</i></span>, it must be passed next in proceed(..) - it will be the 
+            <div class="itemizedlist"><ul><li><a name="d0e3924"></a>If 'this()' was used in the pointcut <span class="emphasis"><i>for binding</i></span>, it must be passed first in proceed(..).
+          		</li><li><a name="d0e3929"></a>If 'target()' was used in the pointcut <span class="emphasis"><i>for binding</i></span>, it must be passed next in proceed(..) - it will be the 
           		first argument to proceed(..) if this() was not used for binding.
-          		</li><li><a name="d0e3956"></a>Finally come <span class="emphasis"><i>all</i></span> the arguments expected at the join point, in the order they 
+          		</li><li><a name="d0e3934"></a>Finally come <span class="emphasis"><i>all</i></span> the arguments expected at the join point, in the order they 
           		are supplied at the join point.  Effectively the advice signature is ignored - it doesn't 
           		matter if a subset of arguments were bound or the ordering was changed in the advice 
           		signature, the proceed(..) calls takes all of them in the right order for the join point.
