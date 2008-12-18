@@ -18,7 +18,10 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -52,6 +55,7 @@ public class AJDTCoreTestCase extends TestCase {
 			IProject project = allProjects[i];
 			deleteProject(project,true);
 		}
+		AJCompilationUnitManager.INSTANCE.clearCache();
 	}
 
 	/**
@@ -93,6 +97,7 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
+		Utils.sleep(1000); // add a second to make sure timestamps are set properly
 		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();
@@ -132,10 +137,34 @@ public class AJDTCoreTestCase extends TestCase {
 			}
 		};
 		getWorkspace().run(populate, null);
+		
+		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
+		
 		IJavaProject javaProject = JavaCore.create(project);
 		return javaProject;
 	}
 	
+	
+	// A dumb progressmonitor we can use - if we dont pass one it may create a UI one...
+	static class DumbProgressMonitor implements IProgressMonitor {
+
+		public void beginTask(String name, int totalWork) {/*dontcare*/}
+
+		public void done() {/*dontcare*/}
+
+		public void internalWorked(double work) {/*dontcare*/}
+
+		public boolean isCanceled() {/*dontcare*/return false;}
+
+		public void setCanceled(boolean value) {/*dontcare*/}
+
+		public void setTaskName(String name) {/*dontcare*/}
+
+		public void subTask(String name) {/*dontcare*/}
+
+		public void worked(int work) {/*dontcare*/}
+		
+	}
 
 	/**
 	 * Wait for autobuild notification to occur
@@ -144,7 +173,7 @@ public class AJDTCoreTestCase extends TestCase {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, new DumbProgressMonitor());
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();
@@ -158,7 +187,7 @@ public class AJDTCoreTestCase extends TestCase {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new DumbProgressMonitor());
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();
@@ -252,6 +281,9 @@ public class AJDTCoreTestCase extends TestCase {
 			project.open(null);
 		}
 		deleteResource(project,force);
+		if (AspectJPlugin.getDefault().getCompilerFactory().hasCompilerForProject(project)) {
+		    AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
+		}
 	}
 	
 	protected void deleteProject(String projectName) throws CoreException {

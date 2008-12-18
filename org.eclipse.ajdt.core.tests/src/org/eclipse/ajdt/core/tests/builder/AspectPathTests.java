@@ -4,20 +4,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.core.internal.runtime.PlatformActivator;
 import org.eclipse.core.internal.runtime.RuntimeLog;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IAccessRule;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
@@ -95,13 +89,13 @@ public class AspectPathTests extends AJDTCoreTestCase {
     	final List log = new LinkedList();
     	RuntimeLog.addLogListener(new ILogListener() {
 			public void logging(IStatus status, String plugin) {
-				log.add(plugin.toString() + ": " + status);
+				log.add(plugin.toString() + ": " + status); //$NON-NLS-1$
 			}
 		});
     	
     	createPredefinedProject("AJ Proj depends on Java Proj with Root out Folder"); //$NON-NLS-1$
     	createPredefinedProject("Java Proj with Root Out folder"); //$NON-NLS-1$
     	waitForAutoBuild();
-    	assertEquals("Build should have produced no errors, but errors were:\n" + log.toString(), 0, log.size());
+    	assertEquals("Build should have produced no errors, but errors were:\n" + log.toString(), 0, log.size()); //$NON-NLS-1$
     }
 }
