@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
-import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.eclipse.ajdt.core.text.CoreMessages;
 
 /**
@@ -71,16 +70,9 @@ public class AJRelationshipManager {
 	
 	public static AJRelationshipType[] getAllRelationshipTypes() {
 		if (allRelationshipTypes == null) {
-			if (AsmHierarchyBuilder.shouldAddUsesPointcut) {
-				allRelationshipTypes = new AJRelationshipType[] {
-						ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
-						MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY,
-						USES_POINTCUT, POINTCUT_USED_BY };
-			} else {
-				allRelationshipTypes = new AJRelationshipType[] {
-						ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
-						MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY};	
-			}		
+			allRelationshipTypes = new AJRelationshipType[] {
+					ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
+					MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY};	
 		}
 		return allRelationshipTypes;
 	}

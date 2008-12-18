@@ -17,14 +17,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -57,14 +54,14 @@ public class AspectJCorePreferences {
 	 *  So when checking to see if a classpath entry has this attribute, use {@link #isOnAspectpath(IClasspathEntry)} 
 	 */
 	public static final IClasspathAttribute ASPECTPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
-			ASPECTPATH_ATTRIBUTE_NAME, ASPECTPATH_ATTRIBUTE_NAME); //$NON-NLS-1$
+			ASPECTPATH_ATTRIBUTE_NAME, ASPECTPATH_ATTRIBUTE_NAME); 
 
 	/**
 	 *  The value may be filled in with the container that contains this classpath entry
 	 *  So when checking to see if a classpath entry has this attribute, use {@link #isOnInpath(IClasspathEntry)} 
 	 */
 	public static final IClasspathAttribute INPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
-			INPATH_ATTRIBUTE_NAME, ASPECTPATH_ATTRIBUTE_NAME); //$NON-NLS-1$
+			INPATH_ATTRIBUTE_NAME, ASPECTPATH_ATTRIBUTE_NAME); 
 
     public static final String OUT_JAR = "org.eclipse.ajdt.ui.outJar"; //$NON-NLS-1$
 

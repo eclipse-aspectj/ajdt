@@ -22,6 +22,7 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
+import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -469,4 +470,23 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		}
 		return result;
 	}
+
+    public void configurationRead() {
+        // do nothing
+    }
+
+    public List getClasspathElementsWithModifiedContents() {
+        // not keeping track of this
+        return null;
+    }
+
+    public int getConfigurationChanges() {
+        // not keeping track of this.  Assume EVERYTHING
+        return CompilerConfigurationChangeFlags.EVERYTHING;
+    }
+
+    public List getProjectSourceFilesChanged() {
+        // not keeping track of this
+        return null;
+    }
 }
