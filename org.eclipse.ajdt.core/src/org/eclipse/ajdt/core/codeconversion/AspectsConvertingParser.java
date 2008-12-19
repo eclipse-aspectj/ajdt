@@ -84,6 +84,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     private static final char[] privileged = "          ".toCharArray(); //$NON-NLS-1$
 
     private static final String thizString = "thiz"; //$NON-NLS-1$
+    
+    // used to replace declare declarations
+    private static final char[] intt = "int    ".toCharArray(); //$NON-NLS-1$
 
     private final static char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart; org.aspectj.lang.JoinPoint.StaticPart thisEnclosingJoinPointStaticPart;" //$NON-NLS-1$
     .toCharArray();
@@ -392,6 +395,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				
 				break;
 
+			case TokenNamedeclare:
+			    // check to see if we need to remove declare declarations
+			    // so that import references aren't confused
+			    if (addReferencesForOrganizeImports) {
+			        if (!inAspectBodyStack.isEmpty() && inAspectBodyStack.peek().equals(Boolean.TRUE)) {
+			            addReplacement(scanner.getCurrentTokenStartPosition(), intt.length, intt);
+			        }
+			    }
+			    
+			    break;
+				
 			case TokenNameclass:
 			    typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
 			    inClassDeclaration = true;

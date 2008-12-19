@@ -205,6 +205,23 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 	}
 	
+
+	/**
+	 * return the type as an aspect if it exists
+	 */
+	public IType getType(String typeName) {
+	    IType maybeType = getAspectType(typeName);
+	    if (maybeType.exists()) {
+	        return maybeType;
+	    }
+        return super.getType(typeName);
+    }
+	public IType getAspectType(String typeName) {
+        return new AspectElement(this, typeName);
+    }
+    
+	
+	
 	/**
 	 * builds the structure of this Compilation unit.  We need to use an aspect-aware parser for this (in the org.aspectj.org.eclipse... world, which
 	 * makes things a little messy
