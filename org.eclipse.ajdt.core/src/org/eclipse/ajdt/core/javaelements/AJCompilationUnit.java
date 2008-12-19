@@ -586,13 +586,16 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	private static final String moveCuUpdateCreator = "org.eclipse.jdt.internal.corext.refactoring.reorg.MoveCuUpdateCreator"; //$NON-NLS-1$
 	private static final int lenOfMoveCuUpdateCreator = moveCuUpdateCreator.length();
-	
+
 	public IType[] getAllTypes() throws JavaModelException {
-		//tell MoveCuUpdateCreator that we do not contain any Types, otherwise it tries to find
-		//them using java search which will cause an ugly exception
-		String caller = (new RuntimeException()).getStackTrace()[1].getClassName();
-		if ((lenOfMoveCuUpdateCreator == caller.length()) && moveCuUpdateCreator.equals(caller))
-			return new IType[0];
+	    if (!AspectJPlugin.USING_CU_PROVIDER) {
+	        //tell MoveCuUpdateCreator that we do not contain any Types, otherwise it tries to find
+	        //them using java search which will cause an ugly exception
+    		String caller = (new RuntimeException()).getStackTrace()[1].getClassName();
+    		if ((lenOfMoveCuUpdateCreator == caller.length()) && moveCuUpdateCreator.equals(caller)) {
+    			return new IType[0];
+    		}
+	    }
 		return super.getAllTypes();
 	}
 
@@ -601,7 +604,6 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * 
      * A description of how code completion works in AJDT can be found in bug 74419.
      * 
-	 *  (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
 	 */
 	protected void codeComplete(

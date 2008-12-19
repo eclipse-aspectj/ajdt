@@ -292,6 +292,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			case TokenNameSEMICOLON:
 				if (inPointcutDesignator) {
 					endPointcutDesignator();
+					if (options.isKeepPointcuts()) {
+    					addReplacement(scanner.getCurrentTokenStartPosition(), 
+    					        1, new char[] { '}' });
+					}
 				}
 				break;
 				
@@ -318,6 +322,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			case TokenNameLBRACE:
 				if (inPointcutDesignator) {
 					endPointcutDesignator();
+                    if (options.isKeepPointcuts()) {
+                        addReplacement(scanner.getCurrentTokenStartPosition(), 
+                                1, new char[] { ' ' });
+                    }
+                    
 					//must be start of advice body -> insert tjp reference
 					if (insertIntertypeDeclarations && !inTypeDeclaration()) {
 						addReplacement(scanner.getCurrentTokenStartPosition() + 1, 0,
@@ -765,13 +774,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	 */
 	private void endPointcutDesignator() {
 		inPointcutDesignator = false;
-		int posSemi = scanner.getCurrentTokenStartPosition();
-		int len = posSemi - posColon;
-		char[] empty = new char[len];
-		for (int i = 0; i < empty.length; i++) {
-			empty[i] = ' ';
+		if (options.isKeepPointcuts()) {
+		    addReplacement(posColon, 1, new char[] { '{' });
+		} else {
+            int posSemi = scanner.getCurrentTokenStartPosition();
+            int len = posSemi - posColon;
+            char[] empty = new char[len];
+            for (int i = 0; i < empty.length; i++) {
+                empty[i] = ' ';
+            }
+            addReplacement(posColon, len, empty);
 		}
-		addReplacement(posColon, len, empty);
 	}
 
 	

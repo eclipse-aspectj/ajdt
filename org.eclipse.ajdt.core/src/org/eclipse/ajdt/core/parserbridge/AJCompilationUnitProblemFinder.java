@@ -25,12 +25,15 @@ import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.JavaModelException;
@@ -396,11 +399,17 @@ public class AJCompilationUnitProblemFinder extends
         } catch(JavaModelException e) {
         }
         
-        
-        if (numArgs == 1 && id == IProblem.ParsingErrorDeleteToken &&
-                aspectMemberNames.contains(firstArg)) {
-            // the implements or extends clause of a declare statement
-            return false;
+        try {
+            if (numArgs == 1 && (
+                    id == IProblem.ParsingErrorDeleteToken ||
+                    id == IProblem.ParsingErrorDeleteTokens
+                    ) &&
+                    aspectMemberNames.contains(firstArg) &&
+                    insideITD(categorizedProblem, unit)) {
+                // the implements or extends clause of a declare statement
+                return false;
+            }
+        } catch (CoreException e) {
         }
         
         if (numArgs == 1 && 
@@ -504,7 +513,9 @@ public class AJCompilationUnitProblemFinder extends
 
     private static boolean insideITD(CategorizedProblem categorizedProblem,
             CompilationUnit unit) throws JavaModelException {
-        return unit.getElementAt(categorizedProblem.getSourceStart()) instanceof IntertypeElement;
+        IJavaElement elementAt = unit.getElementAt(categorizedProblem.getSourceStart());
+        return elementAt instanceof IntertypeElement ||
+               elementAt instanceof DeclareElement;
     }
 
     private static String extractProblemRegion(

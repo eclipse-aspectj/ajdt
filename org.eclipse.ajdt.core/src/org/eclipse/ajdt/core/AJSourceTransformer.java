@@ -8,7 +8,7 @@ public class AJSourceTransformer implements ISourceTransformer {
 
     public char[] convert(char[] toConvert) {
         AspectsConvertingParser parser = new AspectsConvertingParser(toConvert);
-        parser.convert(ConversionOptions.CONSTANT_SIZE);
+        parser.convert(ConversionOptions.CONSTANT_SIZE_KEEP_POINTCUTS);
         return parser.content;
     }
 
