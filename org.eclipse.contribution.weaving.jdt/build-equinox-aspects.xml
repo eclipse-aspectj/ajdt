@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="plugin_export" name="build">
-	<target name="plugin_export">
-		<pde.exportPlugins destination="/Users/andrew/Desktop" exportSource="true" exportType="directory" plugins="org.eclipse.contribution.weaving.jdt" useJARFormat="true"/>
+<project default="feature_export" name="build">
+	<target name="feature_export">
+		<pde.exportFeatures destination="/Users/andrew/Eclipse/Workspaces/workspaceAJDT1.6weaving/org.eclipse.contribution.weaving.jdt" exportSource="true" exportType="zip" features="org.eclipse.equinox.weaving" filename="equinox-aspects.zip" useJARFormat="true"/>
 	</target>
 </project>
