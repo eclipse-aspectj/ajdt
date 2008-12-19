@@ -42,6 +42,12 @@ public class AJImageDescriptorSelector implements IImageDescriptorSelector {
                 } else if (member.getElementName().indexOf('$') != -1) {
                     // it is an itd method
                     return AspectJImages.ITD_METHOD_DEF.getImageDescriptor();
+                } else if (member.getElementName().equals("before")) {
+                    return AspectJImages.BEFORE_ADVICE.getImageDescriptor();
+                } else if (member.getElementName().equals("around")) {
+                    return AspectJImages.AROUND_ADVICE.getImageDescriptor();
+                } else if (member.getElementName().equals("after")) {
+                    return AspectJImages.AFTER_ADVICE.getImageDescriptor();
                 } else {
                     // a pointcut
                     return AspectJImages.POINTCUT_DEF.getImageDescriptor();
