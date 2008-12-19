@@ -421,6 +421,9 @@ aspect PreferencePageBuilder {
 		resetSelectionButtonsOnPage(page);
 		resetDialogFieldsOnPage(page);
 		if (page instanceof AJCompilerPreferencePage) {
+		    useProjectSettingsOriginalValue = ((AJCompilerPreferencePage) page)
+            .hasProjectSpecificOptions(((AJCompilerPreferencePage) page)
+                    .getProject());
 			compilerPageDoBuild = false;
 		}
 	}
@@ -475,8 +478,7 @@ aspect PreferencePageBuilder {
 		}
 		final IProject project = tempProject;
 		if (project != null) {
-//            AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
-            AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.INCREMENTAL_BUILD);
+            AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
 		    job.schedule();
 		}
 	}
@@ -488,33 +490,8 @@ aspect PreferencePageBuilder {
 
 			final IProject project = (AJproject);
 			if (project != null) {
-				ProgressMonitorDialog dialog = new ProgressMonitorDialog(
-						((PreferencePage) prefPage).getShell());
-				try {
-					dialog.run(true, true, new IRunnableWithProgress() {
-						public void run(IProgressMonitor monitor)
-								throws InvocationTargetException {
-							monitor.beginTask("", 2); //$NON-NLS-1$
-							try {
-								monitor
-										.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
-								project.build(
-										IncrementalProjectBuilder.FULL_BUILD,
-										new SubProgressMonitor(monitor, 2));
-							} catch (CoreException e) {
-								AJDTErrorHandler
-										.handleAJDTError(
-												UIMessages.OptionsConfigurationBlock_builderror_message,
-												e);
-							} finally {
-								monitor.done();
-							}
-						}
-					});
-				} catch (InterruptedException e) {
-					// cancelled by user
-				} catch (InvocationTargetException e) {
-				}
+                AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
+                job.schedule();
 			}
 
 		}

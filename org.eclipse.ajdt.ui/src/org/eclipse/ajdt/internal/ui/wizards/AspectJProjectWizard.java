@@ -19,6 +19,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -114,38 +115,13 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         // build path and successfully continue to build.
 
 		final IProject thisProject = project;
-		ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
 		try {
-			
-			AJDTUtils.addAspectJNature(project,true);
+            AJDTUtils.addAspectJNature(project,true);
+            AJBuildJob job = new AJBuildJob(project, IncrementalProjectBuilder.FULL_BUILD);
+            job.schedule();
+        } catch (CoreException e) {
+        }
 
-			dialog.run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor)
-						throws InvocationTargetException {
-					monitor.beginTask("", 2); //$NON-NLS-1$
-					try {
-						monitor.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
-						thisProject.build(
-								IncrementalProjectBuilder.FULL_BUILD,
-								new SubProgressMonitor(monitor, 2));
-					} catch (CoreException e) {
-					} finally {
-						monitor.done();
-					}
-				}
-			});
-		} catch(InterruptedException e) {
-			// build cancelled by user
-			return false;
-		} catch(InvocationTargetException e) {
-			String title =
-				UIMessages.NewAspectjProjectCreationWizard_op_error_title;
-			String message =
-				UIMessages.NewAspectjProjectCreationWizard_op_error_message;
-			ExceptionHandler.handle(e, getShell(), title, message);
-		} catch(CoreException e) {
-		}
-		
 		project = thisProject;
 		selectAndReveal(project);
 		AJLog.log("New project created: " + project.getName()); //$NON-NLS-1$
