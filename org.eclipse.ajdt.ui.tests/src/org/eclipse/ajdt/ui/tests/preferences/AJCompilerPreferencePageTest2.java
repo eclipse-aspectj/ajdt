@@ -67,10 +67,10 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 			testLog.clearLog();
 			page.performApply();
 			waitForJobsToComplete();
-			boolean didBuild = testLog
-					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+            boolean didBuild = testLog
+                    .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 			assertTrue(
-					"expected build to occur after performApply because asked " //$NON-NLS-1$
+					"expected full build to occur after performApply because asked " //$NON-NLS-1$
 							+ "for one but build didn't happen", didBuild); //$NON-NLS-1$
 			// pressing "Ok" now should not result in a build
 			testLog.clearLog();
@@ -106,10 +106,11 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 			// perform Apply - don't expect there to be a build
 			testLog.clearLog();
 			page.performApply();
+	        waitForJobsToComplete();
 			boolean didBuild = testLog
-					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+					.containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 			assertFalse(
-					"did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+					"did not expect a full build to occur after pressing Apply" //$NON-NLS-1$
 							+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 					didBuild);
 			// pressing "Ok" now should still not result in a build
@@ -146,10 +147,11 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 			// perform Apply - don't expect there to be a build
 			testLog.clearLog();
 			page.performApply();
-			boolean didBuild = testLog
-					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+	        waitForJobsToComplete();
+            boolean didBuild = testLog
+                    .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 			assertFalse(
-					"did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+					"did not expect a full build to occur after pressing Apply" //$NON-NLS-1$
 							+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 					didBuild);
 			// want to build when press ok
@@ -181,9 +183,9 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		testLog.clearLog();
 		page.performApply();
         waitForJobsToComplete();
-		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
-		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
+        boolean didBuild = testLog
+                .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+		assertTrue("expected full build to occur after performApply because asked " //$NON-NLS-1$
 				+ "for one but build didn't happen", didBuild); //$NON-NLS-1$
 		// pressing "Ok" now should not result in a build
 		testLog.clearLog();
@@ -201,9 +203,11 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 	 * don't expect build
 	 */
 	public void testChangeUseWorkspaceSettingsAndApply() {
+	    setUseProjectSettings();
+	    
 		page.setIsUsingProjectSettings(true);
 		page.setBuildNow(true);
-		page.performOk();
+		page.performApply();
         waitForJobsToComplete();
 
 		// now change back to using workspace settings
@@ -212,9 +216,9 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		testLog.clearLog();
 		page.performApply();
         waitForJobsToComplete();
-		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
-		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
+        boolean didBuild = testLog
+                .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+		assertTrue("expected full build to occur after performApply because asked " //$NON-NLS-1$
 				+ "for one but build didn't happen", didBuild); //$NON-NLS-1$
 		// pressing "Ok" now should not result in a build
 		testLog.clearLog();
@@ -241,9 +245,10 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// perform Apply - don't expect there to be a build
 		testLog.clearLog();
 		page.performApply();
-		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
-		assertFalse("did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+		waitForJobsToComplete();
+        boolean didBuild = testLog
+                .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+		assertFalse("did not expect a full build to occur after pressing Apply" //$NON-NLS-1$
 				+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 				didBuild);
 		// pressing "Ok" now should still not result in a build
@@ -273,9 +278,9 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		testLog.clearLog();
 		page.performApply();
         waitForJobsToComplete();
-		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
-		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
+        boolean didBuild = testLog
+                .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+		assertTrue("expected full build to occur after performApply because asked " //$NON-NLS-1$
 				+ "for one but build didn't happen", didBuild); //$NON-NLS-1$
 		// pressing "Ok" now should not result in a build
 		testLog.clearLog();
@@ -302,9 +307,10 @@ public class AJCompilerPreferencePageTest2 extends UITestCase {
 		// perform Apply - don't expect there to be a build
 		testLog.clearLog();
 		page.performApply();
-		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
-		assertFalse("did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+        waitForJobsToComplete();
+        boolean didBuild = testLog
+                .containsMessage("AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+		assertFalse("did not expect a full build to occur after pressing Apply" //$NON-NLS-1$
 				+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 				didBuild);
 		// pressing "Ok" now should still not result in a build - this is

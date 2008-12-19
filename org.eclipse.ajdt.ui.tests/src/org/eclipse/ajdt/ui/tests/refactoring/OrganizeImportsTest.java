@@ -12,6 +12,7 @@ package org.eclipse.ajdt.ui.tests.refactoring;
 
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ajdt.core.AspectJCore;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -25,6 +26,13 @@ import org.eclipse.jdt.ui.actions.OrganizeImportsAction;
 
 public class OrganizeImportsTest extends UITestCase {
 
+    protected void setUp() throws Exception {
+        super.setUp();
+        if (!AspectJPlugin.USING_CU_PROVIDER) {
+            fail("Must be using JDT Weaving");
+        }
+    }
+    
     /**
      * Should not remove the aspect in the imports statement
      */

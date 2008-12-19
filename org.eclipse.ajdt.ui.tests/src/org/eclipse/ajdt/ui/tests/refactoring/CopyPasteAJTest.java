@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.ui.tests.refactoring;
 
 import org.eclipse.ajdt.core.AspectJCore;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
@@ -39,6 +40,13 @@ import org.eclipse.swt.widgets.Display;
  */
 public class CopyPasteAJTest extends UITestCase {
 
+    protected void setUp() throws Exception {
+        super.setUp();
+        if (!AspectJPlugin.USING_CU_PROVIDER) {
+            fail("Must be using JDT Weaving");
+        }
+    }
+    
     public void testCopyPasteAJ() throws Exception {
         IProject proj = createPredefinedProject("Bug 254431"); //$NON-NLS-1$
         IFile file = proj.getFile("src/ajdt/renamepackagebug1/A.aj"); //$NON-NLS-1$

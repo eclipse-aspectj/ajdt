@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.refactoring;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -30,6 +31,13 @@ import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
 
 public class RenamePackageTest extends UITestCase {
 
+    protected void setUp() throws Exception {
+        super.setUp();
+        if (!AspectJPlugin.USING_CU_PROVIDER) {
+            fail("Must be using JDT Weaving");
+        }
+    }
+    
     public void testRenamePackage() throws Exception {
         IProject proj = createPredefinedProject("Bug 254431"); //$NON-NLS-1$
         IJavaProject jProj = JavaCore.create(proj);
