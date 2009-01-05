@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JDT Weaving
 Bundle-SymbolicName: org.eclipse.contribution.weaving.jdt;singleton:=true
-Bundle-Version: 1.6.2.qualifier
+Bundle-Version: 1.6.3.qualifier
 Require-Bundle: 
  org.aspectj.runtime,
  org.eclipse.equinox.weaving.aspectj;bundle-version="1.0.0";resolution:=optional,
