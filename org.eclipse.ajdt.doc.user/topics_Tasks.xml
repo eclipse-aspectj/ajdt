@@ -84,7 +84,7 @@
 		<topic label="Using the inplace Cross References view" href="tasks/xrefinplace.htm"></topic>
 	</topic>
 	<anchor id="t_xrefview" />
-	
+  	
 	<topic label="Using the Visualiser" href="tasks/visualiser.htm">
 		<topic label="Opening the Aspect Visualization perspective" href="tasks/avperspective.htm"></topic>
         <topic label="Visualizing the effects of aspects on a project" href="tasks/visualisingproject.htm"></topic>
@@ -105,6 +105,7 @@
 	</topic>
 	<anchor id="t_setups" />
 
+	<!--  No longer available
 	<topic label="Comparing crosscutting" href="tasks/compare.htm">
 		<topic label="Saving crosscutting information" href="tasks/savemap.htm"></topic>
 		<topic label="Comparing two builds" href="tasks/comparetwo.htm"></topic>
@@ -112,6 +113,8 @@
 		<topic label="Comparing two elements" href="tasks/compareelements.htm"></topic>
 	</topic>
 	<anchor id="t_compare" />
+	-->
+	
 	
 	<topic label="Configuring advice markers" href="tasks/configure.htm">
 		<topic label="Changing the image for advice markers" href="tasks/changemarkerimage.htm"></topic>
