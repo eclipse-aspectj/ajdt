@@ -41,6 +41,7 @@ public aspect SourceTransformerAspect {
             try {
                 char[] transformedSource = transformer.convert(sourceString);
                 proceed(transformedSource, sourceUnit);
+                return;
             } catch (Throwable t) {
                 JDTWeavingPlugin.logException(t);
             }

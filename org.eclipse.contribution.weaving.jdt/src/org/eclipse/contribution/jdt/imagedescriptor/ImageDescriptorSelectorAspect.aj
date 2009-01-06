@@ -87,7 +87,7 @@ public privileged aspect ImageDescriptorSelectorAspect {
         try {
             for (IImageDescriptorSelector selector : ImageDescriptorSelectorRegistry.getInstance()) {
                 ImageDescriptor descriptor = selector.getTypeImageDescriptor(isInner, isInInterfaceOrAnnotation, flags, useLightIcons, element);
-                if (descriptor != null) {
+                if (descriptor != null) {   
                     return descriptor;
                 }
             }

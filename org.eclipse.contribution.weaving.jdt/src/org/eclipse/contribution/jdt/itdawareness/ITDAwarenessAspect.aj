@@ -2,8 +2,11 @@ package org.eclipse.contribution.jdt.itdawareness;
 
 import java.util.HashMap;
 
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.compiler.SourceElementParser;
@@ -11,13 +14,13 @@ import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.Openable;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
-
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE
@@ -132,6 +135,7 @@ public aspect ITDAwarenessAspect {
      * so that ITDs are properly ignored.
      */
 
+    @SuppressWarnings("unchecked")
     pointcut findProblemsInJava(
             CompilationUnit unitElement,
             SourceElementParser parser,
@@ -143,6 +147,7 @@ public aspect ITDAwarenessAspect {
             args(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
 
     
+    @SuppressWarnings("unchecked")
     CompilationUnitDeclaration around(
             CompilationUnit unitElement, 
             SourceElementParser parser,
@@ -151,11 +156,51 @@ public aspect ITDAwarenessAspect {
             boolean creatingAST,
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException : findProblemsInJava(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor) {
-                if (provider != null) {
-                    return provider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
-                } else {
-                    return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
-                }
-            }
+        if (provider != null) {
+            return provider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+        } else {
+            return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+        }
+    }
+            
+            
+    /*********************************
+     * This section handles ITD aware content assist in Java files
+     * 
+     * Hmmmm...maybe want to promote this one to its own package because other plugins may
+     * want to add their own way of doing completions for Java files
+     */
+    public static IJavaContentAssistProvider contentAssistProvider;
+            
+    pointcut codeCompleteInJavaFile(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
+            org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
+            int position, CompletionRequestor requestor,
+            WorkingCopyOwner owner,
+            ITypeRoot typeRoot, Openable target) : 
+        execution(protected void Openable.codeComplete(
+                org.eclipse.jdt.internal.compiler.env.ICompilationUnit,
+                org.eclipse.jdt.internal.compiler.env.ICompilationUnit,
+                int, CompletionRequestor,
+                WorkingCopyOwner,
+                ITypeRoot)) && within(Openable) && this(target) && args(cu, unitToSkip, position, requestor, owner, typeRoot);
     
+    void around(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
+            org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
+            int position, CompletionRequestor requestor,
+            WorkingCopyOwner owner,
+            ITypeRoot typeRoot, Openable target) : 
+                codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target) && 
+                if (contentAssistProvider != null) {
+        boolean result;
+        try {
+            result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target);
+        } catch (Exception e) {
+            JDTWeavingPlugin.logException(e);
+            result = false;
+        }
+            
+        if (!result) {
+            proceed(cu, unitToSkip, position, requestor, owner, typeRoot, target);
+        }
+    }
 }

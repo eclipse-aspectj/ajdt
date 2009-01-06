@@ -1,4 +1,4 @@
-#Fri Nov 28 11:27:06 PST 2008
+#Fri Jan 02 11:49:36 PST 2009
 eclipse.preferences.version=1
 org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages=false
 org.aspectj.ajdt.core.compiler.lint.BrokeSerialVersionCompatibility=ignore
@@ -10,7 +10,7 @@ org.aspectj.ajdt.core.compiler.lint.ShadowNotInStructure=ignore
 org.aspectj.ajdt.core.compiler.lint.TypeNotExposedToWeaver=warning
 org.aspectj.ajdt.core.compiler.lint.UnresolvableMember=warning
 org.aspectj.ajdt.core.compiler.lint.WildcardTypeName=ignore
-org.aspectj.ajdt.core.compiler.lint.adviceDidNotMatch=warning
+org.aspectj.ajdt.core.compiler.lint.adviceDidNotMatch=ignore
 org.aspectj.ajdt.core.compiler.lint.annotationAsTargetForDecpIgnored=warning
 org.aspectj.ajdt.core.compiler.lint.calculatingSerialVersionUID=ignore
 org.aspectj.ajdt.core.compiler.lint.cantFindType=error
