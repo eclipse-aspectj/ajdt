@@ -149,15 +149,12 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
     }
     
     public void testClasspathChange() throws Exception {
-        // load project and full build
         IProject proj = createPredefinedProject("Bean Example");
         
-        // touch classpath
         proj.getFile(".classpath").touch(null);
 
         testLog.clearLog();
         
-        // incremental build
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
         
@@ -166,6 +163,24 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
         assertEquals(1, testLog.numberOfEntriesForMessage("CoreCompilerConfiguration for project Bean Example registered a configuration change: [ASPECTPATH_CHANGED, CLASSPATH_CHANGED, INPATH_CHANGED, OUTPUTDESTINATIONS_CHANGED]"));
         
         // classpath has been changed, so should not see this message
+        assertEquals(0, testLog.numberOfEntriesForMessage("build: Examined delta - no source file or classpath changes for project Bean Example"));
+    }
+
+    public void testManifestChange() throws Exception {
+        IProject proj = createPredefinedProject("Bean Example");
+        
+        proj.getFile("META-INF/MANIFEST.MF").touch(null);
+
+        testLog.clearLog();
+        
+        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+        waitForAutoBuild();
+        
+        // look at AJDT Event trace
+        // the configuration should have registered a change:
+        assertEquals(1, testLog.numberOfEntriesForMessage("CoreCompilerConfiguration for project Bean Example registered a configuration change: [CLASSPATH_CHANGED]"));
+        
+        // manifest has been changed, so should not see this message
         assertEquals(0, testLog.numberOfEntriesForMessage("build: Examined delta - no source file or classpath changes for project Bean Example"));
     }
 
