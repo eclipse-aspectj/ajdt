@@ -180,4 +180,8 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 		this.conversionOptions = conversionOptions;
 		upToDate = false;
 	}
+	
+	public ArrayList getInsertionTable() {
+        return insertionTable;
+    }
 }

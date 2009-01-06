@@ -636,7 +636,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	    // and we cannot perform code completion requests.
 	    if (!isEditingInAspectJEditor()) return;
     
-	    ConversionOptions myConversionOptions; int pos;
+	    ConversionOptions myConversionOptions; int transformedPos;
 		
 		if(javaCompBuffer == null) {
 			convertBuffer(super.getBuffer());
@@ -650,12 +650,12 @@ public class AJCompilationUnit extends CompilationUnit{
 			//we are inside an intertype method declaration -> simulate context switch to target class
 			myConversionOptions = ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType);
 			javaCompBuffer.setConversionOptions(myConversionOptions);
-			pos = javaCompBuffer.translatePositionToFake(position);
+			transformedPos = javaCompBuffer.translatePositionToFake(position);
 			
 			// we call codeComplete twice in this case to combine the context specific completions with the
 			// completions for things like local variables.
 			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
-			internalCodeComplete(cu, unitToSkip, pos, wrappedRequestor, owner, this);				
+			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this);				
 			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
@@ -665,9 +665,9 @@ public class AJCompilationUnit extends CompilationUnit{
 		myConversionOptions = ConversionOptions.CODE_COMPLETION;
 		
 		javaCompBuffer.setConversionOptions(myConversionOptions);
-		pos = javaCompBuffer.translatePositionToFake(position);
+		transformedPos = javaCompBuffer.translatePositionToFake(position);
 		
-		internalCodeComplete(cu, unitToSkip, pos, requestor, owner, this);
+		internalCodeComplete(cu, unitToSkip, transformedPos, requestor, owner, this);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
 	}
@@ -708,9 +708,8 @@ public class AJCompilationUnit extends CompilationUnit{
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
 	    JavaProject project = (JavaProject) getJavaProject();
-	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment((JavaProject) getJavaProject(), owner, null);
+	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, null);
 
-	    // set unit to skip
 	    environment.setUnitToSkip(unitToSkip);
 
 	    // code complete

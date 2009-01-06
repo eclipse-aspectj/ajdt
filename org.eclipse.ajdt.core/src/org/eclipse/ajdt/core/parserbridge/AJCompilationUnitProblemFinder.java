@@ -125,10 +125,13 @@ public class AJCompilationUnitProblemFinder extends
 	}
 
 	// AspectJ Change Begin
-	/**
+	/*
 	 * Sets a flag so that ITDs will be inserted into units 
+	 * 
+	 * XXX This method has no effect any more should comment it out after
+	 * we are sure that we should not revert
 	 */
-	protected void internalBeginToCompile(
+/*	protected void internalBeginToCompile(
 	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits,
 	        int maxUnits) {
 	    
@@ -142,7 +145,7 @@ public class AJCompilationUnitProblemFinder extends
 	        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
 	    }
 	}
-	// AspectJ Change End
+*/	// AspectJ Change End
 	
 	
 	public static CompilationUnitDeclaration processAJ(

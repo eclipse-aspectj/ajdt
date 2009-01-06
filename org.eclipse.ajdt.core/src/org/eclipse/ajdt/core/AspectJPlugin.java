@@ -21,6 +21,7 @@ import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
+import org.eclipse.ajdt.internal.core.contentassist.ContentAssistProvider;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
@@ -180,6 +181,8 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
             }
 
 		};
+		
+		ITDAwarenessAspect.contentAssistProvider = new ContentAssistProvider();
 		
 		AJProjectModelFacade.installListener();
 	}

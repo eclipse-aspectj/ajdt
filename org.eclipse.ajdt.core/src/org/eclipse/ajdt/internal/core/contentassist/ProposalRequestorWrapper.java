@@ -11,6 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.contentassist;
 
+import java.util.ArrayList;
+
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.jdt.core.CompletionContext;
 import org.eclipse.jdt.core.CompletionProposal;
@@ -28,18 +31,24 @@ import org.eclipse.jdt.core.compiler.IProblem;
 public class ProposalRequestorWrapper extends CompletionRequestor {
 
 	CompletionRequestor wrapped;
-	JavaCompatibleBuffer buffer;
+	ArrayList insertionTable;
 
 	/**
 	 * @param wrapped
 	 * @param buffer
 	 */
-	public ProposalRequestorWrapper(CompletionRequestor wrapped,
-			JavaCompatibleBuffer buffer) {
-		super();
-		this.wrapped = wrapped;
-		this.buffer = buffer;
-	}
+    public ProposalRequestorWrapper(CompletionRequestor wrapped,
+            JavaCompatibleBuffer buffer) {
+        super();
+        this.wrapped = wrapped;
+        this.insertionTable = buffer.getInsertionTable();
+    }
+    public ProposalRequestorWrapper(CompletionRequestor wrapped,
+            ArrayList insertionTable) {
+        super();
+        this.wrapped = wrapped;
+        this.insertionTable = insertionTable;
+    }
 	
 	public void accept(CompletionProposal proposal) {
 		int s = proposal.getReplaceStart();
@@ -49,7 +58,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	}
 	
 	private int trans(int pos){
-		return buffer.translatePositionToReal(pos);
+		return AspectsConvertingParser.translatePositionToBeforeChanges(pos, insertionTable);
 	}
 	
 	public void acceptContext(CompletionContext context) {

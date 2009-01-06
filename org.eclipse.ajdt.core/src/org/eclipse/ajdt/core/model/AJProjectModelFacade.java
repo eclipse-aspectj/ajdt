@@ -661,9 +661,13 @@ public class AJProjectModelFacade {
                             if (targetJe != null && targetJe != ERROR_JAVA_ELEMENT) {
                                 relatedJavaElements.add(targetJe);
                             } else {
-                                AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
-                                        AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
-                                        "with handle:\n" + handle, new RuntimeException()));
+                                // ignore handles that start with *
+                                // these are handles from ITDs that are created earlyvoi
+                                if (! handle.startsWith("*")) {
+                                    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                                            AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
+                                            "with handle:\n" + handle, new RuntimeException()));
+                                }
                             }
                         }
                     }

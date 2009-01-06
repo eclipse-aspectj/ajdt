@@ -20,7 +20,7 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
     
     private List cusToRevert;
     
-    private boolean insertITDs = false;
+    private boolean insertITDs = true;
     
     public ITDAwareLookupEnvironment(LookupEnvironment wrapper, INameEnvironment nameEnvironment) {
         super(wrapper.typeRequestor, wrapper.globalOptions, wrapper.problemReporter, nameEnvironment);
@@ -42,11 +42,16 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
                 }
             }
         }
+        // only insert ITDs for the units we are compiling directly
+        // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
+        // don't want to insert ITDs twice.
+        insertITDs = false;
         super.completeTypeBindings();
     }
     
+    // not controlled externally any more
     public void setInsertITDs(boolean insertITDs) {
-        this.insertITDs = insertITDs;
+//        this.insertITDs = insertITDs;
     }
     
     
