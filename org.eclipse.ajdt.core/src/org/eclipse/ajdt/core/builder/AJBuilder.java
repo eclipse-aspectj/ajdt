@@ -151,14 +151,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Check the delta - we only want to proceed if something relevant
 		// in this project has changed (a .java file, a .aj file or a 
 		// .lst file)
-		IResourceDelta dta = getDelta(getProject());
+		IResourceDelta delta = getDelta(getProject());
 		// copy over any new resources (bug 78579)
-		if(dta != null) {
-			copyResources(javaProject,dta);
+		if(delta != null) {
+			copyResources(javaProject,delta);
 		}
 
 		if (kind != FULL_BUILD) {
-		    if (!sourceFilesChanged(dta, project) && !classpathChanged(dta) && !projectSpecificSettingsChanged(dta)){
+		    if (!hasChangesAndMark(delta, project)) {
+		        
 				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file or classpath changes for project "  //$NON-NLS-1$
 								+ project.getName() );
 				
@@ -169,12 +170,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
 					IResourceDelta otherProjDelta = getDelta(requiredProjects[i]);
 					continueToBuild = otherProjDelta != null &&
-					                 (sourceFilesChanged(otherProjDelta,requiredProjects[i]) ||
-					                  classpathChanged(otherProjDelta) ||
-					                  projectSpecificSettingsChanged(otherProjDelta));
+					                 (hasChangesAndMark(otherProjDelta, requiredProjects[i]));
 				}
 				
-				// no compilation units found.  end the compilation!
+				// no changes found!  end the compilation.
 				if (!continueToBuild) {
 					// bug 107027
 					compilerConfig.flushClasspathCache();
@@ -196,15 +195,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (kind == FULL_BUILD ||
 		    !hasValidPreviousBuildConfig(compiler.getId())) {
 		    
-			IJavaProject ijp = JavaCore.create(project);
-			if (ijp != null) {
-				cleanOutputFolders(ijp,false);
-			} else {
-				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
-			}
-			AJProjectModelFactory.getInstance().removeModelForProject(project);
-			
-			copyResources(ijp);
+			cleanOutputFolders(javaProject,false);
+			AJProjectModelFactory.getInstance().removeModelForProject(project);			
+			copyResources(javaProject);
 	        
 		} else {
 		    // doing an incremental build
@@ -252,28 +245,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	}
 
 	/**
-	 * 
-	 * @param dta the resource delta for this build
-	 * @param project
-	 * @return
-	 */
-	private boolean projectSpecificSettingsChanged(IResourceDelta dta) {
-        IResourceDelta[] children = dta.getAffectedChildren();
-        for (int i = 0; i < children.length; i++) {
-            IResourceDelta child = children[i];
-            if (child.getResource().getName().equals(".settings")) {
-                if (child.getAffectedChildren().length > 0) {
-                    // assume that if something in this folder has changed, then
-                    // it is a project specific setting
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
 	 * Check to see if the class paths are valid
 	 * @param progressMonitor
 	 * @param project
@@ -295,20 +266,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return true;
     }
 
-	// check to see if the .classpath has changed.
-	// we know exactly where it is located, so no need for a visitor
-    private boolean classpathChanged(IResourceDelta dta) {
-        IResourceDelta[] children = dta.getAffectedChildren();
-        for (int i = 0; i < children.length; i++) {
-            IResourceDelta child = children[i];
-            if (child.getResource().getName().equals(".classpath")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private long getLastBuildTimeStamp(AjCompiler compiler) {
+	private long getLastBuildTimeStamp(AjCompiler compiler) {
         AjState state = IncrementalStateManager.retrieveStateFor(compiler.getId());
         if (state != null) {
             return state.getLastBuildTime();
@@ -397,7 +355,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     }
                 }
             }            
-            // if all else went well, also add the inpath the the list of changed projects.
+            // if all else went well, also add the inpath to the list of changed projects.
             // Adding the inpath always is just a conservative estimate of what has changed.
             // 
             // For Java projects, we only know the last structural build time.  Usually this is 
@@ -462,6 +420,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
      * In other cases, use the output location manager to determine the folders
      * that have changes in them and refresh only those folders
 	 */
+	// XXX don't know if this is necessary any more.
+	// since out folder is being refreshed when files are marked as derived.
     private void doRefreshAfterBuild(IProject project,
             IProject[] dependingProjects, IJavaProject javaProject)
             throws CoreException {
@@ -1285,15 +1245,69 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
-	
 	/**
+	 * Looks for changes of any relevant kind in this project and marks them in
+	 * the compiler configuration 
+	 */
+	public boolean hasChangesAndMark(IResourceDelta delta, IProject project) {
+	    CoreCompilerConfiguration compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(project);
+	    boolean hasChanges = sourceFilesChanged(delta, project, compilerConfiguration);
+	    hasChanges |= classpathChanged(delta, compilerConfiguration);
+	    hasChanges |= manifestChanged(delta, compilerConfiguration);
+	    hasChanges |= projectSpecificSettingsChanged(delta, compilerConfiguration);
+	    return hasChanges;
+	}
+	
+    private boolean projectSpecificSettingsChanged(IResourceDelta delta, CoreCompilerConfiguration compilerConfiguration) {
+        IResourceDelta settingsDelta = delta.findMember(new Path(".settings"));
+        // assume that if something in this folder has changed, then
+        // it is a project specific setting
+        if (settingsDelta != null && 
+                   settingsDelta.getAffectedChildren().length > 0) {
+            compilerConfiguration.configurationChanged(
+                    CompilerConfigurationChangeFlags.JAVAOPTIONS_CHANGED |
+                    CompilerConfigurationChangeFlags.NONSTANDARDOPTIONS_CHANGED |
+                    CompilerConfigurationChangeFlags.OUTJAR_CHANGED);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean classpathChanged(IResourceDelta delta, CoreCompilerConfiguration compilerConfiguration) {
+        if (delta.findMember(new Path(".classpath")) != null) {
+            // we don't know exactly what has changed, so be conservative
+            compilerConfiguration.configurationChanged(
+                CompilerConfigurationChangeFlags.CLASSPATH_CHANGED |
+                CompilerConfigurationChangeFlags.ASPECTPATH_CHANGED |
+                CompilerConfigurationChangeFlags.INPATH_CHANGED | 
+                CompilerConfigurationChangeFlags.OUTPUTDESTINATIONS_CHANGED);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean manifestChanged(IResourceDelta delta, CoreCompilerConfiguration compilerConfiguration) {
+        // we make an assumption here that the project actually cares about 
+        // the manifest file (ie- it is a plugin project or an OSGi project
+        if (delta.findMember(new Path("META-INF/MANIFEST.MF")) != null) {
+            compilerConfiguration.configurationChanged(
+                    CompilerConfigurationChangeFlags.CLASSPATH_CHANGED);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
 	 * Determine if any source files have changed and if so	record it in the compiler configuration for the
 	 * project
 	 * @param delta
 	 * @param project
 	 * @return true if a source file has changed.  False otherwise
 	 */
-	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) {
+	private boolean sourceFilesChanged(IResourceDelta delta, IProject project, CoreCompilerConfiguration compilerConfiguration) {
 		if (delta != null && delta.getAffectedChildren().length != 0) {
 		    
 		    // XXX might be better if this were a Set.
@@ -1301,13 +1315,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			List /*IFile*/ includedFileNames = BuildConfig.getIncludedSourceFiles(project);
 //	          Set /*IFile*/ includedFileNames = BuildConfig.getIncludedSourceFilesSet(project);
 
-			IJavaProject ijp = JavaCore.create(project);		
-			if (ijp == null) {
+			IJavaProject javaProject = JavaCore.create(project);		
+			if (javaProject == null) {
 				return true;
 			}			
 			try {
 			    SourceFilesChangedVisitor visitor = new SourceFilesChangedVisitor(project, includedFileNames);
 			    delta.accept(visitor);
+			    
 				if (visitor.hasChanges()) {
 					AJLog.log(AJLog.BUILDER,"build: Examined delta - " + visitor.getNumberChanged() + //$NON-NLS-1$ 
 					        " changed, " + visitor.getNumberAdded() + " added, and " + //$NON-NLS-1$ //$NON-NLS-2$
@@ -1329,7 +1344,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private class SourceFilesChangedVisitor implements IResourceDeltaVisitor {
 	    private final List includedFileNames;
 	    private final CoreCompilerConfiguration compilerConfiguration;
-	    private final IProject affectedProject;
 	    private int numberChanged;
 	    private int numberAdded;
 	    private int numberRemoved;
@@ -1337,7 +1351,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	    private SourceFilesChangedVisitor(IProject affectedProject,
                 List includedFileNames) {
             this.includedFileNames = includedFileNames;
-            this.affectedProject = affectedProject;
             compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(affectedProject);
             numberChanged = 0;
             numberAdded = 0;
@@ -1380,34 +1393,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             numberChanged++;
                         }
                     }
-                } else if (resname.endsWith(".classpath")) { //$NON-NLS-1$
-                    // also need to ensure that this is a project classpath
-                    IContainer parent = delta.getResource().getParent();
-                    if (parent.getFullPath().equals(affectedProject.getFullPath())) {
-                        // we don't know what has changed exactly.  
-                        // be conservative
-                        compilerConfiguration.configurationChanged(
-                                CompilerConfigurationChangeFlags.CLASSPATH_CHANGED |
-                                CompilerConfigurationChangeFlags.ASPECTPATH_CHANGED |
-                                CompilerConfigurationChangeFlags.INPATH_CHANGED | 
-                                CompilerConfigurationChangeFlags.OUTPUTDESTINATIONS_CHANGED);
-                    }
                 }
                 return false;
             } else {
-                if (resname.endsWith(".settings")) {
-                    // checks for changes with project specific settings
-                    IContainer parent = delta.getResource().getParent();
-                    if (parent.getFullPath().equals(affectedProject.getFullPath())) {
-                        if (delta.getAffectedChildren().length > 0) {
-                            compilerConfiguration.configurationChanged(
-                                    CompilerConfigurationChangeFlags.JAVAOPTIONS_CHANGED |
-                                    CompilerConfigurationChangeFlags.NONSTANDARDOPTIONS_CHANGED |
-                                    CompilerConfigurationChangeFlags.OUTJAR_CHANGED);
-                        }
-                        return false;
-                    }
-                } 
                 // want to fully traverse this delta if not 
                 // a leaf node
                 return true;
