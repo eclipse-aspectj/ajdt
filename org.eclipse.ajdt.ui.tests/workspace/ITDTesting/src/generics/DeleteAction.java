@@ -8,5 +8,5 @@ public interface DeleteAction<T extends Object>{
     
     public T getSelected(); 
 
-}
+} 
  

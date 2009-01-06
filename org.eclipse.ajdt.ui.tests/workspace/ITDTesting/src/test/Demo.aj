@@ -11,4 +11,4 @@ public class Demo {
         MyAspect.aspectOf();
         MyAspect.hasAspect();
     }
-} 
+}  

@@ -18,12 +18,12 @@ public aspect MyAspect2 {
     static class Foo {
         public Foo() {
              
-        }
+        } 
     }
     declare parents : Demo extends Foo;
     
     public int Foo.baz() {
     	return 7;
-    }
+    } 
 
 }

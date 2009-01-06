@@ -21,16 +21,19 @@ import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 
 /**
- * Tests a whole bunch of ways that ITDs can show up in content assist
+ * Tests content assist in Java editors and that they
+ * are ITD-aware
  * @author Andrew Eisenberg
  *
  */
-public class ContentAssistTests2 extends UITestCase {
-    AJCompilationUnit hasITDsUnit;
-    AJCompilationUnit usesITDsUnit;
+public class ContentAssistTests3 extends UITestCase {
+    CompilationUnit hasITDsUnit;
+    CompilationUnit usesITDsUnit;
     
     String hasITDsContents;
     String usesITDsContents;
@@ -39,21 +42,16 @@ public class ContentAssistTests2 extends UITestCase {
         super.setUp();
         IProject proj = createPredefinedProject("ITDContentAssist");
         
-        hasITDsUnit = (AJCompilationUnit) AspectJCore.create(proj.getFile("src/hasitds/HasITDs.aj"));
+        hasITDsUnit = (CompilationUnit) AspectJCore.create(proj.getFile("src/injavafiles/hasitds/HasITDs.java"));
         hasITDsUnit.becomeWorkingCopy(null);
         JavaModelManager.getJavaModelManager().getPerWorkingCopyInfo(hasITDsUnit, true, false, null);
         
-        usesITDsUnit = (AJCompilationUnit) AspectJCore.create(proj.getFile("src/uses/UsesITDs.aj"));
+        usesITDsUnit = (CompilationUnit) AspectJCore.create(proj.getFile("src/injavafiles/uses/UsesITDs.java"));
         usesITDsUnit.becomeWorkingCopy(null);
         JavaModelManager.getJavaModelManager().getPerWorkingCopyInfo(usesITDsUnit, true, false, null);
         
-        hasITDsUnit.requestOriginalContentMode();
         hasITDsContents = new String(hasITDsUnit.getContents());
-        hasITDsUnit.discardOriginalContentMode();
-
-        usesITDsUnit.requestOriginalContentMode();
         usesITDsContents = new String(usesITDsUnit.getContents());
-        usesITDsUnit.discardOriginalContentMode();
     }
     
     public void testITDField() throws Exception {
@@ -100,7 +98,7 @@ public class ContentAssistTests2 extends UITestCase {
                 "HasITDs", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
         // the constructor
         assertEquals("Proposal should have been the 'HasITDs' constructor\n" + requestor.accepted.get(1), 
-                "Lhasitds.HasITDs;", new String(((CompletionProposal) requestor.accepted.get(1)).getDeclarationSignature()));
+                "Linjavafiles.hasitds.HasITDs;", new String(((CompletionProposal) requestor.accepted.get(1)).getDeclarationSignature()));
     }
     
     public void testFromDeclareParent() throws Exception {
@@ -172,7 +170,7 @@ public class ContentAssistTests2 extends UITestCase {
                 "HasITDs", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
         // the constructor
         assertEquals("Proposal should have been the 'HasITDs' constructor\n" + requestor.accepted.get(1), 
-                "Lhasitds.HasITDs;", new String(((CompletionProposal) requestor.accepted.get(1)).getDeclarationSignature()));
+                "Linjavafiles.hasitds.HasITDs;", new String(((CompletionProposal) requestor.accepted.get(1)).getDeclarationSignature()));
     }
     
     public void testFromDeclareParentInOtherClass() throws Exception {

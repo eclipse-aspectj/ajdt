@@ -11,7 +11,7 @@ public aspect MyAspect {
 	
 	public Demo.new(int x) { 
 		this();
-	}
+	} 
 	
     declare warning : execution(* *.nothing(..)) : "blah";
     

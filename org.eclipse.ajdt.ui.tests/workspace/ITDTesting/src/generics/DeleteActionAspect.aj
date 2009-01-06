@@ -9,7 +9,7 @@ public aspect DeleteActionAspect {
             Object selected = getSelected();
             selected.toString();
             delete3.add("");
-    }
+    } 
 	 
 	public int DeleteAction<T extends Object>.delete2;
 	

@@ -71,6 +71,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			// perform Apply - expect there to be a build
 			testLog.clearLog();
 			page.performApply();
+			waitForJobsToComplete();
 			boolean didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertTrue(
@@ -79,6 +80,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			// pressing "Ok" now should not result in a build
 			testLog.clearLog();
 			page.performOk();
+	        waitForJobsToComplete();
 			didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
@@ -108,6 +110,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			// perform Apply - don't expect there to be a build
 			testLog.clearLog();
 			page.performApply();
+	        waitForJobsToComplete();
 			boolean didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
@@ -118,6 +121,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			// (because have set dont' want to build)
 			testLog.clearLog();
 			page.performOk();
+	        waitForJobsToComplete();
 			didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
@@ -145,6 +149,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		// perform Apply - don't expect there to be a build
 		testLog.clearLog();
 		page.performApply();
+		waitForJobsToComplete();
 		boolean didBuild = testLog
 				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after pressing Apply" //$NON-NLS-1$
@@ -154,6 +159,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		// (because have set dont' want to build)
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
 				+ " said didn't want one but build happened anyway", didBuild); //$NON-NLS-1$
@@ -175,6 +181,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			// perform Apply - don't expect there to be a build
 			testLog.clearLog();
 			page.performApply();
+	        waitForJobsToComplete();
 			boolean didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
@@ -187,6 +194,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			// (because have set dont' want to build)
 			testLog.clearLog();
 			page.performOk();
+	        waitForJobsToComplete();
 			didBuild = testLog
 					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse("expected a build to occur after performOk but one" //$NON-NLS-1$
@@ -212,6 +220,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		// perform Apply - don't expect there to be a build
 		testLog.clearLog();
 		page.performApply();
+        waitForJobsToComplete();
 		boolean didBuild = testLog
 				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after pressing Apply" //$NON-NLS-1$
@@ -222,6 +231,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		page.setBuildNow(true);
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after pressing ok" //$NON-NLS-1$
 				+ " but build happened anyway", didBuild); //$NON-NLS-1$
@@ -242,6 +252,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		// perform Apply - expect there to be a build
 		testLog.clearLog();
 		page.performApply();
+        waitForJobsToComplete();
 		boolean didBuild = testLog
 				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
@@ -250,6 +261,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		page.setBuildNow(false);
 		testLog.clearLog();
 		page.performOk();
+        waitForJobsToComplete();
 		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
 				+ " already applied changes but build happened anyway", //$NON-NLS-1$

@@ -6,5 +6,5 @@ public class OtherClass {
         Demo d = new Demo(4);
         d.foo(null);
         d.x ++; 
-    }
+    } 
 }
