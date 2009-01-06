@@ -126,7 +126,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			// are in the javaBuilder part of bug 101481
 			assertTrue(
 					"should have should have cleaned the output folder", //$NON-NLS-1$
-					bin.members().length == 0); //$NON-NLS-1$
+					bin.members().length == 0);
 			assertTrue(
 					"should have removed problems and tasks for the project", //$NON-NLS-1$
 					testLog.containsMessage("Removed problems and tasks for project")); //$NON-NLS-1$
