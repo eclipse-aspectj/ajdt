@@ -57,13 +57,13 @@ public class ITDAwareHierarchyTests extends AJDTCoreTestCase {
         hierarchy.refresh(null);
         IType[] allClasses = hierarchy.getAllClasses();
         assertEquals(3, allClasses.length);
-        assertEquals("Object", allClasses[0].getElementName());
-        assertEquals("FloatingThing", allClasses[1].getElementName());
-        assertEquals("Ship", allClasses[2].getElementName());
+        arrayContains("Object", allClasses);
+        arrayContains("FloatingThing", allClasses);
+        arrayContains("Ship", allClasses);
         
         IType[] allInterfaces = hierarchy.getAllInterfaces();
         assertEquals(1, allInterfaces.length);
-        assertEquals("Log", allInterfaces[0].getElementName());
+        arrayContains("Log", allInterfaces);
     }
     
     /**
@@ -75,14 +75,14 @@ public class ITDAwareHierarchyTests extends AJDTCoreTestCase {
         hierarchy.refresh(null);
         IType[] allClasses = hierarchy.getAllClasses();
         assertEquals(4, allClasses.length);
-        assertEquals("Object", allClasses[0].getElementName());
-        assertEquals("FloatingThing", allClasses[1].getElementName());
-        assertEquals("Ship", allClasses[2].getElementName());
-        assertEquals("Yacht", allClasses[3].getElementName());
+        arrayContains("Object", allClasses);
+        arrayContains("FloatingThing", allClasses);
+        arrayContains("Ship", allClasses);
+        arrayContains("Yacht", allClasses);
         
         IType[] allInterfaces = hierarchy.getAllInterfaces();
         assertEquals(1, allInterfaces.length);
-        assertEquals("Log", allInterfaces[0].getElementName());
+        arrayContains("Log", allInterfaces);
     }
 
     /**
@@ -92,4 +92,14 @@ public class ITDAwareHierarchyTests extends AJDTCoreTestCase {
          System.out.println("ITD Aware Sub Type Hierarchies not implemented");
     }
     
+    
+    private void arrayContains(String elementName, IType[] array) {
+        boolean found = false;
+        for (int i = 0; i < array.length; i++) {
+            found |= array[i].getElementName().equals(elementName);
+        }
+        if (!found) {
+            fail("Searching for " + elementName + " in ITD aware type hierarchy, but not found");
+        }
+    }
 }
