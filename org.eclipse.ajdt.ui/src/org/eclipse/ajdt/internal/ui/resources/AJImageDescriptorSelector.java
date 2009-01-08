@@ -4,15 +4,20 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.contribution.jdt.imagedescriptor.IImageDescriptorSelector;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.core.search.JavaSearchTypeNameMatch;
+import org.eclipse.jdt.internal.ui.text.java.LazyJavaCompletionProposal;
 import org.eclipse.jface.resource.ImageDescriptor;
 
-public class AJImageDescriptorSelector implements IImageDescriptorSelector {
+public class AJImageDescriptorSelector implements IImageDescriptorSelector, NoFFDC {
 
 
     public ImageDescriptor getTypeImageDescriptor(boolean isInner,
@@ -55,7 +60,7 @@ public class AJImageDescriptorSelector implements IImageDescriptorSelector {
             }
         }
         
-        if (isAspect(type)) {
+        if (type != null && isAspect(type)) {
             // we should be returning an aspect image descriptor
             if (Flags.isPublic(flags)) {
                 return AspectJImages.ASPECT_PUBLIC.getImageDescriptor();
@@ -73,20 +78,33 @@ public class AJImageDescriptorSelector implements IImageDescriptorSelector {
     // the type passed in will not be an AspectElement, so
     // we have to get all the types from the compilation unit and compare names
     private boolean isAspect(IType maybeAspect) {
-        try {
-            if (maybeAspect != null && maybeAspect.getCompilationUnit() instanceof AJCompilationUnit){
-                ICompilationUnit unit = maybeAspect.getCompilationUnit();
-                IType[] types = unit.getAllTypes();
-                for (int i = 0; i < types.length; i++) {
-                    IType type = types[i];
-                    if (type.getFullyQualifiedName('.').equals(
-                            maybeAspect.getFullyQualifiedName('.'))) {
-                         return type instanceof AspectElement;
-                    }
-                }
-            }
-        } catch (JavaModelException e) {
+        if (maybeAspect.getCompilationUnit() instanceof AJCompilationUnit){
+            AJCompilationUnit unit = (AJCompilationUnit) maybeAspect.getCompilationUnit();
+            IType aspectEl = unit.getAspectType(maybeAspect.getElementName());
+            return aspectEl instanceof AspectElement;
         }
         return false;
+    }
+    
+    
+    public ImageDescriptor createCompletionProposalImageDescriptor(LazyJavaCompletionProposal proposal) {
+        IJavaElement elt = proposal.getJavaElement();
+        if (elt.getElementType() == IJavaElement.TYPE && isAspect((IType) elt)) {
+            IType type = (IType) elt;
+            try {
+                int flags = type.getFlags();
+                if (Flags.isPublic(flags)) {
+                    return AspectJImages.ASPECT_PUBLIC.getImageDescriptor();
+                } else if (Flags.isProtected(flags)) {
+                    return AspectJImages.ASPECT_PROTECTED.getImageDescriptor();
+                } else if (Flags.isPackageDefault(flags)) {
+                    return AspectJImages.ASPECT_PACKAGE.getImageDescriptor();
+                } else if (Flags.isPrivate(flags)) {
+                    return AspectJImages.ASPECT_PRIVATE.getImageDescriptor();
+                }
+            } catch (CoreException e) {
+            }
+        }
+        return null;
     }
 }
