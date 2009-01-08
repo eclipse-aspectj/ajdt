@@ -13,9 +13,11 @@ package org.eclipse.contribution.jdt.imagedescriptor;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jdt.core.CompletionProposal;
+import org.eclipse.jdt.internal.ui.text.java.LazyJavaCompletionProposal;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
 import org.eclipse.swt.graphics.Image;
-
+import org.eclipse.jdt.ui.text.java.CompletionProposalLabelProvider;
 
 /**
  * Captures locations in the code where {@link ImageDescriptor}s are created in the
@@ -97,4 +99,39 @@ public privileged aspect ImageDescriptorSelectorAspect {
         return null;
         
     }
+    
+    //////////////////////////////////////////////////////
+    // This section of the aspect handles image descriptor creation for content assist
+    
+    // execution of CompletionProposalLabelProvider.createImageDescriptor && cflow(LazyJavaCompletionProposal.computeImage)
+    pointcut javaCompletionProposalImageComputing(LazyJavaCompletionProposal proposal) :
+        execution(protected Image LazyJavaCompletionProposal.computeImage()) && within(LazyJavaCompletionProposal)
+        && this(proposal);
+    
+    pointcut creatingProposalImageDescriptor() : execution(public ImageDescriptor CompletionProposalLabelProvider.createImageDescriptor(CompletionProposal)) 
+        && within(CompletionProposalLabelProvider);
+
+    ImageDescriptor around(LazyJavaCompletionProposal proposal) : cflow(javaCompletionProposalImageComputing(proposal)) &&
+            creatingProposalImageDescriptor() {
+        ImageDescriptor desc = getAssistImageDescriptor(proposal);
+        
+        return desc != null ? desc : proceed(proposal);
+    }
+    
+    
+    private ImageDescriptor getAssistImageDescriptor(LazyJavaCompletionProposal proposal) {
+        try {
+            for (IImageDescriptorSelector selector : ImageDescriptorSelectorRegistry.getInstance()) {
+                ImageDescriptor descriptor = selector.createCompletionProposalImageDescriptor(proposal);
+                if (descriptor != null) {   
+                    return descriptor;
+                }
+            }
+        } catch (Throwable t) {
+            JDTWeavingPlugin.logException(t);
+        }
+        return null;
+        
+    }
+    
 }
