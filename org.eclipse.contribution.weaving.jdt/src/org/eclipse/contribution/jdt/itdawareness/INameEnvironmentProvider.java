@@ -30,6 +30,7 @@ public interface INameEnvironmentProvider {
     
     public ISourceType transformSourceTypeInfo(ISourceType info);
     
+    @SuppressWarnings("unchecked")
     public CompilationUnitDeclaration problemFind(          
             CompilationUnit unitElement, 
             SourceElementParser parer,
@@ -39,7 +40,6 @@ public interface INameEnvironmentProvider {
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException;
 
-    
-//    public ReconcileWorkingCopyOperation createReconcileOperation(
-//            IJavaElement workingCopy, int astLevel, int reconcileFlags, WorkingCopyOwner workingCopyOwner);
+    public boolean shouldFindProblems(CompilationUnit unitElement);
+
 }

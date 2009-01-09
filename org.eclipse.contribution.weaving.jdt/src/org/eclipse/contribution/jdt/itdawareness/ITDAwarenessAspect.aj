@@ -156,11 +156,14 @@ public aspect ITDAwarenessAspect {
             boolean creatingAST,
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException : findProblemsInJava(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor) {
-        if (provider != null) {
-            return provider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
-        } else {
-            return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+        if (provider != null && provider.shouldFindProblems(unitElement)) {
+            try {
+                return provider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+            } catch (Exception e) {
+                JDTWeavingPlugin.logException(e);
+            }
         }
+        return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
     }
             
             
