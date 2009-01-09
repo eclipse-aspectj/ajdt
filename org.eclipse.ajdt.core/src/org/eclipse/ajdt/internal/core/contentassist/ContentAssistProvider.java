@@ -78,7 +78,8 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             ICompilationUnit unitToSkip, int position,
             CompletionRequestor requestor, WorkingCopyOwner owner,
             ITypeRoot typeRoot, Openable target) throws Exception {
-        if (! AspectJPlugin.isAJProject(target.getJavaProject().getProject())) {
+        JavaProject project = (JavaProject) target.getJavaProject();
+        if (! AspectJPlugin.isAJProject(project.getProject())) {
             return false;
         }
         if (target instanceof AJCompilationUnit) {
@@ -92,6 +93,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         if (buffer == null) {
             return false;
         }
+
         if (requestor == null) {
             throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
         }
@@ -102,7 +104,6 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         if (transformedPos < -1 || transformedPos > mcu.getContents().length) {
             throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
         }
-        JavaProject project = (JavaProject) target.getJavaProject();
 
         ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, null);
         environment.setUnitToSkip(unitToSkip);

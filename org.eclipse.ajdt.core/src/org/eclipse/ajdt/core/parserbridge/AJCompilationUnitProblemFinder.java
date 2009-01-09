@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -118,12 +119,22 @@ public class AJCompilationUnitProblemFinder extends
             	 } else {
             	     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
             	 }
+                
     		} catch (JavaModelException e) {
     		}
 	    }
 	    // AspectJ Change End
 	}
 
+    // AspectJ Change Begin
+	protected void beginToCompile(
+	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits) {
+        // need to ensure that parseThreshold is high so that ITDs can be inserted into anonymouse types
+        parseThreshold = 10;
+        super.beginToCompile(sourceUnits);
+	}
+    // AspectJ Change End
+	
 	// AspectJ Change Begin
 	/*
 	 * Sets a flag so that ITDs will be inserted into units 
@@ -336,6 +347,13 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
+        if (categorizedProblem.getSourceStart() == 0 && 
+                categorizedProblem.getSourceEnd() == 0) {
+            // a place for all problems that don't have source locations
+            // because they come from ITDs
+            return false;
+        }
+        
         if(numArgs > 0 && 
                 id == IProblem.UndefinedMethod &&
                 (extraAspectMethods.contains(firstArg)) || extraAspectMethods.contains(secondArg)) {
@@ -349,7 +367,7 @@ public class AJCompilationUnitProblemFinder extends
                 (aspectMemberNames.contains(firstArg) ||
                  aspectMemberNames.contains(secondArg))) {
             // declare statement if more than one exist in a file
-            // advice if more than one of the same kind exists in the aspect
+            // or advice if more than one of the same kind exists in the aspect
             return false;
         }
         
@@ -463,7 +481,7 @@ public class AJCompilationUnitProblemFinder extends
                 categorizedProblem.getSourceStart() == 0 && 
                 categorizedProblem.getSourceEnd() == 0) {
             // from an inserted ITD that has already been removed
-            // this problem comes because the bodies of the inserted ITDs 
+            // this problem comes because the bodies of the ITDs inserted by ITDInserter 
             // are always empty even when there should be a return value
             return false;
         }
@@ -479,15 +497,6 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        if (hasModel && id == IProblem.SuperInterfaceMustBeAnInterface && 
-                categorizedProblem.getSourceStart() == 0) {
-            // this error is from an declare parent interface
-            // that has been turned into a class because this
-            // interface has ITDs on it.
-            // See ITDAwareSourceTypeInfo
-            return false;
-        }
-        
         try {
             if (id == IProblem.ParameterMismatch && 
                     insideITD(categorizedProblem, unit)) {
@@ -499,8 +508,20 @@ public class AJCompilationUnitProblemFinder extends
         } catch (JavaModelException e) {
         }
         
+//        if (hasModel && id == IProblem.SuperInterfaceMustBeAnInterface && 
+//                (
+//                        categorizedProblem.getSourceStart() == 0 ||
+//                        isReallyAnInterface(firstArg, unit)
+//                )) {
+//            // this error is from an interface
+//            // that has been turned into a class because this
+//            // interface has ITDs on it.
+//            // See ITDAwareSourceTypeInfo
+//            return false;
+//        }
+        
         // casting from a class to an interface that has been converted
-        // to a class (See ITDAwareSourceTypeInfo will be an error in the reconciler
+        // to a class (See ITDAwareSourceTypeInfo.shouldRemoveInterfaceFlag) will be an error in the reconciler
         // this is because the interface, which the compiler thinks is a class, is not
         // added to the class's hierarchy and therefore a cast cannot occur.
         // ignore for now.
@@ -513,6 +534,16 @@ public class AJCompilationUnitProblemFinder extends
         
         return true;
     }
+
+//    private static boolean isReallyAnInterface(String firstArg,
+//            CompilationUnit unit) {
+//        try {
+//            IType type = unit.getJavaProject().findType(firstArg);
+//            return type.isInterface();
+//        } catch (JavaModelException e) {
+//        }
+//        return false;
+//    }
 
     private static boolean insideITD(CategorizedProblem categorizedProblem,
             CompilationUnit unit) throws JavaModelException {

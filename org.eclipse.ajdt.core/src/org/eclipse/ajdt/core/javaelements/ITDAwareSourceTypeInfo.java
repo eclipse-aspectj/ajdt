@@ -15,18 +15,22 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
+import org.eclipse.jdt.internal.core.util.MethodInfo;
 
 /**
  * This class provides element info for SourceTypes that know about 
@@ -92,9 +96,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             this.setChildren(children);
         }
         
-        if (shouldRemoveInterfaceFlag) {
-            setFlags(removeInterfaceFlag(getModifiers()));
-        }
+//        if (shouldRemoveInterfaceFlag) {
+//            setFlags(removeInterfaceFlag(getModifiers()));
+//        }
     }
 
     private IJavaElement[] augmentChildrenAndHierarchy(SourceType type) {
@@ -116,6 +120,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 }
                 newChildren[i] = origChildren[i];
             }
+            
             
             
             List itdChildren = getITDs(type);
@@ -141,6 +146,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         if (model.hasModel()) {
             List/*IJavaElement*/ itds = new ArrayList();
             List/*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
+            
+            ArrayList childMethods = null;
+
             for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
                 IJavaElement ije = (IJavaElement) relIter.next();
                 if (ije instanceof IntertypeElement) {
@@ -148,19 +156,32 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     IMember member = elt.createMockDeclaration(type);
                     // null if the ITD doesn't exist in the AspectJ hierarchy
                     // will happen if the Java side has partial compilation 
-                    // and aspectj sode does not
+                    // and aspectj side does not
                     if (member != null) { 
                         itds.add(member);
 
-                        // Interfaces will show ITD methods and fields 
-                        // as being static.  Convert interfaces to 
-                        // classes and this goes away.
-                        // but this conversion causes other problems
-                        // Since stored as a class, it is not actually inherited
-                        // and causes class cast exceptions 
-                        // See AJCompilationUnitProblemFinder.isARealProblem()
                         if (handle.isInterface()) {
                             shouldRemoveInterfaceFlag = true;
+                            
+                            if (member.getElementType() == IJavaElement.FIELD) {
+                                // Interfaces can't have fields, so ignore
+                                itds.remove(member);
+                            } else if (member.getElementType() == IJavaElement.METHOD) {
+                                // now look to see if this ITD a method that provides
+                                // a default implementation for an interface method
+                                // use IMethod.isSimilar
+                                if (childMethods == null) {
+                                    childMethods = type.getChildrenOfType(IJavaElement.METHOD);
+                                }
+                                for (Iterator childIter = childMethods.iterator(); childIter
+                                        .hasNext();) {
+                                    IMethod method = (IMethod) childIter.next();
+                                    if (method.isSimilar((IMethod) member)) {
+                                        itds.remove(member);
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 } else if (ije instanceof DeclareElement) {
@@ -201,8 +222,15 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         }
     }
     
-    private int removeInterfaceFlag(int flags) {
-        return flags & (~ClassFileConstants.AccInterface);
+    public IJavaElement[] getChildren() {
+        return super.getChildren();
     }
     
+    // needed for 
+//    private int removeInterfaceFlag(int flags) {
+//        return flags & (~ClassFileConstants.AccInterface);
+//    }
+//    private int addPublicFlag(int flags) {
+//        return flags & (~ClassFileConstants.AccPublic);
+//    }
 }

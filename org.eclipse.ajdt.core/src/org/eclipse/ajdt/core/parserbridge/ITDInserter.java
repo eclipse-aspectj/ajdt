@@ -10,21 +10,27 @@
 package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -41,6 +47,7 @@ import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.parser.TypeConverter;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+import org.eclipse.jdt.internal.core.SourceType;
 
 /**
  * Inserts ITD information into a TypeDeclaration so that
@@ -87,13 +94,17 @@ public class ITDInserter extends ASTVisitor {
     private Map /*TypeDeclaration -> OrigContents*/ origMap = new HashMap();
 
     private final ITDTypeConverter typeConverter;
+
+    private AJProjectModelFacade model;
     
     public ITDInserter(ICompilationUnit unit, ProblemReporter reporter) {
         this.unit = unit;
         typeConverter = new ITDTypeConverter(reporter);
+        model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
     }
     
     public boolean visit(TypeDeclaration type, BlockScope blockScope) {
+        augmentType(type);
         return false; // no local/anonymous type
     }
     public boolean visit(TypeDeclaration type, CompilationUnitScope compilationUnitScope) {
@@ -119,14 +130,16 @@ public class ITDInserter extends ASTVisitor {
         try {
             List/*FieldDeclaration*/ itdFields = new LinkedList();
             List/*MethodDeclaration*/ itdMethods = new LinkedList();
-            
-            List/*IProgramElement*/ ipes = getITDs(type);
+            IType handle = getHandle(type);
+
+            List/*IProgramElement*/ ipes = getITDs(handle);
             for (Iterator iterator = ipes.iterator(); iterator.hasNext();) {
                 IProgramElement elt = (IProgramElement) iterator.next();
                 if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
                     // ignore if type is an interface.
                     // assumption is that this ITD is an implementation of an interface method
                     // adding it here would cause a duplicate method error.
+                    // These are added to the first class that instantiates this interface
                     // See bug 257437
                     if (TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
                         itdMethods.add(createMethod(elt, type));
@@ -148,7 +161,24 @@ public class ITDInserter extends ASTVisitor {
                 }
             }
             
-            if (ipes.size() > 0) {
+            // if we are dealing with a class, must also add all 
+            // ITD methods from interfaces
+            boolean interfaceImplInserted = false;
+//            if (TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
+//                List/*IProgramElement*/ suppliedImplementations = 
+//                    addAllITDInterfaceMethods(handle);
+//                for (Iterator implIter = suppliedImplementations.iterator(); implIter
+//                        .hasNext();) {
+//                    IProgramElement elt = (IProgramElement) implIter.next();
+//                    MethodDeclaration interfaceMethod = createMethod(elt, type);
+//                    if (!isDuplicateAll(interfaceMethod, type.methods, itdMethods)) {
+//                        itdMethods.add(interfaceMethod);
+//                        interfaceImplInserted = true;
+//                    }
+//                }
+//            }
+            
+            if (ipes.size() > 0 || interfaceImplInserted) {
                 origMap.put(type, orig);
                 
                 // now add the ITDs into the declaration
@@ -163,7 +193,7 @@ public class ITDInserter extends ASTVisitor {
                             (FieldDeclaration) itdFields.get(i);
                     }
                     type.fields = fields;
-                }    
+                }
                 if (itdMethods.size() > 0) {
                     int numMethods = type.methods == null ? 0 : type.methods.length;
                     AbstractMethodDeclaration[] methods = new AbstractMethodDeclaration[numMethods + itdMethods.size()];
@@ -184,6 +214,56 @@ public class ITDInserter extends ASTVisitor {
         }
     }
     
+    // XXX unsused.  Can probably remove...
+    private boolean isDuplicateAll(AbstractMethodDeclaration interfaceMethod, AbstractMethodDeclaration[] existingMethods, List/*MethodDeclaration*/ itdMethods) {
+        if (existingMethods != null) {
+            for (int i = 0; i < existingMethods.length; i++) {
+                if (isDuplicate(interfaceMethod, existingMethods[i])) {
+                    return true;
+                }
+            }
+        }
+        for (Iterator itdIter = itdMethods.iterator(); itdIter.hasNext();) {
+            MethodDeclaration itdMethod = (MethodDeclaration) itdIter.next();
+            if (isDuplicate(interfaceMethod, itdMethod)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+    private boolean isDuplicate(AbstractMethodDeclaration m1, AbstractMethodDeclaration m2) {
+        return Arrays.equals(m1.selector, m2.selector) &&
+                nullEquals(m1.arguments, m2.arguments);
+    }
+    
+    /**
+     * ignore type parameters (because difficult) and return type (because we should)
+     */
+    private boolean nullEquals(Argument[] arguments1, Argument[] arguments2) {
+        int numArgs1 = arguments1 == null ? 0 : arguments1.length;
+        int numArgs2 = arguments2 == null ? 0 : arguments2.length;
+        if (numArgs1 != numArgs2) {
+            return false;
+        }
+        for (int i = 0; i < arguments1.length; i++) {
+            if (arguments1[i].type.dimensions() == arguments2[i].type.dimensions()) {
+                // only look at last segment of name because we are not guarranteed 
+                // to have fully qualified names
+                char[][] name1 = arguments1[i].type.getTypeName();
+                char[][] name2 = arguments2[i].type.getTypeName();
+                char[] last1 = name1[name1.length-1];
+                char[] last2 = name2[name2.length-1];
+                if (!Arrays.equals(last1, last2)) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+
     private FieldDeclaration createField(IProgramElement field, TypeDeclaration type) {
         FieldDeclaration decl = new FieldDeclaration();
         decl.name = field.getName().split("\\.")[1].toCharArray();
@@ -261,29 +341,39 @@ public class ITDInserter extends ASTVisitor {
     
 
     // Do it this way in order to ensure that Aspects are returned as AspectElements
-    private IType getHandle(String typeName) {
+    private IType getHandle(TypeDeclaration decl) {
+        String typeName = new String(decl.name);
         try {
+            IJavaElement maybeType = unit.getElementAt(decl.sourceStart);
+            if (maybeType.getElementType() == IJavaElement.TYPE) {
+                return (IType) maybeType;
+            }
+        } catch (JavaModelException e) {
+        }
+        try {
+            // try getting by name
             IType type = getHandleFromChild(typeName, unit);
             if (type != null) {
                 return type;
             }
         } catch (JavaModelException e) {
         }
-        // this type may not exist
-        return unit.getType(new String(typeName));
+        // this type does not exist, but create a mock one anyway
+        return unit.getType(typeName);
     }
     
     private IType getHandleFromChild(String typeName, IParent parent) 
             throws JavaModelException {
         IJavaElement[] children = parent.getChildren();
         for (int i = 0; i < children.length; i++) {
-            if (children[i].getElementType() == IJavaElement.TYPE &&
+            if ((children[i].getElementType() == IJavaElement.TYPE) &&
                     typeName.equals(children[i].getElementName())) {
                 return (IType) children[i];
             }
         }
         for (int i = 0; i < children.length; i++) {
-            if (children[i].getElementType() == IJavaElement.TYPE) {
+            if (children[i].getElementType() == IJavaElement.TYPE ||
+                    children[i].getElementType() == IJavaElement.METHOD) {
                 IType type = getHandleFromChild(typeName, (IParent) children[i]);
                 if (type != null) {
                     return type;
@@ -293,10 +383,8 @@ public class ITDInserter extends ASTVisitor {
         return null;
     }
     
-    private List/*IProgramElement*/ getITDs(TypeDeclaration type) {
-        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+    private List/*IProgramElement*/ getITDs(IType handle) {
         if (model.hasModel()) {
-            IType handle = getHandle(new String(type.name));
             if (model.hasProgramElement(handle)) {
                 List/*IRelationship*/ rels = model
                         .getRelationshipsForElement(handle,
@@ -326,7 +414,83 @@ public class ITDInserter extends ASTVisitor {
         return typeConverter.createTypeReference(origTypeName.toCharArray());
     }
 
+    
+    /**
+     * traverse this type's interface hierarchy.  look for method ITDs that
+     * provide implementations
+     * 
+     * if these methods are not added to this type, then there will be an
+     * error saying that no implementation exists for the method
+     */
+    private List/*IProgramElement*/ addAllITDInterfaceMethods(IType handle) {
+        List/*IProgramElement*/ declaredMethods = new LinkedList(); 
+        try {
+            ITypeHierarchy hierarchy = handle.newSupertypeHierarchy(new NullProgressMonitor());
+            IType[] interfaceHandles = hierarchy.getSuperInterfaces(handle);
+            
+            for (int i = 0; i < interfaceHandles.length; i++) {
+                Set/*IType*/ visitedInterfaces = new HashSet(); // avoid cycles and keep track of what we've already seen
+                declaredMethods.addAll(getITDInterfaceMethods(interfaceHandles[i], hierarchy, visitedInterfaces));
+            }
+        } catch (JavaModelException e) {
+        }
+        return declaredMethods;
+    }
+    
 
+    private Collection/*IProgramElement*/ getITDInterfaceMethods(IType interfaceHandle, ITypeHierarchy hierarchy, Set/*IType*/ visitedInterfaces) {
+        if (visitedInterfaces.contains(interfaceHandle)) {
+            return Collections.EMPTY_LIST;
+        }
+        visitedInterfaces.add(interfaceHandle);
+        if (model.hasModel()) {
+            if (interfaceHandle.exists() && interfaceHandle instanceof SourceType) {
+                List elts = new LinkedList();
+                if (model.hasProgramElement(interfaceHandle)) {
+                    List/*IRelationship*/ rels = model
+                            .getRelationshipsForElement(interfaceHandle,
+                                    AJRelationshipManager.ASPECT_DECLARATIONS);
+                    for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+                        IJavaElement je = (IJavaElement) relIter.next();
+                        IProgramElement declareElt = model
+                                .javaElementToProgramElement(je);
+                        
+                        // include the implementation of an interface method.  
+                        if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
+                            elts.add(declareElt);
+                        } else if (declareElt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
+                            // declare parent interface
+                            List/*String*/ parentTypes = declareElt.getParentTypes();
+                            for (Iterator parentIter = parentTypes.iterator(); parentIter
+                                    .hasNext();) {
+                                String parent = (String) parentIter.next();
+                                parent = parent.replace('$', '.');
+                                try {
+                                    IType parentHandle = unit.getJavaProject().findType(parent, new NullProgressMonitor());
+                                    if (parentHandle.exists()) {
+                                        ITypeHierarchy otherHierarchy = parentHandle.newSupertypeHierarchy(new NullProgressMonitor());
+                                        elts.addAll(getITDInterfaceMethods(parentHandle, otherHierarchy, visitedInterfaces));
+                                    }
+                                } catch (JavaModelException e) {
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // go through the super interfaces
+                IType[] superInterfaces = hierarchy.getSuperInterfaces(interfaceHandle);
+                for (int i = 0; i < superInterfaces.length; i++) {
+                    elts.addAll(getITDInterfaceMethods(superInterfaces[i], hierarchy, visitedInterfaces));
+                }
+                
+                return elts;
+            }
+        }
+        return Collections.EMPTY_LIST;
+    }
+
+  
     /**
      * replaces type declarations with their original contents after the compilation is
      * complete

@@ -149,6 +149,10 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 		setCompilerFactory(new CoreCompilerFactory());
 		
 		ITDAwarenessAspect.provider = new INameEnvironmentProvider() {
+            public boolean shouldFindProblems(CompilationUnit unitElement) {
+                return unitElement.exists() && AspectJPlugin.isAJProject(unitElement.getJavaProject().getProject()); 
+            }
+
             public SearchableEnvironment getNameEnvironment(
                     JavaProject project, WorkingCopyOwner owner) {
                 try {

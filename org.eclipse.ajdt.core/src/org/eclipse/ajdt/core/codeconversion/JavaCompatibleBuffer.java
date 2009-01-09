@@ -182,6 +182,7 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	}
 	
 	public ArrayList getInsertionTable() {
+	    ensureUpToDate();
         return insertionTable;
     }
 }
