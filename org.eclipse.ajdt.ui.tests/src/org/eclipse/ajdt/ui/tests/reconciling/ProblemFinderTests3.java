@@ -31,11 +31,11 @@ public class ProblemFinderTests3 extends UITestCase {
     AJCompilationUnit actionExecutorCU;
     AJCompilationUnit deleteActionCU;
     AJCompilationUnit deleteActionAspectCU;
-    private IFile actionExecutorFile;
-    private IFile deleteActionFile;
-    private IFile deleteActionAspectFile;
     private IProject proj;
     protected void setUp() throws Exception {
+        IFile actionExecutorFile;
+        IFile deleteActionFile;
+        IFile deleteActionAspectFile;
         super.setUp();
         proj = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
         waitForJobsToComplete();

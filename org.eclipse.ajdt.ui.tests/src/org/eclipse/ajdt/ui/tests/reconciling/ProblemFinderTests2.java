@@ -39,13 +39,13 @@ public class ProblemFinderTests2 extends UITestCase {
     AJCompilationUnit otherClassCU;
     AJCompilationUnit myAspectCU2;
     AJCompilationUnit otherClassCU2;
-    private IFile demoFile;
-    private IFile myAspectFile;
-    private IFile otherClassFile;
-    private IFile myAspectFile2;
-    private IFile otherClassFile2;
     private IProject proj;
     protected void setUp() throws Exception {
+        IFile demoFile;
+        IFile myAspectFile;
+        IFile otherClassFile;
+        IFile myAspectFile2;
+        IFile otherClassFile2;
         super.setUp();
         proj = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
         waitForJobsToComplete();

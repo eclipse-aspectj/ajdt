@@ -52,6 +52,16 @@ class MockProblemRequestor implements IProblemRequestor {
         }
         return problems;
     }
+    static HashMap filterAllWarningProblems(HashMap problems) {
+        for (Iterator iterator = problems.values().iterator(); iterator.hasNext();) {
+            if (((CategorizedProblem[]) iterator.next())[0].isWarning()) { //$NON-NLS-1$
+                iterator.remove();
+            }
+        }
+        return problems;
+    }
+    
+    
     
     static List filterProblems(List problems) {
         for (Iterator iterator = problems.iterator(); iterator.hasNext();) {

@@ -31,11 +31,11 @@ public class ProblemFinderTests4 extends UITestCase {
     private AJCompilationUnit inAspectFileCU;
     private AJCompilationUnit inJavaFileCU;
     private AJCompilationUnit inSwitchFileCU;
-    private IFile inAspectFile;
-    private IFile inJavaFile;
-    private IFile inSwitchFile;
     private IProject proj;
     protected void setUp() throws Exception {
+        IFile inAspectFile;
+        IFile inJavaFile;
+        IFile inSwitchFile;
         super.setUp();
         proj = createPredefinedProject("bug256989"); //$NON-NLS-1$
         waitForJobsToComplete();
