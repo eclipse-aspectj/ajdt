@@ -282,21 +282,21 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();
 		
-		insertAJCompilationUnitDocumentProvider();
+		
+		if (!AspectJPlugin.USING_CU_PROVIDER) {
+		    insertAJCompilationUnitDocumentProvider();
+		}
 
 		// Create and register the resource change listener if necessary, it
-		// will be
-		// notified if resources are added/deleted or their content changed.
+		// will be notified if resources are added/deleted or their content changed.
 
 		// listener for aspectj model
-//		if (!AspectJPlugin.USING_CU_PROVIDER) {
-			AspectJPlugin.getWorkspace().addResourceChangeListener(
-					new AJCompilationUnitResourceChangeListener(),
-					IResourceChangeEvent.PRE_CLOSE
-							| IResourceChangeEvent.PRE_DELETE
-							| IResourceChangeEvent.POST_CHANGE
-							| IResourceChangeEvent.PRE_BUILD);
-//		}
+		AspectJPlugin.getWorkspace().addResourceChangeListener(
+				new AJCompilationUnitResourceChangeListener(),
+				IResourceChangeEvent.PRE_CLOSE
+						| IResourceChangeEvent.PRE_DELETE
+						| IResourceChangeEvent.POST_CHANGE
+						| IResourceChangeEvent.PRE_BUILD);
 		
 		// set the UI version of core operations
 		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
@@ -330,10 +330,13 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	}
 	
 
-	// use reflection to insert our own
-	// document provider so that 
-	// AJ CUs are properly created from .aj files
-	// XXX This *MUST* be set before any Java files are opened
+	/**
+	 * use reflection to insert our own
+	 * document provider so that 
+	 * AJ CUs are properly created from .aj files (sometimes)
+	 * Only need if JDT Weaving is turned off
+	 * If weaving is on, then this happens automatically from the weaver
+	 */
 	private void insertAJCompilationUnitDocumentProvider() {
 	    try {
 	        
