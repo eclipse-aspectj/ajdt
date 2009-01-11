@@ -12,10 +12,7 @@
 package org.eclipse.ajdt.ui.tests.editor.quickfix;
 
 import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.internal.ui.editor.quickfix.AJSerialVersionHashOperation;
-import org.eclipse.ajdt.internal.ui.editor.quickfix.AJSerialVersionSubProcessor;
-import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor;
-import org.eclipse.ajdt.ui.tests.UITestCase;
+//import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -47,7 +44,7 @@ public class QuickFixTest extends AbstractQuickFixTest {
     
     public void testHasSerialIDQuickFix() throws Exception {
         ITextEditor editor = quickFixSetup(serializableFile);
-        IJavaCompletionProposal[] proposals = getQuickFixes(serializableFile, new JavaQuickFixProcessor());
+        IJavaCompletionProposal[] proposals = null; /*getQuickFixes(serializableFile, new JavaQuickFixProcessor());*/
         assertEquals("Should have found 2 quickfixes for serialization", 2, proposals.length);
         
         assertTrue("Should only have serialziation quickfixes", proposals[0] instanceof SerialVersionSubProcessor.SerialVersionProposal);
