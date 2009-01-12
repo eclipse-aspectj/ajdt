@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2008 IBM Corporation, SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
+ *     Andrew Eisenberg - MockITDConvertingParser and more tests
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeconversion;
 
@@ -63,6 +64,22 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 				converted.indexOf("Test x") == -1); //$NON-NLS-1$
 		assertTrue("Parser should not have considered TestCase as an import", //$NON-NLS-1$
 				converted.indexOf("TestCase x") == -1); //$NON-NLS-1$
+	}
+	
+	/**
+	 * ensure that the RHS of an assignment is not processed as a potential ITD
+	 * eg- int x = Foo.y;  should not be converted into int x = Foo$y;
+	 */
+	public void testRHS() {
+	    String source =   "aspect Aspect { int x = Foo.y; }";
+	    String expected = "class  Aspect { int x = Foo.y; }";
+	    
+        ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+        AspectsConvertingParser conv = new AspectsConvertingParser(source
+                .toCharArray());
+        conv.convert(conversionOptions);
+        String converted = new String(conv.content);
+        assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
 	}
 	
 	
