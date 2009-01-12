@@ -78,6 +78,7 @@ import org.eclipse.jdt.internal.corext.util.TypeFilter;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
+import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.NameMatcher;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElement;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
