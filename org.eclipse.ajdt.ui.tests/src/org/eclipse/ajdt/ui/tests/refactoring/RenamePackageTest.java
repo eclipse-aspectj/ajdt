@@ -23,7 +23,6 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.corext.refactoring.rename.RenamePackageProcessor;
-import org.eclipse.jdt.internal.corext.refactoring.reorg.NullReorgQueries;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;

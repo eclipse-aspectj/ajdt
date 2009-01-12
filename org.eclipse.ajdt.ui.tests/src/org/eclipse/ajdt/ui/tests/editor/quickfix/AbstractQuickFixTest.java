@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.aspectj.org.eclipse.jdt.core.IJavaModelMarker;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.QuickFixProcessor;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -24,10 +24,12 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaMarkerAnnotation;
+import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
 import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
 import org.eclipse.jdt.internal.ui.text.correction.ProblemLocation;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
@@ -48,14 +50,17 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public abstract class AbstractQuickFixTest extends UITestCase {
 
-    protected ITextEditor quickFixSetup(IFile sourceFile) throws Exception {   
+    protected ITextEditor quickFixSetup(IFile sourceFile) throws Exception {
+        return quickFixSetup(sourceFile, true);
+    }
+    protected ITextEditor quickFixSetup(IFile sourceFile, boolean shouldFindError) throws Exception {   
         ITextEditor editorPart = (ITextEditor) openFileInAspectJEditor(
                 sourceFile, false);
 
         //wait for annotation model to be created
         waitForJobsToComplete();
 
-        IMarker[] markers = getMarkers(sourceFile, editorPart);
+        IMarker[] markers = getMarkers(sourceFile);
 
         assertTrue("Should have found some Java model markers", markers.length > 0); //$NON-NLS-1$
 
@@ -84,14 +89,14 @@ public abstract class AbstractQuickFixTest extends UITestCase {
                 assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
             }
         }
-        assertEquals("Didn't find a warning marker", foundWarning, true); //$NON-NLS-1$
-        assertEquals("Didn't find an error marker", foundError, true); //$NON-NLS-1$
+        assertTrue("Didn't find a warning marker", foundWarning); //$NON-NLS-1$
+        assertEquals("Didn't find an error marker", shouldFindError, foundError); //$NON-NLS-1$
         
         return editorPart;
     }
 
     
-    protected IMarker[] getMarkers(IResource resource, ITextEditor editor)
+    protected IMarker[] getMarkers(IResource resource)
             throws Exception {
         if (resource instanceof IFile)
             return resource.findMarkers(
@@ -106,14 +111,13 @@ public abstract class AbstractQuickFixTest extends UITestCase {
 
     protected IJavaCompletionProposal[] getQuickFixes(IFile sourceFile) throws Exception {
         QuickFixProcessor qfp = new QuickFixProcessor();
-        return getQuickFixes(sourceFile, qfp);
+        return getQuickFixes(sourceFile, qfp, "File");
     }
     
     
-    protected IJavaCompletionProposal[] getQuickFixes(IFile sourceFile, IQuickFixProcessor processor) throws Exception {
+    protected IJavaCompletionProposal[] getQuickFixes(IFile sourceFile, IQuickFixProcessor processor, String toLookFor) throws Exception {
         ICompilationUnit unit = (ICompilationUnit) AspectJCore.create(sourceFile);
-        String toLookFor = "File";
-        int location = new String(((CompilationUnit) unit).getContents()).indexOf(toLookFor);
+        int location = new String(((CompilationUnit) unit).getContents()).indexOf(toLookFor) + 1;
         
         AbstractMarkerAnnotationModel model = getAnnotationModel(sourceFile);
         List probLocs = new ArrayList();
@@ -121,13 +125,21 @@ public abstract class AbstractQuickFixTest extends UITestCase {
             Object obj = (Object) annotationIter.next();
             if (obj instanceof JavaMarkerAnnotation) {
                 JavaMarkerAnnotation ja = (JavaMarkerAnnotation) obj;
-                probLocs.add(getProblemLocation(ja, model));
+                if (isMarkerAtLocation(location, ja)) {
+                    probLocs.add(getProblemLocation(ja, model));
+                }
             }
         }
         
-        IInvocationContext context = new AssistContext(unit, location+1, 0);
+        AssistContext context = new AssistContext(unit, location, 0);
+        context.setASTRoot(ASTResolving.createQuickFixAST(unit, null));
         return processor.getCorrections(context, 
                 (IProblemLocation[]) probLocs.toArray(new IProblemLocation[probLocs.size()]));
+    }
+    private boolean isMarkerAtLocation(int location, JavaMarkerAnnotation ja)
+            throws CoreException {
+        return location >= ((Integer) ja.getMarker().getAttribute(IMarker.CHAR_START)).intValue() && 
+                location <= ((Integer) ja.getMarker().getAttribute(IMarker.CHAR_END)).intValue();
     }
     
     private ProblemLocation getProblemLocation(IJavaAnnotation javaAnnotation, IAnnotationModel model) {

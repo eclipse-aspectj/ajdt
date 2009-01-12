@@ -10,17 +10,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.editor.contentassist;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.CompletionProposal;
-import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 
 /**

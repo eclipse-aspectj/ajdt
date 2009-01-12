@@ -6,9 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import org.aspectj.org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder;
-import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -16,9 +13,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.ICompilationUnit;
 
 /**
  * Tests bug 255332 that if there is a change to an aspect, then all classes it weaves into 

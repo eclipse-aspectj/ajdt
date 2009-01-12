@@ -9,13 +9,10 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.AspectJApplicationLaunchShortcut;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchManager;
