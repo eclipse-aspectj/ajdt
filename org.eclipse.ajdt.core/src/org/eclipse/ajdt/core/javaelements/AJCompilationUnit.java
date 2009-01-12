@@ -210,14 +210,45 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * return the type as an aspect if it exists
 	 */
 	public IType getType(String typeName) {
-	    IType maybeType = getAspectType(typeName);
-	    if (maybeType.exists()) {
+	    IType maybeType = findAspectType(typeName);
+	    if (maybeType != null && maybeType.exists()) {
 	        return maybeType;
 	    }
         return super.getType(typeName);
     }
-	public IType getAspectType(String typeName) {
-        return new AspectElement(this, typeName);
+	
+	/**
+	 * return null if doesn't exist or an error
+	 * return type otherwise Might be an aspect
+	 */
+	public IType findAspectType(String typeName) {
+	    try {
+            IJavaElement[] children = getChildren();
+            for (int i = 0; i < children.length; i++) {
+                if (children[i].getElementType() == TYPE) {
+                    if (children[i].getElementName().equals(typeName)) {
+                        return (IType) children[i];  // might be an aspect
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+        }
+        return null;
+	}
+	    
+	
+	
+	/**
+	 * return as aspect if it is an aspect, or class/interface if it is that
+	 * performs a deep search
+	 * returns null if doesn't exist
+	 */
+	public IType maybeConvertToAspect(IType maybeAspect) {
+	    IJavaElement[] elts = maybeAspect.getCompilationUnit().findElements(maybeAspect);
+	    if (elts.length > 0 && elts[0] instanceof AspectElement) {
+	        return (IType) elts[0];
+	    }
+	    return maybeAspect;
     }
     
 	

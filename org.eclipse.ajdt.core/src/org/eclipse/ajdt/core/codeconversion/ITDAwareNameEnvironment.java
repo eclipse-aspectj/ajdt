@@ -6,9 +6,7 @@ import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -138,15 +136,9 @@ public class ITDAwareNameEnvironment extends
     
     // checks to see if this is really an aspect
     private SourceType maybeConvertToAspectType(SourceType type) throws JavaModelException {
-        IParent parent = (IParent) type.getParent();
-        IJavaElement[] children = parent.getChildren();
-        String typeName = type.getElementName();
-        for (int i = 0; i < children.length; i++) {
-            if (children[i].getElementName().equals(typeName) &&
-                    children[i].getElementType() == IJavaElement.TYPE) {
-                // this can be an aspect type
-                return (SourceType) children[i];
-            }
+        org.eclipse.jdt.core.ICompilationUnit unit = type.getCompilationUnit();
+        if (unit instanceof AJCompilationUnit) {
+            return (SourceType) ((AJCompilationUnit) unit).maybeConvertToAspect(type);
         }
         return type;
     }

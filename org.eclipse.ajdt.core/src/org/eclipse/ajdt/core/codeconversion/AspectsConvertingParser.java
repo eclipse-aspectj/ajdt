@@ -88,7 +88,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     // used to replace declare declarations
     private static final char[] intt = "int    ".toCharArray(); //$NON-NLS-1$
 
-    private final static char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart; org.aspectj.lang.JoinPoint.StaticPart thisEnclosingJoinPointStaticPart;" //$NON-NLS-1$
+    private final static char[] tjpRefs2 = "\n\torg.aspectj.lang.JoinPoint thisJoinPoint;\n\torg.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart;\n\torg.aspectj.lang.JoinPoint.StaticPart thisEnclosingJoinPointStaticPart;\n" //$NON-NLS-1$
     .toCharArray();
 
     private final static char[] endThrow = new char[] { '(', ':' };
@@ -146,17 +146,37 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
 	protected Scanner scanner;
 
+	/**
+	 * keeps track of being after the ':' of a pointcut declaration
+	 */
 	private boolean inPointcutDesignator;
 
+	/**
+	 * keeps track of being in an aspect body
+	 */
 	private boolean inAspect;
 
+	/**
+	 * keeps track of being in the declaration of an aspect 
+	 * (ie- before the first '{')
+	 */
 	private boolean inAspectDeclaration;
 	
     private boolean inClassDeclaration;
     
     private boolean inInterfaceDeclaration;
 	
-	private int posColon;
+    /**
+     * keeps track of being in the right hand side of a declaration
+     * 
+     * Note- thos will *not* catch complex RHS assignments where the RHS contains an inner type
+     * ie- inRHS will evaluate to false after the first ';' of a complex assignment
+     * What I really need is an RHS stack, but that is complicated and I will only add if necessary
+     */
+    private boolean inRHS;  
+
+    private int posColon;
+
 
     public void setUnit(ICompilationUnit unit) {
         this.unit = unit;
@@ -185,6 +205,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		inAspectDeclaration = false;
 		inClassDeclaration = false;
 		inInterfaceDeclaration = false;
+		inRHS = false;
 		
 		// Bug 93248: Count question marks so as to ignore colons that are part of conditional statements		
 		int questionMarkCount = 0; 
@@ -193,11 +214,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		int parenLevel = 0;
 		
 		// Bug 110751: Ignore colons that are part of enhanced "for" loop in Java 5
-		boolean insideFor = false;
+		boolean inFor = false;
 		
 		// Bug 258685: case statements should not be confused with pointcuts
 		// it is the colon that is confusing
-		boolean insideCase = false;
+		boolean inCase = false;
 		
 		char[] currentTypeName = null;
 		
@@ -264,28 +285,35 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				}
 				break;
 			case TokenNamefor:
-				insideFor=true;
+				inFor=true;
 				break;
+				
             case TokenNameLPAREN:
                 parenLevel++;
                 break;
+                
  			case TokenNameRPAREN:
-				insideFor=false;
+				inFor=false;
 				parenLevel--;
 				break;
+				
 			case TokenNameCOLON:
 				if (!inAspect) {
 					break;
-				} else if (insideFor) {
+				} else if (inFor) {
 					break;
 				} else if (questionMarkCount > 0) {
 					questionMarkCount--;
 					break;
-				} else if (insideCase) {
-				    insideCase = false;
+				} else if (inCase) {
+				    inCase = false;
 				    break;
 				}
 				startPointcutDesignator();
+				break;
+				
+			case TokenNameEQUAL:
+			    inRHS = true;
 				break;
 				
 			case TokenNameQUESTION:
@@ -300,10 +328,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     					        1, new char[] { '}' });
 					}
 				}
+				inRHS = false;  // may be triggering this too early in case this is part of a complex assignment
 				break;
 				
 			case TokenNamecase:
-			    insideCase = true;
+			    inCase = true;
 			    break;
 
 			case TokenNameDOT:
@@ -316,7 +345,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				    break;
 				}
 				
-				if (!inAspectBodyStack.empty() &&
+				if (!inRHS && 
+				        !inAspectBodyStack.empty() && 
 				        inAspectBodyStack.peek() == Boolean.TRUE) {
 				    processPotentialIntertypeDeclaration();
 				}

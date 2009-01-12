@@ -508,6 +508,7 @@ public class AJCompilationUnitProblemFinder extends
         } catch (JavaModelException e) {
         }
         
+        // can probably remove
 //        if (hasModel && id == IProblem.SuperInterfaceMustBeAnInterface && 
 //                (
 //                        categorizedProblem.getSourceStart() == 0 ||
@@ -519,6 +520,8 @@ public class AJCompilationUnitProblemFinder extends
 //            // See ITDAwareSourceTypeInfo
 //            return false;
 //        }
+        
+        // can probably remove this comment
         
         // casting from a class to an interface that has been converted
         // to a class (See ITDAwareSourceTypeInfo.shouldRemoveInterfaceFlag) will be an error in the reconciler
@@ -535,6 +538,7 @@ public class AJCompilationUnitProblemFinder extends
         return true;
     }
 
+    // can probably remove
 //    private static boolean isReallyAnInterface(String firstArg,
 //            CompilationUnit unit) {
 //        try {
