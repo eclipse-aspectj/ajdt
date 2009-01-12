@@ -78,18 +78,17 @@ public class AJImageDescriptorSelector implements IImageDescriptorSelector, NoFF
     // the type passed in will not be an AspectElement, so
     // we have to get all the types from the compilation unit and compare names
     private boolean isAspect(IType maybeAspect) {
-        if (maybeAspect.getCompilationUnit() instanceof AJCompilationUnit){
-            AJCompilationUnit unit = (AJCompilationUnit) maybeAspect.getCompilationUnit();
-            IType aspectEl = unit.getAspectType(maybeAspect.getElementName());
-            return aspectEl instanceof AspectElement;
+        ICompilationUnit unit = maybeAspect.getCompilationUnit();
+        if (unit instanceof AJCompilationUnit) {
+            maybeAspect = ((AJCompilationUnit) unit).maybeConvertToAspect(maybeAspect);
         }
-        return false;
+        return maybeAspect instanceof AspectElement;
     }
     
     
     public ImageDescriptor createCompletionProposalImageDescriptor(LazyJavaCompletionProposal proposal) {
         IJavaElement elt = proposal.getJavaElement();
-        if (elt.getElementType() == IJavaElement.TYPE && isAspect((IType) elt)) {
+        if (elt != null && elt.getElementType() == IJavaElement.TYPE && isAspect((IType) elt)) {
             IType type = (IType) elt;
             try {
                 int flags = type.getFlags();
