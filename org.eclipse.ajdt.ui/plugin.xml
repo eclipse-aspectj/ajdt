@@ -1548,6 +1548,11 @@ M4 = Platform-specific fourth key
             class="org.eclipse.ajdt.internal.ui.editor.quickfix.AJQuickFixProcessor"
             id="org.eclipse.ajdt.ui.editor.quickfix.AJQuickFixProcessor">
       </quickFixProcessor>
+      <quickFixProcessor
+            class="org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor"
+            id="org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor"
+            name="%javaQuickFixProcessor">
+      </quickFixProcessor>
     </extension>
   
   <!-- Launching extensions -->  
