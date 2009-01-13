@@ -77,7 +77,7 @@ public class AspectsConvertingParserTest extends AbstractTestCase {
 	
 	public void testConvert4() {
  		myParser.convert(ConversionOptions.CODE_COMPLETION);
-		assertEquals("Wrong size of content.",1163,myParser.content.length); //$NON-NLS-1$
+		assertEquals("Wrong size of content.",1168,myParser.content.length); //$NON-NLS-1$
 		if (new String(myParser.content).indexOf(':') != -1)
 			fail("Some pointcut designators have not been removed."); //$NON-NLS-1$
 	}
