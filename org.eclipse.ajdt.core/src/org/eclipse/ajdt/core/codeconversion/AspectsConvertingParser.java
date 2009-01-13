@@ -290,10 +290,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				
             case TokenNameLPAREN:
                 parenLevel++;
+                inCase = false;
                 break;
                 
  			case TokenNameRPAREN:
-				inFor=false;
+				inFor = false;
+				inCase = false;
 				parenLevel--;
 				break;
 				
@@ -331,6 +333,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				inRHS = false;  // may be triggering this too early in case this is part of a complex assignment
 				break;
 				
+			case TokenNamedefault:
 			case TokenNamecase:
 			    inCase = true;
 			    break;
@@ -394,15 +397,13 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				    inAspectBodyStack.push(Boolean.FALSE);
 				}
 				
-				
+				inCase = false;
 				inClassDeclaration = false;
 				inInterfaceDeclaration = false;
 				currentTypeName = null;
 				
-//				insideBlockCount ++;
 				break;
 			case TokenNameRBRACE:
-//				insideBlockCount ++;
 				if (inPointcutDesignator) {
 					// bug 129367: if we've hit a } here, we must be
 					// in the middle of an unterminated pointcut
@@ -411,6 +412,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				if (!inAspectBodyStack.empty()) {
 				    inAspectBodyStack.pop();
 				}
+                inCase = false;
 				break;
 			case TokenNameaspect:
 				inAspect = true;
