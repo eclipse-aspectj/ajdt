@@ -84,6 +84,22 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 	
 	
 	/**
+	 * test that ':' are properly handled in switch statements
+	 */
+    public void testBug26914() {
+        String source =   "aspect Aspect { pointcut foo() : execution(); \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
+        String expected = "class  Aspect { pointcut foo()              ; \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
+        
+        ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+        AspectsConvertingParser conv = new AspectsConvertingParser(source
+                .toCharArray());
+        conv.convert(conversionOptions);
+        String converted = new String(conv.content);
+        assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
+    }
+
+	
+	/**
 	 * inserts arbitrary conversion text at the proper places in the code
 	 * @author andrew
 	 *
