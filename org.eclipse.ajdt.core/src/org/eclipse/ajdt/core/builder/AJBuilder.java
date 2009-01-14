@@ -680,6 +680,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                         // system without a refresh
                                         if (!outFile.exists()) {
                                             resource.copy(outFile.getFullPath(), true, null);
+                                            Util.setReadOnly(outFile, false);
                                         }
                                         outFile.setDerived(true);
                                     }
