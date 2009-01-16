@@ -10,5 +10,9 @@
    <feature url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar" id="org.eclipse.ajdt.source" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt"/>
    </feature>
+   <feature url="features/org.eclipse.contribution.xref_@AJFVERSION@.jar" id="org.eclipse.contribution.xref" version="@AJFVERSION@">
+      <category name="org.eclipse.contribution.xref"/>
+   </feature>
    <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
+   <category-def name="org.eclipse.contribution.xref" label="Cross References Tool"/>
 </site>
