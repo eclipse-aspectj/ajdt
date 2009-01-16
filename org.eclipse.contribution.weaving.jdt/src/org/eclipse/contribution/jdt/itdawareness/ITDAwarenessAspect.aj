@@ -6,6 +6,7 @@ import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -113,6 +114,7 @@ public aspect ITDAwarenessAspect {
             ICompilationUnit[] workingCopies) : 
                 searchableEnvironmentCreation(JavaProject, ICompilationUnit[]) &&
                 (
+                        cflow(codeSelect()) || // open type action
                         cflow(typeHierarchyCreation()) || // creation of type hierarchies
                         cflow(typeHierarchyComputing())  // computing the type hierarchy (do we need both?)
                 ) && args(project, workingCopies);
@@ -127,7 +129,10 @@ public aspect ITDAwarenessAspect {
      */
     pointcut typeHierarchyComputing() : execution(protected void TypeHierarchy.compute());
 
-    
+    /**
+     * for determining hyperlinks and open action
+     */
+    pointcut codeSelect() : execution(protected IJavaElement[] Openable.codeSelect(org.eclipse.jdt.internal.compiler.env.ICompilationUnit,int,int,WorkingCopyOwner) throws JavaModelException);
     
     /********************************************
      * This section handles reconciling of java CompilationUnits. 
