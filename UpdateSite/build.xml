@@ -132,7 +132,6 @@ Creates an update site structure for AspectJ
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui_${xref.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.visualiser" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.visualiser_${visualiser.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.weaving.jdt" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.weaving.jdt_${equinox.aspects.version}"/>
-	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.weaving.jdt.tests" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.weaving.jdt.tests_${equinox.aspects.version}"/>
 		
 	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}"/>
 	<copy todir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}">
@@ -206,6 +205,16 @@ Creates an update site structure for AspectJ
  <ant dir="../org.aspectj.runtime" inheritAll="true" />
  <ant dir="../org.aspectj.weaver" inheritAll="true" />
  <ant dir="../org.aspectj.ajde" inheritAll="true" />
+	
+	<!-- JDT Weaving and tests -->		
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.weaving.jdt"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
 	
 	<!-- Visualiser and tests -->
 	<antcall target="build-plugin">
