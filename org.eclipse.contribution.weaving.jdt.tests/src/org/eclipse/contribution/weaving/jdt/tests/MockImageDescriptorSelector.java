@@ -25,8 +25,8 @@ public class MockImageDescriptorSelector implements IImageDescriptorSelector {
     
     public static boolean isSet = false;
 
-    public final static Image IMAGE = new Image(Display.getCurrent(), "icons/aspect.gif");
-    public final static ImageDescriptor DESCRIPTOR = ImageDescriptor.createFromImage(IMAGE);
+    public final static Image IMAGE = createImage();
+    public final static ImageDescriptor DESCRIPTOR = IMAGE != null ? ImageDescriptor.createFromImage(IMAGE) : null;
     
     
     public ImageDescriptor createCompletionProposalImageDescriptor(
@@ -34,5 +34,14 @@ public class MockImageDescriptorSelector implements IImageDescriptorSelector {
         
         // XXX not tested for now.
         return null;
+    }
+
+
+    private static Image createImage() {
+        try {
+            return new Image(Display.getCurrent(), "icons/aspect.gif");
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
