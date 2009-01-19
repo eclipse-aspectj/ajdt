@@ -31,7 +31,4 @@ public class AllWeavingTests {
         return suite;
     }
     
-    public void testNothing() {
-        System.out.println("Nothing!");
-    }
 }

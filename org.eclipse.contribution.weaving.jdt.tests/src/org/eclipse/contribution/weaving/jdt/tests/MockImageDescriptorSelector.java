@@ -17,7 +17,7 @@ public class MockImageDescriptorSelector implements IImageDescriptorSelector {
                 ((element instanceof IType) && (((IType)element).getParent() instanceof MockCompilationUnit)) || 
                 (element instanceof JavaSearchTypeNameMatch)) {
             isSet = true; // remember that we've been here
-            return DESCRIPTOR;
+            return getImageDescriptor();
         } else {
             return null;
         }
@@ -25,8 +25,8 @@ public class MockImageDescriptorSelector implements IImageDescriptorSelector {
     
     public static boolean isSet = false;
 
-    public final static Image IMAGE = createImage();
-    public final static ImageDescriptor DESCRIPTOR = IMAGE != null ? ImageDescriptor.createFromImage(IMAGE) : null;
+    private static Image IMAGE;
+    private static ImageDescriptor DESCRIPTOR;
     
     
     public ImageDescriptor createCompletionProposalImageDescriptor(
@@ -44,4 +44,20 @@ public class MockImageDescriptorSelector implements IImageDescriptorSelector {
             return null;
         }
     }
+    
+    public static Image getImage() {
+        if (IMAGE == null) {
+            IMAGE = createImage();
+        }
+        return IMAGE;
+    }
+    
+    public static ImageDescriptor getImageDescriptor() {
+        if (DESCRIPTOR == null) {
+            Image i = getImage();
+            DESCRIPTOR = i != null ? ImageDescriptor.createFromImage(IMAGE) : null;
+        }
+        return DESCRIPTOR;
+    }
+    
 }

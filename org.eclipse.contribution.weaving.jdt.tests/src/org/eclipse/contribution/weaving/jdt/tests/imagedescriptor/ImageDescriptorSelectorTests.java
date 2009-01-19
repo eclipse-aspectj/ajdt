@@ -113,7 +113,7 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
 
     private void testImage(Image i) {
         byte[] createdImageData = i.getImageData().data;
-        byte[] origImageData = MockImageDescriptorSelector.IMAGE.getImageData().data;
+        byte[] origImageData = MockImageDescriptorSelector.getImage().getImageData().data;
         
         Assert.assertEquals("Mock image is not the same as expected image", origImageData.length, createdImageData.length);
         for (int j = 0; j < origImageData.length; j++) {
