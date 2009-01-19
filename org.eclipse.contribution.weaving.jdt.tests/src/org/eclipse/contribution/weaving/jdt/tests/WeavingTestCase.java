@@ -16,6 +16,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
+import junit.framework.TestCase;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -36,16 +38,14 @@ import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.junit.After;
 
 /**
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
  */
-public class WeavingTestCase {
+public class WeavingTestCase extends TestCase {
     
     protected IProgressMonitor monitor = new DumbProgressMonitor();
 
-    @After()
 	public void tearDown() throws Exception {
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < allProjects.length; i++) {

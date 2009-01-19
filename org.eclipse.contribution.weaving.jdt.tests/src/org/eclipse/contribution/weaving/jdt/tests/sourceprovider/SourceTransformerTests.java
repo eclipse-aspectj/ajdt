@@ -19,7 +19,6 @@ import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.junit.Test;
 
 /**
  * @author Andrew Eisenberg
@@ -28,8 +27,7 @@ import org.junit.Test;
  */
 public class SourceTransformerTests extends WeavingTestCase {
 
-    @Test
-    public void transformCompilationUnit() throws Exception {
+    public void testTransformCompilationUnit() throws Exception {
         IProject proj = createPredefinedProject("MockCUProject");
         IFile file = proj.getFile("src/nothing/nothing.mock");
         MockCompilationUnit cu = (MockCompilationUnit) JavaCore.create(file);

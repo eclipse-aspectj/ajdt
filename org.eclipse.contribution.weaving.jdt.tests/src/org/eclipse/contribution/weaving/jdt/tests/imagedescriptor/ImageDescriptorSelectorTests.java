@@ -34,9 +34,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * @author Andrew Eisenberg
@@ -46,7 +43,6 @@ import org.junit.Test;
 public class ImageDescriptorSelectorTests extends WeavingTestCase {
     MockCompilationUnit cu;
     
-    @Before
     public void setUp() throws Exception {
         IProject proj = createPredefinedProject("MockCUProject");
         IFile file = proj.getFile("src/nothing/nothing.mock");
@@ -54,20 +50,17 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
         cu.becomeWorkingCopy(monitor);
     }
     
-    @After
     public void tearDown() throws Exception {
         super.tearDown();
         MockImageDescriptorSelector.isSet = false;
     }
 
-    @Test
-    public void imageSelectHierarchy() throws Exception {
+    public void testImageSelectHierarchy() throws Exception {
         HierarchyLabelProvider hierarchy = new HierarchyLabelProvider(null);
         testLabelProvider(hierarchy);
     } 
 
-    @Test
-    public void imageSelectDialog() throws Exception {
+    public void testImageSelectDialog() throws Exception {
         FilteredTypesSelectionDialog dialog = new FilteredTypesSelectionDialog(new Shell(Display.getCurrent().getActiveShell()), false, null, null, 0, null);
         LabelProvider fTypeInfoLabelProvider = getLabelProvider(dialog);
         
@@ -77,8 +70,7 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
         Assert.assertTrue("Image descriptor selector never activated", MockImageDescriptorSelector.isSet);
     }
 
-    @Test
-    public void imageSelectDebugger() throws Exception {
+    public void testImageSelectDebugger() throws Exception {
         MockDebugTypeSelectionDialog dialog = new MockDebugTypeSelectionDialog(new Shell(Display.getCurrent()), new IType[] {(IType) cu.getChildren()[0] }, "");
         dialog.setInitialPattern("Mock");
         ILabelProvider provider = dialog.getLabelProvider();
@@ -105,8 +97,7 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
         }
     }
     
-    @Test
-    public void imageSelectComputeImage() throws Exception {
+    public void testImageSelectComputeImage() throws Exception {
         Image i = new JavaElementImageProvider().getImageLabel(cu, 0);
         testImage(i);
     }

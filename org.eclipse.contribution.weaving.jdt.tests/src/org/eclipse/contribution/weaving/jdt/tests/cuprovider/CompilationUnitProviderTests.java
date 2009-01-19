@@ -19,7 +19,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.junit.Test;
 
 /**
  * @author Andrew Eisenberg
@@ -28,8 +27,7 @@ import org.junit.Test;
  */
 public class CompilationUnitProviderTests extends WeavingTestCase {
 
-    @Test
-    public void createCompilationUnit() throws Exception {
+    public void testCreateCompilationUnit() throws Exception {
         IProject proj = createPredefinedProject("MockCUProject");
         IFile file = proj.getFile("src/nothing/nothing.mock");
         CompilationUnit cu = (CompilationUnit) JavaCore.create(file);
