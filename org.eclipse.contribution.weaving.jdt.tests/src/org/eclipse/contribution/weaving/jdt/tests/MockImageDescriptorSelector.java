@@ -1,12 +1,13 @@
 package org.eclipse.contribution.weaving.jdt.tests;
 
+import java.net.URL;
+
 import org.eclipse.contribution.jdt.imagedescriptor.IImageDescriptorSelector;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.core.search.JavaSearchTypeNameMatch;
 import org.eclipse.jdt.internal.ui.text.java.LazyJavaCompletionProposal;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
 
 public class MockImageDescriptorSelector implements IImageDescriptorSelector {
 
@@ -37,27 +38,30 @@ public class MockImageDescriptorSelector implements IImageDescriptorSelector {
     }
 
 
-    private static Image createImage() {
+    private static void createImage() {
         try {
-            return new Image(Display.getCurrent(), "icons/aspect.gif");
+            URL pluginInstallURL = JDTWeavingTestsPlugin.getDefault().getBundle().getEntry("/"); //$NON-NLS-1$
+            String localPath = "icons/aspect.gif";
+            URL url = new URL( pluginInstallURL, localPath );
+            DESCRIPTOR = ImageDescriptor.createFromURL( url );
+            IMAGE = DESCRIPTOR.createImage();
         } catch (Exception e) {
-            return null;
         }
     }
     
+    private ImageDescriptor getImageDescriptor() {
+        if (DESCRIPTOR == null) {
+            createImage();
+        }
+        return DESCRIPTOR;
+    }
+
     public static Image getImage() {
         if (IMAGE == null) {
-            IMAGE = createImage();
+            createImage();
         }
         return IMAGE;
     }
     
-    public static ImageDescriptor getImageDescriptor() {
-        if (DESCRIPTOR == null) {
-            Image i = getImage();
-            DESCRIPTOR = i != null ? ImageDescriptor.createFromImage(IMAGE) : null;
-        }
-        return DESCRIPTOR;
-    }
     
 }
