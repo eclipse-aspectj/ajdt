@@ -25,6 +25,8 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJWorldFacade;
+import org.eclipse.ajdt.core.model.AJWorldFacade.ErasedTypeSignature;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -131,6 +133,7 @@ public class ITDInserter extends ASTVisitor {
             List/*FieldDeclaration*/ itdFields = new LinkedList();
             List/*MethodDeclaration*/ itdMethods = new LinkedList();
             IType handle = getHandle(type);
+            
 
             List/*IProgramElement*/ ipes = getITDs(handle);
             for (Iterator iterator = ipes.iterator(); iterator.hasNext();) {
@@ -142,11 +145,13 @@ public class ITDInserter extends ASTVisitor {
                     // These are added to the first class that instantiates this interface
                     // See bug 257437
                     if (TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
-                        itdMethods.add(createMethod(elt, type));
+                        itdMethods.add(createMethod(elt, type, handle));
                     }
+                    
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
                     itdMethods.add(createConstructor(elt, type));
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
+                    // XXX hmmmm..should I also skip this if the type is an interface???
                     itdFields.add(createField(elt, type));
                 } else if (elt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
                     String details = elt.getDetails();
@@ -272,12 +277,34 @@ public class ITDInserter extends ASTVisitor {
         return decl;
     }
     
-    private MethodDeclaration createMethod(IProgramElement method, TypeDeclaration type) {
+    private MethodDeclaration createMethod(IProgramElement method, TypeDeclaration type, IType handle) {
         MethodDeclaration decl = new MethodDeclaration(type.compilationResult);
         decl.scope = new MethodScope(type.scope, decl, true);
         
         decl.selector = method.getName().split("\\.")[1].toCharArray();
+        decl.modifiers = method.getRawModifiers();
         
+        // not doing World yet.
+//        AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
+//        ErasedTypeSignature sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
+//        if (sig == null) {
+//            String[] params = new String[method.getParameterTypes().size()];
+//            for (int i = 0; i < params.length; i++) {
+//                params[i] = new String((char[]) method.getParameterTypes().get(i));
+//            }
+//            sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
+//        }
+//        decl.returnType = createTypeReference(Signature.getElementType(sig.returnType));
+//        Argument[] args = method.getParameterTypes() != null ? 
+//                new Argument[method.getParameterTypes().size()] :
+//                    new Argument[0];
+//        for (int i = 0; i < args.length; i++) {
+//            args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
+//                    0,
+//                    createTypeReference(Signature.getElementType(sig.paramTypes[i])),
+//                    0);
+//        }
+
         decl.returnType = createTypeReference(method.getCorrespondingType(true));
         decl.modifiers = method.getRawModifiers();
         Argument[] args = method.getParameterTypes() != null ? 

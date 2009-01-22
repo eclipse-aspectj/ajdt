@@ -106,7 +106,7 @@ public class IntertypeElement extends AspectJMemberElement {
                         parent.getElementName(), 
                         this.getParameterTypes()) {
                     protected Object createElementInfo() {
-                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo();
+                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
                         newInfo.setFlags(info.getDeclaredModifiers());
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
@@ -128,7 +128,7 @@ public class IntertypeElement extends AspectJMemberElement {
                         name.split("\\.")[1], 
                         this.getParameterTypes()) {
                     protected Object createElementInfo() {
-                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo();
+                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
                         newInfo.setReturnType(info.getReturnTypeName());
                         newInfo.setFlags(info.getDeclaredModifiers());
@@ -150,7 +150,7 @@ public class IntertypeElement extends AspectJMemberElement {
                 // field
                 IField itd = new SourceField((JavaElement) parent, name.split("\\.")[1]) {
                     protected Object createElementInfo() {
-                        ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo();
+                        ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
                         newInfo.setFlags(info.getDeclaredModifiers());
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
@@ -202,7 +202,17 @@ public class IntertypeElement extends AspectJMemberElement {
 	 * @author andrew
 	 * just expose all the protected setter methods
 	 */
-	private class ITDSourceFieldElementInfo extends SourceFieldElementInfo {
+	private class ITDSourceFieldElementInfo extends SourceFieldElementInfo implements IIntertypeInfo {
+        IntertypeElement original;
+
+        public ITDSourceFieldElementInfo(IntertypeElement original) {
+            this.original = original;
+        }
+
+        public IntertypeElement getOriginal() {
+            return original;
+        }
+
 	    protected void setFlags(int flags) {
 	        super.setFlags(flags);
 	    }
@@ -223,7 +233,17 @@ public class IntertypeElement extends AspectJMemberElement {
 	    }
 	}
 	
-	private class ITDSourceMethodElementInfo extends SourceMethodInfo {
+	private class ITDSourceMethodElementInfo extends SourceMethodInfo implements IIntertypeInfo {
+
+        IntertypeElement original;
+
+        public ITDSourceMethodElementInfo(IntertypeElement original) {
+            this.original = original;
+        }
+
+        public IntertypeElement getOriginal() {
+            return original;
+        }
 
         protected void setReturnType(char[] type) {
             super.setReturnType(type);
@@ -259,7 +279,17 @@ public class IntertypeElement extends AspectJMemberElement {
 	    
 	}
 	
-   private class ITDSourceConstructorElementInfo extends SourceConstructorInfo {
+   private class ITDSourceConstructorElementInfo extends SourceConstructorInfo implements IIntertypeInfo {
+
+        IntertypeElement original;
+
+        public ITDSourceConstructorElementInfo(IntertypeElement original) {
+            this.original = original;
+        }
+
+        public IntertypeElement getOriginal() {
+            return original;
+        }
 
         protected void setArgumentNames(char[][] names) {
             super.setArgumentNames(names);
@@ -288,6 +318,6 @@ public class IntertypeElement extends AspectJMemberElement {
         protected void setSourceRangeStart(int start) {
             super.setSourceRangeStart(start);
         }
-        
+
     }
 }

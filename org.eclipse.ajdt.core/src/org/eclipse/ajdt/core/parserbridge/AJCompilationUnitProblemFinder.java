@@ -347,8 +347,7 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        if (categorizedProblem.getSourceStart() == 0 && 
-                categorizedProblem.getSourceEnd() == 0) {
+        if (categorizedProblem.getSourceStart() == 0) {
             // a place for all problems that don't have source locations
             // because they come from ITDs
             return false;
@@ -508,46 +507,10 @@ public class AJCompilationUnitProblemFinder extends
         } catch (JavaModelException e) {
         }
         
-        // can probably remove
-//        if (hasModel && id == IProblem.SuperInterfaceMustBeAnInterface && 
-//                (
-//                        categorizedProblem.getSourceStart() == 0 ||
-//                        isReallyAnInterface(firstArg, unit)
-//                )) {
-//            // this error is from an interface
-//            // that has been turned into a class because this
-//            // interface has ITDs on it.
-//            // See ITDAwareSourceTypeInfo
-//            return false;
-//        }
-        
-        // can probably remove this comment
-        
-        // casting from a class to an interface that has been converted
-        // to a class (See ITDAwareSourceTypeInfo.shouldRemoveInterfaceFlag) will be an error in the reconciler
-        // this is because the interface, which the compiler thinks is a class, is not
-        // added to the class's hierarchy and therefore a cast cannot occur.
-        // ignore for now.
-        // solution:
-        //  1. pass model into method
-        //  2. convert the type of the thing being casted into IProgramElement (maybe use JavaProject)
-        //  3. get all AspectDeclarations on it
-        //  4. see if the other type is added as a declare parent on it.
-        // problem: this is time consuming to perform, so don't do it now.  Wait until someone asks for it.
         
         return true;
     }
 
-    // can probably remove
-//    private static boolean isReallyAnInterface(String firstArg,
-//            CompilationUnit unit) {
-//        try {
-//            IType type = unit.getJavaProject().findType(firstArg);
-//            return type.isInterface();
-//        } catch (JavaModelException e) {
-//        }
-//        return false;
-//    }
 
     private static boolean insideITD(CategorizedProblem categorizedProblem,
             CompilationUnit unit) throws JavaModelException {

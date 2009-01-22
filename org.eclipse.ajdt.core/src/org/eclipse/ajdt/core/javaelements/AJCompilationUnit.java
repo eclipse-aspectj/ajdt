@@ -245,7 +245,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	public IType maybeConvertToAspect(IType maybeAspect) {
 	    IJavaElement[] elts = maybeAspect.getCompilationUnit().findElements(maybeAspect);
-	    if (elts.length > 0 && elts[0] instanceof AspectElement) {
+	    if (elts != null && elts.length > 0 && elts[0] instanceof AspectElement) {
 	        return (IType) elts[0];
 	    }
 	    return maybeAspect;
