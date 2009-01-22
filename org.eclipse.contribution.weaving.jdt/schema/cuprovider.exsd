@@ -6,7 +6,7 @@
          <meta.schema plugin="org.eclipse.contribution.weaving.jdt" id="cuprovider" name="Compilation Unit Provider"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         Provides an alternate implementation of org.eclipse.jdt.internal.core.CompilationUnit based on file extension.
       </documentation>
    </annotation>
 
@@ -79,7 +79,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         [Enter the first release in which this extension point appears.]
+         1.6.2
       </documentation>
    </annotation>
 

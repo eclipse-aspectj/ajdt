@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.contribution.weaving..jdt" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.eclipse.contribution.weaving.jdt" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.contribution.weaving..jdt" id="sourcetransformer" name="Source Code Transformer"/>
+         <meta.schema plugin="org.eclipse.contribution.weaving.jdt" id="weavablenature" name="Weavable Nature"/>
       </appinfo>
       <documentation>
-         This extension point defines a mechanism that converts a java-like file into a similar, syntactically correct Java file.
+         Defines a project nature that is interesting to the weaver.  Projects that do not have this nature id will not be affected by the weaver.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="transformer" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="nature"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,27 +47,12 @@
       </complexType>
    </element>
 
-   <element name="transformer">
-      <annotation>
-         <documentation>
-            Declares the class of the source code provider for compilation units with a given file extension.
-         </documentation>
-      </annotation>
+   <element name="nature">
       <complexType>
-         <attribute name="class" type="string" use="required">
+         <attribute name="natureid" type="string" use="required">
             <annotation>
                <documentation>
-                  
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.ui.ISourceProvider"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="file_extension" type="string" use="required">
-            <annotation>
-               <documentation>
-                  
+                  The nature id of the nature that is relevant for the weaver.
                </documentation>
             </annotation>
          </attribute>
@@ -79,7 +64,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         1.6.2
+         1.6.3
       </documentation>
    </annotation>
 

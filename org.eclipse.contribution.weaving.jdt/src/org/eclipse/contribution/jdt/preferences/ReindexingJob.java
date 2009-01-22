@@ -23,6 +23,10 @@ public class ReindexingJob extends WorkspaceJob {
     public ReindexingJob() {
         super("Reindexing");
     }
+    
+    public ReindexingJob(int nothing) {
+        this();
+    }
 
     @Override
     public IStatus runInWorkspace(IProgressMonitor monitor)

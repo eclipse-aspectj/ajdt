@@ -6,7 +6,7 @@
          <meta.schema plugin="org.eclipse.contribution.weaving.jdt" id="imagedescriptorselector" name="Image Descriptor Selector"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         Selects an icon for a given element.  Enables the ability to override the default icons.
       </documentation>
    </annotation>
 
@@ -67,7 +67,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         [Enter the first release in which this extension point appears.]
+         1.6.2
       </documentation>
    </annotation>
 

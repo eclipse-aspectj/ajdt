@@ -5,28 +5,36 @@ Bundle-SymbolicName: org.eclipse.contribution.weaving.jdt;singleton:=true
 Bundle-Version: 1.6.3.qualifier
 Require-Bundle: 
  org.aspectj.runtime,
- org.eclipse.equinox.weaving.aspectj;bundle-version="1.0.0";resolution:=optional,
- org.eclipse.equinox.weaving.caching;bundle-version="1.0.0";resolution:=optional,
  org.eclipse.osgi;bundle-version="3.4.0",
  org.eclipse.core.runtime;bundle-version="3.4.0",
  org.eclipse.jdt.core;bundle-version="3.4.0",
  org.eclipse.jdt.ui;bundle-version="3.4.0",
  org.eclipse.jface;bundle-version="3.4.0",
  org.eclipse.ui;bundle-version="3.4.0",
- org.eclipse.debug.ui;bundle-version="3.3.0";resolution:=optional
+ org.eclipse.debug.ui;bundle-version="3.3.0";resolution:=optional,
+ org.eclipse.ui.browser,
+ org.eclipse.ui.forms;bundle-version="3.3.101"
 Bundle-Activator: org.eclipse.contribution.jdt.JDTWeavingPlugin
 Export-Package: 
- org.eclipse.contribution.jdt;uses:="org.osgi.framework,org.eclipse.core.runtime",
- org.eclipse.contribution.jdt.cuprovider;uses:="org.eclipse.jdt.core,org.eclipse.jdt.internal.core",
- org.eclipse.contribution.jdt.imagedescriptor;uses:="org.eclipse.jdt.internal.ui.text.java,org.eclipse.jface.resource",
- org.eclipse.contribution.jdt.itdawareness;
+ org.eclipse.contribution.jdt;version="1.6.3";uses:="org.osgi.framework,org.eclipse.ui.plugin",
+ org.eclipse.contribution.jdt.cuprovider;version="1.6.3";uses:="org.eclipse.jdt.core,org.eclipse.jdt.internal.core",
+ org.eclipse.contribution.jdt.imagedescriptor;version="1.6.3";uses:="org.eclipse.jdt.internal.ui.text.java,org.eclipse.jface.resource",
+ org.eclipse.contribution.jdt.itdawareness;version="1.6.3";
   uses:="org.eclipse.jdt.internal.compiler.env,
    org.eclipse.jdt.core,
    org.eclipse.jdt.internal.core,
    org.eclipse.jdt.internal.compiler,
    org.eclipse.jdt.internal.compiler.ast,
    org.eclipse.core.runtime",
- org.eclipse.contribution.jdt.sourceprovider;uses:="org.eclipse.jdt.internal.compiler.env"
+ org.eclipse.contribution.jdt.preferences;version="1.6.3";
+  uses:="org.eclipse.jface.preference,
+   org.eclipse.ui.progress,
+   org.eclipse.core.resources,
+   org.eclipse.swt.widgets,
+   org.eclipse.core.runtime,
+   org.eclipse.ui,
+   org.eclipse.core.internal.events",
+ org.eclipse.contribution.jdt.sourceprovider;version="1.6.3";uses:="org.eclipse.jdt.internal.compiler.env"
 Eclipse-SupplementBundle: org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.jdt.debug.ui

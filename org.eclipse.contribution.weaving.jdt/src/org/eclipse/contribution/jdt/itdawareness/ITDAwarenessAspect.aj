@@ -14,6 +14,7 @@ import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.Openable;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
@@ -90,9 +91,13 @@ public aspect ITDAwarenessAspect {
             ICompilationUnit[] workingCopies) : 
                 interestingSearchableEnvironmentCreation(project, workingCopies) {
         if (provider != null) {
-            SearchableEnvironment newEnvironment = provider.getNameEnvironment(project, workingCopies);
-            if (newEnvironment != null) {
-                return newEnvironment;
+            try {
+                SearchableEnvironment newEnvironment = provider.getNameEnvironment(project, workingCopies);
+                if (newEnvironment != null) {
+                    return newEnvironment;
+                }
+            } catch (RuntimeException e) {
+                JDTWeavingPlugin.logException(e);
             }
         }
         return proceed(project, workingCopies);
@@ -104,7 +109,8 @@ public aspect ITDAwarenessAspect {
     pointcut searchableEnvironmentCreation(JavaProject project,
             ICompilationUnit[] workingCopies) : 
                 call(SearchableEnvironment.new(JavaProject,
-                        ICompilationUnit[])) && args(project, workingCopies);
+                        ICompilationUnit[])) && args(project, workingCopies); 
+                        
     
     /**
      * Only certain SearchableEnvironment creations are interesting
@@ -114,11 +120,9 @@ public aspect ITDAwarenessAspect {
             ICompilationUnit[] workingCopies) : 
                 searchableEnvironmentCreation(JavaProject, ICompilationUnit[]) &&
                 (
-                        cflow(codeSelect()) || // open type action
                         cflow(typeHierarchyCreation()) || // creation of type hierarchies
                         cflow(typeHierarchyComputing())  // computing the type hierarchy (do we need both?)
                 ) && args(project, workingCopies);
-            
     /**
      * The creation of a type hierarchy
      */
@@ -129,6 +133,41 @@ public aspect ITDAwarenessAspect {
      */
     pointcut typeHierarchyComputing() : execution(protected void TypeHierarchy.compute());
 
+    
+    SearchableEnvironment around(JavaProject project,
+            WorkingCopyOwner owner) : interestingSearchableEnvironmentCreation2(project, owner) {
+        if (provider != null) {
+            try {
+                SearchableEnvironment newEnvironment = provider.getNameEnvironment(project, 
+                        owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
+                if (newEnvironment != null) {
+                    return newEnvironment;
+                }
+            } catch (RuntimeException e) {
+                JDTWeavingPlugin.logException(e);
+            }
+        }            
+        return proceed(project, owner);
+    }
+
+    
+    /**
+     * Only certain SearchableEnvironment creations are interesting
+     * This pointcut determines which ones they are.
+     */
+    pointcut interestingSearchableEnvironmentCreation2(JavaProject project,
+            WorkingCopyOwner workingCopyOwner) : 
+                searchableEnvironmentCreation2(JavaProject, WorkingCopyOwner) &&
+                (
+                        cflow(codeSelect())  // open type action
+                ) && args(project, workingCopyOwner);
+            
+    // alternate creation of searchble environment
+    pointcut searchableEnvironmentCreation2(JavaProject project,
+            WorkingCopyOwner workingCopyOwner) : 
+                call(SearchableEnvironment.new(JavaProject,
+                        WorkingCopyOwner)) && args(project, workingCopyOwner); 
+    
     /**
      * for determining hyperlinks and open action
      */
