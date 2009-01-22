@@ -1956,16 +1956,13 @@ M4 = Platform-specific fourth key
               icon="icons/actions/perspective.gif"
               label="AJDT Console">
         </consoleFactory>
-     </extension>  
+     </extension>
 
-<!-- EXPERIMENTAL (for debugging purposes only)
-  <extension point="org.eclipse.ui.views">
-    <view name="Structure Model" 
-    	icon="icons/editor.gif" 
-    	category="org.eclipse.ajdt.ui.cat" 
-    	class="org.eclipse.ajdt.internal.ui.ajde.StructureModelView" 
-    	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
-  </extension>
--->
+      <extension
+         point="org.eclipse.contribution.weaving.jdt.weavablenature">
+    	  <nature
+            natureid="org.eclipse.ajdt.ui.ajnature">
+  	    </nature>
+	   </extension>
 
 </plugin>

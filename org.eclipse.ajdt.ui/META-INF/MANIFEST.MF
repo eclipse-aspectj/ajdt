@@ -87,4 +87,5 @@ Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.internal.ui.lazystart"
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 Import-Package: com.ibm.icu.text,
  com.ibm.icu.util,
- org.eclipse.contribution.jdt.imagedescriptor
+ org.eclipse.contribution.jdt.imagedescriptor,
+ org.eclipse.contribution.jdt.preferences

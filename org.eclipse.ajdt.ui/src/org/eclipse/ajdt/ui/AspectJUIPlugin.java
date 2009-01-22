@@ -282,8 +282,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();
 		
-		
-		if (!AspectJPlugin.USING_CU_PROVIDER) {
+		// BUG 249045 and BUG 261045 don't do this any more
+		if (false) {
+//		if (!AspectJPlugin.USING_CU_PROVIDER) {
 		    insertAJCompilationUnitDocumentProvider();
 		}
 

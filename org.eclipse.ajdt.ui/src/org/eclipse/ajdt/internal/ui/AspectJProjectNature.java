@@ -14,6 +14,7 @@
 package org.eclipse.ajdt.internal.ui;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -54,6 +55,12 @@ public class AspectJProjectNature implements IProjectNature {
 		}
 		projectDescription.setBuildSpec(newBuildCommands);
 		project.setDescription(projectDescription, null);
+		try {
+		    // ask if weaving service should be enable
+		    WeavableProjectListener.weavableNatureAdded(project);
+		} catch (Exception e) {
+		    
+		}
 	}
 
 	/**
