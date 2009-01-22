@@ -26,5 +26,21 @@
             class="org.eclipse.contribution.weaving.jdt.tests.MockImageDescriptorSelector">
       </selector>
    </extension>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.weavablenature">
+      <nature
+            natureid="org.eclipse.contribution.weaving.jdt.tests.mock">
+      </nature>
+   </extension>
+   <extension
+         id="mock"
+         name="Mock Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.eclipse.contribution.weaving.jdt.tests.MockNature">
+         </run>
+      </runtime>
+   </extension>
 
 </plugin>
