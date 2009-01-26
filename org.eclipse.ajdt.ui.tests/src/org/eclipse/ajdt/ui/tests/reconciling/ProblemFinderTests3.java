@@ -60,7 +60,8 @@ public class ProblemFinderTests3 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + actionExecutorCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 
     public void testNoProblemsDeleteAction() throws Exception {
@@ -69,7 +70,8 @@ public class ProblemFinderTests3 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + deleteActionCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 
     public void testNoProblemsDeleteActionAspect() throws Exception {
@@ -78,7 +80,8 @@ public class ProblemFinderTests3 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + deleteActionAspectCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 
      

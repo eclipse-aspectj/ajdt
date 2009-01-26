@@ -85,7 +85,16 @@ class MockProblemRequestor implements IProblemRequestor {
                 sb.append("\n\t\t" + probs[i].toString());
             }
         }
-        sb.append("\n]"); //$NON-NLS-1$
+        sb.append("\n]\n"); //$NON-NLS-1$
         return sb.toString();
+    }
+    
+    static int countProblems(HashMap problems) {
+        int count = 0;
+        for (Iterator probIter = problems.values().iterator(); probIter.hasNext();) {
+            CategorizedProblem[] probsArray = (CategorizedProblem[]) probIter.next();
+            count += probsArray.length;
+        }
+        return count;
     }
 }

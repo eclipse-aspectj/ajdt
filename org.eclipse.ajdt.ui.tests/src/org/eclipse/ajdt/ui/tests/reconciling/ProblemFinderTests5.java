@@ -12,7 +12,6 @@ package org.eclipse.ajdt.ui.tests.reconciling;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCore;
@@ -107,8 +106,7 @@ public class ProblemFinderTests5 extends UITestCase {
                     DefaultWorkingCopyOwner.PRIMARY, problems, true, 
                     ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         }
-        assertEquals("Should not have any problems in " + unit, 0, MockProblemRequestor.filterAllWarningProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + unit + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, MockProblemRequestor.countProblems(problems)); //$NON-NLS-1$
     }
-
-    
 }

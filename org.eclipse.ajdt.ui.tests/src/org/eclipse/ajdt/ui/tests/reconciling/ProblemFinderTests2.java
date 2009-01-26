@@ -70,7 +70,8 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + myAspectCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems2() throws Exception {
@@ -79,7 +80,8 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + otherClassCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems3() throws Exception {
@@ -88,7 +90,8 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + demoCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems4() throws Exception {
@@ -97,7 +100,8 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + myAspectCU2 + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoModelAndNoProblems5() throws Exception {
@@ -106,6 +110,7 @@ public class ProblemFinderTests2 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, problems.size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + otherClassCU2 + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 }

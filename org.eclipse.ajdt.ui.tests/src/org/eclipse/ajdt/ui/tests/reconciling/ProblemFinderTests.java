@@ -71,7 +71,8 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems, but found: ", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + myAspectCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     public void testNoProblemsOtherClass() throws Exception {
         HashMap problems = new HashMap();
@@ -79,7 +80,8 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + otherClassCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     public void testNoProblemsDemo() throws Exception {
         HashMap problems = new HashMap();
@@ -87,7 +89,8 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + demoCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     public void testNoProblemsMyAspectCU() throws Exception {
         HashMap problems = new HashMap();
@@ -96,7 +99,8 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + myAspectCU2 + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     public void testNoProblemsOtherClass2() throws Exception {
         HashMap problems = new HashMap();
@@ -104,7 +108,8 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + otherClassCU2 + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
 
     }
     
@@ -120,7 +125,8 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
 
-        assertEquals("Should have one syntax error", 1, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should have 1 syntax error in " + otherClassCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 1, problems.size()); //$NON-NLS-1$
     }
     
     public void testNoReturnTypeError() throws Exception {

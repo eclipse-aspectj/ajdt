@@ -61,7 +61,8 @@ public class ProblemFinderTests4 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + inAspectFileCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 
     // Requires JDT Weaving
@@ -71,7 +72,8 @@ public class ProblemFinderTests4 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + inJavaFileCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
     
     // tests for switch statements, bug 258685
@@ -81,6 +83,7 @@ public class ProblemFinderTests4 extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + inSwitchFileCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 }
