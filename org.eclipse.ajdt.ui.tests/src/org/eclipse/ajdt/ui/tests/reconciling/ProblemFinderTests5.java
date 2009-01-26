@@ -43,7 +43,8 @@ public class ProblemFinderTests5 extends UITestCase {
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("ITDOnInterfaces"); //$NON-NLS-1$
-        
+        waitForJobsToComplete();
+
         allCUnits.add(createUnit("src/p/AClass.java"));
         allCUnits.add(createUnit("src/p/AnAspect.aj"));
         allCUnits.add(createUnit("src/p/AnInterface.java"));

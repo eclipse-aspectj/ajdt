@@ -71,7 +71,7 @@ public class ProblemFinderTests extends UITestCase {
                 AJWorkingCopyOwner.INSTANCE, problems, true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertEquals("Should not have any problems", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
+        assertEquals("Should not have any problems, but found: ", 0, MockProblemRequestor.filterProblems(problems).size()); //$NON-NLS-1$
     }
     public void testNoProblemsOtherClass() throws Exception {
         HashMap problems = new HashMap();

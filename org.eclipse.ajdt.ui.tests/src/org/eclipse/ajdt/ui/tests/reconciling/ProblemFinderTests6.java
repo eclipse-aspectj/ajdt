@@ -43,6 +43,7 @@ public class ProblemFinderTests6 extends UITestCase {
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("Generic ITDs 2"); //$NON-NLS-1$
+        waitForJobsToComplete();
         
         allCUnits.add(createUnit("src/bug/Manager.java"));
         allCUnits.add(createUnit("src/bug/ManagerAspect.aj"));

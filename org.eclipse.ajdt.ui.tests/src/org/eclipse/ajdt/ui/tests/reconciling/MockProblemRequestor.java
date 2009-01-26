@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -71,5 +72,20 @@ class MockProblemRequestor implements IProblemRequestor {
             }
         }
         return problems;
+    }
+    
+    static String printProblems(HashMap problems) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("["); //$NON-NLS-1$
+        for (Iterator probIter = problems.entrySet().iterator(); probIter.hasNext();) {
+            Map.Entry entry = (Map.Entry) probIter.next();
+            sb.append("\n\t" + entry.getKey().toString() + " --> "); //$NON-NLS-1$
+            CategorizedProblem[] probs = (CategorizedProblem[]) entry.getValue();
+            for (int i = 0; i < probs.length; i++) {
+                sb.append("\n\t\t" + probs[i].toString());
+            }
+        }
+        sb.append("\n]"); //$NON-NLS-1$
+        return sb.toString();
     }
 }
