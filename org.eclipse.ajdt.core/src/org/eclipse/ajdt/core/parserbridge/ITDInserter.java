@@ -219,55 +219,6 @@ public class ITDInserter extends ASTVisitor {
         }
     }
     
-    // XXX unsused.  Can probably remove...
-    private boolean isDuplicateAll(AbstractMethodDeclaration interfaceMethod, AbstractMethodDeclaration[] existingMethods, List/*MethodDeclaration*/ itdMethods) {
-        if (existingMethods != null) {
-            for (int i = 0; i < existingMethods.length; i++) {
-                if (isDuplicate(interfaceMethod, existingMethods[i])) {
-                    return true;
-                }
-            }
-        }
-        for (Iterator itdIter = itdMethods.iterator(); itdIter.hasNext();) {
-            MethodDeclaration itdMethod = (MethodDeclaration) itdIter.next();
-            if (isDuplicate(interfaceMethod, itdMethod)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    
-    private boolean isDuplicate(AbstractMethodDeclaration m1, AbstractMethodDeclaration m2) {
-        return Arrays.equals(m1.selector, m2.selector) &&
-                nullEquals(m1.arguments, m2.arguments);
-    }
-    
-    /**
-     * ignore type parameters (because difficult) and return type (because we should)
-     */
-    private boolean nullEquals(Argument[] arguments1, Argument[] arguments2) {
-        int numArgs1 = arguments1 == null ? 0 : arguments1.length;
-        int numArgs2 = arguments2 == null ? 0 : arguments2.length;
-        if (numArgs1 != numArgs2) {
-            return false;
-        }
-        for (int i = 0; i < arguments1.length; i++) {
-            if (arguments1[i].type.dimensions() == arguments2[i].type.dimensions()) {
-                // only look at last segment of name because we are not guarranteed 
-                // to have fully qualified names
-                char[][] name1 = arguments1[i].type.getTypeName();
-                char[][] name2 = arguments2[i].type.getTypeName();
-                char[] last1 = name1[name1.length-1];
-                char[] last2 = name2[name2.length-1];
-                if (!Arrays.equals(last1, last2)) {
-                    return false;
-                }
-            }
-        }
-        
-        return true;
-    }
 
     private FieldDeclaration createField(IProgramElement field, TypeDeclaration type) {
         FieldDeclaration decl = new FieldDeclaration();
@@ -284,37 +235,39 @@ public class ITDInserter extends ASTVisitor {
         decl.selector = method.getName().split("\\.")[1].toCharArray();
         decl.modifiers = method.getRawModifiers();
         
-        // not doing World yet.
-//        AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
-//        ErasedTypeSignature sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
-//        if (sig == null) {
-//            String[] params = new String[method.getParameterTypes().size()];
-//            for (int i = 0; i < params.length; i++) {
-//                params[i] = new String((char[]) method.getParameterTypes().get(i));
-//            }
-//            sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
-//        }
-//        decl.returnType = createTypeReference(Signature.getElementType(sig.returnType));
-//        Argument[] args = method.getParameterTypes() != null ? 
-//                new Argument[method.getParameterTypes().size()] :
-//                    new Argument[0];
-//        for (int i = 0; i < args.length; i++) {
-//            args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
-//                    0,
-//                    createTypeReference(Signature.getElementType(sig.paramTypes[i])),
-//                    0);
-//        }
 
+        
         decl.returnType = createTypeReference(method.getCorrespondingType(true));
         decl.modifiers = method.getRawModifiers();
         Argument[] args = method.getParameterTypes() != null ? 
                 new Argument[method.getParameterTypes().size()] :
                     new Argument[0];
-        for (int i = 0; i < args.length; i++) {
-            args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
-                    0,
-                    createTypeReference(new String((char[]) method.getParameterTypes().get(i))),
-                    0);
+        // using the World object to get type parameter bounds is still experimental.
+        // if there are any problems with it, go back to the old way and ignore type
+        // parameters
+        try {
+            AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
+            ErasedTypeSignature sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
+            if (sig == null) {
+                String[] params = new String[method.getParameterTypes().size()];
+                for (int i = 0; i < params.length; i++) {
+                    params[i] = new String((char[]) method.getParameterTypes().get(i));
+                }
+                sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
+            }
+            for (int i = 0; i < args.length; i++) {
+                args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
+                        0,
+                        createTypeReference(Signature.getElementType(sig.paramTypes[i])),
+                        0);
+            }
+        } catch (Exception e) {
+            for (int i = 0; i < args.length; i++) {
+                args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
+                        0,
+                        createTypeReference(new String((char[]) method.getParameterTypes().get(i))),
+                        0);
+            }
         }
         decl.arguments = args;
         return decl;

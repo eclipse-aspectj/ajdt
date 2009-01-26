@@ -315,7 +315,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				break;
 				
 			case TokenNameEQUAL:
-			    inRHS = true;
+			    if (parenLevel == 0) {
+			        // can have problems if inside an annotation, there is an '='.
+			        // do not set flag in this case. OK to ignore because we do not
+			        // process ITDs when we are inside parens anyway.
+			        inRHS = true;
+			    }
 				break;
 				
 			case TokenNameQUESTION:
