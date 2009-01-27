@@ -13,4 +13,17 @@
             name="JDT Weaving">
       </page>
    </extension>
+   <extension
+         id="weavingtest"
+         name="Weaving Enabled Test"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            cardinality="singleton-global"
+            thread="main"
+            visible="false">
+         <run
+               class="org.eclipse.contribution.jdt.WeavingTestApplication">
+         </run>
+      </application>
+   </extension>
 </plugin>

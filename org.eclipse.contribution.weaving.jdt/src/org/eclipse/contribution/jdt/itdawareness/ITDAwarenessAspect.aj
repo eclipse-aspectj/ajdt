@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -204,7 +205,12 @@ public aspect ITDAwarenessAspect {
             try {
                 return provider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
             } catch (Exception e) {
-                JDTWeavingPlugin.logException(e);
+                if (! (e instanceof OperationCanceledException)) {
+                    JDTWeavingPlugin.logException(e);
+                } else {
+                    // rethrow the cancel
+                    throw (OperationCanceledException) e;
+                }
             }
         }
         return proceed(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
