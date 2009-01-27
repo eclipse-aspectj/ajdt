@@ -23,6 +23,7 @@ import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
+import org.aspectj.org.eclipse.jdt.core.dom.AspectDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
@@ -217,7 +218,8 @@ public class AJCompilationUnitStructureRequestor extends
 		char[] superclass,
 		char[][] superinterfaces,
 		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
-		boolean isAspect) {
+		boolean isAspect,
+		boolean isPrivilegedAspect) {
 		
 		if (!isAspect) {
 			org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo ti = 
@@ -254,6 +256,8 @@ public class AJCompilationUnitStructureRequestor extends
     		info.setNameSourceEnd(nameSourceEnd);
     		info.setSuperclassName(superclass);
     		info.setSuperInterfaceNames(superinterfaces);
+    		
+    		info.setPrivileged(isPrivilegedAspect);
     		
     		addToChildren(parentInfo, handle);	
     		
@@ -572,7 +576,7 @@ public class AJCompilationUnitStructureRequestor extends
 		childrenList.add(handle);
 	}
 	
-	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect) {
+	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect, boolean isPrivilegedAspect) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
 		          typeInfo.name,
@@ -581,7 +585,8 @@ public class AJCompilationUnitStructureRequestor extends
 		          typeInfo.superclass,
 		          typeInfo.superinterfaces, 
 		          convertToJDTTypeParameters(typeInfo.typeParameters),
-		          isAspect);
+		          isAspect,
+		          isPrivilegedAspect);
 	}
 
 	public void enterConstructor(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
@@ -620,10 +625,10 @@ public class AJCompilationUnitStructureRequestor extends
 		          typeInfo.superclass,
 		          typeInfo.superinterfaces,
 		          convertToJDTTypeParameters(typeInfo.typeParameters),
-		          false);
+		          false, false);
 	}
 	
-	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect) {
+	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect, boolean isPrivilegedAspect) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
 		          typeInfo.name,
@@ -632,7 +637,8 @@ public class AJCompilationUnitStructureRequestor extends
 		          typeInfo.superclass,
 		          typeInfo.superinterfaces,
                   typeInfo.typeParameters,
-		          isAspect);
+		          isAspect,
+		          isPrivilegedAspect);
 	}
 
 
@@ -646,6 +652,7 @@ public class AJCompilationUnitStructureRequestor extends
 		          typeInfo.superclass,
 		          typeInfo.superinterfaces,
                   typeInfo.typeParameters,
+		          false,
 		          false);
 	}
 

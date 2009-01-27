@@ -573,7 +573,11 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 
     //	AspectJ change begin
 	boolean isAspect = false;
-	org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration ajtypeDeclaration = new org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration(new org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult(typeDeclaration.compilationResult.fileName, typeDeclaration.compilationResult.unitIndex, typeDeclaration.compilationResult.totalUnitsKnown, 500));
+	org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration ajtypeDeclaration = 
+	    new org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration(
+	        new org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult(
+	                typeDeclaration.compilationResult.fileName, typeDeclaration.compilationResult.unitIndex, 
+	                typeDeclaration.compilationResult.totalUnitsKnown, 500));
 	if (ajtypeDeclaration instanceof AspectDeclaration) {
 		isAspect = true;
 	}
@@ -633,7 +637,7 @@ protected void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boo
 			typeInfo.anonymousMember = typeDeclaration.allocation != null && typeDeclaration.allocation.enclosingInstance != null;
 			typeInfo.annotations = typeDeclaration.annotations;
 			typeInfo.node = typeDeclaration;
-			requestor.enterType(typeInfo, isAspect); // AspectJ change
+			requestor.enterType(typeInfo, isAspect, (isAspect ? ((AspectDeclaration) ajtypeDeclaration).isPrivileged : false)); // AspectJ change
 			switch (kind) {
 				case TypeDeclaration.CLASS_DECL :
 					if (superclassName != null)

@@ -25,8 +25,10 @@ import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.runtime.CoreException;
@@ -37,6 +39,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -45,8 +48,11 @@ import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
 import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.eclipse.jdt.internal.compiler.IProblemFactory;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -70,7 +76,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  * reporting the discovered problems to a given IProblemRequestor.
  */
 public class AJCompilationUnitProblemFinder extends
-		CompilationUnitProblemFinder {
+		CompilationUnitProblemFinder implements NoFFDC {
 
 	private CompilationUnit cu; // AspectJ Change
 
@@ -117,7 +123,10 @@ public class AJCompilationUnitProblemFinder extends
             				 new AJCompilationUnitStructureRequestor(cu, (AJCompilationUnitInfo) elementInfo, null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
             		 ajcu.requestOriginalContentMode();
             	 } else {
-            	     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
+//                     this.parser = new SourceElementParser(new NullRequestor(), new DefaultProblemFactory(),  
+//                             new CompilerOptions(JavaCore.getOptions()), true, false
+//                     );
+                     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
             	 }
                 
     		} catch (JavaModelException e) {
@@ -496,6 +505,16 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
+        if ((id == IProblem.NotVisibleConstructor ||
+            id == IProblem.NotVisibleField || 
+            id == IProblem.NotVisibleMethod ||
+            id == IProblem.NotVisibleType) && 
+            isPrivilegedAspect(categorizedProblem, unit)) {
+        
+            // a privileged aspect should be able to see all private/protected members
+            return false;
+        }
+        
         try {
             if (id == IProblem.ParameterMismatch && 
                     insideITD(categorizedProblem, unit)) {
@@ -511,6 +530,21 @@ public class AJCompilationUnitProblemFinder extends
         return true;
     }
 
+
+    private static boolean isPrivilegedAspect(CategorizedProblem problem, CompilationUnit unit) {
+        if (unit instanceof AJCompilationUnit) {
+            try {
+                IJavaElement elt = unit.getElementAt(problem.getSourceStart());
+                IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
+                if (type != null && type instanceof AspectElement) {
+                    AspectElement aspectType = (AspectElement) type;
+                    return aspectType.isPrivileged();
+                }
+            } catch (JavaModelException e) {
+            }
+        }
+        return false;
+    }
 
     private static boolean insideITD(CategorizedProblem categorizedProblem,
             CompilationUnit unit) throws JavaModelException {

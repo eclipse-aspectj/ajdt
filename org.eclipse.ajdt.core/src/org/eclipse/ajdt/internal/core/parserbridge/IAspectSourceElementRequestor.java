@@ -73,7 +73,7 @@ void enterMethod(
 
 void enterMethod(MethodInfo methodInfo,AbstractMethodDeclaration decl);
 
-void enterType(TypeInfo typeInfo,boolean isAspect);
+void enterType(TypeInfo typeInfo,boolean isAspect, boolean isPrivilegedAspect);
 
 void enterAdvice(
 		int declarationStart,

@@ -28,8 +28,11 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	protected List modifiers;
 	protected ExtraInformation extra;
 	
+	protected boolean privileged;
+	
 	public void setHandle(IType handle) {
 		this.handle = handle;
+		this.privileged = false;
 	}
 	
 	/**
@@ -113,5 +116,13 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	 */
 	public void setAJExtraInfo(ExtraInformation extra) {
 		this.extra = extra;
+	}
+	
+	public void setPrivileged(boolean privileged) {
+	    this.privileged = privileged;
+	}
+	
+	public boolean isPrivileged() {
+	    return privileged;
 	}
 }

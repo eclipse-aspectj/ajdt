@@ -1537,7 +1537,7 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 			typeInfo.categories = (char[][]) this.nodesToCategories.get(typeDeclaration);
 			typeInfo.secondary = typeDeclaration.isSecondary();
 			typeInfo.anonymousMember = typeDeclaration.allocation != null && typeDeclaration.allocation.enclosingInstance != null;
-			requestor.enterType(typeInfo,isAspect);
+			requestor.enterType(typeInfo,isAspect, isAspect ? ((AspectDeclaration) typeDeclaration).isPrivileged : false);
 			switch (kind) {
 				case TypeDeclaration.CLASS_DECL :
 					if (superclassName != null)
@@ -1863,3 +1863,17 @@ private void visitIfNeeded(Initializer initializer) {
 	}
 }
 }
+
+//class C {
+//    public static void main(String[] args) { 
+//            if (true) {
+//                    if (false) {
+//
+//
+//            }
+//    }
+//
+//    public void m() {
+//            System.out.println(">");
+//    }
+//}

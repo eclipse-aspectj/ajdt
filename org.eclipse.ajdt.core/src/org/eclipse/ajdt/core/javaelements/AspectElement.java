@@ -78,6 +78,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             info.setSourceRangeStart(sourceLocation.getOffset());
             info.setNameSourceStart(sourceLocation.getOffset());
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+            // info.setPrivileged(???);  not setting this yet
         }
         
         
@@ -205,6 +206,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
 		return info.getAJModifiers();
 	}
+	
+	public boolean isPrivileged() throws JavaModelException {
+	    Object info = getElementInfo();
+	    return info instanceof AspectElementInfo ? ((AspectElementInfo) info).isPrivileged() : false;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElement#getAJExtraInformation()
 	 */
