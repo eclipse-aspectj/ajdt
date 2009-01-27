@@ -52,12 +52,12 @@ public class BuildPathTests extends UITestCase {
         JavaCore.setClasspathVariable("Aspect_Path_Var", varProj.getLocation().append(new Path("variable.jar")), null); //$NON-NLS-1$ //$NON-NLS-2$
 
         // build all projects
+        containerProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        varProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        projProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        jarProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         setAutobuilding(true);
-        containerProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        varProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        projProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        jarProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-
+        waitForJobsToComplete();
     }   
 
     public void testInpath() throws Exception {
