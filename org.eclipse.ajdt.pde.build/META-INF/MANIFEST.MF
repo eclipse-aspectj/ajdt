@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
-Bundle-Version: 1.6.3.qualifier
+Bundle-Version: 1.6.4.qualifier
 Bundle-SymbolicName: org.eclipse.ajdt.pde.build;singleton:=true
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -12,3 +12,4 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.update.core,
  org.eclipse.ant.core,
  org.apache.ant
+Export-Package: org.eclipse.ajdt.build.tasks
