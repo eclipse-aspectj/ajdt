@@ -54,6 +54,10 @@ public aspect MyAspect {
     declare @method: void Demo.foo(..): @MyAnnotation;
     declare @constructor: public Demo.new(int): @MyAnnotation; 
 
-    
+    // try out abstract ITDs
+    public abstract long Abstract.nothing();
+
+    public static abstract class Abstract { }
+
     
 }
