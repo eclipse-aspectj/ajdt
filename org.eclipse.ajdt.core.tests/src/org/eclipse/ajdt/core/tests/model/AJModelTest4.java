@@ -62,7 +62,6 @@ public class AJModelTest4 extends AJDTCoreTestCase {
     }
     
     public static List checkHandle(String origAjHandle, AJProjectModelFacade model) {
-        
         List/*String*/ accumulatedErrors = new ArrayList();
         
         try {
