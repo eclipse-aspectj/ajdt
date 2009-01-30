@@ -76,6 +76,7 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests4;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests5;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests6;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
@@ -214,6 +215,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests5.class));
         suite.addTest(new TestSuite(ProblemFinderTests6.class));
         suite.addTest(new TestSuite(ProblemFinderTests7.class));
+        suite.addTest(new TestSuite(ProblemFinderTests8.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
