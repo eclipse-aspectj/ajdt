@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
@@ -73,7 +74,7 @@ public class WeavingStateConfigurerUI {
                 "<br/><br/>More information: http://wiki.eclipse.org/JDT_weaving_features";
 
         public EnableWeavingDialog() {
-            super(Display.getCurrent().getActiveShell(), "Turn Weaving Service on?", null, 
+            super(WeavingStateConfigurerUI.getShell(), "Turn Weaving Service on?", null, 
                     "<form>" + MESSAGE + "\n\n" + EXPANDED_MESSAGE + "</form>", QUESTION, new String[] { IDialogConstants.YES_LABEL,
                 IDialogConstants.NO_LABEL }, 0,
                 "Don't ask again until next upgrade", false);
@@ -125,7 +126,7 @@ public class WeavingStateConfigurerUI {
     private Shell shell;
     
     public WeavingStateConfigurerUI() {
-        this(PlatformUI.getWorkbench().getDisplay().getActiveShell());
+        this(getShell());
     }
     public WeavingStateConfigurerUI(Shell shell) {
         this(shell, new WeavingStateConfigurer());
@@ -212,5 +213,19 @@ public class WeavingStateConfigurerUI {
         
         ErrorDialog.openError(shell, "Error", "Could not " + (configurer.isWeaving() ? "DISABLE" : "ENABLE") + 
                 " JDT Weaving" + changeInstructions, changeResult);
+    }
+    
+    public static Shell getShell() {
+        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (window == null) {
+            IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+            if (windows.length > 0) {
+                return windows[0].getShell();
+            }
+        }
+        else {
+            return window.getShell();
+        }
+        return null;
     }
 }
