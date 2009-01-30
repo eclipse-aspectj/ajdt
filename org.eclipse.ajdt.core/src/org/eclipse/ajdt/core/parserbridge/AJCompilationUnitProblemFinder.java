@@ -536,6 +536,15 @@ public class AJCompilationUnitProblemFinder extends
                 // not the target type
                 return false;
             }
+            
+            if (id == IProblem.AbstractMethodInAbstractClass && 
+                    insideITD(categorizedProblem, unit)) {
+                // an abstract method ITD inside a concrete aspect
+                // ITDs are allowed to be abstract if the target
+                // type is an abstract class
+                return false;
+            }
+
         } catch (JavaModelException e) {
         }
         
