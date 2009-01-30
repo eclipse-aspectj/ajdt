@@ -19,6 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
+import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
+import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
+import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
@@ -31,13 +37,17 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -50,6 +60,9 @@ import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.eclipse.jdt.internal.compiler.SourceElementParser;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
@@ -57,14 +70,28 @@ import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+import org.eclipse.jdt.internal.core.AnnotatableInfo;
+import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.eclipse.jdt.internal.core.CancelableProblemFactory;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
+import org.eclipse.jdt.internal.core.ImportContainer;
+import org.eclipse.jdt.internal.core.ImportDeclaration;
+import org.eclipse.jdt.internal.core.Initializer;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.MemberValuePair;
 import org.eclipse.jdt.internal.core.NameLookup;
+import org.eclipse.jdt.internal.core.PackageDeclaration;
+import org.eclipse.jdt.internal.core.SourceField;
+import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceRefElement;
+import org.eclipse.jdt.internal.core.SourceType;
+import org.eclipse.jdt.internal.core.TypeParameter;
 import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
+import org.eclipse.jdt.internal.core.util.MethodInfo;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -77,6 +104,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  */
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder implements NoFFDC {
+    
 
 	private CompilationUnit cu; // AspectJ Change
 
@@ -112,21 +140,20 @@ public class AJCompilationUnitProblemFinder extends
 	public void initializeParser() {
 		// AspectJ Change Begin
 	    if (cu != null) {  // wait until object is initialized to initialize parser
-    		 Map options = cu.getJavaProject().getOptions(true);
-    		 CompilerOptions compilerOptions = new CompilerOptions(options);
              try {
             	 Object elementInfo = ((JavaElement) cu).getElementInfo();
                 if (elementInfo instanceof AJCompilationUnitInfo) {
             	     AJCompilationUnit ajcu = (AJCompilationUnit) cu;
             	     ajcu.discardOriginalContentMode();
             		 this.parser = new AJSourceElementParser2(
-            				 new AJCompilationUnitStructureRequestor(cu, (AJCompilationUnitInfo) elementInfo, null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
+            				 new NullRequestor(), new DefaultProblemFactory(), getCompilerOptions(cu), true /* parse local declarations */,false);
             		 ajcu.requestOriginalContentMode();
             	 } else {
-//                     this.parser = new SourceElementParser(new NullRequestor(), new DefaultProblemFactory(),  
-//                             new CompilerOptions(JavaCore.getOptions()), true, false
-//                     );
-                     this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
+            	     // use a SourceElementParser to ensure that local declarations are parsed even when diet
+                     this.parser = new SourceElementParser(new NullRequestor(), new DefaultProblemFactory(),  
+                             getCompilerOptions(cu), true, false);
+//                   this.parser =  new NonDietParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
+//                   this.parser =  new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
             	 }
                 
     		} catch (JavaModelException e) {
@@ -135,39 +162,12 @@ public class AJCompilationUnitProblemFinder extends
 	    // AspectJ Change End
 	}
 
-    // AspectJ Change Begin
-	protected void beginToCompile(
-	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits) {
-        // need to ensure that parseThreshold is high so that ITDs can be inserted into anonymouse types
-        parseThreshold = 10;
-        super.beginToCompile(sourceUnits);
-	}
-    // AspectJ Change End
-	
-	// AspectJ Change Begin
-	/*
-	 * Sets a flag so that ITDs will be inserted into units 
-	 * 
-	 * XXX This method has no effect any more should comment it out after
-	 * we are sure that we should not revert
-	 */
-/*	protected void internalBeginToCompile(
-	        org.eclipse.jdt.internal.compiler.env.ICompilationUnit[] sourceUnits,
-	        int maxUnits) {
-	    
-	    try {
-    	    // only insert ITDs for the units we are compiling directly
-    	    // all others will have ITDs inserted by the ITDAwareCancelableNameEnvironment
-    	    // don't want to insert ITDs twice.
-    	    ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(true);
-    	    super.internalBeginToCompile(sourceUnits, maxUnits);
-	    } finally {
-	        ((ITDAwareLookupEnvironment) lookupEnvironment).setInsertITDs(false);
-	    }
-	}
-*/	// AspectJ Change End
-	
-	
+    private CompilerOptions getCompilerOptions(IJavaElement elt) {
+        IJavaProject project = elt.getJavaProject();
+        Map options = project == null ? JavaCore.getOptions() : project.getOptions(true);
+        return new CompilerOptions(options);
+    }
+
 	public static CompilationUnitDeclaration processAJ(
 	        CompilationUnit unitElement, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
@@ -210,25 +210,38 @@ public class AJCompilationUnitProblemFinder extends
                     getCompilerOptions(project.getOptions(true), creatingAST, ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0)),
                     getRequestor(), problemFactory, unitElement);
             CompilationUnitDeclaration unit = null;
+            
+            // AspectJ Change begin 
+            // the parser should be a SourceElementParser or AJSourceElementParser2.
+            // this ensures that a diet parse can be done, while at the same time
+            // all declarations be reported
             if (parser != null) {
                 problemFinder.parser = parser;
-                try {
-                    if (parser instanceof SourceElementParser) {
-                        unit = ((SourceElementParser) parser).parseCompilationUnit(
-                                unitElement, true/* full parse */, monitor);
-                        problemFinder.resolve(unit, unitElement,
-                                true, // verify methods
-                                true, // analyze code
-                                true); // generate code
-                    }
-                } catch (AbortCompilation e) {
-                    problemFinder.handleInternalException(e, unit);
+            }
+            try {
+                if (problemFinder.parser instanceof SourceElementParser) {
+                    unit = ((SourceElementParser) problemFinder.parser).parseCompilationUnit(
+                            unitElement, true/* full parse */, monitor);
+                    problemFinder.resolve(unit, unitElement,
+                            true, // verify methods
+                            true, // analyze code
+                            true); // generate code
+                } else if (problemFinder.parser instanceof AJSourceElementParser2) {
+                    unit = ((AJSourceElementParser2) problemFinder.parser).parseCompilationUnit(
+                            unitElement, true/* full parse */, monitor);
+                    problemFinder.resolve(unit, unitElement,
+                            true, // verify methods
+                            true, // analyze code
+                            true); // generate code
+                } else {
+                    unit = problemFinder.resolve(unitElement, 
+                            true, // verify methods
+                            true, // analyze code
+                            true); // generate code
                 }
-            } else {
-                unit = problemFinder.resolve(unitElement, 
-                        true, // verify methods
-                        true, // analyze code
-                        true); // generate code
+
+            } catch (AbortCompilation e) {
+                problemFinder.handleInternalException(e, unit);
             }
             
             // AspectJ Change begin
@@ -616,3 +629,260 @@ public class AJCompilationUnitProblemFinder extends
         declareAnnotationKinds.add("type");
     }
 }
+
+
+class NullRequestor extends AJCompilationUnitStructureRequestor implements ISourceElementRequestor, IAspectSourceElementRequestor {
+
+    public NullRequestor() {
+        super(null, null, null);
+    }
+
+    public void acceptImport(int declarationStart, int declarationEnd,
+            char[] name, boolean onDemand, int modifiers) {
+    }
+
+    public void enterMethod(
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi,
+            AbstractMethodDeclaration mdecl) {
+    }
+
+    protected void enterType(int declarationStart, int modifiers, char[] name,
+            int nameSourceStart, int nameSourceEnd, char[] superclass,
+            char[][] superinterfaces, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
+            boolean isAspect, boolean isPrivilegedAspect) {
+    }
+
+    public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect,
+            boolean isPrivilegedAspect) { }
+
+    public void setParser(Parser parser) { }
+
+    public void setSource(char[] source) { }
+
+    protected Annotation createAnnotation(JavaElement parent, String name) { 
+        return null;
+    }
+
+    protected SourceField createField(JavaElement parent, org.eclipse.jdt.internal.core.util.FieldInfo fieldInfo) { 
+        return null;
+    }
+
+    protected ImportContainer createImportContainer(ICompilationUnit parent) { 
+        return null;
+    }
+
+    protected ImportDeclaration createImportDeclaration(ImportContainer parent,
+            String name, boolean onDemand) { 
+        return null;
+    }
+
+    protected Initializer createInitializer(JavaElement parent) { 
+        return null;
+    }
+
+    protected SourceMethod createMethod(
+            JavaElement parent,
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
+        return null;
+    }
+
+    protected PackageDeclaration createPackageDeclaration(JavaElement parent,
+            String name) {
+        return null;
+    }
+
+    protected SourceType createType(JavaElement parent, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
+        return null;
+    }
+
+    protected TypeParameter createTypeParameter(JavaElement parent, String name) {
+        return null;
+    }
+
+    protected IAnnotation enterAnnotation(
+            org.eclipse.jdt.internal.compiler.ast.Annotation annotation,
+            AnnotatableInfo parentInfo, JavaElement parentHandle) {
+        return null;
+    }
+
+    protected void enterTypeParameter(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo typeParameterInfo) {
+    }
+
+    protected void exitMember(int declarationEnd) {
+    }
+
+    protected Object getMemberValue(MemberValuePair memberValuePair,
+            Expression expression) {
+        return null;
+    }
+
+    protected IMemberValuePair getMemberValuePair(
+            org.eclipse.jdt.internal.compiler.ast.MemberValuePair memberValuePair) {
+        return null;
+    }
+
+    protected IMemberValuePair[] getMemberValuePairs(
+            org.eclipse.jdt.internal.compiler.ast.MemberValuePair[] memberValuePairs) {
+        return null;
+    }
+
+    protected void resolveDuplicates(SourceRefElement handle) {
+    }
+
+    public void acceptAnnotationTypeReference(char[] annotation,
+            int sourcePosition) { }
+
+    public void acceptAnnotationTypeReference(char[][] annotation,
+            int sourceStart, int sourceEnd) { }
+
+    public void acceptConstructorReference(char[] typeName, int argCount,
+            int sourcePosition) { }
+
+    public void acceptFieldReference(char[] fieldName, int sourcePosition) { }
+
+    public void acceptImport(int declarationStart, int declarationEnd,
+            char[][] tokens, boolean onDemand, int modifiers) { }
+
+    public void acceptLineSeparatorPositions(int[] positions) { }
+
+    public void acceptMethodReference(char[] methodName, int argCount,
+            int sourcePosition) { }
+
+    public void acceptPackage(ImportReference importReference) { }
+
+    public void acceptProblem(CategorizedProblem problem) { }
+
+    public void acceptTypeReference(char[] typeName, int sourcePosition) { }
+
+    public void acceptTypeReference(char[][] typeName, int sourceStart,
+            int sourceEnd) { }
+
+    public void acceptUnknownReference(char[] name, int sourcePosition) { }
+
+    public void acceptUnknownReference(char[][] name, int sourceStart,
+            int sourceEnd) { }
+
+    public void enterCompilationUnit() { }
+
+    public void enterConstructor(org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
+
+    public void enterField(org.eclipse.jdt.internal.core.util.FieldInfo fieldInfo) { }
+
+    public void enterInitializer(int declarationStart, int modifiers) { }
+
+    public void enterMethod(org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
+
+    public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) { }
+
+    public void exitCompilationUnit(int declarationEnd) { }
+
+    public void exitConstructor(int declarationEnd) { }
+
+    public void exitField(int initializationStart, int declarationEnd,
+            int declarationSourceEnd) { }
+
+    public void exitInitializer(int declarationEnd) { }
+
+    public void exitMethod(int declarationEnd, Expression defaultValue) { }
+
+    public void exitType(int declarationEnd) { }
+
+    public void enterConstructor(org.aspectj.org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
+
+    public void enterField(org.aspectj.org.eclipse.jdt.internal.core.util.FieldInfo fieldInfo) { }
+
+    public void enterMethod(org.aspectj.org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
+
+    public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) { }
+
+    public void acceptPackage(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference ir) { }
+
+    public void enterAdvice(int declarationStart, int modifiers,
+            char[] returnType, char[] name, int nameSourceStart,
+            int nameSourceEnd, char[][] parameterTypes,
+            char[][] parameterNames, char[][] exceptionTypes,
+            AdviceDeclaration decl) { }
+
+    public void enterDeclare(int declarationStart, int modifiers,
+            char[] returnType, char[] name, int nameSourceStart,
+            int nameSourceEnd, char[][] parameterTypes,
+            char[][] parameterNames, char[][] exceptionTypes,
+            DeclareDeclaration decl) { }
+
+    public void enterInterTypeDeclaration(int declarationStart, int modifiers,
+            char[] returnType, char[] name, int nameSourceStart,
+            int nameSourceEnd, char[][] parameterTypes,
+            char[][] parameterNames, char[][] exceptionTypes,
+            InterTypeDeclaration decl) { }
+
+    public void enterMethod(
+            int declarationStart,
+            int modifiers,
+            char[] returnType,
+            char[] name,
+            int nameSourceStart,
+            int nameSourceEnd,
+            char[][] parameterTypes,
+            char[][] parameterNames,
+            char[][] exceptionTypes,
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] typeParameters,
+            AbstractMethodDeclaration decl) { }
+
+    public void enterMethod(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo,
+            AbstractMethodDeclaration decl) { }
+
+    public void enterPointcut(int declarationStart, int modifiers,
+            char[] returnType, char[] name, int nameSourceStart,
+            int nameSourceEnd, char[][] parameterTypes,
+            char[][] parameterNames, char[][] exceptionTypes,
+            PointcutDeclaration decl) { }
+
+    public void enterType(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo,
+            boolean isAspect, boolean isPrivilegedAspect) { }
+
+    public void acceptPackage(int declarationStart, int declarationEnd,
+            char[] name) { }
+
+    public void acceptProblem(
+            org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem problem) { }
+
+    public void enterConstructor(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
+
+    public void enterField(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) { }
+
+    public void enterMethod(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
+
+
+    public void exitMethod(int declarationEnd, int defaultValueStart,
+            int defaultValueEnd) { }
+
+    public void enterConstructor(
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
+
+    public void enterField(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) { }
+
+    public void enterMethod(
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
+
+    protected SourceField createField(JavaElement parent, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) {
+        return null;
+    }
+}
+    
+//    private class NonDietParser extends CommentRecorderParser {
+//        public NonDietParser(ProblemReporter reporter, boolean parseLiteralExpressionsAsConstants) {
+//            super(reporter, parseLiteralExpressionsAsConstants);
+//        }
+//        public CompilationUnitDeclaration parse(
+//                org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit,
+//                CompilationResult compilationResult, int start, int end) {
+//            this.diet = false;  // force non-diet
+//            return super.parse(sourceUnit, compilationResult, start, end);
+//        }
+//    }
+//}

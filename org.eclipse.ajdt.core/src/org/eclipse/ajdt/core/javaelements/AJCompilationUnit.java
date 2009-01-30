@@ -874,6 +874,9 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleIdentifier();
 		}
+		
+		// this horrid code only exists so that when we are not using the weaving service,
+		// we don't get exceptions on refactoring
 		String callerName = (new RuntimeException()).getStackTrace()[1].getClassName();
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		// are we being called in the context of a delete operation?

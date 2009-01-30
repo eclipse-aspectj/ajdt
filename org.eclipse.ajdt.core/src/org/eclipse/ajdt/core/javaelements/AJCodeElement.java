@@ -71,12 +71,14 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
         IProgramElement ipe = 
             AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         ISourceLocation sloc = ipe.getSourceLocation();
-        startLine = sloc.getLine();
-        
-        nameStart = sloc.getOffset();
-        if (sloc instanceof EclipseSourceLocation) {
-            EclipseSourceLocation esloc = (EclipseSourceLocation) sloc;
-            nameEnd = esloc.getEndPos();
+        if (sloc != null) {
+            startLine = sloc.getLine();
+            
+            nameStart = sloc.getOffset();
+            if (sloc instanceof EclipseSourceLocation) {
+                EclipseSourceLocation esloc = (EclipseSourceLocation) sloc;
+                nameEnd = esloc.getEndPos();
+            }
         }
         
         // sometimes the start and end values are not set...so do it the hard way

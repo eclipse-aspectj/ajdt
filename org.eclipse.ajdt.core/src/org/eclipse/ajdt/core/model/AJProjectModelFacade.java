@@ -55,6 +55,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -241,17 +242,25 @@ public class AJProjectModelFacade {
         ICompilationUnit cu =  null;
         if (je instanceof IMember) {
             cu = ((IMember) je).getCompilationUnit();
+        } else if (je instanceof IPackageDeclaration) {
+            IJavaElement parent = ((IPackageDeclaration) je).getParent();
+            if (parent instanceof ICompilationUnit) {
+                cu = (ICompilationUnit) parent;
+            }
         } else if (je instanceof AJCodeElement) {
             cu = ((AJCodeElement) je).getCompilationUnit();
             // get the occurence count 
             int count = ((AJCodeElement) je).occurrenceCount;
-            
-            int firstBang = ajHandle.indexOf(JavaElement.JEM_COUNT);
-            ajHandle = ajHandle.substring(0, firstBang);
-            if (count > 1) {
-                // there is more than one element
-                // with this name
-                ajHandle += "!" + count;
+            // need the first bang after the last close paren
+            int lastParen = ajHandle.lastIndexOf(')');
+            int firstBang = ajHandle.indexOf(JavaElement.JEM_COUNT, lastParen);
+            if (firstBang > -1) {
+                ajHandle = ajHandle.substring(0, firstBang);
+                if (count > 1) {
+                    // there is more than one element
+                    // with this name
+                    ajHandle += "!" + count;
+                }
             }
             
         } else if (je instanceof ICompilationUnit) {
@@ -339,26 +348,27 @@ public class AJProjectModelFacade {
             }
         }
 
-        // if using cuprovider, then we don not use the * for Aspect compilation units,
-        // it uses the standard {
+        // if using cuprovider, then we don not use the '*' for Aspect compilation units,
+        // it uses the '{' of Java Compilation Units
         if (AspectJPlugin.USING_CU_PROVIDER) {
             jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_COMPILATIONUNIT);
         }
 
-        
-        if (jHandle.indexOf(AspectElement.JEM_CODEELEMENT) != -1) {
+        int codeEltIndex = jHandle.indexOf(AspectElement.JEM_CODEELEMENT);
+        if (codeEltIndex != -1) {
             // because code elements are sub classes of local variables
             // must make the code element's handle look like a local
             // variable's handle
             int countIndex = jHandle.lastIndexOf('!');
             int count = 0;
-            if (countIndex != -1) {
+            if (countIndex > codeEltIndex) {
                 try {
                     count = Integer.parseInt(jHandle.substring(countIndex+1));
+                    jHandle = jHandle.substring(0, countIndex);
                 } catch (NumberFormatException e) {
-                    count = 1;
+                    // if the count is not from the code element, but from one of its parents
+                    count = 0;
                 }
-                jHandle = jHandle.substring(0, countIndex);
             }
             jHandle += "!0!0!0!0!I";
             if (count > 1) {

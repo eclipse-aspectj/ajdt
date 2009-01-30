@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -24,13 +23,10 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
-import org.eclipse.jdt.internal.core.util.MethodInfo;
 
 /**
  * This class provides element info for SourceTypes that know about 
@@ -96,9 +92,6 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             this.setChildren(children);
         }
         
-//        if (shouldRemoveInterfaceFlag) {
-//            setFlags(removeInterfaceFlag(getModifiers()));
-//        }
     }
 
     private IJavaElement[] augmentChildrenAndHierarchy(SourceType type) {
@@ -164,7 +157,11 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                             shouldRemoveInterfaceFlag = true;
                             
                             if (member.getElementType() == IJavaElement.FIELD) {
+                                // Bug 262969
                                 // Interfaces can't have fields, so ignore
+                                // Reconciling errors occur if an ITD field is
+                                // referenced outside of the aspect that declares them, 
+                                // but only if the declared type of the object is an interface.
                                 itds.remove(member);
                             } else if (member.getElementType() == IJavaElement.METHOD) {
                                 // now look to see if this ITD a method that provides
