@@ -24,6 +24,8 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.dom.Initializer;
+import org.eclipse.jdt.internal.core.ImportContainer;
 
 /**
  * 
@@ -44,9 +46,7 @@ public class AJModelTest4 extends AJDTCoreTestCase {
         IHierarchy hierarchy = asm.getHierarchy();
         hierarchy.getRoot().walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
-                if (node.getKind() != IProgramElement.Kind.IMPORT_REFERENCE) {
-                    accumulatedErrors.addAll(checkHandle(node.getHandleIdentifier(), model));
-                }
+                accumulatedErrors.addAll(checkHandle(node.getHandleIdentifier(), model));
             } 
         });
         if (accumulatedErrors.size() > 0) {
@@ -68,6 +68,12 @@ public class AJModelTest4 extends AJDTCoreTestCase {
             
             IJavaElement origJavaElement = model.programElementToJavaElement(origAjHandle);
             String origJavaHandle = origJavaElement.getHandleIdentifier();
+            
+            // AspectJ adds the import container always even when there are no imports
+            if (!origJavaElement.exists() && !(origJavaElement instanceof ImportContainer)
+            && !(origJavaElement instanceof Initializer) ) { // Bug 263310
+                accumulatedErrors.add("Java element " + origJavaElement.getHandleIdentifier() + " does not exist");
+            }
             
             if (origJavaElement.getJavaProject().getProject().equals(model.getProject())) {
             
