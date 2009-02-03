@@ -39,6 +39,7 @@ public class AJBuildJob extends Job {
                 return new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, "AJBuildJob failed", e);
             }
         }
+        monitor.done();
         return Status.OK_STATUS;
     }
 
