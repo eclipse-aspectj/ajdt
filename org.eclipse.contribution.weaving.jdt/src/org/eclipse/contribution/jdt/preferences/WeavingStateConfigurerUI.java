@@ -145,6 +145,7 @@ public class WeavingStateConfigurerUI {
         // set up to ask again
         JDTWeavingPreferences.setAskToEnableWeaving(true);
         
+        
         IStatus changeResult = configurer.changeWeavingState(!configurer.isWeaving());
         
         if (changeResult.getSeverity() == IStatus.OK) {
