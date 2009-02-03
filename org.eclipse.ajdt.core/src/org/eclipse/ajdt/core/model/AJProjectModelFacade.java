@@ -867,4 +867,8 @@ public class AJProjectModelFacade {
         h.getRoot().walk(walker);
         return sb.toString();
     }
+    
+    IRelationshipMap getAllRelationships() {
+        return relationshipMap;
+    }
 }
