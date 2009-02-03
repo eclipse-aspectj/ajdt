@@ -52,7 +52,7 @@ public class AJModelChecker {
     }
     
     
-    private static boolean shouldCheckModel() {
+    public static boolean shouldCheckModel() {
         // if the state listener is not null, this means that debug tracing is enabled.
         return AjState.stateListener != null;
     }
@@ -88,7 +88,7 @@ public class AJModelChecker {
                 for (Iterator relIter2 = relsForHandle.iterator(); relIter2
                         .hasNext();) {
                     IRelationship rel = (IRelationship) relIter2.next();
-                    List res = adviceRelationsipOnType(rel, model);
+                    List res = invalidAdviceRelationsip(rel, model);
                     problems.addAll(res);
                     res = itdsNotOnType(rel, model);
                     problems.addAll(res);
@@ -101,7 +101,7 @@ public class AJModelChecker {
         return problems;
     }
     
-    private static List/*String*/ adviceRelationsipOnType(IRelationship rel, AJProjectModelFacade model) {
+    private static List/*String*/ invalidAdviceRelationsip(IRelationship rel, AJProjectModelFacade model) {
         List/*String*/ problems = new ArrayList();
         if (rel.getKind() == IRelationship.Kind.ADVICE ||
                 rel.getKind() == IRelationship.Kind.ADVICE_AFTER ||
@@ -116,7 +116,7 @@ public class AJModelChecker {
                         "\n\tIt is the source relationship of " + toRelString(rel) +
                         "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
             }
-            if (elt.getElementType() == IJavaElement.TYPE || 
+            if ( ( !rel.isAffects() && elt.getElementType() == IJavaElement.TYPE) || 
                     elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                     elt.getElementType() == IJavaElement.CLASS_FILE) {
                 problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
@@ -133,7 +133,7 @@ public class AJModelChecker {
                             "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
                 }
                 if (elt != AJProjectModelFacade.ERROR_JAVA_ELEMENT && 
-                        (elt.getElementType() == IJavaElement.TYPE || 
+                        ( ( rel.isAffects() && elt.getElementType() == IJavaElement.TYPE) || // target of advice can be a type, but source cannot
                         elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                         elt.getElementType() == IJavaElement.CLASS_FILE)) {
                     problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
