@@ -31,6 +31,7 @@ import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.Relationship;
 import org.aspectj.asm.internal.RelationshipMap;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.jdt.internal.core.ImportContainer;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -54,7 +55,9 @@ import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -62,6 +65,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ImportDeclaration;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 
@@ -263,6 +267,14 @@ public class AJProjectModelFacade {
                 }
             }
             
+        } else if (je instanceof ILocalVariable) {
+            IOpenable openable = ((ILocalVariable) je).getOpenable();
+            cu = openable != null && openable instanceof ICompilationUnit ?
+                    (ICompilationUnit) openable : null;
+        } else if (je instanceof ImportDeclaration) {
+            cu = ((ImportDeclaration) je).getCompilationUnit();
+        } else if (je instanceof ImportContainer) {
+            cu = ((ImportContainer) je).getCompilationUnit();  
         } else if (je instanceof ICompilationUnit) {
             cu = (ICompilationUnit) je;
         }
@@ -351,7 +363,8 @@ public class AJProjectModelFacade {
         // if using cuprovider, then we don not use the '*' for Aspect compilation units,
         // it uses the '{' of Java Compilation Units
         if (AspectJPlugin.USING_CU_PROVIDER) {
-            jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_COMPILATIONUNIT);
+            jHandle = jHandle.replaceFirst("\\" + AspectElement.JEM_ASPECT_CU, 
+                    Character.toString(JavaElement.JEM_COMPILATIONUNIT));
         }
 
         int codeEltIndex = jHandle.indexOf(AspectElement.JEM_CODEELEMENT);
@@ -376,7 +389,9 @@ public class AJProjectModelFacade {
             }
         }
         
+        // add escapes to various sundries
         jHandle = jHandle.replaceFirst("declare @", "declare \\\\@");
+        jHandle = jHandle.replaceFirst("\\.\\*", ".\\\\*");
         
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {
