@@ -24,6 +24,8 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
+import org.eclipse.ajdt.core.model.AJModelChecker;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
@@ -222,6 +224,11 @@ public class UIBuildListener implements IAJBuildListener {
                     deleteUpdateMarkers.schedule();
                 }
 		}
+		
+		// sanity check the model if the event trace viewer is open
+		AJModelChecker.doModelCheckIfRequired(
+		        AJProjectModelFactory.getInstance().getModelForProject(project));
+		
 		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
