@@ -74,7 +74,6 @@ public class AJDTEventTraceConsolePage extends TextConsolePage implements EventL
 
     public AJDTEventTraceConsolePage(TextConsole console, IConsoleView view) {
         super(console, view);
-        DebugTracing.setDebug(true);
         EventTrace.addListener( this );
     }
 
@@ -114,6 +113,7 @@ public class AJDTEventTraceConsolePage extends TextConsolePage implements EventL
     public void init(IPageSite pageSite) throws PartInitException {
         super.init(pageSite);
         
+        DebugTracing.setDebug(true);
         ajdtEvent(DebugTracing.startupInfo(),AJLog.DEFAULT, new Date());
     }
     
@@ -140,6 +140,7 @@ public class AJDTEventTraceConsolePage extends TextConsolePage implements EventL
     
     public void dispose() {
         super.dispose();
+        DebugTracing.setDebug(false);
         AspectJPreferences.setEventTraceList(
                 filterAction.getCheckedList());     
     }
