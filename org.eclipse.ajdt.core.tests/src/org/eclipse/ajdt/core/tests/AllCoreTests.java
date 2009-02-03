@@ -40,6 +40,7 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
+import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
 import org.eclipse.ajdt.core.tests.weaving.ITDAwareHierarchyTests;
 
@@ -81,6 +82,8 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(AJProjectModelTest2.class));
 		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
+		suite.addTest(new TestSuite(ModelCheckerTests.class));
+        
 		
 		// core compiler configuration
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests.class));
