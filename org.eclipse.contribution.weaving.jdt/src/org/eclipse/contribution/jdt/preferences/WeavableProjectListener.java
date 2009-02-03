@@ -26,6 +26,8 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.InvalidRegistryObjectException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.ui.progress.UIJob;
 
 /**
@@ -83,7 +85,7 @@ public class WeavableProjectListener implements ILifecycleListener {
         }
     }
 
-    public boolean isWeavableProject(IProject project) throws CoreException {
+    public boolean isWeavableProject(IProject project) {
         try {
             if (weavableNatures == null) {
                 initWeavableNatures();
@@ -101,6 +103,15 @@ public class WeavableProjectListener implements ILifecycleListener {
         return false;
     }
 
+    public boolean isInWeavableProject(IJavaElement element) {
+        IJavaProject jProject = element.getJavaProject();
+        if (jProject != null) {
+            IProject project = jProject.getProject();
+            return isWeavableProject(project);
+        } else {
+            return false;
+       }
+    }
 
 
     public void handleEvent(LifecycleEvent event) throws CoreException {
@@ -115,12 +126,8 @@ public class WeavableProjectListener implements ILifecycleListener {
     }
     
     public static void weavableNatureAdded(IProject project) {
-        try {
-            if (INSTANCE.isWeavableProject(project)) {
-                INSTANCE.askToEnableWeaving(); 
-            }
-        } catch (CoreException e) {
-            JDTWeavingPlugin.logException(e);
+        if (INSTANCE.isWeavableProject(project)) {
+            INSTANCE.askToEnableWeaving(); 
         }
     }
 

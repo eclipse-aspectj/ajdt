@@ -24,6 +24,7 @@ import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
+import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE
@@ -55,19 +56,21 @@ public aspect ITDAwarenessAspect {
      * Need to convert all SourceTypeInfos into ITDAwareSourceTypeInfos
      * when they occur in the HierarchyResolver
      */
-    pointcut typeHierachySourceTypeInfoCreation() :
-        call(public Object JavaElement+.getElementInfo()) &&
+    pointcut typeHierachySourceTypeInfoCreation(IJavaElement element) :
+        call(public Object JavaElement+.getElementInfo()) && target(element) &&
         within(HierarchyResolver);
     
     /** 
      * Capture all creations of source type element infos
      * and convert them into ITD aware source type element infos
      */
-    Object around() : typeHierachySourceTypeInfoCreation() {
-        Object info = proceed();
-        if (info instanceof ISourceType &&
-                provider != null) {
-            info = provider.transformSourceTypeInfo((ISourceType) info);
+    Object around(IJavaElement element) : typeHierachySourceTypeInfoCreation(element) {
+        Object info = proceed(element);
+        if (WeavableProjectListener.getInstance().isInWeavableProject(element)) {
+            if (info instanceof ISourceType &&
+                    provider != null) {
+                info = provider.transformSourceTypeInfo((ISourceType) info);
+            }
         }
         return info;
     }
@@ -91,7 +94,7 @@ public aspect ITDAwarenessAspect {
     SearchableEnvironment around(JavaProject project,
             ICompilationUnit[] workingCopies) : 
                 interestingSearchableEnvironmentCreation(project, workingCopies) {
-        if (provider != null) {
+        if (provider != null && isInWeavable(workingCopies)) {
             try {
                 SearchableEnvironment newEnvironment = provider.getNameEnvironment(project, workingCopies);
                 if (newEnvironment != null) {
@@ -102,6 +105,16 @@ public aspect ITDAwarenessAspect {
             }
         }
         return proceed(project, workingCopies);
+    }
+    
+    private boolean isInWeavable(ICompilationUnit[] workingCopies) {
+        for (int i = 0; i < workingCopies.length; i++) {
+            if (workingCopies[i] instanceof CompilationUnit &&
+                    provider.shouldFindProblems((CompilationUnit) workingCopies[i])) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -137,7 +150,7 @@ public aspect ITDAwarenessAspect {
     
     SearchableEnvironment around(JavaProject project,
             WorkingCopyOwner owner) : interestingSearchableEnvironmentCreation2(project, owner) {
-        if (provider != null) {
+        if (provider != null && WeavableProjectListener.getInstance().isWeavableProject(project.getProject())) {
             try {
                 SearchableEnvironment newEnvironment = provider.getNameEnvironment(project, 
                         owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
@@ -242,16 +255,19 @@ public aspect ITDAwarenessAspect {
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
             ITypeRoot typeRoot, Openable target) : 
-                codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target) && 
-                if (contentAssistProvider != null) {
-        boolean result;
-        try {
-            result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target);
-        } catch (Exception e) {
-            JDTWeavingPlugin.logException(e);
-            result = false;
-        }
-            
+                codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target) {
+        
+        boolean result = false;
+        if (contentAssistProvider != null && provider != null && 
+                (cu instanceof CompilationUnit) && 
+                provider.shouldFindProblems((CompilationUnit) cu)) {
+            try {
+                result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target);
+            } catch (Exception e) {
+                JDTWeavingPlugin.logException(e);
+                result = false;
+            }
+        }            
         if (!result) {
             proceed(cu, unitToSkip, position, requestor, owner, typeRoot, target);
         }
