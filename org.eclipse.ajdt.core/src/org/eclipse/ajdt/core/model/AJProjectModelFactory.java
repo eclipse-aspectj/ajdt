@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
@@ -22,7 +23,25 @@ import org.eclipse.jdt.core.IJavaElement;
  * thought.  But, doing so might be a good area for future 
  * efficiency improvements.
  */
-public class AJProjectModelFactory {
+public class AJProjectModelFactory implements NoFFDC {
+    static final EmptyProjectModelFacade EMPTY_INSTANCE = new EmptyProjectModelFacade();
+    
+    private static class EmptyProjectModelFacade extends AJProjectModelFacade {
+        
+
+        EmptyProjectModelFacade() {
+            super(null);
+        }
+        
+        synchronized void init() {
+            // can't initialize
+        }
+        
+        public boolean hasModel() {
+            return false;
+        }
+    }
+    
 
     // no caching
 //    private Map/*IJavaProject,AJProjectModelFacade*/
@@ -56,7 +75,11 @@ public class AJProjectModelFactory {
      * A convenience method to get the model when the handle is a java element
      */
     public AJProjectModelFacade getModelForJavaElement(IJavaElement elt) {
-        return getModelForProject(elt.getJavaProject().getProject());
+        try {
+            return getModelForProject(elt.getJavaProject().getProject());
+        } catch (NullPointerException e) {
+            return EMPTY_INSTANCE;
+        }
     }
     
     /**

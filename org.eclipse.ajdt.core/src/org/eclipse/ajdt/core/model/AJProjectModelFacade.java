@@ -161,7 +161,7 @@ public class AJProjectModelFacade {
      */
     synchronized void init() {
         if (!buildListener.isCurrentlyBuilding(project)) {
-            AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject());
+            AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
             AsmManager existingState = compiler.getModel();
             if (existingState != null) {
                 relationshipMap = existingState.getRelationshipMap();
