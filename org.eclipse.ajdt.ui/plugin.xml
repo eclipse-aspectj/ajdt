@@ -1944,7 +1944,7 @@ M4 = Platform-specific fourth key
      <extension
            point="org.eclipse.ui.editors.documentProviders">
         <provider
-              class="org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider"
+              class="org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider"
               extensions="aj"
               id="org.eclipse.ajdt.ui.provider">
         </provider>

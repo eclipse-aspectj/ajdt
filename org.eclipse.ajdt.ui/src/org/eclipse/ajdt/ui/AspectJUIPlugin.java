@@ -27,7 +27,7 @@ import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
-import org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider;
+import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
@@ -347,14 +347,14 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	        if (oldProvider != null) {
 	            oldProvider.shutdown();
 	        }
-	        ICompilationUnitDocumentProvider newProvider = new AJCompiltionUnitDocumentProvider();
+	        ICompilationUnitDocumentProvider newProvider = new AJCompilationUnitDocumentProvider();
 	        javaPluginDocumentProviderField.set(JavaPlugin.getDefault(), newProvider);
 
             WorkingCopyManager manager = (WorkingCopyManager) JavaPlugin.getDefault().getWorkingCopyManager();
             Field managerDocumentProviderField = manager.getClass().getDeclaredField("fDocumentProvider");
             managerDocumentProviderField.setAccessible(true);
             oldProvider = (ICompilationUnitDocumentProvider) managerDocumentProviderField.get(manager);
-            if (! (oldProvider instanceof AJCompiltionUnitDocumentProvider)) {
+            if (! (oldProvider instanceof AJCompilationUnitDocumentProvider)) {
                 oldProvider.shutdown();
                 managerDocumentProviderField.set(manager, newProvider);
             }

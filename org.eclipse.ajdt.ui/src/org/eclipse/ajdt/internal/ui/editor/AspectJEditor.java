@@ -95,7 +95,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private AspectJEditorTitleImageUpdater aspectJEditorErrorTickUpdater;
 
-	private AJCompiltionUnitDocumentProvider provider;
+	private AJCompilationUnitDocumentProvider provider;
 	
 	/**
 	 * Constructor for AspectJEditor
@@ -549,8 +549,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 	
 	protected void setDocumentProvider(IEditorInput input) {
 	    IDocumentProvider provider = DocumentProviderRegistry.getDefault().getDocumentProvider(input);
-	    if (provider instanceof AJCompiltionUnitDocumentProvider) {
-	        this.provider = (AJCompiltionUnitDocumentProvider) provider;
+	    if (provider instanceof AJCompilationUnitDocumentProvider) {
+	        this.provider = (AJCompilationUnitDocumentProvider) provider;
 	    } else {
 	        super.setDocumentProvider(input);
 	    }
