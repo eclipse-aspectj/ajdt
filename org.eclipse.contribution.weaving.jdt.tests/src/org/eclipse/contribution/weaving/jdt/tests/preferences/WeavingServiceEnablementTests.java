@@ -15,7 +15,6 @@ import org.eclipse.contribution.jdt.preferences.JDTWeavingPreferences;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.contribution.weaving.jdt.tests.MockNature;
 import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
-import org.eclipse.core.internal.events.LifecycleEvent;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
