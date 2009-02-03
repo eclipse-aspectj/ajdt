@@ -22,6 +22,7 @@ import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.RelationshipMap;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.jdt.core.IJavaElement;
 
@@ -90,7 +91,7 @@ public class AJModelChecker {
                     List res = adviceRelationsipOnType(rel, model);
                     problems.addAll(res);
                     res = itdsNotOnType(rel, model);
-                    problems.add(res);
+                    problems.addAll(res);
                 }
             }
         } else {
@@ -113,7 +114,7 @@ public class AJModelChecker {
             if (!elt.exists()) {
                 problems.add("Java Element does not exist: " + rel.getSourceHandle() + 
                         "\n\tIt is the source relationship of " + toRelString(rel) +
-                        "\n\tThis may not actually be a problem if during incremental compilation or compiling broken code.");
+                        "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
             }
             if (elt.getElementType() == IJavaElement.TYPE || 
                     elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
@@ -127,15 +128,16 @@ public class AJModelChecker {
                 String target = (String) targetIter.next();
                 elt = model.programElementToJavaElement(target);
                 if (!elt.exists()) {
-                    problems.add("Java Element does not exist: " + rel.getSourceHandle() + 
+                    problems.add("Java Element does not exist: " + target + 
                             "\n\tIt is the source relationship of " + toRelString(rel) +
-                            "\n\tThis may not actually be a problem if during incremental compilation or compiling broken code.");
+                            "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
                 }
-                if (elt.getElementType() == IJavaElement.TYPE || 
+                if (elt != AJProjectModelFacade.ERROR_JAVA_ELEMENT && 
+                        (elt.getElementType() == IJavaElement.TYPE || 
                         elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
-                        elt.getElementType() == IJavaElement.CLASS_FILE) {
+                        elt.getElementType() == IJavaElement.CLASS_FILE)) {
                     problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
-                            rel.getSourceHandle() + 
+                            target + 
                             "\n\tIt is the source relationship of " + toRelString(rel));
                 }
             }
@@ -151,15 +153,16 @@ public class AJModelChecker {
             if (!elt.exists()) {
                 problems.add("Java Element does not exist: " + rel.getSourceHandle() + 
                         "\n\tIt is the source relationship of " + toRelString(rel) +
-                        "\n\tThis may not actually be a problem if during incremental compilation or compiling broken code.");
+                        "\n\tThis may not actually be a problem if compiling broken code.");
             }
-            if ((elt.getElementType() == IJavaElement.FIELD || 
+            if (elt != AJProjectModelFacade.ERROR_JAVA_ELEMENT &&
+                   (elt.getElementType() == IJavaElement.FIELD || 
                     elt.getElementType() == IJavaElement.METHOD || 
                     elt.getElementType() == IJavaElement.LOCAL_VARIABLE || 
                     elt.getElementType() == IJavaElement.INITIALIZER || 
                     elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                     elt.getElementType() == IJavaElement.CLASS_FILE) &&
-                    !(elt instanceof IntertypeElement)) {
+                    !(elt instanceof IntertypeElement || elt instanceof DeclareElement)) {
                 problems.add("Java Element is wrong type (ITD relationships should only contain types and intertype elements): " + 
                         rel.getSourceHandle() + 
                         "\n\tIt is the source relationship of " + toRelString(rel));
@@ -169,19 +172,20 @@ public class AJModelChecker {
                 String target = (String) targetIter.next();
                 elt = model.programElementToJavaElement(target);
                 if (!elt.exists()) {
-                    problems.add("Java Element does not exist: " + rel.getSourceHandle() + 
+                    problems.add("Java Element does not exist: " + target + 
                             "\n\tIt is the source relationship of " + toRelString(rel) +
-                            "\n\tThis may not actually be a problem if during incremental compilation or compiling broken code.");
+                            "\n\tThis may not actually be a problem if compiling broken code.");
                 }
-                if ((elt.getElementType() == IJavaElement.FIELD || 
+                if (elt != AJProjectModelFacade.ERROR_JAVA_ELEMENT &&
+                       (elt.getElementType() == IJavaElement.FIELD || 
                         elt.getElementType() == IJavaElement.METHOD || 
                         elt.getElementType() == IJavaElement.LOCAL_VARIABLE || 
                         elt.getElementType() == IJavaElement.INITIALIZER || 
                         elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                         elt.getElementType() == IJavaElement.CLASS_FILE) &&
-                        !(elt instanceof IntertypeElement)) {
+                        !(elt instanceof IntertypeElement || elt instanceof DeclareElement)) {
                     problems.add("Java Element is wrong type (ITD relationships should only contain types and intertype elements): " + 
-                            rel.getSourceHandle() + 
+                            target + 
                             "\n\tIt is the source relationship of " + toRelString(rel));
                 }
             }
