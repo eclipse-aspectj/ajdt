@@ -108,10 +108,12 @@ public aspect ITDAwarenessAspect {
     }
     
     private boolean isInWeavable(ICompilationUnit[] workingCopies) {
-        for (int i = 0; i < workingCopies.length; i++) {
-            if (workingCopies[i] instanceof CompilationUnit &&
-                    provider.shouldFindProblems((CompilationUnit) workingCopies[i])) {
-                return true;
+        if (workingCopies != null) {
+            for (int i = 0; i < workingCopies.length; i++) {
+                if (workingCopies[i] instanceof CompilationUnit &&
+                        provider.shouldFindProblems((CompilationUnit) workingCopies[i])) {
+                    return true;
+                }
             }
         }
         return false;
