@@ -90,7 +90,7 @@ public class WeavableProjectListener implements ILifecycleListener {
             if (weavableNatures == null) {
                 initWeavableNatures();
             }
-            if (project.isAccessible()) {
+            if (project != null && project.isAccessible()) {
                 for (String natureId : weavableNatures) {
                     if (project.hasNature(natureId)) {
                         return true;
@@ -104,13 +104,14 @@ public class WeavableProjectListener implements ILifecycleListener {
     }
 
     public boolean isInWeavableProject(IJavaElement element) {
-        IJavaProject jProject = element.getJavaProject();
-        if (jProject != null) {
-            IProject project = jProject.getProject();
-            return isWeavableProject(project);
-        } else {
-            return false;
-       }
+        if (element != null) {
+            IJavaProject jProject = element.getJavaProject();
+            if (jProject != null) {
+                IProject project = jProject.getProject();
+                return isWeavableProject(project);
+            }
+        }
+        return false;
     }
 
 
