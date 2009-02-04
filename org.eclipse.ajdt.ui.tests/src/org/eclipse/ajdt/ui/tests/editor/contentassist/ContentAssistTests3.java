@@ -53,8 +53,12 @@ public class ContentAssistTests3 extends UITestCase {
         hasITDsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
         assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+        
+        
+        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
         assertEquals("Proposal should have been the 'list' field", 
-                "list", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
+                "list", new String(completionProposal.getName()));
+        assertEquals("Completion start is wrong", offset - "lis".length(), completionProposal.getReplaceStart());
     }
     
     public void testITDFieldInField() throws Exception {
@@ -63,10 +67,16 @@ public class ContentAssistTests3 extends UITestCase {
         hasITDsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
         assertEquals("Should have 2 proposals, but found:\n" + requestor.toString(), 2, requestor.accepted.size());
+
+        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
         assertEquals("Proposal should have been the 'addAll' method\n" + requestor.accepted.get(0), 
-                "addAll", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
+                "addAll", new String(completionProposal.getName())); 
+        assertEquals("Completion start is wrong", offset - "addAll".length(), completionProposal.getReplaceStart());
+        
+        completionProposal = (CompletionProposal) requestor.accepted.get(1);
         assertEquals("Proposal should have been the 'addAll' method\n" + requestor.accepted.get(1), 
-                "addAll", new String(((CompletionProposal) requestor.accepted.get(1)).getName())); 
+                "addAll", new String(completionProposal.getName())); 
+        assertEquals("Completion start is wrong", offset - "addAll".length(), completionProposal.getReplaceStart());
     }
     
     public void testITDMethod() throws Exception {
@@ -75,8 +85,11 @@ public class ContentAssistTests3 extends UITestCase {
         hasITDsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
         assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+
+        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
         assertEquals("Proposal should have been the 'makeList' method\n" + requestor.accepted.get(0),
-                "makeList", new String(((CompletionProposal) requestor.accepted.get(0)).getName())); 
+                "makeList", new String(completionProposal.getName())); 
+        assertEquals("Completion start is wrong", offset - "makeL".length(), completionProposal.getReplaceStart());
     }
     
     public void testITDConstructor() throws Exception {

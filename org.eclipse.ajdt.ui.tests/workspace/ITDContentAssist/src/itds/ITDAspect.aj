@@ -22,4 +22,12 @@ public aspect ITDAspect {
 	public int Super.value = 7;
 	
 	declare parents : HasITDs extends Super;
+	
+	public static void main(String[] args) {
+	    args.length;
+    }
+	
+	void around() : execution (void ITDAspect.main(..)) {
+	    thisJoinPoint.getArgs();
+	}
 }
