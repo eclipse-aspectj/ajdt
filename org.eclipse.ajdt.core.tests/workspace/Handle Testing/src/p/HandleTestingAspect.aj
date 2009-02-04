@@ -56,12 +56,18 @@ public aspect HandleTestingAspect {
 	after(int y) : ypc(y) { }
 	after(int y) throwing(Exception e) : ypc(y) { }
 	after(int y) returning(int z) : ypc(y) { }
+    int around(int y) : ypc(y) { return 1; }
 	
 	// should have a count
 	before(int y) : zpc(y) { }
 	after(int y) : zpc(y) { }
 	after(int y) throwing(Exception e) : zpc(y) { }
 	after(int y) returning(int z) : zpc(y) { }
+    int around(int y) : ypc(y) { return 1; }
 
+    // should have a count of 3
+    Object around(int y) : ypc(y) { return null; }
+
+    
     after() returning(java.util.List z) : call(* *.zCall(int)) { }
 }

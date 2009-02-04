@@ -6,9 +6,9 @@ import static java.util.Collections.nCopies;
 
 public class AnonymousClass {
     ArrayList arr = new ArrayList() {
-//        public boolean add(Object o) {
-//            doNothing();
-//            super.add(o);
-//        }
+    };
+    ArrayList arr2 = new ArrayList() {
+    };
+    ArrayList arr3 = new ArrayList() {
     };
 }

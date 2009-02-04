@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.tests.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -23,8 +24,13 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.dom.Initializer;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IParent;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.IInitializer;
 import org.eclipse.jdt.internal.core.ImportContainer;
 
 /**
@@ -36,7 +42,7 @@ import org.eclipse.jdt.internal.core.ImportContainer;
  */
 public class AJModelTest4 extends AJDTCoreTestCase {
 
-    public void testHandleIdentifiers() throws Exception {
+    public void testAJHandleIdentifiers() throws Exception {
         IProject project = createPredefinedProject("Handle Testing"); //$NON-NLS-1$
         final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
 
@@ -46,7 +52,7 @@ public class AJModelTest4 extends AJDTCoreTestCase {
         IHierarchy hierarchy = asm.getHierarchy();
         hierarchy.getRoot().walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
-                accumulatedErrors.addAll(checkHandle(node.getHandleIdentifier(), model));
+                accumulatedErrors.addAll(checkAJHandle(node.getHandleIdentifier(), model));
             } 
         });
         if (accumulatedErrors.size() > 0) {
@@ -61,7 +67,36 @@ public class AJModelTest4 extends AJDTCoreTestCase {
         }
     }
     
-    public static List checkHandle(String origAjHandle, AJProjectModelFacade model) {
+    public void testJavaHandleIdentifiers() throws Exception {
+        IProject project = createPredefinedProject("Handle Testing"); //$NON-NLS-1$
+        final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
+        final List/*String*/ accumulatedErrors = new ArrayList();
+        IJavaProject jProject = JavaCore.create(project);
+        IPackageFragment[] frags = jProject.getPackageFragments();
+        for (int i = 0; i < frags.length; i++) {
+            ICompilationUnit[] units = frags[i].getCompilationUnits();
+            for (int j = 0; j < units.length; j++) {
+                accumulatedErrors.addAll(walk(units[i], model));
+            }
+        }
+    }
+    
+    
+    
+    private Collection walk(IJavaElement elt, AJProjectModelFacade model) throws Exception {
+        final List/*String*/ accumulatedErrors = new ArrayList();
+        accumulatedErrors.addAll(checkJavaHandle(elt.getHandleIdentifier(), model));
+        if (elt instanceof IParent) {
+            IParent parent = (IParent) elt;
+            IJavaElement[] children = parent.getChildren();
+            for (int i = 0; i < children.length; i++) {
+                accumulatedErrors.addAll(walk(children[i], model));
+            }
+        }
+        return accumulatedErrors;
+    }
+
+    public static List checkAJHandle(String origAjHandle, AJProjectModelFacade model) {
         List/*String*/ accumulatedErrors = new ArrayList();
         
         try {
@@ -71,7 +106,7 @@ public class AJModelTest4 extends AJDTCoreTestCase {
             
             // AspectJ adds the import container always even when there are no imports
             if (!origJavaElement.exists() && !(origJavaElement instanceof ImportContainer)
-            && !(origJavaElement instanceof Initializer) ) { // Bug 263310
+                    && !(origJavaElement instanceof IInitializer) ) { // Bug 263310
                 accumulatedErrors.add("Java element " + origJavaElement.getHandleIdentifier() + " does not exist");
             }
             
@@ -121,7 +156,82 @@ public class AJModelTest4 extends AJDTCoreTestCase {
                 // check to make sure that this element is in the other model
                 AJProjectModelFacade otherModel = AJProjectModelFactory.getInstance().getModelForProject(origJavaElement.getJavaProject().getProject());
                 IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
-                checkHandle(ipe.getHandleIdentifier(), otherModel);
+                checkAJHandle(ipe.getHandleIdentifier(), otherModel);
+            }
+        } catch (Exception e) {
+            e.fillInStackTrace();
+            accumulatedErrors.add("Error thrown:");
+            accumulatedErrors.add(e.getMessage());
+            for (int i = 0; i < e.getStackTrace().length; i++) {
+                accumulatedErrors.add("\t" + e.getStackTrace()[i].toString());
+            }
+        }
+        return accumulatedErrors;
+    }
+    
+    
+    public static List checkJavaHandle(String origJavaHandle, AJProjectModelFacade model) {
+        List/*String*/ accumulatedErrors = new ArrayList();
+        
+        try {
+            
+            IJavaElement origJavaElement = JavaCore.create(origJavaHandle);
+            IProgramElement origAjElement = model.javaElementToProgramElement(origJavaElement);
+            String origAjHandle = origAjElement.getHandleIdentifier();
+            
+            // AspectJ adds the import container always even when there are no imports
+            if (!origJavaElement.exists() && !(origJavaElement instanceof ImportContainer)
+            && !(origJavaElement instanceof IInitializer) ) { // Bug 263310
+                accumulatedErrors.add("Java element " + origJavaElement.getHandleIdentifier() + " does not exist");
+            }
+            
+            if (origJavaElement.getJavaProject().getProject().equals(model.getProject())) {
+            
+                IProgramElement recreatedAjElement = model.javaElementToProgramElement(origJavaElement);
+                String recreatedAjHandle = recreatedAjElement.getHandleIdentifier();
+                
+                IJavaElement recreatedJavaElement = model.programElementToJavaElement(recreatedAjHandle);
+                String recreatedJavaHandle = recreatedJavaElement.getHandleIdentifier();
+                
+                
+                if (!origJavaHandle.equals(recreatedJavaHandle)) {
+                    accumulatedErrors.add("Handle identifier of JavaElements should be equal:\n\t" + origJavaHandle + "\n\t" + recreatedJavaHandle);
+                }
+                
+                if (!origAjHandle.equals(recreatedAjHandle)) {
+                    accumulatedErrors.add("Handle identifier of ProgramElements should be equal:\n\t" + origAjHandle + "\n\t" + recreatedAjHandle);
+                }
+                
+                if (!origJavaElement.equals(recreatedJavaElement)) {
+                    accumulatedErrors.add("JavaElements should be equal:\n\t" + origJavaElement + "\n\t" + recreatedJavaElement);
+                }
+                
+                if (!origJavaElement.getElementName().equals(recreatedJavaElement.getElementName())) {
+                    accumulatedErrors.add("JavaElement names should be equal:\n\t" + origJavaElement.getElementName() + "\n\t" + recreatedJavaElement.getElementName());
+                }
+                
+                if (origJavaElement.getElementType()!= recreatedJavaElement.getElementType()) {
+                    accumulatedErrors.add("JavaElement types should be equal:\n\t" + origJavaElement.getElementType() + "\n\t" + recreatedJavaElement.getElementType());
+                }
+                
+                if (!origJavaElement.getParent().equals(recreatedJavaElement.getParent())) {
+                    accumulatedErrors.add("JavaElement parents should be equal:\n\t" + origJavaElement.getParent() + "\n\t" + recreatedJavaElement.getParent());
+                }
+                
+                if (!origJavaElement.getJavaProject().equals(recreatedJavaElement.getJavaProject())) {
+                    accumulatedErrors.add("JavaElement projects should be equal:\n\t" + origJavaElement.getJavaProject() + "\n\t" + recreatedJavaElement.getJavaProject());
+                }
+            } else {
+                // reference to another project
+                if (!origJavaElement.exists()) {
+                    accumulatedErrors.add("Program Element in other project should exist, but doesn't:\n\t" + origJavaHandle );
+                }
+    
+                
+                // check to make sure that this element is in the other model
+                AJProjectModelFacade otherModel = AJProjectModelFactory.getInstance().getModelForProject(origJavaElement.getJavaProject().getProject());
+                IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
+                checkAJHandle(ipe.getHandleIdentifier(), otherModel);
             }
         } catch (Exception e) {
             e.fillInStackTrace();
