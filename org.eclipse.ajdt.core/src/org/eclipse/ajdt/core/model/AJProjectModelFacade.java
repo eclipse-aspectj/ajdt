@@ -280,8 +280,8 @@ public class AJProjectModelFacade {
         }
         if (cu != null &&
                 CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cu.getResource().getName())) {
-            ajHandle = ajHandle.replace(JavaElement.JEM_COMPILATIONUNIT, 
-                    AspectElement.JEM_ASPECT_CU);
+            ajHandle = ajHandle.replaceFirst("\\" + JavaElement.JEM_COMPILATIONUNIT, 
+                    Character.toString(AspectElement.JEM_ASPECT_CU));
         }
         
         ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");

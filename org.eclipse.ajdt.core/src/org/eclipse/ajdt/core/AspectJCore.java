@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaCore;
@@ -312,11 +313,16 @@ public class AspectJCore {
 	
 	
 	public static String convertToJavaCUHandle(String aspectHandle, IJavaElement elt) {
-        String javaHandle = aspectHandle;
-        if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(elt.getResource().getName())) {
-            javaHandle = javaHandle.replace(AspectElement.JEM_ASPECT_CU, 
-                    JavaElement.JEM_COMPILATIONUNIT);
-        }
+	    String javaHandle = aspectHandle;
+	    if (elt != null) {
+            IResource resource = elt.getResource();
+            if (resource != null) {
+                if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
+                    javaHandle = javaHandle.replaceFirst("\\" + AspectElement.JEM_ASPECT_CU, 
+                            Character.toString(JavaElement.JEM_COMPILATIONUNIT));
+                }
+            }
+	    }
         return javaHandle;
     }
 	
