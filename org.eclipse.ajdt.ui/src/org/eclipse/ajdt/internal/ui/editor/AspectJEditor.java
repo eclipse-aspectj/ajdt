@@ -111,9 +111,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 	}
 	
-	// Existing in this map means the modification has occurred
-	static Set modifiedAspectToClass = new HashSet();
-
 	private AJSourceViewerConfiguration fAJSourceViewerConfiguration;
 
 	private boolean isEditingAjFile = false;
