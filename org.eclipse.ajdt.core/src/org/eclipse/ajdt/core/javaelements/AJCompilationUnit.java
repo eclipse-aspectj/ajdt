@@ -688,15 +688,16 @@ public class AJCompilationUnit extends CompilationUnit{
 			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
 			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this);
 			
-			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
+            // now set up for the regular code completion
+            javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
+
+            //set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
 			
-			// now set up for the regular code completion
-            javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
 		} else {
 		    javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
-			requestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+		    requestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
 		}
         transformedPos = javaCompBuffer.translatePositionToFake(position);
 		

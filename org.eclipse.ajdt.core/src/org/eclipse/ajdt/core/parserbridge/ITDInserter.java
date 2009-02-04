@@ -324,7 +324,7 @@ public class ITDInserter extends ASTVisitor {
         String typeName = new String(decl.name);
         try {
             IJavaElement maybeType = unit.getElementAt(decl.sourceStart);
-            if (maybeType.getElementType() == IJavaElement.TYPE) {
+            if (maybeType != null && maybeType.getElementType() == IJavaElement.TYPE) {
                 return (IType) maybeType;
             }
         } catch (JavaModelException e) {
