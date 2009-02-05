@@ -198,6 +198,15 @@
 	<!-- Steps to do before running assemble. -->
 	<!-- ===================================================================== -->
 	<target name="preAssemble">
+		<!-- Copy Equinox Aspects to its final resting place -->
+		<!-- Must copy to both repository and the update site directories -->
+		<mkdir dir="${buildDirectory}/repository"/>
+		<unzip dest="${buildDirectory}/repository">
+			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
+		</unzip>
+		<unzip dest="${buildDirectory}/updateSite">
+			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
+		</unzip>
 	</target>
 
 	<!-- ===================================================================== -->
