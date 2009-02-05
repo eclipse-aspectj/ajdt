@@ -24,7 +24,8 @@ public aspect ITDAspect {
 	declare parents : HasITDs extends Super;
 	
 	public static void main(String[] args) {
-	    args.length;
+	    int x = args.length;
+	    x++;
     }
 	
 	void around() : execution (void ITDAspect.main(..)) {
