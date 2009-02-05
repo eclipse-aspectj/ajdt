@@ -65,6 +65,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorActionDelegate;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
@@ -125,7 +126,11 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 
 		try {
 			// Work out which file is currently being edited
-			IFileEditorInput ifep =	(IFileEditorInput) this.editor.getEditorInput();
+		    IEditorInput input = this.editor.getEditorInput();
+		    if (! (input instanceof IFileEditorInput)) {
+		        return;
+		    }
+			IFileEditorInput ifep =	(IFileEditorInput) input; 
 			IFile ifile = ifep.getFile();
 			
 			// Which line was right clicked in the ruler?
