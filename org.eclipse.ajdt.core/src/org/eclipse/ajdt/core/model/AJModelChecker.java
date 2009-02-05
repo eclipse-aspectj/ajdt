@@ -101,6 +101,13 @@ public class AJModelChecker {
         return problems;
     }
     
+//    private static List/*String*/ roundTripTest(IRelationship rel, AJProjectModelFacade model) {
+//        List/*String*/ problems = new ArrayList();
+//        
+//    }
+//    
+//    private static List/*String*/ roundTripTest(IProgramElement, AJProjectModelFacade model) {
+    
     private static List/*String*/ invalidAdviceRelationsip(IRelationship rel, AJProjectModelFacade model) {
         List/*String*/ problems = new ArrayList();
         if (rel.getKind() == IRelationship.Kind.ADVICE ||

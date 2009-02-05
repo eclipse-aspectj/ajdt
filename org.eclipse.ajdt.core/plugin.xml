@@ -73,6 +73,12 @@
             file_extension="aj">
       </transformer>
    </extension>
+    <extension
+       point="org.eclipse.contribution.weaving.jdt.weavablenature">
+  	  <nature
+          natureid="org.eclipse.ajdt.ui.ajnature">
+	    </nature>
+   </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
