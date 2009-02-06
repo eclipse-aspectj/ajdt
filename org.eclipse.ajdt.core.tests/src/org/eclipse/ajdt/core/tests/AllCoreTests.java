@@ -31,6 +31,7 @@ import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
+import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest2;
@@ -83,6 +84,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 		suite.addTest(new TestSuite(ModelCheckerTests.class));
+		suite.addTest(new TestSuite(AspectJMemberElementTest.class));
         
 		
 		// core compiler configuration
