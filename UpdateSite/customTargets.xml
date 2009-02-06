@@ -204,6 +204,7 @@
 		<unzip dest="${buildDirectory}/repository">
 			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
 		</unzip>
+
 		<unzip dest="${buildDirectory}/updateSite">
 			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
 		</unzip>
@@ -248,6 +249,10 @@
 	  </antcall>
 	  <!-- add site.xml -->
 	  <copy file="${builder}/site.xml" tofile="${UpdateSiteStagingLocation}/site.xml"/>
+		
+		<replace file="${UpdateSiteStagingLocation}/site.xml"
+			token="@EAVERSION@" value="${equinox.aspects.version}"/>
+
 	</target>
 	
 	<target name="updateSiteExport">
