@@ -16,9 +16,11 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
@@ -62,10 +64,10 @@ public class AspectJMemberElement extends NamedMember implements IMethod, IAspec
 	 */
 	protected static final String[] fgEmptyList= new String[] {};
 
-public boolean equals(Object o) {
-	if (!(o instanceof AspectJMemberElement)) return false;
-	return super.equals(o) && Util.equalArraysOrNull(fParameterTypes, ((AspectJMemberElement)o).fParameterTypes);
-}
+	public boolean equals(Object o) {
+	    if (!(o instanceof AspectJMemberElement)) return false;
+	    return super.equals(o) && Util.equalArraysOrNull(fParameterTypes, ((AspectJMemberElement)o).fParameterTypes);
+	}
 
 /**
  * @see IJavaElement
@@ -312,5 +314,40 @@ public IMemberValuePair getDefaultValue() throws JavaModelException {
 	}
 	return null;
 }
+
+/**
+ * See bug 264008
+ */
+public String retrieveSignatureFromSource() throws JavaModelException {
+    ISourceRange range = ((AspectJMemberElementInfo) this.getElementInfo())
+            .getSourceRange();
+    ICompilationUnit cu = this.getCompilationUnit();
+    if (cu instanceof AJCompilationUnit) {
+        AJCompilationUnit ajcu = (AJCompilationUnit) cu;
+        ajcu.requestOriginalContentMode();
+        ISourceRange nameRange = this.getNameRange();
+        if (nameRange != null) {
+            String source = cu.getSource().substring(nameRange.getOffset(),
+                    range.getOffset() + range.getLength());
+            ajcu.discardOriginalContentMode();
+            int cutoff = source.indexOf('{');
+            String sig;
+            if (cutoff > -1) {
+                sig = source.substring(0, cutoff);
+            } else {
+                cutoff = source.indexOf(';');
+                if (cutoff > -1) {
+                    sig = source.substring(0, cutoff);
+                } else {
+                    sig = source;
+                }
+            }
+            // compress the sig into 1 line
+            return sig.replaceAll("\\s+", " ");
+        } 
+    }
+    return this.getSource();
+}
+
 
 }

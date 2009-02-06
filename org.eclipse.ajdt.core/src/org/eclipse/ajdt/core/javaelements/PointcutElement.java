@@ -45,9 +45,4 @@ public class PointcutElement extends AspectJMemberElement {
 	    return info;
 	}
 	
-//   public String getHandleIdentifier() {
-//        return super.getHandleIdentifier() 
-//            + AspectElement.JEM_EXTRA_INFO + elementInfo.getSourceRange().getOffset()
-//            + AspectElement.JEM_EXTRA_INFO + elementInfo.accessibility.toString();
-//    }
 }
