@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Eclipse Weaving Service Source Plug-in
+Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.contribution.weaving.source;singleton:=true
-Bundle-Version: 1.6.4
-Bundle-Vendor: eclipse.org
+Bundle-Version: 1.6.4.qualifier
+Bundle-Vendor: %providerName
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
