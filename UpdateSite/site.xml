@@ -8,14 +8,21 @@
       <category name="org.eclipse.ajdt"/>
    </feature>
    <feature url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar" id="org.eclipse.ajdt.source" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.weaving_@AJFVERSION@.jar" id="org.contribution.weaving.source" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.weaving.source_@AJFVERSION@.jar" id="org.contribution.weaving.source.source" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt.source"/>
    </feature>
    <feature url="features/org.eclipse.contribution.xref_@AJFVERSION@.jar" id="org.eclipse.contribution.xref" version="@AJFVERSION@">
       <category name="org.eclipse.contribution.xref"/>
    </feature>
    <feature url="features/org.eclipse.equinox.weaving_@EAVERSION@.jar" id="org.eclipse.equinox.weaving" version="@EAVERSION@">
-   	      <category name="org.eclipse.ajdt"/>
+      <category name="org.eclipse.ajdt"/>
    </feature>
    <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
-   <category-def name="org.eclipse.contribution.xref" label="Cross References Tool"/>
+   <category-def name="org.eclipse.contribution.xref" label="Cross References Tool (Optional)"/>
+   <category-def name="org.eclipse.ajdt.source" label="Source Features"/>
 </site>
