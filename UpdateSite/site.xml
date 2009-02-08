@@ -7,22 +7,24 @@
    <feature url="features/org.eclipse.ajdt_@AJFVERSION@.jar" id="org.eclipse.ajdt" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt"/>
    </feature>
-   <feature url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar" id="org.eclipse.ajdt.source" version="@AJFVERSION@">
-      <category name="org.eclipse.ajdt.source"/>
-   </feature>
    <feature url="features/org.eclipse.contribution.weaving_@AJFVERSION@.jar" id="org.contribution.weaving" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt"/>
    </feature>
-   <feature url="features/org.eclipse.contribution.weaving.source_@AJFVERSION@.jar" id="org.contribution.weaving.source" version="@AJFVERSION@">
-      <category name="org.eclipse.ajdt.source"/>
-   </feature>
    <feature url="features/org.eclipse.contribution.xref_@AJFVERSION@.jar" id="org.eclipse.contribution.xref" version="@AJFVERSION@">
-      <category name="org.eclipse.contribution.xref"/>
+      <category name="org.eclipse.ajdt"/>
    </feature>
    <feature url="features/org.eclipse.equinox.weaving_@EAVERSION@.jar" id="org.eclipse.equinox.weaving" version="@EAVERSION@">
       <category name="org.eclipse.ajdt"/>
    </feature>
+   <feature url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar" id="org.eclipse.ajdt.source" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.weaving.source_@AJFVERSION@.jar" id="org.contribution.weaving.source" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.xref.source_@AJFVERSION@.jar" id="org.contribution.xref.source" version="@AJFVERSION@">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
    <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
-   <category-def name="org.eclipse.contribution.xref" label="Cross References Tool (Optional)"/>
-   <category-def name="org.eclipse.ajdt.source" label="Source Features"/>
+   <category-def name="org.eclipse.ajdt.source" label="AspectJ Development Tools Source"/>
 </site>
