@@ -5,15 +5,13 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaModelManager;
-import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
-import org.eclipse.jdt.internal.core.hierarchy.IndexBasedHierarchyBuilder;
 import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 
@@ -32,8 +30,15 @@ public class ITDAwareHierarchyTests extends AJDTCoreTestCase {
     ICompilationUnit yacht;
     IJavaProject shipProj;
     
+    // for some reason, the primary owner is from jdt ui, and this is giving us problems
+    // set it to null, so that the ui plugin is not triggered here.
+    WorkingCopyOwner primaryOwner;
+    
     protected void setUp() throws Exception {
         super.setUp();
+        primaryOwner = DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider;
+        DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider = null;
+        
         IProject proj = createPredefinedProject("ITDAwareHierarchy");
         IFile shipFile = proj.getFile("src/ships/Ship.aj");
         ship = (AJCompilationUnit) AspectJCore.create(shipFile);
@@ -46,6 +51,11 @@ public class ITDAwareHierarchyTests extends AJDTCoreTestCase {
         // ensure the project is indexed so that hierarchy building can occur
         IndexManager manager = JavaModelManager.getIndexManager();
         manager.indexAll(proj);
+    }
+    
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        DefaultWorkingCopyOwner.PRIMARY.primaryBufferProvider = primaryOwner;
     }
     
     /**
