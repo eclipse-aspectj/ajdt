@@ -7,7 +7,7 @@
    <feature url="features/org.eclipse.ajdt_@AJFVERSION@.jar" id="org.eclipse.ajdt" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt"/>
    </feature>
-   <feature url="features/org.eclipse.contribution.weaving_@AJFVERSION@.jar" id="org.contribution.weaving" version="@AJFVERSION@">
+   <feature url="features/org.eclipse.contribution.weaving_@AJFVERSION@.jar" id="org.eclipse.contribution.weaving" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt"/>
    </feature>
    <feature url="features/org.eclipse.contribution.xref_@AJFVERSION@.jar" id="org.eclipse.contribution.xref" version="@AJFVERSION@">
@@ -19,10 +19,10 @@
    <feature url="features/org.eclipse.ajdt.source_@AJFVERSION@.jar" id="org.eclipse.ajdt.source" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt.source"/>
    </feature>
-   <feature url="features/org.eclipse.contribution.weaving.source_@AJFVERSION@.jar" id="org.contribution.weaving.source" version="@AJFVERSION@">
+   <feature url="features/org.eclipse.contribution.weaving.source_@AJFVERSION@.jar" id="org.eclipse.contribution.weaving.source" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt.source"/>
    </feature>
-   <feature url="features/org.eclipse.contribution.xref.source_@AJFVERSION@.jar" id="org.contribution.xref.source" version="@AJFVERSION@">
+   <feature url="features/org.eclipse.contribution.xref.source_@AJFVERSION@.jar" id="org.eclipse.contribution.xref.source" version="@AJFVERSION@">
       <category name="org.eclipse.ajdt.source"/>
    </feature>
    <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
