@@ -11,10 +11,10 @@
 package org.eclipse.ajdt.internal.buildpath;
 
 import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.buildpath.BuildConfigurationUtils;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
