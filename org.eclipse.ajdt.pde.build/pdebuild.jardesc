@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="MacRoman"?>
 <jardesc>
-<jar path="org.eclipse.ajdt.pde.build/lib/pdebuild-antnew.jar"/>
-<options buildIfNeeded="true" compress="true" descriptionLocation="/org.eclipse.ajdt.pde.build/pdebuild.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+<jar path="org.eclipse.ajdt.pde.build/lib/ajdtbuild-ant.jar"/>
+<options buildIfNeeded="true" compress="true" descriptionLocation="/org.eclipse.ajdt.pde.build/pdebuild.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
 <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
 <selectedProjects/>
 <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
@@ -10,8 +10,9 @@
 <packagesToUnSeal/>
 </sealing>
 </manifest>
-<selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+<selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
 <javaElement handleIdentifier="=org.eclipse.ajdt.pde.build/src_ant"/>
+<folder path="/org.eclipse.ajdt.pde.build/META-INF"/>
 </selectedElements>
 <fatjar builder="org.eclipse.jdt.ui.plain_jar_builder" launchConfig=""/>
 </jardesc>
