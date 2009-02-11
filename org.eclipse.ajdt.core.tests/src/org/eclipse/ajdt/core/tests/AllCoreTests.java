@@ -44,6 +44,8 @@ import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
 import org.eclipse.ajdt.core.tests.weaving.ITDAwareHierarchyTests;
+import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
+import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -104,6 +106,11 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(Bug159197Test.class));
         suite.addTest(new TestSuite(Bug43711Test.class));
         suite.addTest(new TestSuite(DerivedTests.class));
+        
+        // build configuration tests
+        suite.addTest(new TestSuite(BuildConfigurationTest.class));
+        suite.addTest(new TestSuite(BuildConfigurationTest2.class));
+
 
 		// AST tests
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));

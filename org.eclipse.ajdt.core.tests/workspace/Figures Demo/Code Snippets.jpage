@@ -1,0 +1,194 @@
+
+
+// REFACTORING updateHistory into an aspect:
+// -----------------------------------------
+
+// First part of the demo is to show how people normal start using AJDT.  They normally
+// use it to explore there code and learn about some crosscutting feature.
+// Here we explore how the codebase currently implements a history function for
+// enabling an 'undo' operation in the UI.  The history function isn't actually
+// *implemented* but that isn't important for the demo.
+// Initially in the pure java codebase the feature is implemented as a set of
+// Canvas.updateHistory() calls spread around the codebase.
+
+// First step is to discover where those places are with an aspect like this:
+
+// 1) Create new aspect "HistoryManagement"
+
+	import figures.Canvas;
+	import figures.FigureElement;
+
+
+// 2) Find all places it is currently being called
+
+	pointcut canvasHistoryUpdate() : call(void Canvas.updateHistory(..));
+
+	declare warning: canvasHistoryUpdate() && !within(HistoryManagement): 
+		"Canvas.updateHistory should not be called outide of HistoryManagement";
+
+	
+// Once we have discovered the four places, we click around them (using the problems
+// view or the outline view for the aspect), we point out the gutter annotations for
+// the calls (declare warning icons).  We then say we can kind of work out the policy
+// for calling updateHistory() is whenever a setXX() operation is called on a FigureElement
+// (Line and Point are subclasses of FigureElement).
+
+// We then try to capture that policy in an aspect.
+
+// 3) Write some advice to capture the policy
+
+	pointcut figureElementUpdate( ) : execution(void FigureElement+.set*(..));
+	
+	after() returning: figureElementUpdate( ) {
+		Canvas.updateHistory();	
+	}
+	
+// After building this, we can see in the outline view that advice is being applied to
+// multiple places.  If we click through the outline view we can go to those places
+// and for four of them we see advise gutter annotations on the methods containing
+// the current updateHistory calls.  This means in those places we are safe to delete
+// the calls to updateHistory as the aspect is looking after this 'feature' now.
+// However, we should also see two places are being advised in SlothfulPoint that
+// weren't picked out by the declare warning.  These are places where the developer
+// forgot to make those calls to Canvas.updateHistory() - we don't make those
+// kinds of mistake with implementing a policy when using an aspect.
+
+// 4) Comment out calls to updateHistory, and turn into declare error.  Leave it as a
+//    declare error so people don't add updateHistory() calls into the base in the
+//    future - the aspect is looking after them now.
+
+
+// ARCHITECTURAL ENFORCEMENT through aspect:
+// -----------------------------------------
+
+// Policy: private fields in FigureElements should only be updated via setter methods
+
+// 1) Create new aspect "Enforcement"
+
+	import figures.FigureElement;
+
+// 2) Write pointcuts to describe private field updates on FigureElements
+
+	pointcut privateFieldUpdate( ) : set(private * FigureElement+.*);
+	pointcut insideSetMethod( ) : withincode(* FigureElement+.set*(..));
+	
+// 3) Declare a warning if private fields are set outside of setters
+
+	declare warning: privateFieldUpdate( ) && !insideSetMethod( ) :
+		"private fields should only be updated through setter methods";
+		
+// 4) Oops, we forgot about constructors
+
+	pointcut insideConstructor( ) : withincode(FigureElement+.new(..));
+	
+	declare warning: privateFieldUpdate( ) &&
+					 !(insideSetMethod( ) || insideConstructor( )) :
+		"private fields should only be updated through setter methods";
+
+// 5) Fix the remaining errors, and turn into declare error					 
+
+
+// PART II - precondition checking
+// -------------------------------
+
+// Policy: x and y coords for points must be non-negative
+
+// 1) Extend Enforcement aspect
+
+	import figures.Point;
+
+	pointcut pointCoordUpdate( ) : set(int Point+.*);
+	
+	before( int coord ) : pointCoordUpdate( ) && args( coord ) {
+		if ( coord < 0 ) { throw new IllegalArgumentException( "too small" ); }	
+	}
+
+// 2) Update Main
+
+// 3) Rebuild & run
+
+// PRODUCT LINES / CONFIGURATION FILES
+// -------------------------------------
+
+// n.b. with recent improvements in the UI, we now control inclusion/exclusion
+// of aspects in the context menu for the package explorer rather than
+// messing about with .lst files.  Also, see .ajproperties files in the help
+// index for AJDT.
+
+//  Policy: log every time a new line is created
+
+// 1) Create a new LineLogger aspect
+
+	import figures.Line;
+
+	pointcut lineCreation( ) :  execution( Line+.new(..) );
+							  
+	after( Line l ) returning: lineCreation( ) && target( l ) {
+		Log.log( l.toString() ):
+	}
+
+// 2) Build, Run and show output
+
+// 3) Create new build config file "Production.lst"
+
+// 4) Deselect LineLogger aspect
+
+// 5) Select Production build configuration
+
+// 6) Rebuild and run to show feature removed
+
+// 7) Select default.lst from drop-down menu
+
+// 8) Rebuild and run to show feature activated again.
+
+// SAVE AND RESTORE
+// ----------------------------------------
+
+// Earlier examples in this demo were really for concerns/features that don't
+// really form a core part of our application, they are kind of enforcement
+// aspects and infrastructure stuff.  Now we add an aspect that
+// will persist our drawing as an aspect - persistence being a more serious
+// use of aspects.
+
+package figures.support;
+
+import java.io.*;
+import figures.FigureElement;
+import figures.Group;
+import figures.gui.*;
+
+public aspect SaveAndRestore {
+
+	declare parents: FigureElement+ implements Serializable;
+	
+	pointcut editorClosing() : execution(* FigureWindowListener.windowClosing(..));
+	pointcut editorOpening() : execution(* FigureWindowListener.windowOpened(..));
+	
+	before() : editorClosing() {
+		Group g = Main.getFigurePanel().getGroup();
+		try {
+			ObjectOutputStream oos = 
+				new ObjectOutputStream( new FileOutputStream("project.fig"));
+			oos.writeObject(g);
+			oos.close();
+		} catch( Exception ex) {
+			System.err.println(ex);
+		}		
+	}
+	
+	after() returning : editorOpening() {
+		try {
+			File f = new File("project.fig");
+			if ( f.exists()) {
+				ObjectInputStream ois =
+					new ObjectInputStream(new FileInputStream(f));
+				Group g = (Group) ois.readObject();
+				ois.close();
+				Main.getFigurePanel().setGroup(g);
+			}
+		} catch( Exception ex) {
+			System.err.println(ex);
+		}
+	}
+
+}
