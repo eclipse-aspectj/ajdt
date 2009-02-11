@@ -60,8 +60,6 @@ import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest2;
 import org.eclipse.ajdt.ui.tests.lazystart.ImageDecoratorTest;
 import org.eclipse.ajdt.ui.tests.model.BinaryWeavingSupportTest;
-import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest;
-import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageWorkbenchTest;
@@ -78,6 +76,7 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests5;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests6;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests9;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
@@ -114,9 +113,6 @@ public class AllAJDTUITests {
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
 		
-		// build configuration tests
-		suite.addTest(new TestSuite(BuildConfigurationTest.class));
-		suite.addTest(new TestSuite(BuildConfigurationTest2.class));
 		
 		// internal.core tests
 		suite.addTest(new TestSuite(AJDTUtilsTest.class));
@@ -218,6 +214,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests6.class));
         suite.addTest(new TestSuite(ProblemFinderTests7.class));
         suite.addTest(new TestSuite(ProblemFinderTests8.class));
+        suite.addTest(new TestSuite(ProblemFinderTests9.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
