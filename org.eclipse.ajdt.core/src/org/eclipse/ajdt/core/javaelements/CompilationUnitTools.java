@@ -83,6 +83,33 @@ public class CompilationUnitTools {
 		return modifiers;
 	}
 	
+	
+	/**
+	 * returns the modifiers of this element as if this element were declared
+	 * public
+	 */
+	public static int getPublicModifierCode(IAspectJElementInfo info){
+        int modifiers = ClassFileConstants.AccPublic;
+
+        List others = info.getAJModifiers();
+        if (others.contains(IProgramElement.Modifiers.ABSTRACT))
+            modifiers |= ClassFileConstants.AccAbstract;
+        if (others.contains(IProgramElement.Modifiers.FINAL))
+            modifiers |= ClassFileConstants.AccFinal;
+        if (others.contains(IProgramElement.Modifiers.NATIVE))
+            modifiers |= ClassFileConstants.AccNative;
+        if (others.contains(IProgramElement.Modifiers.STATIC))
+            modifiers |= ClassFileConstants.AccStatic;
+        if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED))
+            modifiers |= ClassFileConstants.AccSynchronized;
+        if (others.contains(IProgramElement.Modifiers.TRANSIENT))
+            modifiers |= ClassFileConstants.AccTransient;
+        if (others.contains(IProgramElement.Modifiers.VOLATILE))
+            modifiers |= ClassFileConstants.AccVolatile;
+        
+        return modifiers;
+    }
+	
 	public static IProgramElement.Accessibility getAccessibilityFromModifierCode(int code){
 		IProgramElement.Accessibility acc = null;
 		if ((code & ClassFileConstants.AccPublic) != 0){

@@ -8,6 +8,7 @@ Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.core,
  org.eclipse.ajdt.core.builder,
+ org.eclipse.ajdt.core.buildpath,
  org.eclipse.ajdt.core.codeconversion,
  org.eclipse.ajdt.core.dom.rewrite,
  org.eclipse.ajdt.core.exports,

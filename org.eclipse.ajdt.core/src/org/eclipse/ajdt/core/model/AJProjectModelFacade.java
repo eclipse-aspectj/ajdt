@@ -834,19 +834,18 @@ public class AJProjectModelFacade {
         return project;
     }
     
-    public static String printHierarchy(IHierarchy h) {
+    public static String printHierarchy(IHierarchy h, final int max) {
         final StringBuffer sb = new StringBuffer();
         HierarchyWalker walker = new HierarchyWalker() {
             int depth = 0;
-            int MAX = 200;
             int curr = 0;
             
             protected void preProcess(IProgramElement node) {
-                if (curr < MAX) {
+                if (curr < max) {
                     sb.append(spaces(depth));
                     sb.append(node.getHandleIdentifier());
                     sb.append("\n");
-                } if (curr == MAX) {
+                } if (curr == max) {
                     sb.append("...");
                 }
                 curr++;

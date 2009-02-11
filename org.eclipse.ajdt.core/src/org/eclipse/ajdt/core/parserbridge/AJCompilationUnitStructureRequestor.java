@@ -112,6 +112,8 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] parameterTypes,
 			char[][] parameterNames,
 			char[][] exceptionTypes,
+			boolean isConstructor,
+			boolean isAnnotation,
 			org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] typeParameters,
 			AbstractMethodDeclaration methodDeclaration) {
 
@@ -146,6 +148,8 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.parameterTypes = parameterTypes;
 		mi.exceptionTypes = exceptionTypes;
 		mi.returnType = returnType;
+		mi.isConstructor = isConstructor;
+		mi.isAnnotation = isAnnotation;
 		mi.typeParameters = convertToJDTTypeParameters(typeParameters);
 		
 		super.enterMethod(mi);
@@ -161,6 +165,8 @@ public class AJCompilationUnitStructureRequestor extends
 		            mi.parameterTypes,
 		            mi.parameterNames,
 		            mi.exceptionTypes,
+		            mi.isConstructor,
+		            mi.isAnnotation,
 		            convertToAJTypeParameters(mi.typeParameters),
 		            null);
 	}
@@ -175,6 +181,8 @@ public class AJCompilationUnitStructureRequestor extends
 		            mi.parameterTypes,
 		            mi.parameterNames,
 		            mi.exceptionTypes,
+                    mi.isConstructor,
+                    mi.isAnnotation,
 		            mi.typeParameters,
 		            null);
 	}
@@ -189,6 +197,8 @@ public class AJCompilationUnitStructureRequestor extends
 		            mi.parameterTypes,
 		            mi.parameterNames,
 		            mi.exceptionTypes,
+                    mi.isConstructor,
+                    mi.isAnnotation,
 		            convertToAJTypeParameters(mi.typeParameters),
 		            mdecl);
 	}
@@ -203,6 +213,8 @@ public class AJCompilationUnitStructureRequestor extends
 		            mi.parameterTypes,
 		            mi.parameterNames,
 		            mi.exceptionTypes,
+                    mi.isConstructor,
+                    mi.isAnnotation,
                     mi.typeParameters,
 		            mdecl);
 	}
@@ -760,4 +772,5 @@ public class AJCompilationUnitStructureRequestor extends
         }
         return ajTypeParams;
     }
+
 }

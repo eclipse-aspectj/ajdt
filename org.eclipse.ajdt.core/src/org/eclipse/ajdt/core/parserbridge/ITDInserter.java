@@ -10,15 +10,12 @@
 package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -26,12 +23,10 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJWorldFacade;
 import org.eclipse.ajdt.core.model.AJWorldFacade.ErasedTypeSignature;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -48,7 +43,6 @@ import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.parser.TypeConverter;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
-import org.eclipse.jdt.internal.core.SourceType;
 
 /**
  * Inserts ITD information into a TypeDeclaration so that
@@ -394,80 +388,80 @@ public class ITDInserter extends ASTVisitor {
     }
 
     
-    /**
-     * traverse this type's interface hierarchy.  look for method ITDs that
-     * provide implementations
-     * 
-     * if these methods are not added to this type, then there will be an
-     * error saying that no implementation exists for the method
-     */
-    private List/*IProgramElement*/ addAllITDInterfaceMethods(IType handle) {
-        List/*IProgramElement*/ declaredMethods = new LinkedList(); 
-        try {
-            ITypeHierarchy hierarchy = handle.newSupertypeHierarchy(new NullProgressMonitor());
-            IType[] interfaceHandles = hierarchy.getSuperInterfaces(handle);
-            
-            for (int i = 0; i < interfaceHandles.length; i++) {
-                Set/*IType*/ visitedInterfaces = new HashSet(); // avoid cycles and keep track of what we've already seen
-                declaredMethods.addAll(getITDInterfaceMethods(interfaceHandles[i], hierarchy, visitedInterfaces));
-            }
-        } catch (JavaModelException e) {
-        }
-        return declaredMethods;
-    }
-    
-
-    private Collection/*IProgramElement*/ getITDInterfaceMethods(IType interfaceHandle, ITypeHierarchy hierarchy, Set/*IType*/ visitedInterfaces) {
-        if (visitedInterfaces.contains(interfaceHandle)) {
-            return Collections.EMPTY_LIST;
-        }
-        visitedInterfaces.add(interfaceHandle);
-        if (model.hasModel()) {
-            if (interfaceHandle.exists() && interfaceHandle instanceof SourceType) {
-                List elts = new LinkedList();
-                if (model.hasProgramElement(interfaceHandle)) {
-                    List/*IRelationship*/ rels = model
-                            .getRelationshipsForElement(interfaceHandle,
-                                    AJRelationshipManager.ASPECT_DECLARATIONS);
-                    for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                        IJavaElement je = (IJavaElement) relIter.next();
-                        IProgramElement declareElt = model
-                                .javaElementToProgramElement(je);
-                        
-                        // include the implementation of an interface method.  
-                        if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
-                            elts.add(declareElt);
-                        } else if (declareElt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
-                            // declare parent interface
-                            List/*String*/ parentTypes = declareElt.getParentTypes();
-                            for (Iterator parentIter = parentTypes.iterator(); parentIter
-                                    .hasNext();) {
-                                String parent = (String) parentIter.next();
-                                parent = parent.replace('$', '.');
-                                try {
-                                    IType parentHandle = unit.getJavaProject().findType(parent, new NullProgressMonitor());
-                                    if (parentHandle.exists()) {
-                                        ITypeHierarchy otherHierarchy = parentHandle.newSupertypeHierarchy(new NullProgressMonitor());
-                                        elts.addAll(getITDInterfaceMethods(parentHandle, otherHierarchy, visitedInterfaces));
-                                    }
-                                } catch (JavaModelException e) {
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // go through the super interfaces
-                IType[] superInterfaces = hierarchy.getSuperInterfaces(interfaceHandle);
-                for (int i = 0; i < superInterfaces.length; i++) {
-                    elts.addAll(getITDInterfaceMethods(superInterfaces[i], hierarchy, visitedInterfaces));
-                }
-                
-                return elts;
-            }
-        }
-        return Collections.EMPTY_LIST;
-    }
+//    /**XXX NOT USED CAN DELETE!!!
+//     * traverse this type's interface hierarchy.  look for method ITDs that
+//     * provide implementations
+//     * 
+//     * if these methods are not added to this type, then there will be an
+//     * error saying that no implementation exists for the method
+//     */
+//    private List/*IProgramElement*/ addAllITDInterfaceMethods(IType handle) {
+//        List/*IProgramElement*/ declaredMethods = new LinkedList(); 
+//        try {
+//            ITypeHierarchy hierarchy = handle.newSupertypeHierarchy(new NullProgressMonitor());
+//            IType[] interfaceHandles = hierarchy.getSuperInterfaces(handle);
+//            
+//            for (int i = 0; i < interfaceHandles.length; i++) {
+//                Set/*IType*/ visitedInterfaces = new HashSet(); // avoid cycles and keep track of what we've already seen
+//                declaredMethods.addAll(getITDInterfaceMethods(interfaceHandles[i], hierarchy, visitedInterfaces));
+//            }
+//        } catch (JavaModelException e) {
+//        }
+//        return declaredMethods;
+//    }
+//    
+//
+//    private Collection/*IProgramElement*/ getITDInterfaceMethods(IType interfaceHandle, ITypeHierarchy hierarchy, Set/*IType*/ visitedInterfaces) {
+//        if (visitedInterfaces.contains(interfaceHandle)) {
+//            return Collections.EMPTY_LIST;
+//        }
+//        visitedInterfaces.add(interfaceHandle);
+//        if (model.hasModel()) {
+//            if (interfaceHandle.exists() && interfaceHandle instanceof SourceType) {
+//                List elts = new LinkedList();
+//                if (model.hasProgramElement(interfaceHandle)) {
+//                    List/*IRelationship*/ rels = model
+//                            .getRelationshipsForElement(interfaceHandle,
+//                                    AJRelationshipManager.ASPECT_DECLARATIONS);
+//                    for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
+//                        IJavaElement je = (IJavaElement) relIter.next();
+//                        IProgramElement declareElt = model
+//                                .javaElementToProgramElement(je);
+//                        
+//                        // include the implementation of an interface method.  
+//                        if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
+//                            elts.add(declareElt);
+//                        } else if (declareElt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
+//                            // declare parent interface
+//                            List/*String*/ parentTypes = declareElt.getParentTypes();
+//                            for (Iterator parentIter = parentTypes.iterator(); parentIter
+//                                    .hasNext();) {
+//                                String parent = (String) parentIter.next();
+//                                parent = parent.replace('$', '.');
+//                                try {
+//                                    IType parentHandle = unit.getJavaProject().findType(parent, new NullProgressMonitor());
+//                                    if (parentHandle.exists()) {
+//                                        ITypeHierarchy otherHierarchy = parentHandle.newSupertypeHierarchy(new NullProgressMonitor());
+//                                        elts.addAll(getITDInterfaceMethods(parentHandle, otherHierarchy, visitedInterfaces));
+//                                    }
+//                                } catch (JavaModelException e) {
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                // go through the super interfaces
+//                IType[] superInterfaces = hierarchy.getSuperInterfaces(interfaceHandle);
+//                for (int i = 0; i < superInterfaces.length; i++) {
+//                    elts.addAll(getITDInterfaceMethods(superInterfaces[i], hierarchy, visitedInterfaces));
+//                }
+//                
+//                return elts;
+//            }
+//        }
+//        return Collections.EMPTY_LIST;
+//    }
 
   
     /**

@@ -300,9 +300,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				break;
 				
 			case TokenNameCOLON:
-				if (!inAspect) {
-					break;
-				} else if (inFor) {
+			    if (inFor) {
 					break;
 				} else if (questionMarkCount > 0) {
 					questionMarkCount--;

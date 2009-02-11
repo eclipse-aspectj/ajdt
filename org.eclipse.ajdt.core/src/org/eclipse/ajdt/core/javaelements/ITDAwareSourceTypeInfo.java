@@ -18,6 +18,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
@@ -150,9 +151,17 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     // null if the ITD doesn't exist in the AspectJ hierarchy
                     // will happen if the Java side has partial compilation 
                     // and aspectj side does not
-                    if (member != null) { 
+                    if (member != null) {
+                        
+                        // should not add this ITD if it is a duplicate
+                        // of another ITD
+                        if (!isAlreadyAnITD(itds, member)) {
+                            continue;
+                        }
+                        
                         itds.add(member);
 
+                        // additional processing for interfaces
                         if (handle.isInterface()) {
                             shouldRemoveInterfaceFlag = true;
                             
@@ -209,6 +218,38 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return itds;
         } 
         return Collections.EMPTY_LIST;
+    }
+
+    private boolean isAlreadyAnITD(List itds, IMember member) {
+        boolean shouldAdd = true;
+        
+        if (member.getElementType() == IJavaElement.FIELD) {
+            for (Iterator itdIter = itds.iterator(); itdIter
+                    .hasNext();) {
+                IJavaElement itdElt = (IJavaElement) itdIter.next();
+                if (itdElt instanceof IField) {
+                    IField itdField = (IField) itdElt;
+                    if (member.getElementName().equals(itdField.getElementName())) {
+                        // may not be same type, but we want to avoid conflicts, so remove
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+            }
+        } else if (member.getElementType() == IJavaElement.METHOD) {
+            for (Iterator itdIter = itds.iterator(); itdIter
+                    .hasNext();) {
+                IJavaElement itdElt = (IJavaElement) itdIter.next();
+                if (itdElt instanceof IMethod) {
+                    IMethod itdMethod = (IMethod) itdElt;
+                    if (itdMethod.isSimilar((IMethod) member)) {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return shouldAdd;
     }
 
     private SourceType createITDAwareType(SourceType type, ITDAwareSourceTypeInfo info) {

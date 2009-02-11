@@ -91,6 +91,12 @@ public class IntertypeElement extends AspectJMemberElement {
 	}
 	
 	/**
+     * note that we set the accessibility to public because the modifiers 
+     * apply to the ITD element, not the target declaration.
+     * We are purposely being too liberal with the modifiers so that
+     * we don't get accessibility problems when an ITD is declared private
+     * and is used in the Aspect CU that declares it.
+     * 
 	 * @param parent the type that this element declares on
 	 * @return a mock element representing the element that was introduced
 	 */
@@ -100,15 +106,16 @@ public class IntertypeElement extends AspectJMemberElement {
             boolean isConstructor = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR;
             boolean isMethod = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD;
             boolean isField = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_FIELD;
+            
             if (isConstructor) {
                 IMethod itd = new SourceMethod(
                         (JavaElement) parent, 
                         parent.getElementName(), 
-                        this.getParameterTypes()) {
+                        this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
                         ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setFlags(info.getDeclaredModifiers());
+                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setArgumentNames(info.getArgumentNames());
@@ -126,12 +133,12 @@ public class IntertypeElement extends AspectJMemberElement {
                 IMethod itd = new SourceMethod(
                         (JavaElement) parent, 
                         name.split("\\.")[1], 
-                        this.getParameterTypes()) {
+                        this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
                         ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
                         newInfo.setReturnType(info.getReturnTypeName());
-                        newInfo.setFlags(info.getDeclaredModifiers());
+                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setArgumentNames(info.getArgumentNames());
@@ -152,10 +159,10 @@ public class IntertypeElement extends AspectJMemberElement {
                     protected Object createElementInfo() {
                         ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setFlags(info.getDeclaredModifiers());
+                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
-                        newInfo.setTypeName(info.getReturnTypeName());
+                        newInfo.setTypeName(getQualifiedReturnTypeName(info));
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
                         return newInfo;
@@ -171,11 +178,44 @@ public class IntertypeElement extends AspectJMemberElement {
         return null;
 	}
 	
-	private char[][] listStringsToCharArrays(List/*String*/ strings) {
+	private String[] getQualifiedParameterTypes() {
+	    IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+	    if (ipe != IHierarchy.NO_STRUCTURE) {
+	        return listCharsToStringArray(ipe.getParameterSignatures());
+	    } else {
+	        return getParameterTypes();
+	    }
+    }
+	
+    private char[] getQualifiedReturnTypeName(IntertypeElementInfo info) {
+        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+        if (ipe != IHierarchy.NO_STRUCTURE) {
+            return ipe.getCorrespondingType(true).toCharArray();
+        } else {
+            return info.getReturnTypeName();
+        }
+    }
+
+
+	private String[] listCharsToStringArray(List/*char[]*/ chars) {
+	    if (chars != null) {
+	        String[] result = new String[chars.size()];
+	        int index = 0;
+	        for (Iterator charsIter = chars.iterator(); charsIter.hasNext(); index++) {
+                char[] c = (char[]) charsIter.next();
+                result[index] = new String(c);
+                result[index] = result[index].replaceAll("/", ".");
+            }
+	        return result;
+	    }
+	    return new String[0];
+	}
+	
+    private char[][] listStringsToCharArrays(List/*String*/ strings) {
 	    if (strings != null) {
     	    char[][] result = new char[strings.size()][];
     	    int index = 0;
-    	    for (Iterator stringIter = strings.iterator(); stringIter.hasNext();) {
+    	    for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
                 String string = (String) stringIter.next();
                 result[index] = string.toCharArray();
             }
@@ -184,18 +224,18 @@ public class IntertypeElement extends AspectJMemberElement {
 	    return new char[0][];
 	}
 	
-	   private char[][] listCharsToCharArrays(List/*char[]*/ strings) {
-	        if (strings != null) {
-	            char[][] result = new char[strings.size()][];
-	            int index = 0;
-	            for (Iterator stringIter = strings.iterator(); stringIter.hasNext();) {
-	                char[] string = (char[]) stringIter.next();
-	                result[index] = string;
-	            }
-	            return result;
-	        }
-	        return new char[0][];
-	    }
+   private char[][] listCharsToCharArrays(List/*char[]*/ strings) {
+        if (strings != null) {
+            char[][] result = new char[strings.size()][];
+            int index = 0;
+            for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
+                char[] string = (char[]) stringIter.next();
+                result[index] = string;
+            }
+            return result;
+        }
+        return new char[0][];
+    }
 
 	
 	/**
