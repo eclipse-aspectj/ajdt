@@ -38,6 +38,20 @@ public aspect CompilationUnitProviderAspect {
     CompilationUnit around(PackageFragment parent, String name, WorkingCopyOwner owner) : 
         compilationUnitCreations(parent, name, owner) {
         
+        String extension = findExtension(name);
+        ICompilationUnitProvider provider = 
+            CompilationUnitProviderRegistry.getInstance().getProvider(extension);
+        if (provider != null) {
+            try {
+                return provider.create(parent, name, owner);
+            } catch (Throwable t) {
+                JDTWeavingPlugin.logException(t);
+            }
+        }        
+        return proceed(parent, name, owner);
+    }
+
+    private String findExtension(String name) {
         int mementoIndex = name.indexOf('}');
         int extensionIndex = name.lastIndexOf('.');
         String extension;
@@ -50,15 +64,7 @@ public aspect CompilationUnitProviderAspect {
         } else {
             extension = ""; //$NON-NLS-1$
         }
-        ICompilationUnitProvider provider = CompilationUnitProviderRegistry.getInstance().getProvider(extension);
-        if (provider != null) {
-            try {
-                return provider.create(parent, name, owner);
-            } catch (Throwable t) {
-                JDTWeavingPlugin.logException(t);
-            }
-        }        
-        return proceed(parent, name, owner);
+        return extension;
     }
     
 }
