@@ -627,7 +627,9 @@ public class AJCompilationUnitProblemFinder extends
 
     private static boolean insideITD(CategorizedProblem categorizedProblem,
             CompilationUnit unit) throws JavaModelException {
+        System.out.println("HHH Test Problem finding");
         IJavaElement elementAt = unit.getElementAt(categorizedProblem.getSourceStart());
+        System.out.println("element is: " + elementAt);
         return elementAt instanceof IntertypeElement ||
                elementAt instanceof DeclareElement;
     }

@@ -203,6 +203,9 @@ public class IntertypeElement extends AspectJMemberElement {
 	        int index = 0;
 	        for (Iterator charsIter = chars.iterator(); charsIter.hasNext(); index++) {
                 char[] c = (char[]) charsIter.next();
+                if (c[0] == 'P') { // JDT does not use 'P' for parameterized types
+                    c[0] = 'L';
+                }
                 result[index] = new String(c);
                 result[index] = result[index].replaceAll("/", ".");
             }
