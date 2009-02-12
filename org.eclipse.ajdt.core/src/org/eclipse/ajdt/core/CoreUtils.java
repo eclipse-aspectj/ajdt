@@ -301,4 +301,74 @@ public class CoreUtils {
 	        }
 	        return false;
 	    }
+
+    /**
+     * Converts an AspectJ style signature in chars to 
+     * a Java style signature as an array of String
+     * 
+     * Replace the 'P' for parameterized to 'L' for resolved
+     */
+    public static String[] listAJSigToJavaSig(List/*char[]*/ chars) {
+        if (chars != null) {
+            String[] result = new String[chars.size()];
+            int index = 0;
+            for (Iterator charsIter = chars.iterator(); charsIter.hasNext(); index++) {
+                char[] c = (char[]) charsIter.next();
+                if (c == null) {
+                    result[index] = "";
+                    continue;
+                }
+                boolean wasLessThan = true;
+                for (int i = 0; i < c.length; i++) {
+                    if (wasLessThan) {
+                        if (c[i] == 'P') { // Java spec does not use 'P' for parameterized types, AspectJ does
+                            c[i] = 'L';
+                        }
+                        wasLessThan = false;
+                    } else {
+                        switch (c[i]) {
+                            case '<':
+                                wasLessThan = true;
+                                break;
+                                
+                            case '/':
+                                c[i] = '.';
+    	                        wasLessThan = false;
+                                break;
+                        }
+                    }
+                }
+                
+                result[index] = new String(c);
+            }
+            return result;
+        }
+        return new String[0];
+    }
+
+    public static char[][] listStringsToCharArrays(List/*String*/ strings) {
+        if (strings != null) {
+    	    char[][] result = new char[strings.size()][];
+    	    int index = 0;
+    	    for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
+                String string = (String) stringIter.next();
+                result[index] = string != null ? string.toCharArray() : "".toCharArray();
+            }
+    	    return result;
+        }
+        return new char[0][];
+    }
+
+    public static char[][] listCharsToCharArrays(List/*char[]*/ strings) {
+        if (strings != null) {
+            char[][] result = new char[strings.size()][];
+            int index = 0;
+            for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
+                char[] string = (char[]) stringIter.next();
+                result[index] = string != null ? string : "".toCharArray();
+            }
+            return result;
+        }
+        return new char[0][];
+    }
 }

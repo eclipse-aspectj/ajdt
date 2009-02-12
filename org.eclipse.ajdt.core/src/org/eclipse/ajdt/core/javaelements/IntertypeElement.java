@@ -10,12 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import java.util.Iterator;
-import java.util.List;
 
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IMember;
@@ -58,8 +57,8 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setNameSourceStart(sourceLocation.getOffset());
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
-            info.setArgumentNames(listStringsToCharArrays(ipe.getParameterNames()));
-            info.setArgumentTypeNames(listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
+            info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
+            info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
             info.setReturnType(ipe.getCorrespondingType(true).toCharArray());
 	    } else {
 	        // no successful build yet, we don't know the contents
@@ -132,7 +131,7 @@ public class IntertypeElement extends AspectJMemberElement {
             } else if (isMethod) {
                 IMethod itd = new SourceMethod(
                         (JavaElement) parent, 
-                        name.split("\\.")[1], 
+                        extractName(), 
                         this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
                         ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this);
@@ -155,7 +154,7 @@ public class IntertypeElement extends AspectJMemberElement {
 
             } else if (isField) {
                 // field
-                IField itd = new SourceField((JavaElement) parent, name.split("\\.")[1]) {
+                IField itd = new SourceField((JavaElement) parent, extractName()) {
                     protected Object createElementInfo() {
                         ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
@@ -177,11 +176,16 @@ public class IntertypeElement extends AspectJMemberElement {
         }
         return null;
 	}
+
+    private String extractName() {
+        String[] split = name.split("\\.");
+        return split.length > 1 ? split[1] : name;
+    }
 	
 	private String[] getQualifiedParameterTypes() {
 	    IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
 	    if (ipe != IHierarchy.NO_STRUCTURE) {
-	        return listCharsToStringArray(ipe.getParameterSignatures());
+	        return CoreUtils.listAJSigToJavaSig(ipe.getParameterSignatures());
 	    } else {
 	        return getParameterTypes();
 	    }
@@ -197,51 +201,7 @@ public class IntertypeElement extends AspectJMemberElement {
     }
 
 
-	private String[] listCharsToStringArray(List/*char[]*/ chars) {
-	    if (chars != null) {
-	        String[] result = new String[chars.size()];
-	        int index = 0;
-	        for (Iterator charsIter = chars.iterator(); charsIter.hasNext(); index++) {
-                char[] c = (char[]) charsIter.next();
-                if (c[0] == 'P') { // JDT does not use 'P' for parameterized types
-                    c[0] = 'L';
-                }
-                result[index] = new String(c);
-                result[index] = result[index].replaceAll("/", ".");
-            }
-	        return result;
-	    }
-	    return new String[0];
-	}
-	
-    private char[][] listStringsToCharArrays(List/*String*/ strings) {
-	    if (strings != null) {
-    	    char[][] result = new char[strings.size()][];
-    	    int index = 0;
-    	    for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
-                String string = (String) stringIter.next();
-                result[index] = string.toCharArray();
-            }
-    	    return result;
-	    }
-	    return new char[0][];
-	}
-	
-   private char[][] listCharsToCharArrays(List/*char[]*/ strings) {
-        if (strings != null) {
-            char[][] result = new char[strings.size()][];
-            int index = 0;
-            for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
-                char[] string = (char[]) stringIter.next();
-                result[index] = string;
-            }
-            return result;
-        }
-        return new char[0][];
-    }
-
-	
-	/**
+    /**
 	 * @author andrew
 	 * just expose all the protected setter methods
 	 */
