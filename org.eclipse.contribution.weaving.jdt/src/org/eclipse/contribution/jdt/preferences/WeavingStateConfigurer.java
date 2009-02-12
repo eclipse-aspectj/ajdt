@@ -26,6 +26,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 /**
@@ -36,7 +38,7 @@ import org.osgi.framework.Version;
  */
 public class WeavingStateConfigurer {
     
-    private final static Version MIN_WEAVER_VERSION = new Version(1, 6, 3);
+    private final static Version MIN_WEAVER_VERSION = new Version(1, 6, 1);
 
     private final static boolean IS_WEAVING = IsWovenTester.isWeavingActive();
 
@@ -52,7 +54,7 @@ public class WeavingStateConfigurer {
 //                return "AspectJ weaver version " + weaver.getVersion().toString() + " OK!";
             } else {
                 return "No compatible version of org.aspectj.weaver found.  " +
-                "JDT Weaving requires 1.6.3 or higher.  Found version " +
+                "JDT Weaving requires 1.6.1 or higher.  Found version " +
                 weaver.getVersion();
             }
         } else {
@@ -61,28 +63,78 @@ public class WeavingStateConfigurer {
     }
     
     public IStatus changeWeavingState(boolean becomeEnabled) {
-      
-      // a little crude
-      // find the config.ini
-      // go through each line and filter out the osgi.framework.extensions line
-      String configArea = getConfigArea();
-      IStatus success;
-      try {
-          File f = new File(new URI(configArea));
-          BufferedReader br = new BufferedReader(new FileReader(f));
-          String newConfig = internalChangeWeavingState(becomeEnabled, br);
-          BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-          bw.write(newConfig);
-          bw.close();
-          
-          success = new Status(IStatus.OK, JDTWeavingPlugin.ID,
-                  "Weaving service successfully "
-                  + (isWeaving() ? "DISABLED" : "ENABLED"));
-      } catch (Exception e) {
-          success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, e.getMessage(), e);
-      }
+        // now, weaving service is controlled by 
+        // starting and stopping weaving.aspectj bundle
+        // this method is used only to ensure the hook exists
+        IStatus success;
+        boolean isCurrentlyWeaving = false;
+        try {
+            isCurrentlyWeaving = currentConfigStateIsWeaving();
+        } catch (Exception e) {
+            JDTWeavingPlugin.logException(e);
+        }
+        if (becomeEnabled && !isCurrentlyWeaving) {
+            success = changeConfigDotIni(becomeEnabled);
+        } else {
+            // do nothing
+            success = Status.OK_STATUS;
+        }
+        
+        
+        IStatus success2 = changeAutoStartupAspectsBundle(becomeEnabled);
+        if (success != Status.OK_STATUS) {
+            return success;
+        } else if (success2 != Status.OK_STATUS) {
+            return success2;
+        } else {
+            return new Status(IStatus.OK, JDTWeavingPlugin.ID,
+                    "Weaving service successfully "
+                    + (becomeEnabled ? "ENABLED" : "DISABLED"));
+        } 
+    }
 
-      return success;
+    private IStatus changeAutoStartupAspectsBundle(boolean becomeEnabled) {
+        Bundle b = Platform.getBundle("org.eclipse.equinox.weaving.aspectj"); //$NON-NLS-1$
+        if (b == null) {
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Could not find org.eclipse.equinox.weaving.aspectj" +
+            		" so weaving service cannot be " + 
+            		(becomeEnabled ? "enabled" : "disabled") + ".");
+        }
+        try {
+            if (becomeEnabled) {
+                b.start();
+            } else {
+                b.stop();
+            }
+            return Status.OK_STATUS;
+        } catch (BundleException e) {
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Error occurred org.eclipse.equinox.weaving.aspectj" +
+                    " so weaving service cannot be " + 
+                    (becomeEnabled ? "enabled" : "disabled") + ".", e);
+        }
+    }
+
+    private IStatus changeConfigDotIni(boolean becomeEnabled) {
+        
+        // a little crude find the config.ini go through each 
+        // line and filter out the osgi.framework.extensions line
+        IStatus success;
+        try {
+            String configArea = getConfigArea();
+            File f = new File(new URI(configArea));
+            BufferedReader br = new BufferedReader(new FileReader(f));
+            
+            String newConfig = internalChangeWeavingState(becomeEnabled, br);
+            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+            bw.write(newConfig);
+            bw.close();
+
+            success = Status.OK_STATUS;
+        } catch (Exception e) {
+            success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, e
+                    .getMessage(), e);
+        }
+        return success;
     }
 
     protected String internalChangeWeavingState(boolean becomeEnabled, 
