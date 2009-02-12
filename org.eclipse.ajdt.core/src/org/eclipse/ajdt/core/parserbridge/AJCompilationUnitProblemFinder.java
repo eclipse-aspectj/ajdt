@@ -292,7 +292,7 @@ public class AJCompilationUnitProblemFinder extends
         } catch (RuntimeException e) {
             // avoid breaking other tools due to internal compiler failure
             // (40334)
-            String lineDelimiter = unitElement.findRecommendedLineSeparator();
+            String lineDelimiter = org.eclipse.jdt.internal.compiler.util.Util.LINE_SEPARATOR;
             StringBuffer message = new StringBuffer(
                     "Exception occurred during problem detection:"); //$NON-NLS-1$ 
             message.append(lineDelimiter);
@@ -301,7 +301,6 @@ public class AJCompilationUnitProblemFinder extends
             message.append(unitElement.getSource());
             message.append(lineDelimiter);
             message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
-            Util.log(e, message.toString());
             throw new JavaModelException(e,
                     IJavaModelStatusConstants.COMPILER_FAILURE);
         } finally {
