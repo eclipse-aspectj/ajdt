@@ -11,6 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -62,5 +65,36 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 				out.length);
 		assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
 				out[0].toString().endsWith("bin")); //$NON-NLS-1$
+	}
+	
+	public void testListAJSigToJavaSig1() throws Exception {
+	    List orig = new ArrayList();
+        orig.add("PPPP///<P<<".toCharArray());
+        orig.add("LLLPPPP///<P<<LP".toCharArray());
+        orig.add("......P<LP<P".toCharArray());
+        orig.add("".toCharArray());
+        orig.add(null);
+        
+        String[] expected = new String[] {
+                "LPPP...<L<<",
+                "LLLPPPP...<L<<LP",
+                "......P<LP<L",
+                "",
+                ""
+        };
+        
+        String[] result = CoreUtils.listAJSigToJavaSig(orig);
+        assertEquals("Result of listAJSigToJavaSig should be the same number of Strings as orig",
+                expected.length, result.length);
+        
+        for (int i = 0; i < result.length; i++) {
+            assertEquals("listAJSigToJavaSig did not convert to Java signature properly.", 
+                    expected[i], result[i]);
+        }
+        
+        result = CoreUtils.listAJSigToJavaSig(null);
+        
+        assertEquals("listAJSigToJavaSig did not convert to Java signature properly.", 0,
+                result.length);
 	}
 }
