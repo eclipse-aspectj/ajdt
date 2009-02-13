@@ -205,14 +205,22 @@
 	<target name="preAssemble">
 		<!-- Copy Equinox Aspects to its final resting place -->
 		<!-- Must copy to both repository and the update site directories -->
-<!--		<mkdir dir="${buildDirectory}/repository"/>
-		<unzip dest="${buildDirectory}/repository">
-			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
+		<property name="UpdateSiteStagingLocation" value="${buildDirectory}/updateSite"/>	
+	  <mkdir dir="${UpdateSiteStagingLocation}"/>
+		<unzip dest="${UpdateSiteStagingLocation}">
+			<fileset file="${builder}/equinox-aspects.zip"/>
 		</unzip>
--->
-		<unzip dest="${buildDirectory}/updateSite">
-			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
-		</unzip>
+
+		<property file="${buildDirectory}/finalFeaturesVersions.properties"/>
+		<property file="${UpdateSiteStagingLocation}/equinox.aspects.feature.properties"/>
+
+		<!-- replace feature versions to force feature dependencies -->
+		<property file="${buildDirectory}/finalFeaturesVersions.properties"/>
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="0.0.0.AJFVERSION" value="${org.eclipse.ajdt}"/>
+		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
+			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving}"/>
+		
 	</target>
 
 	<!-- ===================================================================== -->
@@ -244,7 +252,6 @@
 
 	<target name="generateUpdateSite">
 	  <!-- Create the directory structure -->
-	  <mkdir dir="${UpdateSiteStagingLocation}"/>
 	  <mkdir dir="${UpdateSiteStagingLocation}/features"/>
 	  <mkdir dir="${UpdateSiteStagingLocation}/plugins"/>
 	  <!-- Build the jar files -->
@@ -255,8 +262,15 @@
 	  <!-- add site.xml -->
 	  <copy file="${builder}/site.xml" tofile="${UpdateSiteStagingLocation}/site.xml"/>
 		
+		<property file="${buildDirectory}/finalFeaturesVersions.properties"/>
+		<property file="${UpdateSiteStagingLocation}/equinox.aspects.feature.properties"/>
+				
 		<replace file="${UpdateSiteStagingLocation}/site.xml"
-			token="@EAVERSION@" value="${equinox.aspects.version}"/>
+			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving}"/>
+    <replace file="${UpdateSiteStagingLocation}/site.xml" token="0.0.0.AJFVERSION"            
+	       value="${org.eclipse.ajdt}"/>
+		
+		<delete file="${UpdateSiteStagingLocation}/equinox.aspects.feature.properties"/>
 
 	</target>
 	
