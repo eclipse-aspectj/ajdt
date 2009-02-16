@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -39,6 +40,11 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testCreateElementFromHandle() throws Exception {
+	    
+	    if (!IsWovenTester.isWeavingActive()) {
+	        fail("This test requires JDT Weaving service to be enabled");
+	    }
+	    
 		createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
@@ -68,7 +74,11 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testCreateElementFromHandle2() throws Exception {
-		createPredefinedProject("Bean Example"); //$NON-NLS-1$
+        if (!IsWovenTester.isWeavingActive()) {
+            fail("This test requires JDT Weaving service to be enabled");
+        }
+        
+        createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I"; //$NON-NLS-1$
 		if ((EclipseVersion.MAJOR_VERSION == 3)
 				&& (EclipseVersion.MINOR_VERSION == 0)) {
@@ -113,7 +123,11 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testCreateElementFromHandle3() throws Exception {
-		createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+        if (!IsWovenTester.isWeavingActive()) {
+            fail("This test requires JDT Weaving service to be enabled");
+        }
+        
+        createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
 		// element>
