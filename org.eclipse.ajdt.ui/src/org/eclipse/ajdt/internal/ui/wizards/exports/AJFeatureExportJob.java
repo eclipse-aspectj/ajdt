@@ -56,7 +56,7 @@ public class AJFeatureExportJob extends Job {
 			final Display display = getStandardDisplay();
 			display.asyncExec(new Runnable() {
 				public void run() {
-					ErrorDialog.openError(display.getActiveShell(), PDEUIMessages.FeatureExportJob_error, PDEUIMessages.FeatureExportJob_problems, e.getStatus()); // 
+					ErrorDialog.openError(display.getActiveShell(), "Export feature error", "Problems exporting feature.", e.getStatus()); // 
 					done(new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null)); //$NON-NLS-1$
 				}
 			});

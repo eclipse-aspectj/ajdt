@@ -56,7 +56,7 @@ public class OpenAJJarPackageWizardActionDelegate extends AJJarPackageActionDele
             MessageDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_title, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_message + errorDetail); 
             return;
         } catch (SAXException ex) {
-            errorDetail= JarPackagerMessages.OpenJarPackageWizardDelegate_badXmlFormat + ex.getLocalizedMessage(); 
+            errorDetail= "Bad XML Format: " + ex.getLocalizedMessage(); 
             MessageDialog.openError(parent, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_title, JarPackagerMessages.OpenJarPackageWizardDelegate_error_openJarPackager_message + errorDetail); 
             return;
         }
