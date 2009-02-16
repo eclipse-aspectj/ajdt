@@ -24,12 +24,14 @@ import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
 import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
+import org.eclipse.ajdt.core.tests.builder.DerivedTests;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
+import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest2;
@@ -39,9 +41,9 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
-import org.eclipse.ajdt.core.tests.reconciling.ProblemFinderTests;
-import org.eclipse.ajdt.core.tests.reconciling.ProblemFinderTests2;
+import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.ajdt.core.tests.weaving.ITDAwareHierarchyTests;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -81,6 +83,9 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(AJProjectModelTest2.class));
 		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
+		suite.addTest(new TestSuite(ModelCheckerTests.class));
+		suite.addTest(new TestSuite(AspectJMemberElementTest.class));
+        
 		
 		// core compiler configuration
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests.class));
@@ -98,18 +103,16 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(Bug99133Test.class));
         suite.addTest(new TestSuite(Bug159197Test.class));
         suite.addTest(new TestSuite(Bug43711Test.class));
+        suite.addTest(new TestSuite(DerivedTests.class));
 
 		// AST tests
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
 		
 		// refactoring tests
 		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
+
 		
-		// reconciling and eager parsing tests
-		// these tests work on my local machine but don't work on the server.
-		// commenting out for now
-//        suite.addTest(new TestSuite(ProblemFinderTests.class));
-//        suite.addTest(new TestSuite(ProblemFinderTests2.class));
+		suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
 		
 		return suite;
 	}
