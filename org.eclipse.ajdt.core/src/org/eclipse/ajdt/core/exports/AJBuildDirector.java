@@ -111,7 +111,7 @@ public class AJBuildDirector extends BuildDirector {
 
 	
 	private void generateChildrenScripts(BuildTimeFeature feature) throws CoreException {
-		List plugins = computeElements(feature);
+		Set plugins = computeElements(feature);
 		String suffix = generateFeatureVersionSuffix(feature);
 		if (suffix != null) {
 			Version versionId = new Version(feature.getVersion());
@@ -128,19 +128,19 @@ public class AJBuildDirector extends BuildDirector {
 
 	
 	// execute private method
-	private static Method generateFeatureVersionSuffixMethod;
-	private String generateFeatureVersionSuffix(BuildTimeFeature buildFeature) throws CoreException {
-		try {
-			if (generateFeatureVersionSuffixMethod == null) {
-				generateFeatureVersionSuffixMethod = BuildDirector.class.getDeclaredMethod(
-						"generateFeatureVersionSuffix", new Class[]{ BuildTimeFeature.class } );
-				generateFeatureVersionSuffixMethod.setAccessible(true);
-			}
-			return (String) generateFeatureVersionSuffixMethod.invoke(this, new Object[] { buildFeature });
-		} catch (Exception e) {
-		}
-		return null;
-	}
+//	private static Method generateFeatureVersionSuffixMethod;
+//	private String generateFeatureVersionSuffix(BuildTimeFeature buildFeature) throws CoreException {
+//		try {
+//			if (generateFeatureVersionSuffixMethod == null) {
+//				generateFeatureVersionSuffixMethod = BuildDirector.class.getDeclaredMethod(
+//						"generateFeatureVersionSuffix", new Class[]{ BuildTimeFeature.class } );
+//				generateFeatureVersionSuffixMethod.setAccessible(true);
+//			}
+//			return (String) generateFeatureVersionSuffixMethod.invoke(this, new Object[] { buildFeature });
+//		} catch (Exception e) {
+//		}
+//		return null;
+//	}
 	
 	/**
 	 * Sets the scriptGeneration.

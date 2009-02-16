@@ -103,9 +103,9 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	}
 
 	public ISourceRange getSourceRange() {
-		if (fSourceRangeEnd == 0)
-			return new SourceRange(fSourceRangeStart, name.length);
-		return new SourceRange(fSourceRangeStart, fSourceRangeEnd - fSourceRangeStart + 1);
+		if (sourceRangeEnd == 0)
+			return new SourceRange(sourceRangeStart, name != null ? name.length : 0);
+		return new SourceRange(sourceRangeStart, sourceRangeEnd - sourceRangeStart + 1);
 	}
 
 	public void setSourceRangeEnd(int end) {
@@ -116,11 +116,11 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		if ((this instanceof PointcutElementInfo) && (end == 0)) {
 			return;
 		}
-		fSourceRangeEnd = end;
+		sourceRangeEnd = end;
 	}
 	
 	public void setSourceRangeStart(int start) {
-		fSourceRangeStart = start;
+		sourceRangeStart = start;
 	}
 	
 	public void setFlags(int flags) {

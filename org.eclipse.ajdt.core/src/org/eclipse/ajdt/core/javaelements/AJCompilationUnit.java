@@ -21,7 +21,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
-import org.eclipse.ajdt.core.codeconversion.ITDAwareCancelableNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
@@ -133,7 +133,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	public char[] getMainTypeName(){
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getMainTypeName();
 		}
 		String elementName = name;
@@ -172,7 +172,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	public IResource getResource(){
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getResource();
 		}
 		return ajFile;
@@ -182,14 +182,14 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * needs to return real path for organize imports 
 	 */
 	public IPath getPath() {
-		if (AspectJPlugin.usingCUprovider || ajFile == null) {
+		if (AspectJPlugin.USING_CU_PROVIDER || ajFile == null) {
 			return super.getPath();
 		}
 		return ajFile.getFullPath();
 	}
 	
 	public IResource getUnderlyingResource() throws JavaModelException {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getUnderlyingResource();
 		}
 		return ajFile;
@@ -199,15 +199,66 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (!(info instanceof AJCompilationUnitInfo)){
 			info = new AJCompilationUnitInfo();
 		}
-		super.generateInfos(info, newElements, monitor);
+		// only generate infos if on build path of the project.
+		if (getJavaProject().isOnClasspath(this)) {
+		    super.generateInfos(info, newElements, monitor);
+		}
 	}
+	
+
+	/**
+	 * return the type as an aspect if it exists
+	 */
+	public IType getType(String typeName) {
+	    IType maybeType = findAspectType(typeName);
+	    if (maybeType != null && maybeType.exists()) {
+	        return maybeType;
+	    }
+        return super.getType(typeName);
+    }
+	
+	/**
+	 * return null if doesn't exist or an error
+	 * return type otherwise Might be an aspect
+	 */
+	public IType findAspectType(String typeName) {
+	    try {
+            IJavaElement[] children = getChildren();
+            for (int i = 0; i < children.length; i++) {
+                if (children[i].getElementType() == TYPE) {
+                    if (children[i].getElementName().equals(typeName)) {
+                        return (IType) children[i];  // might be an aspect
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+        }
+        return null;
+	}
+	    
+	
+	
+	/**
+	 * return as aspect if it is an aspect, or class/interface if it is that
+	 * performs a deep search
+	 * returns null if doesn't exist
+	 */
+	public IType maybeConvertToAspect(IType maybeAspect) {
+	    IJavaElement[] elts = maybeAspect.getCompilationUnit().findElements(maybeAspect);
+	    if (elts != null && elts.length > 0 && elts[0] instanceof AspectElement) {
+	        return (IType) elts[0];
+	    }
+	    return maybeAspect;
+    }
+    
+	
 	
 	/**
 	 * builds the structure of this Compilation unit.  We need to use an aspect-aware parser for this (in the org.aspectj.org.eclipse... world, which
 	 * makes things a little messy
 	 */
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info;
+	    AJCompilationUnitInfo unitInfo = (AJCompilationUnitInfo) info; 
 
        if(ajFile == null) {
            return false;
@@ -583,13 +634,16 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	private static final String moveCuUpdateCreator = "org.eclipse.jdt.internal.corext.refactoring.reorg.MoveCuUpdateCreator"; //$NON-NLS-1$
 	private static final int lenOfMoveCuUpdateCreator = moveCuUpdateCreator.length();
-	
+
 	public IType[] getAllTypes() throws JavaModelException {
-		//tell MoveCuUpdateCreator that we do not contain any Types, otherwise it tries to find
-		//them using java search which will cause an ugly exception
-		String caller = (new RuntimeException()).getStackTrace()[1].getClassName();
-		if ((lenOfMoveCuUpdateCreator == caller.length()) && moveCuUpdateCreator.equals(caller))
-			return new IType[0];
+	    if (!AspectJPlugin.USING_CU_PROVIDER) {
+	        //tell MoveCuUpdateCreator that we do not contain any Types, otherwise it tries to find
+	        //them using java search which will cause an ugly exception
+    		String caller = (new RuntimeException()).getStackTrace()[1].getClassName();
+    		if ((lenOfMoveCuUpdateCreator == caller.length()) && moveCuUpdateCreator.equals(caller)) {
+    			return new IType[0];
+    		}
+	    }
 		return super.getAllTypes();
 	}
 
@@ -598,7 +652,6 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * 
      * A description of how code completion works in AJDT can be found in bug 74419.
      * 
-	 *  (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
 	 */
 	protected void codeComplete(
@@ -606,7 +659,8 @@ public class AJCompilationUnit extends CompilationUnit{
 			org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
 			int position, CompletionRequestor requestor,
 			WorkingCopyOwner owner,
-			ITypeRoot typeRoot) throws JavaModelException {
+			ITypeRoot typeRoot,
+            IProgressMonitor monitor) throws JavaModelException {
 	    // Bug 76146
 	    // if we are not editing in an AspectJ editor 
 	    // (i.e., we are editing in a Java editor), 
@@ -614,7 +668,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	    // and we cannot perform code completion requests.
 	    if (!isEditingInAspectJEditor()) return;
     
-	    ConversionOptions myConversionOptions; int pos;
+	    int transformedPos;
 		
 		if(javaCompBuffer == null) {
 			convertBuffer(super.getBuffer());
@@ -623,34 +677,39 @@ public class AJCompilationUnit extends CompilationUnit{
 		
 		//check if inside intertype method declaration
 		char[] targetType = getITDTargetType(position);
-		if (targetType != null){
+        if (targetType != null){
+			// we are inside an intertype method declaration
+            // perform content assist twice.  once with the context switch (ie- pretend to be in the ITD target type
+            // and once in the context of the aspect.
+            
+            // simulate context switch to target class
+			javaCompBuffer.setConversionOptions(ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType));
+			transformedPos = javaCompBuffer.translatePositionToFake(position);
 			
-			//we are inside an intertype method declaration -> simulate context switch to target class
-			myConversionOptions = ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType);
-			javaCompBuffer.setConversionOptions(myConversionOptions);
-			pos = javaCompBuffer.translatePositionToFake(position);
-			// we call codeComplete twice in this case to combine the context specific completions with the
-			// completions for things like local variables.
-			internalCodeComplete(cu, unitToSkip, pos, requestor, owner, this);				
-			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
+			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this, monitor);
+			
+            // now set up for the regular code completion
+            javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
+
+            //set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
+			
 		} else {
-			requestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+		    javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
+		    requestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
 		}
-		myConversionOptions = ConversionOptions.CODE_COMPLETION;
+        transformedPos = javaCompBuffer.translatePositionToFake(position);
 		
-		javaCompBuffer.setConversionOptions(myConversionOptions);
-		pos = javaCompBuffer.translatePositionToFake(position);
-		
-		internalCodeComplete(cu, unitToSkip, pos, requestor, owner, this);
+		internalCodeComplete(cu, unitToSkip, transformedPos, requestor, owner, this, monitor);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
 	}
 	
 	/**
 	 * this method is a copy of {@link Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, CompletionRequestor, WorkingCopyOwner, ITypeRoot)}
-	 * The only change is that we need to create an {@link ITDAwareCancelableNameEnvironment}, not  standard {@link SearchableEnvironment}.
+	 * The only change is that we need to create an {@link ITDAwareNameEnvironment}, not  standard {@link SearchableEnvironment}.
      * 
 	 * @param cu
 	 * @param unitToSkip
@@ -665,7 +724,8 @@ public class AJCompilationUnit extends CompilationUnit{
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
-            ITypeRoot typeRoot) throws JavaModelException {
+            ITypeRoot typeRoot,
+            IProgressMonitor monitor) throws JavaModelException {
 
 	    if (requestor == null) {
 	        throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
@@ -684,13 +744,12 @@ public class AJCompilationUnit extends CompilationUnit{
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
 	    JavaProject project = (JavaProject) getJavaProject();
-	    ITDAwareCancelableNameEnvironment environment = new ITDAwareCancelableNameEnvironment((JavaProject) getJavaProject(), owner, null);
+	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor);
 
-	    // set unit to skip
 	    environment.setUnitToSkip(unitToSkip);
 
 	    // code complete
-	    CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner);
+	    CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner, monitor);
 	    engine.complete(cu, position, 0, typeRoot);
 	    if(performanceStats != null) {
 	        performanceStats.endRun();
@@ -810,18 +869,20 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * @see JavaElement#getHandleMementoDelimiter()
 	 */
 	protected char getHandleMementoDelimiter() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleMementoDelimiter();
 		}
 		return AspectElement.JEM_ASPECT_CU;
 	}
 	
 	public String getHandleIdentifier() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.USING_CU_PROVIDER) {
 			return super.getHandleIdentifier();
 		}
-		String callerName = (new RuntimeException()).getStackTrace()[1]
-				.getClassName();
+		
+		// this horrid code only exists so that when we are not using the weaving service,
+		// we don't get exceptions on refactoring
+		String callerName = (new RuntimeException()).getStackTrace()[1].getClassName();
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		// are we being called in the context of a delete operation?
 		if (callerName.equals(deletionClass)) {

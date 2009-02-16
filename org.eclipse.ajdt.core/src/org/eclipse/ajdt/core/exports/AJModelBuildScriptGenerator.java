@@ -104,7 +104,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			this.excludedFromJar = excludedFromJar;
 		}
 
-		protected String getName(boolean resolved) {
+		public String getName(boolean resolved) {
 			if (!resolved)
 				return name;
 

@@ -37,15 +37,12 @@ public class PointcutElement extends AspectJMemberElement {
 	    info.setName(this.getElementName().toCharArray());
 	    info.setAJAccessibility(ipe.getAccessibility());
         ISourceLocation sourceLocation = ipe.getSourceLocation();
-        info.setSourceRangeStart(sourceLocation.getOffset());
-        info.setNameSourceStart(sourceLocation.getOffset());
-        info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+        if (sourceLocation != null) {
+            info.setSourceRangeStart(sourceLocation.getOffset());
+            info.setNameSourceStart(sourceLocation.getOffset());
+            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+        }
 	    return info;
 	}
 	
-//   public String getHandleIdentifier() {
-//        return super.getHandleIdentifier() 
-//            + AspectElement.JEM_EXTRA_INFO + elementInfo.getSourceRange().getOffset()
-//            + AspectElement.JEM_EXTRA_INFO + elementInfo.accessibility.toString();
-//    }
 }
