@@ -5,7 +5,7 @@
 	<!-- Add on <ant> task for each top level element being built. -->
 	<!-- ===================================================================== -->
 	<property name="allElementsFile" value="${builder}/allElements.xml"/>
-	<import file="${allElementsFile}" />
+	<import file="allElements.xml" />
 	<target name="allElements">
 		<antcall target="allElementsDelegator" />
 	</target>
@@ -73,6 +73,7 @@
 		<mkdir dir="${buildDirectory}/features"/>
 		<mkdir dir="${buildDirectory}/plugins"/>
 		
+		<!-- features -->
 		<copy todir="${buildDirectory}/features/org.eclipse.ajdt">
 			<fileset dir="${builder}/../org.eclipse.ajdt-feature"/>
 		</copy>
@@ -82,7 +83,11 @@
 		<copy todir="${buildDirectory}/features/org.eclipse.contribution.xref">
 			<fileset dir="${builder}/../org.eclipse.contribution.xref-feature"/>
 		</copy>
+		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
+			<fileset dir="${builder}/../org.eclipse.contribution.weaving-feature"/>
+		</copy>
 
+		<!-- plugins -->
 		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
 			<fileset dir="${builder}/../org.eclipse.aspectj"/>
 		</copy>
@@ -149,7 +154,12 @@
 		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.ui.tests">
 			<fileset dir="${builder}/../org.eclipse.contribution.xref.ui.tests"/>
 		</copy>
-		
+	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt">
+		  <fileset dir="${builder}/../org.eclipse.contribution.weaving.jdt"/>
+	  </copy>
+	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt.tests">
+	  	<fileset dir="${builder}/../org.eclipse.contribution.weaving.jdt.tests"/>
+  	</copy>
 	</target>
 
 	<!-- ===================================================================== -->
@@ -193,6 +203,16 @@
 	<!-- Steps to do before running assemble. -->
 	<!-- ===================================================================== -->
 	<target name="preAssemble">
+		<!-- Copy Equinox Aspects to its final resting place -->
+		<!-- Must copy to both repository and the update site directories -->
+<!--		<mkdir dir="${buildDirectory}/repository"/>
+		<unzip dest="${buildDirectory}/repository">
+			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
+		</unzip>
+-->
+		<unzip dest="${buildDirectory}/updateSite">
+			<fileset  file="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt/equinox-aspects.zip"/>
+		</unzip>
 	</target>
 
 	<!-- ===================================================================== -->
@@ -234,6 +254,10 @@
 	  </antcall>
 	  <!-- add site.xml -->
 	  <copy file="${builder}/site.xml" tofile="${UpdateSiteStagingLocation}/site.xml"/>
+		
+		<replace file="${UpdateSiteStagingLocation}/site.xml"
+			token="@EAVERSION@" value="${equinox.aspects.version}"/>
+
 	</target>
 	
 	<target name="updateSiteExport">
