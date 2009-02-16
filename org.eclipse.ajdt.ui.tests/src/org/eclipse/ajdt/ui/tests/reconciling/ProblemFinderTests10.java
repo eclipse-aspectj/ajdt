@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.TestSuite;
-
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
@@ -33,21 +31,27 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.internal.Workbench;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+import org.eclipse.ui.internal.views.log.LogEntry;
+import org.eclipse.ui.internal.views.log.LogView;
 
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
  * 
- * This tests the full Spaceware example
+ * Various issues found during proofreading AspectJ In Action 2 Edition
  * 
  * @author andrew
  *
  */
-public class ProblemFinderTests9 extends UITestCase {
-    List/*ICompilationUnit*/ allCUnits = new ArrayList(); 
+public class ProblemFinderTests10 extends UITestCase {
+    List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    ICompilationUnit errorUnit;
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
-        proj = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+        proj = createPredefinedProject("AJIA 2nd Edition"); //$NON-NLS-1$
         waitForJobsToComplete();
         
         IFolder src = proj.getFolder("src");
@@ -57,7 +61,11 @@ public class ProblemFinderTests9 extends UITestCase {
                 if (resource.getType() == IResource.FILE && 
                         (resource.getName().endsWith("java") ||
                                 resource.getName().endsWith("aj"))) {
-                    allCUnits.add(createUnit((IFile) resource));
+                    if (resource.getName().equals("ErrorClass.aj")) {
+                        errorUnit = createUnit((IFile) resource);
+                    } else {
+                        allCUnits.add(createUnit((IFile) resource));
+                    }
                 }
                 return true;
             }
@@ -78,8 +86,39 @@ public class ProblemFinderTests9 extends UITestCase {
         setAutobuilding(true);
     }
 
-        
+    /**
+     * ensure no exceptions are thrown when processing this odd file
+     */
+    public void testProblemFindingErrors() throws Exception {
+        IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow()
+        .getActivePage().getActivePart().getSite().getPage().showView(
+                "org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+        if (view instanceof LogView) {
+            LogView logView = (LogView) view;
+            int logCount = logView.getElements().length;
     
+            doFind(errorUnit);
+            
+            int newLogCount = logView.getElements().length;
+            if (newLogCount != logCount) {
+                StringBuffer sb = new StringBuffer();
+                AbstractEntry[] entries = logView.getElements();
+                for (int i = logCount; i < entries.length; i++) {
+                    AbstractEntry entry = entries[i];
+                    if (entry instanceof LogEntry) {
+                        LogEntry logEntry = (LogEntry) entry;
+                        sb.append(logEntry.getMessage());
+                    } else {
+                        sb.append("\n\t" + entry);
+                    }
+                    fail("Should not have thrown any exceptions while problem finding.  Instead found:" + sb.toString());
+                }
+            }
+        } else {
+            fail("Could not find error log view");
+        }
+       
+    }
     
     public void testProblemFindingAll() throws Exception {
         StringBuffer sb = new StringBuffer();
