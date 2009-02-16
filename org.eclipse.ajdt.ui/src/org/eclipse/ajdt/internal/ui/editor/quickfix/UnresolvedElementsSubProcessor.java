@@ -78,6 +78,7 @@ import org.eclipse.jdt.internal.corext.util.TypeFilter;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
+import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.NameMatcher;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElement;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
@@ -353,7 +354,7 @@ public class UnresolvedElementsSubProcessor {
 					label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_createconst_other_description, new Object[] { name, ASTResolving.getTypeSignature(senderDeclBinding) } );
 					image= JavaPluginImages.get(JavaPluginImages.IMG_FIELD_PUBLIC);
 				}
-				int constRelevance= StubUtility.hasConstantName(name) ? 9 : 4;
+				int constRelevance= StubUtility.hasConstantName(targetCU.getJavaProject(), name) ? 9 : 4;
 				proposals.add(new NewVariableCorrectionProposal(label, targetCU, NewVariableCorrectionProposal.CONST_FIELD, simpleName, senderDeclBinding, constRelevance, image));
 			}
 		}
@@ -532,6 +533,7 @@ public class UnresolvedElementsSubProcessor {
 		}
 		// AspectJ Change Begin
 		// need to add non-null checks for quick fix inside aspects
+		// ensures Aspects in java files fail gracefully
 		if (selectedNode.getParent() == null) {
 			return;
 		}

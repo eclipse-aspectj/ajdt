@@ -1,12 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2006, 2008 IBM Corporation, SpringSource and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ *     IBM Corporation  - initial API and implementation
+ *     Andrew Eisenberg - adapted for Eclipse 3.4
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor.quickfix;
 
@@ -21,6 +22,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.JavadocTagsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.LocalCorrectionsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ModifierCorrectionSubProcessor;
@@ -28,13 +30,14 @@ import org.eclipse.jdt.internal.ui.text.correction.ReorgCorrectionsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ReturnTypeSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.SerialVersionSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.SuppressWarningsSubProcessor;
+import org.eclipse.jdt.internal.ui.text.correction.TypeArgumentMismatchSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.TypeMismatchSubProcessor;
-import org.eclipse.jdt.internal.ui.text.correction.TypeParameterMismatchSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.proposals.ReplaceCorrectionProposal;
 import org.eclipse.jdt.internal.ui.text.correction.proposals.TaskMarkerProposal;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
@@ -43,7 +46,7 @@ import org.eclipse.ui.PlatformUI;
  * Copied from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
  * Any changes marked with // AspectJ Change
  */
-public class QuickFixProcessor implements IQuickFixProcessor {
+public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProcessor { // AspectJ Change
 
 
 	public boolean hasCorrections(ICompilationUnit cu, int problemId) {
@@ -506,7 +509,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 				ReorgCorrectionsSubProcessor.getNeed50ComplianceProposals(context, problem, proposals);
 				break;
 			case IProblem.NonGenericType:
-				TypeParameterMismatchSubProcessor.removeMismatchedParameters(context, problem, proposals);
+                TypeArgumentMismatchSubProcessor.removeMismatchedArguments(context, problem, proposals);
 				break;
 			case IProblem.MissingOverrideAnnotation:
 				ModifierCorrectionSubProcessor.addOverrideAnnotationProposal(context, problem, proposals);
@@ -543,4 +546,22 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			SuppressWarningsSubProcessor.addSuppressWarningsProposals(context, problem, proposals);
 		}
 	}
+
+	// begin AspectJ Change
+	// implementing methods of IQuickAssistProcessor
+    public IJavaCompletionProposal[] getAssists(IInvocationContext context,
+            IProblemLocation[] locations) throws CoreException {
+        return getCorrections(context, locations);
+    }
+
+    public boolean hasAssists(IInvocationContext context) throws CoreException {
+        IProblem[] problems = context.getASTRoot().getProblems();
+        for (int i = 0; i < problems.length; i++) {
+            if (hasCorrections(context.getCompilationUnit(), problems[i].getID())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // end AspectJ Change
 }

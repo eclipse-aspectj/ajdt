@@ -56,7 +56,7 @@ public class AJFeatureExportJob extends Job {
 			final Display display = getStandardDisplay();
 			display.asyncExec(new Runnable() {
 				public void run() {
-					ErrorDialog.openError(display.getActiveShell(), PDEUIMessages.FeatureExportJob_error, PDEUIMessages.FeatureExportJob_problems, e.getStatus()); // 
+					ErrorDialog.openError(display.getActiveShell(), "Export feature error", "Problems exporting feature.", e.getStatus()); // 
 					done(new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null)); //$NON-NLS-1$
 				}
 			});
@@ -96,12 +96,12 @@ public class AJFeatureExportJob extends Job {
 
 	private void asyncNotifyExportException(String errorMessage) {
 		getStandardDisplay().beep();
-		MessageDialog.openError(PDEPlugin.getActiveWorkbenchShell(), PDEUIMessages.FeatureExportJob_error, errorMessage); 
+		MessageDialog.openError(PDEPlugin.getActiveWorkbenchShell(), "Export feature error", errorMessage); 
 		done(new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null)); //$NON-NLS-1$
 	}
 
 	protected String getLogFoundMessage() {
-		return NLS.bind(PDEUIMessages.ExportJob_error_message, fInfo.destinationDirectory); 
+		return NLS.bind("Export feature error", fInfo.destinationDirectory); 
 	} 
 
 }
