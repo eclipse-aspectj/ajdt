@@ -687,7 +687,7 @@ public class AJProjectModelFacade {
                                 relatedJavaElements.add(targetJe);
                             } else {
                                 // ignore handles that start with *
-                                // these are handles from ITDs that are created earlyvoi
+                                // these are handles from ITDs that are created early
                                 if (! handle.startsWith("*")) {
                                     AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
                                             AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
@@ -712,13 +712,47 @@ public class AJProjectModelFacade {
      * could cache this to go faster
      */
     public Map/*Integer,List<IRelationship>*/ getRelationshipsForFile(ICompilationUnit icu) {
+        return getRelationshipsForFile(icu, null);
+    }
+    
+    
+    /**
+     * walks the file and grabs all relationships for it.  filter by relationship type
+     * pass in null filter for all relationships
+     */
+    public Map/*Integer,List<IRelationship>*/ getRelationshipsForFile(ICompilationUnit icu, AJRelationshipType[] relType) {
+        final Set interesting;
+        if (relType != null) {
+            interesting = new HashSet();
+            for (int i = 0; i < relType.length; i++) {
+                interesting.add(relType[i].getDisplayName());
+            }
+        } else {
+            interesting = null;
+        }
+        
         // walk the hierarchy and get relationships for each node
         final Map/*Integer, List<IRelationship>*/ allRelationshipsMap = new HashMap();
         IProgramElement ipe = javaElementToProgramElement(icu);
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 List/*IRelationship*/ nodeRels = relationshipMap.get(node);
-                if (nodeRels != null && nodeRels.size() > 0) {
+                
+                if (nodeRels == null) {
+                    return;
+                }
+                
+                if (interesting != null) {
+                    for (Iterator relIter = nodeRels.iterator(); relIter
+                            .hasNext();) {
+                        IRelationship rel = (IRelationship) relIter.next();
+                        if (!interesting.contains(rel.getName())) {
+                            relIter.remove();
+                        }
+                    }
+                }
+                
+                if (nodeRels.size() > 0) {
                     List/*IRelationship*/ allRelsForLine;
                     Integer line = new Integer(node.getSourceLocation().getLine());
                     if (allRelationshipsMap.containsKey(line)) {
@@ -733,6 +767,8 @@ public class AJProjectModelFacade {
         });
         return allRelationshipsMap;
     }
+    
+    
     
     /**
      * I don't like how the 3 methods getRelationshipsForXXX return very different things.

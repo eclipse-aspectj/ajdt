@@ -24,6 +24,8 @@ import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IRelationship;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.eclipse.ajdt.core.AJLog;
@@ -39,6 +41,7 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -452,20 +455,17 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        try {
-            if (numArgs > 0 && 
-                    (id == IProblem.UndefinedName || 
-                     id == IProblem.UndefinedField ||
-                     id == IProblem.UndefinedMethod ||
-                     id == IProblem.UndefinedType ||
-                     id == IProblem.UndefinedConstructor)
-                    &&
-                    insideITD(categorizedProblem, unit)) {
-                // this is an intertype element inside of an aspect.
-                // it is likely that the problem is actually a reference to something added by an ITD
-                return false;
-            }
-        } catch(JavaModelException e) {
+        if (numArgs > 0 && 
+                (id == IProblem.UndefinedName || 
+                 id == IProblem.UndefinedField ||
+                 id == IProblem.UndefinedMethod ||
+                 id == IProblem.UndefinedType ||
+                 id == IProblem.UndefinedConstructor)
+                &&
+                isITDName(categorizedProblem, unit, model)) {
+            // this is an intertype element inside of an aspect.
+            // it is likely that the problem is actually a reference to something added by an ITD
+            return false;
         }
         
         if (hasModel && id == IProblem.ShouldReturnValue && 
@@ -530,7 +530,7 @@ public class AJCompilationUnitProblemFinder extends
                     insideITD(categorizedProblem, unit)) {
                 // an abstract method ITD inside a concrete aspect
                 // ITDs are allowed to be abstract if the target
-                // type is an abstract class
+                // type is an abstract class, but problem finder cannot know this
                 return false;
             }
             
@@ -560,6 +560,39 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         return true;
+    }
+    
+    
+    private static boolean isITDName(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model) {
+        Set itdNames = getITDNames(unit, model);
+        String[] args = problem.getArguments();
+        if (args != null) {
+            for (int i = 0; i < args.length; i++) {
+                if (itdNames.contains(args[i])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // would be good if we can cache this value somehow.
+    // expensive to compute
+    private static Set /*String*/ getITDNames(CompilationUnit unit, AJProjectModelFacade model) {
+        Set names = new HashSet();
+        Map relsMap = model.getRelationshipsForFile(unit, new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON } );
+        for (Iterator relsMapIter = relsMap.values().iterator(); relsMapIter.hasNext();) {
+            List rels = (List) relsMapIter.next();
+            for (Iterator relsIter = rels.iterator(); relsIter.hasNext();) {
+                IRelationship rel = (IRelationship) relsIter.next();
+                IProgramElement ipe = model.getProgramElement(rel.getSourceHandle());
+                String longName = ipe.getName();
+                String[] split = longName.split("\\.");
+                String itdName = split[split.length-1];
+                names.add(itdName);
+            }
+        }
+        return names;
     }
 
 
@@ -604,10 +637,12 @@ public class AJCompilationUnitProblemFinder extends
         if (unit instanceof AJCompilationUnit) {
             try {
                 IJavaElement elt = unit.getElementAt(problem.getSourceStart());
-                IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
-                if (type != null && type instanceof AspectElement) {
-                    AspectElement aspectType = (AspectElement) type;
-                    return aspectType.isPrivileged();
+                if (elt != null) {
+                    IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
+                    if (type != null && type instanceof AspectElement) {
+                        AspectElement aspectType = (AspectElement) type;
+                        return aspectType.isPrivileged();
+                    }
                 }
             } catch (JavaModelException e) {
             }
