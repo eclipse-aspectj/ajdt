@@ -11,16 +11,13 @@
 package org.eclipse.ajdt.core.codeconversion;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Stack;
 
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IRelationship;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
@@ -29,11 +26,11 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
-import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -87,13 +84,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     private static final char[] privileged = "          ".toCharArray(); //$NON-NLS-1$
 
     private static final String thizString = "thiz"; //$NON-NLS-1$
+    
+    // used to replace declare declarations
+    private static final char[] intt = "int    ".toCharArray(); //$NON-NLS-1$
 
-    private final static char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart; org.aspectj.lang.JoinPoint.StaticPart thisEnclosingJoinPointStaticPart;" //$NON-NLS-1$
+    private final static char[] tjpRefs2 = "\n\torg.aspectj.lang.JoinPoint thisJoinPoint;\n\torg.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart;\n\torg.aspectj.lang.JoinPoint.StaticPart thisEnclosingJoinPointStaticPart;\n" //$NON-NLS-1$
     .toCharArray();
 
     private final static char[] endThrow = new char[] { '(', ':' };
 
-    private final static Pattern perClausePattern = Pattern.compile("(percflow)|(percflowbelow)|(pertarget)|(pertypewithin)|(perthis)|(issingleton)");
     
     public class Replacement {
     	//the position in the original char[]
@@ -147,17 +146,37 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
 	protected Scanner scanner;
 
+	/**
+	 * keeps track of being after the ':' of a pointcut declaration
+	 */
 	private boolean inPointcutDesignator;
 
+	/**
+	 * keeps track of being in an aspect body
+	 */
 	private boolean inAspect;
 
+	/**
+	 * keeps track of being in the declaration of an aspect 
+	 * (ie- before the first '{')
+	 */
 	private boolean inAspectDeclaration;
 	
     private boolean inClassDeclaration;
     
     private boolean inInterfaceDeclaration;
 	
-	private int posColon;
+    /**
+     * keeps track of being in the right hand side of a declaration
+     * 
+     * Note- thos will *not* catch complex RHS assignments where the RHS contains an inner type
+     * ie- inRHS will evaluate to false after the first ';' of a complex assignment
+     * What I really need is an RHS stack, but that is complicated and I will only add if necessary
+     */
+    private boolean inRHS;  
+
+    private int posColon;
+
 
     public void setUnit(ICompilationUnit unit) {
         this.unit = unit;
@@ -175,6 +194,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				.isDummyTypeReferencesForOrganizeImportsEnabled();
 		boolean isSimulateContextSwitchNecessary = (options.getTargetType() != null);
 
+		
+		Stack/*Boolean*/ inAspectBodyStack = new Stack();
+		
 		scanner = new Scanner();
 		scanner.setSource(content);
 
@@ -183,6 +205,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		inAspectDeclaration = false;
 		inClassDeclaration = false;
 		inInterfaceDeclaration = false;
+		inRHS = false;
 		
 		// Bug 93248: Count question marks so as to ignore colons that are part of conditional statements		
 		int questionMarkCount = 0; 
@@ -191,7 +214,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		int parenLevel = 0;
 		
 		// Bug 110751: Ignore colons that are part of enhanced "for" loop in Java 5
-		boolean insideFor = false;
+		boolean inFor = false;
+		
+		// Bug 258685: case statements should not be confused with pointcuts
+		// it is the colon that is confusing
+		boolean inCase = false;
 		
 		char[] currentTypeName = null;
 		
@@ -258,25 +285,40 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				}
 				break;
 			case TokenNamefor:
-				insideFor=true;
+				inFor=true;
 				break;
+				
             case TokenNameLPAREN:
                 parenLevel++;
+                inCase = false;
                 break;
+                
  			case TokenNameRPAREN:
-				insideFor=false;
+				inFor = false;
+				inCase = false;
 				parenLevel--;
 				break;
+				
 			case TokenNameCOLON:
-				if (!inAspect)
+			    if (inFor) {
 					break;
-				if (insideFor)
-					break;
-				if (questionMarkCount > 0) {
+				} else if (questionMarkCount > 0) {
 					questionMarkCount--;
 					break;
+				} else if (inCase) {
+				    inCase = false;
+				    break;
 				}
 				startPointcutDesignator();
+				break;
+				
+			case TokenNameEQUAL:
+			    if (parenLevel == 0) {
+			        // can have problems if inside an annotation, there is an '='.
+			        // do not set flag in this case. OK to ignore because we do not
+			        // process ITDs when we are inside parens anyway.
+			        inRHS = true;
+			    }
 				break;
 				
 			case TokenNameQUESTION:
@@ -284,11 +326,20 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				break;
 				
 			case TokenNameSEMICOLON:
-				if (inPointcutDesignator)
+				if (inPointcutDesignator) {
 					endPointcutDesignator();
+					if (options.isKeepPointcuts()) {
+    					addReplacement(scanner.getCurrentTokenStartPosition(), 
+    					        1, new char[] { '}' });
+					}
+				}
+				inRHS = false;  // may be triggering this too early in case this is part of a complex assignment
 				break;
 				
-			    
+			case TokenNamedefault:
+			case TokenNamecase:
+			    inCase = true;
+			    break;
 
 			case TokenNameDOT:
 				if (!inAspect) {
@@ -299,12 +350,22 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				    // don't want to convert '.' to '$' inside the parameter declaration
 				    break;
 				}
-				processPotentialIntertypeDeclaration();
+				
+				if (!inRHS && 
+				        !inAspectBodyStack.empty() && 
+				        inAspectBodyStack.peek() == Boolean.TRUE) {
+				    processPotentialIntertypeDeclaration();
+				}
 				break;
 
 			case TokenNameLBRACE:
 				if (inPointcutDesignator) {
 					endPointcutDesignator();
+                    if (options.isKeepPointcuts()) {
+                        addReplacement(scanner.getCurrentTokenStartPosition(), 
+                                1, new char[] { ' ' });
+                    }
+                    
 					//must be start of advice body -> insert tjp reference
 					if (insertIntertypeDeclarations && !inTypeDeclaration()) {
 						addReplacement(scanner.getCurrentTokenStartPosition() + 1, 0,
@@ -332,21 +393,29 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				    }
 				}
 				
+				if (inAspectDeclaration) {
+				    inAspectDeclaration = false;
+				    inAspectBodyStack.push(Boolean.TRUE);
+				} else {
+				    inAspectBodyStack.push(Boolean.FALSE);
+				}
 				
-				inAspectDeclaration = false;
+				inCase = false;
 				inClassDeclaration = false;
 				inInterfaceDeclaration = false;
 				currentTypeName = null;
 				
-//				insideBlockCount ++;
 				break;
 			case TokenNameRBRACE:
-//				insideBlockCount ++;
 				if (inPointcutDesignator) {
 					// bug 129367: if we've hit a } here, we must be
 					// in the middle of an unterminated pointcut
 					endPointcutDesignator();
-				}				
+				}
+				if (!inAspectBodyStack.empty()) {
+				    inAspectBodyStack.pop();
+				}
+                inCase = false;
 				break;
 			case TokenNameaspect:
 				inAspect = true;
@@ -361,6 +430,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				
 				break;
 
+			case TokenNamedeclare:
+			    // check to see if we need to remove declare declarations
+			    // so that import references aren't confused
+			    if (addReferencesForOrganizeImports) {
+			        if (!inAspectBodyStack.isEmpty() && inAspectBodyStack.peek().equals(Boolean.TRUE)) {
+			            addReplacement(scanner.getCurrentTokenStartPosition(), intt.length, intt);
+			        }
+			    }
+			    
+			    break;
+				
 			case TokenNameclass:
 			    typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
 			    inClassDeclaration = true;
@@ -395,21 +475,18 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
 		applyReplacements();
 
-		//System.out.println(new String(content));
 		return replacements;
 	}
 	
 	/**
-	 * 
 	 * @param typeName name of the type
 	 * @return new type declaration string to replace the original
 	 * that contains all of the types that are declared parents of this one
 	 * returns null if could not find the super types and super interfaces
 	 */
 	protected char[] createImplementExtendsITDs(char[] typeName) {
-
-	    if (unit != null) {
-	        IType type = unit.getType(new String(typeName));
+	    if (unit != null && typeName != null) {
+	        IType type = getHandle(new String(typeName));
 	        if (type.exists()) {
         	    try {
         	        StringBuffer sb = new StringBuffer();
@@ -423,6 +500,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         String superClass = type.getSuperclassName();
                         if (declareExtends.size() > 0) {
                             superClass = (String) declareExtends.get(0);
+                            superClass = superClass.replace('$', '.');
                         }
                         if (superClass != null) {
                             sb.append(" " + EXTENDS + " " + superClass);
@@ -439,12 +517,13 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         if (type.isInterface()) {
                             sb.append(" " + EXTENDS + " ");
                         } else {
-                            sb.append(" " + IMPLEMENTS);
+                            sb.append(" " + IMPLEMENTS +  " ");
                         }
                     
                         for (Iterator interfaceIter = declareImplements.iterator(); interfaceIter
                                 .hasNext();) {
                             String interName = (String) interfaceIter.next();
+                            interName = interName.replace('$', '.');
                             sb.append(" " + interName);
                             if (interfaceIter.hasNext()) {
                                 sb.append(",");
@@ -461,6 +540,40 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	    return null;
 	}
 	
+	
+	// copied from ITDInserter...make a utility method?
+    private IType getHandle(String typeName) {
+        try {
+            IType type = getHandleFromChild(typeName, unit);
+            if (type != null) {
+                return type;
+            }
+        } catch (JavaModelException e) {
+        }
+        // this type may not exist
+        return unit.getType(new String(typeName));
+    }
+    
+    private IType getHandleFromChild(String typeName, IParent parent) 
+            throws JavaModelException {
+        IJavaElement[] children = parent.getChildren();
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementType() == IJavaElement.TYPE &&
+                    typeName.equals(children[i].getElementName())) {
+                return (IType) children[i];
+            }
+        }
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getElementType() == IJavaElement.TYPE) {
+                IType type = getHandleFromChild(typeName, (IParent) children[i]);
+                if (type != null) {
+                    return type;
+                }
+            }
+        }
+        return null;
+    }
+
 	
 
 	
@@ -485,7 +598,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         if (details.startsWith(EXTENDS)) {
                             declareExtends.addAll(parentTypes);
                         } else if (details.startsWith(IMPLEMENTS)) {
-                            declareImplements.add(parentTypes);
+                            declareImplements.addAll(parentTypes);
                         }
                     }
                 }
@@ -498,10 +611,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (unit != null) {
             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
             if (model.hasModel()) {
-                IType type = unit.getType(new String(currentTypeName));
+                IType type = getHandle(new String(currentTypeName));
                 if (type.exists()) {
                     List /*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
-                    StringBuffer sb = new StringBuffer();
+                    StringBuffer sb = new StringBuffer("\n\t");
                     for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
                         IJavaElement je = (IJavaElement) relIter.next();
                         IProgramElement declareElt = model.javaElementToProgramElement(je);
@@ -512,9 +625,21 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                             String name = declareElt.getName().substring(lastDot+1);
     
                             if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
+                                List modifiers = declareElt.getModifiers();
+                                for (Iterator iterator = modifiers.iterator(); iterator
+                                        .hasNext();) {
+                                    sb.append(iterator.next() + " ");
+                                }
                                 sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n");
                             } else if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD || 
                                        declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+                                
+                                sb.append(declareElt.getAccessibility() + " ");
+                                List modifiers = declareElt.getModifiers();
+                                for (Iterator iterator = modifiers.iterator(); iterator
+                                        .hasNext();) {
+                                    sb.append(iterator.next() + " ");
+                                }
                                 // need to add a return statement?
                                 if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
                                     sb.append(declareElt.getCorrespondingType(true) + " " + name);
@@ -524,13 +649,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                                 sb.append("(");
                                 List/*String*/ names = declareElt.getParameterNames();
                                 List/*String*/ types = declareElt.getParameterTypes();
-                                for (Iterator typeIter = types.iterator(), nameIter = names.iterator(); 
-                                     typeIter.hasNext();) {
-                                    String paramType = new String((char[]) typeIter.next());
-                                    String paramName = (String) nameIter.next();
-                                    sb.append(paramType + " " + paramName);
-                                    if (typeIter.hasNext()) {
-                                        sb.append(", ");
+                                if (types != null && names != null) {
+                                    for (Iterator typeIter = types.iterator(), nameIter = names.iterator(); 
+                                         typeIter.hasNext();) {
+                                        String paramType = new String((char[]) typeIter.next());
+                                        String paramName = (String) nameIter.next();
+                                        sb.append(paramType + " " + paramName);
+                                        if (typeIter.hasNext()) {
+                                            sb.append(", ");
+                                        }
                                     }
                                 }
                                 sb.append(") { }\n");
@@ -572,14 +699,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		int pos = findInsertionPosition(position - 1) + 1;
 		//if code completion on 'this' -> overwrite the this keyword
 		int len = 0;
+		boolean dotRequired = true;
 		if ((content[pos] == 't') && (content[pos + 1] == 'h')
 				&& (content[pos + 2] == 'i') && (content[pos + 3] == 's')
-				&& !Character.isJavaIdentifierPart(content[pos + 4]))
-			len = 4;
+				&& !Character.isJavaIdentifierPart(content[pos + 4])) {
+		    len = 4;
+		    dotRequired = false;
+		}
 
 		String ident = findFreeIdentifier();
-		char[] toInsert = (new String(targetType) + ' ' + ident + ';' + ident + '.')
-				.toCharArray();
+		char[] toInsert = (new String(targetType) + ' ' + ident + "; " + ident +
+		        (dotRequired ? "." : "")).toCharArray();
 		addReplacement(pos, len, toInsert);
 
 	}
@@ -693,92 +823,228 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	 */
 	private void endPointcutDesignator() {
 		inPointcutDesignator = false;
-		int posSemi = scanner.getCurrentTokenStartPosition();
-		int len = posSemi - posColon;
-		char[] empty = new char[len];
-		for (int i = 0; i < empty.length; i++) {
-			empty[i] = ' ';
+		if (options.isKeepPointcuts()) {
+		    addReplacement(posColon, 1, new char[] { '{' });
+		} else {
+            int posSemi = scanner.getCurrentTokenStartPosition();
+            int len = posSemi - posColon;
+            char[] empty = new char[len];
+            for (int i = 0; i < empty.length; i++) {
+                empty[i] = ' ';
+            }
+            addReplacement(posColon, len, empty);
 		}
-		addReplacement(posColon, len, empty);
 	}
 
+	
+	// Doesn't handle comments
+	private void processPotentialIntertypeDeclaration() {
+	    // find the start of the declaration
+	    // by searching backwards
+
+	    //pos points to the final '.'
+        int pos = scanner.getCurrentTokenStartPosition();
+        int iter = pos;
+        iter--;
+        while (iter >= 0) {
+
+            // handles type parameter
+            if (content[iter] == '>') {
+                int genericsDepth = 1;
+                iter--;
+                while (iter >= 0 && genericsDepth > 0) {
+                    if (content[iter] == '>') {
+                        genericsDepth++;
+                    } else if (content[iter] == '<') {
+                        genericsDepth--;
+                    }
+                    iter--;
+                }
+            } else if (content[iter] == '<') {
+                // we are looking at a qualified type within
+                // a type parameter...return
+                return;
+            } if (Character.isWhitespace(content[iter])) {
+                iter--;
+            } else if (Character.isJavaIdentifierPart(content[iter])) {
+                // seems like we are in an ITD
+                break;
+            } else {
+                return;
+            }
+        }
+        if (iter < 0) {
+            return;
+        }
+        
+        // now nameStart refers to the end of the name just before the last '.'
+        // eg- it refers to 'p' in
+        // p1.p2.Flop  <? extends Baz>.doSomething()
+        
+        // next continue iterating back to find the start of the word.
+        // if upper case, then assume it is an ITD
+        while (iter >= 0) {
+            if (Character.isJavaIdentifierPart(content[iter])) {
+                iter--;
+            } else {
+                break;
+            }
+        }
+        if (iter < 0 || ! Character.isUpperCase(content[iter+1])) {
+            return;
+        }
+        
+        int nameStart = iter+1;
+        
+        // continue iterating back to find the last part of the qualification
+        outer:
+        while(true) {
+
+            // find the previous '.'
+            while (iter >= 0) {
+                if (Character.isWhitespace(content[iter])) {
+                    iter--;
+                } else if (content[iter] == '.') {
+                    nameStart = iter;
+                    break;
+                } else {
+                    // something else was found
+                    // we are done
+                    break outer;
+                }
+            }
+
+            iter--;
+            // find end of previous name
+            while (iter >= 0) {
+                if (Character.isWhitespace(content[iter])) {
+                    iter--;
+                } else if (Character.isJavaIdentifierPart(content[iter])) {
+                    nameStart = iter;
+                    break;
+                } else {
+                    break outer;
+                }
+            }
+
+            // find previous start of name
+            iter--;
+            while (iter >= 0) {
+                if (Character.isJavaIdentifierPart(content[iter])) {
+                    iter--;
+                } else {
+                    nameStart = iter+1;
+                    break;
+                }
+            }
+        }    
+        
+        // last thing to do is to eat up whitespace after the '.'
+        int nameEnd = pos+1;
+        while (nameEnd < content.length) {
+            if (!Character.isWhitespace(content[nameEnd])) {
+                break;
+            }
+            nameEnd++;
+        }
+        
+        // now that we have the entire length of the name, replace everything that is not 
+        // a valid Java identifier part with '$'
+        char[] itdName = new char[nameEnd - nameStart];
+        System.arraycopy(content, nameStart, itdName, 0, itdName.length);
+        for (int i = 0; i < itdName.length; i++) {
+            if (! Character.isJavaIdentifierPart(itdName[i])) {
+                itdName[i] = '$';
+            }
+        }
+        
+        //if requested, add ajc$ in front of intertype declaration
+        //e.g. "public int Circle$x;" -> "public int ajc$Circle$x;"
+        if (options.isAddAjcTagToIntertypesEnabled()) {
+            addReplacement(nameStart, 0, "ajc$".toCharArray()); //$NON-NLS-1$
+        }
+
+        addReplacement(nameStart, itdName.length, itdName);
+	}
+	
+	
 	//identifies intertype declaration of form 'type qualifier.membername'
 	//and replaces every '.' by '$'.
 	//e.g. "int tracing.Circle.x;" -> "int tracing$Circle$x;"
-	private void processPotentialIntertypeDeclaration() {
-
-		//pos points to the '.'
-		int pos = scanner.getCurrentTokenStartPosition();
-
-		//check if valid identifier char on left side of dot
-		//(to sort out construct like '(new Object()).' )
-		int nonspace1 = findPreviousNonSpace(pos - 1);
-		if (nonspace1 == -1)
-			return;
-		if (!Character.isJavaIdentifierPart(content[nonspace1]))
-			return;
-
-		//check if there is another java identifier before qualifier,
-		//if no, return (to sort out method calls and the like)
-		int space = findPreviousSpace(nonspace1);
-		if (space == -1) {
-			return;
-		}
-		int nonspace2 = findPreviousNonSpace(space);
-		if (nonspace2 == -1) {
-			return;
-		}
-		if (!Character.isJavaIdentifierPart(content[nonspace2]) &&
-		        content[nonspace2] != '>') { // could be a parameterized type
-		    // but still could be part of a "new" ITD
-		    int nextNonSpace = findNextNonSpace(pos+1);
-		    if (!hasWordAtPosition("new", nextNonSpace)) {
-		        // XXX problem here is that this doesn't account for comments
-		        return;
-		    }
-		}
-		//check if rightmost part of qualifier starts with Capital letter,
-		//and if yes, assume it is a Class name -> intertype declaration
-		int spaceordot = findPreviousWhitespaceOr(',', nonspace1);
-		if (spaceordot == -1)
-			return;
-		if (Character.isUpperCase(content[spaceordot + 1])) {
-
-			//assume intertype declaration and replace all '.' by '$'
-			char[] rep = new char[] { '$' };
-			addReplacement(pos, 1, rep);
-
-			if (content[spaceordot] == ' ') {
-				String type = new String(content, space + 1, pos - space - 1);
-				boolean validIdentifier = true;
-				for (int i = 0; validIdentifier && (i < type.length()); i++) {
-					char c = type.charAt(i);
-					if (i==0) {
-						if (!Character.isJavaIdentifierStart(c)) {
-							validIdentifier = false;
-						}
-					} else if (!Character.isJavaIdentifierPart(c)) {
-						validIdentifier = false;
-					}
-				}
-				if (validIdentifier) {
-					typeReferences.add(type);
-				}
-			} else {
-				do {
-					addReplacement(spaceordot, 1, rep);
-					spaceordot = findPreviousWhitespaceOr(',', --spaceordot);
-				} while (content[spaceordot] == '.');
-			}
-
-			//if requested, add ajc$ in front of intertype declaration
-			//e.g. "public int Circle$x;" -> "public int ajc$Circle$x;"
-			if (options.isAddAjcTagToIntertypesEnabled()) {
-				addReplacement(spaceordot + 1, 0, "ajc$".toCharArray()); //$NON-NLS-1$
-			}
-
-		}
-	}
+	// XXX problem here is that this doesn't account for comments, generics, or whitespace
+//	private void processPotentialIntertypeDeclaration() {
+//
+//		//pos points to the '.'
+//		int pos = scanner.getCurrentTokenStartPosition();
+//
+//		//check if valid identifier char on left side of dot
+//		//(to sort out construct like '(new Object()).' )
+//		int nonspace1 = findPreviousNonSpace(pos - 1);
+//		if (nonspace1 == -1)
+//			return;
+//		if (!Character.isJavaIdentifierPart(content[nonspace1]))
+//			return;
+//
+//		//check if there is another java identifier before qualifier,
+//		//if no, return (to sort out method calls and the like)
+//		int space = findPreviousSpace(nonspace1);
+//		if (space == -1) {
+//			return;
+//		}
+//		int nonspace2 = findPreviousNonSpace(space);
+//		if (nonspace2 == -1) {
+//			return;
+//		}
+//		if (!Character.isJavaIdentifierPart(content[nonspace2]) &&
+//		        content[nonspace2] != '>') { // could be a parameterized type
+//		    // but still could be part of a "new" ITD
+//		    int nextNonSpace = findNextNonSpace(pos+1);
+//		    if (!hasWordAtPosition("new", nextNonSpace)) {
+//		        return;
+//		    }
+//		}
+//		//check if rightmost part of qualifier starts with Capital letter,
+//		//and if yes, assume it is a Class name -> intertype declaration
+//		int spaceordot = findPreviousWhitespaceOr(',', nonspace1);
+//		if (spaceordot == -1)
+//			return;
+//		if (Character.isUpperCase(content[spaceordot + 1])) {
+//
+//			//assume intertype declaration and replace all '.' by '$'
+//			char[] rep = new char[] { '$' };
+//			addReplacement(pos, 1, rep);
+//
+//			if (content[spaceordot] == ' ') {
+//				String type = new String(content, space + 1, pos - space - 1);
+//				boolean validIdentifier = true;
+//				for (int i = 0; validIdentifier && (i < type.length()); i++) {
+//					char c = type.charAt(i);
+//					if (i==0) {
+//						if (!Character.isJavaIdentifierStart(c)) {
+//							validIdentifier = false;
+//						}
+//					} else if (!Character.isJavaIdentifierPart(c)) {
+//						validIdentifier = false;
+//					}
+//				}
+//				if (validIdentifier) {
+//					typeReferences.add(type);
+//				}
+//			} else {
+//				do {
+//					addReplacement(spaceordot, 1, rep);
+//					spaceordot = findPreviousWhitespaceOr(',', --spaceordot);
+//				} while (content[spaceordot] == '.');
+//			}
+//
+//			//if requested, add ajc$ in front of intertype declaration
+//			//e.g. "public int Circle$x;" -> "public int ajc$Circle$x;"
+//			if (options.isAddAjcTagToIntertypesEnabled()) {
+//				addReplacement(spaceordot + 1, 0, "ajc$".toCharArray()); //$NON-NLS-1$
+//			}
+//
+//		}
+//	}
 
 	private boolean hasWordAtPosition(String string, int pos) {
 	    char[] word = string.toCharArray();
@@ -832,23 +1098,23 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		return -1;
 	}
 
-	public int findPreviousNonSpace(int pos) {
-		while (pos >= 0) {
-			if (!Character.isWhitespace(content[pos]))
-				return pos;
-			pos--;
-		}
-		return -1;
-	}
+    public int findPreviousNonSpace(int pos) {
+        while (pos >= 0) {
+            if (!Character.isWhitespace(content[pos]))
+                return pos;
+            pos--;
+        }
+        return -1;
+    }
 
-   public int findNextNonSpace(int pos) {
-        while (pos < content.length) {
+    public int findNextNonSpace(int pos) {
+	    while (pos < content.length) {
             if (!Character.isWhitespace(content[pos]))
                 return pos;
             pos++;
         }
         return -1;
-    }
+	}
 
 	public int findNext(char[] chs, int pos) {
 		while (pos < content.length) {

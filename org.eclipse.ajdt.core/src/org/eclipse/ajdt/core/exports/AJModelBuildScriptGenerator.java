@@ -104,6 +104,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			this.excludedFromJar = excludedFromJar;
 		}
 
+		/* AJDT 1.7 */
 		public String getName(boolean resolved) {
 			if (!resolved)
 				return name;

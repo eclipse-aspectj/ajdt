@@ -68,9 +68,11 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	}
 	
 	public void setSourceRangeEnd(int end) {
+		/* AJDT 1.7 */
 		sourceRangeEnd = end;
 	}
 	public void setSourceRangeStart(int start) {
+		/* AJDT 1.7 */
 		sourceRangeStart = start;
 	}
 	

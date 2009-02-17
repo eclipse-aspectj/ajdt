@@ -10,22 +10,19 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import java.util.Iterator;
-import java.util.List;
 
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
-import org.eclipse.jdt.internal.core.SourceConstructorInfo;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.SourceConstructorInfo;
 import org.eclipse.jdt.internal.core.SourceField;
 import org.eclipse.jdt.internal.core.SourceFieldElementInfo;
 import org.eclipse.jdt.internal.core.SourceMethod;
@@ -52,23 +49,38 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setName(name.toCharArray());
             info.setAJKind(ipe.getKind());
             info.setAJModifiers(ipe.getModifiers());
+            info.setFlags(ipe.getRawModifiers());
+            info.setDeclaredModifiers(info.getModifiers());
             info.setAJAccessibility(ipe.getAccessibility());
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             info.setSourceRangeStart(sourceLocation.getOffset());
             info.setNameSourceStart(sourceLocation.getOffset());
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
-            info.setArgumentNames(listStringsToCharArrays(ipe.getParameterNames()));
-            info.setArgumentTypeNames(listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
+            info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
+            info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
             info.setReturnType(ipe.getCorrespondingType(true).toCharArray());
 	    } else {
+	        // no successful build yet, we don't know the contents
 	        info.setName(name.toCharArray());
 	        info.setAJKind(IProgramElement.Kind.ERROR);
 	    }
 	    return info;
 	}
-
 	
+	/**
+	 * override this cached info because it was before we had a successful build
+	 */
+	public Object getElementInfo() throws JavaModelException {
+	    IntertypeElementInfo info = (IntertypeElementInfo) super.getElementInfo();
+	    if (info.getAJKind() == IProgramElement.Kind.ERROR &&
+	            AJProjectModelFactory.getInstance().getModelForJavaElement(this).hasModel()) {
+	        // we have structure model now, but didn't before
+	        info = (IntertypeElementInfo) openWhenClosed(createElementInfo(), null);
+	    }
+	    return info;
+	}
+
 	
 	/**
 	 * @see JavaElement#getHandleMemento()
@@ -78,6 +90,12 @@ public class IntertypeElement extends AspectJMemberElement {
 	}
 	
 	/**
+     * note that we set the accessibility to public because the modifiers 
+     * apply to the ITD element, not the target declaration.
+     * We are purposely being too liberal with the modifiers so that
+     * we don't get accessibility problems when an ITD is declared private
+     * and is used in the Aspect CU that declares it.
+     * 
 	 * @param parent the type that this element declares on
 	 * @return a mock element representing the element that was introduced
 	 */
@@ -87,15 +105,16 @@ public class IntertypeElement extends AspectJMemberElement {
             boolean isConstructor = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR;
             boolean isMethod = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD;
             boolean isField = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_FIELD;
+            
             if (isConstructor) {
                 IMethod itd = new SourceMethod(
                         (JavaElement) parent, 
                         parent.getElementName(), 
-                        this.getParameterTypes()) {
+                        this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
-                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo();
+                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setFlags(info.getModifiers());
+                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setArgumentNames(info.getArgumentNames());
@@ -112,13 +131,13 @@ public class IntertypeElement extends AspectJMemberElement {
             } else if (isMethod) {
                 IMethod itd = new SourceMethod(
                         (JavaElement) parent, 
-                        name.split("\\.")[1], 
-                        this.getParameterTypes()) {
+                        extractName(), 
+                        this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
-                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo();
+                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
                         newInfo.setReturnType(info.getReturnTypeName());
-                        newInfo.setFlags(info.getModifiers());
+                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
                         newInfo.setArgumentNames(info.getArgumentNames());
@@ -135,14 +154,14 @@ public class IntertypeElement extends AspectJMemberElement {
 
             } else if (isField) {
                 // field
-                IField itd = new SourceField((JavaElement) parent, name.split("\\.")[1]) {
+                IField itd = new SourceField((JavaElement) parent, extractName()) {
                     protected Object createElementInfo() {
-                        ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo();
+                        ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setFlags(info.getModifiers());
+                        newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
-                        newInfo.setTypeName(info.getReturnTypeName());
+                        newInfo.setTypeName(getQualifiedReturnTypeName(info));
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
                         return newInfo;
@@ -157,63 +176,46 @@ public class IntertypeElement extends AspectJMemberElement {
         }
         return null;
 	}
-	
-	private char[][] listStringsToCharArrays(List/*String*/ strings) {
-	    if (strings != null) {
-    	    char[][] result = new char[strings.size()][];
-    	    int index = 0;
-    	    for (Iterator stringIter = strings.iterator(); stringIter.hasNext();) {
-                String string = (String) stringIter.next();
-                result[index] = string.toCharArray();
-            }
-    	    return result;
-	    }
-	    return new char[0][];
-	}
-	
-	   private char[][] listCharsToCharArrays(List/*char[]*/ strings) {
-	        if (strings != null) {
-	            char[][] result = new char[strings.size()][];
-	            int index = 0;
-	            for (Iterator stringIter = strings.iterator(); stringIter.hasNext();) {
-	                char[] string = (char[]) stringIter.next();
-	                result[index] = string;
-	            }
-	            return result;
-	        }
-	        return new char[0][];
-	    }
 
+    private String extractName() {
+        String[] split = name.split("\\.");
+        return split.length > 1 ? split[1] : name;
+    }
 	
-	private String[] charArrayToStringArray(char[][] chars) {
-	    if (chars != null) {
-    	    String[] strings = new String[chars.length];
-    	    for (int i = 0; i < chars.length; i++) {
-                strings[i] = new String(chars[i]);
-            }
-    	    return strings;
+	private String[] getQualifiedParameterTypes() {
+	    IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+	    if (ipe != IHierarchy.NO_STRUCTURE) {
+	        return CoreUtils.listAJSigToJavaSig(ipe.getParameterSignatures());
 	    } else {
-	        return new String[0];
+	        return getParameterTypes();
 	    }
-	}
+    }
+	
+    private char[] getQualifiedReturnTypeName(IntertypeElementInfo info) {
+        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+        if (ipe != IHierarchy.NO_STRUCTURE) {
+            return ipe.getCorrespondingType(true).toCharArray();
+        } else {
+            return info.getReturnTypeName();
+        }
+    }
 
-	private String[] toSignatures(char[][] strings) {
-	    if (strings != null) {
-    	    String[] sigs = new String[strings.length];
-    	    for (int i = 0; i < sigs.length; i++) {
-                sigs[i] = Signature.createTypeSignature(strings[i], true);
-            }
-    	    return sigs;
-	    } else {
-	        return new String[0];
-	    }
-	}
-	
-	/**
+
+    /**
 	 * @author andrew
 	 * just expose all the protected setter methods
 	 */
-	private class ITDSourceFieldElementInfo extends SourceFieldElementInfo {
+	private class ITDSourceFieldElementInfo extends SourceFieldElementInfo implements IIntertypeInfo {
+        IntertypeElement original;
+
+        public ITDSourceFieldElementInfo(IntertypeElement original) {
+            this.original = original;
+        }
+
+        public IntertypeElement getOriginal() {
+            return original;
+        }
+
 	    protected void setFlags(int flags) {
 	        super.setFlags(flags);
 	    }
@@ -234,7 +236,17 @@ public class IntertypeElement extends AspectJMemberElement {
 	    }
 	}
 	
-	private class ITDSourceMethodElementInfo extends SourceMethodInfo {
+	private class ITDSourceMethodElementInfo extends SourceMethodInfo implements IIntertypeInfo {
+
+        IntertypeElement original;
+
+        public ITDSourceMethodElementInfo(IntertypeElement original) {
+            this.original = original;
+        }
+
+        public IntertypeElement getOriginal() {
+            return original;
+        }
 
         protected void setReturnType(char[] type) {
             super.setReturnType(type);
@@ -270,7 +282,17 @@ public class IntertypeElement extends AspectJMemberElement {
 	    
 	}
 	
-   private class ITDSourceConstructorElementInfo extends SourceConstructorInfo {
+   private class ITDSourceConstructorElementInfo extends SourceConstructorInfo implements IIntertypeInfo {
+
+        IntertypeElement original;
+
+        public ITDSourceConstructorElementInfo(IntertypeElement original) {
+            this.original = original;
+        }
+
+        public IntertypeElement getOriginal() {
+            return original;
+        }
 
         protected void setArgumentNames(char[][] names) {
             super.setArgumentNames(names);
@@ -299,6 +321,6 @@ public class IntertypeElement extends AspectJMemberElement {
         protected void setSourceRangeStart(int start) {
             super.setSourceRangeStart(start);
         }
-        
+
     }
 }

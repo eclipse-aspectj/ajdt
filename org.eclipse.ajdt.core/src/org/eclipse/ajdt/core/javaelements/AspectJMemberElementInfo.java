@@ -103,9 +103,11 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	}
 
 	public ISourceRange getSourceRange() {
+		/* AJDT 1.7 Begin */
 		if (sourceRangeEnd == 0)
 			return new SourceRange(sourceRangeStart, name != null ? name.length : 0);
 		return new SourceRange(sourceRangeStart, sourceRangeEnd - sourceRangeStart + 1);
+		/* AJDT 1.7 End */
 	}
 
 	public void setSourceRangeEnd(int end) {
@@ -116,10 +118,12 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		if ((this instanceof PointcutElementInfo) && (end == 0)) {
 			return;
 		}
+		/* AJDT 1.7 */
 		sourceRangeEnd = end;
 	}
 	
 	public void setSourceRangeStart(int start) {
+		/* AJDT 1.7 */
 		sourceRangeStart = start;
 	}
 	

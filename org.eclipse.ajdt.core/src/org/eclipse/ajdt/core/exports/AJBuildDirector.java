@@ -111,6 +111,7 @@ public class AJBuildDirector extends BuildDirector {
 
 	
 	private void generateChildrenScripts(BuildTimeFeature feature) throws CoreException {
+		/* AJDT 1.7 */
 		Set plugins = computeElements(feature);
 		String suffix = generateFeatureVersionSuffix(feature);
 		if (suffix != null) {
@@ -126,7 +127,7 @@ public class AJBuildDirector extends BuildDirector {
 		generateModels(Utils.extractPlugins(getSite(false).getRegistry().getSortedBundles(), plugins));
 	}
 
-	
+	/* AJDT 1.7 */
 	// execute private method
 //	private static Method generateFeatureVersionSuffixMethod;
 //	private String generateFeatureVersionSuffix(BuildTimeFeature buildFeature) throws CoreException {

@@ -47,15 +47,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
  
 public interface IAspectSourceElementRequestor extends ISourceElementRequestor{
 	
-void enterClass(
-	int declarationStart,
-	int modifiers,
-	char[] name,
-	int nameSourceStart,
-	int nameSourceEnd,
-	char[] superclass,
-	char[][] superinterfaces,
-	boolean isAspect);
 
 void enterMethod(
 	int declarationStart,
@@ -67,11 +58,14 @@ void enterMethod(
 	char[][] parameterTypes,
 	char[][] parameterNames,
 	char[][] exceptionTypes,
+    boolean isConstructor,
+    boolean isMethod,
+	TypeParameterInfo[] typeParameters,
 	AbstractMethodDeclaration decl);
 
 void enterMethod(MethodInfo methodInfo,AbstractMethodDeclaration decl);
 
-void enterType(TypeInfo typeInfo,boolean isAspect);
+void enterType(TypeInfo typeInfo,boolean isAspect, boolean isPrivilegedAspect);
 
 void enterAdvice(
 		int declarationStart,

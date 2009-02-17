@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IRelationship;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.eclipse.ajdt.core.AJLog;
@@ -32,13 +35,15 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
-import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IAnnotation;
@@ -60,9 +65,6 @@ import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.eclipse.jdt.internal.compiler.SourceElementParser;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
@@ -70,7 +72,6 @@ import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
-import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.jdt.internal.core.AnnotatableInfo;
 import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
@@ -91,8 +92,6 @@ import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.TypeParameter;
 import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
-import org.eclipse.jdt.internal.core.util.MethodInfo;
-import org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * Problem finder for AspectJ problems
@@ -287,7 +286,7 @@ public class AJCompilationUnitProblemFinder extends
         } catch (RuntimeException e) {
             // avoid breaking other tools due to internal compiler failure
             // (40334)
-            String lineDelimiter = unitElement.findRecommendedLineSeparator();
+            String lineDelimiter = org.eclipse.jdt.internal.compiler.util.Util.LINE_SEPARATOR;
             StringBuffer message = new StringBuffer(
                     "Exception occurred during problem detection:"); //$NON-NLS-1$ 
             message.append(lineDelimiter);
@@ -296,7 +295,6 @@ public class AJCompilationUnitProblemFinder extends
             message.append(unitElement.getSource());
             message.append(lineDelimiter);
             message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
-            Util.log(e, message.toString());
             throw new JavaModelException(e,
                     IJavaModelStatusConstants.COMPILER_FAILURE);
         } finally {
@@ -334,7 +332,7 @@ public class AJCompilationUnitProblemFinder extends
         List newProblems = new LinkedList();
         for (int i = 0; i < categorizedProblems.length; i++) {
             // determine if this problem should be filtered
-            if (isARealProblem(categorizedProblems[i], unit, hasModel)) {
+            if (isARealProblem(categorizedProblems[i], unit, model, hasModel)) {
                 newProblems.add(categorizedProblems[i]);
             }
         }
@@ -346,7 +344,7 @@ public class AJCompilationUnitProblemFinder extends
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, CompilationUnit unit, boolean hasModel) {
+            CategorizedProblem categorizedProblem, CompilationUnit unit, AJProjectModelFacade model, boolean hasModel) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -429,31 +427,6 @@ public class AJCompilationUnitProblemFinder extends
             }
         }
 
-        try {
-            if (numArgs > 0 && 
-                    (id == IProblem.UndefinedMethod ||
-                     id == IProblem.UndefinedName) &&
-                   (adviceBodyNames.contains(firstArg) || adviceBodyNames.contains(secondArg) ) &&
-                   unit.getElementAt(categorizedProblem.getSourceStart()) instanceof AdviceElement) {
-                // proceed/thisJoinPoint... statement
-                return false;
-            }
-        } catch(JavaModelException e) {
-        }
-        
-        try {
-            if (numArgs == 1 && (
-                    id == IProblem.ParsingErrorDeleteToken ||
-                    id == IProblem.ParsingErrorDeleteTokens
-                    ) &&
-                    aspectMemberNames.contains(firstArg) &&
-                    insideITD(categorizedProblem, unit)) {
-                // the implements or extends clause of a declare statement
-                return false;
-            }
-        } catch (CoreException e) {
-        }
-        
         if (numArgs == 1 && 
                 id == IProblem.ParsingErrorDeleteToken &&
                 firstArg.equals("@")) {
@@ -482,20 +455,17 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        try {
-            if (numArgs > 0 && 
-                    (id == IProblem.UndefinedName || 
-                     id == IProblem.UndefinedField ||
-                     id == IProblem.UndefinedMethod ||
-                     id == IProblem.UndefinedType ||
-                     id == IProblem.UndefinedConstructor)
-                    &&
-                    insideITD(categorizedProblem, unit)) {
-                // this is an intertype element inside of an aspect.
-                // it is likely that the problem is actually a reference to something added by an ITD
-                return false;
-            }
-        } catch(JavaModelException e) {
+        if (numArgs > 0 && 
+                (id == IProblem.UndefinedName || 
+                 id == IProblem.UndefinedField ||
+                 id == IProblem.UndefinedMethod ||
+                 id == IProblem.UndefinedType ||
+                 id == IProblem.UndefinedConstructor)
+                &&
+                isITDName(categorizedProblem, unit, model)) {
+            // this is an intertype element inside of an aspect.
+            // it is likely that the problem is actually a reference to something added by an ITD
+            return false;
         }
         
         if (hasModel && id == IProblem.ShouldReturnValue && 
@@ -529,6 +499,25 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         try {
+            if (numArgs > 0 && 
+                    (id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedName) &&
+                   (adviceBodyNames.contains(firstArg) || adviceBodyNames.contains(secondArg) ) &&
+                   unit.getElementAt(categorizedProblem.getSourceStart()) instanceof AdviceElement) {
+                // proceed/thisJoinPoint... statement
+                return false;
+            }
+
+            if (numArgs == 1 && (
+                    id == IProblem.ParsingErrorDeleteToken ||
+                    id == IProblem.ParsingErrorDeleteTokens
+                    ) &&
+                    aspectMemberNames.contains(firstArg) &&
+                    insideITD(categorizedProblem, unit)) {
+                // the implements or extends clause of a declare statement
+                return false;
+            }
+
             if (id == IProblem.ParameterMismatch && 
                     insideITD(categorizedProblem, unit)) {
                 // Probably a reference to 'this' inside an ITD
@@ -541,16 +530,30 @@ public class AJCompilationUnitProblemFinder extends
                     insideITD(categorizedProblem, unit)) {
                 // an abstract method ITD inside a concrete aspect
                 // ITDs are allowed to be abstract if the target
-                // type is an abstract class
+                // type is an abstract class, but problem finder cannot know this
                 return false;
             }
             
+            if (id == IProblem.IllegalAbstractModifierCombinationForMethod &&
+                    insideITD(categorizedProblem, unit)) {
+                // private abstract itd in aspect
+                return false;
+            }
+            
+            if (id == IProblem.UnusedPrivateField && 
+                    insideITD(categorizedProblem, unit)) {
+                // private itd is said to be unused, even if it is really used elsewhere
+                return false;
+            }
+
             if (id == IProblem.AbstractMethodsInConcreteClass &&
                     isAspect(categorizedProblem, unit)) {
+                /* AJDT 1.7 */
                 // an aspect that has an abstract ITD will have this problem
                 // in this case it is a spurious problem.  Filter it
                 // unfortunately, this also means filtering real problems
                 // where concrete aspects have abstract methods
+                // new for 1.7
                 return false;
             }
 
@@ -558,31 +561,116 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         
+        // this one is very tricky and rare.
+        // there is a abstract method ITD defined on a supertype
+        // since this type was altered using AspectConvertingParser, 
+        // the implementation of this abstract method is not necessarily there
+        if (id == IProblem.AbstractMethodMustBeImplemented && 
+                (!hasModel || isAbstractITD(categorizedProblem, model, unit))) {
+            return false;
+        }
+        
         return true;
+    }
+    
+    
+    private static boolean isITDName(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model) {
+        Set itdNames = getITDNames(unit, model);
+        String[] args = problem.getArguments();
+        if (args != null) {
+            for (int i = 0; i < args.length; i++) {
+                if (itdNames.contains(args[i])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // would be good if we can cache this value somehow.
+    // expensive to compute
+    private static Set /*String*/ getITDNames(CompilationUnit unit, AJProjectModelFacade model) {
+        Set names = new HashSet();
+        Map relsMap = model.getRelationshipsForFile(unit, new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON } );
+        for (Iterator relsMapIter = relsMap.values().iterator(); relsMapIter.hasNext();) {
+            List rels = (List) relsMapIter.next();
+            for (Iterator relsIter = rels.iterator(); relsIter.hasNext();) {
+                IRelationship rel = (IRelationship) relsIter.next();
+                IProgramElement ipe = model.getProgramElement(rel.getSourceHandle());
+                String longName = ipe.getName();
+                String[] split = longName.split("\\.");
+                String itdName = split[split.length-1];
+                names.add(itdName);
+            }
+        }
+        return names;
     }
 
 
-    private static boolean isPrivilegedAspect(CategorizedProblem problem, CompilationUnit unit) {
+    private static boolean isAbstractITD(CategorizedProblem categorizedProblem,
+            AJProjectModelFacade model, CompilationUnit unit) {
+        
+        // first arg is the method name
+        // then come the method params
+        // then the implementing type
+        // finally, the this type
+        String[] args = categorizedProblem.getArguments();
+        if (args.length < 3) {
+            return false;
+        }
+        
+        String methodName = args[0];
+//        String[] methodParams = new String[args.length-3];
+        String implementingTypeName = args[args.length-2];
+//        String thisType = args[args.length-1];
+        
+        try {
+            IType type = unit.getJavaProject().findType(implementingTypeName);
+            if (type == null) {
+                return false;
+            }
+            
+            List itds = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
+            for (Iterator itdIter = itds.iterator(); itdIter.hasNext();) {
+                AspectJMemberElement ajElt = (AspectJMemberElement) itdIter.next();
+                if (ajElt.getElementName().endsWith("." + methodName)) {
+                    return true;  // close enough...can also compare args and type variables
+                }
+            }
+        } catch (JavaModelException e) {
+        }
+        
+        
+        return false;
+    }
+    
+    /* AJDT 1.7 */
+    private static boolean isAspect(CategorizedProblem problem, CompilationUnit unit) {
         if (unit instanceof AJCompilationUnit) {
             try {
                 IJavaElement elt = unit.getElementAt(problem.getSourceStart());
-                IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
-                if (type != null && type instanceof AspectElement) {
-                    AspectElement aspectType = (AspectElement) type;
-                    return aspectType.isPrivileged();
-                }
+                if (elt != null) {
+	                IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
+    	            return type != null && type instanceof AspectElement;
+    	        }
             } catch (JavaModelException e) {
             }
         }
         return false;
     }
+    
 
-    private static boolean isAspect(CategorizedProblem problem, CompilationUnit unit) {
+    private static boolean isPrivilegedAspect(CategorizedProblem problem, CompilationUnit unit) {
         if (unit instanceof AJCompilationUnit) {
             try {
                 IJavaElement elt = unit.getElementAt(problem.getSourceStart());
-                IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
-                return type != null && type instanceof AspectElement;
+                if (elt != null) {
+                    IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
+                    if (type != null && type instanceof AspectElement) {
+                        AspectElement aspectType = (AspectElement) type;
+                        return aspectType.isPrivileged();
+                    }
+                }
             } catch (JavaModelException e) {
             }
         }
@@ -903,16 +991,3 @@ class NullRequestor extends AJCompilationUnitStructureRequestor implements ISour
         return null;
     }
 }
-    
-//    private class NonDietParser extends CommentRecorderParser {
-//        public NonDietParser(ProblemReporter reporter, boolean parseLiteralExpressionsAsConstants) {
-//            super(reporter, parseLiteralExpressionsAsConstants);
-//        }
-//        public CompilationUnitDeclaration parse(
-//                org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit,
-//                CompilationResult compilationResult, int start, int end) {
-//            this.diet = false;  // force non-diet
-//            return super.parse(sourceUnit, compilationResult, start, end);
-//        }
-//    }
-//}

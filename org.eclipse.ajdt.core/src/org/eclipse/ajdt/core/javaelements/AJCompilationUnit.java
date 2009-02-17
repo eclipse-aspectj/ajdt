@@ -660,6 +660,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			int position, CompletionRequestor requestor,
 			WorkingCopyOwner owner,
 			ITypeRoot typeRoot,
+			/* AJDT 1.7 */
             IProgressMonitor monitor) throws JavaModelException {
 	    // Bug 76146
 	    // if we are not editing in an AspectJ editor 
@@ -687,6 +688,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			transformedPos = javaCompBuffer.translatePositionToFake(position);
 			
 			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+			/* AJDT 1.7 */
 			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this, monitor);
 			
             // now set up for the regular code completion
@@ -702,6 +704,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
         transformedPos = javaCompBuffer.translatePositionToFake(position);
 		
+		/* AJDT 1.7 */
 		internalCodeComplete(cu, unitToSkip, transformedPos, requestor, owner, this, monitor);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
@@ -725,6 +728,7 @@ public class AJCompilationUnit extends CompilationUnit{
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
             ITypeRoot typeRoot,
+			/* AJDT 1.7 */
             IProgressMonitor monitor) throws JavaModelException {
 
 	    if (requestor == null) {
@@ -744,6 +748,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
 	    JavaProject project = (JavaProject) getJavaProject();
+		/* AJDT 1.7 */
 	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor);
 
 	    environment.setUnitToSkip(unitToSkip);
