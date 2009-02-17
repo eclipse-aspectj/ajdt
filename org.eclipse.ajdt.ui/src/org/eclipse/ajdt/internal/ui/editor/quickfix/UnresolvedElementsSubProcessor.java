@@ -354,6 +354,7 @@ public class UnresolvedElementsSubProcessor {
 					label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_createconst_other_description, new Object[] { name, ASTResolving.getTypeSignature(senderDeclBinding) } );
 					image= JavaPluginImages.get(JavaPluginImages.IMG_FIELD_PUBLIC);
 				}
+				/* AJDT 1.7 */
 				int constRelevance= StubUtility.hasConstantName(targetCU.getJavaProject(), name) ? 9 : 4;
 				proposals.add(new NewVariableCorrectionProposal(label, targetCU, NewVariableCorrectionProposal.CONST_FIELD, simpleName, senderDeclBinding, constRelevance, image));
 			}

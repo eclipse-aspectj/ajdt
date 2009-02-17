@@ -509,6 +509,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				ReorgCorrectionsSubProcessor.getNeed50ComplianceProposals(context, problem, proposals);
 				break;
 			case IProblem.NonGenericType:
+			    /* AJDT 1.7 */
                 TypeArgumentMismatchSubProcessor.removeMismatchedArguments(context, problem, proposals);
 				break;
 			case IProblem.MissingOverrideAnnotation:

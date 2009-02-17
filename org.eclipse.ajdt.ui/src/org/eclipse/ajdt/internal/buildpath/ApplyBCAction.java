@@ -11,7 +11,7 @@
 package org.eclipse.ajdt.internal.buildpath;
 
 
-import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
+import org.eclipse.ajdt.core.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

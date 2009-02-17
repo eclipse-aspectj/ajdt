@@ -109,7 +109,7 @@ public class FeatureExportJob extends Job {
 	}
 
 	protected String getLogFoundMessage() {
-		return NLS.bind("Export feature error", fInfo.destinationDirectory);
+		return NLS.bind("Errors occurred during the operation.  A zip file containing the build logs has been generated and placed at \"{0}\".", fInfo.destinationDirectory);
 	}
 
 }

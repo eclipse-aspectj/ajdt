@@ -39,8 +39,7 @@ Export-Package: org.eclipse.ajdt.internal.builder;x-friends:="org.eclipse.ajdt.u
  org.eclipse.ajdt.internal.ui.xref;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.utils;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.pde.internal.core;x-friends:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui,
- org.eclipse.ajdt.ui.buildpath
+ org.eclipse.ajdt.ui
 Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.core.resources;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.ui.forms;bundle-version="3.3.0",
