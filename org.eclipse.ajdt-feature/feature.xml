@@ -61,9 +61,8 @@
       <import plugin="org.aspectj.weaver" version="1.6.3" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.filesystem"/>
       <import plugin="org.eclipse.ui.navigator" version="3.3.0" match="greaterOrEqual"/>
-      <import plugin="com.ibm.icu"/>
-      <import feature="org.eclipse.contribution.weaving" version="1.6.4" match="greaterOrEqual"/>
-      <import feature="org.eclipse.contribution.xref" version="1.6.4" match="greaterOrEqual"/>
+      <import feature="org.eclipse.contribution.weaving" version="0.0.0.AJFVERSION"/>
+      <import feature="org.eclipse.contribution.xref" version="0.0.0.AJFVERSION"/>
    </requires>
 
    <plugin
