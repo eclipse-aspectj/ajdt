@@ -1,0 +1,4 @@
+src.includes = /
+src.excludes = figures/gui/LogAdapter.java,\
+               figures/ColorControl.java,\
+               figures/support/SaveAndRestore.aj
