@@ -12,24 +12,44 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import java.util.HashMap;
+
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
+import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
+import org.eclipse.ajdt.internal.core.contentassist.ContentAssistProvider;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
+import org.eclipse.contribution.jdt.IsWovenTester;
+import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
+import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.compiler.SourceElementParser;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.SearchableEnvironment;
+import org.eclipse.jdt.internal.core.SourceType;
+import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 import org.osgi.framework.BundleContext;
 
 /**
  * The main plugin class to be used in the desktop.
  */
-public class AspectJPlugin extends Plugin {
+public class AspectJPlugin extends Plugin implements NoFFDC {
 	//The shared instance.
 	private static AspectJPlugin plugin;
 
@@ -88,15 +108,20 @@ public class AspectJPlugin extends Plugin {
 		// variables
 		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		// Associations
-		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		// Declare annotation
+		"@type", "@method", "@field" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    
+    
+    public static final String[] declareAnnotationKeywords = { "type", "method", "field" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    
 	/**
 	 * Folder separator used by Eclipse in paths irrespective if on Windows or
 	 * *nix.
 	 */
 	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; //$NON-NLS-1$
 
-	public static boolean usingCUprovider = false;
+	public static final boolean USING_CU_PROVIDER = checkForCUprovider();
 	
 
 	/**
@@ -123,6 +148,46 @@ public class AspectJPlugin extends Plugin {
 				IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
 		setCompilerFactory(new CoreCompilerFactory());
 		
+		ITDAwarenessAspect.provider = new INameEnvironmentProvider() {
+            public boolean shouldFindProblems(CompilationUnit unitElement) {
+                return unitElement.exists() && AspectJPlugin.isAJProject(unitElement.getJavaProject().getProject()); 
+            }
+
+            public SearchableEnvironment getNameEnvironment(
+                    JavaProject project, WorkingCopyOwner owner) {
+                try {
+                    return new ITDAwareNameEnvironment(project, owner, null);
+                } catch (JavaModelException e) {
+                    return null;
+                }
+            }
+
+            public SearchableEnvironment getNameEnvironment(
+                    JavaProject project, ICompilationUnit[] workingCopies) {
+                try {
+                    return new ITDAwareNameEnvironment(project, workingCopies);
+                } catch (JavaModelException e) {
+                    return null;
+                }
+            }
+            
+            public ISourceType transformSourceTypeInfo(ISourceType info) {
+                return new ITDAwareSourceTypeInfo(info, 
+                        (SourceType) ((SourceTypeElementInfo) info).getHandle());
+            }
+
+            public CompilationUnitDeclaration problemFind(
+                    CompilationUnit unitElement, SourceElementParser parser,
+                    WorkingCopyOwner workingCopyOwner, HashMap problems,
+                    boolean creatingAST, int reconcileFlags,
+                    IProgressMonitor monitor) throws JavaModelException {
+                return AJCompilationUnitProblemFinder.processAJ(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+            }
+
+		};
+		
+		ITDAwarenessAspect.contentAssistProvider = new ContentAssistProvider();
+		
 		AJProjectModelFacade.installListener();
 	}
 
@@ -130,16 +195,13 @@ public class AspectJPlugin extends Plugin {
 	 * Sets the usingCUprovider flag if the experimental JDT extension is available
 	 *
 	 */
-	private void checkForCUprovider() {
-		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.jdt.core.compilationUnitProvider"; //$NON-NLS-1$
-		IExtensionPoint exP = Platform.getExtensionRegistry()
-			.getExtensionPoint(EJDT_CU_PROVIDER_EXTENSION);
-		if (exP!=null) {
-			// extension exists, check that org.eclipse.ajdt.cuprovider is there to use it
-			if (Platform.getBundle("org.eclipse.ajdt.cuprovider")!=null) { //$NON-NLS-1$
-				usingCUprovider = true;
-			}
-		}
+	private static boolean checkForCUprovider() {
+	    
+	    try {
+	        return IsWovenTester.isWeavingActive();
+	    } catch (Exception e) {
+	        return false;
+	    }
 	}
 
 	/**
@@ -172,9 +234,9 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public static boolean isAJProject(IProject project) {
 		// Fix for 106707 - check that project is open
-		if(project.isOpen()) {			
+		if(project != null && project.isAccessible()) {			
 			try {
-				if ((project!=null) && project.hasNature(ID_NATURE)) {
+				if (project.hasNature(ID_NATURE)) {
 					return true;
 				}
 			} catch (CoreException e) {

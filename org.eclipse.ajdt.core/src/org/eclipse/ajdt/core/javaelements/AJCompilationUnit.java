@@ -754,6 +754,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	    environment.setUnitToSkip(unitToSkip);
 
 	    // code complete
+	    /* AJDT 1.7 */
 	    CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner, monitor);
 	    engine.complete(cu, position, 0, typeRoot);
 	    if(performanceStats != null) {

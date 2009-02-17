@@ -44,7 +44,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     
     private interface ITDAwareType { }
     
-    private final class ITDAwareSourceType extends SourceType implements ITDAwareType {
+    private final static class ITDAwareSourceType extends SourceType implements ITDAwareType {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareSourceType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
             super(parent, name);
@@ -55,7 +55,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return info;
         }
     }
-    private final class ITDAwareAspectType extends AspectElement implements ITDAwareType {
+    private final static class ITDAwareAspectType extends AspectElement implements ITDAwareType {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareAspectType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
             super(parent, name);

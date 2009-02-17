@@ -41,7 +41,7 @@ import org.eclipse.jdt.internal.core.PackageFragment;
  */
 public class ContentAssistProvider implements IJavaContentAssistProvider {
     
-    private class MockCompilationUnit extends CompilationUnit {
+    private static class MockCompilationUnit extends CompilationUnit {
         
         char[] transformedContents;
         CompilationUnit orig;

@@ -94,7 +94,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     private final static char[] endThrow = new char[] { '(', ':' };
 
     
-    public class Replacement {
+    public static class Replacement {
     	//the position in the original char[]
     	public int posBefore;
     

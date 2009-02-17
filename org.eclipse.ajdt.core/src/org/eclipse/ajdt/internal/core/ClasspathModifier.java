@@ -101,8 +101,6 @@ public class ClasspathModifier {
 	public static IPackageFragmentRoot getFragmentRoot(IResource resource,
 			IJavaProject project, IProgressMonitor monitor)
 			throws JavaModelException {
-		if (monitor == null)
-			monitor = new NullProgressMonitor();
 		IJavaElement javaElem = null;
 		if (resource.getFullPath().equals(project.getPath()))
 			return project.getPackageFragmentRoot(resource);

@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.model;
 
 import java.util.Comparator;
+import java.io.Serializable;
 
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.jdt.core.IJavaElement;
@@ -19,9 +20,11 @@ import org.eclipse.jdt.core.IJavaElement;
 /**
  * This class gives an order to AJCodeElements
  */
-public class AJComparator implements Comparator {
+public class AJComparator implements Comparator, Serializable {
 
-	/* (non-Javadoc)
+	private static final long serialVersionUID = 8886271915017653329L;
+
+    /* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	public int compare(Object o1, Object o2) {

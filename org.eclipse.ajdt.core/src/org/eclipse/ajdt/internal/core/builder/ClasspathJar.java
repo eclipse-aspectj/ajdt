@@ -124,6 +124,10 @@ public class ClasspathJar extends ClasspathLocation {
 		this.knownPackageNames = null;
 	}
 
+	public int hashCode() {
+	    return this.zipFilename == null ? super.hashCode() : this.zipFilename.hashCode();
+	}
+
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof ClasspathJar)) return false;

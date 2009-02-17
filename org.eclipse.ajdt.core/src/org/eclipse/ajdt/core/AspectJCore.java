@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaCore;
@@ -33,7 +34,6 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.PackageFragment;
-import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
 public class AspectJCore {
 
@@ -83,7 +83,6 @@ public class AspectJCore {
 		    if (Character.isDigit(codeElementHandle.charAt(occurrenceIndex+1))) {
 		        int occurrence = Integer.parseInt(codeElementHandle.substring(occurrenceIndex+1));
 		        String cname = codeElementHandle.substring(0, li);
-		        codeElementHandle = codeElementHandle.substring(0, li);
 		        return new AJCodeElement(parent, cname, occurrence);
 		    }
             codeElementHandle = codeElementHandle.substring(0, li);
@@ -160,6 +159,8 @@ public class AspectJCore {
                             cuName = cuName.substring(0, ind6);
                         }
 						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cuName)) {
+						    // no need to use a cuprovider because we know this
+						    // is an AJCompilationUnit
 							JavaElement cu = new AJCompilationUnit(pf, cuName, owner);
 							token = memento.nextToken();
 							if (!memento.hasMoreTokens()) {
@@ -259,10 +260,6 @@ public class AspectJCore {
 								if(aspectEl == null) {
 									aspectEl = new AspectElement((JavaElement)openable, aspectName);						
 									l.add(aspectEl);
-//									try {
-//                                        ((CompilationUnitElementInfo) ((CompilationUnit) openable).getElementInfo()).addChild((IJavaElement) aspectEl);
-//                                    } catch (JavaModelException e) {
-//                                    }
 								}
                                 int afterAspectIndex = index3 + aspectName.length() + 1;
 
@@ -273,24 +270,6 @@ public class AspectJCore {
     								memento.setIndexTo(afterAspectIndex);
     								return aspectEl.getHandleFromMemento(memento.nextToken(), memento, owner);
 								}
-//								if (identifierIsAspect) {
-//									return aspectEl;
-//								}
-//								IJavaElement mockEl;
-//								char[] possibleDelimiters = new char[] {
-//										AspectElement.JEM_ADVICE,
-//										AspectElement.JEM_DECLARE,
-//										AspectElement.JEM_ITD,
-//										AspectElement.JEM_METHOD,
-//										AspectElement.JEM_POINTCUT
-//								};
-//								for (int i = 0; i < possibleDelimiters.length; i++) {
-//									mockEl = getMockElement(possibleDelimiters[i], handleIdentifier, aspectEl); 
-//									if(mockEl != null) {
-//										return mockEl;
-//									}										
-//								}							
-//								return null;								
 							}
 						}
 					}
@@ -305,7 +284,7 @@ public class AspectJCore {
 		return JavaCore.create(handleIdentifier);
 	}
 	
-    /**
+	    /**
      * Converts a handle signifying Java class to a handle signifying an
      * aspect element.
      * 
@@ -330,200 +309,21 @@ public class AspectJCore {
        }
        return aspectHandle;
     }
-    
-    public static String convertToJavaCUHandle(String aspectHandle, IJavaElement elt) {
-        String javaHandle = aspectHandle;
-        if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(elt.getResource().getName())) {
-            javaHandle = javaHandle.replace(AspectElement.JEM_ASPECT_CU, 
-                    JavaElement.JEM_COMPILATIONUNIT);
-        }
+	
+	
+	public static String convertToJavaCUHandle(String aspectHandle, IJavaElement elt) {
+	    String javaHandle = aspectHandle;
+	    if (elt != null) {
+            IResource resource = elt.getResource();
+            if (resource != null) {
+                if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
+                    javaHandle = javaHandle.replaceFirst("\\" + AspectElement.JEM_ASPECT_CU, 
+                            Character.toString(JavaElement.JEM_COMPILATIONUNIT));
+                }
+            }
+	    }
         return javaHandle;
     }
-}
-
-class AJMementoTokenizer extends MementoTokenizer {
-	private static final String COUNT = Character
-			.toString(JavaElement.JEM_COUNT);
-
-	private static final String JAVAPROJECT = Character
-			.toString(JavaElement.JEM_JAVAPROJECT);
-
-	private static final String PACKAGEFRAGMENTROOT = Character
-			.toString(JavaElement.JEM_PACKAGEFRAGMENTROOT);
-
-	private static final String PACKAGEFRAGMENT = Character
-			.toString(JavaElement.JEM_PACKAGEFRAGMENT);
-
-	private static final String FIELD = Character
-			.toString(JavaElement.JEM_FIELD);
-
-	private static final String METHOD = Character
-			.toString(JavaElement.JEM_METHOD);
-
-	private static final String INITIALIZER = Character
-			.toString(JavaElement.JEM_INITIALIZER);
-
-	private static final String COMPILATIONUNIT = Character
-			.toString(JavaElement.JEM_COMPILATIONUNIT);
-
-	private static final String CLASSFILE = Character
-			.toString(JavaElement.JEM_CLASSFILE);
-
-	private static final String TYPE = Character.toString(JavaElement.JEM_TYPE);
-
-	private static final String PACKAGEDECLARATION = Character
-			.toString(JavaElement.JEM_PACKAGEDECLARATION);
-
-	private static final String IMPORTDECLARATION = Character
-			.toString(JavaElement.JEM_IMPORTDECLARATION);
-
-	private static final String LOCALVARIABLE = Character
-			.toString(JavaElement.JEM_LOCALVARIABLE);
-
-	// begin AspectJ change
-	private static final String ASPECT_CU = Character
-			.toString(AspectElement.JEM_ASPECT_CU);
-
-	private static final String TYPE_PARAMETER = Character
-			.toString(AspectElement.JEM_TYPE_PARAMETER);
-
-	private static final String ADVICE = Character
-			.toString(AspectElement.JEM_ADVICE);
-
-	private static final String ASPECT_TYPE = Character
-			.toString(AspectElement.JEM_ASPECT_TYPE);
-
-	private static final String CODEELEMENT = Character
-			.toString(AspectElement.JEM_CODEELEMENT);
-
-	private static final String ITD = Character
-			.toString(AspectElement.JEM_ITD);
-
-	private static final String DECLARE = Character
-		    .toString(AspectElement.JEM_DECLARE);
-
-    private static final String POINTCUT = Character
-            .toString(AspectElement.JEM_POINTCUT);
-//    private static final String EXTRA_INFO = Character
-//            .toString(AspectElement.JEM_EXTRA_INFO);
-	// end AspectJ change
-
-	private final char[] memento;
-
-	private final int length;
-
-	private int index = 0;
-
-	public AJMementoTokenizer(String memento) {
-		super(memento);
-		this.memento = memento.toCharArray();
-		this.length = this.memento.length;
-	}
 	
-	void setIndexTo(int newIndex) {
-	    this.index = newIndex;
-	}
-
-	public boolean hasMoreTokens() {
-		return this.index < this.length;
-	}
-
-	public String nextToken() {
-		int start = this.index;
-		StringBuffer buffer = null;
-		switch (this.memento[this.index++]) {
-		case JavaElement.JEM_ESCAPE:
-			buffer = new StringBuffer();
-			buffer.append(this.memento[this.index]);
-			start = ++this.index;
-			break;
-		case JavaElement.JEM_COUNT:
-			return COUNT;
-		case JavaElement.JEM_JAVAPROJECT:
-			return JAVAPROJECT;
-		case JavaElement.JEM_PACKAGEFRAGMENTROOT:
-			return PACKAGEFRAGMENTROOT;
-		case JavaElement.JEM_PACKAGEFRAGMENT:
-			return PACKAGEFRAGMENT;
-		case JavaElement.JEM_FIELD:
-			return FIELD;
-		case JavaElement.JEM_METHOD:
-			return METHOD;
-		case JavaElement.JEM_INITIALIZER:
-			return INITIALIZER;
-		case JavaElement.JEM_COMPILATIONUNIT:
-			return COMPILATIONUNIT;
-		case JavaElement.JEM_CLASSFILE:
-			return CLASSFILE;
-		case JavaElement.JEM_TYPE:
-			return TYPE;
-		case JavaElement.JEM_PACKAGEDECLARATION:
-			return PACKAGEDECLARATION;
-		case JavaElement.JEM_IMPORTDECLARATION:
-			return IMPORTDECLARATION;
-		case JavaElement.JEM_LOCALVARIABLE:
-			return LOCALVARIABLE;
-		// begin AspectJ change
-		case AspectElement.JEM_ASPECT_CU:
-			return ASPECT_CU;
-		case AspectElement.JEM_TYPE_PARAMETER:
-			return TYPE_PARAMETER;
-		case AspectElement.JEM_ADVICE:
-			return ADVICE;
-		case AspectElement.JEM_ASPECT_TYPE:
-			return ASPECT_TYPE;
-		case AspectElement.JEM_CODEELEMENT:
-			return CODEELEMENT;
-		case AspectElement.JEM_ITD:
-			return ITD;
-		case AspectElement.JEM_DECLARE:
-			return DECLARE;
-		case AspectElement.JEM_POINTCUT:
-			return POINTCUT;
-//		case AspectElement.JEM_EXTRA_INFO:
-//		    return EXTRA_INFO;
-		// end AspectJ change
-		}
-		loop: while (this.index < this.length) {
-			switch (this.memento[this.index]) {
-			case JavaElement.JEM_ESCAPE:
-				if (buffer == null)
-					buffer = new StringBuffer();
-				buffer.append(this.memento, start, this.index - start);
-				start = ++this.index;
-				break;
-			case JavaElement.JEM_COUNT:
-			case JavaElement.JEM_JAVAPROJECT:
-			case JavaElement.JEM_PACKAGEFRAGMENTROOT:
-			case JavaElement.JEM_PACKAGEFRAGMENT:
-			case JavaElement.JEM_FIELD:
-			case JavaElement.JEM_METHOD:
-			case JavaElement.JEM_INITIALIZER:
-			case JavaElement.JEM_COMPILATIONUNIT:
-			case JavaElement.JEM_CLASSFILE:
-			case JavaElement.JEM_TYPE:
-			case JavaElement.JEM_PACKAGEDECLARATION:
-			case JavaElement.JEM_IMPORTDECLARATION:
-			case JavaElement.JEM_LOCALVARIABLE:
-			// begin AspectJ change
-			case AspectElement.JEM_ASPECT_CU:
-			case AspectElement.JEM_TYPE_PARAMETER:
-			case AspectElement.JEM_ADVICE:
-			case AspectElement.JEM_ASPECT_TYPE:
-			case AspectElement.JEM_CODEELEMENT:
-			case AspectElement.JEM_ITD:
-			case AspectElement.JEM_DECLARE:
-            case AspectElement.JEM_POINTCUT:
-//            case AspectElement.JEM_EXTRA_INFO:
-			// end AspectJ change
-				break loop;
-			}
-			this.index++;
-		}
-		if (buffer != null) {
-			buffer.append(this.memento, start, this.index - start);
-			return buffer.toString();
-		}
-		return new String(this.memento, start, this.index - start);		
-	}
 }
+

@@ -1116,7 +1116,11 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		String root = getLocation(model);
 		File file = new File(root, "javaCompiler." + name.replaceAll("[\\\\/]", "_") + ".args"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		if (file.exists()) {
-			file.delete();
+			boolean res = file.delete();
+			if (!res) {
+			    AspectJPlugin.getDefault().getLog().log(
+			            new Status(Status.WARNING, AspectJPlugin.PLUGIN_ID, "Could not delete file " + file));
+			}
 		}
 		Writer writer = null;
 		try {

@@ -719,6 +719,7 @@ public class AJCompilationUnitProblemFinder extends
         aspectMemberNames.add("before");
         aspectMemberNames.add("soft");
         aspectMemberNames.add("error");
+        aspectMemberNames.add("warning");
         aspectMemberNames.add("pointcut");
         aspectMemberNames.add("implements");
         aspectMemberNames.add("extends");
