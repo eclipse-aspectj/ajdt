@@ -68,14 +68,14 @@ import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
  */
 public class ITDInserter extends ASTVisitor {
     
-    private class OrigContents {
+    private static class OrigContents {
         AbstractMethodDeclaration[] methods;
         FieldDeclaration[] fields;
         TypeReference superClass;
         TypeReference[] superInterfaces;
     }
     
-    class ITDTypeConverter extends TypeConverter {
+    private static class ITDTypeConverter extends TypeConverter {
         public ITDTypeConverter(ProblemReporter reporter) {
             super(reporter, Signature.C_DOT);
         }

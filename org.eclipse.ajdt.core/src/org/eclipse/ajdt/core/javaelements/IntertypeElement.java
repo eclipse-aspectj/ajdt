@@ -205,7 +205,7 @@ public class IntertypeElement extends AspectJMemberElement {
 	 * @author andrew
 	 * just expose all the protected setter methods
 	 */
-	private class ITDSourceFieldElementInfo extends SourceFieldElementInfo implements IIntertypeInfo {
+	private static class ITDSourceFieldElementInfo extends SourceFieldElementInfo implements IIntertypeInfo {
         IntertypeElement original;
 
         public ITDSourceFieldElementInfo(IntertypeElement original) {
@@ -236,7 +236,7 @@ public class IntertypeElement extends AspectJMemberElement {
 	    }
 	}
 	
-	private class ITDSourceMethodElementInfo extends SourceMethodInfo implements IIntertypeInfo {
+	private static class ITDSourceMethodElementInfo extends SourceMethodInfo implements IIntertypeInfo {
 
         IntertypeElement original;
 
@@ -282,7 +282,7 @@ public class IntertypeElement extends AspectJMemberElement {
 	    
 	}
 	
-   private class ITDSourceConstructorElementInfo extends SourceConstructorInfo implements IIntertypeInfo {
+   private static class ITDSourceConstructorElementInfo extends SourceConstructorInfo implements IIntertypeInfo {
 
         IntertypeElement original;
 

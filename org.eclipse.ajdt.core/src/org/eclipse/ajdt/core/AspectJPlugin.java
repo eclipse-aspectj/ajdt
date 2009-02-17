@@ -134,7 +134,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	 */
 	public AspectJPlugin() {
 		super();
-		plugin = this;
+		AspectJPlugin.plugin = this;
 	}
 
 	/**
@@ -234,9 +234,9 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	 */
 	public static boolean isAJProject(IProject project) {
 		// Fix for 106707 - check that project is open
-		if(project.isOpen()) {			
+		if(project != null && project.isAccessible()) {			
 			try {
-				if ((project!=null) && project.hasNature(ID_NATURE)) {
+				if (project.hasNature(ID_NATURE)) {
 					return true;
 				}
 			} catch (CoreException e) {

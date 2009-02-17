@@ -40,6 +40,13 @@ ClasspathMultiDirectory(IContainer sourceFolder, IContainer binaryFolder, char[]
 		this.exclusionPatterns = null;
 }
 
+public int hashCode() {
+    int num1 = sourceFolder == null ? 0 : sourceFolder.hashCode();
+    int num2 = inclusionPatterns == null ? 0 : CharOperation.toString(inclusionPatterns).hashCode();
+    int num3 = exclusionPatterns == null ? 0 : CharOperation.toString(exclusionPatterns).hashCode();
+    return num1 * num2 * num3;
+}
+
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathMultiDirectory)) return false;

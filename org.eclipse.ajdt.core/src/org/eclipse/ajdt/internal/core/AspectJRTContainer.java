@@ -72,8 +72,10 @@ public class AspectJRTContainer implements IClasspathContainer {
 	/**
 	 * Get the aspectjrt.jar classpath entry. This is usually in
 	 * plugins/org.aspectj.ajde_ <VERSION>/aspectjrt.jar
+	 * <p>
+	 * Synchronized method because static field aspectjrtPath is initialized here.
 	 */
-	public static String[] getAspectjrtClasspath() {
+	public synchronized static String[] getAspectjrtClasspath() {
 		if (aspectjrtPath == null) {
 			List pathList = new LinkedList();
 			Bundle runtime = Platform
@@ -104,7 +106,7 @@ public class AspectJRTContainer implements IClasspathContainer {
 		return aspectjrtPath;
 	}
 
-	private static String[] getAspectjrtSourcePath() {
+	private synchronized static String[] getAspectjrtSourcePath() {
 		if (aspectjrtSourcePath == null) {
 			List pathList = new LinkedList();
 			Bundle source = Platform.getBundle("org.eclipse.ajdt.source"); //$NON-NLS-1$

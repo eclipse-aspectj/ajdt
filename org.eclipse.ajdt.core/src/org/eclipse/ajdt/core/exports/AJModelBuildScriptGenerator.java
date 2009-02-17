@@ -29,6 +29,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.aspectj.asm.IHierarchy;
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -1115,7 +1119,11 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		String root = getLocation(model);
 		File file = new File(root, "javaCompiler." + name.replaceAll("[\\\\/]", "_") + ".args"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		if (file.exists()) {
-			file.delete();
+			boolean res = file.delete();
+			if (!res) {
+			    AspectJPlugin.getDefault().getLog().log(
+			            new Status(Status.WARNING, AspectJPlugin.PLUGIN_ID, "Could not delete file " + file));
+			}
 		}
 		Writer writer = null;
 		try {

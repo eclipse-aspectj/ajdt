@@ -83,7 +83,6 @@ public class AspectJCore {
 		    if (Character.isDigit(codeElementHandle.charAt(occurrenceIndex+1))) {
 		        int occurrence = Integer.parseInt(codeElementHandle.substring(occurrenceIndex+1));
 		        String cname = codeElementHandle.substring(0, li);
-		        codeElementHandle = codeElementHandle.substring(0, li);
 		        return new AJCodeElement(parent, cname, occurrence);
 		    }
             codeElementHandle = codeElementHandle.substring(0, li);

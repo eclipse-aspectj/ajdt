@@ -324,7 +324,7 @@ public class AJCompilationUnitStructureRequestor extends
 				
 				String nameString = decl.kind.getName();
 				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
-				handle = new AdviceElement(parentHandle, new String(nameString), parameterTypeSigs);
+				handle = new AdviceElement(parentHandle, nameString, parameterTypeSigs);
 			
 				resolveDuplicates(handle);
 				

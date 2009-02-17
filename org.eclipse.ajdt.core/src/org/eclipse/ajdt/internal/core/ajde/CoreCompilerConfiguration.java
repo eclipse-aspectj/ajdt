@@ -162,7 +162,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 			if (prependProject) {
 				// Its a relative path, it should be relative to the project.
 				String projectBaseDirectory = project.getLocation().toOSString();
-				outputJar = new String(projectBaseDirectory + File.separator + outputJar.trim());
+				outputJar = projectBaseDirectory + File.separator + outputJar.trim();
 			}
 		}
 

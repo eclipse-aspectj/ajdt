@@ -113,7 +113,7 @@ public class AspectRenameParticipant extends RenameParticipant {
 		return changes;
 	}
 
-	class AspectChange {
+	static class AspectChange {
 		IAspectJElement element;
 		List offsets;
 	}

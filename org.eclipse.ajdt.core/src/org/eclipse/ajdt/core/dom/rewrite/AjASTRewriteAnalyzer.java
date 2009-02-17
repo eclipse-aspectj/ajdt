@@ -963,7 +963,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				if (isAllRemoved) { // all removed: remove right and space up to next element
 					int endPos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameGREATER, pos); // set pos to '>'
 					endPos= getScanner().getNextStartOffset(endPos, false);
-					String replacement= needsSpaceOnRemoveAll ? String.valueOf(' ') : new String();
+					String replacement= needsSpaceOnRemoveAll ? String.valueOf(' ') : "";
 					doTextReplace(pos, endPos - pos, replacement, getEditGroup(children[children.length - 1]));
 					return endPos;
 				} else if (isAllInserted) {

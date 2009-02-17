@@ -86,6 +86,13 @@ class ClasspathDirectory extends ClasspathLocation {
 				return true;
 		return false;
 	}
+	
+	
+	public int hashCode() {
+	    int num1 = accessRuleSet == null ? 0 : accessRuleSet.hashCode();
+	    int num2 = binaryFolder == null ? 0 : binaryFolder.hashCode();
+	    return num1 * num2;
+	}
 
 	public boolean equals(Object o) {
 		if (this == o) return true;

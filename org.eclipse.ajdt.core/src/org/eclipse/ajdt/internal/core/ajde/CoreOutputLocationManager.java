@@ -227,6 +227,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			projectName = jProject.getProject().getName();
 			if (projectName == null) {
 				AJLog.log(AJLog.DEFAULT, "CoreOutputLocationManager: cannot determine project name of this project: " + jProject); //$NON-NLS-1$
+				projectName = "/";
 			}
 		}
 		int ind = fileName.indexOf(projectName);
