@@ -32,7 +32,7 @@ public class MockContentAssistProvider implements IJavaContentAssistProvider {
     public boolean doContentAssist(ICompilationUnit cu,
             ICompilationUnit unitToSkip, int position,
             CompletionRequestor requestor, WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception {
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception {  /* AJDT 1.7 */
         contentAssistDone = true;
         return true;
     }
