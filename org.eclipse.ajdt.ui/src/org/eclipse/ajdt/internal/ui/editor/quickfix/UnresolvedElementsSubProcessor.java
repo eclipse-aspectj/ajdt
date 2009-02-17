@@ -1469,11 +1469,8 @@ public class UnresolvedElementsSubProcessor {
 		if (type == ASTNode.CLASS_INSTANCE_CREATION) {
 			ClassInstanceCreation creation= (ClassInstanceCreation) selectedNode;
 
-			IBinding binding= creation.getType().resolveBinding();
-			if (binding instanceof ITypeBinding) {
-				targetBinding= (ITypeBinding) binding;
-				arguments= creation.arguments();
-			}
+			targetBinding = creation.getType().resolveBinding();
+			arguments= creation.arguments();
 		} else if (type == ASTNode.SUPER_CONSTRUCTOR_INVOCATION) {
 			ITypeBinding typeBinding= Bindings.getBindingOfParentType(selectedNode);
 			if (typeBinding != null && !typeBinding.isAnonymous()) {

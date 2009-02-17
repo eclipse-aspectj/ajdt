@@ -23,13 +23,14 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Adapted from org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor
  */
-public class AJQuickFixProcessor extends QuickFixProcessor {
+public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssistProcessor { // AspectJ Change
 
 	public boolean hasCorrections(ICompilationUnit cu, int problemId) {
 		switch (problemId) {
@@ -69,7 +70,7 @@ public class AJQuickFixProcessor extends QuickFixProcessor {
 					switch (problemId) {
 					case IProblem.ParsingError:
 						String[] args = locations[i].getProblemArguments();
-						if (args[0].toString().equals("aspect")) { //$NON-NLS-1$
+						if (args[0].equals("aspect")) { //$NON-NLS-1$
 							relevantError = true;
 							break;
 						}
@@ -119,4 +120,23 @@ public class AJQuickFixProcessor extends QuickFixProcessor {
 		default:
 		}
 	}
+
+
+    // begin AspectJ Change
+    // implementing methods of IQuickAssistProcessor
+    public IJavaCompletionProposal[] getAssists(IInvocationContext context,
+            IProblemLocation[] locations) throws CoreException {
+        return getCorrections(context, locations);
+    }
+
+    public boolean hasAssists(IInvocationContext context) throws CoreException {
+        IProblem[] problems = context.getASTRoot().getProblems();
+        for (int i = 0; i < problems.length; i++) {
+            if (hasCorrections(context.getCompilationUnit(), problems[i].getID())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // end AspectJ Change
 }

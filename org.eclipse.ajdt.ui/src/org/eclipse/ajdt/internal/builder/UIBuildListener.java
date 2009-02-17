@@ -24,6 +24,8 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
+import org.eclipse.ajdt.core.model.AJModelChecker;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
@@ -120,7 +122,7 @@ public class UIBuildListener implements IAJBuildListener {
 	            errorMarker.setAttribute(IMarker.LOCATION, "Inpath"); //$NON-NLS-1$
 	        } catch (CoreException e) {
 	            AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
-	                            + project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+	                            + project.getName() + ": " + e); //$NON-NLS-1$
 	        }
 	    }
     }
@@ -149,7 +151,7 @@ public class UIBuildListener implements IAJBuildListener {
 			}
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured finding the markers for project " //$NON-NLS-1$
-							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+							+ project.getName() + ": " + e); //$NON-NLS-1$
 		}
 		return false;
 	}
@@ -161,7 +163,7 @@ public class UIBuildListener implements IAJBuildListener {
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
-							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+							+ project.getName() + ": " + e); //$NON-NLS-1$
 		}
 	}
 
@@ -222,6 +224,11 @@ public class UIBuildListener implements IAJBuildListener {
                     deleteUpdateMarkers.schedule();
                 }
 		}
+		
+		// sanity check the model if the event trace viewer is open
+		AJModelChecker.doModelCheckIfRequired(
+		        AJProjectModelFactory.getInstance().getModelForProject(project));
+		
 		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
@@ -333,7 +340,7 @@ public class UIBuildListener implements IAJBuildListener {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured either finding the markers for project " //$NON-NLS-1$
 							+ project.getName()
 							+ ", or deleting the error marker: " //$NON-NLS-1$
-							+ e.getStackTrace());
+							+ e);
 		}
 	}
 

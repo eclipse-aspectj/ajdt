@@ -128,8 +128,8 @@ public class AJDTUtils {
 
 		Point size = useSmallSize(decorations) ? SMALL_SIZE : BIG_SIZE;
 		// Check the image descriptor cache
-		String key = new String(base.toString() + ":::" + decorations + ":::" //$NON-NLS-1$ //$NON-NLS-2$
-				+ size.toString());
+		String key = base.toString() + ":::" + decorations + ":::" //$NON-NLS-1$ //$NON-NLS-2$
+				+ size.toString();
 		// Example key is
 		// "URLImageDescriptor(platform:/plugin/org.aspectj.ajde_1.1.0/icons/structure/file-lst.gif):::0:::Point
 		// {22, 16}"
@@ -597,17 +597,17 @@ public class AJDTUtils {
         deleteUpdateMarkers.doDeleteOnly(true);
         deleteUpdateMarkers.schedule();
 		
-		//remove compilation units for .aj files
+        // bug 129553: exclude .aj files so that the java builder doesnt try to
+        // compile them
+        excludeAJfiles(project);
+
+        //remove compilation units for .aj files
 		//(the way it is currently implemented, this must happen before nature
 		// gets removed)
 		AJCompilationUnitUtils.removeCUsfromJavaModelAndCloseEditors(project);
 
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
 		AJDTUtils.clearProjectMarkers(project, true);
-
-		// bug 129553: exclude .aj files so that the java builder doesnt try to
-		// compile them
-		excludeAJfiles(project);
 		
 		// remove the AspectJ Nature
 		IProjectDescription description = project.getDescription();

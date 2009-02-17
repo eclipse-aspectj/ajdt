@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 public class DeleteAndUpdateAJMarkersJob extends Job {
-    public static Object UPDATE_DELETE_AJ_MARKERS_FAMILY = new Object();
+    public final static Object UPDATE_DELETE_AJ_MARKERS_FAMILY = new Object();
 
     private DeleteAJMarkers delete;
     private UpdateAJMarkers update;

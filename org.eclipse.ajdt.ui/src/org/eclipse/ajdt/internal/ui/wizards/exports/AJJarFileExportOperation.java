@@ -391,12 +391,12 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		IResource[] children= null;
 		try {
 			children= container.members();
+			for (int i= 0; i < children.length; i++)
+			    exportElement(children[i], progressMonitor);
 		} catch (CoreException e) {
 			// this should never happen because an #isAccessible check is done before #members is invoked
 			addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_errorDuringExport, container.getFullPath()), e); 
 		}
-		for (int i= 0; i < children.length; i++)
-			exportElement(children[i], progressMonitor);
 	}
 
 	private IPackageFragmentRoot findPackageFragmentRoot(IJavaProject jProject, IPath path) throws JavaModelException {

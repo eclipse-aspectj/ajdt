@@ -567,7 +567,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		super(parent, shellStyle, treeStyle, commandId, true);
 		// AspectJ Change begin
 		// adding this for testing purposes (bug 80239)
-		infoControl = this;
+		AJOutlineInformationControl.infoControl = this;
 		// AspectJ Change end
 	}
 

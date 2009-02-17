@@ -147,7 +147,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
      * Inner class used to track problems found during compilation Values of -1
      * are used to indicate no line or column number available.
      */
-    class ProblemTracker {
+    static class ProblemTracker {
 
         public ISourceLocation location;
         public String message;

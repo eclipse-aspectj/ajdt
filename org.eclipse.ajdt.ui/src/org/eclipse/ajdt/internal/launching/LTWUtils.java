@@ -138,7 +138,7 @@ public class LTWUtils {
 			IFolder metainf = (IFolder) ((Workspace)ResourcesPlugin.getWorkspace()).
 				newResource(new Path(outputFolder.getFullPath() + "/META-INF"), //$NON-NLS-1$ 
 					IResource.FOLDER);
-			if(metainf == null || !metainf.exists()) {
+			if(!metainf.exists()) {
 				metainf.create(true,true,null);
 			}
 			file.copy(outputFile.getFullPath(), IResource.FORCE, null);
@@ -267,7 +267,10 @@ public class LTWUtils {
 	 * @return
 	 */
 	private static String getFullTypeName(IType element) {
-		if (element != null && element.getParent() instanceof IType) {
+	    if (element == null) {
+	        return "";
+	    }
+		if (element.getParent() instanceof IType) {
 			return getFullTypeName((IType)element.getParent()) + "." + element.getElementName(); //$NON-NLS-1$
 		} else {
 			return element.getElementName();
