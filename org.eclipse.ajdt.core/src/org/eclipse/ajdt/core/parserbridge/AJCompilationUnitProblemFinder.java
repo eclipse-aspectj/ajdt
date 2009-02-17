@@ -463,11 +463,11 @@ public class AJCompilationUnitProblemFinder extends
                  id == IProblem.UndefinedConstructor)
                 &&
                 isITDName(categorizedProblem, unit, model)) {
-            // this is an intertype element inside of an aspect.
-            // it is likely that the problem is actually a reference to something added by an ITD
+            // a reference inside an aspect to an ITD that it declares
             return false;
         }
         
+
         if (hasModel && id == IProblem.ShouldReturnValue && 
                 categorizedProblem.getSourceStart() == 0 && 
                 categorizedProblem.getSourceEnd() == 0) {
@@ -530,7 +530,7 @@ public class AJCompilationUnitProblemFinder extends
                     insideITD(categorizedProblem, unit)) {
                 // an abstract method ITD inside a concrete aspect
                 // ITDs are allowed to be abstract if the target
-                // type is an abstract class, but problem finder cannot know this
+                // type is an abstract class, but problem finder does not know this
                 return false;
             }
             
@@ -546,6 +546,18 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
 
+            if (numArgs > 0 && 
+                    (id == IProblem.UndefinedName || 
+                     id == IProblem.UndefinedField ||
+                     id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedType ||
+                     id == IProblem.UndefinedConstructor)
+                    &&
+                    insideITD(categorizedProblem, unit)) {
+                // likely to be a reference inside an ITD to a name in the target type
+                // also will erroneously filter out truly undefined names
+                return false;
+            }
         } catch (JavaModelException e) {
         }
         
