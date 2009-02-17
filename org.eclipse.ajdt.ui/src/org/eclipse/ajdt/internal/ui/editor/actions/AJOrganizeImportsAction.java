@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.io.Serializable;
 
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsOperation.IChooseImportQuery;
 import org.eclipse.core.filebuffers.FileBuffers;
@@ -119,9 +120,11 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		}
 	}
 	
-	private static final class OrganizeImportComparator implements Comparator {
+	private static final class OrganizeImportComparator implements Comparator, Serializable {
 		
-		public int compare(Object o1, Object o2) {
+		private static final long serialVersionUID = -4396300340833288667L;
+
+        public int compare(Object o1, Object o2) {
 			if (((String)o1).equals(o2))
 				return 0;
 			

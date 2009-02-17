@@ -24,7 +24,7 @@ public class AJDTIcon  {
 		new AJDTIcon( ImageDescriptor.getMissingImageDescriptor() );
 
 	private ImageDescriptor descriptor;
-	private URL pluginInstallURL;
+	private static URL pluginInstallURL;
 
 	/**
 	 * Build icon from a URL pointing at the target image

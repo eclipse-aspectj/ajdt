@@ -39,11 +39,11 @@ public class FilterTraceAction extends Action {
 	public FilterTraceAction(Shell shell, List items,
 			List checkedItems, List defaultItems, String dlogTitle,
 			String dlogMessage, String tooltip) {
-		populatingList = items;
-		checkedList = checkedItems;
-		defaultCheckedList = defaultItems;
-		dialogTitle = dlogTitle;
-		dialogMessage = dlogMessage;
+	    FilterTraceAction.populatingList = items;
+	    FilterTraceAction.checkedList = checkedItems;
+	    FilterTraceAction.defaultCheckedList = defaultItems;
+	    FilterTraceAction.dialogTitle = dlogTitle;
+	    FilterTraceAction.dialogMessage = dlogMessage;
 		parentShell = shell;
 		tooltipText = tooltip;
 	}

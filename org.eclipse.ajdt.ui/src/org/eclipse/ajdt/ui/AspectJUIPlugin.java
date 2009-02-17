@@ -140,7 +140,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
      */
     public AspectJUIPlugin() {
         super();
-        plugin = this;
+        AspectJUIPlugin.plugin = this;
     }
 
     /**

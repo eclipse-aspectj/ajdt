@@ -55,7 +55,7 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
     /**
      * Static to prevent opening of error dialogs for automated testing.
      */
-    public static boolean AUTOMATED_MODE = false;
+    public final static boolean AUTOMATED_MODE = false;
 
     /**
      * Reserve room for this many list items.

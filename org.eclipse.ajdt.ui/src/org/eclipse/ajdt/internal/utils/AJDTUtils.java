@@ -128,8 +128,8 @@ public class AJDTUtils {
 
 		Point size = useSmallSize(decorations) ? SMALL_SIZE : BIG_SIZE;
 		// Check the image descriptor cache
-		String key = new String(base.toString() + ":::" + decorations + ":::" //$NON-NLS-1$ //$NON-NLS-2$
-				+ size.toString());
+		String key = base.toString() + ":::" + decorations + ":::" //$NON-NLS-1$ //$NON-NLS-2$
+				+ size.toString();
 		// Example key is
 		// "URLImageDescriptor(platform:/plugin/org.aspectj.ajde_1.1.0/icons/structure/file-lst.gif):::0:::Point
 		// {22, 16}"

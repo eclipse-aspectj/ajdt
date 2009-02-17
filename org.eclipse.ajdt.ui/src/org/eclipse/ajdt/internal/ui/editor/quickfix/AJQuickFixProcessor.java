@@ -70,7 +70,7 @@ public class AJQuickFixProcessor extends QuickFixProcessor implements IQuickAssi
 					switch (problemId) {
 					case IProblem.ParsingError:
 						String[] args = locations[i].getProblemArguments();
-						if (args[0].toString().equals("aspect")) { //$NON-NLS-1$
+						if (args[0].equals("aspect")) { //$NON-NLS-1$
 							relevantError = true;
 							break;
 						}

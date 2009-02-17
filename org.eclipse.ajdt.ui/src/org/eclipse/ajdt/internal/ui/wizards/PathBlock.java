@@ -222,22 +222,22 @@ public abstract class PathBlock {
         CPListElement[] libentries = null;
         switch (index) {
             case IDX_ADDJAR: /* add jar */
-                libentries = openJarFileDialog(null);
+                libentries = openJarFileDialog();
                 break;
             case IDX_ADDEXT: /* add external jar */
-                libentries = openExtJarFileDialog(null);
+                libentries = openExtJarFileDialog();
                 break;
             case IDX_ADDVAR: /* add variable */
-                libentries = openVariableSelectionDialog(null);
+                libentries = openVariableSelectionDialog();
                 break;
             case IDX_ADDFOL: /* add class folder */
-                libentries = openClassFolderDialog(null);
+                libentries = openClassFolderDialog();
                 break;
             case IDX_ADDCON: /* add container */
-                libentries = openContainerSelectionDialog(null);
+                libentries = openContainerSelectionDialog();
                 break;
             case IDX_ADDPRJ: /* add project reference */
-                libentries = openProjectSelectionDialog(null);
+                libentries = openProjectSelectionDialog();
                 break;
             case IDX_REMOVE: /* remove */
                 removeEntry();
@@ -533,7 +533,6 @@ public abstract class PathBlock {
 					try {
 						return JavaCore.getClasspathContainer(new Path(attributes[i].getValue()), fCurrJProject);
 					} catch (JavaModelException e) {
-						return null;
 					}
 				}
 			}
@@ -552,99 +551,75 @@ public abstract class PathBlock {
         }
     }
 
-    private CPListElement[] openClassFolderDialog(CPListElement existing) {
-        if (existing == null) {
-            IPath[] selected = BuildPathDialogAccess.chooseClassFolderEntries(
-                    getShell(), fCurrJProject.getPath(),
-                    getUsedContainers(existing));
-            if (selected != null) {
-                ArrayList res = new ArrayList();
-                for (int i = 0; i < selected.length; i++) {
-                    IPath curr = selected[i];
-                    IResource resource = fWorkspaceRoot.findMember(curr);
-                    if (resource instanceof IContainer) {
-                        res.add(newCPLibraryElement(resource));
-                    }
+    private CPListElement[] openClassFolderDialog() {
+        IPath[] selected = BuildPathDialogAccess.chooseClassFolderEntries(
+                getShell(), fCurrJProject.getPath(),
+                getUsedContainers());
+        if (selected != null) {
+            ArrayList res = new ArrayList();
+            for (int i = 0; i < selected.length; i++) {
+                IPath curr = selected[i];
+                IResource resource = fWorkspaceRoot.findMember(curr);
+                if (resource instanceof IContainer) {
+                    res.add(newCPLibraryElement(resource));
                 }
-                return (CPListElement[]) 
-                        res.toArray(new CPListElement[res.size()]);
             }
-        } else {
-            // disabled
+            return (CPListElement[]) 
+                    res.toArray(new CPListElement[res.size()]);
         }
         return null;
     }
 
-    private CPListElement[] openJarFileDialog(CPListElement existing) {
-        if (existing == null) {
-            IPath[] selected = BuildPathDialogAccess.chooseJAREntries(
-                    getShell(), fCurrJProject.getPath(),
-                    getUsedContainers(existing));
-            if (selected != null) {
-                ArrayList res = new ArrayList();
+    private CPListElement[] openJarFileDialog() {
+        IPath[] selected = BuildPathDialogAccess.chooseJAREntries(
+                getShell(), fCurrJProject.getPath(),
+                getUsedContainers());
+        if (selected != null) {
+            ArrayList res = new ArrayList();
 
-                for (int i = 0; i < selected.length; i++) {
-                    IPath curr = selected[i];
-                    IResource resource = fWorkspaceRoot.findMember(curr);
+            for (int i = 0; i < selected.length; i++) {
+                IPath curr = selected[i];
+                IResource resource = fWorkspaceRoot.findMember(curr);
 
-                    String outJar = AspectJCorePreferences
-                            .getProjectOutJar(fCurrJProject.getProject());
-                    StringBuffer projectOutJar = new StringBuffer();
-                    projectOutJar.append(fCurrJProject.getPath().toString());
-                    projectOutJar.append("/" + outJar); //$NON-NLS-1$
+                String outJar = AspectJCorePreferences
+                        .getProjectOutJar(fCurrJProject.getProject());
+                StringBuffer projectOutJar = new StringBuffer();
+                projectOutJar.append(fCurrJProject.getPath().toString());
+                projectOutJar.append("/" + outJar); //$NON-NLS-1$
 
-                    if (resource.getFullPath().toString().equals(
-                            projectOutJar.toString())) {
-                        MessageDialog.openInformation(getShell(),
-                                UIMessages.buildpathwarning_title,
-                                UIMessages.addtoinpathwarning);
-                    } else if (resource instanceof IFile) {
-                        res.add(newCPLibraryElement(resource));
-                    }
-                }
-                return (CPListElement[]) 
-                        res.toArray(new CPListElement[res.size()]);
-            }
-        } else {
-            IPath configured = BuildPathDialogAccess.configureJAREntry(
-                    getShell(), existing.getPath(), getUsedJARFiles(existing));
-            if (configured != null) {
-                IResource resource = fWorkspaceRoot.findMember(configured);
-                if (resource instanceof IFile) {
-                    return new CPListElement[] { newCPLibraryElement(resource) };
+                if (resource.getFullPath().toString().equals(
+                        projectOutJar.toString())) {
+                    MessageDialog.openInformation(getShell(),
+                            UIMessages.buildpathwarning_title,
+                            UIMessages.addtoinpathwarning);
+                } else if (resource instanceof IFile) {
+                    res.add(newCPLibraryElement(resource));
                 }
             }
+            return (CPListElement[]) 
+                    res.toArray(new CPListElement[res.size()]);
         }
         return null;
     }
   
-    private CPListElement[] openExtJarFileDialog(CPListElement existing) {
-        if (existing == null) {
-            IPath[] selected = BuildPathDialogAccess
-                    .chooseExternalJAREntries(getShell());
-            if (selected != null) {
-                ArrayList res = new ArrayList();
-                for (int i = 0; i < selected.length; i++) {
-                    res.add(new CPListElement(fCurrJProject,
-                            IClasspathEntry.CPE_LIBRARY, selected[i], null));
-                }
-                return (CPListElement[]) 
-                        res.toArray(new CPListElement[res.size()]);
+    private CPListElement[] openExtJarFileDialog() {
+        IPath[] selected = BuildPathDialogAccess
+                .chooseExternalJAREntries(getShell());
+        if (selected != null) {
+            ArrayList res = new ArrayList();
+            for (int i = 0; i < selected.length; i++) {
+                res.add(new CPListElement(fCurrJProject,
+                        IClasspathEntry.CPE_LIBRARY, selected[i], null));
             }
-        } else {
-            IPath configured = BuildPathDialogAccess.configureExternalJAREntry(
-                    getShell(), existing.getPath());
-            if (configured != null) {
-                return new CPListElement[] { new CPListElement(fCurrJProject,
-                        IClasspathEntry.CPE_LIBRARY, configured, null) };
-            }
+            return (CPListElement[]) 
+                    res.toArray(new CPListElement[res.size()]);
         }
         return null;
     }
 
   
   
-    private CPListElement[] openVariableSelectionDialog(CPListElement existing) {
+    private CPListElement[] openVariableSelectionDialog() {
         List existingElements = fPathList.getElements();
         ArrayList existingPaths = new ArrayList(existingElements.size());
         for (int i = 0; i < existingElements.size(); i++) {
@@ -656,66 +631,44 @@ public abstract class PathBlock {
         IPath[] existingPathsArray = (IPath[]) existingPaths
                 .toArray(new IPath[existingPaths.size()]);
 
-        if (existing == null) {
-            IPath[] paths = BuildPathDialogAccess.chooseVariableEntries(
-                    getShell(), existingPathsArray);
-            if (paths != null) {
-                ArrayList result = new ArrayList();
-                for (int i = 0; i < paths.length; i++) {
-                    CPListElement elem = new CPListElement(fCurrJProject,
-                            IClasspathEntry.CPE_VARIABLE, paths[i], null);
-                    IPath resolvedPath = JavaCore
-                            .getResolvedVariablePath(paths[i]);
-                    elem.setIsMissing((resolvedPath == null)
-                            || !resolvedPath.toFile().exists());
-                    if (!existingElements.contains(elem)) {
-                        result.add(elem);
-                    }
-                }
-                return (CPListElement[]) 
-                        result.toArray(new CPListElement[result.size()]);
-            }
-        } else {
-            IPath path = BuildPathDialogAccess.configureVariableEntry(
-                    getShell(), existing.getPath(), existingPathsArray);
-            if (path != null) {
+        IPath[] paths = BuildPathDialogAccess.chooseVariableEntries(
+                getShell(), existingPathsArray);
+        if (paths != null) {
+            ArrayList result = new ArrayList();
+            for (int i = 0; i < paths.length; i++) {
                 CPListElement elem = new CPListElement(fCurrJProject,
-                        IClasspathEntry.CPE_VARIABLE, path, null);
-                return new CPListElement[] { elem };
+                        IClasspathEntry.CPE_VARIABLE, paths[i], null);
+                IPath resolvedPath = JavaCore
+                        .getResolvedVariablePath(paths[i]);
+                elem.setIsMissing((resolvedPath == null)
+                        || !resolvedPath.toFile().exists());
+                if (!existingElements.contains(elem)) {
+                    result.add(elem);
+                }
             }
+            return (CPListElement[]) 
+                    result.toArray(new CPListElement[result.size()]);
         }
         return null;
     }
 
-    private CPListElement[] openContainerSelectionDialog(CPListElement existing) {
-        if (existing == null) {
-            IClasspathEntry[] created = BuildPathDialogAccess
-                    .chooseContainerEntries(getShell(), fCurrJProject,
-                            getRawClasspath());
-            if (created != null) {
-                CPListElement[] res = new CPListElement[created.length];
-                for (int i = 0; i < res.length; i++) {
-                    res[i] = new CPListElement(fCurrJProject,
-                            IClasspathEntry.CPE_CONTAINER,
-                            created[i].getPath(), null);
-                }
-                return res;
+    private CPListElement[] openContainerSelectionDialog() {
+        IClasspathEntry[] created = BuildPathDialogAccess
+                .chooseContainerEntries(getShell(), fCurrJProject,
+                        getRawClasspath());
+        if (created != null) {
+            CPListElement[] res = new CPListElement[created.length];
+            for (int i = 0; i < res.length; i++) {
+                res[i] = new CPListElement(fCurrJProject,
+                        IClasspathEntry.CPE_CONTAINER,
+                        created[i].getPath(), null);
             }
-        } else {
-            IClasspathEntry created = BuildPathDialogAccess
-                    .configureContainerEntry(getShell(), existing
-                            .getClasspathEntry(), fCurrJProject,
-                            getRawClasspath());
-            if (created != null) {
-                CPListElement elem = new CPListElement(fCurrJProject,
-                        IClasspathEntry.CPE_CONTAINER, created.getPath(), null);
-                return new CPListElement[] { elem };
-            }
+            return res;
         }
         return null;
     }
 
-    private CPListElement[] openProjectSelectionDialog(CPListElement elem) {
+    private CPListElement[] openProjectSelectionDialog() {
         
         try {
             ArrayList selectable= new ArrayList();
@@ -746,7 +699,6 @@ public abstract class PathBlock {
                 return cpElements;
             }
         } catch (JavaModelException e) {
-            return null;
         }
         return null;
     }
@@ -768,7 +720,7 @@ public abstract class PathBlock {
     }
 
   
-  private IPath[] getUsedContainers(CPListElement existing) {
+  private IPath[] getUsedContainers() {
         ArrayList res = new ArrayList();
         if (fCurrJProject.exists()) {
             try {
@@ -783,11 +735,9 @@ public abstract class PathBlock {
         List cplist = fPathList.getElements();
         for (int i = 0; i < cplist.size(); i++) {
             CPListElement elem = (CPListElement) cplist.get(i);
-            if (elem.getEntryKind() == IClasspathEntry.CPE_LIBRARY
-                    && (elem != existing)) {
+            if (elem.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
                 IResource resource = elem.getResource();
-                if (resource instanceof IContainer
-                        && !resource.equals(existing)) {
+                if (resource instanceof IContainer) {
                     res.add(resource.getFullPath());
                 }
             }

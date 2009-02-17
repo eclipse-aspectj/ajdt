@@ -101,8 +101,8 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 
 	protected State fStateCopy;
 
-	protected static String FEATURE_POST_PROCESSING = "features.postProcessingSteps.properties"; //$NON-NLS-1$
-	protected static String PLUGIN_POST_PROCESSING = "plugins.postProcessingSteps.properties"; //$NON-NLS-1$
+	protected final static String FEATURE_POST_PROCESSING = "features.postProcessingSteps.properties"; //$NON-NLS-1$
+	protected final static String PLUGIN_POST_PROCESSING = "plugins.postProcessingSteps.properties"; //$NON-NLS-1$
 
 	public static String getDate() {
 		final String empty = ""; //$NON-NLS-1$

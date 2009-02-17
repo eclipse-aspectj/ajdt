@@ -61,8 +61,8 @@ public class RenameToAJAction implements IActionDelegate {
 
 							IResource file = (IResource) ((IAdaptable) object)
 									.getAdapter(IResource.class);
-							IProject project = file.getProject();
 							if (file != null) {
+							    IProject project = file.getProject();
 								String name = file.getName();
 								name = name.substring(0, name.indexOf('.')); 
 								RenameResourceChange change = new RenameResourceChange(

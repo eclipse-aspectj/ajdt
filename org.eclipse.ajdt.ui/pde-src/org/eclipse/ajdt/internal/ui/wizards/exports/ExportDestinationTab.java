@@ -37,7 +37,7 @@ public class ExportDestinationTab extends AbstractExportTab {
 	protected static final String S_DESTINATION = "destination"; //$NON-NLS-1$
 	protected static final String S_ZIP_FILENAME = "zipFileName"; //$NON-NLS-1$
 
-	protected static String ZIP_EXTENSION = ".zip"; //$NON-NLS-1$
+	protected static final String ZIP_EXTENSION = ".zip"; //$NON-NLS-1$
 
 	protected Button fArchiveFileButton;
 	protected Combo fArchiveCombo;

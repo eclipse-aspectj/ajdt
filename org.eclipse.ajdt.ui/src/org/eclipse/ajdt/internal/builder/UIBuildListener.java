@@ -122,7 +122,7 @@ public class UIBuildListener implements IAJBuildListener {
 	            errorMarker.setAttribute(IMarker.LOCATION, "Inpath"); //$NON-NLS-1$
 	        } catch (CoreException e) {
 	            AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
-	                            + project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+	                            + project.getName() + ": " + e); //$NON-NLS-1$
 	        }
 	    }
     }
@@ -151,7 +151,7 @@ public class UIBuildListener implements IAJBuildListener {
 			}
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured finding the markers for project " //$NON-NLS-1$
-							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+							+ project.getName() + ": " + e); //$NON-NLS-1$
 		}
 		return false;
 	}
@@ -163,7 +163,7 @@ public class UIBuildListener implements IAJBuildListener {
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
-							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+							+ project.getName() + ": " + e); //$NON-NLS-1$
 		}
 	}
 
@@ -340,7 +340,7 @@ public class UIBuildListener implements IAJBuildListener {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured either finding the markers for project " //$NON-NLS-1$
 							+ project.getName()
 							+ ", or deleting the error marker: " //$NON-NLS-1$
-							+ e.getStackTrace());
+							+ e);
 		}
 	}
 
