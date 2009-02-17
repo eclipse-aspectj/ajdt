@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
  * which also indirectly tests the create Ant build file support.
  * 
  */
+  /* AJDT 1.7 */
 public class ExportPluginTest extends UITestCase {
 
 	// taken from BaseExportWizardPage / ExportDestinationTab / ExportOptionsTab

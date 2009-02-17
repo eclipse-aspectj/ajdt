@@ -61,6 +61,7 @@ public class Bug243376Test extends UITestCase {
                         file, true),
                  ILaunchManager.RUN_MODE);
         waitForJobsToComplete();
+        waitForJobsToComplete();
         String console = getConsoleViewContents();
         assertTrue("Aspect has not been woven",console.indexOf("Aspect has been woven")!=-1); //$NON-NLS-1$ //$NON-NLS-2$
     }
