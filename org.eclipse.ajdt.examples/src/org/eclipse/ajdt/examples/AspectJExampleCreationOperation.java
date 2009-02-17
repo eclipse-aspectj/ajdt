@@ -14,7 +14,7 @@ import java.net.URL;
 import java.util.zip.ZipFile;
 
 import org.eclipse.ajdt.examples.util.ZipFileWrapper;
-import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
+import org.eclipse.ajdt.core.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
