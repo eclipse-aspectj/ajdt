@@ -35,7 +35,7 @@
    </extension>
 
    <!-- declares new content type for AspectJ source, derived from java source -->
-   <extension point="org.eclipse.core.runtime.contentTypes">
+   <extension point="org.eclipse.core.contenttype.contentTypes">
 	  <content-type id="ajSource" name="%aspectJSource" 
 		base-type="org.eclipse.jdt.core.javaSource"
 		file-extensions="aj"/>
@@ -60,10 +60,29 @@
       </renameParticipant>
    </extension>
    <extension
+         point="org.eclipse.contribution.weaving.jdt.cuprovider">
+      <provider
+            class="org.eclipse.ajdt.core.javaelements.AJCompilationUnitProvider"
+            file_extension="aj">
+      </provider>
+   </extension>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.sourcetransformer">
+      <transformer
+            class="org.eclipse.ajdt.core.AJSourceTransformer"
+            file_extension="aj">
+      </transformer>
+   </extension>
+    <extension
+       point="org.eclipse.contribution.weaving.jdt.weavablenature">
+  	  <nature
+          natureid="org.eclipse.ajdt.ui.ajnature">
+	    </nature>
+   </extension>
+   <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
             class="org.eclipse.ajdt.core.AJDTPreferencesInitializer">
       </initializer>
    </extension>
- 
 </plugin>

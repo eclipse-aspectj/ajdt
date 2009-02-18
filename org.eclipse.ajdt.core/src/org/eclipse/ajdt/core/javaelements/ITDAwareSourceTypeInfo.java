@@ -264,6 +264,11 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         return super.getChildren();
     }
     
+						/* AJDT 1.7 */
+    public void setChildren(IJavaElement[] children) {
+        this.children = children;
+    }
+    
     // needed for 
 //    private int removeInterfaceFlag(int flags) {
 //        return flags & (~ClassFileConstants.AccInterface);

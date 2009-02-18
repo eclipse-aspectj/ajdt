@@ -389,7 +389,7 @@ public class AJProjectModelFacade {
             }
         }
         
-        // add escapes to various sundries
+        // add escapes to sundries
         jHandle = jHandle.replaceFirst("declare @", "declare \\\\@");
         jHandle = jHandle.replaceFirst("\\.\\*", ".\\\\*");
         

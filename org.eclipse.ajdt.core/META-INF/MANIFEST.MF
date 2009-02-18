@@ -38,4 +38,5 @@ Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"
 Import-Package: org.eclipse.contribution.jdt;version="1.6.4",
  org.eclipse.contribution.jdt.cuprovider;version="1.6.4",
  org.eclipse.contribution.jdt.itdawareness;version="1.6.4",
- org.eclipse.contribution.jdt.sourceprovider;version="1.6.4"
+ org.eclipse.contribution.jdt.sourceprovider;version="1.6.4",
+ org.eclipse.jdt.internal.core
