@@ -151,8 +151,6 @@ public class AJCompilationUnitProblemFinder extends
             	     // use a SourceElementParser to ensure that local declarations are parsed even when diet
                      this.parser = new SourceElementParser(new NullRequestor(), new DefaultProblemFactory(),  
                              getCompilerOptions(cu), true, false);
-//                   this.parser =  new NonDietParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
-//                   this.parser =  new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
             	 }
                 
     		} catch (JavaModelException e) {
@@ -558,16 +556,23 @@ public class AJCompilationUnitProblemFinder extends
                 // also will erroneously filter out truly undefined names
                 return false;
             }
+            
+            if (id == IProblem.NonStaticAccessToStaticField
+                    && isITDName(categorizedProblem, unit, model)) { 
+                // this is a reference to an ITD field on an interface
+                // compiler thinks that all fields in interfaces are static final
+                return false;
+            }
         } catch (JavaModelException e) {
         }
         
         
-        // this one is very tricky and rare.
-        // there is a abstract method ITD defined on a supertype
-        // since this type was altered using AspectConvertingParser, 
-        // the implementation of this abstract method is not necessarily there
         if (id == IProblem.AbstractMethodMustBeImplemented && 
                 (!hasModel || isAbstractITD(categorizedProblem, model, unit))) {
+            // this one is very tricky and rare.
+            // there is a abstract method ITD defined on a supertype
+            // since this type was altered using AspectConvertingParser, 
+            // the implementation of this abstract method is not necessarily there
             return false;
         }
         
