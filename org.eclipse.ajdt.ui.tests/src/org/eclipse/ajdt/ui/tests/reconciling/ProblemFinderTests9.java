@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.TestSuite;
-
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
