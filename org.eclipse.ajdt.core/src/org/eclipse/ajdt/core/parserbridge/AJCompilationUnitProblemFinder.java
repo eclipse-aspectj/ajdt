@@ -563,6 +563,7 @@ public class AJCompilationUnitProblemFinder extends
                 // compiler thinks that all fields in interfaces are static final
                 return false;
             }
+            
         } catch (JavaModelException e) {
         }
         
@@ -585,7 +586,9 @@ public class AJCompilationUnitProblemFinder extends
         String[] args = problem.getArguments();
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
-                if (itdNames.contains(args[i])) {
+                String[] split = args[i].split("\\.");
+                String name = split.length > 1 ? split[split.length-1] : args[i];
+                if (itdNames.contains(name)) {
                     return true;
                 }
             }
