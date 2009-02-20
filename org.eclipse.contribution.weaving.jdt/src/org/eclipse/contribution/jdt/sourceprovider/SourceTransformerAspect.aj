@@ -35,17 +35,25 @@ public aspect SourceTransformerAspect {
      */
     void around(char[] sourceString, ICompilationUnit sourceUnit) : settingSource(sourceString) && 
             cflowbelow(startingParse(sourceUnit)) {
-        String extension = getExtension(sourceUnit);
-        ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
-        if (transformer != null) {
-            try {
-                char[] transformedSource = transformer.convert(sourceString);
-                proceed(transformedSource, sourceUnit);
-                return;
-            } catch (Throwable t) {
-                JDTWeavingPlugin.logException(t);
+        
+        // See bug 265586
+        // ignore BasicCompilationUnit because they are used for 
+        // mocking up binary code
+        // not sure if this should stay
+        // this means that binary asoects look transformed, but they also don't have structure
+//        if (! (sourceUnit instanceof BasicCompilationUnit)) {
+            String extension = getExtension(sourceUnit);
+            ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
+            if (transformer != null) {
+                try {
+                    char[] transformedSource = transformer.convert(sourceString);
+                    proceed(transformedSource, sourceUnit);
+                    return;
+                } catch (Throwable t) {
+                    JDTWeavingPlugin.logException(t);
+                }
             }
-        }
+//        }
         proceed(sourceString, sourceUnit);
     }
     
