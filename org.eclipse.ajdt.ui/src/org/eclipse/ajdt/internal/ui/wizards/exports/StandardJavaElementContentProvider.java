@@ -285,19 +285,10 @@ class StandardJavaElementContentProvider implements ITreeContentProvider, IWorki
 	}
 	
 	private Object[] getPackageContents(IPackageFragment fragment) throws JavaModelException {
-		if (fragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
-			// AspectJ Change begin - ignore AJCompilationUnits to avoid duplicates
-			Object[] files = fragment.getCompilationUnits();
-			ArrayList filesToKeep = new ArrayList();
-			for (int i = 0; i < files.length; i++) {
-				if(!(files[i] instanceof AJCompilationUnit)) {
-					filesToKeep.add(files[i]);
-				}
-			}
-			return concatenate(filesToKeep.toArray(), fragment.getNonJavaResources());
-			// AspectJ Change end
-		}
-		return concatenate(fragment.getClassFiles(), fragment.getNonJavaResources());
+        if (fragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
+            return concatenate(fragment.getCompilationUnits(), fragment.getNonJavaResources());
+        }
+        return concatenate(fragment.getClassFiles(), fragment.getNonJavaResources());
 	}
 		
 	private Object[] getResources(IFolder folder) {

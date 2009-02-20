@@ -683,7 +683,7 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 		fDestinationNamesCombo.setFocus();
 	}
 
-	/* 
+	/*     
 	 * Overrides method from WizardExportResourcePage
 	 */
 	protected void setupBasedOnInitialSelections() {
