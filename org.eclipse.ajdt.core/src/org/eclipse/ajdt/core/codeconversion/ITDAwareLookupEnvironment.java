@@ -36,9 +36,12 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
             CompilationUnitDeclaration[] units = getUnits();
             for (int i = 0; i < units.length; i++) {
                 if (units[i] != null) {
-                  ITDInserter visitor = new ITDInserter(findCU(units[i]), this.problemReporter);
-                  units[i].traverse(visitor, units[i].scope);
-                  cusToRevert.add(visitor);
+                  ICompilationUnit cunit = findCU(units[i]);
+                  if (cunit != null) {
+                      ITDInserter visitor = new ITDInserter(cunit, this.problemReporter);
+                      units[i].traverse(visitor, units[i].scope);
+                      cusToRevert.add(visitor);
+                  }
                 }
             }
         }
