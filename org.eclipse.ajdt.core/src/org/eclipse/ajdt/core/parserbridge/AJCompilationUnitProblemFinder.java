@@ -564,6 +564,13 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
             
+            if ((id == IProblem.UnhandledException ||
+                    id == IProblem.UnhandledExceptionInImplicitConstructorCall ||
+                    id == IProblem.UnhandledExceptionInDefaultConstructor) &&
+                    (!model.hasModel() || isSoftened(categorizedProblem, unit, model))) {
+                return false;
+            }
+            
         } catch (JavaModelException e) {
         }
         
@@ -594,6 +601,12 @@ public class AJCompilationUnitProblemFinder extends
             }
         }
         return false;
+    }
+    
+    private static boolean isSoftened(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model) throws JavaModelException {
+        IJavaElement elt = unit.getElementAt(problem.getSourceStart());
+        List softens = model.getRelationshipsForElement(elt, AJRelationshipManager.SOFTENED_BY, true);
+        return softens.size() > 0;
     }
     
     // would be good if we can cache this value somehow.

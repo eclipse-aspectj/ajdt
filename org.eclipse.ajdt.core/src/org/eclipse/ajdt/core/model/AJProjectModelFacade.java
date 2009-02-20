@@ -695,13 +695,17 @@ public class AJProjectModelFacade {
      * find the relationships of a particular kind for a java element
      */
     public List/*IJavaElement*/ getRelationshipsForElement(IJavaElement je, AJRelationshipType relType) {
+        return getRelationshipsForElement(je, relType, false);
+    }
+    
+    public List/*IJavaElement*/ getRelationshipsForElement(IJavaElement je, AJRelationshipType relType, boolean includeChildren) {
         if (!isInitialized) {
             return Collections.EMPTY_LIST;
         }
         IProgramElement ipe = javaElementToProgramElement(je);
         List/*Relationship*/ relationships = relationshipMap.get(ipe);
+        List/*IJavaElement*/ relatedJavaElements = new ArrayList(relationships != null ? relationships.size() : 0);
         if (relationships != null) {
-            List/*IJavaElement*/ relatedJavaElements = new ArrayList(relationships.size());
             if (relationships != null) {
                 for (Iterator iterator = relationships.iterator(); iterator.hasNext();) {
                     Relationship rel = (Relationship) iterator.next();
@@ -725,13 +729,15 @@ public class AJProjectModelFacade {
                     }
                 }
             }
-            return relatedJavaElements;
-        } else {
-            // means something was wrong.
-            // something not initialized or the
-            // java handles don't mesh with the aspectj handles
-            return Collections.EMPTY_LIST;
         }
+
+        if (includeChildren) {
+            for (Iterator children = ipe.getChildren().iterator(); children.hasNext(); ){
+                IProgramElement child = (IProgramElement) children.next();
+                relatedJavaElements.addAll(getRelationshipsForElement(programElementToJavaElement(child), relType, true));
+            }
+        }
+        return relatedJavaElements;
     }
     
     /**
