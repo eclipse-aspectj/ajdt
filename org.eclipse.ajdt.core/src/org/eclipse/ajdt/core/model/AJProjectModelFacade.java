@@ -68,6 +68,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ImportDeclaration;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 
 /**
  * 
@@ -237,8 +238,10 @@ public class AJProjectModelFacade {
         }
         String ajHandle = je.getHandleIdentifier();
         
+        boolean isBinary = false;
         if (isBinaryHandle(ajHandle)) {
             ajHandle = convertToAspectJBinaryHandle(ajHandle);
+            isBinary = true;
         }
         
         // check to see if we need to replace { (compilation unit) with * (aj compilation unit)
@@ -288,11 +291,17 @@ public class AJProjectModelFacade {
 
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
-            // occurs when the handles are not working properly
-//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-//                    "Could not find the AspectJ program element for handle: " + 
-//                    ajHandle, new RuntimeException()));
-            return IHierarchy.NO_STRUCTURE;
+            if (isBinary) {
+                // might be an aspect in a class file.  JDT doesn't know it is an aspect
+                // try looking for handle again, but use an Aspect token
+                // problem will be if this is an aspect contained in a class or vice versa
+                ajHandle = ajHandle.replace(JavaElement.JEM_TYPE, AspectElement.JEM_ASPECT_TYPE);
+                ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
+            } 
+            if (ipe == null) {
+                // occurs when the handles are not working properly
+                return IHierarchy.NO_STRUCTURE;
+            }
         }
         return ipe;
     }
@@ -347,17 +356,8 @@ public class AJProjectModelFacade {
         // are we dealing with something inside of a classfile?
         // if so, then we have to handle it specially
         // because we want to convert this into a source reference if possible
-        int classFileIndex = jHandle.indexOf(JavaElement.JEM_CLASSFILE);
-        if (classFileIndex != -1) {
-            // now make sure this isn't a code element
-            int dotClassIndex = jHandle.indexOf(".class");
-            if (dotClassIndex != -1) {
-                char typeChar = jHandle.charAt(dotClassIndex + ".class".length());
-                if (typeChar == AspectElement.JEM_ASPECT_TYPE ||
-                        typeChar == JavaElement.JEM_TYPE) {
-                    return getElementFromClassFile(jHandle);
-                }
-            }
+        if (isBinaryAspectJHandle(jHandle)) {
+            return getElementFromClassFile(jHandle);
         }
 
         // if using cuprovider, then we don not use the '*' for Aspect compilation units,
@@ -404,6 +404,26 @@ public class AJProjectModelFacade {
         return je;
     }
 
+    private boolean isBinaryAspectJHandle(String jHandle) {
+        int classFileIndex = jHandle.indexOf(JavaElement.JEM_CLASSFILE);
+        boolean doIt = false;
+        if (classFileIndex != -1) {
+            int dotClassIndex = jHandle.indexOf(".class") + ".class".length();
+            if (dotClassIndex >= jHandle.length()) {
+                // handle is for the class itself.
+                doIt = true;
+            } else if (dotClassIndex != -1) {
+                // make sure this isn't a code element
+                char typeChar = jHandle.charAt(dotClassIndex);
+                doIt = (typeChar == AspectElement.JEM_ASPECT_TYPE ||
+                        typeChar == JavaElement.JEM_TYPE ||
+                        typeChar == JavaElement.JEM_IMPORTDECLARATION ||
+                        typeChar == JavaElement.JEM_PACKAGEDECLARATION);
+            }
+        }
+        return doIt;
+    }
+
     
     private IJavaElement getElementFromClassFile(String jHandle) {
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(jHandle, false);
@@ -441,12 +461,17 @@ public class AJProjectModelFacade {
             
             if (unit instanceof ICompilationUnit) {
                 // we're in luck...
-                // all this work has taken us straight to the compilaiton unit
+                // all this work has taken us straight to the compilation unit
                 if (unit instanceof ICompilationUnit) {
                     AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) unit);
                     unit = newUnit != null ? newUnit : unit;
                 }
-                return unit.getElementAt(offsetFromLine(unit, ipe.getSourceLocation()));
+                if (ipe.getKind() == IProgramElement.Kind.FILE) {
+                    // the original kind was a compilation unit, so just return that
+                    return unit;
+                } else {
+                    return unit.getElementAt(offsetFromLine(unit, ipe.getSourceLocation()));
+                }
                 
             } else {
                 // we have a class file.
@@ -479,12 +504,14 @@ public class AJProjectModelFacade {
                     
                     IJavaElement newElt = (IJavaElement) AspectJCore.create(newHandle);
                     if (newElt instanceof AspectJMemberElement) {
+                        JavaModelManager.getJavaModelManager().resetTemporaryCache();
                         AspectJMemberElement ajElt = (AspectJMemberElement) newElt;
-                        Object info = ajElt.getElementInfo();
-                        if (info instanceof AspectJMemberElementInfo) {
-                            AspectJMemberElementInfo ajInfo = (AspectJMemberElementInfo) info;
-                            ajInfo.setSourceRangeStart(offsetFromLine(unit, ipe.getSourceLocation()));
-                        }
+                        ajElt.setStartLocation(offsetFromLine(unit, ipe.getSourceLocation()));
+//                        Object info = ajElt.getElementInfo();
+//                        if (info instanceof AspectJMemberElementInfo) {
+//                            AspectJMemberElementInfo ajInfo = (AspectJMemberElementInfo) info;
+//                            ajInfo.setSourceRangeStart(offsetFromLine(unit, ipe.getSourceLocation()));
+//                        }
                     }
                     return newElt;
                 }

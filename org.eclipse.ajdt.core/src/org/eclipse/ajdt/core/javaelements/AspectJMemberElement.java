@@ -21,6 +21,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
@@ -30,6 +31,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
 import org.eclipse.jdt.internal.core.SourceMethodInfo;
+import org.eclipse.jdt.internal.core.SourceRange;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -349,5 +351,36 @@ public String retrieveSignatureFromSource() throws JavaModelException {
     return this.getSource();
 }
 
+    // keep track of start location for elements in binary files only
+    private int startLocation;
+    private boolean isInSource() {
+        return getCompilationUnit() != null;
+    }
+    public void setStartLocation(int startLocation) {
+        this.startLocation = startLocation;
+    }
+    
+    /**
+     * @see ISourceReference
+     */
+    public ISourceRange getSourceRange() throws JavaModelException {
+        AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
+        if (isInSource()) {
+            return info.getSourceRange();
+        } else {
+            ISourceRange range = info.getSourceRange();
+            range = new SourceRange(startLocation, range.getLength());
+            return range;
+        }
+    }
 
+    public ISourceRange getNameRange() throws JavaModelException {
+        AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
+        if (isInSource()) {
+            return super.getNameRange(); 
+        } else {
+            int start = startLocation;
+            return new SourceRange(start, info.getNameSourceEnd());
+        }
+    }
 }
