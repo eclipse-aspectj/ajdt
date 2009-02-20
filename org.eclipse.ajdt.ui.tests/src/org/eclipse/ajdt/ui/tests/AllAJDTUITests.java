@@ -70,6 +70,7 @@ import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests2;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests3;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests4;
@@ -217,6 +218,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests8.class));
         suite.addTest(new TestSuite(ProblemFinderTests9.class));
         suite.addTest(new TestSuite(ProblemFinderTests10.class));
+        suite.addTest(new TestSuite(ProblemFinderTests11.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
