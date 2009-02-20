@@ -19,6 +19,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -36,23 +37,57 @@ import org.eclipse.jdt.internal.core.ImportContainer;
 /**
  * 
  * @author andrew
- * @created Sep 18, 2008
- * Stress test the handle identifiers with a particularly nasty projectby 
- *
+ * Tests  Bug 265553
+ * Ensure that binary handles can be traversed
+ * Also check that we can get the correct start and end location for binary handles
  */
-public class AJModelTest4 extends AJDTCoreTestCase {
+public class AJModelTest5 extends AJDTCoreTestCase {
 
-    public void testAJHandleIdentifiers() throws Exception {
-        IProject project = createPredefinedProject("Handle Testing"); //$NON-NLS-1$
-        final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
-
+    // maybe remove
+    public void testBug265553AJHandleIdentifiers2() throws Exception {
+        IProject onAspectPath = createPredefinedProject("Bug265553AspectPath"); //$NON-NLS-1$
+        final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(onAspectPath);
+        
         final List/*String*/ accumulatedErrors = new ArrayList();
-
-		AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project.getProject()).getModel();
+        
+        AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(onAspectPath).getModel();
         IHierarchy hierarchy = asm.getHierarchy();
         hierarchy.getRoot().walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 accumulatedErrors.addAll(checkAJHandle(node.getHandleIdentifier(), model));
+            } 
+        });
+        if (accumulatedErrors.size() > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append("Found errors in comparing elements:\n");
+            for (Iterator iterator = accumulatedErrors.iterator(); iterator
+            .hasNext();) {
+                String msg = (String) iterator.next();
+                sb.append(msg + "\n");
+            }
+            fail(sb.toString());
+        }
+        
+    }
+    public void testBug265553AJHandleIdentifiers() throws Exception {
+        createPredefinedProject("Bug265553AspectPath"); //$NON-NLS-1$
+        IProject base = createPredefinedProject("Bug265553Base"); //$NON-NLS-1$
+        final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(base);
+
+        final List/*String*/ accumulatedErrors = new ArrayList();
+
+        AsmManager asm = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(base).getModel();
+        IHierarchy hierarchy = asm.getHierarchy();
+        hierarchy.getRoot().walk(new HierarchyWalker() {
+            protected void preProcess(IProgramElement node) {
+                if (node.getName().equals("binaries") || node.getParent().getName().equals("binaries") ||
+                        (node.getParent().getName().endsWith(".class") && (
+                                node.getKind() == IProgramElement.Kind.IMPORT_REFERENCE ||
+                                node.getKind() == IProgramElement.Kind.PACKAGE_DECLARATION))) {
+                    // binary java elements do not have these and neither should IPEs
+                } else {
+                    accumulatedErrors.addAll(checkAJHandle(node.getHandleIdentifier(), model));
+                }
             } 
         });
         if (accumulatedErrors.size() > 0) {
@@ -65,10 +100,14 @@ public class AJModelTest4 extends AJDTCoreTestCase {
             }
             fail(sb.toString());
         }
+        
+
     }
     
+    
     public void testJavaHandleIdentifiers() throws Exception {
-        IProject project = createPredefinedProject("Handle Testing"); //$NON-NLS-1$
+        createPredefinedProject("Bug265553AspectPath"); //$NON-NLS-1$
+        IProject project = createPredefinedProject("Bug265553Base"); //$NON-NLS-1$
         final AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
         final List/*String*/ accumulatedErrors = new ArrayList();
         IJavaProject jProject = JavaCore.create(project);
@@ -77,6 +116,13 @@ public class AJModelTest4 extends AJDTCoreTestCase {
             ICompilationUnit[] units = frags[i].getCompilationUnits();
             for (int j = 0; j < units.length; j++) {
                 accumulatedErrors.addAll(walk(units[j], model));
+            }
+            if (frags[i].getElementName().equals("p") || 
+                    frags[i].getElementName().equals("q")) {
+                IClassFile[] classes = frags[i].getClassFiles();
+                for (int j = 0; j < classes.length; j++) {
+                    accumulatedErrors.addAll(walk(classes[j], model));
+                }
             }
         }
     }
