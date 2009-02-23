@@ -29,10 +29,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.aspectj.asm.IHierarchy;
-import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IProgramElement.Kind;
-import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;

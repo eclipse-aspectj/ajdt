@@ -263,12 +263,4 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     public IJavaElement[] getChildren() {
         return super.getChildren();
     }
-    
-    // needed for 
-//    private int removeInterfaceFlag(int flags) {
-//        return flags & (~ClassFileConstants.AccInterface);
-//    }
-//    private int addPublicFlag(int flags) {
-//        return flags & (~ClassFileConstants.AccPublic);
-//    }
 }
