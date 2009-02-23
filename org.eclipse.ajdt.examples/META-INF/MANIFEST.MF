@@ -12,7 +12,6 @@ Require-Bundle: org.eclipse.ui.ide,
  org.eclipse.core.resources,
  org.eclipse.ui,
  org.eclipse.jdt.core,
- org.eclipse.ajdt.ui,
  org.eclipse.ajdt.core
-Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Bundle-ActivationPolicy: lazy
