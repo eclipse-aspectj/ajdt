@@ -35,6 +35,7 @@
    </extension>
 
    <!-- declares new content type for AspectJ source, derived from java source -->
+   <!-- AJDT 1.7 -->
    <extension point="org.eclipse.core.contenttype.contentTypes">
 	  <content-type id="ajSource" name="%aspectJSource" 
 		base-type="org.eclipse.jdt.core.javaSource"

@@ -151,8 +151,6 @@ public class AJCompilationUnitProblemFinder extends
             	     // use a SourceElementParser to ensure that local declarations are parsed even when diet
                      this.parser = new SourceElementParser(new NullRequestor(), new DefaultProblemFactory(),  
                              getCompilerOptions(cu), true, false);
-//                   this.parser =  new NonDietParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
-//                   this.parser =  new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
             	 }
                 
     		} catch (JavaModelException e) {
@@ -463,11 +461,11 @@ public class AJCompilationUnitProblemFinder extends
                  id == IProblem.UndefinedConstructor)
                 &&
                 isITDName(categorizedProblem, unit, model)) {
-            // this is an intertype element inside of an aspect.
-            // it is likely that the problem is actually a reference to something added by an ITD
+            // a reference inside an aspect to an ITD that it declares
             return false;
         }
         
+
         if (hasModel && id == IProblem.ShouldReturnValue && 
                 categorizedProblem.getSourceStart() == 0 && 
                 categorizedProblem.getSourceEnd() == 0) {
@@ -530,7 +528,7 @@ public class AJCompilationUnitProblemFinder extends
                     insideITD(categorizedProblem, unit)) {
                 // an abstract method ITD inside a concrete aspect
                 // ITDs are allowed to be abstract if the target
-                // type is an abstract class, but problem finder cannot know this
+                // type is an abstract class, but problem finder does not know this
                 return false;
             }
             
@@ -543,6 +541,41 @@ public class AJCompilationUnitProblemFinder extends
             if (id == IProblem.UnusedPrivateField && 
                     insideITD(categorizedProblem, unit)) {
                 // private itd is said to be unused, even if it is really used elsewhere
+                return false;
+            }
+
+            if (numArgs > 0 && 
+                    (id == IProblem.UndefinedName || 
+                     id == IProblem.UndefinedField ||
+                     id == IProblem.UndefinedMethod ||
+                     id == IProblem.UndefinedType ||
+                     id == IProblem.UndefinedConstructor)
+                    &&
+                    insideITD(categorizedProblem, unit)) {
+                // likely to be a reference inside an ITD to a name in the target type
+                // also will erroneously filter out truly undefined names
+                return false;
+            }
+            
+            if (id == IProblem.NonStaticAccessToStaticField
+                    && isITDName(categorizedProblem, unit, model)) { 
+                // this is a reference to an ITD field on an interface
+                // compiler thinks that all fields in interfaces are static final
+                return false;
+            }
+            
+            if ((id == IProblem.UnhandledException ||
+                    id == IProblem.UnhandledExceptionInImplicitConstructorCall ||
+                    id == IProblem.UnhandledExceptionInDefaultConstructor) &&
+                    (!model.hasModel() || isSoftened(categorizedProblem, unit, model))) {
+                return false;
+            }
+            
+            if (id == IProblem.UninitializedBlankFinalField && 
+                    unit.getElementAt(categorizedProblem.getSourceStart()) == null) {
+                // likely to be inserted dummy fields for organize imports
+                // this only happens when the last declaration is an interface
+                // these dummy fields are implicitly converted to public static final
                 return false;
             }
 
@@ -560,6 +593,15 @@ public class AJCompilationUnitProblemFinder extends
         } catch (JavaModelException e) {
         }
         
+        
+        if (id == IProblem.AbstractMethodMustBeImplemented && 
+                (!hasModel || isAbstractITD(categorizedProblem, model, unit))) {
+            // this one is very tricky and rare.
+            // there is a abstract method ITD defined on a supertype
+            // since this type was altered using AspectConvertingParser, 
+            // the implementation of this abstract method is not necessarily there
+            return false;
+        }
         
         // this one is very tricky and rare.
         // there is a abstract method ITD defined on a supertype
@@ -579,12 +621,20 @@ public class AJCompilationUnitProblemFinder extends
         String[] args = problem.getArguments();
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
-                if (itdNames.contains(args[i])) {
+                String[] split = args[i].split("\\.");
+                String name = split.length > 1 ? split[split.length-1] : args[i];
+                if (itdNames.contains(name)) {
                     return true;
                 }
             }
         }
         return false;
+    }
+    
+    private static boolean isSoftened(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model) throws JavaModelException {
+        IJavaElement elt = unit.getElementAt(problem.getSourceStart());
+        List softens = model.getRelationshipsForElement(elt, AJRelationshipManager.SOFTENED_BY, true);
+        return softens.size() > 0;
     }
     
     // would be good if we can cache this value somehow.

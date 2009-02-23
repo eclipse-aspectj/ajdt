@@ -1,12 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2005 IBM Corporation and others.
+ * Copyright (c) 2004, 2005, 2008 SpringSource, IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Luzius Meisser - initial implementation
+ *     Luzius Meisser   - initial implementation
+ *     Andrew Eisenberg - update for Eclipse 3.5
  *******************************************************************************/
 package org.eclipse.ajdt.core.parserbridge;
 
@@ -23,7 +24,6 @@ import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.aspectj.org.eclipse.jdt.core.dom.AspectDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
@@ -35,6 +35,8 @@ import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElementInfo;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectElementInfo;
+import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
+import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElementInfo;
@@ -48,6 +50,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -55,11 +58,18 @@ import org.eclipse.jdt.internal.core.AnnotatableInfo;
 import org.eclipse.jdt.internal.core.CompilationUnitStructureRequestor;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaElementInfo;
+import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
+import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
+ * This class can be used as a source requestor for the JDT parser *OR*
+ * the AspectJ parser.  That is why we need to use so many fully qualified names
+ * 
  * @author Luzius Meisser 
+ * @author Andrew Eisenberg
  */
 public class AJCompilationUnitStructureRequestor extends
 		CompilationUnitStructureRequestor implements IAspectSourceElementRequestor {
@@ -85,22 +95,6 @@ public class AJCompilationUnitStructureRequestor extends
 	    this.parser.scanner.source = source;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ajdt.javamodel.parser2.extra.IAspectSourceElementRequestor#enterClass(int, int, char[], int, int, char[], char[][], int)
-	 * I don't think this method is used any more
-	 */
-//	public void enterClass(int declarationStart, int modifiers, char[] name, int nameSourceStart, int nameSourceEnd, char[] superclass, char[][] superinterfaces, boolean isAspect) {
-//		enterType(declarationStart,
-//		          modifiers, 
-//		          name, 
-//		          nameSourceStart, 
-//		          nameSourceEnd, 
-//		          superclass, 
-//		          superinterfaces,
-//		          new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[0],
-//		          isAspect);
-//		
-//	}
 
 	public void enterMethod(
 			int declarationStart,
@@ -222,16 +216,16 @@ public class AJCompilationUnitStructureRequestor extends
 	 * Common processing for classes and interfaces.
 	 */
 	protected void enterType(
-		int declarationStart,
-		int modifiers,
-		char[] name,
-		int nameSourceStart,
-		int nameSourceEnd,
-		char[] superclass,
-		char[][] superinterfaces,
-		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
-		boolean isAspect,
-		boolean isPrivilegedAspect) {
+    		int declarationStart,
+    		int modifiers,
+    		char[] name,
+    		int nameSourceStart,
+    		int nameSourceEnd,
+    		char[] superclass,
+    		char[][] superinterfaces,
+    		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
+    		boolean isAspect,
+    		boolean isPrivilegedAspect) {
 		
 		if (!isAspect) {
 			org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo ti = 
@@ -306,50 +300,49 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			AdviceDeclaration decl) {
 		
-			
-				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
-				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-				AdviceElement handle = null;
+		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+		AdviceElement handle = null;
 
-				// translate nulls to empty arrays
-				if (parameterTypes == null) {
-					parameterTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				if (parameterNames == null) {
-					parameterNames= CharOperation.NO_CHAR_CHAR;
-				}
-				if (exceptionTypes == null) {
-					exceptionTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				
-				String nameString = decl.kind.getName();
-				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
-				handle = new AdviceElement(parentHandle, nameString, parameterTypeSigs);
-			
-				resolveDuplicates(handle);
-				
-				AdviceElementInfo info = new AdviceElementInfo();
-				info.setAJKind(IProgramElement.Kind.ADVICE);
-				IProgramElement.ExtraInformation extraInfo = new IProgramElement.ExtraInformation();
-				info.setAJExtraInfo(extraInfo);
-				extraInfo.setExtraAdviceInformation(decl.kind.getName());
-				
-				info.setSourceRangeStart(declarationStart);
-				int flags = modifiers;
-				info.setName(nameString.toCharArray());
-				info.setNameSourceStart(nameSourceStart);
-				info.setNameSourceEnd(nameSourceEnd);
-				info.setFlags(flags);
-				info.setArgumentNames(parameterNames);
-				//info.setArgumentTypeNames(parameterTypes);
-				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
-				info.setExceptionTypeNames(exceptionTypes);
-
-				addToChildren(parentInfo, handle);
-				this.newElements.put(handle, info);
-				this.infoStack.push(info);
-				this.handleStack.push(handle);	
+		// translate nulls to empty arrays
+		if (parameterTypes == null) {
+			parameterTypes= CharOperation.NO_CHAR_CHAR;
 		}
+		if (parameterNames == null) {
+			parameterNames= CharOperation.NO_CHAR_CHAR;
+		}
+		if (exceptionTypes == null) {
+			exceptionTypes= CharOperation.NO_CHAR_CHAR;
+		}
+		
+		String nameString = decl.kind.getName();
+		String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
+		handle = new AdviceElement(parentHandle, nameString, parameterTypeSigs);
+	
+		resolveDuplicates(handle);
+		
+		AdviceElementInfo info = new AdviceElementInfo();
+		info.setAJKind(IProgramElement.Kind.ADVICE);
+		IProgramElement.ExtraInformation extraInfo = new IProgramElement.ExtraInformation();
+		info.setAJExtraInfo(extraInfo);
+		extraInfo.setExtraAdviceInformation(decl.kind.getName());
+		
+		info.setSourceRangeStart(declarationStart);
+		int flags = modifiers;
+		info.setName(nameString.toCharArray());
+		info.setNameSourceStart(nameSourceStart);
+		info.setNameSourceEnd(nameSourceEnd);
+		info.setFlags(flags);
+		info.setArgumentNames(parameterNames);
+		//info.setArgumentTypeNames(parameterTypes);
+		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setExceptionTypeNames(exceptionTypes);
+
+		addToChildren(parentInfo, handle);
+		this.newElements.put(handle, info);
+		this.infoStack.push(info);
+		this.handleStack.push(handle);	
+	}
 	
 	public void enterInterTypeDeclaration(
 			int declarationStart,
@@ -363,62 +356,62 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			InterTypeDeclaration decl) {
 		
-				nameSourceEnd = nameSourceStart + decl.getDeclaredSelector().length - 1; 
-		
-				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
-				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-				IntertypeElement handle = null;
+		nameSourceEnd = nameSourceStart + decl.getDeclaredSelector().length - 1; 
 
-				// translate nulls to empty arrays
-				if (parameterTypes == null) {
-					parameterTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				if (parameterNames == null) {
-					parameterNames= CharOperation.NO_CHAR_CHAR;
-				}
-				if (exceptionTypes == null) {
-					exceptionTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				
-				String nameString = new String(decl.getOnType().getTypeName()[0]) + "." + new String(decl.getDeclaredSelector()); //$NON-NLS-1$
-				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
-				handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
-				
-				resolveDuplicates(handle);
-				
-				IntertypeElementInfo info = new IntertypeElementInfo();
-				
-				if (decl instanceof InterTypeFieldDeclaration)
-					info.setAJKind(IProgramElement.Kind.INTER_TYPE_FIELD);
-				else if (decl instanceof InterTypeMethodDeclaration)
-					info.setAJKind(IProgramElement.Kind.INTER_TYPE_METHOD);
-				else if (decl instanceof InterTypeConstructorDeclaration)
-					info.setAJKind(IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
-				else
-					info.setAJKind(IProgramElement.Kind.INTER_TYPE_PARENT);
-				
-				// Fix for 116846 - incorrect icons for itds - use declaredModifiers instead
-				info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.declaredModifiers));
-				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.declaredModifiers));
-				
-				info.setSourceRangeStart(declarationStart);
-				int flags = modifiers;
-				info.setName(nameString.toCharArray());
-				info.setNameSourceStart(nameSourceStart);
-				info.setNameSourceEnd(nameSourceEnd);
-				info.setTargetType(decl.getOnType().getTypeName()[0]);
-				info.setFlags(flags);
-				info.setDeclaredModifiers(decl.declaredModifiers);
-				info.setArgumentNames(parameterNames);
-				//info.setArgumentTypeNames(parameterTypes);
-				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
-				info.setExceptionTypeNames(exceptionTypes);
+		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+		IntertypeElement handle = null;
 
-				addToChildren(parentInfo, handle);
-				this.newElements.put(handle, info);
-				this.infoStack.push(info);
-				this.handleStack.push(handle);	
+		// translate nulls to empty arrays
+		if (parameterTypes == null) {
+			parameterTypes= CharOperation.NO_CHAR_CHAR;
 		}
+		if (parameterNames == null) {
+			parameterNames= CharOperation.NO_CHAR_CHAR;
+		}
+		if (exceptionTypes == null) {
+			exceptionTypes= CharOperation.NO_CHAR_CHAR;
+		}
+		
+		String nameString = new String(decl.getOnType().getTypeName()[0]) + "." + new String(decl.getDeclaredSelector()); //$NON-NLS-1$
+		String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
+		handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
+		
+		resolveDuplicates(handle);
+		
+		IntertypeElementInfo info = new IntertypeElementInfo();
+		
+		if (decl instanceof InterTypeFieldDeclaration)
+			info.setAJKind(IProgramElement.Kind.INTER_TYPE_FIELD);
+		else if (decl instanceof InterTypeMethodDeclaration)
+			info.setAJKind(IProgramElement.Kind.INTER_TYPE_METHOD);
+		else if (decl instanceof InterTypeConstructorDeclaration)
+			info.setAJKind(IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
+		else
+			info.setAJKind(IProgramElement.Kind.INTER_TYPE_PARENT);
+		
+		// Fix for 116846 - incorrect icons for itds - use declaredModifiers instead
+		info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.declaredModifiers));
+		info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.declaredModifiers));
+		
+		info.setSourceRangeStart(declarationStart);
+		int flags = modifiers;
+		info.setName(nameString.toCharArray());
+		info.setNameSourceStart(nameSourceStart);
+		info.setNameSourceEnd(nameSourceEnd);
+		info.setTargetType(decl.getOnType().getTypeName()[0]);
+		info.setFlags(flags);
+		info.setDeclaredModifiers(decl.declaredModifiers);
+		info.setArgumentNames(parameterNames);
+		//info.setArgumentTypeNames(parameterTypes);
+		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setExceptionTypeNames(exceptionTypes);
+
+		addToChildren(parentInfo, handle);
+		this.newElements.put(handle, info);
+		this.infoStack.push(info);
+		this.handleStack.push(handle);	
+	}
 	
 	public void enterDeclare(
 			int declarationStart,
@@ -432,89 +425,86 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			DeclareDeclaration decl) {
 		
-				nameSourceStart += 8;
-				nameSourceEnd = nameSourceStart;
-				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
-				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-				DeclareElement handle = null;
+		nameSourceStart += 8;
+		nameSourceEnd = nameSourceStart;
+		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+		DeclareElement handle = null;
 
-				DeclareElementInfo info = new DeclareElementInfo();
-				
-				String msg = ""; //$NON-NLS-1$
-				if (decl.declareDecl instanceof DeclareErrorOrWarning){
-					msg = ": \"" + ((DeclareErrorOrWarning)decl.declareDecl).getMessage() + "\"";  //$NON-NLS-1$//$NON-NLS-2$
-					if (((DeclareErrorOrWarning)decl.declareDecl).isError()){
-						info.setAJKind(IProgramElement.Kind.DECLARE_ERROR);
-						nameSourceEnd += 4;
-					}else{
-						info.setAJKind(IProgramElement.Kind.DECLARE_WARNING);
-						nameSourceEnd += 6;
-					}
-				} else if (decl.declareDecl instanceof DeclareParents){
-					info.setAJKind(IProgramElement.Kind.DECLARE_PARENTS);
-					nameSourceEnd += 6;
-				} else if (decl.declareDecl instanceof DeclarePrecedence){
-					info.setAJKind(IProgramElement.Kind.DECLARE_PRECEDENCE);
-					nameSourceEnd += 9;
-				} else if (decl.declareDecl instanceof DeclareAnnotation){
-					DeclareAnnotation anno = (DeclareAnnotation)decl.declareDecl;
-					if (anno.isDeclareAtConstuctor()) {
-						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR);
-						nameSourceEnd += "@constructor".length()-1; //$NON-NLS-1$
-					} else if (anno.isDeclareAtField()) {
-						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD);
-						nameSourceEnd += "@field".length()-1; //$NON-NLS-1$
-					} else if (anno.isDeclareAtMethod()) {
-						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD);
-						nameSourceEnd += "@method".length()-1; //$NON-NLS-1$
-					} else if (anno.isDeclareAtType()) {
-						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE);
-						nameSourceEnd += "@type".length()-1; //$NON-NLS-1$
-					}
-				} else {
-					//assume declare soft
-					info.setAJKind(IProgramElement.Kind.DECLARE_SOFT);
-					nameSourceEnd += 3;
-				}
-				String nameString = info.getAJKind().toString() + msg;
-				
-				
-				// translate nulls to empty arrays
-				if (parameterTypes == null) {
-					parameterTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				if (parameterNames == null) {
-					parameterNames= CharOperation.NO_CHAR_CHAR;
-				}
-				if (exceptionTypes == null) {
-					exceptionTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				
-				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
-				
-				handle = new DeclareElement(parentHandle, nameString, parameterTypeSigs);
-				
-				
-				resolveDuplicates(handle);
-				
-
-				
-				info.setSourceRangeStart(declarationStart);
-				int flags = modifiers;
-				info.setName(nameString.toCharArray());
-				info.setNameSourceStart(nameSourceStart);
-				info.setNameSourceEnd(nameSourceEnd);
-				info.setFlags(flags);
-				info.setArgumentNames(parameterNames);
-				//info.setArgumentTypeNames(parameterTypes);
-				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
-				info.setExceptionTypeNames(exceptionTypes);
-
-				addToChildren(parentInfo, handle);
-				this.newElements.put(handle, info);
-				this.infoStack.push(info);
-				this.handleStack.push(handle);	
+		DeclareElementInfo info = new DeclareElementInfo();
+		
+		String msg = ""; //$NON-NLS-1$
+		if (decl.declareDecl instanceof DeclareErrorOrWarning){
+			msg = ": \"" + ((DeclareErrorOrWarning)decl.declareDecl).getMessage() + "\"";  //$NON-NLS-1$//$NON-NLS-2$
+			if (((DeclareErrorOrWarning)decl.declareDecl).isError()){
+				info.setAJKind(IProgramElement.Kind.DECLARE_ERROR);
+				nameSourceEnd += 4;
+			}else{
+				info.setAJKind(IProgramElement.Kind.DECLARE_WARNING);
+				nameSourceEnd += 6;
+			}
+		} else if (decl.declareDecl instanceof DeclareParents){
+			info.setAJKind(IProgramElement.Kind.DECLARE_PARENTS);
+			nameSourceEnd += 6;
+		} else if (decl.declareDecl instanceof DeclarePrecedence){
+			info.setAJKind(IProgramElement.Kind.DECLARE_PRECEDENCE);
+			nameSourceEnd += 9;
+		} else if (decl.declareDecl instanceof DeclareAnnotation){
+			DeclareAnnotation anno = (DeclareAnnotation)decl.declareDecl;
+			if (anno.isDeclareAtConstuctor()) {
+				info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR);
+				nameSourceEnd += "@constructor".length()-1; //$NON-NLS-1$
+			} else if (anno.isDeclareAtField()) {
+				info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD);
+				nameSourceEnd += "@field".length()-1; //$NON-NLS-1$
+			} else if (anno.isDeclareAtMethod()) {
+				info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD);
+				nameSourceEnd += "@method".length()-1; //$NON-NLS-1$
+			} else if (anno.isDeclareAtType()) {
+				info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE);
+				nameSourceEnd += "@type".length()-1; //$NON-NLS-1$
+			}
+		} else {
+			//assume declare soft
+			info.setAJKind(IProgramElement.Kind.DECLARE_SOFT);
+			nameSourceEnd += 3;
 		}
+		String nameString = info.getAJKind().toString() + msg;
+		
+		
+		// translate nulls to empty arrays
+		if (parameterTypes == null) {
+			parameterTypes= CharOperation.NO_CHAR_CHAR;
+		}
+		if (parameterNames == null) {
+			parameterNames= CharOperation.NO_CHAR_CHAR;
+		}
+		if (exceptionTypes == null) {
+			exceptionTypes= CharOperation.NO_CHAR_CHAR;
+		}
+		
+		String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
+		
+		handle = new DeclareElement(parentHandle, nameString, parameterTypeSigs);
+		
+		resolveDuplicates(handle);
+		
+		info.setSourceRangeStart(declarationStart);
+		int flags = modifiers;
+		info.setName(nameString.toCharArray());
+		info.setNameSourceStart(nameSourceStart);
+		info.setNameSourceEnd(nameSourceEnd);
+		info.setFlags(flags);
+		info.setArgumentNames(parameterNames);
+		//info.setArgumentTypeNames(parameterTypes);
+		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setExceptionTypeNames(exceptionTypes);
+
+		addToChildren(parentInfo, handle);
+		this.newElements.put(handle, info);
+		this.infoStack.push(info);
+		this.handleStack.push(handle);	
+	}
 	
 	public void enterPointcut(
 			int declarationStart,
@@ -527,52 +517,50 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] parameterNames,
 			char[][] exceptionTypes,
 			PointcutDeclaration decl) {
-		
-		
 
-				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
-				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-				PointcutElement handle = null;
+		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+		PointcutElement handle = null;
 
-				// translate nulls to empty arrays
-				if (parameterTypes == null) {
-					parameterTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				if (parameterNames == null) {
-					parameterNames= CharOperation.NO_CHAR_CHAR;
-				}
-				if (exceptionTypes == null) {
-					exceptionTypes= CharOperation.NO_CHAR_CHAR;
-				}
-				
-				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
-				handle = new PointcutElement(parentHandle, new String(name), parameterTypeSigs);
-
-				resolveDuplicates(handle);
-				
-				PointcutElementInfo info = new PointcutElementInfo();
-				
-				info.setAJKind(IProgramElement.Kind.POINTCUT);
-				info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.modifiers));
-				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.modifiers));
-				
-				info.setSourceRangeStart(declarationStart);
-				info.setSourceRangeEnd(decl.sourceEnd+1);
-				int flags = modifiers;
-				info.setName(name);
-				info.setNameSourceStart(nameSourceStart);
-				info.setNameSourceEnd(nameSourceEnd);
-				info.setFlags(flags);
-				info.setArgumentNames(parameterNames);
-				//info.setArgumentTypeNames(parameterTypes);
-				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
-				info.setExceptionTypeNames(exceptionTypes);
-
-				addToChildren(parentInfo, handle);
-				this.newElements.put(handle, info);
-				this.infoStack.push(info);
-				this.handleStack.push(handle);	
+		// translate nulls to empty arrays
+		if (parameterTypes == null) {
+			parameterTypes= CharOperation.NO_CHAR_CHAR;
 		}
+		if (parameterNames == null) {
+			parameterNames= CharOperation.NO_CHAR_CHAR;
+		}
+		if (exceptionTypes == null) {
+			exceptionTypes= CharOperation.NO_CHAR_CHAR;
+		}
+		
+		String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
+		handle = new PointcutElement(parentHandle, new String(name), parameterTypeSigs);
+
+		resolveDuplicates(handle);
+		
+		PointcutElementInfo info = new PointcutElementInfo();
+		
+		info.setAJKind(IProgramElement.Kind.POINTCUT);
+		info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.modifiers));
+		info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.modifiers));
+		
+		info.setSourceRangeStart(declarationStart);
+		info.setSourceRangeEnd(decl.sourceEnd+1);
+		int flags = modifiers;
+		info.setName(name);
+		info.setNameSourceStart(nameSourceStart);
+		info.setNameSourceEnd(nameSourceEnd);
+		info.setFlags(flags);
+		info.setArgumentNames(parameterNames);
+		//info.setArgumentTypeNames(parameterTypes);
+		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setExceptionTypeNames(exceptionTypes);
+
+		addToChildren(parentInfo, handle);
+		this.newElements.put(handle, info);
+		this.infoStack.push(info);
+		this.handleStack.push(handle);	
+	}
 
 
 	public void acceptProblem(CategorizedProblem problem) {
@@ -588,7 +576,8 @@ public class AJCompilationUnitStructureRequestor extends
 		childrenList.add(handle);
 	}
 	
-	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect, boolean isPrivilegedAspect) {
+	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, 
+	        boolean isAspect, boolean isPrivilegedAspect) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
 		          typeInfo.name,
@@ -640,7 +629,11 @@ public class AJCompilationUnitStructureRequestor extends
 		          false, false);
 	}
 	
-	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect, boolean isPrivilegedAspect) {
+	/**
+     * XXX This should override something
+     */
+	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, 
+	        boolean isAspect, boolean isPrivilegedAspect) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
 		          typeInfo.name,
@@ -652,7 +645,6 @@ public class AJCompilationUnitStructureRequestor extends
 		          isAspect,
 		          isPrivilegedAspect);
 	}
-
 
 
 	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
@@ -668,6 +660,9 @@ public class AJCompilationUnitStructureRequestor extends
 		          false);
 	}
 
+	/**
+	 * XXX This should override something
+	 */
 	public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
 		super.acceptImport(declarationStart, declarationEnd, CharOperation.splitOn('.', name), onDemand, modifiers);
 	}
@@ -709,23 +704,34 @@ public class AJCompilationUnitStructureRequestor extends
 		addToChildren(parentInfo, handle);
 		this.newElements.put(handle, info);
 
-		// We do not deal with annotations here
-//		if (importReference.annotations != null) {
-//			for (int i = 0, length = importReference.annotations.length; i < length; i++) {
-//				org.eclipse.jdt.internal.compiler.ast.Annotation annotation = importReference.annotations[i];
-//				enterAnnotation(annotation, info, handle);
-//				exitMember(annotation.declarationSourceEnd);
-//			}
-//		}	
-
-		
 	}
 
 
+	/* AJDT 1.7 */
 	public void exitMethod(int declarationEnd, int defaultValueStart,
 			int defaultValueEnd) {
-		super.exitMethod(declarationEnd, null);
+	    NamedMember handle = (NamedMember) this.handleStack.peek();
+	    if (! (handle instanceof AspectJMemberElement)) {
+	        super.exitMethod(declarationEnd, null);
+	        return;
+	    }
+	    
+	    this.handleStack.pop();
+	    AspectJMemberElementInfo info = (AspectJMemberElementInfo) this.infoStack.pop();
+	    info.setSourceRangeEnd(declarationEnd);
+	    info.setChildren(getChildren(info));
 	}
+	
+	// copied from so that children Map is accessible
+	private IJavaElement[] getChildren(Object info) {
+	    ArrayList childrenList = (ArrayList) this.children.get(info);
+	    if (childrenList != null) {
+	        return (IJavaElement[]) childrenList.toArray(new IJavaElement[childrenList.size()]);
+	    }
+	    return NO_ELEMENTS;
+	}
+	protected static final JavaElement[] NO_ELEMENTS = new JavaElement[0];
+    /* AJDT 1.7 end */
 	
 	/**
 	 * @since 1.6
@@ -738,7 +744,8 @@ public class AJCompilationUnitStructureRequestor extends
 		super.acceptPackage(dup);
 	}
 
-    private org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] convertToJDTTypeParameters(
+    
+	private org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] convertToJDTTypeParameters(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] ajTypeParams) {
         org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] jdtTypeParams = 
             new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[ajTypeParams == null ? 0 : ajTypeParams.length];
@@ -755,6 +762,7 @@ public class AJCompilationUnitStructureRequestor extends
         }
         return jdtTypeParams;
     }
+    
     private org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] convertToAJTypeParameters(
             org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] jdtTypeParams) {
         org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] ajTypeParams = 

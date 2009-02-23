@@ -45,7 +45,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
  * - accept<Element>
  */
  
-public interface IAspectSourceElementRequestor extends ISourceElementRequestor{
+public interface IAspectSourceElementRequestor extends ISourceElementRequestor {
 	
 
 void enterMethod(

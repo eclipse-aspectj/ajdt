@@ -15,6 +15,7 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceRange;
@@ -154,16 +155,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public char[][] getArgumentTypeNames() {
         return argumentTypeNames;
     }
-	
-//	public String getSignature() {
-//
-//		String[] paramSignatures = new String[this.argumentTypeNames.length];
-//		for (int i = 0; i < this.argumentTypeNames.length; ++i) {
-//			paramSignatures[i] = Signature.createTypeSignature(this.argumentTypeNames[i], false);
-//		}
-//		return Signature.createMethodSignature(paramSignatures, Signature.createTypeSignature(this.returnType, false));
-//	}
-	
+		
 	public boolean isConstructor() {
 		return isConstructor;
 	}
@@ -175,4 +167,15 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public char[] getReturnTypeName() {
 		return returnType;
 	}	
+	
+	/* AJDT 1.7 */
+	protected IJavaElement[] children;
+	public IJavaElement[] getChildren() {
+	    return super.getChildren();
+	}
+	public void setChildren(IJavaElement[] children) {
+        this.children = children;
+    }
+	/* AJDT 1.7 end */
+	
 }

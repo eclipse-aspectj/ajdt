@@ -269,11 +269,4 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         this.children = children;
     }
     
-    // needed for 
-//    private int removeInterfaceFlag(int flags) {
-//        return flags & (~ClassFileConstants.AccInterface);
-//    }
-//    private int addPublicFlag(int flags) {
-//        return flags & (~ClassFileConstants.AccPublic);
-//    }
 }

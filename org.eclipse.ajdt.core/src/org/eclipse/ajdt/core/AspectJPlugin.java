@@ -134,7 +134,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	 */
 	public AspectJPlugin() {
 		super();
-		plugin = this;
+		AspectJPlugin.plugin = this;
 	}
 
 	/**

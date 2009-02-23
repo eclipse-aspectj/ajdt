@@ -78,7 +78,8 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
     public boolean doContentAssist(ICompilationUnit cu,
             ICompilationUnit unitToSkip, int position,
             CompletionRequestor requestor, WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor /* AJDT 1.7 */) throws Exception {
+            /* AJDT 1.7 */
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception {
         JavaProject project = (JavaProject) target.getJavaProject();
         if (! AspectJPlugin.isAJProject(project.getProject())) {
             return false;
@@ -106,11 +107,13 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
         }
 
-        ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor /* AJDT 1.7 */);
+		/* AJDT 1.7 */
+        ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor);
         environment.setUnitToSkip(unitToSkip);
 
         // code complete
-        CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner, monitor /* AJDT 1.7 */);
+        /* AJDT 1.7 */
+        CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner, monitor);
         engine.complete(mcu, transformedPos, 0, typeRoot);
         
         return true;
