@@ -31,6 +31,7 @@ import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
+import org.eclipse.ajdt.core.tests.model.AJModelTest5;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
@@ -79,7 +80,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJModelTest.class));
 		suite.addTest(new TestSuite(AJModelTest2.class));
 		suite.addTest(new TestSuite(AJModelTest3.class));
-		suite.addTest(new TestSuite(AJModelTest4.class));
+        suite.addTest(new TestSuite(AJModelTest4.class));
+        suite.addTest(new TestSuite(AJModelTest5.class));
 		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
         suite.addTest(new TestSuite(AJProjectModelTest2.class));
