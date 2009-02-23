@@ -571,6 +571,14 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
             
+            if (id == IProblem.UninitializedBlankFinalField && 
+                    unit.getElementAt(categorizedProblem.getSourceStart()) == null) {
+                // likely to be inserted dummy fields for organize imports
+                // this only happens when the last declaration is an interface
+                // these dummy fields are implicitly converted to public static final
+                return false;
+            }
+
         } catch (JavaModelException e) {
         }
         
