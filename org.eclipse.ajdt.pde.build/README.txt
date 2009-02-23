@@ -14,9 +14,12 @@ A bug has been raised to consider this issue:
 https://bugs.eclipse.org/bugs/show_bug.cgi?id=147432
 
 In the meantime, a workaround is possible using the jar file in this
-project. To do this, locate the lib/pdebuild-ant.jar file in
-the org.eclipse.pde.build plugin. After making a backup of this file,
-replace it with the one in this project. Now when the build
-process executes it will generate build.xml files which use the "iajc"
-Ant task. This will mean the AspectJ compiler is used to build all
-projects (both AspectJ and Java projects).
+project. Export this project as a plugin and install it into your
+eclipse/plugins directory.  Then, when doing a headless build, 
+point to the scripts/build.xml ant file in this project.  Pass
+it the same arguments as you would a non-AspectJ headless build.
+
+Additionally, you must set the ajdt.pdebuild.home environment variable.
+Set it to the root directory of this plugin.  Eg- 
+
+ajdt.pdebuild.home=${eclipse_home}/plugins/org.eclipse.ajdt.pde.build
