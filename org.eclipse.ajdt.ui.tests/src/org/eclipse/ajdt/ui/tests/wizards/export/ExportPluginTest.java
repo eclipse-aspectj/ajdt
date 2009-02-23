@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
  * 
  */
   /* AJDT 1.7 */
+  /* lots of changes for AJDT 1.7 */
 public class ExportPluginTest extends UITestCase {
 
 	// taken from BaseExportWizardPage / ExportDestinationTab / ExportOptionsTab

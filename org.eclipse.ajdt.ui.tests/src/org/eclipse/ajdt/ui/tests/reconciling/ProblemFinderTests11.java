@@ -31,21 +31,27 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.internal.Workbench;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+import org.eclipse.ui.internal.views.log.LogEntry;
+import org.eclipse.ui.internal.views.log.LogView;
 
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
  * 
- * This tests the full Spaceware example
+ * Tests bug 265557
  * 
  * @author andrew
  *
  */
-public class ProblemFinderTests9 extends UITestCase {
-    List/*ICompilationUnit*/ allCUnits = new ArrayList(); 
+public class ProblemFinderTests11 extends UITestCase {
+    List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    ICompilationUnit errorUnit;
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
-        proj = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+        proj = createPredefinedProject("Bug265557DeclareSoft"); //$NON-NLS-1$
         waitForJobsToComplete();
         
         IFolder src = proj.getFolder("src");
@@ -55,7 +61,11 @@ public class ProblemFinderTests9 extends UITestCase {
                 if (resource.getType() == IResource.FILE && 
                         (resource.getName().endsWith("java") ||
                                 resource.getName().endsWith("aj"))) {
-                    allCUnits.add(createUnit((IFile) resource));
+                    if (resource.getName().equals("ClassWithException2.java")) {
+                        errorUnit = createUnit((IFile) resource);
+                    } else {
+                        allCUnits.add(createUnit((IFile) resource));
+                    }
                 }
                 return true;
             }
@@ -76,8 +86,17 @@ public class ProblemFinderTests9 extends UITestCase {
         setAutobuilding(true);
     }
 
-        
+    /**
+     * Should have one error in this of an unsoftened exception
+     */
+    public void testProblemFindingErrors() throws Exception {
     
+        HashMap problems = doFind(errorUnit);
+        assertEquals("Should have found 1 problem, but instead found " + problems.size() +
+                "\n" + MockProblemRequestor.printProblems(problems),
+                1, problems.size());
+        
+    }
     
     public void testProblemFindingAll() throws Exception {
         StringBuffer sb = new StringBuffer();
