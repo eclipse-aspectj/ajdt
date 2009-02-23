@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ui.wizards.exports;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -286,7 +287,21 @@ class StandardJavaElementContentProvider implements ITreeContentProvider, IWorki
 	
 	private Object[] getPackageContents(IPackageFragment fragment) throws JavaModelException {
         if (fragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
-            return concatenate(fragment.getCompilationUnits(), fragment.getNonJavaResources());
+            // AspectJ Change begin 
+            if (AspectJPlugin.USING_CU_PROVIDER) {
+                return concatenate(fragment.getCompilationUnits(), fragment.getNonJavaResources());
+            } else {
+                // ignore AJCompilationUnits to avoid duplicates
+                ArrayList filesToKeep = new ArrayList();
+                Object[] files = fragment.getCompilationUnits();
+                for (int i = 0; i < files.length; i++) {
+                    if(!(files[i] instanceof AJCompilationUnit)) {
+                        filesToKeep.add(files[i]);
+                    }
+                }
+                return concatenate(filesToKeep.toArray(), fragment.getNonJavaResources());
+            }
+            // AspectJ Change end
         }
         return concatenate(fragment.getClassFiles(), fragment.getNonJavaResources());
 	}

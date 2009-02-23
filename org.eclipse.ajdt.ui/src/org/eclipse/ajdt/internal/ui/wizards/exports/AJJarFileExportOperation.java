@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.zip.ZipException;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -255,6 +256,14 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * @param element the resource or JavaElement to export
 	 */
 	protected void exportElement(Object element, IProgressMonitor progressMonitor) throws InterruptedException {
+        // AspectJ Change Begin
+        if (!AspectJPlugin.USING_CU_PROVIDER) {
+            // Don't export AJCompilationUnits because they are duplicates of files that we also export.
+            if (element instanceof AJCompilationUnit) { 
+                return;
+            }
+        }
+        // AspectJ Change End
 		int leadSegmentsToRemove= 1;
 		IPackageFragmentRoot pkgRoot= null;
 		boolean isInJavaProject= false;
