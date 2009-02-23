@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
@@ -51,6 +52,8 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -58,10 +61,12 @@ import org.eclipse.jdt.internal.core.AnnotatableInfo;
 import org.eclipse.jdt.internal.core.CompilationUnitStructureRequestor;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaElementInfo;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
+import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
@@ -71,11 +76,14 @@ import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
  * @author Luzius Meisser 
  * @author Andrew Eisenberg
  */
+ /* AJDT 1.7 lots of changes */
 public class AJCompilationUnitStructureRequestor extends
 		CompilationUnitStructureRequestor implements IAspectSourceElementRequestor {
 
 
-	public AJCompilationUnitStructureRequestor(ICompilationUnit unit, AJCompilationUnitInfo unitInfo, Map newElements) {
+	private static final char[] VOID = new char[]{'v', 'o','i', 'd'};
+
+    public AJCompilationUnitStructureRequestor(ICompilationUnit unit, AJCompilationUnitInfo unitInfo, Map newElements) {
 		super(unit, unitInfo, newElements);
 	} 
 	
@@ -96,6 +104,13 @@ public class AJCompilationUnitStructureRequestor extends
 	}
 
 
+	/**
+	 * Common processing for AJ method infos and JDT method infos
+	 */
+	/*
+     * a little kludgy here.  super type creates JavaElementInfo on the exitMethod
+     * this type creates JavaElementInfos on the enterMethod
+     */
 	public void enterMethod(
 			int declarationStart,
 			int modifiers,
@@ -149,6 +164,7 @@ public class AJCompilationUnitStructureRequestor extends
 		super.enterMethod(mi);
 	}
 
+    @Override
 	public void enterMethod(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi) {
 		enterMethod(mi.declarationStart,
 		            mi.modifiers,
@@ -212,69 +228,6 @@ public class AJCompilationUnitStructureRequestor extends
                     mi.typeParameters,
 		            mdecl);
 	}
-	/**
-	 * Common processing for classes and interfaces.
-	 */
-	protected void enterType(
-    		int declarationStart,
-    		int modifiers,
-    		char[] name,
-    		int nameSourceStart,
-    		int nameSourceEnd,
-    		char[] superclass,
-    		char[][] superinterfaces,
-    		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
-    		boolean isAspect,
-    		boolean isPrivilegedAspect) {
-		
-		if (!isAspect) {
-			org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo ti = 
-				new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo();
-			ti.declarationStart = declarationStart;
-			ti.modifiers = modifiers;
-			ti.name = name;
-			ti.nameSourceStart = nameSourceStart;
-			ti.nameSourceEnd = nameSourceEnd;
-			ti.superclass = superclass;
-			ti.superinterfaces = superinterfaces;
-			ti.typeParameters = tpInfo;
-			super.enterType(ti);
-		} else {
-		
-    		Object parentInfo = this.infoStack.peek();
-    		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
-    		String nameString= new String(name);
-    		AspectElement handle = new AspectElement(parentHandle, nameString);
-    		
-    		resolveDuplicates(handle);
-    		
-    		AspectElementInfo info = new AspectElementInfo();
-    		
-    		info.setAJKind(IProgramElement.Kind.ASPECT);
-    		info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(modifiers));
-    		info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(modifiers));
-    		
-    		info.setHandle(handle);
-    		info.setSourceRangeStart(declarationStart);
-    		info.setFlags(modifiers);
-    		// odd !! info.setName(name);
-    		info.setNameSourceStart(nameSourceStart);
-    		info.setNameSourceEnd(nameSourceEnd);
-    		info.setSuperclassName(superclass);
-    		info.setSuperInterfaceNames(superinterfaces);
-    		
-    		info.setPrivileged(isPrivilegedAspect);
-    		
-    		addToChildren(parentInfo, handle);	
-    		
-    		this.newElements.put(handle, info);
-    
-    		this.infoStack.push(info);
-    		this.handleStack.push(handle);
-		}
-
-	}
-	
 	/* default */ static String[] convertTypeNamesToSigsCopy(char[][] typeNames) {
 		if (typeNames == null)
 			return CharOperation.NO_STRINGS;
@@ -300,7 +253,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			AdviceDeclaration decl) {
 		
-		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		Object parentInfo = this.infoStack.peek();
 		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 		AdviceElement handle = null;
 
@@ -335,7 +288,7 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setFlags(flags);
 		info.setArgumentNames(parameterNames);
 		//info.setArgumentTypeNames(parameterTypes);
-		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
 
 		addToChildren(parentInfo, handle);
@@ -358,7 +311,7 @@ public class AJCompilationUnitStructureRequestor extends
 		
 		nameSourceEnd = nameSourceStart + decl.getDeclaredSelector().length - 1; 
 
-		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		Object parentInfo = this.infoStack.peek();
 		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 		IntertypeElement handle = null;
 
@@ -404,7 +357,7 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setDeclaredModifiers(decl.declaredModifiers);
 		info.setArgumentNames(parameterNames);
 		//info.setArgumentTypeNames(parameterTypes);
-		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
 
 		addToChildren(parentInfo, handle);
@@ -427,7 +380,7 @@ public class AJCompilationUnitStructureRequestor extends
 		
 		nameSourceStart += 8;
 		nameSourceEnd = nameSourceStart;
-		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+		Object parentInfo = this.infoStack.peek();
 		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 		DeclareElement handle = null;
 
@@ -497,7 +450,7 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setFlags(flags);
 		info.setArgumentNames(parameterNames);
 		//info.setArgumentTypeNames(parameterTypes);
-		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
 
 		addToChildren(parentInfo, handle);
@@ -518,7 +471,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			PointcutDeclaration decl) {
 
-		SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+	    Object parentInfo = this.infoStack.peek();
 		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 		PointcutElement handle = null;
 
@@ -553,7 +506,7 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setFlags(flags);
 		info.setArgumentNames(parameterNames);
 		//info.setArgumentTypeNames(parameterTypes);
-		info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
+		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
 
 		addToChildren(parentInfo, handle);
@@ -576,7 +529,38 @@ public class AJCompilationUnitStructureRequestor extends
 		childrenList.add(handle);
 	}
 	
-	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, 
+	public void enterConstructor(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
+    	org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi = 
+    		new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo();
+    	mi.declarationStart = methodInfo.declarationStart;
+    	mi.modifiers = methodInfo.modifiers;
+    	mi.name = methodInfo.name;
+    	mi.nameSourceStart = methodInfo.nameSourceStart;
+    	mi.nameSourceEnd = methodInfo.nameSourceEnd;
+    	mi.parameterNames = methodInfo.parameterNames;
+    	mi.parameterTypes = methodInfo.parameterTypes;
+    	mi.exceptionTypes = methodInfo.exceptionTypes;
+    	mi.isConstructor = true;
+    	enterConstructor(mi);
+    }
+
+    public void enterField(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) {
+    	org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fi = 
+    		new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo();
+    	fi.declarationStart = fieldInfo.declarationStart;
+    	fi.modifiers = fieldInfo.modifiers;
+    	fi.type = fieldInfo.type;
+    	fi.name = fieldInfo.name;
+    	fi.nameSourceStart = fieldInfo.nameSourceStart;
+    	fi.nameSourceEnd = fieldInfo.nameSourceEnd;
+    	enterField(fi);
+    }
+
+    
+    /**
+     * Enter Type from AJ side w/ Aspect information
+     */
+    public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, 
 	        boolean isAspect, boolean isPrivilegedAspect) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
@@ -590,33 +574,9 @@ public class AJCompilationUnitStructureRequestor extends
 		          isPrivilegedAspect);
 	}
 
-	public void enterConstructor(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
-		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi = 
-			new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo();
-		mi.declarationStart = methodInfo.declarationStart;
-		mi.modifiers = methodInfo.modifiers;
-		mi.name = methodInfo.name;
-		mi.nameSourceStart = methodInfo.nameSourceStart;
-		mi.nameSourceEnd = methodInfo.nameSourceEnd;
-		mi.parameterNames = methodInfo.parameterNames;
-		mi.parameterTypes = methodInfo.parameterTypes;
-		mi.exceptionTypes = methodInfo.exceptionTypes;
-		mi.isConstructor = true;
-		enterConstructor(mi);
-	}
-
-	public void enterField(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) {
-		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fi = 
-			new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo();
-		fi.declarationStart = fieldInfo.declarationStart;
-		fi.modifiers = fieldInfo.modifiers;
-		fi.type = fieldInfo.type;
-		fi.name = fieldInfo.name;
-		fi.nameSourceStart = fieldInfo.nameSourceStart;
-		fi.nameSourceEnd = fieldInfo.nameSourceEnd;
-		enterField(fi);
-	}
-
+    /**
+     * Enter Type from AJ side
+     */
 	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
@@ -646,7 +606,10 @@ public class AJCompilationUnitStructureRequestor extends
 		          isPrivilegedAspect);
 	}
 
-
+	/**
+	 * enter type from JDT side
+	 */
+	@Override
 	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
 		enterType(typeInfo.declarationStart,
 		          typeInfo.modifiers,
@@ -661,6 +624,130 @@ public class AJCompilationUnitStructureRequestor extends
 	}
 
 	/**
+     * Common processing for both AJ and JDT types
+     */
+    protected void enterType(
+    		int declarationStart,
+    		int modifiers,
+    		char[] name,
+    		int nameSourceStart,
+    		int nameSourceEnd,
+    		char[] superclass,
+    		char[][] superinterfaces,
+    		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
+    		boolean isAspect,
+    		boolean isPrivilegedAspect) {
+    	
+        AspectTypeInfo typeInfo = 
+            new AspectTypeInfo();
+        typeInfo.declarationStart = declarationStart;
+        typeInfo.modifiers = modifiers;
+        typeInfo.name = name;
+        typeInfo.nameSourceStart = nameSourceStart;
+        typeInfo.nameSourceEnd = nameSourceEnd;
+        typeInfo.superclass = superclass;
+        typeInfo.superinterfaces = superinterfaces;
+        typeInfo.typeParameters = tpInfo;
+        typeInfo.isAspect = isAspect;
+        typeInfo.isPrivilegedAspect = isPrivilegedAspect;
+
+        if (!isAspect) {
+    		super.enterType(typeInfo);
+    	} else {
+    		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+    		Object parentInfo = this.infoStack.peek(); 
+
+    		String nameString= new String(name);
+    		AspectElement handle = new AspectElement(parentHandle, nameString);
+    		resolveDuplicates(handle);
+            this.infoStack.push(typeInfo);
+            this.handleStack.push(handle); 
+
+            if (parentHandle.getElementType() == IJavaElement.TYPE) {
+                ((org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo) parentInfo).
+                    childrenCategories.put(handle, typeInfo.categories);
+            }
+            addToChildren(parentInfo, handle);	
+    	}
+    
+    }
+    
+    @Override
+    public void exitType(int declarationEnd) {
+        Object handle = this.handleStack.peek();
+        if (handle instanceof AspectElement) {
+            AspectElement aspectHandle = (AspectElement) handle;
+            
+            AspectTypeInfo typeInfo = (AspectTypeInfo) this.infoStack.peek();
+            AspectElementInfo info = createAspectElementInfo(typeInfo, aspectHandle);
+            info.setSourceRangeEnd(declarationEnd);
+            info.setChildren(getChildren(typeInfo));
+            
+            this.handleStack.pop();
+            this.infoStack.pop();
+        } else {
+            super.exitType(declarationEnd);
+        }
+
+    }
+
+    private AspectElementInfo createAspectElementInfo (AspectTypeInfo typeInfo, AspectElement handle) {
+        AspectElementInfo info =
+            typeInfo.anonymousMember ?
+                new AspectElementInfo() {
+                    public boolean isAnonymousMember() {
+                        return true;
+                    }
+                } :
+            new AspectElementInfo();
+        
+        // AJ pieces
+        info.setAJKind(IProgramElement.Kind.ASPECT);
+        info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(typeInfo.modifiers));
+        info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(typeInfo.modifiers));
+        info.setPrivileged(typeInfo.isPrivilegedAspect);
+        
+        // JDT pieces - copied from super
+        info.setHandle(handle);
+        info.setSourceRangeStart(typeInfo.declarationStart);
+        info.setFlags(typeInfo.modifiers);
+        info.setNameSourceStart(typeInfo.nameSourceStart);
+        info.setNameSourceEnd(typeInfo.nameSourceEnd);
+        JavaModelManager manager = JavaModelManager.getJavaModelManager();
+        char[] superclass = typeInfo.superclass;
+        info.setSuperclassName(superclass == null ? null : manager.intern(superclass));
+        char[][] superinterfaces = typeInfo.superinterfaces;
+        for (int i = 0, length = superinterfaces == null ? 0 : superinterfaces.length; i < length; i++)
+            superinterfaces[i] = manager.intern(superinterfaces[i]);
+        info.setSuperInterfaceNames(superinterfaces);
+        info.addCategories(handle, typeInfo.categories);
+        this.newElements.put(handle, info);
+        
+        if (typeInfo.typeParameters != null) {
+            for (int i = 0, length = typeInfo.typeParameters.length; i < length; i++) {
+                org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo typeParameterInfo = typeInfo.typeParameters[i];
+                acceptTypeParameter(typeParameterInfo, info);
+            }
+        }
+        if (typeInfo.annotations != null) {
+            int length = typeInfo.annotations.length;
+            this.unitInfo.annotationNumber += length;
+            for (int i = 0; i < length; i++) {
+                org.eclipse.jdt.internal.compiler.ast.Annotation annotation = typeInfo.annotations[i];
+                acceptAnnotation(annotation, info, handle);
+            }
+        }
+        if (typeInfo.childrenCategories != null) {
+            Iterator iterator = typeInfo.childrenCategories.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                info.addCategories((IJavaElement) entry.getKey(), (char[][]) entry.getValue());
+            }
+        }
+        return info;
+    }
+    
+    /**
 	 * XXX This should override something
 	 */
 	public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
@@ -690,9 +777,11 @@ public class AJCompilationUnitStructureRequestor extends
 		
 		// make the two methods accessible here
 		class AJAnnotatableInfo extends AnnotatableInfo {
+		    @Override
 			protected void setSourceRangeStart(int start) {
 				super.setSourceRangeStart(start);
 			}
+		    @Override
 			protected void setSourceRangeEnd(int end) {
 				super.setSourceRangeEnd(end);
 			}
@@ -708,6 +797,10 @@ public class AJCompilationUnitStructureRequestor extends
 
 
 	/* AJDT 1.7 */
+	/*
+	 * a little kludgy here.  super type creates JavaElementInfo on the exitMethod
+	 * this type creates JavaElementInfos on the enterMethod
+	 */
 	public void exitMethod(int declarationEnd, int defaultValueStart,
 			int defaultValueEnd) {
 	    NamedMember handle = (NamedMember) this.handleStack.peek();

@@ -31,9 +31,9 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	
 	protected boolean privileged;
 	
+	/* AJDT 1.7 */
 	public void setHandle(IType handle) {
 		this.handle = handle;
-		this.privileged = false;
 	}
 	
 	/**
@@ -140,5 +140,23 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	
 	public boolean isPrivileged() {
 	    return privileged;
+	}
+	
+    /* AJDT 1.7 */
+    /*
+     * make public
+     */
+	public void setChildren(IJavaElement[] children) {
+	    this.children = children;
+	}
+	
+	/* AJDT 1.7 */
+	/*
+	 * make public
+	 */
+	@Override
+	public void addCategories(IJavaElement element,
+	        char[][] elementCategories) {
+	    super.addCategories(element, elementCategories);
 	}
 }
