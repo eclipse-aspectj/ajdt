@@ -43,6 +43,7 @@ import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchesListener2;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.Launch;
 import org.eclipse.debug.core.model.IProcess;
@@ -427,46 +428,42 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 					buf.append(args[i]);
 					buf.append(' ');
 				}
-				
-				IDebugEventSetListener listener= new
-				  JavadocDebugEventListener(getShell().getDisplay(), file);
-				DebugPlugin.getDefault().addDebugEventListener(listener);
 
-				ILaunchConfigurationWorkingCopy wc = null;
-				try {
-					ILaunchConfigurationType lcType = DebugPlugin
-							.getDefault()
-							.getLaunchManager()
-							.getLaunchConfigurationType(
-									IJavaLaunchConfigurationConstants.ID_JAVA_APPLICATION);
-					String name = JavadocExportMessages.JavadocWizard_launchconfig_name;
-					wc = lcType.newInstance(null, name);
-					wc.setAttribute(IDebugUIConstants.ATTR_PRIVATE, true);
+				/* AJDT 1.7 begin */
+                try {
+                    ILaunchManager launchManager= DebugPlugin.getDefault().getLaunchManager();
+                    ILaunchConfigurationType lcType= launchManager.getLaunchConfigurationType(IJavaLaunchConfigurationConstants.ID_JAVA_APPLICATION);
 
-					ILaunch newLaunch = new Launch(wc, ILaunchManager.RUN_MODE,
-							null);
-//					 AspectJ Extension - message
-					IProcess iprocess = DebugPlugin
-							.newProcess(
-									newLaunch,
-									process,
-									UIMessages.ajdocWizard_ajdocprocess_label);
-					iprocess
-							.setAttribute(IProcess.ATTR_CMDLINE, buf.toString());
-					iprocess.setAttribute(IProcess.ATTR_PROCESS_TYPE,
-							ID_JAVADOC_PROCESS_TYPE);
+                    String name= JavadocExportMessages.JavadocWizard_launchconfig_name;
+                    ILaunchConfigurationWorkingCopy wc= lcType.newInstance(null, name);
+                    wc.setAttribute(IDebugUIConstants.ATTR_PRIVATE, true);
 
-					DebugPlugin.getDefault().getLaunchManager().addLaunch(
-							newLaunch);
+                    ILaunch newLaunch= new Launch(wc, ILaunchManager.RUN_MODE, null);
+                    // AspectJ Extension - message
+                    IProcess iprocess = DebugPlugin
+                            .newProcess(
+                                    newLaunch,
+                                    process,
+                                    UIMessages.ajdocWizard_ajdocprocess_label);
+                    iprocess.setAttribute(IProcess.ATTR_CMDLINE, buf.toString());
+                    iprocess.setAttribute(IProcess.ATTR_PROCESS_TYPE, ID_JAVADOC_PROCESS_TYPE);
 
-				} catch (CoreException e) {
-//					AspectJ Extension - message
-					String title = UIMessages.ajdocWizard_error_title;
-					String message = UIMessages.ajdocWizard_launch_error_message;
-					ExceptionHandler.handle(e, getShell(), title, message);
-				}
+                    launchManager.addLaunch(newLaunch);
+                    JavadocLaunchListener listener= new JavadocLaunchListener(getShell().getDisplay(), newLaunch, file);
+                    launchManager.addLaunchListener(listener);
+                    if (newLaunch.isTerminated()) {
+                        listener.onTerminated();
+                    }
 
-				return true;
+                } catch (CoreException e) {
+                    // AspectJ Extension - message
+                    String title = UIMessages.ajdocWizard_error_title;
+                    String message = UIMessages.ajdocWizard_launch_error_message;
+                    ExceptionHandler.handle(e, getShell(), title, message);
+                }
+                /* AJDT 1.7 end */
+
+                return true;
 
 			}
 		} catch (IOException e) {
@@ -559,36 +556,46 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 		}
 	}
+	
+    /* AJDT 1.7 begin */
+    private class JavadocLaunchListener implements ILaunchesListener2 {
+        private Display fDisplay;
+        private volatile ILaunch fLaunch;
+        private File fFile;
 
-	private class JavadocDebugEventListener implements IDebugEventSetListener {
-		private Display fDisplay;
+        public JavadocLaunchListener(Display display, ILaunch launch, File file) {
+            fDisplay= display;
+            fLaunch= launch;
+            fFile= file;
+        }
 
-		private File fFile;
+        public void launchesTerminated(ILaunch[] launches) {
+            for (int i= 0; i < launches.length; i++) {
+                if (launches[i] == fLaunch) {
+                    onTerminated();
+                    return;
+                }
+            }
+        }
 
-		public JavadocDebugEventListener(Display display, File file) {
-			fDisplay = display;
-			fFile = file;
-		}
+        public void onTerminated() {
+            try {
+                if (fLaunch != null) {
+                    fFile.delete();
+                    spawnInBrowser(fDisplay);
+                    refresh(fDestination);
+                    fLaunch= null;
+                }
+            } finally {
+                DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
+            }
+        }
 
-		public void handleDebugEvents(DebugEvent[] events) {
-			for (int i = 0; i < events.length; i++) {
-				if (events[i].getKind() == DebugEvent.TERMINATE) {
-					try {
-						if (!fWriteCustom) {
-							fFile.delete();
-							refresh(fDestination); //If destination of javadoc
-												   // is in workspace then
-												   // refresh workspace
-							spawnInBrowser(fDisplay);
-						}
-					} finally {
-						DebugPlugin.getDefault().removeDebugEventListener(this);
-					}
-					return;
-				}
-			}
-		}
-	}
+        public void launchesAdded(ILaunch[] launches) { }
+        public void launchesChanged(ILaunch[] launches) { }
+        public void launchesRemoved(ILaunch[] launches) { }
+    }
+    /* AJDT 1.7 end */
 
 	public IWizardPage getNextPage(IWizardPage page) {
 		if (page instanceof AJdocTreeWizardPage) {
