@@ -30,5 +30,6 @@ public interface IJavaContentAssistProvider {
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor /* AJDT 1.7 */ ) throws Exception;
+                                                 /* AJDT 1.7 */
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception;
 }
