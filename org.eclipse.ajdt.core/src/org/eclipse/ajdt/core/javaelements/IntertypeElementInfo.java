@@ -16,6 +16,8 @@ package org.eclipse.ajdt.core.javaelements;
 public class IntertypeElementInfo extends AspectJMemberElementInfo {
 	
     int declaredModifiers;
+    private char[] qualifiedReturnType;
+
     
     public IntertypeElementInfo() {
     }
@@ -36,4 +38,11 @@ public class IntertypeElementInfo extends AspectJMemberElementInfo {
         return declaredModifiers;
     }
 	
+    public void setQualifiedReturnType(char[] qualifiedReturnType) {
+        this.qualifiedReturnType = qualifiedReturnType;
+    }
+    
+    public char[] getQualifiedReturnType() {
+        return qualifiedReturnType;
+    }
 }

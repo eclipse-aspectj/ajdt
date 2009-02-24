@@ -390,8 +390,9 @@ public class AJProjectModelFacade {
         }
         
         // add escapes to various sundries
-        jHandle = jHandle.replaceFirst("declare @", "declare \\\\@");
-        jHandle = jHandle.replaceFirst("\\.\\*", ".\\\\*");
+        jHandle = jHandle.replaceFirst("declare @", "declare \\\\@"); // declare declarations
+        jHandle = jHandle.replaceFirst("\\.\\*", ".\\\\*");  // on demand imports
+        jHandle = jHandle.replaceAll("\\*>", "\\\\*>");  // wild card type parameters
         
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {

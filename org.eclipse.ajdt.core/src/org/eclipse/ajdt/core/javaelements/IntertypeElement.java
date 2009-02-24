@@ -59,7 +59,8 @@ public class IntertypeElement extends AspectJMemberElement {
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
             info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
             info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
-            info.setReturnType(ipe.getCorrespondingType(true).toCharArray());
+            info.setReturnType(ipe.getCorrespondingType(false).toCharArray());
+            info.setQualifiedReturnType(ipe.getCorrespondingType(true).toCharArray());
 	    } else {
 	        // no successful build yet, we don't know the contents
 	        info.setName(name.toCharArray());
@@ -136,7 +137,7 @@ public class IntertypeElement extends AspectJMemberElement {
                     protected Object createElementInfo() {
                         ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this);
                         newInfo.setChildren(info.getChildren());
-                        newInfo.setReturnType(info.getReturnTypeName());
+                        newInfo.setReturnType(getQualifiedReturnTypeName(info));
                         newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
@@ -192,6 +193,11 @@ public class IntertypeElement extends AspectJMemberElement {
     }
 	
     private char[] getQualifiedReturnTypeName(IntertypeElementInfo info) {
+        char[] returnType = info.getQualifiedReturnType();
+        if (returnType != null) {
+            return returnType;
+        }
+        
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
             return ipe.getCorrespondingType(true).toCharArray();
