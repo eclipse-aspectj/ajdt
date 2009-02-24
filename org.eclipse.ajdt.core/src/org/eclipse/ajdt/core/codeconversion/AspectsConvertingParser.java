@@ -220,6 +220,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		// it is the colon that is confusing
 		boolean inCase = false;
 		
+		// bug 265977 the aspect keyword is OK if it is in a package declaration
+		boolean inPackageDecl = false;
+		
 		char[] currentTypeName = null;
 		
 		replacements.clear();
@@ -334,6 +337,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 					}
 				}
 				inRHS = false;  // may be triggering this too early in case this is part of a complex assignment
+				inPackageDecl = false;
 				break;
 				
 			case TokenNamedefault:
@@ -418,6 +422,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 inCase = false;
 				break;
 			case TokenNameaspect:
+			    if (inPackageDecl) {
+			        // aspect keyword is OK in package decls
+			        break;
+			    }
+			    
 				inAspect = true;
 				inAspectDeclaration = true;
 				typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
@@ -456,8 +465,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 				addReplacement(pos, privileged.length, privileged);
 				break;
 
+			case TokenNamepackage:
+			    inPackageDecl = true;
+			    break;
 			}
-
 		}
 
 		if (inPointcutDesignator) {
