@@ -603,15 +603,6 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        // this one is very tricky and rare.
-        // there is a abstract method ITD defined on a supertype
-        // since this type was altered using AspectConvertingParser, 
-        // the implementation of this abstract method is not necessarily there
-        if (id == IProblem.AbstractMethodMustBeImplemented && 
-                (!hasModel || isAbstractITD(categorizedProblem, model, unit))) {
-            return false;
-        }
-        
         return true;
     }
     
