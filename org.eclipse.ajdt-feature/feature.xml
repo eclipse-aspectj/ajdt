@@ -28,6 +28,12 @@
          name=""
          optional="true"/>
 
+   <includes
+         id="org.eclipse.equinox.weaving"
+         version="0.0.0.EAVERSION"
+         name="Equinox Aspects"
+         optional="true"/>
+
    <requires>
       <import plugin="org.apache.ant"/>
       <import plugin="org.eclipse.core.resources" version="3.4.0" match="equivalent"/>
@@ -61,8 +67,6 @@
       <import plugin="org.aspectj.weaver" version="1.6.3" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.filesystem"/>
       <import plugin="org.eclipse.ui.navigator" version="3.3.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.contribution.weaving" version="0.0.0.AJFVERSION"/>
-      <import feature="org.eclipse.contribution.xref" version="0.0.0.AJFVERSION"/>
    </requires>
 
    <plugin
@@ -126,6 +130,27 @@
 
    <plugin
          id="org.eclipse.ajdt.mylyn.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.contribution.weaving.jdt"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.contribution.xref.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.contribution.xref.core"
          download-size="0"
          install-size="0"
          version="0.0.0"
