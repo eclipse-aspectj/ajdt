@@ -31,11 +31,14 @@ public class ProblemFinderTests4 extends UITestCase {
     private AJCompilationUnit inAspectFileCU;
     private AJCompilationUnit inJavaFileCU;
     private AJCompilationUnit inSwitchFileCU;
+    private AJCompilationUnit inAspectPacakgeCU;
     private IProject proj;
     protected void setUp() throws Exception {
         IFile inAspectFile;
         IFile inJavaFile;
         IFile inSwitchFile;
+        IFile inAspectPackageFile;
+        
         super.setUp();
         proj = createPredefinedProject("bug256989"); //$NON-NLS-1$
         waitForJobsToComplete();
@@ -49,6 +52,8 @@ public class ProblemFinderTests4 extends UITestCase {
         inSwitchFile = proj.getFile("src/none/AspectWithSwitch.aj"); //$NON-NLS-1$
         inSwitchFileCU = new AJCompilationUnit(inSwitchFile);
         
+        inAspectPackageFile = proj.getFile("src/bug265977/aspect/Bug265977"); //$NON-NLS-1$
+        inAspectPacakgeCU = new AJCompilationUnit(inAspectPackageFile);
     }
     protected void tearDown() throws Exception {
         super.tearDown();
@@ -91,4 +96,16 @@ public class ProblemFinderTests4 extends UITestCase {
         MockProblemRequestor.filterAllWarningProblems(problems);
         assertEquals("Should not have any problems in " + inSwitchFileCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
+
+    // tests for aspect in package declaration, bug 265977
+    public void testAspectInPackageDeclaration() throws Exception {
+        HashMap problems = new HashMap();
+        AJCompilationUnitProblemFinder.processAJ(inAspectPacakgeCU, 
+                AJWorkingCopyOwner.INSTANCE, problems, true, 
+                ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
+        
+        MockProblemRequestor.filterAllWarningProblems(problems);
+        assertEquals("Should not have any problems in " + inAspectPacakgeCU + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
+    }
+
 }

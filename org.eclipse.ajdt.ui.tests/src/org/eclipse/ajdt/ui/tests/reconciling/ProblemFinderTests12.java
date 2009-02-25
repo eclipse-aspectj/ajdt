@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 SpringSource and others.
+ * Copyright (c) 2009 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,18 +35,18 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 /**
  * Tests AJCompilationUnitProblemFinder and ITDAwareness
  * 
- * Tests bug 265557
+ * Specifically tests that return types on ITD methods do not need to 
+ * be fully qualified.  See bug 265986
  * 
  * @author andrew
  *
  */
-public class ProblemFinderTests11 extends UITestCase {
+public class ProblemFinderTests12 extends UITestCase {
     List/*ICompilationUnit*/ allCUnits = new ArrayList();
-    ICompilationUnit errorUnit;
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
-        proj = createPredefinedProject("Bug265557DeclareSoft"); //$NON-NLS-1$
+        proj = createPredefinedProject("Bug265986-ITDMissingType"); //$NON-NLS-1$
         waitForJobsToComplete();
         
         IFolder src = proj.getFolder("src");
@@ -56,11 +56,7 @@ public class ProblemFinderTests11 extends UITestCase {
                 if (resource.getType() == IResource.FILE && 
                         (resource.getName().endsWith("java") ||
                                 resource.getName().endsWith("aj"))) {
-                    if (resource.getName().equals("ClassWithException2.java")) {
-                        errorUnit = createUnit((IFile) resource);
-                    } else {
-                        allCUnits.add(createUnit((IFile) resource));
-                    }
+                    allCUnits.add(createUnit((IFile) resource));
                 }
                 return true;
             }
@@ -81,18 +77,6 @@ public class ProblemFinderTests11 extends UITestCase {
         setAutobuilding(true);
     }
 
-    /**
-     * Should have one error in this of an unsoftened exception
-     */
-    public void testProblemFindingErrors() throws Exception {
-    
-        HashMap problems = doFind(errorUnit);
-        assertEquals("Should have found 1 problem, but instead found " + problems.size() +
-                "\n" + MockProblemRequestor.printProblems(problems),
-                1, problems.size());
-        
-    }
-    
     public void testProblemFindingAll() throws Exception {
         StringBuffer sb = new StringBuffer();
         for (Iterator cunitIter = allCUnits.iterator(); cunitIter.hasNext();) {
