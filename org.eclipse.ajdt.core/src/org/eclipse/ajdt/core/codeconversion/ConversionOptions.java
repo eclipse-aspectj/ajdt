@@ -20,8 +20,13 @@ public class ConversionOptions {
 	// A description of how code completion works in AJDT can be found in bug 74419.
 	public static final ConversionOptions CODE_COMPLETION = new ConversionOptions(true, false, true);
 	
+	// for problem finding
 	public static final ConversionOptions STANDARD = new ConversionOptions(false, true, false);
+	
+    // for code formatting
     public static final ConversionOptions CONSTANT_SIZE = new ConversionOptions(false, false, false);
+    
+    // for indexing
     public static final ConversionOptions CONSTANT_SIZE_KEEP_POINTCUTS = new ConversionOptions(false, false, false, true);
 
 	private boolean thisJoinPointReferencesEnabled;

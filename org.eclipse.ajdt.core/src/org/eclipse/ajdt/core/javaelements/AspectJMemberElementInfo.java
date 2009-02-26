@@ -150,16 +150,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public char[][] getArgumentTypeNames() {
         return argumentTypeNames;
     }
-	
-//	public String getSignature() {
-//
-//		String[] paramSignatures = new String[this.argumentTypeNames.length];
-//		for (int i = 0; i < this.argumentTypeNames.length; ++i) {
-//			paramSignatures[i] = Signature.createTypeSignature(this.argumentTypeNames[i], false);
-//		}
-//		return Signature.createMethodSignature(paramSignatures, Signature.createTypeSignature(this.returnType, false));
-//	}
-	
+		
 	public boolean isConstructor() {
 		return isConstructor;
 	}
