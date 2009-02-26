@@ -5,64 +5,64 @@
    <extension
          point="org.eclipse.ant.core.antTasks">
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.brand"
             class="org.eclipse.ajdt.build.tasks.BrandTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.fetch"
             class="org.eclipse.ajdt.build.tasks.FetchTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.buildScript"
             class="org.eclipse.ajdt.build.tasks.BuildScriptGeneratorTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.generateFeature"
             class="org.eclipse.ajdt.build.tasks.FeatureGeneratorTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.buildManifest"
             class="org.eclipse.ajdt.build.tasks.BuildManifestTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.assembler"
             class="org.eclipse.ajdt.build.tasks.PackagerTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.idReplacer"
             class="org.eclipse.ajdt.build.tasks.IdReplaceTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.jnlpGenerator"
             class="org.eclipse.ajdt.build.tasks.JNLPGeneratorTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.unzipperBuilder"
             class="org.eclipse.ajdt.build.tasks.UnzipperGeneratorTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.fetchFilesGenerator"
             class="org.eclipse.ajdt.build.tasks.FetchFileGeneratorTask">
       </antTask>
       <antTask
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.versionReplacer"
             class="org.eclipse.ajdt.build.tasks.GenericVersionReplacer">
       </antTask>
       <antTask
             class="org.eclipse.pde.internal.build.jarprocessor.JarProcessorTask"
             headless="true"
-            library="bin/"
+            library="lib/ajdtbuild-ant.jar"
             name="ajdt.eclipse.jarProcessor">
       </antTask>
       
