@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
-
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
@@ -35,6 +34,7 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.runtime.CoreException;
@@ -324,6 +324,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 					.initCompilationUnits(AspectJPlugin.getWorkspace());
 			AJDTUtils.refreshPackageExplorer();
 		}
+		
+	      ITDAwarenessAspect.provider = new AJDTNameEnvironmentProvider();
+
 	}
 	
 	public void stop(BundleContext context) throws Exception {

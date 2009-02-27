@@ -12,10 +12,12 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -44,6 +46,7 @@ import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.ui.IPackagesViewPart;
@@ -91,11 +94,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private AnnotationAccessWrapper annotationAccessWrapper;
 
-	private static Set activeEditorList = new HashSet();	
+	private static Map activeEditorList = new HashMap();	
 
 	private AspectJEditorTitleImageUpdater aspectJEditorErrorTickUpdater;
 
-	private AJCompiltionUnitDocumentProvider provider;
+	private AJCompilationUnitDocumentProvider provider;
 	
 	/**
 	 * Constructor for AspectJEditor
@@ -111,9 +114,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 	}
 	
-	// Existing in this map means the modification has occurred
-	static Set modifiedAspectToClass = new HashSet();
-
 	private AJSourceViewerConfiguration fAJSourceViewerConfiguration;
 
 	private boolean isEditingAjFile = false;
@@ -361,6 +361,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 	}
 	
 	public void doSetInput(IEditorInput input) throws CoreException {
+	    IEditorInput oldInput = super.getEditorInput();
+	    if (oldInput instanceof IFileEditorInput) {
+	        JavaUI.getWorkingCopyManager().disconnect(oldInput);
+	    }
+	    
 		super.doSetInput(input);
 
 		IPreferenceStore store = getPreferenceStore();
@@ -372,14 +377,14 @@ public class AspectJEditor extends CompilationUnitEditor {
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;
 			ICompilationUnit unit = null;
-			//in case it is a .aj file, we need to register it in the
+			// in case it is a .aj file, we need to register it in the
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
-			    JavaUI.getWorkingCopyManager().connect(input);	
+                JavaUI.getWorkingCopyManager().connect(input);  
 				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
-				if (unit != null){
+				if (unit != null) {
 					isEditingAjFile = true;	
 					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
 					unit.becomeWorkingCopy(null);
@@ -388,15 +393,20 @@ public class AspectJEditor extends CompilationUnitEditor {
 				
 				}					
 			} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
-					.getFile().getName())){ // It's a .java file
+					.getFile().getName())) { // It's a .java file
 				unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
 				annotationModel = new CompilationUnitAnnotationModelWrapper(unit);
 						
-				if(unit instanceof CompilationUnit) {
-					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
+				// bug 265902 Ensure that is there is no weaving, Java compilation units are 
+				// not reconciled.  This way, they can have AJ syntax, but no errors
+				if (!AspectJPlugin.USING_CU_PROVIDER) {
+    				if(unit instanceof CompilationUnit) {
+    					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
+    				}
 				}
-				unit.becomeWorkingCopy(null);
-			   ((IWorkingCopyManagerExtension) JavaUI
+				
+			    unit.becomeWorkingCopy(null);
+			    ((IWorkingCopyManagerExtension) JavaUI
 					.getWorkingCopyManager()).setWorkingCopy(input, unit);
 			
 			}
@@ -405,7 +415,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// Ensure any advice markers are created since they are not
 			// persisted.
 			synchronized(activeEditorList) {
-				activeEditorList.add(this);
+				activeEditorList.put(this.getEditorInput(), this);
 			}
 			IDocument document = getDocumentProvider().getDocument(fInput);
 
@@ -448,11 +458,14 @@ public class AspectJEditor extends CompilationUnitEditor {
 			
 			AJLog.log("Editor closed - " + fInput.getFile().getName()); //$NON-NLS-1$
 			synchronized(activeEditorList) {
-				activeEditorList.remove(this);
+				activeEditorList.remove(input);
 			}
 
 			try {
 				ICompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(fInput.getFile());
+				if (unit == null) {
+				    unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
+				}
 				if (unit != null) {
 					unit.discardWorkingCopy();					
 				}
@@ -485,7 +498,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		// Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files 
 		if(isEditingAjFile) {
 			IViewPart view = getEditorSite().getPage().findView(JavaUI.ID_PACKAGES);
-			if(view != null) {
+			if(view != null && view instanceof IPackagesViewPart) {  // can be ErrorViewPart
 				IPackagesViewPart packageExplorer = (IPackagesViewPart)view;
 				if(packageExplorer.isLinkingEnabled()) {
 					IFileEditorInput fInput = (IFileEditorInput) input;
@@ -532,10 +545,14 @@ public class AspectJEditor extends CompilationUnitEditor {
 	/**
 	 * @return Returns the activeEditorList.
 	 */
-	public static Set getActiveEditorList() {
+	public static Collection getActiveEditorList() {
 		synchronized(activeEditorList) {
-			return activeEditorList;
+			return activeEditorList.values();
 		}
+	}
+	
+	public static boolean isInActiveEditor(IEditorInput input) {
+	    return activeEditorList.containsKey(input);
 	}
 	
 	public IDocumentProvider getDocumentProvider() {
@@ -544,8 +561,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 	
 	protected void setDocumentProvider(IEditorInput input) {
 	    IDocumentProvider provider = DocumentProviderRegistry.getDefault().getDocumentProvider(input);
-	    if (provider instanceof AJCompiltionUnitDocumentProvider) {
-	        this.provider = (AJCompiltionUnitDocumentProvider) provider;
+	    if (provider instanceof AJCompilationUnitDocumentProvider) {
+	        this.provider = (AJCompilationUnitDocumentProvider) provider;
 	    } else {
 	        super.setDocumentProvider(input);
 	    }
@@ -590,7 +607,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 		
 		public IStatus runInUIThread(IProgressMonitor monitor) {
-			if (elem != null) {
+			if (elem != null && aspectJEditorErrorTickUpdater != null) {
 				aspectJEditorErrorTickUpdater.updateEditorImage(elem);
 			}
 			return Status.OK_STATUS;

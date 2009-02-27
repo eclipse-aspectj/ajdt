@@ -287,7 +287,7 @@ class StandardJavaElementContentProvider implements ITreeContentProvider, IWorki
 	
 	private Object[] getPackageContents(IPackageFragment fragment) throws JavaModelException {
         if (fragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
-             // AspectJ Change begin 
+            // AspectJ Change begin 
             if (AspectJPlugin.USING_CU_PROVIDER) {
                 return concatenate(fragment.getCompilationUnits(), fragment.getNonJavaResources());
             } else {

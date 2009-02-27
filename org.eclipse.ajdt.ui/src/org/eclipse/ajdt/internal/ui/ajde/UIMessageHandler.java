@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -338,7 +339,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
                     UIMessages.CompilerTaskListManager_Error_adding_problem_markers, cEx);
         }
  		 // Part of the fix for bug 89793 - editor image is not updated
-        Set activeEditorList = AspectJEditor.getActiveEditorList();
+        Collection activeEditorList = AspectJEditor.getActiveEditorList();
         synchronized(activeEditorList) {
 	        for(Iterator iter = activeEditorList.iterator(); iter.hasNext();) {
 	        	((AspectJEditor)iter.next()).resetTitleImage();
