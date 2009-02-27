@@ -178,12 +178,15 @@ public class AspectJCorePreferences {
 						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_VARIABLE)
 						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER)
 						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT)) {
-					String entry = JavaCore.getResolvedClasspathEntry(cp[i])
-							.getPath().toPortableString();
-					if (entry.equals(jarPath)) {
-						if (isOnAspectpath(cp[i])) {
-							return true;
-						}
+					IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(cp[i]);
+					if (resolvedClasspathEntry != null) {
+                        String entry = resolvedClasspathEntry
+    							.getPath().toPortableString();
+    					if (entry.equals(jarPath)) {
+    						if (isOnAspectpath(cp[i])) {
+    							return true;
+    						}
+    					}
 					}
 				}
 			}
@@ -257,7 +260,10 @@ public class AspectJCorePreferences {
                             break;
                                 
                         case IClasspathEntry.CPE_VARIABLE:
-                            actualEntries.add(JavaCore.getResolvedClasspathEntry(requiredEntry));
+                            IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(requiredEntry);
+                            if (resolvedClasspathEntry != null) {
+                                actualEntries.add(resolvedClasspathEntry);
+                            }
                     }
                     
                 }
@@ -302,9 +308,12 @@ public class AspectJCorePreferences {
                     actualEntries.addAll(resolveDependentProjectClasspath(requiredProj, containerEntries[i]));
                 }
             } else {
-                actualEntries.add(
-                        JavaCore.getResolvedClasspathEntry(
-                                containerEntries[i]));
+                IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(
+                        containerEntries[i]);
+                if (resolvedClasspathEntry != null) {
+                    actualEntries.add(
+                            resolvedClasspathEntry);
+                }
             }
         }
         return actualEntries;
@@ -352,12 +361,14 @@ public class AspectJCorePreferences {
 						|| (cp[i].getEntryKind() == IClasspathEntry.CPE_VARIABLE)
 				        || (cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER)
 				        || (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT)) {
-					String entry = JavaCore.getResolvedClasspathEntry(cp[i])
-							.getPath().toPortableString();
-					if (entry.equals(jarPath)) {
-						if (isOnInpath(cp[i])) {
-							return true;
-						}
+					IClasspathEntry resolvedClasspathEntry = JavaCore.getResolvedClasspathEntry(cp[i]);
+					if (resolvedClasspathEntry != null) {
+					    String entry = resolvedClasspathEntry.getPath().toPortableString();
+    					if (entry.equals(jarPath)) {
+    						if (isOnInpath(cp[i])) {
+    							return true;
+    						}
+    					}
 					}
 				}
 			}
@@ -586,11 +597,13 @@ public class AspectJCorePreferences {
     				            }
     				        } else { // resolve the classpath variable
     				        	IClasspathEntry resolved = JavaCore.getResolvedClasspathEntry(cp[i]);
-    				        	if (resolved.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-    				        		// must resolve the project
-    				        		actualEntries.addAll(resolveDependentProjectClasspath(project.getWorkspace().getRoot().getProject(resolved.getPath().toString()), resolved));
-    				        	} else {
-    				        		actualEntries.add(resolved);
+    				        	if (resolved != null) {
+        				        	if (resolved.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+        				        		// must resolve the project
+        				        		actualEntries.addAll(resolveDependentProjectClasspath(project.getWorkspace().getRoot().getProject(resolved.getPath().toString()), resolved));
+        				        	} else {
+        				        		actualEntries.add(resolved);
+        				        	}
     				        	}
     				        } // cp[i].getEntryKind()
     				    } else {

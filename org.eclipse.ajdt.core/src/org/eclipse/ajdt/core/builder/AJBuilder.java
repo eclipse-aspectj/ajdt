@@ -640,6 +640,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         .fullExclusionPatternChars();
         
                 final IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
+                if (!srcContainer.exists()) {
+                    continue;
+                }
                 final int segmentsToRemove = srcContainer.getLocation().segmentCount();
                 final IContainer outContainer = getContainerForGivenPath(outPath,project.getProject());
                 if (outContainer.getType() == IResource.FOLDER && (! outContainer.exists())) {
