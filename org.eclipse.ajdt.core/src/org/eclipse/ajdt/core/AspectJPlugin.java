@@ -12,38 +12,20 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
-import java.util.HashMap;
-
-import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
-import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
-import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.internal.core.CompilerConfigResourceChangeListener;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.core.contentassist.ContentAssistProvider;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.contribution.jdt.IsWovenTester;
-import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.WorkingCopyOwner;
-import org.eclipse.jdt.internal.compiler.SourceElementParser;
-import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.eclipse.jdt.internal.compiler.env.ISourceType;
-import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.core.SearchableEnvironment;
-import org.eclipse.jdt.internal.core.SourceType;
-import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -147,44 +129,6 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 				new CompilerConfigResourceChangeListener(),
 				IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
 		setCompilerFactory(new CoreCompilerFactory());
-		
-		ITDAwarenessAspect.provider = new INameEnvironmentProvider() {
-            public boolean shouldFindProblems(CompilationUnit unitElement) {
-                return unitElement.exists() && AspectJPlugin.isAJProject(unitElement.getJavaProject().getProject()); 
-            }
-
-            public SearchableEnvironment getNameEnvironment(
-                    JavaProject project, WorkingCopyOwner owner) {
-                try {
-                    return new ITDAwareNameEnvironment(project, owner, null);
-                } catch (JavaModelException e) {
-                    return null;
-                }
-            }
-
-            public SearchableEnvironment getNameEnvironment(
-                    JavaProject project, ICompilationUnit[] workingCopies) {
-                try {
-                    return new ITDAwareNameEnvironment(project, workingCopies);
-                } catch (JavaModelException e) {
-                    return null;
-                }
-            }
-            
-            public ISourceType transformSourceTypeInfo(ISourceType info) {
-                return new ITDAwareSourceTypeInfo(info, 
-                        (SourceType) ((SourceTypeElementInfo) info).getHandle());
-            }
-
-            public CompilationUnitDeclaration problemFind(
-                    CompilationUnit unitElement, SourceElementParser parser,
-                    WorkingCopyOwner workingCopyOwner, HashMap problems,
-                    boolean creatingAST, int reconcileFlags,
-                    IProgressMonitor monitor) throws JavaModelException {
-                return AJCompilationUnitProblemFinder.processAJ(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
-            }
-
-		};
 		
 		ITDAwarenessAspect.contentAssistProvider = new ContentAssistProvider();
 		

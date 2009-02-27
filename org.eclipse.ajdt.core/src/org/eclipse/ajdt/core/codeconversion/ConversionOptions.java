@@ -20,12 +20,19 @@ public class ConversionOptions {
 	// A description of how code completion works in AJDT can be found in bug 74419.
 	public static final ConversionOptions CODE_COMPLETION = new ConversionOptions(true, false, true);
 	
+	// for problem finding
 	public static final ConversionOptions STANDARD = new ConversionOptions(false, true, false);
-	public static final ConversionOptions CONSTANT_SIZE = new ConversionOptions(false, false, false);
+	
+    // for code formatting
+    public static final ConversionOptions CONSTANT_SIZE = new ConversionOptions(false, false, false);
+    
+    // for indexing
+    public static final ConversionOptions CONSTANT_SIZE_KEEP_POINTCUTS = new ConversionOptions(false, false, false, true);
 
 	private boolean thisJoinPointReferencesEnabled;
 	private boolean dummyTypeReferencesForOrganizeImportsEnabled;
 	private boolean addAjcTagToIntertypesEnabled;
+	private boolean keepPointcuts;
 	private int codeCompletePosition = -1;
 	private char[] targetType = null;
 	
@@ -40,6 +47,17 @@ public class ConversionOptions {
 		this.dummyTypeReferencesForOrganizeImportsEnabled = dummyTypeReferencesForOrganizeImportsEnabled;
 	}
 
+	public ConversionOptions(boolean thisJoinPointReferencesEnabled,
+	        boolean dummyTypeReferencesForOrganizeImportsEnabled, boolean addAjcTagToIntertypesEnabled, boolean keepPointcuts) {
+	    this(thisJoinPointReferencesEnabled, dummyTypeReferencesForOrganizeImportsEnabled, addAjcTagToIntertypesEnabled);
+	    this.keepPointcuts = keepPointcuts;
+	}
+	
+	// determines whether or not the pointcut designator text should remain
+	// this is used for indexing and determining references to named pointcuts
+	public boolean isKeepPointcuts() {
+        return keepPointcuts;
+    }
 	public boolean isDummyTypeReferencesForOrganizeImportsEnabled() {
 		return dummyTypeReferencesForOrganizeImportsEnabled;
 	}

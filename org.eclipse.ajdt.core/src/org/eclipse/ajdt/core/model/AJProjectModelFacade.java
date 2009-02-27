@@ -41,7 +41,6 @@ import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
-import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
@@ -904,6 +903,9 @@ public class AJProjectModelFacade {
         return project;
     }
     
+    /**
+     * useful for testing
+     */
     public static String printHierarchy(IHierarchy h, final int max) {
         final StringBuffer sb = new StringBuffer();
         HierarchyWalker walker = new HierarchyWalker() {
@@ -937,6 +939,32 @@ public class AJProjectModelFacade {
         return sb.toString();
     }
     
+    /**
+     * useful for testing
+     */
+    public static String printRelationships(IRelationshipMap map) {
+        StringBuffer sb = new StringBuffer();
+        RelationshipMap rmap = (RelationshipMap) map;
+        for (Iterator relIter = rmap.entrySet().iterator(); relIter.hasNext();) {
+            Map.Entry entry = (Map.Entry) relIter.next();
+            String handle = (String) entry.getKey();
+            sb.append(handle + " ::\n");
+            for (Iterator targIter = ((List) entry.getValue()).iterator(); targIter.hasNext();) {
+                IRelationship rel = (IRelationship) targIter.next();
+                String str = printRelationship(rel);
+                sb.append("\t" + str + "\n");
+            }
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * useful for testing
+     */
+    public static String printRelationship(IRelationship rel) {
+        return rel.getSourceHandle() + " --" + rel.getName() + "--> " + rel.getTargets();
+    }
+
     IRelationshipMap getAllRelationships() {
         return relationshipMap;
     }
