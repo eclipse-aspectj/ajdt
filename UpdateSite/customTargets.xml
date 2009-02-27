@@ -220,8 +220,18 @@
 			token="0.0.0.AJFVERSION" value="${org.eclipse.ajdt}"/>
 		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
 			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving}"/>
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="&lt;!--EAINCLUDES" value=""/>
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="EAINCLUDES--&gt;" value=""/>
+
+		
 		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
 			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving}"/>
+		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
+			token="&lt;!--EAINCLUDES" value=""/>
+		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
+			token="EAINCLUDES--&gt;" value=""/>
 		
 	</target>
 
