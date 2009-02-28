@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
-Bundle-Version: 1.6.4.qualifier
+Bundle-Version: 1.7.0.qualifier
 Bundle-SymbolicName: org.eclipse.ajdt.pde.build;singleton:=true
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
