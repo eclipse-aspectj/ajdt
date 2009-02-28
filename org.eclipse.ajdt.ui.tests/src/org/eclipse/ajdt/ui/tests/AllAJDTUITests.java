@@ -85,6 +85,7 @@ import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
+import org.eclipse.ajdt.ui.tests.weaving.ITDAwareHierarchyTests;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
@@ -232,6 +233,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(RenamePackageTest.class));
         suite.addTest(new TestSuite(OrganizeImportsTest.class));
 
+        suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
 
 		//$JUnit-END$
 		return suite;
@@ -272,6 +274,8 @@ public class AllAJDTUITests {
 			window.getActivePage().showView(XReferenceView.ID);
 		} catch (PartInitException e1) {
 		}
+		
+
 
 		// open Console view
 		try {
