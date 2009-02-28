@@ -35,7 +35,7 @@
          version="0.0.0.EAVERSION"
          name="Equinox Aspects"
          optional="true"/>
-EAINCLUDES-->
+EAINCLUDES--> 
 
    <requires>
       <import plugin="org.apache.ant"/>
