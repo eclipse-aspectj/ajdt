@@ -31,22 +31,21 @@ import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
-import org.eclipse.ajdt.core.tests.model.AJModelTest5;
-import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJModelTest3;
 import org.eclipse.ajdt.core.tests.model.AJModelTest4;
+import org.eclipse.ajdt.core.tests.model.AJModelTest5;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
+import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
-import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
-import org.eclipse.ajdt.core.tests.weaving.ITDAwareHierarchyTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
+import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -120,9 +119,6 @@ public class AllCoreTests {
 		// refactoring tests
 		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
 
-		
-		suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
-		
 		return suite;
 	}
 }

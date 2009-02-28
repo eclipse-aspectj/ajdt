@@ -80,13 +80,6 @@ public class AJCoreTest extends AJDTCoreTestCase {
         
         createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I"; //$NON-NLS-1$
-		if ((EclipseVersion.MAJOR_VERSION == 3)
-				&& (EclipseVersion.MINOR_VERSION == 0)) {
-			// the handle identifiers for method signatures changed after
-			// eclipes 3.0: note the lack of escape character ~[QString;
-			// instead of ~\[QString;
-			methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I"; //$NON-NLS-1$
-		}
 
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
