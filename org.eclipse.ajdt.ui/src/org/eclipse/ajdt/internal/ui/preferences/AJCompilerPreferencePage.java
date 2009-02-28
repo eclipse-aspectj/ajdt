@@ -479,13 +479,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 
-		//		 AJ5 options do not apply to Eclipse 3.0
-		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
-		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
-		addComboBox(othersComposite, label,
-				AspectJPreferences.OPTION_adviceDidNotMatch,
-				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-		}
 		label = UIMessages.CompilerConfigurationBlock_aspect_excluded_by_configuration;
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_aspectExcludedByConfiguration,
