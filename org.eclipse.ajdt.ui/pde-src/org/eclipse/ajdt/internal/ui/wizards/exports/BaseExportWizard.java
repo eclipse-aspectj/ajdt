@@ -79,7 +79,10 @@ public abstract class BaseExportWizard extends Wizard implements IExportWizard, 
 		IDialogSettings settings = getDialogSettings();
 		IWizardPage[] pages = getPages();
 		for (int i = 0; i < pages.length; i++) {
-			((AbstractExportWizardPage) pages[i]).saveSettings(settings);
+		    if (pages[i] instanceof AbstractExportWizardPage) {
+		        ((AbstractExportWizardPage) pages[i]).saveSettings(settings);
+		    }
+		    // don't save the CrossPlatformPage because we don't have access to its saveSettings method
 		}
 	}
 
