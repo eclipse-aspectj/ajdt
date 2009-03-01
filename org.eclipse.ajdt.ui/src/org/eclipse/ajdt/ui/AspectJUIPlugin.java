@@ -369,7 +369,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
     }
 	
 	private void checkEclipseVersion() {
-		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$
+		Bundle bundle = Platform.getBundle("org.eclipse.jdt.core"); //$NON-NLS-1$
 		String versionStr = (String) bundle.getHeaders().get(
 				Constants.BUNDLE_VERSION);
 		Version version = new Version(versionStr);

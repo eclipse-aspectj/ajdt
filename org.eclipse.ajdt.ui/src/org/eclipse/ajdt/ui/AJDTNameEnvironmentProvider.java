@@ -71,6 +71,7 @@ public final class AJDTNameEnvironmentProvider implements
         CompilationUnit newUnit;
         if (shouldTransform(unitElement)) {
             newUnit = transformUnit(unitElement);
+            reconcileFlags |= AJCompilationUnitProblemFinder.JAVA_FILE_IN_AJ_EDITOR;
         } else {
             newUnit = unitElement;
         }
@@ -86,7 +87,6 @@ public final class AJDTNameEnvironmentProvider implements
         if (unit instanceof AJCompilationUnit) {
             return false;
         }
-        
         IEditorInput input = EditorUtility.getEditorInput(unit);
         if (AspectJEditor.isInActiveEditor(input)) {
             return true;

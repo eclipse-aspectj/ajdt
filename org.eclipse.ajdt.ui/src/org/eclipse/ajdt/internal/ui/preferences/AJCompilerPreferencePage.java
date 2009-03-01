@@ -69,8 +69,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
-import org.eclipse.ui.internal.preferences.WorkingCopyPreferences;
-import org.eclipse.ui.preferences.WorkingCopyManager;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -481,13 +479,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 
-		//		 AJ5 options do not apply to Eclipse 3.0
-		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
-		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
-		addComboBox(othersComposite, label,
-				AspectJPreferences.OPTION_adviceDidNotMatch,
-				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-		}
 		label = UIMessages.CompilerConfigurationBlock_aspect_excluded_by_configuration;
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_aspectExcludedByConfiguration,
