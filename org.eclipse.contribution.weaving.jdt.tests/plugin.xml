@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.cuprovider">
+      <provider
+            class="org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnitProvider"
+            file_extension="mock">
+      </provider>
+   </extension>
+   <extension point="org.eclipse.core.contenttype.contentTypes">
+		  <content-type id="mockSource" name="Mock Source" 
+			base-type="org.eclipse.jdt.core.javaSource"
+			file-extensions="mock"/>
+   </extension>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.sourcetransformer">
+      <transformer
+            class="org.eclipse.contribution.weaving.jdt.tests.MockSourceTransformer"
+            file_extension="mock">
+      </transformer>
+   </extension>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.imagedescriptorselector">
+      <selector
+            class="org.eclipse.contribution.weaving.jdt.tests.MockImageDescriptorSelector">
+      </selector>
+   </extension>
+   <extension
+         point="org.eclipse.contribution.weaving.jdt.weavablenature">
+      <nature
+            natureid="org.eclipse.contribution.weaving.jdt.tests.mock">
+      </nature>
+   </extension>
+   <extension
+         id="mock"
+         name="Mock Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.eclipse.contribution.weaving.jdt.tests.MockNature">
+         </run>
+      </runtime>
+   </extension>
+
+</plugin>
