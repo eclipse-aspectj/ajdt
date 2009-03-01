@@ -28,7 +28,7 @@
          name=""
          optional="true"/>
 
-<!-- Do not remove these comments --> 
+<!-- Do not remove these comments -->
 <!--EAINCLUDES
    <includes
          id="org.eclipse.equinox.weaving"
