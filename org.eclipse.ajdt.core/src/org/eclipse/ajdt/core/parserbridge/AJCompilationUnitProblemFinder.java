@@ -104,6 +104,15 @@ import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder implements NoFFDC {
     
+    /**
+     * Reconciling flag saying that this CU is a java CU in 
+     * an AJ editor.  Means that we need to be more liberal 
+     * with problem removal
+     * since all of the AJ contents have been transformed to 
+     * Java
+     */
+    public final static int JAVA_FILE_IN_AJ_EDITOR = 0x000008;
+    
 
 	private CompilationUnit cu; // AspectJ Change
 
@@ -188,6 +197,8 @@ public class AJCompilationUnitProblemFinder extends
 	        throws JavaModelException {
 	    
 	    
+	    boolean isJavaFileInAJEditor = (reconcileFlags & JAVA_FILE_IN_AJ_EDITOR) != 0;
+	    
 	    JavaProject project = (JavaProject) unitElement.getJavaProject();
         CancelableNameEnvironment environment = null;
         CancelableProblemFactory problemFactory = null;
@@ -255,7 +266,7 @@ public class AJCompilationUnitProblemFinder extends
                 CategorizedProblem[] categorizedProblems = new CategorizedProblem[length];
                 System.arraycopy(unitProblems, 0, categorizedProblems, 0,
                         length);
-                categorizedProblems = removeAJNonProblems(categorizedProblems, unitElement);
+                categorizedProblems = removeAJNonProblems(categorizedProblems, unitElement, isJavaFileInAJEditor);
                 if (categorizedProblems.length > 0) {
                     problems.put(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
                             categorizedProblems);
@@ -322,7 +333,7 @@ public class AJCompilationUnitProblemFinder extends
 	 * @return
 	 */
 	private static CategorizedProblem[] removeAJNonProblems(
-            CategorizedProblem[] categorizedProblems, CompilationUnit unit) {
+            CategorizedProblem[] categorizedProblems, CompilationUnit unit, boolean isJavaFileInAJEditor) {
 	    
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
 	    boolean hasModel = model.hasModel();
@@ -330,7 +341,7 @@ public class AJCompilationUnitProblemFinder extends
         List newProblems = new LinkedList();
         for (int i = 0; i < categorizedProblems.length; i++) {
             // determine if this problem should be filtered
-            if (isARealProblem(categorizedProblems[i], unit, model, hasModel)) {
+            if (isARealProblem(categorizedProblems[i], unit, model, hasModel, isJavaFileInAJEditor)) {
                 newProblems.add(categorizedProblems[i]);
             }
         }
@@ -342,7 +353,7 @@ public class AJCompilationUnitProblemFinder extends
 	// be eger about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
     private static boolean isARealProblem(
-            CategorizedProblem categorizedProblem, CompilationUnit unit, AJProjectModelFacade model, boolean hasModel) {
+            CategorizedProblem categorizedProblem, CompilationUnit unit, AJProjectModelFacade model, boolean hasModel, boolean isJavaFileInAJEditor) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 
                 0 : categorizedProblem.getArguments().length;
@@ -460,7 +471,7 @@ public class AJCompilationUnitProblemFinder extends
                  id == IProblem.UndefinedType ||
                  id == IProblem.UndefinedConstructor)
                 &&
-                isITDName(categorizedProblem, unit, model)) {
+                isITDName(categorizedProblem, unit, model, isJavaFileInAJEditor)) {
             // a reference inside an aspect to an ITD that it declares
             return false;
         }
@@ -490,7 +501,7 @@ public class AJCompilationUnitProblemFinder extends
             id == IProblem.NotVisibleField || 
             id == IProblem.NotVisibleMethod ||
             id == IProblem.NotVisibleType) && 
-            isPrivilegedAspect(categorizedProblem, unit)) {
+            isPrivilegedAspect(categorizedProblem, unit, isJavaFileInAJEditor)) {
         
             // a privileged aspect should be able to see all private/protected members
             return false;
@@ -511,13 +522,13 @@ public class AJCompilationUnitProblemFinder extends
                     id == IProblem.ParsingErrorDeleteTokens
                     ) &&
                     aspectMemberNames.contains(firstArg) &&
-                    insideITD(categorizedProblem, unit)) {
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 // the implements or extends clause of a declare statement
                 return false;
             }
 
             if (id == IProblem.ParameterMismatch && 
-                    insideITD(categorizedProblem, unit)) {
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 // Probably a reference to 'this' inside an ITD
                 // compiler thinks 'this' refers to the containing aspect
                 // not the target type
@@ -525,7 +536,7 @@ public class AJCompilationUnitProblemFinder extends
             }
             
             if (id == IProblem.AbstractMethodInAbstractClass && 
-                    insideITD(categorizedProblem, unit)) {
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 // an abstract method ITD inside a concrete aspect
                 // ITDs are allowed to be abstract if the target
                 // type is an abstract class, but problem finder does not know this
@@ -533,13 +544,13 @@ public class AJCompilationUnitProblemFinder extends
             }
             
             if (id == IProblem.IllegalAbstractModifierCombinationForMethod &&
-                    insideITD(categorizedProblem, unit)) {
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 // private abstract itd in aspect
                 return false;
             }
             
             if (id == IProblem.UnusedPrivateField && 
-                    insideITD(categorizedProblem, unit)) {
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 // private itd is said to be unused, even if it is really used elsewhere
                 return false;
             }
@@ -551,14 +562,14 @@ public class AJCompilationUnitProblemFinder extends
                      id == IProblem.UndefinedType ||
                      id == IProblem.UndefinedConstructor)
                     &&
-                    insideITD(categorizedProblem, unit)) {
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 // likely to be a reference inside an ITD to a name in the target type
                 // also will erroneously filter out truly undefined names
                 return false;
             }
             
             if (id == IProblem.NonStaticAccessToStaticField
-                    && isITDName(categorizedProblem, unit, model)) { 
+                    && isITDName(categorizedProblem, unit, model, isJavaFileInAJEditor)) { 
                 // this is a reference to an ITD field on an interface
                 // compiler thinks that all fields in interfaces are static final
                 return false;
@@ -567,7 +578,7 @@ public class AJCompilationUnitProblemFinder extends
             if ((id == IProblem.UnhandledException ||
                     id == IProblem.UnhandledExceptionInImplicitConstructorCall ||
                     id == IProblem.UnhandledExceptionInDefaultConstructor) &&
-                    (!model.hasModel() || isSoftened(categorizedProblem, unit, model))) {
+                    (!model.hasModel() || isSoftened(categorizedProblem, unit, model, isJavaFileInAJEditor))) {
                 return false;
             }
             
@@ -580,7 +591,7 @@ public class AJCompilationUnitProblemFinder extends
             }
 
             if (id == IProblem.AbstractMethodsInConcreteClass &&
-                    isAspect(categorizedProblem, unit)) {
+                    isAspect(categorizedProblem, unit, isJavaFileInAJEditor)) {
                 /* AJDT 1.7 */
                 // an aspect that has an abstract ITD will have this problem
                 // in this case it is a spurious problem.  Filter it
@@ -595,7 +606,7 @@ public class AJCompilationUnitProblemFinder extends
         
         
         if (id == IProblem.AbstractMethodMustBeImplemented && 
-                (!hasModel || isAbstractITD(categorizedProblem, model, unit))) {
+                (!hasModel || isAbstractITD(categorizedProblem, model, unit, isJavaFileInAJEditor))) {
             // this one is very tricky and rare.
             // there is a abstract method ITD defined on a supertype
             // since this type was altered using AspectConvertingParser, 
@@ -607,7 +618,12 @@ public class AJCompilationUnitProblemFinder extends
     }
     
     
-    private static boolean isITDName(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model) {
+    private static boolean isITDName(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model, boolean isJavaFileInAJEditor) {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        }
         Set itdNames = getITDNames(unit, model);
         String[] args = problem.getArguments();
         if (args != null) {
@@ -622,7 +638,13 @@ public class AJCompilationUnitProblemFinder extends
         return false;
     }
     
-    private static boolean isSoftened(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model) throws JavaModelException {
+    private static boolean isSoftened(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model, 
+            boolean isJavaFileInAJEditor) throws JavaModelException {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        }
         IJavaElement elt = unit.getElementAt(problem.getSourceStart());
         List softens = model.getRelationshipsForElement(elt, AJRelationshipManager.SOFTENED_BY, true);
         return softens.size() > 0;
@@ -647,9 +669,13 @@ public class AJCompilationUnitProblemFinder extends
         return names;
     }
 
-
     private static boolean isAbstractITD(CategorizedProblem categorizedProblem,
-            AJProjectModelFacade model, CompilationUnit unit) {
+            AJProjectModelFacade model, CompilationUnit unit, boolean isJavaFileInAJEditor) {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        }
         
         // first arg is the method name
         // then come the method params
@@ -686,7 +712,13 @@ public class AJCompilationUnitProblemFinder extends
     }
     
     /* AJDT 1.7 */
-    private static boolean isAspect(CategorizedProblem problem, CompilationUnit unit) {
+    private static boolean isAspect(CategorizedProblem problem, CompilationUnit unit, boolean isJavaFileInAJEditor) {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        } 
+
         if (unit instanceof AJCompilationUnit) {
             try {
                 IJavaElement elt = unit.getElementAt(problem.getSourceStart());
@@ -701,7 +733,13 @@ public class AJCompilationUnitProblemFinder extends
     }
     
 
-    private static boolean isPrivilegedAspect(CategorizedProblem problem, CompilationUnit unit) {
+    private static boolean isPrivilegedAspect(CategorizedProblem problem, CompilationUnit unit, boolean isJavaFileInAJEditor) {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        }
+        
         if (unit instanceof AJCompilationUnit) {
             try {
                 IJavaElement elt = unit.getElementAt(problem.getSourceStart());
@@ -719,7 +757,12 @@ public class AJCompilationUnitProblemFinder extends
     }
 
     private static boolean insideITD(CategorizedProblem categorizedProblem,
-            CompilationUnit unit) throws JavaModelException {
+            CompilationUnit unit, boolean isJavaFileInAJEditor) throws JavaModelException {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        }
         IJavaElement elementAt = unit.getElementAt(categorizedProblem.getSourceStart());
         return elementAt instanceof IntertypeElement ||
                elementAt instanceof DeclareElement;
