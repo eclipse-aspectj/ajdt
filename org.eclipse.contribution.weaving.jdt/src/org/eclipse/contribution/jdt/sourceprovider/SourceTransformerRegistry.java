@@ -64,9 +64,11 @@ public class SourceTransformerRegistry {
                 for (int j = 0; j < configs.length; j++) {
                     try {
                         IConfigurationElement config = configs[j];
-                        ISourceTransformer provider = (ISourceTransformer) 
-                                config.createExecutableExtension("class"); //$NON-NLS-1$
-                        registry.put(config.getAttribute("file_extension"), provider); //$NON-NLS-1$
+                        if (config.isValid()) {
+                            ISourceTransformer provider = (ISourceTransformer) 
+                                    config.createExecutableExtension("class"); //$NON-NLS-1$
+                            registry.put(config.getAttribute("file_extension"), provider); //$NON-NLS-1$
+                        }
                     } catch (CoreException e) {
                         JDTWeavingPlugin.logException(e);
                     } 

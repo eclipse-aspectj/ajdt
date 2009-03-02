@@ -64,9 +64,11 @@ public class CompilationUnitProviderRegistry {
                 for (int j = 0; j < configs.length; j++) {
                     try {
                         IConfigurationElement config = configs[j];
-                        ICompilationUnitProvider provider = (ICompilationUnitProvider) 
-                                config.createExecutableExtension("class"); //$NON-NLS-1$
-                        registerCompilationUnitProvider(config.getAttribute("file_extension"), provider); //$NON-NLS-1$
+                        if (config.isValid()) {
+                            ICompilationUnitProvider provider = (ICompilationUnitProvider) 
+                                    config.createExecutableExtension("class"); //$NON-NLS-1$
+                            registerCompilationUnitProvider(config.getAttribute("file_extension"), provider); //$NON-NLS-1$
+                        }
                     } catch (CoreException e) {
                         JDTWeavingPlugin.logException(e);
                     } 

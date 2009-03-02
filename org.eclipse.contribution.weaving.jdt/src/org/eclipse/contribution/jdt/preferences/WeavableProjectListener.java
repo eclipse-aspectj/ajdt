@@ -73,9 +73,11 @@ public class WeavableProjectListener implements ILifecycleListener {
                 for (int j = 0; j < configs.length; j++) {
                     try {
                         IConfigurationElement config = configs[j];
-                        String natureid = (String) config.getAttribute("natureid");
-                        if (natureid != null) {
-                            weavableNatures.add(natureid);
+                        if (config.isValid()) {
+                            String natureid = (String) config.getAttribute("natureid");
+                            if (natureid != null) {
+                                weavableNatures.add(natureid);
+                            }
                         }
                     } catch (Exception e) {
                         JDTWeavingPlugin.logException(e);

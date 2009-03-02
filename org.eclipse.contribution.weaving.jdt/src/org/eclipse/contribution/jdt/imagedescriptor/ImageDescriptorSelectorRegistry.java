@@ -57,9 +57,11 @@ public class ImageDescriptorSelectorRegistry implements Iterable<IImageDescripto
                     for (int j = 0; j < configs.length; j++) {
                         try {
                             IConfigurationElement config = configs[j];
-                            IImageDescriptorSelector provider = (IImageDescriptorSelector) 
-                                    config.createExecutableExtension("class"); //$NON-NLS-1$
-                            registry.add(provider);
+                            if (config.isValid()) {
+                                IImageDescriptorSelector provider = (IImageDescriptorSelector) 
+                                        config.createExecutableExtension("class"); //$NON-NLS-1$
+                                registry.add(provider);
+                            }
                         } catch (CoreException e) {
                             JDTWeavingPlugin.logException(e);
                         } 
