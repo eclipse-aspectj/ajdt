@@ -647,4 +647,9 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         return touchedFiles;
 	    
 	}
+
+	public List getProjectXmlConfigFiles() {
+		// No need to implement this properly yet
+		return null;
+	}
 }
