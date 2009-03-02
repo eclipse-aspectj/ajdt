@@ -44,7 +44,7 @@ EAINCLUDES-->
 
 
    <requires>
-      <import plugin="org.eclipse.osgi" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.osgi" version="3.5.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime" version="3.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.core" version="3.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.ui" version="3.4.0" match="greaterOrEqual"/>
