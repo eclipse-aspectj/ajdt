@@ -314,8 +314,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * "restore defaults" is clicked.
 	 */ 
 	public static void initDefaults(IPreferenceStore store) {
-        getAspectJCorePLuginPreferences().setDefault(AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations, 
-                AspectJPreferences.VALUE_TRUE);
         store.setDefault(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, 
                 AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_ReportShadowNotInStructure, 
