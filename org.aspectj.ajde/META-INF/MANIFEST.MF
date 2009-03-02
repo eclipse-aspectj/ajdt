@@ -72,4 +72,4 @@ Require-Bundle: org.apache.ant,
  org.eclipse.core.runtime.compatibility,
  org.eclipse.text,
  org.aspectj.weaver;bundle-version="92.2.29";visibility:=reexport
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
