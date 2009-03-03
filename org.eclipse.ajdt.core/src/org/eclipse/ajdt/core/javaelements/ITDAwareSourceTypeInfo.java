@@ -196,6 +196,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     // use createElementInfo, not getElementInfo because 
                     // we don't want it cached
                     DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
+                    if (info == null) {
+                        continue;
+                    }
                     if (info.isExtends()) {
                         this.setSuperclassName(info.getType());
                     } else if (info.isImplements()) {
