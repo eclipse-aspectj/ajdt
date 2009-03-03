@@ -24,7 +24,6 @@ import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -50,7 +49,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		pB = createPredefinedProject("bug99133b"); //$NON-NLS-1$
-        Utils.sleep(1000);  // sleep to ensure timestamps are sufficiently far apart so that AjState thinks the builds are separate
+        Utils.sleep(1001);  // sleep to ensure timestamps are sufficiently far apart so that AjState thinks the builds are separate
 		pA = createPredefinedProject("bug99133a"); //$NON-NLS-1$
 
 		testLog = new TestLogger();
@@ -105,6 +104,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		br1.close();
 		StringReader reader1 = new StringReader(sb1.toString());
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
+        waitForAutoBuild();
         waitForAutoBuild();
         
 		assertEquals("two more builds should have occured", //$NON-NLS-1$
@@ -272,130 +272,129 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	 * incremental build of project B and a full build of project A
 	 * should occur. (both A and B are AJ projects)
 	 */
-	public void testBug99133d() throws Exception {
-	    testLog.clearLog();
-	    
-		//change the return type of the method m1() in bug99133b\src\p\C1.java
-		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
-		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
-
-		StringBuffer sb1 = new StringBuffer();
-		int lineNumber1 = 1;
-		String line1 = br1.readLine();
-		while (line1 != null) {
-			if (lineNumber1 == 8) {
-				sb1.append("public String m2() {"); //$NON-NLS-1$
-			} else if (lineNumber1 == 9) {
-				sb1.append("return \"Hello\";"); //$NON-NLS-1$
-			} else {
-				sb1.append(line1);
-			}
-			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
-			lineNumber1++;
-			line1 = br1.readLine();
-		}
-		br1.close();
-		StringReader reader1 = new StringReader(sb1.toString());
-		c1.setContents(new ReaderInputStream(reader1), true, true, null);
-		waitForAutoBuild();
-
-		assertEquals("two more builds should have occured", //$NON-NLS-1$
-				2,
-				testLog.getNumberOfBuildsRun());
-		
-		List buildLogB = testLog.getPreviousBuildEntry(2);
-		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
-		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
-		// if not an incremental build of project bug99133b build then fail
-		// printing out whether did a full build instead
-		if (!incB) {
-			fail("Changing the signature of a method in project bug99133b "  //$NON-NLS-1$
-				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
-				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		
-		List buildLogA = testLog.getPreviousBuildEntry(1);
-		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
-		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
-		// if not a full build of project bug99133a build then fail
-		// printing out whether did an incremental build instead
-		if (!fullA) {
-			fail("Changing the signature of an unreferenced method in"  //$NON-NLS-1$
-					+ " project bug99133b should cause a full build of " //$NON-NLS-1$
-					+ " dependent project bug99133a " //$NON-NLS-1$
-					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-	}
-
-	/**
-	 * A depends on B and in particular calls a method in B.
-	 * A new method is added to a class in B. 
-	 * Then an incremental build of project B and a full build
-	 * of project A should occurr. (both A and B are AJ projects)
-	 */
-	public void testBug99133e() throws Exception {
-	    testLog.clearLog();
-	    
-		//change the return type of the method m1() in bug99133b\src\p\C1.java
-		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
-		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
-
-		StringBuffer sb1 = new StringBuffer();
-		int lineNumber1 = 1;
-		String line1 = br1.readLine();
-		while (line1 != null) {
-			if (lineNumber1 == 10) {
-				sb1.append("}"); //$NON-NLS-1$
-				sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
-				sb1.append("public void m3() {}"); //$NON-NLS-1$
-			} else {
-				sb1.append(line1);
-			}
-			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
-			lineNumber1++;
-			line1 = br1.readLine();
-		}
-		br1.close();
-		StringReader reader1 = new StringReader(sb1.toString());
-		c1.setContents(new ReaderInputStream(reader1), true, true, null);
-		waitForAutoBuild();
-		waitForAutoBuild();
-
-		assertEquals("two more builds should have occured", //$NON-NLS-1$
-				2,
-				testLog.getNumberOfBuildsRun());
-		
-		List buildLogB = testLog.getPreviousBuildEntry(2);
-		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
-		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
-		// if not an incremental build of project bug99133b build then fail
-		// printing out whether did a full build instead
-		if (!incB) {
-			fail("Adding a method in project bug99133b "  //$NON-NLS-1$
-				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
-				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		
-		List buildLogA = testLog.getPreviousBuildEntry(1);
-		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
-		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
-		// if not a full build of project bug99133a build then fail
-		// printing out whether did an incremental build instead
-		if (!fullA) {
-			fail("Adding a method in project bug99133b " //$NON-NLS-1$
-					+ "should cause an full build of dependent project bug99133b " //$NON-NLS-1$
-					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-
-	}
+//	public void testBug99133d() throws Exception {
+//
+//		//change the return type of the method m1() in bug99133b\src\p\C1.java
+//		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
+//		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
+//
+//		StringBuffer sb1 = new StringBuffer();
+//		int lineNumber1 = 1;
+//		String line1 = br1.readLine();
+//		while (line1 != null) {
+//			if (lineNumber1 == 8) {
+//				sb1.append("public String m2() {"); //$NON-NLS-1$
+//			} else if (lineNumber1 == 9) {
+//				sb1.append("return \"Hello\";"); //$NON-NLS-1$
+//			} else {
+//				sb1.append(line1);
+//			}
+//			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
+//			lineNumber1++;
+//			line1 = br1.readLine();
+//		}
+//		br1.close();
+//		StringReader reader1 = new StringReader(sb1.toString());
+//		c1.setContents(new ReaderInputStream(reader1), true, true, null);
+//		waitForAutoBuild();
+//		waitForAutoBuild();
+//
+//		assertEquals("two more builds should have occured", //$NON-NLS-1$
+//				numberOfBuilds + 2,
+//				testLog.getNumberOfBuildsRun());
+//		
+//		List buildLogB = testLog.getPreviousBuildEntry(2);
+//		boolean incB = listContainsString(buildLogB,
+//				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
+//		boolean fullB = listContainsString(buildLogB,
+//				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+//		// if not an incremental build of project bug99133b build then fail
+//		// printing out whether did a full build instead
+//		if (!incB) {
+//			fail("Changing the signature of a method in project bug99133b "  //$NON-NLS-1$
+//				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+//				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
+//		}
+//		
+//		List buildLogA = testLog.getPreviousBuildEntry(1);
+//		boolean incA = listContainsString(buildLogA,
+//				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
+//		boolean fullA = listContainsString(buildLogA,
+//				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+//		// if not a full build of project bug99133a build then fail
+//		// printing out whether did an incremental build instead
+//		if (!fullA) {
+//			fail("Changing the signature of an unreferenced method in"  //$NON-NLS-1$
+//					+ " project bug99133b should cause a full build of " //$NON-NLS-1$
+//					+ " dependent project bug99133a " //$NON-NLS-1$
+//					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+//		}
+//	}
+//
+//	/**
+//	 * A depends on B and in particular calls a method in B.
+//	 * A new method is added to a class in B. 
+//	 * Then an incremental build of project B and a full build
+//	 * of project A should occurr. (both A and B are AJ projects)
+//	 */
+//	public void testBug99133e() throws Exception {
+//
+//		//change the return type of the method m1() in bug99133b\src\p\C1.java
+//		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
+//		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
+//
+//		StringBuffer sb1 = new StringBuffer();
+//		int lineNumber1 = 1;
+//		String line1 = br1.readLine();
+//		while (line1 != null) {
+//			if (lineNumber1 == 10) {
+//				sb1.append("}"); //$NON-NLS-1$
+//				sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
+//				sb1.append("public void m3() {}"); //$NON-NLS-1$
+//			} else {
+//				sb1.append(line1);
+//			}
+//			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
+//			lineNumber1++;
+//			line1 = br1.readLine();
+//		}
+//		br1.close();
+//		StringReader reader1 = new StringReader(sb1.toString());
+//		c1.setContents(new ReaderInputStream(reader1), true, true, null);
+//		waitForAutoBuild();
+//		waitForAutoBuild();
+//
+//		assertEquals("two more builds should have occured", //$NON-NLS-1$
+//				numberOfBuilds + 2,
+//				testLog.getNumberOfBuildsRun());
+//		
+//		List buildLogB = testLog.getPreviousBuildEntry(2);
+//		boolean incB = listContainsString(buildLogB,
+//				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
+//		boolean fullB = listContainsString(buildLogB,
+//				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+//		// if not an incremental build of project bug99133b build then fail
+//		// printing out whether did a full build instead
+//		if (!incB) {
+//			fail("Adding a method in project bug99133b "  //$NON-NLS-1$
+//				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+//				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
+//		}
+//		
+//		List buildLogA = testLog.getPreviousBuildEntry(1);
+//		boolean incA = listContainsString(buildLogA,
+//				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
+//		boolean fullA = listContainsString(buildLogA,
+//				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
+//		// if not a full build of project bug99133a build then fail
+//		// printing out whether did an incremental build instead
+//		if (!fullA) {
+//			fail("Adding a method in project bug99133b " //$NON-NLS-1$
+//					+ "should cause an full build of dependent project bug99133b " //$NON-NLS-1$
+//					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+//		}
+//
+//	}
 	
 	
 	private void addProjectDependency(IProject project, IProject projectDependedOn) throws JavaModelException {
