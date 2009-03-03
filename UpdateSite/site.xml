@@ -28,7 +28,19 @@
    <feature url="features/org.eclipse.equinox.weaving.source_0.0.0.EAVERSION.jar" id="org.eclipse.equinox.weaving.source" version="0.0.0.EAVERSION">
       <category name="org.eclipse.ajdt.source"/>
    </feature>
-   <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools (Required)"/>
-   <category-def name="org.eclipse.ajdt.other" label="Other Tools (Optional)"/>
-   <category-def name="org.eclipse.ajdt.source" label="AspectJ Development Tools Source (Optional)"/>
+   <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools (Required)">
+      <description>
+         The AJDT project provides Eclipse tooling for the AspectJ language.  See http://eclispe.org/ajdt
+      </description>
+   </category-def>
+   <category-def name="org.eclipse.ajdt.other" label="Other AJDT Tools (Optional)">
+      <description>
+         Parts of AJDT that some may want to consume independently.
+      </description>
+   </category-def>
+   <category-def name="org.eclipse.ajdt.source" label="AspectJ Development Tools Source (Optional)">
+      <description>
+         Source code for all AJDT and related tools.
+      </description>
+   </category-def>
 </site>
