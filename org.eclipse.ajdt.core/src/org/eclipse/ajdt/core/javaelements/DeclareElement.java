@@ -47,8 +47,10 @@ public class DeclareElement extends AspectJMemberElement{
         	    elementInfo.setName(name.toCharArray());
         	    elementInfo.setAJKind(getKindForString(name));
         	    String details = ipe.getDetails();
-                elementInfo.setExtends(details.startsWith("extends"));
-                elementInfo.setImplements(details.startsWith("implements"));
+        	    if (details != null) {
+                    elementInfo.setExtends(details.startsWith("extends"));
+                    elementInfo.setImplements(details.startsWith("implements"));
+        	    }
                 if (elementInfo.isImplements() || elementInfo.isExtends()) {
                     List/*String*/ types = ipe.getParentTypes();
                     if (types != null) {
