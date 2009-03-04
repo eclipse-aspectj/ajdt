@@ -14,6 +14,7 @@ package org.eclipse.contribution.jdt.preferences;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -106,9 +107,10 @@ public class WeavingStateConfigurer {
             } else {
                 b.stop();
             }
+            
             return Status.OK_STATUS;
         } catch (BundleException e) {
-            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Error occurred org.eclipse.equinox.weaving.aspectj" +
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Error occurred in setting org.eclipse.equinox.weaving.aspectj to autostart" +
                     " so weaving service cannot be " + 
                     (becomeEnabled ? "enabled" : "disabled") + ".", e);
         }
@@ -129,7 +131,13 @@ public class WeavingStateConfigurer {
             bw.write(newConfig);
             bw.close();
 
-            success = Status.OK_STATUS;
+            
+            if (becomeEnabled == currentConfigStateIsWeaving()) {
+                success = Status.OK_STATUS;
+            } else {
+                success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Could not add or remove org.eclipse.equinox.weaving.hook as a framework adaptor.");
+            }
+            
         } catch (Exception e) {
             success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, e
                     .getMessage(), e);
@@ -197,6 +205,12 @@ public class WeavingStateConfigurer {
         String configArea = getConfigArea();
         
         File f = new File(new URI(configArea));
+        if (! f.exists()) {
+            throw new FileNotFoundException("Could not find config file: " + f.getAbsolutePath());
+        }
+        if (! f.canWrite()) {
+            throw new IOException("Could not write to config file: " + f.getAbsolutePath());
+        }
         BufferedReader br = new BufferedReader(new FileReader(f));
         return internalCurrentConfigStateIsWeaving(br);
     }
