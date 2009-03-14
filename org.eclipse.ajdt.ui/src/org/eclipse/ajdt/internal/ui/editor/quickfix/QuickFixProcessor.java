@@ -304,7 +304,10 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				UnresolvedElementsSubProcessor.getTypeProposals(context, problem, proposals);
 				break;
 			case IProblem.TypeMismatch:
-				TypeMismatchSubProcessor.addTypeMismatchProposals(context, problem, proposals);
+			    // AspectJ Change
+			    if (problem.getProblemArguments() != null) {  // Bug 265052
+			        TypeMismatchSubProcessor.addTypeMismatchProposals(context, problem, proposals);
+			    }
 				break;
 			case IProblem.IncompatibleReturnType:
 				TypeMismatchSubProcessor.addIncompatibleReturnTypeProposals(context, problem, proposals);
