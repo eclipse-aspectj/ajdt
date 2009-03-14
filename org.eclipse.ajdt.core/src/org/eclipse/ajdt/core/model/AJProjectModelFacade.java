@@ -286,7 +286,8 @@ public class AJProjectModelFacade {
                     Character.toString(AspectElement.JEM_ASPECT_CU));
         }
         
-        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
+        // ajc now takes care of this.
+//        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {

@@ -16,6 +16,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
@@ -26,21 +27,31 @@ public class AJBuildJob extends Job {
     private final int kind;
     
     public AJBuildJob(IProject project, int kind) {
-        super("Running AJ Builder...");
+//        super("Running AJ Builder...");
+        super("");  // bug 263114 --- the text is not removed when the job completes.
         this.project = project;
         this.kind = kind;
     }
-
+    
     protected IStatus run(IProgressMonitor monitor) {
+        if (monitor == null || project == null || monitor.isCanceled()) {
+            return Status.CANCEL_STATUS;
+        }
+        
         if (CoreUtils.isAJProject(project)) {
             try {
                 project.build(kind, monitor);
+                return Status.OK_STATUS;
             } catch (CoreException e) {
-                return new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, "AJBuildJob failed", e);
+                return e.getStatus();
+            } catch (OperationCanceledException e) {
+                return Status.CANCEL_STATUS;
+            } finally {
+                monitor.done();
             }
+        } else {
+            return Status.OK_STATUS;
         }
-        monitor.done();
-        return Status.OK_STATUS;
     }
 
 }

@@ -512,7 +512,7 @@ public class AJCompilationUnitProblemFinder extends
                     (id == IProblem.UndefinedMethod ||
                      id == IProblem.UndefinedName) &&
                    (adviceBodyNames.contains(firstArg) || adviceBodyNames.contains(secondArg) ) &&
-                   unit.getElementAt(categorizedProblem.getSourceStart()) instanceof AdviceElement) {
+                   insideAdvice(categorizedProblem, unit)) {
                 // proceed/thisJoinPoint... statement
                 return false;
             }
@@ -604,6 +604,18 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         return true;
+    }
+
+    private static boolean insideAdvice(CategorizedProblem categorizedProblem,
+            CompilationUnit unit) throws JavaModelException {
+        IJavaElement candidate = unit.getElementAt(categorizedProblem.getSourceStart());
+        while (candidate != null && !(candidate instanceof ICompilationUnit)) {
+            if (candidate instanceof AdviceElement) {
+                return true;
+            }
+            candidate = candidate.getParent();
+        }
+        return false;
     }
     
     
