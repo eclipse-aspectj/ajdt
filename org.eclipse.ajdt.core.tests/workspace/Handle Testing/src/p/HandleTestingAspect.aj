@@ -48,6 +48,10 @@ public aspect HandleTestingAspect {
 	declare error : call(void HandleTestingClass.foo1(int,long)) : "";
 	declare warning : call(void HandleTestingClass.foo2(int,long)) : "";
 	
+    declare @type : InnerClass : @Deprecated;
+    declare @method : public void InnerClass.doNothing() : @Deprecated;
+    declare @field : int InnerClass.x : @Deprecated;
+	
 	pointcut ypc(int y) : call(* *.yCall(int)) && args(y);
 	pointcut zpc(int z) : call(* *.zCall(int)) && args(z);
 	
