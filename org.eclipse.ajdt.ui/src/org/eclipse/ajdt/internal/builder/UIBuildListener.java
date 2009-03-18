@@ -224,10 +224,10 @@ public class UIBuildListener implements IAJBuildListener {
                     deleteUpdateMarkers.schedule();
                 }
 		}
-		
+		 
 		// sanity check the model if the event trace viewer is open
-		AJModelChecker.doModelCheckIfRequired(
-		        AJProjectModelFactory.getInstance().getModelForProject(project));
+//		AJModelChecker.doModelCheckIfRequired(
+//		        AJProjectModelFactory.getInstance().getModelForProject(project));
 		
 		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
