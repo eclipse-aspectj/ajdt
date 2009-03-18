@@ -770,12 +770,12 @@ public class AJProjectModelFacade {
         IProgramElement ipe = javaElementToProgramElement(icu);
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
-                List/*IRelationship*/ nodeRels = relationshipMap.get(node);
+                List/*IRelationship*/ orig = relationshipMap.get(node);
                 
-                if (nodeRels == null) {
+                if (orig == null) {
                     return;
                 }
-                
+                List/*IRelationship*/ nodeRels = new ArrayList(orig);
                 if (interesting != null) {
                     for (Iterator relIter = nodeRels.iterator(); relIter
                             .hasNext();) {
