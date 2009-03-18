@@ -160,7 +160,7 @@ public class AJModelTest4 extends AJDTCoreTestCase {
             }
         } catch (Exception e) {
             e.fillInStackTrace();
-            accumulatedErrors.add("Error thrown:");
+            accumulatedErrors.add("Error thrown on: " + origAjHandle);
             accumulatedErrors.add(e.getMessage());
             for (int i = 0; i < e.getStackTrace().length; i++) {
                 accumulatedErrors.add("\t" + e.getStackTrace()[i].toString());
@@ -235,7 +235,7 @@ public class AJModelTest4 extends AJDTCoreTestCase {
             }
         } catch (Exception e) {
             e.fillInStackTrace();
-            accumulatedErrors.add("Error thrown:");
+            accumulatedErrors.add("Error thrown on: " + origJavaHandle);
             accumulatedErrors.add(e.getMessage());
             for (int i = 0; i < e.getStackTrace().length; i++) {
                 accumulatedErrors.add("\t" + e.getStackTrace()[i].toString());
