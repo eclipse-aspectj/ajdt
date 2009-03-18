@@ -123,8 +123,7 @@ public class AJModelChecker {
                         "\n\tIt is the source relationship of " + toRelString(rel) +
                         "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
             }
-            if ( ( !rel.isAffects() && elt.getElementType() == IJavaElement.TYPE) || 
-                    elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
+            if (    elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                     elt.getElementType() == IJavaElement.CLASS_FILE) {
                 problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
                         rel.getSourceHandle() + 
@@ -140,8 +139,7 @@ public class AJModelChecker {
                             "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
                 }
                 if (elt != AJProjectModelFacade.ERROR_JAVA_ELEMENT && 
-                        ( ( rel.isAffects() && elt.getElementType() == IJavaElement.TYPE) || // target of advice can be a type, but source cannot
-                        elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
+                       (elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                         elt.getElementType() == IJavaElement.CLASS_FILE)) {
                     problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
                             target + 

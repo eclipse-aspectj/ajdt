@@ -422,6 +422,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 */
 	// XXX don't know if this is necessary any more.
 	// since out folder is being refreshed when files are marked as derived.
+	// See CoreOutputLocationManager.reportClassFileWrite
     private void doRefreshAfterBuild(IProject project,
             IProject[] dependingProjects, IJavaProject javaProject)
             throws CoreException {
