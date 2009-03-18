@@ -42,6 +42,7 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
+import org.eclipse.ajdt.core.tests.model.Bug268522;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
@@ -87,7 +88,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 		suite.addTest(new TestSuite(ModelCheckerTests.class));
-		suite.addTest(new TestSuite(AspectJMemberElementTest.class));
+        suite.addTest(new TestSuite(AspectJMemberElementTest.class));
+        suite.addTest(new TestSuite(Bug268522.class));
         
 		
 		// core compiler configuration
