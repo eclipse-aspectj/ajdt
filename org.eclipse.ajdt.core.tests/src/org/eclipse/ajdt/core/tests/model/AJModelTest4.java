@@ -158,10 +158,10 @@ public class AJModelTest4 extends AJDTCoreTestCase {
                 IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
                 checkAJHandle(ipe.getHandleIdentifier(), otherModel);
             }
+            throw new NullPointerException();
         } catch (Exception e) {
-            e.fillInStackTrace();
             accumulatedErrors.add("Error thrown on: " + origAjHandle);
-            accumulatedErrors.add(e.getMessage());
+            accumulatedErrors.add(e.toString());
             for (int i = 0; i < e.getStackTrace().length; i++) {
                 accumulatedErrors.add("\t" + e.getStackTrace()[i].toString());
             }
@@ -234,9 +234,8 @@ public class AJModelTest4 extends AJDTCoreTestCase {
                 checkAJHandle(ipe.getHandleIdentifier(), otherModel);
             }
         } catch (Exception e) {
-            e.fillInStackTrace();
             accumulatedErrors.add("Error thrown on: " + origJavaHandle);
-            accumulatedErrors.add(e.getMessage());
+            accumulatedErrors.add(e.toString());
             for (int i = 0; i < e.getStackTrace().length; i++) {
                 accumulatedErrors.add("\t" + e.getStackTrace()[i].toString());
             }
