@@ -52,12 +52,12 @@ public aspect ErrorsTest {
 				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
 					LogEntry entry = (LogEntry) logs[i];
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-						if (entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
+						if (entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.unknownProvider") == -1 && //$NON-NLS-1$
+						        entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
 						        entry.getMessage().indexOf("One or more bundles are not resolved because the following root constraints are not resolved") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("Plug-in org.eclipse.contribution.xref.core.tests was unable to load class org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1) { //$NON-NLS-1$
+						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1) { //$NON-NLS-1$
 							// ignore warnings that are regarding a known missing class.
-							failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+							failureText += "The test added errors to the log:\n" + entry.getMessage() + "\n" + entry.getStack() + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						}
 					}
 				}
