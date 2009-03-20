@@ -42,8 +42,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
- * IOutputLocationManager implementation which uses the methods on IJavaProject
- * to work out where the output should be sent.
+ * IOutputLocationManager implementation which uses the methods on IJavaProject to work out where the output should be sent.
  */
 public class CoreOutputLocationManager implements IOutputLocationManager {
 
@@ -54,80 +53,79 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// if there is more than one output directory then the default output
 	// location to use is recorded in the 'defaultOutput' field
 	private File defaultOutput;
-	
-	private Map /*String,File*/ srcFolderToOutput = new HashMap();
-	
+
+	private Map /* String,File */srcFolderToOutput = new HashMap();
+
 	// maps files in the file system to IFolders in the workspace
 	// this keeps track of output locations
-    private final Map /* String,IFolder */ fileSystemPathToIContainer = new HashMap();
+	private final Map /* String,IFolder */fileSystemPathToIContainer = new HashMap();
 
-	private List /*File*/ allOutputFolders = new ArrayList();
-	
-	private List /*IPath*/ allSourceFolders = new ArrayList();
-	
-	// Bug 243376 
+	private List /* File */allOutputFolders = new ArrayList();
+
+	private List /* IPath */allSourceFolders = new ArrayList();
+
+	// Bug 243376
 	// Gather all of the files that are touched by this compilation
-	// and use it to determine which files need to have their 
+	// and use it to determine which files need to have their
 	// Relationship maps updated.
 	// XXX Really, this logic should not be in this class
 	// This class is about output locations.
 	// I am waiting for an extension to the compiler so
 	// that I can grab this information directly.
 	// NO LONGER MANAGING THIS
-	private Set /*String*/ touchedCUs = new HashSet();
-	
+	private Set /* String */touchedCUs = new HashSet();
+
 	private boolean outputIsRoot;
 	// if there is only one output directory then this is recorded in the
 	// 'commonOutputDir' field.
 	private File commonOutputDir;
-    private IWorkspaceRoot workspaceRoot;
+	private IWorkspaceRoot workspaceRoot;
 
 	public CoreOutputLocationManager(IProject project) {
 		this.project = project;
 		this.workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		jProject = JavaCore.create(project);
-        initSourceFolders();
+		initSourceFolders();
 		if (!isUsingSeparateOutputFolders(jProject)) {
 			// using the same output directory therefore record this one
 			setCommonOutputDir();
 			allOutputFolders.add(commonOutputDir);
 
 			if (commonOutputDir != null) {
-    			try {
-    			    if (outputIsRoot) {
-                        fileSystemPathToIContainer.put(commonOutputDir.getAbsolutePath(), 
-                                project);
-    			    } else {
-                        fileSystemPathToIContainer.put(commonOutputDir.getAbsolutePath(), 
-                                workspaceRoot.getFolder(jProject.getOutputLocation()));
-    			    }
-                } catch (JavaModelException e) {
-                }
+				try {
+					if (outputIsRoot) {
+						fileSystemPathToIContainer.put(commonOutputDir.getAbsolutePath(), project);
+					} else {
+						fileSystemPathToIContainer.put(commonOutputDir.getAbsolutePath(), workspaceRoot.getFolder(jProject
+								.getOutputLocation()));
+					}
+				} catch (JavaModelException e) {
+				}
 			}
 		} else {
 			// need to record all possible output directories
 			init();
 		}
-		
+
 	}
-	
+
 	/**
 	 * initialize the source folder locations only
 	 */
 	private void initSourceFolders() {
-	    try {
-            IClasspathEntry[] cpe = jProject.getRawClasspath();
-            for (int i = 0; i < cpe.length; i++) {
-                if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    IPath path = cpe[i].getPath();
-                    path = path.removeFirstSegments(1).makeRelative();
-                    allSourceFolders.add(path);
-                }
-            }
-        } catch (JavaModelException e) {
-        }
+		try {
+			IClasspathEntry[] cpe = jProject.getRawClasspath();
+			for (int i = 0; i < cpe.length; i++) {
+				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IPath path = cpe[i].getPath();
+					path = path.removeFirstSegments(1).makeRelative();
+					allSourceFolders.add(path);
+				}
+			}
+		} catch (JavaModelException e) {
+		}
 	}
-	
+
 	/**
 	 * Calculate all the output locations
 	 */
@@ -139,42 +137,39 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 		try {
 			IPath outputLocationPath = jProject.getOutputLocation();
-            defaultOutput = workspacePathToFile(outputLocationPath);
+			defaultOutput = workspacePathToFile(outputLocationPath);
 			allOutputFolders.add(defaultOutput);
-			
-			
-			fileSystemPathToIContainer.put(defaultOutput.getAbsolutePath(), 
-			        project.getFullPath().equals(outputLocationPath) 
-			                ? (IContainer) project
-			                : (IContainer) workspaceRoot.getFolder(outputLocationPath));
 
-			
+			fileSystemPathToIContainer.put(defaultOutput.getAbsolutePath(),
+					project.getFullPath().equals(outputLocationPath) ? (IContainer) project : (IContainer) workspaceRoot
+							.getFolder(outputLocationPath));
+
 			// store separate output folders in map
 			IClasspathEntry[] cpe = jProject.getRawClasspath();
 			outer: for (int i = 0; i < cpe.length; i++) {
-                // check to see if on inpath
-                if (isUsingNonDefaultInpathOutfolder) {
-                    IClasspathAttribute[] attributes = cpe[i].getExtraAttributes();
-                    for (int j = 0; j < attributes.length; j++) {
-                        if (AspectJCorePreferences.isInPathAttribute(attributes[j])) {
-                            IPath path = cpe[i].getPath();
-                            File f = workspacePathToFile(path);
-                            if (f != null && f.exists()) {
-                                // use full path
-                                String srcFolder = new Path(f.getPath()).toPortableString();
-                                File out = workspacePathToFile(new Path(inpathOutFolder));
-                                srcFolderToOutput.put(srcFolder,out);
-                            } else {
-                                // outfolder does not exist
-                                // probably because Project has been renamed
-                                // and inpath output location has not been updated.
-                                // this is handled with a message to the user
-                            }
-                            continue outer;
-                        }
-                    }
-                }
-                
+				// check to see if on inpath
+				if (isUsingNonDefaultInpathOutfolder) {
+					IClasspathAttribute[] attributes = cpe[i].getExtraAttributes();
+					for (int j = 0; j < attributes.length; j++) {
+						if (AspectJCorePreferences.isInPathAttribute(attributes[j])) {
+							IPath path = cpe[i].getPath();
+							File f = workspacePathToFile(path);
+							if (f != null && f.exists()) {
+								// use full path
+								String srcFolder = new Path(f.getPath()).toPortableString();
+								File out = workspacePathToFile(new Path(inpathOutFolder));
+								srcFolderToOutput.put(srcFolder, out);
+							} else {
+								// outfolder does not exist
+								// probably because Project has been renamed
+								// and inpath output location has not been updated.
+								// this is handled with a message to the user
+							}
+							continue outer;
+						}
+					}
+				}
+
 				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IPath output = cpe[i].getOutputLocation();
 					if (output != null) {
@@ -189,29 +184,28 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 						if (!allOutputFolders.contains(out)) {
 							allOutputFolders.add(out);
 
-							fileSystemPathToIContainer.put(out.getAbsolutePath(), 
-				                    workspaceRoot.getFolder(output));
+							fileSystemPathToIContainer.put(out.getAbsolutePath(), workspaceRoot.getFolder(output));
 						}
 						if (outputIsRoot) {
 							// bug 153682: if the project is the source folder
 							// then this output folder will always apply
 							defaultOutput = out;
 						}
-						
+
 					}
 				}
 			}
 		} catch (JavaModelException e) {
 		}
 	}
-	
+
 	public File getOutputLocationForClass(File compilationUnit) {
-	    // remember that this file has been asked for
-	    // presumably it is being recompiled
-	    if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(compilationUnit.getName())) {     
-	        touchedCUs.add(compilationUnit);
-	    }
-	    
+		// remember that this file has been asked for
+		// presumably it is being recompiled
+		if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(compilationUnit.getName())) {
+			touchedCUs.add(compilationUnit);
+		}
+
 		return getOutputLocationForResource(compilationUnit);
 	}
 
@@ -254,14 +248,13 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	/**
-	 * @return true if there is more than one output directory being used by
-	 *         this project and false otherwise
+	 * @return true if there is more than one output directory being used by this project and false otherwise
 	 */
 	private boolean isUsingSeparateOutputFolders(IJavaProject jp) {
 		if (getInpathOutputFolder() != null) {
-		    return true;
+			return true;
 		}
-	    try {
+		try {
 			IClasspathEntry[] cpe = jp.getRawClasspath();
 			for (int i = 0; i < cpe.length; i++) {
 				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
@@ -276,8 +269,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	/**
-	 * Record the 'common output directory', namely the one where all the output
-	 * goes
+	 * Record the 'common output directory', namely the one where all the output goes
 	 */
 	private void setCommonOutputDir() {
 		IJavaProject jProject = JavaCore.create(project);
@@ -286,10 +278,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			workspaceRelativeOutputPath = jProject.getOutputLocation();
 		} catch (JavaModelException e) {
 			commonOutputDir = project.getLocation().toFile();
-            outputIsRoot = true;
+			outputIsRoot = true;
 			return;
 		}
-		if (workspaceRelativeOutputPath.segmentCount() == 1) { 
+		if (workspaceRelativeOutputPath.segmentCount() == 1) {
 			commonOutputDir = jProject.getResource().getLocation().toFile();
 			outputIsRoot = true;
 			return;
@@ -314,7 +306,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			return null;
 		}
 	}
-	
 
 	/**
 	 * return all output directories used by this project
@@ -339,8 +330,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	/**
-	 * If there's only one output directory return this one, otherwise return
-	 * the one marked as default
+	 * If there's only one output directory return this one, otherwise return the one marked as default
 	 */
 	public File getDefaultOutputLocation() {
 		if (!isUsingSeparateOutputFolders(jProject)) {
@@ -366,52 +356,54 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		return null;
 	}
 
+	public void reportClassFileRemove(String outFileStr) {
+		// missing impl
+	}
+
 	public void reportClassFileWrite(String outFileStr) {
-	    try {
-            outer:
-            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-                Map.Entry entry = (Map.Entry) pathIter.next();
-                String outFolderStr = (String)entry.getKey();
-                if (outFileStr.startsWith(outFolderStr)) {
-                    IContainer outFolder = (IContainer) entry.getValue();
-                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
-                    
-                    if (! outFile.exists()) {
-                        outFile.refreshLocal(0, null);
-                    }
-                    
-                    if (outFile.exists()) {
-                        outFile.setDerived(true);
-                        
-                        String pathFromProject;
-                        IPath projectPath = project.getLocation();
-                        IPath outFilePath = new Path(outFileStr);
-                        if (projectPath.isPrefixOf(outFilePath)) {
-                            pathFromProject = outFilePath.removeFirstSegments(
-                                    projectPath.segmentCount()).makeRelative().toPortableString();
-                        } else {
-                            // location is outside of the workspace
-                            pathFromProject = outFileStr;
-                        }
-                        
-                        // only do this if output is not a source folder
-                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
-                            IContainer parent = outFile.getParent();
-                            inner:
-                            while (! parent.equals(outFolder) ) {
-                                parent.setDerived(true);
-                                parent = parent.getParent();
-                                if (parent == null) {
-                                    break inner;
-                                }
-                            }
-                        }
-                        break outer;
-                    }
-                }
-                
-            }
-        } catch (CoreException e) {
-        }
+		try {
+			outer: for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+				Map.Entry entry = (Map.Entry) pathIter.next();
+				String outFolderStr = (String) entry.getKey();
+				if (outFileStr.startsWith(outFolderStr)) {
+					IContainer outFolder = (IContainer) entry.getValue();
+					IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+
+					if (!outFile.exists()) {
+						outFile.refreshLocal(0, null);
+					}
+
+					if (outFile.exists()) {
+						outFile.setDerived(true);
+
+						String pathFromProject;
+						IPath projectPath = project.getLocation();
+						IPath outFilePath = new Path(outFileStr);
+						if (projectPath.isPrefixOf(outFilePath)) {
+							pathFromProject = outFilePath.removeFirstSegments(projectPath.segmentCount()).makeRelative()
+									.toPortableString();
+						} else {
+							// location is outside of the workspace
+							pathFromProject = outFileStr;
+						}
+
+						// only do this if output is not a source folder
+						if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
+							IContainer parent = outFile.getParent();
+							inner: while (!parent.equals(outFolder)) {
+								parent.setDerived(true);
+								parent = parent.getParent();
+								if (parent == null) {
+									break inner;
+								}
+							}
+						}
+						break outer;
+					}
+				}
+
+			}
+		} catch (CoreException e) {
+		}
 	}
 }
