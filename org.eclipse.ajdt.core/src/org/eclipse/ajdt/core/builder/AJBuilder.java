@@ -226,10 +226,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// compilation is done
 		// ----------------------------------------
 
-		
-        AJLog.logStart("Refresh after build");
-		doRefreshAfterBuild(project, dependingProjects, javaProject);
-        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
+		// bug 268827---no longer doing refresh after build
+//        AJLog.logStart("Refresh after build");
+//		doRefreshAfterBuild(project, dependingProjects, javaProject);
+//        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
 		
 		// do the cleanup
 		// bug 107027
@@ -423,39 +423,39 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	// XXX don't know if this is necessary any more.
 	// since out folder is being refreshed when files are marked as derived.
 	// See CoreOutputLocationManager.reportClassFileWrite
-    private void doRefreshAfterBuild(IProject project,
-            IProject[] dependingProjects, IJavaProject javaProject)
-            throws CoreException {
-        
-		boolean javaDep = false;
-		for (int i = 0; !javaDep && (i < dependingProjects.length); i++) {
-			if (dependingProjects[i].hasNature(JavaCore.NATURE_ID)) {
-				javaDep = true;
-			}
-		}
-		try {
-			if (javaDep) {
-				project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			} else {
-			    // bug 101481 - need to refresh the output directory
-			    // so that the compiled classes can be found
-				IPath[] paths = CoreUtils.getOutputFolders(javaProject);
-				for (int i = 0; i < paths.length; i++) {
-					IPath workspaceRelativeOutputPath = paths[i];
-					if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-						// root
-						project.refreshLocal(IResource.DEPTH_INFINITE, null);
-					} else {
-						IFolder out = ResourcesPlugin.getWorkspace().getRoot()
-								.getFolder(workspaceRelativeOutputPath);
-						out.refreshLocal(IResource.DEPTH_INFINITE, null);
-						project.refreshLocal(IResource.DEPTH_ONE, null);
-					}
-				}
-			}
-		} catch (CoreException e) {
-		}
-    }
+//    private void doRefreshAfterBuild(IProject project,
+//            IProject[] dependingProjects, IJavaProject javaProject)
+//            throws CoreException {
+//        
+//		boolean javaDep = false;
+//		for (int i = 0; !javaDep && (i < dependingProjects.length); i++) {
+//			if (dependingProjects[i].hasNature(JavaCore.NATURE_ID)) {
+//				javaDep = true;
+//			}
+//		}
+//		try {
+//			if (javaDep) {
+//				project.refreshLocal(IResource.DEPTH_INFINITE, null);
+//			} else {
+//			    // bug 101481 - need to refresh the output directory
+//			    // so that the compiled classes can be found
+//				IPath[] paths = CoreUtils.getOutputFolders(javaProject);
+//				for (int i = 0; i < paths.length; i++) {
+//					IPath workspaceRelativeOutputPath = paths[i];
+//					if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
+//						// root
+//						project.refreshLocal(IResource.DEPTH_INFINITE, null);
+//					} else {
+//						IFolder out = ResourcesPlugin.getWorkspace().getRoot()
+//								.getFolder(workspaceRelativeOutputPath);
+//						out.refreshLocal(IResource.DEPTH_INFINITE, null);
+//						project.refreshLocal(IResource.DEPTH_ONE, null);
+//					}
+//				}
+//			}
+//		} catch (CoreException e) {
+//		}
+//    }
 
     private boolean hasValidPreviousBuildConfig(String configId) {
         AjState state = IncrementalStateManager.retrieveStateFor(configId);
@@ -800,103 +800,112 @@ public class AJBuilder extends IncrementalProjectBuilder {
         IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());        
         IContainer srcContainer = getContainerForGivenPath(srcEntry.getPath().removeFirstSegments(1),javaProject.getProject());
 
+        IPath deltaPath = resource.getFullPath().removeFirstSegments(segmentCount);
+        
 		switch(resource.getType()) {
 			case IResource.FOLDER :
+			    IContainer folderToRefresh = outputFolder.getFolder(deltaPath);
 				switch (sourceDelta.getKind()) {
 					case IResourceDelta.ADDED :
-						IPath addedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
-						createFolder(addedPackagePath, outputFolder, true); // ensure package exists in the output folder
-						// fall thru & collect all the resource files
+						createFolder(deltaPath, outputFolder, true); // ensure package exists in the output folder
+						// fall through & collect all the resource files
 					case IResourceDelta.CHANGED :
 						IResourceDelta[] children = sourceDelta.getAffectedChildren();
 						for (int i = 0, l = children.length; i < l; i++) {
-							copyResources(javaProject, children[i],srcEntry, segmentCount);
+							copyResources(javaProject, children[i], srcEntry, segmentCount);
 						}
-						return;
+						break;
+						
 					case IResourceDelta.REMOVED :
-						IPath removedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
 					    IClasspathEntry[] srcEntries = getSrcClasspathEntry(javaProject);
 					    if (srcEntries.length > 1) {
 							for (int i = 0, l = srcEntries.length; i < l; i++) {
 								IPath srcPath = srcEntries[i].getPath().removeFirstSegments(1);
 								IFolder srcFolder = javaProject.getProject().getFolder(srcPath);
-								if (srcFolder.getFolder(removedPackagePath).exists()) {
+								if (srcFolder.getFolder(deltaPath).exists()) {
 									// only a package fragment was removed, same as removing multiple source files
-									createFolder(removedPackagePath, outputFolder, true); // ensure package exists in the output folder
+								    // ensure package exists in the output folder
+								    // ADE---wait...why are we doing this???  why not just delete and be done with it?
+								    // not going to change this because I don't know the ramifications.
+									createFolder(deltaPath, outputFolder, true); 
 									IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
 									for (int j = 0, m = removedChildren.length; j < m; j++) {
 										copyResources(javaProject,removedChildren[j], srcEntry, segmentCount);
 									}
+									folderToRefresh.refreshLocal(IResource.DEPTH_ZERO, null);
 									return;
 								}
 							}
 						}
-						IFolder removedPackageFolder = outputFolder.getFolder(removedPackagePath);
+						IFolder removedPackageFolder = outputFolder.getFolder(deltaPath);
 						if (removedPackageFolder.exists()) {
 							removedPackageFolder.delete(IResource.FORCE, null);
 						}
-				}
-				return;
+						break;
+				} // switch(sourceDelta.getKind())
+                folderToRefresh.refreshLocal(IResource.DEPTH_ZERO, null);
+				break;
+				
 			case IResource.FILE :
 				// only do something if the output folder is different to the src folder
 				if (!outputFolder.equals(srcContainer)) {
 					// copy all resource deltas to the output folder
-					IPath resourcePath = resource.getFullPath().removeFirstSegments(segmentCount);
-					if (resourcePath == null) return;
+					if (deltaPath == null) return;
 					// don't want to copy over .aj or .java files
-			        if (resourcePath.getFileExtension() != null 
-			        		&& (resourcePath.getFileExtension().equals("aj") //$NON-NLS-1$
-			        				|| resourcePath.getFileExtension().equals("java"))) { //$NON-NLS-1$
-						return;
+			        if (deltaPath.getFileExtension() != null 
+			        		&& (deltaPath.getFileExtension().equals("aj") //$NON-NLS-1$
+			        				|| deltaPath.getFileExtension().equals("java"))) { //$NON-NLS-1$
+						break;
 					}
 			        
-			        IResource outputFile = outputFolder.getFile(resourcePath);
+			        IResource fileToRefresh = outputFolder.getFile(deltaPath);
 					switch (sourceDelta.getKind()) {
 						case IResourceDelta.ADDED :
-							if (outputFile.exists()) {
-								AJLog.log(AJLog.BUILDER,"Deleting existing file " + resourcePath);//$NON-NLS-1$
-								outputFile.delete(IResource.FORCE, null);
+							if (fileToRefresh.exists()) {
+								AJLog.log(AJLog.BUILDER,"Deleting existing file " + deltaPath);//$NON-NLS-1$
+								fileToRefresh.delete(IResource.FORCE, null);
 							}
-							AJLog.log(AJLog.BUILDER,"Copying added file " + resourcePath);//$NON-NLS-1$
-							createFolder(resourcePath.removeLastSegments(1), outputFolder, true); 
-							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
-							outputFile.setDerived(true);
-							Util.setReadOnly(outputFile, false); // just in case the original was read only
-							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
+							AJLog.log(AJLog.BUILDER,"Copying added file " + deltaPath);//$NON-NLS-1$
+							createFolder(deltaPath.removeLastSegments(1), outputFolder, true); 
+							resource.copy(fileToRefresh.getFullPath(), IResource.FORCE, null);
+							fileToRefresh.setDerived(true);
+							Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
+							fileToRefresh.refreshLocal(IResource.DEPTH_ZERO,null);
 		                    // mark this change so compiler knows about it.
 		                    CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject())
 		                            .configurationChanged(
 		                                    CompilerConfigurationChangeFlags.PROJECTSOURCERESOURCES_CHANGED);
-							return;
+							break;
 						case IResourceDelta.REMOVED :
-							if (outputFile.exists()) {
-								AJLog.log(AJLog.BUILDER,"Deleting removed file " + resourcePath);//$NON-NLS-1$
-								outputFile.delete(IResource.FORCE, null);
+							if (fileToRefresh.exists()) {
+								AJLog.log(AJLog.BUILDER,"Deleting removed file " + deltaPath);//$NON-NLS-1$
+								fileToRefresh.delete(IResource.FORCE, null);
 							}
 		                    // mark this change so compiler knows about it.
 		                    CoreCompilerConfiguration.getCompilerConfigurationForProject(getProject())
 		                            .configurationChanged(
 		                                    CompilerConfigurationChangeFlags.PROJECTSOURCERESOURCES_CHANGED);
-							return;
+							break;
 						case IResourceDelta.CHANGED :
 							if ((sourceDelta.getFlags() & IResourceDelta.CONTENT) == 0
 									&& (sourceDelta.getFlags() & IResourceDelta.ENCODING) == 0) {
 								return; // skip it since it really isn't changed
 							}
-							if (outputFile.exists()) {
-								AJLog.log(AJLog.BUILDER,"Deleting existing file " + resourcePath);//$NON-NLS-1$
-								outputFile.delete(IResource.FORCE, null);
+							if (fileToRefresh.exists()) {
+								AJLog.log(AJLog.BUILDER,"Deleting existing file " + deltaPath);//$NON-NLS-1$
+								fileToRefresh.delete(IResource.FORCE, null);
 							}
-							AJLog.log(AJLog.BUILDER,"Copying changed file " + resourcePath);//$NON-NLS-1$
-							createFolder(resourcePath.removeLastSegments(1), outputFolder, true);
-							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
-							outputFile.setDerived(true);
-							Util.setReadOnly(outputFile, false); // just in case the original was read only
-							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
+							AJLog.log(AJLog.BUILDER,"Copying changed file " + deltaPath);//$NON-NLS-1$
+							createFolder(deltaPath.removeLastSegments(1), outputFolder, true);
+							resource.copy(fileToRefresh.getFullPath(), IResource.FORCE, null);
+							fileToRefresh.setDerived(true);
+							Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
+							break;
 					}					
-				}
-				return;
-		}
+					fileToRefresh.refreshLocal(IResource.DEPTH_ZERO,null);
+				}  // switch (sourceDelta.getKind())
+				break;
+		}  // switch(resource.getType())
 	}
 	
 	/**

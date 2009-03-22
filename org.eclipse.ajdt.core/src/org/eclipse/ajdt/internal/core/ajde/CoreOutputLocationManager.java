@@ -375,6 +375,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 try {
                     outFile.refreshLocal(IResource.DEPTH_ZERO, null);
                     System.out.println("Delete: " + outFile);
+                    return;
                 } catch (CoreException e) {
                 }
             }
