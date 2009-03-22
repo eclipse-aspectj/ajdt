@@ -1,4 +1,4 @@
 
-public aspect Nothing2 {
+public class Nothing2 {
 
 }

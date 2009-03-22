@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.builder.DerivedTests;
+import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
@@ -109,6 +110,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(Bug159197Test.class));
         suite.addTest(new TestSuite(Bug43711Test.class));
         suite.addTest(new TestSuite(DerivedTests.class));
+        suite.addTest(new TestSuite(RefreshTestsImprecise.class));
         
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));
