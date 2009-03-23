@@ -365,7 +365,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		return null;
 	}
 
-	public void reportClassFileRemove(String outFileStr) {
+	public void reportFileRemove(String outFileStr, int filetype) {
         for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
             Map.Entry entry = (Map.Entry) pathIter.next();
             String outFolderStr = (String)entry.getKey();
@@ -383,7 +383,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	}
 
-	public void reportClassFileWrite(String outFileStr) {
+	public void reportFileWrite(String outFileStr, int filetype) {
 	    try {
             outer:
             for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
