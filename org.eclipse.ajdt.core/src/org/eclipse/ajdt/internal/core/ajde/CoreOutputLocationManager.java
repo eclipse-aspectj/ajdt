@@ -13,6 +13,7 @@
 package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +41,9 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.builder.State;
+import org.eclipse.jdt.internal.core.builder.StringSet;
 
 /**
  * IOutputLocationManager implementation which uses the methods on IJavaProject
@@ -432,7 +436,77 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 	
 	
-	public IProject findDeclaringProject(File classFile) {
+	/**
+	 * Return the Java project that has outputFolder as an output location, or null if it is
+	 * not recognized.
+	 */
+	public IProject findDeclaringProject(File outputFolder) {
 	    return null;
 	}
+
+	/**
+	 * Aim of this callback from the compiler is to ask Eclipse if it knows which project has the 
+	 * supplied directory as an output folder, and if that can be determined then look at the 
+	 * last structural build time of that project and any structurally changed types since that
+	 * build time.  If it doesn't look like anything has changed since the supplied buildtime then
+	 * we assume that means nothing changed in the directory and so do not need to check the time
+	 * stamp of each file within it.
+	 * 
+	 * This method does nothing more than a rudimentary analysis - if there are changes then it does
+	 * not currently attempt to determine if they are interesting (ie. whether they are changes to 
+	 * types that the compiler asking the question depends upon).
+	 */
+	public int discoverChangesSince(File dir, long buildtime) {
+		IProject project = findDeclaringProject(dir);
+		// Andys hack to find the project
+//		if (project == null) {
+//			IProject[] ps;
+//			try {
+//				ps = this.project.getReferencedProjects();
+//			if (ps!=null) {
+//			for (int i=0;i<ps.length;i++) {
+//				if (ps[i].getName().equals("org.aspectj.ajdt.core")) {
+//					project = ps[i];
+//				}
+//			}
+//			}
+//			} catch (CoreException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		try {
+			if (project!=null) {
+	            Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);
+	            if (s != null && s instanceof State) {
+	                State state = (State) s;
+	                if (lastStructuralBuildTimeField == null) {
+	                    lastStructuralBuildTimeField = State.class.getDeclaredField("lastStructuralBuildTime");
+	                    lastStructuralBuildTimeField.setAccessible(true);
+	                }
+	                if (structurallyChangedTypesField == null) {
+	                	structurallyChangedTypesField = State.class.getDeclaredField("structurallyChangedTypes");
+	                	structurallyChangedTypesField.setAccessible(true);
+	                }
+	                long dependeeTime = lastStructuralBuildTimeField.getLong(state);
+	                if (dependeeTime<buildtime) {
+	                	StringSet changes = (StringSet)structurallyChangedTypesField.get(state);
+	                	// this test isn't quite right... but it basically works
+	                    if (changes==null || changes.elementSize==0) {
+	                    	return 1; // no changes at all (doesnt determine whether they are of interest)
+	                    }
+	                }
+	            }
+			}
+		} catch (Throwable t) {
+			System.err.println("Problem accessing state for project "+project);
+			t.printStackTrace();
+		}
+		return 0; // DONTKNOW - this will cause the caller to do the .class modtime tests
+	}
+	
+	// Cached for performance reasons
+	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
+	private java.lang.reflect.Field structurallyChangedTypesField = null;
+	
 }
