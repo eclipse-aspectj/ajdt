@@ -40,6 +40,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		AspectJPlugin.getDefault().setAJLogger(null);
+		Utils.setAutobuilding(true);
 	}
 
 	/**
@@ -106,7 +107,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 			assertTrue("project should have errors", testLog //$NON-NLS-1$
-					.containsMessage("error at blah blah blah")); //$NON-NLS-1$
+					.containsMessage("error at")); //$NON-NLS-1$
 			assertTrue("bin directory should contain class file", //$NON-NLS-1$
 					outputDirContainsFile(project, "pack", "C.class")); //$NON-NLS-1$ //$NON-NLS-2$
 			assertFalse(
@@ -114,27 +115,25 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 					testLog
 							.containsMessage("Cleared AJDT relationship map for project bug101481")); //$NON-NLS-1$
 			int n = testLog
-					.numberOfEntriesForMessage("Builder: Tidied output folder(s), deleted 1 .class files"); //$NON-NLS-1$
+					.numberOfEntriesForMessage("Builder: Tidied output folder(s), removed class files and derived resources"); //$NON-NLS-1$
 
 			binC = binPack.getFile("C.class"); //$NON-NLS-1$
 			assertTrue("class file should exist", binC.exists()); //$NON-NLS-1$
 
+			Utils.setAutobuilding(false);
 			project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 			// testing the same steps are taken during a clean as they
 			// are in the javaBuilder part of bug 101481
 			assertTrue(
-					"should have deleted 1 class file from the output dir", //$NON-NLS-1$
-					testLog
-							.containsMessage("Builder: Tidied output folder(s), deleted 1 .class files")); //$NON-NLS-1$
+					"should have should have cleaned the output folder", //$NON-NLS-1$
+					bin.members().length == 0);
 			assertTrue(
 					"should have removed problems and tasks for the project", //$NON-NLS-1$
-					testLog
-							.containsMessage("Removed problems and tasks for project")); //$NON-NLS-1$
+					testLog.containsMessage("Removed problems and tasks for project")); //$NON-NLS-1$
 			assertEquals(
 					"should have cleaned output folder " + (n + 1) + "times", //$NON-NLS-1$ //$NON-NLS-2$
 					n + 1,
-					testLog
-							.numberOfEntriesForMessage("Builder: Tidied output folder(s), deleted 1 .class files")); //$NON-NLS-1$
+					testLog.numberOfEntriesForMessage("Builder: Tidied output folder(s), removed class files and derived resources")); //$NON-NLS-1$
 			assertFalse("bin directory should not contain class file", //$NON-NLS-1$
 					outputDirContainsFile(project, "pack", "C.class")); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -166,11 +165,13 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 
 		File outputDir = new File(realOutputLocation + File.separator
 				+ packageName);
-		File[] outputFiles = outputDir.listFiles();
-		for (int i = 0; i < outputFiles.length; i++) {
-			if (outputFiles[i].getName().equals(fileName)) {
-				return true;
-			}
+		if (outputDir.exists()) {
+    		File[] outputFiles = outputDir.listFiles();
+    		for (int i = 0; i < outputFiles.length; i++) {
+    			if (outputFiles[i].getName().equals(fileName)) {
+    				return true;
+    			}
+    		}
 		}
 		return false;
 	}
@@ -212,25 +213,22 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				"class file Demo.class should NOT exist in bin2", binC.exists()); //$NON-NLS-1$
 
 		// now test that cleaning the project cleans both folders
+		Utils.setAutobuilding(false);
 		project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
+		bin2.refreshLocal(IResource.DEPTH_INFINITE, null);
 		assertTrue(
-				"should have deleted 4 class file from the output dirs", //$NON-NLS-1$
-				testLog
-						.containsMessage("Builder: Tidied output folder(s), deleted 4 .class files")); //$NON-NLS-1$
-
-		binPack.refreshLocal(IResource.DEPTH_INFINITE, null);
-		binC = binPack.getFile("Demo.class"); //$NON-NLS-1$
-		assertFalse(
-				"class file Demo.class should no longer exist in bin", binC.exists()); //$NON-NLS-1$
-
-		bin2Pack.refreshLocal(IResource.DEPTH_INFINITE, null);
-		bin2C = bin2Pack.getFile("GetInfo.class"); //$NON-NLS-1$
-		assertFalse(
-				"class file GetInfo.class should no longer exist in bin2", bin2C.exists()); //$NON-NLS-1$
+				"should not have any files in the bin2 folder", //$NON-NLS-1$
+				bin2.members().length == 0);
+		
+		bin.refreshLocal(IResource.DEPTH_INFINITE, null);
+		assertTrue(
+		        "should not have any files in the bin2 folder", //$NON-NLS-1$
+		        bin.members().length == 0);
 	}
 
 	public void testBug153682() throws Exception {
+        Utils.setAutobuilding(false);
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
@@ -253,14 +251,9 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
 		assertTrue(
-				"should have deleted 1 class file from the output dirs", //$NON-NLS-1$
-				testLog
-						.containsMessage("Builder: Tidied output folder(s), deleted 1 .class files")); //$NON-NLS-1$
+				"should have have cleaned the output folder", //$NON-NLS-1$
+				bin.members().length == 0);
 
-		binPack.refreshLocal(IResource.DEPTH_INFINITE, null);
-		binC = binPack.getFile("Test.class"); //$NON-NLS-1$
-		assertFalse(
-				"class file Demo.class should no longer exist in bin", binC.exists()); //$NON-NLS-1$
 	}
 
 	public void testIncrementalBuildWithSrcFolder() throws Exception {
