@@ -52,7 +52,7 @@
          <action
                label="%convertToAJP"
                class="org.eclipse.ajdt.internal.ui.actions.AddAJNatureAction"
-               menubarPath="org.eclipse.ajdt.ui.project.tools/group0"
+               menubarPath="org.eclipse.ui.projectConfigure/additions"
                id="addajnatureaction">
          </action>
       </objectContribution>
@@ -1548,6 +1548,11 @@ M4 = Platform-specific fourth key
             class="org.eclipse.ajdt.internal.ui.editor.quickfix.AJQuickFixProcessor"
             id="org.eclipse.ajdt.ui.editor.quickfix.AJQuickFixProcessor">
       </quickFixProcessor>
+      <quickFixProcessor
+            class="org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor"
+            id="org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor"
+            name="%javaQuickFixProcessor">
+      </quickFixProcessor>
     </extension>
   
   <!-- Launching extensions -->  
@@ -1931,22 +1936,25 @@ M4 = Platform-specific fourth key
         </viewerContentBinding>
      </extension>
      <extension
+           point="org.eclipse.contribution.weaving.jdt.imagedescriptorselector">
+        <selector
+              class="org.eclipse.ajdt.internal.ui.resources.AJImageDescriptorSelector">
+        </selector>
+     </extension>  
+     <extension
            point="org.eclipse.ui.editors.documentProviders">
         <provider
-              class="org.eclipse.ajdt.internal.ui.editor.AJCompiltionUnitDocumentProvider"
+              class="org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider"
               extensions="aj"
               id="org.eclipse.ajdt.ui.provider">
         </provider>
-     </extension>  
-
-<!-- EXPERIMENTAL (for debugging purposes only)
-  <extension point="org.eclipse.ui.views">
-    <view name="Structure Model" 
-    	icon="icons/editor.gif" 
-    	category="org.eclipse.ajdt.ui.cat" 
-    	class="org.eclipse.ajdt.internal.ui.ajde.StructureModelView" 
-    	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
-  </extension>
--->
-
+     </extension>
+     <extension
+           point="org.eclipse.ui.console.consoleFactories">
+        <consoleFactory
+              class="org.eclipse.ajdt.internal.ui.tracing.AJDTConsoleFactory"
+              icon="icons/actions/perspective.gif"
+              label="AJDT Console">
+        </consoleFactory>
+     </extension>
 </plugin>
