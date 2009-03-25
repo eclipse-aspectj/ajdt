@@ -13,7 +13,6 @@
 package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -369,7 +368,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		return null;
 	}
 
-	public void reportFileRemove(String outFileStr, int filetype) {
+	public void reportFileRemove(String outFileStr, int fileType) {
         for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
             Map.Entry entry = (Map.Entry) pathIter.next();
             String outFolderStr = (String)entry.getKey();
@@ -378,7 +377,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
                 try {
                     outFile.refreshLocal(IResource.DEPTH_ZERO, null);
-                    System.out.println("Delete: " + outFile);
                     return;
                 } catch (CoreException e) {
                 }
@@ -387,7 +385,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	}
 
-	public void reportFileWrite(String outFileStr, int filetype) {
+	public void reportFileWrite(String outFileStr, int fileType) {
 	    try {
             outer:
             for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
@@ -398,7 +396,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                     IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
                     
                     outFile.refreshLocal(IResource.DEPTH_ZERO, null);
-                    System.out.println("Create: " + outFile);
                     
                     if (outFile.exists()) {
                         outFile.setDerived(true);
@@ -443,6 +440,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public IProject findDeclaringProject(File outputFolder) {
 	    return null;
 	}
+
 
 	/**
 	 * Aim of this callback from the compiler is to ask Eclipse if it knows which project has the 

@@ -15,7 +15,6 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
@@ -84,11 +83,11 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	 * a class file
 	 */
 	public boolean isBinaryType() {
-	    if (((IType) getHandle()).getTypeRoot().getElementType() == IJavaElement.CLASS_FILE) {
-	        return true;
-	    } else {
+//	    if (((IType) getHandle()).getTypeRoot().getElementType() == IJavaElement.CLASS_FILE) {
+//	        return true;
+//	    } else {
 	        return false;
-	    }
+//	    }
 	}
 	
 	/* (non-Javadoc)

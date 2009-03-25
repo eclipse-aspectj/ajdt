@@ -23,6 +23,8 @@ import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
@@ -63,6 +65,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	}
 	
     protected Object createElementInfo() {
+        
         AspectElementInfo info = new AspectElementInfo();
         info.setAJKind(IProgramElement.Kind.ASPECT);
         info.setHandle(this);
@@ -80,8 +83,6 @@ public class AspectElement extends SourceType implements IAspectJElement {
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
             // info.setPrivileged(???);  not setting this yet
         }
-        
-        
         return info;
     }
 
@@ -408,20 +409,20 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
 	
-	   static Field modfiersField = null;
-	    static int getProgramElementModifiers(IProgramElement ipe) {
-	        try {
-	            if (modfiersField == null) {
-	                modfiersField = ProgramElement.class.getDeclaredField("modifiers");
-	                modfiersField.setAccessible(true);
-	            }
-	            return modfiersField.getInt(ipe);
-	        } catch (SecurityException e) {
-	        } catch (IllegalArgumentException e) {
-	        } catch (NoSuchFieldException e) {
-	        } catch (IllegalAccessException e) {
-	        }
-	        return -1;
-	    }
-
+   static Field modfiersField = null;
+    static int getProgramElementModifiers(IProgramElement ipe) {
+        try {
+            if (modfiersField == null) {
+                modfiersField = ProgramElement.class.getDeclaredField("modifiers");
+                modfiersField.setAccessible(true);
+            }
+            return modfiersField.getInt(ipe);
+        } catch (SecurityException e) {
+        } catch (IllegalArgumentException e) {
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+        return -1;
+    }
+    
 }

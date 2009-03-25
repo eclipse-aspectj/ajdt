@@ -25,7 +25,8 @@ import org.eclipse.jdt.internal.core.JavaElement;
 public class DeclareElement extends AspectJMemberElement{
 	
 	public DeclareElement(JavaElement parent, String name, String[] parameterTypes) {
-		super(parent, name, parameterTypes);
+	    // bug 267417 declare error and declare warning should not have message in its name
+		super(parent, trimName(name), parameterTypes);
 	}
 	
 	/**
@@ -80,8 +81,7 @@ public class DeclareElement extends AspectJMemberElement{
         return IProgramElement.Kind.ERROR;
     }
 
-//   public String getHandleIdentifier() {
-//       return super.getHandleIdentifier() + AspectElement.JEM_EXTRA_INFO + 
-//           ((DeclareElementInfo) createElementInfo()).getSourceRange().getOffset();
-//   }
+   private static String trimName(String name) {
+       return name == null ? null : name.split(":")[0];
+   }
 }

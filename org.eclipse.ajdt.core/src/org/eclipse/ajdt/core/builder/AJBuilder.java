@@ -226,10 +226,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// compilation is done
 		// ----------------------------------------
 
-		// bug 268827---no longer doing refresh after build
-//        AJLog.logStart("Refresh after build");
-//		doRefreshAfterBuild(project, dependingProjects, javaProject);
-//        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
+        AJLog.logStart("Refresh after build");
+		doRefreshAfterBuild(project, dependingProjects, javaProject);
+        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
 		
 		// do the cleanup
 		// bug 107027
@@ -410,52 +409,26 @@ public class AJBuilder extends IncrementalProjectBuilder {
     }
 
     /**
-	 * Refreshes the project's out folders after a build
-	 * try to be as precise as possible because this can be a time consuming task 
-	 * 
-	 * A full refresh to infinite depth is required is when a Java project depends on
-     * us - without an full refresh, it won't detect the class files written
-     * by AJC.
-     * 
-     * In other cases, use the output location manager to determine the folders
-     * that have changes in them and refresh only those folders
+	 * need to refresh the outjar and the inpath outjar
 	 */
-	// XXX don't know if this is necessary any more.
-	// since out folder is being refreshed when files are marked as derived.
-	// See CoreOutputLocationManager.reportClassFileWrite
-//    private void doRefreshAfterBuild(IProject project,
-//            IProject[] dependingProjects, IJavaProject javaProject)
-//            throws CoreException {
-//        
-//		boolean javaDep = false;
-//		for (int i = 0; !javaDep && (i < dependingProjects.length); i++) {
-//			if (dependingProjects[i].hasNature(JavaCore.NATURE_ID)) {
-//				javaDep = true;
-//			}
-//		}
-//		try {
-//			if (javaDep) {
-//				project.refreshLocal(IResource.DEPTH_INFINITE, null);
-//			} else {
-//			    // bug 101481 - need to refresh the output directory
-//			    // so that the compiled classes can be found
-//				IPath[] paths = CoreUtils.getOutputFolders(javaProject);
-//				for (int i = 0; i < paths.length; i++) {
-//					IPath workspaceRelativeOutputPath = paths[i];
-//					if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-//						// root
-//						project.refreshLocal(IResource.DEPTH_INFINITE, null);
-//					} else {
-//						IFolder out = ResourcesPlugin.getWorkspace().getRoot()
-//								.getFolder(workspaceRelativeOutputPath);
-//						out.refreshLocal(IResource.DEPTH_INFINITE, null);
-//						project.refreshLocal(IResource.DEPTH_ONE, null);
-//					}
-//				}
-//			}
-//		} catch (CoreException e) {
-//		}
-//    }
+    // bug 269604---refresh after build is greatly reduced in scope
+    private void doRefreshAfterBuild(IProject project,
+            IProject[] dependingProjects, IJavaProject javaProject) {
+        try {
+            String outjarStr = AspectJCorePreferences.getProjectOutJar(project);
+            if (outjarStr != null && outjarStr.length() > 0) {
+                IFile file = project.getFile(outjarStr);
+                file.refreshLocal(IResource.DEPTH_ZERO, null);
+            }
+            
+            String inpathOutjarStr = AspectJCorePreferences.getProjectInpathOutFolder(project);
+            if (inpathOutjarStr != null && inpathOutjarStr.length() > 0) {
+                IFile file = project.getFile(inpathOutjarStr);
+                file.refreshLocal(IResource.DEPTH_ZERO, null);
+            }
+        } catch (CoreException e) {
+        }
+    }
 
     private boolean hasValidPreviousBuildConfig(String configId) {
         AjState state = IncrementalStateManager.retrieveStateFor(configId);
