@@ -421,10 +421,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 file.refreshLocal(IResource.DEPTH_ZERO, null);
             }
             
-            String inpathOutjarStr = AspectJCorePreferences.getProjectInpathOutFolder(project);
-            if (inpathOutjarStr != null && inpathOutjarStr.length() > 0) {
-                IFile file = project.getFile(inpathOutjarStr);
-                file.refreshLocal(IResource.DEPTH_ZERO, null);
+            String inpathOutFolderStr = AspectJCorePreferences.getProjectInpathOutFolder(project);
+            if (inpathOutFolderStr != null && inpathOutFolderStr.length() > 0) {
+                // hmmmm...doesn't seem like inpath out folders are refreshed on write
+                IFolder folder = project.getWorkspace().getRoot().getFolder(new Path(inpathOutFolderStr));
+                folder.refreshLocal(IResource.DEPTH_INFINITE, null);
             }
         } catch (CoreException e) {
         }
