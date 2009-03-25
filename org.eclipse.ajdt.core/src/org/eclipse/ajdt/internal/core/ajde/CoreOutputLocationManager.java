@@ -40,6 +40,9 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.builder.State;
+import org.eclipse.jdt.internal.core.builder.StringSet;
 
 /**
  * IOutputLocationManager implementation which uses the methods on IJavaProject
@@ -73,7 +76,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// This class is about output locations.
 	// I am waiting for an extension to the compiler so
 	// that I can grab this information directly.
-	// NO LONGER MANAGING THIS
 	private Set /*String*/ touchedCUs = new HashSet();
 	
 	private boolean outputIsRoot;
@@ -366,52 +368,204 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		return null;
 	}
 
-	public void reportClassFileWrite(String outFileStr) {
-	    try {
-            outer:
-            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-                Map.Entry entry = (Map.Entry) pathIter.next();
-                String outFolderStr = (String)entry.getKey();
-                if (outFileStr.startsWith(outFolderStr)) {
-                    IContainer outFolder = (IContainer) entry.getValue();
-                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
-                    
-                    if (! outFile.exists()) {
-                        outFile.refreshLocal(0, null);
-                    }
-                    
-                    if (outFile.exists()) {
-                        outFile.setDerived(true);
-                        
-                        String pathFromProject;
-                        IPath projectPath = project.getLocation();
-                        IPath outFilePath = new Path(outFileStr);
-                        if (projectPath.isPrefixOf(outFilePath)) {
-                            pathFromProject = outFilePath.removeFirstSegments(
-                                    projectPath.segmentCount()).makeRelative().toPortableString();
-                        } else {
-                            // location is outside of the workspace
-                            pathFromProject = outFileStr;
-                        }
-                        
-                        // only do this if output is not a source folder
-                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
-                            IContainer parent = outFile.getParent();
-                            inner:
-                            while (! parent.equals(outFolder) ) {
-                                parent.setDerived(true);
-                                parent = parent.getParent();
-                                if (parent == null) {
-                                    break inner;
-                                }
-                            }
-                        }
-                        break outer;
-                    }
+	public void reportFileRemove(String outFileStr, int fileType) {
+        for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+            Map.Entry entry = (Map.Entry) pathIter.next();
+            String outFolderStr = (String)entry.getKey();
+            if (outFileStr.startsWith(outFolderStr)) {
+                IContainer outFolder = (IContainer) entry.getValue();
+                IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+                try {
+                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+                    return;
+                } catch (CoreException e) {
                 }
-                
             }
-        } catch (CoreException e) {
         }
+
 	}
+
+//	public void reportFileWrite(String outFileStr, int fileType) {
+//	    try {
+//            outer:
+//            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+//                Map.Entry entry = (Map.Entry) pathIter.next();
+//                String outFolderStr = (String)entry.getKey();
+//                if (outFileStr.startsWith(outFolderStr)) {
+//                    IContainer outFolder = (IContainer) entry.getValue();
+//                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+//                    
+//                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+//                    
+//                    if (outFile.exists()) {
+//                        outFile.setDerived(true);
+//                        
+//                        String pathFromProject;
+//                        IPath projectPath = project.getLocation();
+//                        IPath outFilePath = new Path(outFileStr);
+//                        if (projectPath.isPrefixOf(outFilePath)) {
+//                            pathFromProject = outFilePath.removeFirstSegments(
+//                                    projectPath.segmentCount()).makeRelative().toPortableString();
+//                        } else {
+//                            // location is outside of the workspace
+//                            pathFromProject = outFileStr;
+//                        }
+//                        
+//                        // only do this if output is not a source folder
+//                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
+//                            IContainer parent = outFile.getParent();
+//                            inner:
+//                            while (! parent.equals(outFolder) ) {
+//                                parent.setDerived(true);
+//                                parent = parent.getParent();
+//                                if (parent == null) {
+//                                    break inner;
+//                                }
+//                            }
+//                        }
+//                        break outer;
+//                    }
+//                }
+//                
+//            }
+//        } catch (CoreException e) {
+//        }
+//	}
+//	
+	public void reportFileWrite(String outFileStr, int fileType) {
+	    try {
+	        outer:
+	        for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+	            Map.Entry entry = (Map.Entry) pathIter.next();
+	            String outFolderStr = (String)entry.getKey();
+	            if (outFileStr.startsWith(outFolderStr)) {
+	                IContainer outFolder = (IContainer) entry.getValue();
+	                IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+	                
+	                outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+	                
+	                if (outFile.exists()) {
+	                    String pathFromProject;
+	                    IPath projectPath = project.getLocation();
+	                    IPath outFilePath = new Path(outFileStr);
+	                    if (projectPath.isPrefixOf(outFilePath)) {
+	                        pathFromProject = outFilePath.removeFirstSegments(
+	                                projectPath.segmentCount()).makeRelative().toPortableString();
+	                    } else {
+	                        // location is outside of the workspace
+	                        pathFromProject = outFileStr;
+	                    }
+	                    
+	                    // if this is a resource whose source folder and out folder are the same,
+	                    // do not mark as derived
+	                    boolean outputIsSourceFolder = isOutFolderASourceFolder(outFolder);
+	                    if (! isResourceInSourceFolder(outFile, outputIsSourceFolder)) {
+	                        outFile.setDerived(true);
+	                    }
+	                    
+	                    // only do this if output is not a source folder
+	                    if (!outputIsSourceFolder) {
+	                        IContainer parent = outFile.getParent();
+	                        inner:
+	                        while (! parent.equals(outFolder) ) {
+	                            parent.setDerived(true);
+	                            parent = parent.getParent();
+	                            if (parent == null) {
+	                                break inner;
+	                            }
+	                        }
+	                    }
+	                    break outer;
+	                }
+	            }
+	            
+	        }
+	    } catch (CoreException e) {
+	    }
+	}
+
+private boolean isResourceInSourceFolder(IFile outFile,
+        boolean outputIsSourceFolder) {
+    return !(outFile.getFileExtension() != null && outFile.getFileExtension().equals("class"))
+            && outputIsSourceFolder;
+}
+
+private boolean isOutFolderASourceFolder(IContainer outFolder) {
+    return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toOSString());
+}
+	
+	/**
+	 * Return the Java project that has outputFolder as an output location, or null if it is
+	 * not recognized.
+	 */
+	public IProject findDeclaringProject(File outputFolder) {
+	    return null;
+	}
+
+
+	/**
+	 * Aim of this callback from the compiler is to ask Eclipse if it knows which project has the 
+	 * supplied directory as an output folder, and if that can be determined then look at the 
+	 * last structural build time of that project and any structurally changed types since that
+	 * build time.  If it doesn't look like anything has changed since the supplied buildtime then
+	 * we assume that means nothing changed in the directory and so do not need to check the time
+	 * stamp of each file within it.
+	 * 
+	 * This method does nothing more than a rudimentary analysis - if there are changes then it does
+	 * not currently attempt to determine if they are interesting (ie. whether they are changes to 
+	 * types that the compiler asking the question depends upon).
+	 */
+	public int discoverChangesSince(File dir, long buildtime) {
+		IProject project = findDeclaringProject(dir);
+		// Andys hack to find the project
+//		if (project == null) {
+//			IProject[] ps;
+//			try {
+//				ps = this.project.getReferencedProjects();
+//			if (ps!=null) {
+//			for (int i=0;i<ps.length;i++) {
+//				if (ps[i].getName().equals("org.aspectj.ajdt.core")) {
+//					project = ps[i];
+//				}
+//			}
+//			}
+//			} catch (CoreException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		try {
+			if (project!=null) {
+	            Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);
+	            if (s != null && s instanceof State) {
+	                State state = (State) s;
+	                if (lastStructuralBuildTimeField == null) {
+	                    lastStructuralBuildTimeField = State.class.getDeclaredField("lastStructuralBuildTime");
+	                    lastStructuralBuildTimeField.setAccessible(true);
+	                }
+	                if (structurallyChangedTypesField == null) {
+	                	structurallyChangedTypesField = State.class.getDeclaredField("structurallyChangedTypes");
+	                	structurallyChangedTypesField.setAccessible(true);
+	                }
+	                long dependeeTime = lastStructuralBuildTimeField.getLong(state);
+	                if (dependeeTime<buildtime) {
+	                	StringSet changes = (StringSet)structurallyChangedTypesField.get(state);
+	                	// this test isn't quite right... but it basically works
+	                    if (changes==null || changes.elementSize==0) {
+	                    	return 1; // no changes at all (doesnt determine whether they are of interest)
+	                    }
+	                }
+	            }
+			}
+		} catch (Throwable t) {
+			System.err.println("Problem accessing state for project "+project);
+			t.printStackTrace();
+		}
+		return 0; // DONTKNOW - this will cause the caller to do the .class modtime tests
+	}
+	
+	// Cached for performance reasons
+	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
+	private java.lang.reflect.Field structurallyChangedTypesField = null;
+	
 }
