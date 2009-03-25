@@ -101,7 +101,7 @@ public class AspectElementTests extends AJDTCoreTestCase {
 		assertTrue(
 				"AspectElement.getDeclares() should return exactly one declare element", declares.length == 1); //$NON-NLS-1$
 		assertEquals(
-				"AspectElement.getDeclares() should return a declare element with the correct name", declares[0].getElementName(), "declare warning: \"call to update\""); //$NON-NLS-1$//$NON-NLS-2$
+				"AspectElement.getDeclares() should return a declare element with the correct name", declares[0].getElementName(), "declare warning"); //$NON-NLS-1$//$NON-NLS-2$
 	}
 
 	/**

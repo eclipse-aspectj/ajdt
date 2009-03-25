@@ -158,7 +158,6 @@ public class AJModelTest4 extends AJDTCoreTestCase {
                 IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
                 checkAJHandle(ipe.getHandleIdentifier(), otherModel);
             }
-            throw new NullPointerException();
         } catch (Exception e) {
             accumulatedErrors.add("Error thrown on: " + origAjHandle);
             accumulatedErrors.add(e.toString());
