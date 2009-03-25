@@ -16,6 +16,7 @@ import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
+import org.eclipse.jdt.internal.core.BasicCompilationUnit;
 
 public aspect SourceTransformerAspect {
     
@@ -41,7 +42,7 @@ public aspect SourceTransformerAspect {
         // mocking up binary code
         // not sure if this should stay
         // this means that binary asoects look transformed, but they also don't have structure
-//        if (! (sourceUnit instanceof BasicCompilationUnit)) {
+        if (! (sourceUnit instanceof BasicCompilationUnit)) {
             String extension = getExtension(sourceUnit);
             ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
             if (transformer != null) {
@@ -53,7 +54,7 @@ public aspect SourceTransformerAspect {
                     JDTWeavingPlugin.logException(t);
                 }
             }
-//        }
+        }
         proceed(sourceString, sourceUnit);
     }
     
