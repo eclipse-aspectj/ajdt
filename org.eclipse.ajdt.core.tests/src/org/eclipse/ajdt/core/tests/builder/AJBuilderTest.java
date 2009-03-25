@@ -107,7 +107,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 			assertTrue("project should have errors", testLog //$NON-NLS-1$
-					.containsMessage("error at blah blah blah")); //$NON-NLS-1$
+					.containsMessage("error at")); //$NON-NLS-1$
 			assertTrue("bin directory should contain class file", //$NON-NLS-1$
 					outputDirContainsFile(project, "pack", "C.class")); //$NON-NLS-1$ //$NON-NLS-2$
 			assertFalse(
