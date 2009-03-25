@@ -385,53 +385,114 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	}
 
+//	public void reportFileWrite(String outFileStr, int fileType) {
+//	    try {
+//            outer:
+//            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+//                Map.Entry entry = (Map.Entry) pathIter.next();
+//                String outFolderStr = (String)entry.getKey();
+//                if (outFileStr.startsWith(outFolderStr)) {
+//                    IContainer outFolder = (IContainer) entry.getValue();
+//                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+//                    
+//                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+//                    
+//                    if (outFile.exists()) {
+//                        outFile.setDerived(true);
+//                        
+//                        String pathFromProject;
+//                        IPath projectPath = project.getLocation();
+//                        IPath outFilePath = new Path(outFileStr);
+//                        if (projectPath.isPrefixOf(outFilePath)) {
+//                            pathFromProject = outFilePath.removeFirstSegments(
+//                                    projectPath.segmentCount()).makeRelative().toPortableString();
+//                        } else {
+//                            // location is outside of the workspace
+//                            pathFromProject = outFileStr;
+//                        }
+//                        
+//                        // only do this if output is not a source folder
+//                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
+//                            IContainer parent = outFile.getParent();
+//                            inner:
+//                            while (! parent.equals(outFolder) ) {
+//                                parent.setDerived(true);
+//                                parent = parent.getParent();
+//                                if (parent == null) {
+//                                    break inner;
+//                                }
+//                            }
+//                        }
+//                        break outer;
+//                    }
+//                }
+//                
+//            }
+//        } catch (CoreException e) {
+//        }
+//	}
+//	
 	public void reportFileWrite(String outFileStr, int fileType) {
 	    try {
-            outer:
-            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-                Map.Entry entry = (Map.Entry) pathIter.next();
-                String outFolderStr = (String)entry.getKey();
-                if (outFileStr.startsWith(outFolderStr)) {
-                    IContainer outFolder = (IContainer) entry.getValue();
-                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
-                    
-                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
-                    
-                    if (outFile.exists()) {
-                        outFile.setDerived(true);
-                        
-                        String pathFromProject;
-                        IPath projectPath = project.getLocation();
-                        IPath outFilePath = new Path(outFileStr);
-                        if (projectPath.isPrefixOf(outFilePath)) {
-                            pathFromProject = outFilePath.removeFirstSegments(
-                                    projectPath.segmentCount()).makeRelative().toPortableString();
-                        } else {
-                            // location is outside of the workspace
-                            pathFromProject = outFileStr;
-                        }
-                        
-                        // only do this if output is not a source folder
-                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
-                            IContainer parent = outFile.getParent();
-                            inner:
-                            while (! parent.equals(outFolder) ) {
-                                parent.setDerived(true);
-                                parent = parent.getParent();
-                                if (parent == null) {
-                                    break inner;
-                                }
-                            }
-                        }
-                        break outer;
-                    }
-                }
-                
-            }
-        } catch (CoreException e) {
-        }
+	        outer:
+	        for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
+	            Map.Entry entry = (Map.Entry) pathIter.next();
+	            String outFolderStr = (String)entry.getKey();
+	            if (outFileStr.startsWith(outFolderStr)) {
+	                IContainer outFolder = (IContainer) entry.getValue();
+	                IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
+	                
+	                outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+	                
+	                if (outFile.exists()) {
+	                    String pathFromProject;
+	                    IPath projectPath = project.getLocation();
+	                    IPath outFilePath = new Path(outFileStr);
+	                    if (projectPath.isPrefixOf(outFilePath)) {
+	                        pathFromProject = outFilePath.removeFirstSegments(
+	                                projectPath.segmentCount()).makeRelative().toPortableString();
+	                    } else {
+	                        // location is outside of the workspace
+	                        pathFromProject = outFileStr;
+	                    }
+	                    
+	                    // if this is a resource whose source folder and out folder are the same,
+	                    // do not mark as derived
+	                    boolean outputIsSourceFolder = isOutFolderASourceFolder(outFolder);
+	                    if (! isResourceInSourceFolder(outFile, outputIsSourceFolder)) {
+	                        outFile.setDerived(true);
+	                    }
+	                    
+	                    // only do this if output is not a source folder
+	                    if (!outputIsSourceFolder) {
+	                        IContainer parent = outFile.getParent();
+	                        inner:
+	                        while (! parent.equals(outFolder) ) {
+	                            parent.setDerived(true);
+	                            parent = parent.getParent();
+	                            if (parent == null) {
+	                                break inner;
+	                            }
+	                        }
+	                    }
+	                    break outer;
+	                }
+	            }
+	            
+	        }
+	    } catch (CoreException e) {
+	    }
 	}
-	
+
+private boolean isResourceInSourceFolder(IFile outFile,
+        boolean outputIsSourceFolder) {
+    return !(outFile.getFileExtension() != null && outFile.getFileExtension().equals("class"))
+            && outputIsSourceFolder;
+}
+
+private boolean isOutFolderASourceFolder(IContainer outFolder) {
+    return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toOSString());
+}
 	
 	/**
 	 * Return the Java project that has outputFolder as an output location, or null if it is
