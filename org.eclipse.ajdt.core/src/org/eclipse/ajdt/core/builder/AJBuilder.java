@@ -423,7 +423,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             
             String inpathOutFolderStr = AspectJCorePreferences.getProjectInpathOutFolder(project);
             if (inpathOutFolderStr != null && inpathOutFolderStr.length() > 0) {
-                // hmmmm...doesn't seem like inpath out folders are refreshed on write
+                // bug 269999 doesn't seem like inpath out folders are refreshed on write
                 IFolder folder = project.getWorkspace().getRoot().getFolder(new Path(inpathOutFolderStr));
                 folder.refreshLocal(IResource.DEPTH_INFINITE, null);
             }
