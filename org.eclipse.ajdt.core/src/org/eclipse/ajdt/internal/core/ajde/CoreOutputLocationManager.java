@@ -535,7 +535,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
             case IClasspathEntry.CPE_CONTAINER:
                 IClasspathContainer container = 
                     JavaCore.getClasspathContainer(cpe.getPath(), jp);
-                if (container != null) {
+                if (container != null && container.getKind() != IClasspathContainer.K_DEFAULT_SYSTEM) {
                     IClasspathEntry[] cpes = container.getClasspathEntries();
                     for (int i = 0; i < cpes.length; i++) {
                         handleClassPathEntry(jp, cpes[i]);
