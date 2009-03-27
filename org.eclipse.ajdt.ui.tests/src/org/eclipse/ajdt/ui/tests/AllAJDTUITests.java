@@ -48,6 +48,7 @@ import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests2;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests3;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests4;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests5;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
@@ -169,6 +170,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ContentAssistTests2.class));
         suite.addTest(new TestSuite(ContentAssistTests3.class));
         suite.addTest(new TestSuite(ContentAssistTests4.class));
+        suite.addTest(new TestSuite(ContentAssistTests5.class));
 		
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
