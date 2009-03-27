@@ -135,18 +135,18 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	private boolean projectAlreadyMarked(IProject project, String errorMessage) {
 		try {
-			IMarker[] problemMarkers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-					false, IResource.DEPTH_INFINITE);
+			IMarker[] problemMarkers = project.findMarkers(
+			        IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+					false, IResource.DEPTH_ZERO);
 			if (problemMarkers.length > 0) {
 				for (int j = 0; j < problemMarkers.length; j++) {
 					IMarker marker = problemMarkers[j];
-					int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
-							-1);
-					String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-							"no message"); //$NON-NLS-1$
-					if (markerSeverity == IMarker.SEVERITY_ERROR
-							&& markerMessage.equals(errorMessage)) {
-						return true;
+					int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+					String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+					if (markerSeverity == IMarker.SEVERITY_ERROR) {
+					    if (markerMessage.equals(errorMessage)) {
+					        return true;
+					    }
 					}
 				}
 			}
@@ -322,18 +322,18 @@ public class UIBuildListener implements IAJBuildListener {
 				IProject referencingProject = referencingProjects[i];
 				IMarker[] problemMarkers = referencingProject.findMarkers(
 						IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-						false, IResource.DEPTH_INFINITE);
+						false, IResource.DEPTH_ZERO);
 				if (problemMarkers.length > 0) {
 					for (int j = 0; j < problemMarkers.length; j++) {
 						IMarker marker = problemMarkers[j];
 						int markerSeverity = marker.getAttribute(
 								IMarker.SEVERITY, -1);
-						String markerMessage = marker.getAttribute(
-								IMarker.MESSAGE, "no message"); //$NON-NLS-1$
-
-						if (markerSeverity == IMarker.SEVERITY_ERROR
-								&& markerMessage.equals(errorMessage)) {
-							marker.delete();
+						if (markerSeverity == IMarker.SEVERITY_ERROR) {
+	                        String markerMessage = marker.getAttribute(
+	                                IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+	                        if (markerMessage.equals(errorMessage)) {
+	                            marker.delete();
+	                        }
 						}
 					}
 				}
