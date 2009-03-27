@@ -61,6 +61,8 @@ public class UpdateAJMarkers {
     private final AJProjectModelFacade model;
 	private final IProject project;
 	private final File[] sourceFiles;
+    private int fileCount;
+    private int markerCount;
 	
 	/**
 	 * To update markers for the entire project
@@ -71,6 +73,8 @@ public class UpdateAJMarkers {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = null;
+        this.fileCount = 0;
+        this.markerCount = 0;
     }
     /**
      * to update markers for the given files only.
@@ -94,7 +98,7 @@ public class UpdateAJMarkers {
             addMarkersForProject(monitor);
         }
         AJLog.logEnd(AJLog.BUILDER, "Create markers: " + project.getName(), "Finished creating markers for " + project.getName());
-        
+        AJLog.log(AJLog.BUILDER, "Created " + markerCount + " markers in " + fileCount + " files");
         return Status.OK_STATUS;
     }
 	
@@ -126,6 +130,7 @@ public class UpdateAJMarkers {
                                     subMonitor.subTask("Add markers for " + cus[k].getElementName());
                                     addMarkersForFile((ICompilationUnit) cus[k], ((ICompilationUnit) cus[k]).getResource());
                                     completedCUNames.add(resource.getName());
+                                    fileCount++;
                                 }
                             }
                         }
@@ -154,6 +159,7 @@ public class UpdateAJMarkers {
                 if (unit != null && unit.exists() && unit instanceof ICompilationUnit) {
                     subMonitor.subTask("Add markers for " + unit.getElementName());
                     addMarkersForFile((ICompilationUnit) unit, files[j]);
+                    fileCount++;
                 }
                 if (subMonitor.isCanceled()) {
                     throw new OperationCanceledException();
@@ -170,7 +176,8 @@ public class UpdateAJMarkers {
 	        model.getRelationshipsForFile(cu);
 	    for (Iterator annotationIter = annotationMap.entrySet().iterator(); annotationIter.hasNext();) {
             Entry entry = (Entry) annotationIter.next();
-            createMarker(resource, ((Integer) entry.getKey()).intValue(), (List) entry.getValue()); 
+            createMarker(resource, ((Integer) entry.getKey()).intValue(), (List) entry.getValue());
+            markerCount++;
         }
     }
 
