@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
+import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -59,6 +60,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	private File defaultOutput;
 	
 	private Map /*String,File*/ srcFolderToOutput = new HashMap();
+	
+	private Map /*File, IProject*/ binFolderToProject;
 	
 	// maps files in the file system to IFolders in the workspace
 	// this keeps track of output locations
@@ -445,16 +448,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	                outFile.refreshLocal(IResource.DEPTH_ZERO, null);
 	                
 	                if (outFile.exists()) {
-	                    String pathFromProject;
-	                    IPath projectPath = project.getLocation();
-	                    IPath outFilePath = new Path(outFileStr);
-	                    if (projectPath.isPrefixOf(outFilePath)) {
-	                        pathFromProject = outFilePath.removeFirstSegments(
-	                                projectPath.segmentCount()).makeRelative().toPortableString();
-	                    } else {
-	                        // location is outside of the workspace
-	                        pathFromProject = outFileStr;
-	                    }
 	                    
 	                    // if this is a resource whose source folder and out folder are the same,
 	                    // do not mark as derived
@@ -484,26 +477,120 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	    }
 	}
 
-private boolean isResourceInSourceFolder(IFile outFile,
-        boolean outputIsSourceFolder) {
-    return !(outFile.getFileExtension() != null && outFile.getFileExtension().equals("class"))
-            && outputIsSourceFolder;
-}
-
-private boolean isOutFolderASourceFolder(IContainer outFolder) {
-    return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toOSString());
-}
+    private boolean isResourceInSourceFolder(IFile outFile,
+            boolean outputIsSourceFolder) {
+        return !(outFile.getFileExtension() != null && outFile.getFileExtension().equals("class"))
+                && outputIsSourceFolder;
+    }
+    
+    private boolean isOutFolderASourceFolder(IContainer outFolder) {
+        return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toOSString());
+    }
 	
 	/**
 	 * Return the Java project that has outputFolder as an output location, or null if it is
 	 * not recognized.
+	 * 
+	 * This method can return null if outputFolder is not found 
+	 * in any declaring project
+	 * 
 	 */
-	public IProject findDeclaringProject(File outputFolder) {
-	    return null;
+	protected IProject findDeclaringProject(File outputFolder) {
+	    if (binFolderToProject == null) {
+	        initDeclaringProjectsMap();
+	    }
+	    return (IProject) binFolderToProject.get(outputFolder);
 	}
 
+	
+	
 
 	/**
+	 * Initialize the binFolderToProject map so that the map contains 
+	 * java.io.File -> IProject  where the file is an output location
+	 * and the project is where this output location is defined
+	 */
+	private void initDeclaringProjectsMap() {
+	    binFolderToProject = new HashMap();
+	    IJavaProject jp = jProject;
+        try {
+            mapProject(jp);
+        } catch (JavaModelException e) {
+        }
+    }
+
+    private void mapProject(IJavaProject jp) throws JavaModelException {
+        IClasspathEntry[] cpes = jp.getRawClasspath();
+        for (int i = 0; i < cpes.length; i++) {
+            if (cpes[i].isExported() || 
+                    cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE || 
+                    jp == jProject) {
+                handleClassPathEntry(jp, cpes[i]);
+            }
+        }
+    }
+
+    private void handleClassPathEntry(IJavaProject jp, IClasspathEntry cpe) throws JavaModelException {
+        switch (cpe.getEntryKind()) {
+            case IClasspathEntry.CPE_CONTAINER:
+                IClasspathContainer container = 
+                    JavaCore.getClasspathContainer(cpe.getPath(), jp);
+                if (container != null) {
+                    IClasspathEntry[] cpes = container.getClasspathEntries();
+                    for (int i = 0; i < cpes.length; i++) {
+                        handleClassPathEntry(jp, cpes[i]);
+                    }
+                }
+                break;
+            case IClasspathEntry.CPE_LIBRARY:
+                File libFile = pathToFile(cpe.getPath());
+                if (libFile != null && !binFolderToProject.containsKey(libFile)) {
+                    binFolderToProject.put(libFile, jp.getProject());
+                }
+                break;
+            case IClasspathEntry.CPE_PROJECT:
+                IJavaProject jpClasspath = pathToProject(cpe.getPath());
+                if (jpClasspath != null) {
+                    mapProject(jpClasspath);
+                }
+                break;
+                
+            case IClasspathEntry.CPE_SOURCE:
+                File outFile = pathToFile(cpe.getOutputLocation() == null ? jp.getOutputLocation() : cpe.getOutputLocation());
+                if (outFile != null && ! binFolderToProject.containsKey(outFile)) {
+                    binFolderToProject.put(outFile, jp.getProject());
+                }
+                break;
+            case IClasspathEntry.CPE_VARIABLE:
+                IClasspathEntry cpeResolved = JavaCore.getResolvedClasspathEntry(cpe);
+                if (cpeResolved != null) {
+                    handleClassPathEntry(jp, cpeResolved);
+                }
+                break;
+        }
+    }
+    
+    private IJavaProject pathToProject(IPath path) {
+        if (path != null && path.segmentCount() > 0) {
+            IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segments()[0]);
+            return JavaCore.create(p);
+        } else {
+            return null;
+        }
+    }
+
+    private File pathToFile(IPath path) {
+        IPath locPath = ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getLocation();
+        File f;
+        if (locPath != null) {
+            f = new File(locPath.toOSString());
+        } else {
+            f = new File(path.toOSString());
+        }
+        return f;
+    }
+
+    /**
 	 * Aim of this callback from the compiler is to ask Eclipse if it knows which project has the 
 	 * supplied directory as an output folder, and if that can be determined then look at the 
 	 * last structural build time of that project and any structurally changed types since that
@@ -530,7 +617,6 @@ private boolean isOutFolderASourceFolder(IContainer outFolder) {
 //			}
 //			}
 //			} catch (CoreException e) {
-//				// TODO Auto-generated catch block
 //				e.printStackTrace();
 //			}
 //		}
@@ -539,17 +625,9 @@ private boolean isOutFolderASourceFolder(IContainer outFolder) {
 	            Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);
 	            if (s != null && s instanceof State) {
 	                State state = (State) s;
-	                if (lastStructuralBuildTimeField == null) {
-	                    lastStructuralBuildTimeField = State.class.getDeclaredField("lastStructuralBuildTime");
-	                    lastStructuralBuildTimeField.setAccessible(true);
-	                }
-	                if (structurallyChangedTypesField == null) {
-	                	structurallyChangedTypesField = State.class.getDeclaredField("structurallyChangedTypes");
-	                	structurallyChangedTypesField.setAccessible(true);
-	                }
-	                long dependeeTime = lastStructuralBuildTimeField.getLong(state);
-	                if (dependeeTime<buildtime) {
-	                	StringSet changes = (StringSet)structurallyChangedTypesField.get(state);
+	                long dependeeTime = getLastStructuralBuildTime(state);
+	                if (dependeeTime < buildtime) {
+	                	StringSet changes = getStructurallyChangedTypes(state);
 	                	// this test isn't quite right... but it basically works
 	                    if (changes==null || changes.elementSize==0) {
 	                    	return 1; // no changes at all (doesnt determine whether they are of interest)
@@ -557,12 +635,29 @@ private boolean isOutFolderASourceFolder(IContainer outFolder) {
 	                }
 	            }
 			}
-		} catch (Throwable t) {
-			System.err.println("Problem accessing state for project "+project);
-			t.printStackTrace();
+		} catch (Exception e) {
 		}
 		return 0; // DONTKNOW - this will cause the caller to do the .class modtime tests
 	}
+
+	
+    private long getLastStructuralBuildTime(State state)
+            throws Exception {
+        if (lastStructuralBuildTimeField == null) {
+            lastStructuralBuildTimeField = State.class.getDeclaredField("lastStructuralBuildTime");
+            lastStructuralBuildTimeField.setAccessible(true);
+        }
+        return lastStructuralBuildTimeField.getLong(state);
+    }
+
+    private StringSet getStructurallyChangedTypes(State state)
+            throws Exception {
+        if (structurallyChangedTypesField == null) {
+            structurallyChangedTypesField = State.class.getDeclaredField("structurallyChangedTypes");
+            structurallyChangedTypesField.setAccessible(true);
+        }
+        return (StringSet)structurallyChangedTypesField.get(state);
+    }
 	
 	// Cached for performance reasons
 	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
