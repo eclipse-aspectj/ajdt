@@ -24,3 +24,4 @@ Bundle-Activator: org.eclipse.contribution.weaving.jdt.tests.JDTWeavingTestsPlug
 Bundle-ClassPath: jdtweavingtests.jar
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: org.eclipse.contribution.weaving.jdt.tests
+Bundle-Vendor: Eclipse AspectJ Development Tools
