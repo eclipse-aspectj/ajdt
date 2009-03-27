@@ -129,14 +129,14 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
         checkFileForDeclaringProject(base.getFolder("bin"), com, base);
         checkFileForDeclaringProject(base.getFolder("bin2"), com, base);
         checkFileForDeclaringProject(base.getFolder("binaryFolder"), com, base);
-        checkFileForDeclaringProject(base.getFile("myJar.jar"), com, base);
-        checkFileForDeclaringProject(base.getFile("myJarVar.jar"), com, base);
-        checkFileForDeclaringProject(base.getFile("myJarContainer.jar"), com, base);
+        checkFileForDeclaringProject(base.getFile("myJar.jar"), com, null);  // jar files are not included
+        checkFileForDeclaringProject(base.getFile("myJarVar.jar"), com, null);  // jar files are not included
+        checkFileForDeclaringProject(base.getFile("myJarContainer.jar"), com, null);  // jar files are not included
         checkFileForDeclaringProject(level1.getFolder("bin"), com, level1);
         checkFileForDeclaringProject(level1.getFolder("bin2"), com, level1);
         checkFileForDeclaringProject(level1.getFolder("binaryFolder"), com, level1);
         checkFileForDeclaringProject(level1.getFolder("notExported"), com, null);
-        checkFileForDeclaringProject(level1.getFile("myJar.jar"), com, level1);
+        checkFileForDeclaringProject(level1.getFile("myJar.jar"), com, null);  // jar files are not included
         checkFileForDeclaringProject(level2.getFolder("bin"), com, level2);
 	}
 	
