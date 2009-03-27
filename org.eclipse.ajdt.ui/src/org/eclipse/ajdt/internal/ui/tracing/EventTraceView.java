@@ -165,6 +165,10 @@ public class EventTraceView extends ViewPart
 		} else if ((category==AJLog.COMPILER) || (category==AJLog.COMPILER_PROGRESS)
 				|| (category==AJLog.COMPILER_MESSAGES)) {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_GREEN);
+        } else if (category==AJLog.PARSER) {
+            styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_CYAN);
+        } else if (category==AJLog.MODEL) {
+            styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_YELLOW);
 		} else {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_BLACK);
 		}

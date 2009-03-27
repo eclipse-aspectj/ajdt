@@ -405,7 +405,9 @@ public class UIMessages extends NLS {
 	public static String eventTrace_category_compiler_progress;
 	public static String eventTrace_category_compiler_messages;
 	public static String eventTrace_category_builder;
-	public static String eventTrace_category_builder_classpath;
+    public static String eventTrace_category_builder_classpath;
+    public static String eventTrace_category_parser;
+    public static String eventTrace_category_model;
 
 	public static String ManageBreakpointRulerAction_label;
 	public static String ManageBreakpointRulerAction_error_adding_message1;

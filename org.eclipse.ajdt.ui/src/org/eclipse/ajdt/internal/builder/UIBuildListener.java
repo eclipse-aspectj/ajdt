@@ -30,6 +30,7 @@ import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -226,9 +227,10 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 		 
 		// sanity check the model if the event trace viewer is open
-//		AJModelChecker.doModelCheckIfRequired(
-//		        AJProjectModelFactory.getInstance().getModelForProject(project));
-		
+		if (DebugTracing.DEBUG_MODEL) {
+    		AJModelChecker.doModelCheckIfRequired(
+    		        AJProjectModelFactory.getInstance().getModelForProject(project));
+		}		
 		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
@@ -236,7 +238,7 @@ public class UIBuildListener implements IAJBuildListener {
 			AspectJUIPlugin.getDefault().getDisplay().asyncExec(
 				new Runnable() {
 					public void run() {
-				        AJLog.logStart("Post compile");
+				        AJLog.logStart("Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
 
 				        // TODO: can we determine whether there were
 						// actually changes to the set of advised elements?
@@ -264,7 +266,7 @@ public class UIBuildListener implements IAJBuildListener {
     							}
     						}
     					}
-    			        AJLog.logEnd(AJLog.BUILDER, "Post compile");
+    			        AJLog.logEnd(AJLog.BUILDER, "Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
     				}
     			});
 		}
