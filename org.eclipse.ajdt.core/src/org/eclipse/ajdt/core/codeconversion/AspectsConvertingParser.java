@@ -505,11 +505,18 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     sb.append(type.isInterface() ? "interface " : "class ");
                     sb.append(typeName);
                     
-//                    ITypeParameter[] tParams = type.getTypeParameters();
-//                    if (tParams != null && tParams.length > 0) {
-//                        System.out.println(tParams[0]);xxxxxxxxxxxx
-//                    }
-//                    
+                    ITypeParameter[] tParams = type.getTypeParameters();
+                    if (tParams != null && tParams.length > 0) {
+                        sb.append(" <");
+                        for (int i = 0; i < tParams.length; i++) {
+                            if (i > 0) {
+                                sb.append(", ");
+                            }
+                            sb.append(tParams[i].getSource());
+                        }
+                        sb.append("> ");
+                    }
+                    
                     List[] declares = getDeclareExtendsImplements(type);
                     List declareExtends = declares[0];
                     List declareImplements = declares[1];
