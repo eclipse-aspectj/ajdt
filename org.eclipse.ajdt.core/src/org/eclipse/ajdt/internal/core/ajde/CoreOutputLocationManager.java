@@ -544,8 +544,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 break;
             case IClasspathEntry.CPE_LIBRARY:
                 File libFile = pathToFile(cpe.getPath());
-                if (libFile != null && !binFolderToProject.containsKey(libFile)) {
-                    binFolderToProject.put(libFile, jp.getProject());
+                if (libFile.isDirectory()) {  // ignore jar files
+                    if (libFile != null && !binFolderToProject.containsKey(libFile)) {
+                        binFolderToProject.put(libFile, jp.getProject());
+                    }
                 }
                 break;
             case IClasspathEntry.CPE_PROJECT:
