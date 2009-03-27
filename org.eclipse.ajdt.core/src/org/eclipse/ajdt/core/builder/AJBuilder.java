@@ -102,6 +102,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
 		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
 		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
+		
         AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
         AJLog.logStart("Pre compile");
 		AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
@@ -142,12 +143,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		// end of workaround
 		
+		AJLog.logStart("Flush included source file cache");
 		// Flush the list of included source files stored for this project
 		BuildConfig.flushIncludedSourceFileCache(project);
+        AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
 
 		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
 				compiler.getCompilerConfiguration();
 
+		
+        AJLog.logStart("Check delta");
 		// Check the delta - we only want to proceed if something relevant
 		// in this project has changed (a .java file, a .aj file or a 
 		// .lst file)
@@ -156,8 +161,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if(delta != null) {
 			copyResources(javaProject,delta);
 		}
+        AJLog.logEnd(AJLog.BUILDER, "Check delta");
 
 		if (kind != FULL_BUILD) {
+		    AJLog.logStart("Look for source/resource changes");
 		    if (!hasChangesAndMark(delta, project)) {
 		        
 				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file or classpath changes for project "  //$NON-NLS-1$
@@ -178,11 +185,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					// bug 107027
 					compilerConfig.flushClasspathCache();
 					postCallListeners(kind, true);
+	                AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
+	                AJLog.log(AJLog.BUILDER, "No source/resource changes found, exiting build");
 					AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 					progressMonitor.done();
 					return requiredProjects;						
 				}
 			}
+		    AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
 		}
 
 		migrateToRTContainerIfNecessary(javaProject);
@@ -1238,11 +1248,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * the compiler configuration 
 	 */
 	public boolean hasChangesAndMark(IResourceDelta delta, IProject project) {
+	    AJLog.logStart("Looking for and marking configurartion changes in " + project.getName());
 	    CoreCompilerConfiguration compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(project);
 	    boolean hasChanges = sourceFilesChanged(delta, project, compilerConfiguration);
 	    hasChanges |= classpathChanged(delta, compilerConfiguration);
 	    hasChanges |= manifestChanged(delta, compilerConfiguration);
 	    hasChanges |= projectSpecificSettingsChanged(delta, compilerConfiguration);
+        AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configurartion changes in " + project.getName());
+        AJLog.log(AJLog.BUILDER, "\tConfiguration changes found: " + hasChanges);  
 	    return hasChanges;
 	}
 	

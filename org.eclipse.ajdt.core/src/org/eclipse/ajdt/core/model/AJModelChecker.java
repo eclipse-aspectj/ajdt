@@ -46,8 +46,10 @@ public class AJModelChecker {
     
     public static void doModelCheckIfRequired(AJProjectModelFacade model) {
         if (shouldCheckModel()) {
+            AJLog.logStart("Model sanity check for: " + model.getProject().getName());
             List problems = internalCheckModel(model);
             logProblems(problems);
+            AJLog.logEnd(AJLog.MODEL, "Model sanity check for: " + model.getProject().getName());
         }
     }
     
@@ -60,16 +62,16 @@ public class AJModelChecker {
     
     private static void logProblems(List/*String*/ problems) {
         if (problems.size() == 0) {
-            AJLog.log(AJLog.BUILDER, "Crosscutting model sanity checked with no problems");
+            AJLog.log(AJLog.MODEL, "Crosscutting model sanity checked with no problems");
             return;
         }
         
-        AJLog.log(AJLog.BUILDER, "Crosscutting model sanity checked.  The following problems found:");
+        AJLog.log(AJLog.MODEL, "Crosscutting model sanity checked.  The following problems found:");
         for (Iterator probIter = problems.iterator(); probIter.hasNext();) {
             String problem = (String) probIter.next();
-            AJLog.log(problem);
+            AJLog.log(AJLog.MODEL, problem);
         }
-        AJLog.log(AJLog.BUILDER, "");
+        AJLog.log(AJLog.MODEL, "");
     }
     
     /**
