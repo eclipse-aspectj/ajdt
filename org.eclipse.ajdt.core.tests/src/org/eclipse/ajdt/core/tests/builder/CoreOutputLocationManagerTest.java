@@ -16,6 +16,15 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathContainer;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 
 public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 
@@ -91,4 +100,80 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
                 + " should end in InpathOut. Got: " + out1, out1.toString() //$NON-NLS-1$
                 .endsWith("InpathOut")); //$NON-NLS-1$
 	}
+	
+	
+	class MockCoreOutputLocationManager extends CoreOutputLocationManager {
+	    
+	    public MockCoreOutputLocationManager(IProject project) {
+            super(project);
+        }
+
+        // make accessible in this test
+	    protected IProject findDeclaringProject(File outputFolder) {
+	        return super.findDeclaringProject(outputFolder);
+	    }
+	}
+	
+	/**
+	 * tests {@link CoreOutputLocationManagaer#findDeclaringProject }
+	 */
+	public void testFindDeclaringProject() throws Exception {
+        IProject base = createPredefinedProject("FindDeclaringProjectBase");
+        IProject level1 = createPredefinedProject("FindDeclaringProjectLevel1");
+        IProject level2 = createPredefinedProject("FindDeclaringProjectLevel2");
+        createVariable(base);
+        createContainer(base);
+
+        MockCoreOutputLocationManager com = new MockCoreOutputLocationManager(base);
+        
+        checkFileForDeclaringProject(base.getFolder("bin"), com, base);
+        checkFileForDeclaringProject(base.getFolder("bin2"), com, base);
+        checkFileForDeclaringProject(base.getFolder("binaryFolder"), com, base);
+        checkFileForDeclaringProject(base.getFile("myJar.jar"), com, base);
+        checkFileForDeclaringProject(base.getFile("myJarVar.jar"), com, base);
+        checkFileForDeclaringProject(base.getFile("myJarContainer.jar"), com, base);
+        checkFileForDeclaringProject(level1.getFolder("bin"), com, level1);
+        checkFileForDeclaringProject(level1.getFolder("bin2"), com, level1);
+        checkFileForDeclaringProject(level1.getFolder("binaryFolder"), com, level1);
+        checkFileForDeclaringProject(level1.getFolder("notExported"), com, null);
+        checkFileForDeclaringProject(level1.getFile("myJar.jar"), com, level1);
+        checkFileForDeclaringProject(level2.getFolder("bin"), com, level2);
+	}
+	
+	void checkFileForDeclaringProject(IResource resource, MockCoreOutputLocationManager com, IProject expected) {
+	    File file = new File(resource.getLocationURI());
+	    IProject actual = com.findDeclaringProject(file);
+	    assertEquals("wrong declaring project found for " + resource, expected, actual);
+	}
+	
+
+    private void createVariable(IProject base) throws JavaModelException {
+        JavaCore.setClasspathVariable("DECLARING_PARENT_VAR", 
+                base.getFile("myJarVar.jar").getFullPath(), null); //$NON-NLS-1$
+    }
+
+    private IClasspathContainer createContainer(IProject base) throws JavaModelException {
+        final IClasspathEntry entry = 
+            JavaCore.newLibraryEntry(
+                    base.getFile("myJarContainer.jar").getFullPath(), 
+                    null, null);
+
+        IClasspathContainer container = new IClasspathContainer() {
+            public IClasspathEntry[] getClasspathEntries() {
+                return new IClasspathEntry[] { entry };
+            }
+            public String getDescription() {
+                return "org.eclipse.jdt.USER_LIBRARY/DECLARING_PROJECT_CONTAINER"; //$NON-NLS-1$
+            }
+            public int getKind() {
+                  return IClasspathContainer.K_APPLICATION;
+            }
+            public IPath getPath() {
+                return new Path("org.eclipse.jdt.USER_LIBRARY/DECLARING_PROJECT_CONTAINER"); //$NON-NLS-1$
+            }
+        };
+        JavaCore.setClasspathContainer(container.getPath(), new IJavaProject[] { JavaCore.create(base) }, 
+                new IClasspathContainer[] { container }, null);
+        return container;
+    }
 }
