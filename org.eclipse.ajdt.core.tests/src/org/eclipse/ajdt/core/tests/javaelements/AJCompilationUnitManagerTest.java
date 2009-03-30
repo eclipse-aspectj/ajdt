@@ -11,9 +11,11 @@
 package org.eclipse.ajdt.core.tests.javaelements;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.jobs.Job;
 
 /**
  * 
@@ -45,13 +47,20 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 		
 		myProject.close(null);
 		
+		// wait for project to be closed
+		int counter = 0;
+		while (myProject.isOpen() && counter < 10) {
+		    System.out.println("Waiting for project to close");
+		    Utils.sleep(1000);
+		    counter++;
+		}
+		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
 			fail("AJCompilationUnit for Aspect.aj has not been disposed when project got closed."); //$NON-NLS-1$
 		
 		file = myProject.getFile("src/C.java"); //$NON-NLS-1$
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
 			fail("Could create AJCompilationUnit for non .aj file."); //$NON-NLS-1$
-		
 		
 		
 	}
