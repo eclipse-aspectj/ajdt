@@ -86,6 +86,11 @@ public class AspectElement extends SourceType implements IAspectJElement {
         return info;
     }
 
+    
+    public AspectElement getAspect(String name) {
+        return new AspectElement(this, name);
+    }
+    
 	/**
 	 * Returns the pointcuts declared by this type. If this is a source type,
 	 * the results are listed in the order in which they appear in the source,
@@ -404,6 +409,28 @@ public class AspectElement extends SourceType implements IAspectJElement {
                     return mockMethod.getHandleFromMemento(token, memento, workingCopyOwner);
                 default:
                     return mockMethod;
+            }
+		} else if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
+		    // static inner aspect inside an aspect...rare, but could happen
+            String typeName;
+            if (memento.hasMoreTokens()) {
+                typeName = memento.nextToken();
+                char firstChar = typeName.charAt(0);
+                if (firstChar == JEM_FIELD || firstChar == JEM_INITIALIZER || firstChar == JEM_METHOD || firstChar == JEM_TYPE || firstChar == JEM_COUNT) {
+                    token = typeName;
+                    typeName = ""; //$NON-NLS-1$
+                } else {
+                    token = null;
+                }
+            } else {
+                typeName = ""; //$NON-NLS-1$
+                token = null;
+            }
+            JavaElement type = (JavaElement)getAspect(typeName);
+            if (token == null) {
+                return type.getHandleFromMemento(memento, workingCopyOwner);
+            } else {
+                return type.getHandleFromMemento(token, memento, workingCopyOwner);
             }
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);

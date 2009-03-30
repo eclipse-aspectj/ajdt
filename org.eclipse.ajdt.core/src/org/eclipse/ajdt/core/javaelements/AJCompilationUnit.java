@@ -15,14 +15,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.lang.annotation.Aspect;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
 import org.eclipse.ajdt.core.reconcile.AJReconcileWorkingCopyOperation;
@@ -38,6 +42,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.PerformanceStats;
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -518,6 +523,50 @@ public class AJCompilationUnit extends CompilationUnit{
     		}
 	    }
 		return super.getAllTypes();
+	}
+	
+	/**
+	 * Returns all aspect types in this compilation unit in the same order
+	 * that {@link #getAllTypes()} works.
+	 * 
+	 * This returns types defined with the <em>aspect</em> keyword and
+	 * classes annotated with @{@link Aspect}.  This means that not all 
+	 * Aspects returned will have a type {@link AspectElement}.  The types 
+	 * marked with   @{@link Aspect} will be of type {@link SourceType}.
+	 */
+	public IType[] getAllAspects() throws JavaModelException {
+	    IType[] allTypes = getAllTypes(); 
+	    List aspects = new ArrayList(allTypes.length);
+	    AJProjectModelFacade model = null;
+	    for (int i = 0; i < allTypes.length; i++) {
+	        if (allTypes[i] instanceof AspectElement) {
+	            aspects.add(allTypes[i]);
+	        } else {
+	            // bug 270396---annotations are not stored in the model
+	            // this method always returns an empty array
+	            // ask the AspectJ model instead
+//	            IAnnotation[] annotations = allTypes[i].getAnnotations();
+//	            for (int j = 0; j < annotations.length; j++) {
+//	                String annName = annotations[j].getElementName();
+//	                // no need to check fully qualified name
+//	                // just assume that any annotation with a name of Aspect
+//	                // is the one we want
+//                    if (annName != null && 
+//                            (annName.equals("Aspect") || annName.endsWith(".Aspect"))) {
+//                        aspects.add(allTypes[i]);
+//                        break;
+//                    }
+//                }
+	            if (model == null) {
+	                model = AJProjectModelFactory.getInstance().getModelForJavaElement(this);
+	            }
+	            IProgramElement maybeAspect = model.javaElementToProgramElement(allTypes[i]);
+	            if (maybeAspect.getKind() == IProgramElement.Kind.ASPECT) {
+	                aspects.add(allTypes[i]);
+	            }
+	        }
+        }
+	    return (IType[]) aspects.toArray(new IType[aspects.size()]);
 	}
 
 	/**
