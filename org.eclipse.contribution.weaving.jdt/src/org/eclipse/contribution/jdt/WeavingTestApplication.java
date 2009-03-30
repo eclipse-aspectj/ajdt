@@ -1,6 +1,9 @@
 package org.eclipse.contribution.jdt;
 
+import org.eclipse.contribution.jdt.preferences.WeavingStateConfigurer;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.ui.PlatformUI;
@@ -23,8 +26,20 @@ public class WeavingTestApplication implements IApplication {
             System.out.println("Weaving service is enabled!");
         } else {
             System.out.println("Weaving service is disabled.");
+            WeavingStateConfigurer configurer = new WeavingStateConfigurer();
+            IStatus status = configurer.changeWeavingState(true);
+            if (status.getSeverity() == IStatus.OK) {
+                System.out.println("Weaving service has been enabled.");
+            } else {
+                System.out.println("Could not enable weaving service.  Reason:");
+//                System.out.println(status.getMessage());
+//                status.getException().printStackTrace();
+            }
         }
-        PlatformUI.getWorkbench().close();
+        System.out.println("Shutting down");
+        System.out.flush();
+//        PlatformUI.getWorkbench().close();
+        System.exit(0);
         
         // will not be reached
         return IsWovenTester.isWeavingActive() ? WEAVING_ENABLED : WEAVING_DISABLED;
