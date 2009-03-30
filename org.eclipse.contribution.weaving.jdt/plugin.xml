@@ -20,7 +20,7 @@
       <application
             cardinality="singleton-global"
             thread="main"
-            visible="false">
+            visible="true">
          <run
                class="org.eclipse.contribution.jdt.WeavingTestApplication">
          </run>
