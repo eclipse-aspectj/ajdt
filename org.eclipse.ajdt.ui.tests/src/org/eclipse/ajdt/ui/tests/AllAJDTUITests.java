@@ -34,6 +34,7 @@ import org.eclipse.ajdt.ui.tests.builder.BuildPathTests;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.ChangingMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.CustomMarkersTest;
+import org.eclipse.ajdt.ui.tests.builder.EnsureAJBuilderTests;
 import org.eclipse.ajdt.ui.tests.builder.ITDinSeparateProjects;
 import org.eclipse.ajdt.ui.tests.builder.InpathOutFolderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
@@ -196,7 +197,8 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(CustomMarkersTest.class));
         suite.addTest(new TestSuite(InpathOutFolderTest.class));
 		suite.addTest(new TestSuite(ITDinSeparateProjects.class));
-		suite.addTest(new TestSuite(ProblemMarkerTest.class));
+        suite.addTest(new TestSuite(ProblemMarkerTest.class));
+        suite.addTest(new TestSuite(EnsureAJBuilderTests.class));
 		
 		// javamodel tests
 		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
