@@ -12,17 +12,13 @@
 package org.eclipse.ajdt.internal.ui;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.core.internal.events.ILifecycleListener;
-import org.eclipse.core.internal.events.LifecycleEvent;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.resources.IResourceChangeListener;
 
 /**
  * @author Andrew Eisenberg
@@ -41,10 +37,11 @@ public class EnsureAJBuilder implements IResourceChangeListener {
         if (event.getType() == IResourceChangeEvent.PRE_BUILD) {
             IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
                 public boolean visit(IResourceDelta delta) throws CoreException {
-                    if (delta.getResource().getType() == IResource.PROJECT) {
-                        if (delta.getKind() == IResourceDelta.ADDED) {
-                            ensureNoJavaBuilder((IProject) delta.getResource());
-                            ensureAJBuilder((IProject) delta.getResource());
+                    if (delta.getResource().getType() == IResource.PROJECT && delta.getKind() == IResourceDelta.ADDED) {
+                        IProject project = (IProject) delta.getResource();
+                        if (AspectJPlugin.isAJProject(project)) {
+                            ensureNoJavaBuilder(project);
+                            ensureAJBuilder(project);
                         }
                         return false;
                     }
