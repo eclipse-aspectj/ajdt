@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
+import org.eclipse.ajdt.internal.ui.EnsureAJBuilder;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
 import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
@@ -35,8 +36,11 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
+import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -132,6 +136,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	public static final String ACCKIND_ATTRIBUTE = "acckind"; //$NON-NLS-1$
 	
 	public static final int PROGRESS_MONITOR_MAX = 100;
+
+    private EnsureAJBuilder ajProjectListener;
 
     /**
      * Creates an AspectJPlugin instance and initializes the supporting Ajde
@@ -304,6 +310,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		// set the compiler factory to be the ui one
 		setCompilerFactory(new UICompilerFactory());
+		
+        ajProjectListener = new EnsureAJBuilder();
+        AspectJPlugin.getWorkspace().addResourceChangeListener(ajProjectListener, IResourceChangeEvent.PRE_BUILD);
 
 		checkEclipseVersion();
 
@@ -331,6 +340,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	
 	public void stop(BundleContext context) throws Exception {
 	    super.stop(context);
+	    AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
 	}
 	
 

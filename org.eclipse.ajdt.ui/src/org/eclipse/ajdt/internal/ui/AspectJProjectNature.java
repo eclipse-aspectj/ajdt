@@ -110,7 +110,20 @@ public class AspectJProjectNature implements IProjectNature {
 		}
 	}
 
-	/**
+    /**
+     * Remove the old AspectJ Builder from the given project
+     */
+    public static void removeJavaBuilder(IProject project) throws CoreException {
+        IProjectDescription description = project.getDescription();
+        ICommand[] buildCommands = description.getBuildSpec();
+        if (contains(buildCommands, JavaCore.BUILDER_ID)) {
+            ICommand[] newBuildCommands = remove(buildCommands, JavaCore.BUILDER_ID);
+            description.setBuildSpec(newBuildCommands);
+            project.setDescription(description, null);
+        }
+    }
+
+    /**
 	 * Add the new AspectJ Builder to the given project
 	 */
 	public static void addNewBuilder(IProject project) throws CoreException {
@@ -125,10 +138,15 @@ public class AspectJProjectNature implements IProjectNature {
 		}
 	}
 
-	public static boolean hasNewBuilder(IProject project) throws CoreException {
-		ICommand[] buildCommands = project.getDescription().getBuildSpec();
-		return contains(buildCommands, AspectJPlugin.ID_BUILDER);
-	}
+    public static boolean hasNewBuilder(IProject project) throws CoreException {
+        ICommand[] buildCommands = project.getDescription().getBuildSpec();
+        return contains(buildCommands, AspectJPlugin.ID_BUILDER);
+    }
+
+    public static boolean hasJavaBuilder(IProject project) throws CoreException {
+        ICommand[] buildCommands = project.getDescription().getBuildSpec();
+        return contains(buildCommands, JavaCore.BUILDER_ID);
+    }
 
 	/**
 	 * @see IProjectNature#getProject
