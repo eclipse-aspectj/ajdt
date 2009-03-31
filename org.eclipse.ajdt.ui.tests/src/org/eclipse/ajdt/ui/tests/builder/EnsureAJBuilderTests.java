@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
@@ -43,9 +44,15 @@ public class EnsureAJBuilderTests extends UITestCase {
         checkNature(project);
     }
     
+    public void testJavaNature() throws Exception {
+        IProject project = createPredefinedProject("Bug270552JavaNatureJavaBuilder");
+        assertFalse("Project should not be an AspectJ prooject " + project, AspectJPlugin.isAJProject(project));
+        assertTrue("Project should have javabuilder " + project, AspectJProjectNature.hasJavaBuilder(project));
+    }
+    
     private void checkNature(IProject project) throws Exception {
-        assertTrue("Project should have ajbuilder", AspectJProjectNature.hasNewBuilder(project));
-        assertFalse("Project should not have javabuilder", AspectJProjectNature.hasJavaBuilder(project));
+        assertTrue("Project should have ajbuilder " + project, AspectJProjectNature.hasNewBuilder(project));
+        assertFalse("Project should not have javabuilder " + project, AspectJProjectNature.hasJavaBuilder(project));
     }
     
 }
