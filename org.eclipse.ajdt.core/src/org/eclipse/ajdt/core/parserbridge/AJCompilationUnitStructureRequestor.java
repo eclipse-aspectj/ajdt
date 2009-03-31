@@ -102,6 +102,16 @@ public class AJCompilationUnitStructureRequestor extends
 //		
 //	}
 
+	public void exitCompilationUnit(int declarationEnd) {
+	    super.exitCompilationUnit(declarationEnd);
+	    
+	    // not keeping track of annotations
+	    // and this ensures that itd aware content assist 
+	    // still works when there are large numbers ofannotations
+	    this.unitInfo.annotationNumber = 0;  
+	    
+	}
+	
 	public void enterMethod(
 			int declarationStart,
 			int modifiers,
@@ -772,5 +782,7 @@ public class AJCompilationUnitStructureRequestor extends
         }
         return ajTypeParams;
     }
+    
+    
 
 }

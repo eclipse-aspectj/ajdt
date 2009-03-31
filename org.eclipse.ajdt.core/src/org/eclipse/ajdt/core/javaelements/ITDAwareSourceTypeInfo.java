@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.core.CompilationUnitElementInfo;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
@@ -93,6 +94,15 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             this.setChildren(children);
         }
         
+        try {
+            // this ensures that itd aware content assist 
+            // still works when there are large numbers ofannotations
+            Object info = ((JavaElement) handle.getCompilationUnit()).getElementInfo();
+            if (info != null && info instanceof CompilationUnitElementInfo) {
+            	((CompilationUnitElementInfo) info).annotationNumber = 0;
+            }
+        } catch (JavaModelException e) {
+        }
     }
 
     private IJavaElement[] augmentChildrenAndHierarchy(SourceType type) {
