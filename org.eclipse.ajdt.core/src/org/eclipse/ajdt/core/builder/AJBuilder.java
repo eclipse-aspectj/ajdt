@@ -1248,13 +1248,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * the compiler configuration 
 	 */
 	public boolean hasChangesAndMark(IResourceDelta delta, IProject project) {
-	    AJLog.logStart("Looking for and marking configurartion changes in " + project.getName());
+	    AJLog.logStart("Looking for and marking configuration changes in " + project.getName());
 	    CoreCompilerConfiguration compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(project);
 	    boolean hasChanges = sourceFilesChanged(delta, project, compilerConfiguration);
 	    hasChanges |= classpathChanged(delta, compilerConfiguration);
 	    hasChanges |= manifestChanged(delta, compilerConfiguration);
 	    hasChanges |= projectSpecificSettingsChanged(delta, compilerConfiguration);
-        AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configurartion changes in " + project.getName());
+        AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configuration changes in " + project.getName());
         AJLog.log(AJLog.BUILDER, "\tConfiguration changes found: " + hasChanges);  
 	    return hasChanges;
 	}
