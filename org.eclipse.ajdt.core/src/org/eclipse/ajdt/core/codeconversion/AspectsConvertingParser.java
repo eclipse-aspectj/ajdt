@@ -32,6 +32,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
@@ -503,6 +504,18 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         	        StringBuffer sb = new StringBuffer();
                     sb.append(type.isInterface() ? "interface " : "class ");
                     sb.append(typeName);
+                    
+                    ITypeParameter[] tParams = type.getTypeParameters();
+                    if (tParams != null && tParams.length > 0) {
+                        sb.append(" <");
+                        for (int i = 0; i < tParams.length; i++) {
+                            if (i > 0) {
+                                sb.append(", ");
+                            }
+                            sb.append(tParams[i].getSource());
+                        }
+                        sb.append("> ");
+                    }
                     
                     List[] declares = getDeclareExtendsImplements(type);
                     List declareExtends = declares[0];

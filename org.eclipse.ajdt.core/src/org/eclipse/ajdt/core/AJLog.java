@@ -33,7 +33,9 @@ public class AJLog {
 
 	public static final int PARSER = 6;
 	
-	private static IAJLogger logger;
+    public static final int MODEL = 7;
+
+    private static IAJLogger logger;
 	
 	// support for logging the start and end of activies
 	private static Map timers = new HashMap();

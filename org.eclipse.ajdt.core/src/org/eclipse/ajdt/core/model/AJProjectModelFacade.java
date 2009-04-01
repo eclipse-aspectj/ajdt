@@ -286,7 +286,8 @@ public class AJProjectModelFacade {
                     Character.toString(AspectElement.JEM_ASPECT_CU));
         }
         
-        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
+        // ajc now takes care of this.
+//        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
 
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
@@ -769,12 +770,12 @@ public class AJProjectModelFacade {
         IProgramElement ipe = javaElementToProgramElement(icu);
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
-                List/*IRelationship*/ nodeRels = relationshipMap.get(node);
+                List/*IRelationship*/ orig = relationshipMap.get(node);
                 
-                if (nodeRels == null) {
+                if (orig == null) {
                     return;
                 }
-                
+                List/*IRelationship*/ nodeRels = new ArrayList(orig);
                 if (interesting != null) {
                     for (Iterator relIter = nodeRels.iterator(); relIter
                             .hasNext();) {

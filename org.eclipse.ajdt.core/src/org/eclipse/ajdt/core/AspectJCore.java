@@ -17,19 +17,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.internal.core.ClassFile;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.BinaryAspectElement;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
@@ -250,7 +255,7 @@ public class AspectJCore {
 									l = new ArrayList();
 									aspectsInJavaFiles.put(openable, l);
 								}
-								AspectElement aspectEl = null;
+								JavaElement aspectEl = null;
 								for (Iterator iter = l.iterator(); iter.hasNext();) {
 									AspectElement element = (AspectElement) iter.next();
 									if(element.getElementName().equals(aspectName)) {
@@ -258,7 +263,12 @@ public class AspectJCore {
 									}								
 								}
 								if(aspectEl == null) {
-									aspectEl = new AspectElement((JavaElement)openable, aspectName);						
+								    if (openable instanceof ClassFile) {
+								        ClassFile cOpenable = (ClassFile) openable;
+								        aspectEl = new BinaryAspectElement((JavaElement) cOpenable, aspectName);						
+                                    } else {
+                                        aspectEl = new AspectElement((JavaElement) openable, aspectName);						
+                                    }
 									l.add(aspectEl);
 								}
                                 int afterAspectIndex = index3 + aspectName.length() + 1;

@@ -10,14 +10,21 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.internal.ProgramElement;
+import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
@@ -58,13 +65,32 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	}
 	
     protected Object createElementInfo() {
+        
         AspectElementInfo info = new AspectElementInfo();
         info.setAJKind(IProgramElement.Kind.ASPECT);
         info.setHandle(this);
         info.setSourceRangeStart(0);
+        
+        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+        if (ipe != null && ipe != IHierarchy.NO_STRUCTURE) {
+            info.setAJExtraInfo(ipe.getExtraInfo());
+            info.setAJModifiers(ipe.getModifiers());
+            info.setFlags(getProgramElementModifiers(ipe));
+            info.setAJAccessibility(ipe.getAccessibility());
+            ISourceLocation sourceLocation = ipe.getSourceLocation();
+            info.setSourceRangeStart(sourceLocation.getOffset());
+            info.setNameSourceStart(sourceLocation.getOffset());
+            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+            // info.setPrivileged(???);  not setting this yet
+        }
         return info;
     }
 
+    
+    public AspectElement getAspect(String name) {
+        return new AspectElement(this, name);
+    }
+    
 	/**
 	 * Returns the pointcuts declared by this type. If this is a source type,
 	 * the results are listed in the order in which they appear in the source,
@@ -168,8 +194,15 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	}
 
 	public Accessibility getAJAccessibility() throws JavaModelException {
-		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
-		return info.getAJAccessibility();
+	    Object info = getElementInfo();
+	    if (info instanceof IAspectJElementInfo) {
+            IAspectJElementInfo ajInfo = (IAspectJElementInfo) info;
+            return ajInfo.getAJAccessibility();
+        } else {
+            // this happens when an aspect is converted to a class in the working copy
+            // but compiler is not aware of it.
+            return Accessibility.PUBLIC;
+        }
 	}
 
 	/* (non-Javadoc)
@@ -179,6 +212,12 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
 		return info.getAJModifiers();
 	}
+	
+	public boolean isPrivileged() throws JavaModelException {
+	    Object info = getElementInfo();
+	    return info instanceof AspectElementInfo ? ((AspectElementInfo) info).isPrivileged() : false;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElement#getAJExtraInformation()
 	 */
@@ -371,7 +410,46 @@ public class AspectElement extends SourceType implements IAspectJElement {
                 default:
                     return mockMethod;
             }
+		} else if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
+		    // static inner aspect inside an aspect...rare, but could happen
+            String typeName;
+            if (memento.hasMoreTokens()) {
+                typeName = memento.nextToken();
+                char firstChar = typeName.charAt(0);
+                if (firstChar == JEM_FIELD || firstChar == JEM_INITIALIZER || firstChar == JEM_METHOD || firstChar == JEM_TYPE || firstChar == JEM_COUNT) {
+                    token = typeName;
+                    typeName = ""; //$NON-NLS-1$
+                } else {
+                    token = null;
+                }
+            } else {
+                typeName = ""; //$NON-NLS-1$
+                token = null;
+            }
+            JavaElement type = (JavaElement)getAspect(typeName);
+            if (token == null) {
+                return type.getHandleFromMemento(memento, workingCopyOwner);
+            } else {
+                return type.getHandleFromMemento(token, memento, workingCopyOwner);
+            }
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
+	
+   static Field modfiersField = null;
+    static int getProgramElementModifiers(IProgramElement ipe) {
+        try {
+            if (modfiersField == null) {
+                modfiersField = ProgramElement.class.getDeclaredField("modifiers");
+                modfiersField.setAccessible(true);
+            }
+            return modfiersField.getInt(ipe);
+        } catch (SecurityException e) {
+        } catch (IllegalArgumentException e) {
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+        return -1;
+    }
+    
 }

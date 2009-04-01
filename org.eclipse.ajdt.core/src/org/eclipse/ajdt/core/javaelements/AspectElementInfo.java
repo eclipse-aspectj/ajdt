@@ -86,11 +86,11 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	 * a class file
 	 */
 	public boolean isBinaryType() {
-	    if (((IType) getHandle()).getTypeRoot().getElementType() == IJavaElement.CLASS_FILE) {
-	        return true;
-	    } else {
+//	    if (((IType) getHandle()).getTypeRoot().getElementType() == IJavaElement.CLASS_FILE) {
+//	        return true;
+//	    } else {
 	        return false;
-	    }
+//	    }
 	}
 	
 	/* (non-Javadoc)

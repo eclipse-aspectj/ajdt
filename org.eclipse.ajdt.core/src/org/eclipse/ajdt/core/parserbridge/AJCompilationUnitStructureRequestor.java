@@ -422,7 +422,7 @@ public class AJCompilationUnitStructureRequestor extends
 			info.setAJKind(IProgramElement.Kind.DECLARE_SOFT);
 			nameSourceEnd += 3;
 		}
-		String nameString = info.getAJKind().toString() + msg;
+		String nameString = info.getAJKind().toString();
 		
 		
 		// translate nulls to empty arrays
