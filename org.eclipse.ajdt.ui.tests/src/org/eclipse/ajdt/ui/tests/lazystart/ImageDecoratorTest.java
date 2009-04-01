@@ -52,7 +52,7 @@ public class ImageDecoratorTest extends UITestCase {
 				"AspectElement.getDeclares() should return exactly one declare element", declares.length == 1); //$NON-NLS-1$
 		String text = labelProvider.getText(declares[0]);
 		assertEquals(
-				"Label provider returned wrong text for declare statement", "declare warning: \"blah\"", text); //$NON-NLS-1$ //$NON-NLS-2$
+				"Label provider returned wrong text for declare statement", "declare warning", text); //$NON-NLS-1$ //$NON-NLS-2$
 
 		IntertypeElement[] itds = aspect.getITDs();
 		assertNotNull("AspectElement.getITDs() should not return null", itds); //$NON-NLS-1$

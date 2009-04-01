@@ -13,13 +13,14 @@ package org.eclipse.ajdt.ui.tests.xref;
 
 import java.util.List;
 
-import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
+import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.core.resources.IProject;
@@ -81,20 +82,27 @@ public class XReferenceViewContentsTest extends UITestCase {
 		// Check that all the children have been added to the testMethod node
 		Object[] c1 = viewContentProvider.getChildren(testMethod);
 		assertEquals("testMethod should have 1 child",1,c1.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((IJavaElement) ((TreeObject) c1[0]).getData()).exists());
 		Object[] c2 = viewContentProvider.getChildren(c1[0]);
-		assertEquals("named innerclass C should have 1 child",1,c2.length); //$NON-NLS-1$
+        assertEquals("named innerclass C should have 1 child",1,c2.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((IJavaElement) ((TreeObject) c2[0]).getData()).exists());
 		Object[] c3 = viewContentProvider.getChildren(c2[0]);
 		assertEquals("method m() of named innerclass C should have 1 child",1,c3.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((String) ((TreeObject) c3[0]).getName()).equals("matches declare"));
 		Object[] c4 = viewContentProvider.getChildren(c3[0]);
 		assertEquals("matches declare should have 1 child",1,c4.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((AJNode) ((TreeObject) c4[0]).getData()).getJavaElement().exists());
 		
 		// Check that all the children have been added to the innerclass node
 		Object[] d1 = viewContentProvider.getChildren(innerClassC1);
 		assertEquals("inner class should have 1 child",1,d1.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((IJavaElement) ((TreeObject) d1[0]).getData()).exists());
 		Object[] d2 = viewContentProvider.getChildren(d1[0]);
 		// if there aren't two children then this is a regression of bug 111189
 		//  - the recursion in XReferenceContentProvider.addChildren(..) method
 		assertEquals("method m() of inner class should have 2 children",2,d2.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((String) ((TreeObject) d2[0]).getName()).equals("matches declare"));
+        assertTrue("matches declare child should exist", ((IJavaElement) ((TreeObject) d2[1]).getData()).exists());
 		// there are two children of m(): 'matches declare' and 
 		// 'method-call(.....)'
 		TreeParent matchesDeclare = null;
@@ -109,10 +117,13 @@ public class XReferenceViewContentsTest extends UITestCase {
 		}
 		Object[] d3 = viewContentProvider.getChildren(matchesDeclare);
 		assertEquals("matches declare should have one child",1,d3.length); //$NON-NLS-1$
+		assertTrue("matches declare child should exist", ((AJNode) ((TreeObject) d3[0]).getData()).getJavaElement().exists());
 		Object[] d4 = viewContentProvider.getChildren(methodCall);
 		assertEquals("method-call should have one child",1,d4.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((String) ((TreeObject) d4[0]).getName()).equals("matches declare"));
 		Object[] d5 = viewContentProvider.getChildren(d4[0]);
 		assertEquals("matches declare should have one child",1,d5.length); //$NON-NLS-1$
+        assertTrue("matches declare child should exist", ((AJNode) ((TreeObject) d5[0]).getData()).getJavaElement().exists());
 	}
 
 	

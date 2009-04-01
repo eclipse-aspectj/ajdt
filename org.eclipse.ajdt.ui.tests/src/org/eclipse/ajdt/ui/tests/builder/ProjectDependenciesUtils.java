@@ -286,7 +286,7 @@ public class ProjectDependenciesUtils {
 		return counter;
 	}
 
-	public static String setupOutJar(String jarName,
+	public static String makeFullPath(String jarName,
 			IProject projectToOutputToJarFile) {
 		String outJar = jarName;
 		if (outJar != null) {

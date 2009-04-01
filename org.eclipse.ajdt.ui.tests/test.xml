@@ -5,10 +5,13 @@
   <!-- Set a meaningful default value for when it is not. -->
   <property name="eclipse-home" value="${basedir}\..\.."/>
 
-  <!-- sets the properties eclipse-home, and library-file -->
+  <!-- vmargs -->
+  <property name="vmargs" value="-XX:MaxPermSize=128m -Xmx1024m" />
+
+	<!-- sets the properties eclipse-home, and library-file -->
   <property name="plugin-name" value="org.eclipse.ajdt.ui.tests"/>
   <property name="library-file"
-            value="${eclipse-home}/plugins/org.eclipse.test/library.xml"/>
+            value="${eclipse-home}/plugins/org.eclipse.test_3.2.0/library.xml"/>
 
   <!-- This target holds all initialization code that needs to be done for -->
   <!-- all tests that are to be run. Initialization for individual tests -->

@@ -337,7 +337,8 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 			
 		// set project Y to send output to jar file
 		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY); //$NON-NLS-1$
+		String outJar = "mainWork.jar";
+		String fullPathOutJar = ProjectDependenciesUtils.makeFullPath(outJar,projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
 
@@ -355,13 +356,13 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Output jar should exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar));
 
 		// PD: switching following assert because current thinking is not to change project dependencies to classfolder ones
 		//assertFalse("project X should not have a project dependency on project Y",
@@ -379,12 +380,12 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 		
-		StringBuffer sb = new StringBuffer(outJar);
+		StringBuffer sb = new StringBuffer(fullPathOutJar);
 		IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
 		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
 		jarFile.delete(true,null);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("Output jar should NOT exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -392,7 +393,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertFalse("project X should not have outjar on classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,fullPathOutJar));
 		
 		// reset projects to their original state:
 		AspectJUIPlugin.convertFromAspectJProject(projectY);
@@ -482,17 +483,18 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 
 		// set project Y to send output to jar file
 		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY); //$NON-NLS-1$
+		String outJar = "mainWork.jar"; 
+		String fullPathOutJar = ProjectDependenciesUtils.makeFullPath(outJar,projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Output jar should now exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar));
 		// don't want to add outjar to aspect path
 		assertNull("project X should have NOT have outjar on aspect path!", //$NON-NLS-1$
 				AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(projectX).getCompilerConfiguration().getAspectPath());
@@ -506,14 +508,10 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		AspectJCorePreferences.setProjectOutJar(projectY,""); //$NON-NLS-1$
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertFalse("project X should not have outjar on classpath", //$NON-NLS-1$
@@ -524,12 +522,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		AspectJUIPlugin.convertFromAspectJProject(projectX);
 		waitForJobsToComplete();
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
-
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null); //$NON-NLS-1$
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -539,14 +532,10 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		projectY.refreshLocal(IResource.DEPTH_INFINITE,null);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 				
 		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 		
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -577,8 +566,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	public void testWithOutJarSwitch3() throws Exception {
 		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
@@ -612,18 +599,19 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		// set project Y to send output to jar file mainWork.jar
 		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY); //$NON-NLS-1$
+		String outJar = "firstJar.jar";
+		String fullPathOutJar = ProjectDependenciesUtils.makeFullPath(outJar,projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Output jar should exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 
 		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar));
 		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
 		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$
@@ -631,44 +619,43 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 
 		// set project Y to send output to jar file newJar.jar
 		// setup the outjar
-		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY); //$NON-NLS-1$
+		String outJar2 = "newJar.jar";
+		String fullPathOutJar2 = ProjectDependenciesUtils.makeFullPath(outJar2,projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar2);
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar2 + ")",new File(outJar2).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Output jar should exist! (path=" + fullPathOutJar2 + ")",new File(fullPathOutJar2).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue("project X should have project Y's NEW outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar2));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar2));
 		assertFalse("project X should NOT have project Y's old outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar));
 		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
 		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
-		StringBuffer sb = new StringBuffer(outJar);
+		StringBuffer sb = new StringBuffer(fullPathOutJar);
 		IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
 		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
 		jarFile.delete(true,null);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("Output jar should NOT exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		AspectJCorePreferences.setProjectOutJar(projectY,""); //$NON-NLS-1$
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
-		StringBuffer sb2 = new StringBuffer(outJar2);
+		StringBuffer sb2 = new StringBuffer(fullPathOutJar2);
 		IPath path2 = new Path(sb2.substring(sb2.lastIndexOf(projectY.getName())));
 		IResource jarFile2 = projectY.getWorkspace().getRoot().findMember(path2.makeAbsolute());
 		jarFile2.delete(true,null);
 		waitForJobsToComplete();
-		assertFalse("Second Output jar should NOT exist! (path=" + outJar2 + ")" //$NON-NLS-1$ //$NON-NLS-2$
-				,new File(outJar2).exists());
+		assertFalse("Second Output jar should NOT exist! (path=" + fullPathOutJar2 + ")" //$NON-NLS-1$ //$NON-NLS-2$
+				,new File(fullPathOutJar2).exists());
 		
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -676,14 +663,12 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertFalse("project X should not have outjar on classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar2));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,fullPathOutJar2));
 		
 		// reset projects to their original state:
 		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
@@ -726,36 +711,37 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		checkForJDTBug84214(projectX,projectY);
 		
-		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY); //$NON-NLS-1$
+		String outJar = "anotherJar.jar"; 
+		String fullPathOutJar = ProjectDependenciesUtils.makeFullPath(outJar,projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
 		
 		// check that outjar exists etc, but that the jar only appears
 		// once on the classpath and aspect path
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Output jar should exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 
 		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar));
 		assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
-				projectY,outJar));
+				projectY,fullPathOutJar));
 		
 		// build again and check that the same still holds
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertTrue("Output jar should exist! (path=" + fullPathOutJar + ")",new File(fullPathOutJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, fullPathOutJar));
 		assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
-				projectY,outJar));
+				projectY,fullPathOutJar));
 		
 		// reset projects to their original state:
 		AspectJUIPlugin.convertFromAspectJProject(projectY);
@@ -788,24 +774,17 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// sanity check on setup of projects....
 		checkForJDTBug84214(jarDependentProject,jarCreatingProject);
 		
-		String outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
-		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject); //$NON-NLS-1$
-		if(outjar == null || !outjar.equals("myJar.jar")) {			 //$NON-NLS-1$
-			AspectJCorePreferences.setProjectOutJar(jarCreatingProject,jar);
-		}
-		outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
-		assertEquals("the outjar should be called myjar.jar",jar,outjar); //$NON-NLS-1$
+		String outJar = "myJar.jar";
+        AspectJCorePreferences.setProjectOutJar(jarCreatingProject, outJar);
+		String fullPathOutJar = ProjectDependenciesUtils.makeFullPath("myJar.jar",jarCreatingProject); //$NON-NLS-1$
+
 		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
 		assertTrue("jarDependentProject should have jarCreatingProject's outjar on it's classpath", //$NON-NLS-1$
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(jarDependentProject,jarCreatingProject, outjar));
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(jarDependentProject,jarCreatingProject, fullPathOutJar));
 		
 		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 		jarDependentProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 		
 		assertFalse("jarCreatingProject should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
@@ -853,9 +832,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// jarDependingProject which should then have an error marker against
 		// it saying "inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"
 		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
 		assertTrue("jarCreatingProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete")); //$NON-NLS-1$
@@ -883,8 +859,6 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		contentsOfA2.close();
 		
 		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		waitForJobsToComplete();
-		waitForJobsToComplete();
 
 		assertFalse("jarCreatingProject should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
