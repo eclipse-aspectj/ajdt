@@ -24,7 +24,6 @@ import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -50,7 +49,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		pB = createPredefinedProject("bug99133b"); //$NON-NLS-1$
-        Utils.sleep(1000);  // sleep to ensure timestamps are sufficiently far apart so that AjState thinks the builds are separate
+        Utils.sleep(1001);  // sleep to ensure timestamps are sufficiently far apart so that AjState thinks the builds are separate
 		pA = createPredefinedProject("bug99133a"); //$NON-NLS-1$
 
 		testLog = new TestLogger();
@@ -105,6 +104,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		br1.close();
 		StringReader reader1 = new StringReader(sb1.toString());
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
+        waitForAutoBuild();
         waitForAutoBuild();
         
 		assertEquals("two more builds should have occured", //$NON-NLS-1$

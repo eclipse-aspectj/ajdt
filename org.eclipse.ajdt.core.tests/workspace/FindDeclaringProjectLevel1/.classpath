@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" output="bin2" path="src2"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/FindDeclaringProjectLevel2"/>
+	<classpathentry exported="true" kind="lib" path="binaryFolder"/>
+	<classpathentry exported="true" kind="lib" path="myJar.jar"/>
+	<classpathentry kind="lib" path="notExported"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

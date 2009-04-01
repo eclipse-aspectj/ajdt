@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.eclipse.ajdt.core.tests;singleton:=true
 Bundle-Version: 1.7.0.qualifier
 Bundle-ClassPath: ajdtcoretests.jar
 Bundle-Activator: org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin
-Bundle-Vendor: Eclipse.org
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Export-Package: org.eclipse.ajdt.core.tests,
  org.eclipse.ajdt.core.tests.ajde,
  org.eclipse.ajdt.core.tests.builder,

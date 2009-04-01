@@ -25,10 +25,14 @@ import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.builder.DerivedTests;
+import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
+import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitManagerTest;
+import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
+import org.eclipse.ajdt.core.tests.javaelements.AspectsConvertingParserTest2;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
@@ -42,6 +46,7 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
+import org.eclipse.ajdt.core.tests.model.Bug268522;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
@@ -87,7 +92,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 		suite.addTest(new TestSuite(ModelCheckerTests.class));
-		suite.addTest(new TestSuite(AspectJMemberElementTest.class));
+        suite.addTest(new TestSuite(AspectJMemberElementTest.class));
+        suite.addTest(new TestSuite(Bug268522.class));
         
 		
 		// core compiler configuration
@@ -96,7 +102,10 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(CoreCompilerFactoryTests.class));
 
 		// Java Element tests
-		suite.addTest(new TestSuite(AspectElementTests.class));
+        suite.addTest(new TestSuite(AspectElementTests.class));
+        suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));
+        suite.addTest(new TestSuite(AJCompilationUnitTest.class));
+        suite.addTest(new TestSuite(AspectsConvertingParserTest2.class));
 
 		// builder tests
 		suite.addTest(new TestSuite(CoreOutputLocationManagerTest.class));
@@ -107,6 +116,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(Bug159197Test.class));
         suite.addTest(new TestSuite(Bug43711Test.class));
         suite.addTest(new TestSuite(DerivedTests.class));
+        suite.addTest(new TestSuite(RefreshTestsImprecise.class));
         
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));
