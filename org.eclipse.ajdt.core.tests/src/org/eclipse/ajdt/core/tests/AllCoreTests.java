@@ -23,6 +23,7 @@ import org.eclipse.ajdt.core.tests.builder.AspectPathTests;
 import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
 import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
+import org.eclipse.ajdt.core.tests.builder.BuilderArgsTestBug270554;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.builder.DerivedTests;
 import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
@@ -117,6 +118,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(Bug43711Test.class));
         suite.addTest(new TestSuite(DerivedTests.class));
         suite.addTest(new TestSuite(RefreshTestsImprecise.class));
+        suite.addTest(new TestSuite(BuilderArgsTestBug270554.class));
         
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));
