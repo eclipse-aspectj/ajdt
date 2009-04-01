@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -387,6 +388,41 @@ public class AspectJCorePreferences {
         Preferences store = AspectJPlugin.getDefault()
                 .getPluginPreferences();
         store.setValue(OPTION_IncrementalCompilationOptimizations, value);
+    }
+    
+    /**
+     * Searches the raw classpath for entries whose paths contain
+     * the strings in putOnPath.
+     * 
+     * Then ensures that these classpath entries are on the aspect path
+     */
+    public static void augmentAspectPath(IProject project, String[] putOnAspectPath) {
+        if (putOnAspectPath.length == 0) {
+            // nothing to do!
+            return;
+        }
+        IJavaProject jp = JavaCore.create(project);
+        List/*IClasspathEntry*/ toPutOnAspectPath = new ArrayList();
+        try {
+            IClasspathEntry[] cp = jp.getRawClasspath();
+            for (int i = 0; i < cp.length; i++) {
+                String path = cp[i].getPath().toPortableString();
+                for (int j = 0; j < putOnAspectPath.length; j++) {
+                    if (path.indexOf(putOnAspectPath[j]) != -1) {
+                        toPutOnAspectPath.add(cp[i]);
+                    }
+                }
+            }
+            
+            for (Iterator pathIter = toPutOnAspectPath.iterator(); pathIter
+                    .hasNext();) {
+                IClasspathEntry entry = (IClasspathEntry) pathIter.next();
+                if (! isOnAspectpath(entry)) {
+                    addToAspectPath(project, entry);
+                }
+            }
+        } catch (JavaModelException e) {
+        }
     }
 
     /**

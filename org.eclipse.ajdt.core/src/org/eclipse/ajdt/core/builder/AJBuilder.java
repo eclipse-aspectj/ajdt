@@ -40,11 +40,13 @@ import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.core.internal.resources.ResourceException;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -147,6 +149,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Flush the list of included source files stored for this project
 		BuildConfig.flushIncludedSourceFileCache(project);
         AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
+        
+        // bug 270554 augment the aspect path with builder arguments
+        augmentAspectPath(project, args);
 
 		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
 				compiler.getCompilerConfiguration();
@@ -253,7 +258,38 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return requiredProjects;
 	}
 
-	/**
+	private void augmentAspectPath(IProject project, Map args) {
+	    if (args.containsKey("aspectPath")) {
+	        AJLog.logStart("Augmenting aspect path with args from builder");
+	        String toAugment = (String) args.get("aspectPath");
+	        String[] toAugmentArr = toAugment.split(",");
+	        for (int i = 0; i < toAugmentArr.length; i++) {
+                toAugmentArr[i] = toAugmentArr[i].trim();
+            }
+	        AspectJCorePreferences.augmentAspectPath(project, toAugmentArr);
+	        
+	        try {
+    	        IProjectDescription desc = project.getDescription();
+    	        ICommand[] commands = desc.getBuildSpec();
+    	        for (int i = 0; i < commands.length; i++) {
+                    if (commands[i].getBuilderName().equals(AspectJPlugin.ID_BUILDER)) {
+                        Map oldArgs = commands[i].getArguments();
+                        oldArgs.remove("aspectPath");
+                        commands[i].setArguments(oldArgs);
+                        break;
+                    }
+                }
+    	        desc.setBuildSpec(commands);
+    	        project.setDescription(desc, null);
+	        } catch (CoreException e) {
+	            
+	        }
+	        AJLog.logEnd(AJLog.BUILDER, "Augmenting aspect path with args from builder");
+
+	    }
+    }
+
+    /**
 	 * Check to see if the class paths are valid
 	 * @param progressMonitor
 	 * @param project
