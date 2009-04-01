@@ -111,6 +111,7 @@ public class AJBuildDirector extends BuildDirector {
 
 	
 	private void generateChildrenScripts(BuildTimeFeature feature) throws CoreException {
+		/* AJDT 1.7 */
 		Set plugins = computeElements(feature);
 		String suffix = generateFeatureVersionSuffix(feature);
 		if (suffix != null) {

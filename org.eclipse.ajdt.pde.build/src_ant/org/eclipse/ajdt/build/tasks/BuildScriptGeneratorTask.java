@@ -55,6 +55,7 @@ public class BuildScriptGeneratorTask extends Task {
 		generator.setDevEntries(devEntries);
 	}
 
+	/* AJDT 1.7 */
 	public void setFlattenDependencies(boolean flatten) {
 		generator.setFlattenDependencies(flatten);
 	}
@@ -118,6 +119,7 @@ public class BuildScriptGeneratorTask extends Task {
 	}
 
 	private void setEEProfileProperties(Properties antProperties) {
+		/* AJDT 1.7 */
 		ProfileManager manager = new ProfileManager(generator.getEESources(), true);
 		String[] profiles = manager.getJavaProfiles();
 		for (int i = 0; i < profiles.length; i++) {
@@ -209,6 +211,7 @@ public class BuildScriptGeneratorTask extends Task {
 		generator.setWorkingDirectory(installLocation);
 	}
 
+	/* AJDT 1.7 */
 	public void setCustomEESources(String eeSources) {
 		if (eeSources != null && !eeSources.startsWith("${")) { //$NON-NLS-1$
 			generator.setEESources(Utils.getArrayFromString(eeSources, File.pathSeparator));
@@ -289,6 +292,7 @@ public class BuildScriptGeneratorTask extends Task {
 		generator.setFilterP2Base(value);
 	}
 
+	/* AJDT 1.7 begin */
 	public void setParallelCompilation(boolean parallel) {
 		generator.setParallel(parallel);
 	}
@@ -308,5 +312,5 @@ public class BuildScriptGeneratorTask extends Task {
 			//ignore
 		}
 	}
-	
+	/* AJDT 1.7 end */
 }
