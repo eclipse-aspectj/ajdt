@@ -112,7 +112,14 @@ public class EventTraceView extends ViewPart
 		text.setFocus();
 	}
 
-	public void ajdtEvent(String msg, final int category, Date time) {
+	public Object getAdapter(Class key) {
+    	if (key.equals(IContextProvider.class)) {
+    		return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.EVENT_TRACE_VIEW);
+    	}
+    	return super.getAdapter(key);
+    }
+
+    public void ajdtEvent(String msg, final int category, Date time) {
 		/*
 		 * This code no longer dependent on either java.util.DateFormat, nor its ICU4J 
 		 * version, while avoiding the deprecated methods in java.util.Date, hence the 
@@ -158,6 +165,10 @@ public class EventTraceView extends ViewPart
 		} else if ((category==AJLog.COMPILER) || (category==AJLog.COMPILER_PROGRESS)
 				|| (category==AJLog.COMPILER_MESSAGES)) {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_GREEN);
+        } else if (category==AJLog.PARSER) {
+            styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_CYAN);
+        } else if (category==AJLog.MODEL) {
+            styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_YELLOW);
 		} else {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_BLACK);
 		}
@@ -198,12 +209,5 @@ public class EventTraceView extends ViewPart
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(clearEventTraceAction);
 		filterAction.fillActionBars(getViewSite().getActionBars());
-	}
-	
-	public Object getAdapter(Class key) {
-		if (key.equals(IContextProvider.class)) {
-			return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.EVENT_TRACE_VIEW);
-		}
-		return super.getAdapter(key);
 	}
 }

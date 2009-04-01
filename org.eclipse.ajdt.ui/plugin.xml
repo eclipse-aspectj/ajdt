@@ -49,6 +49,7 @@
 		        <objectState name="open" value="true"/>
 		    </and>
          </visibility>
+         <!-- /* AJDT 1.7 */ change menu location -->
          <action
                label="%convertToAJP"
                class="org.eclipse.ajdt.internal.ui.actions.AddAJNatureAction"

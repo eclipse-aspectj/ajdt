@@ -56,12 +56,24 @@ public class DebugTracing {
 	 */
 	public static boolean DEBUG_BUILDER_CLASSPATH = false;	
 
-	public static final String[] categoryNames = new String[]{
+    /**
+     * More detailed trace for the parser
+     */
+    public static boolean DEBUG_PARSER = true; 
+
+    /**
+     * Enable/disable model sanity checking
+     */
+    public static boolean DEBUG_MODEL = true; 
+
+    public static final String[] categoryNames = new String[]{
 		UIMessages.eventTrace_category_compiler,
 		UIMessages.eventTrace_category_compiler_progress,
 		UIMessages.eventTrace_category_compiler_messages,
 		UIMessages.eventTrace_category_builder,
-		UIMessages.eventTrace_category_builder_classpath
+		UIMessages.eventTrace_category_builder_classpath,
+		UIMessages.eventTrace_category_parser,
+		UIMessages.eventTrace_category_model
 	};
 		
 	public static String startupInfo() {
@@ -80,7 +92,7 @@ public class DebugTracing {
 		eventData.append( Version.text );
 		eventData.append( "\n   usingVisualiser="+AspectJUIPlugin.usingVisualiser ); //$NON-NLS-1$
 		eventData.append( "\n   usingXref="+AspectJUIPlugin.usingXref ); //$NON-NLS-1$
-		eventData.append( "\n   usingCUprovider="+AspectJPlugin.usingCUprovider ); //$NON-NLS-1$
+		eventData.append( "\n   usingCUprovider="+AspectJPlugin.USING_CU_PROVIDER ); //$NON-NLS-1$
 		
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		String[] props = AspectJUIPlugin.getDefault().getPluginPreferences().propertyNames();
@@ -123,11 +135,21 @@ public class DebugTracing {
 		} else {
 			DEBUG_BUILDER = false;
 		}
-		if (checked.contains(categoryNames[4])) {
-			DEBUG_BUILDER_CLASSPATH = true;
-		} else {
-			DEBUG_BUILDER_CLASSPATH = false;
-		}
+        if (checked.contains(categoryNames[4])) {
+            DEBUG_BUILDER_CLASSPATH = true;
+        } else {
+            DEBUG_BUILDER_CLASSPATH = false;
+        }
+        if (checked.contains(categoryNames[5])) {
+            DEBUG_PARSER = true;
+        } else {
+            DEBUG_PARSER = false;
+        }
+        if (checked.contains(categoryNames[6])) {
+            DEBUG_MODEL = true;
+        } else {
+            DEBUG_MODEL = false;
+        }
 	}
 	
 }

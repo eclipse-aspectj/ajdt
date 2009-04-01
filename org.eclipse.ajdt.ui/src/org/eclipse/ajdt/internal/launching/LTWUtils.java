@@ -27,7 +27,6 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IContainer;
@@ -115,6 +114,7 @@ public class LTWUtils {
 				}
 			}
 		} catch (Exception e) {
+		    e.printStackTrace();
 		}
 
 	}
@@ -207,7 +207,7 @@ public class LTWUtils {
 				}				
 				// Add all the current aspects to the document
 				for (Iterator iter = aspects.iterator(); iter.hasNext();) {
-					AspectElement aspect = (AspectElement) iter.next();
+					IType aspect = (IType) iter.next();
 					Element grandChild = doc.createElement("aspect"); //$NON-NLS-1$
 					grandChild.setAttribute("name",getFullyQualifiedName(aspect)); //$NON-NLS-1$
 					child.appendChild(grandChild);
@@ -249,7 +249,7 @@ public class LTWUtils {
 	 * @param aspect
 	 * @return
 	 */
-	private static String getFullyQualifiedName(AspectElement aspect) {
+	private static String getFullyQualifiedName(IType aspect) {
 		StringBuffer sb = new StringBuffer();
 		IJavaElement parent = aspect.getCompilationUnit().getParent();
 		if (parent instanceof IPackageFragment 
@@ -284,7 +284,7 @@ public class LTWUtils {
 	 * @return List of AspectElements
 	 * @throws CoreException
 	 */
-	public static List /* AspectElement */getAspects(
+	public static List /* IType */getAspects(
 			final IPackageFragmentRoot root) throws CoreException {
 		final List aspects = new ArrayList();
 		final List includedFiles = BuildConfig.getIncludedSourceFiles(root.getJavaProject().getProject());
@@ -296,12 +296,9 @@ public class LTWUtils {
                             .getAJCompilationUnit((IFile) resource);
                     if (ajcu != null) {
                         try {
-                            IType[] types = ajcu.getAllTypes();
+                            IType[] types = ajcu.getAllAspects();
                             for (int i = 0; i < types.length; i++) {
-                                IType type = types[i];
-                                if (type instanceof AspectElement) {
-                                    aspects.add(type);
-                                }
+                                aspects.add(types[i]);
                             }
                         } catch (JavaModelException e) {}
                     } else {
@@ -313,7 +310,7 @@ public class LTWUtils {
 
                             for (Iterator iter = types.iterator(); iter
                                     .hasNext();) {
-                                AspectElement element = (AspectElement) iter
+                                IType element = (IType) iter
                                         .next();
                                 aspects.add(element);
                             }

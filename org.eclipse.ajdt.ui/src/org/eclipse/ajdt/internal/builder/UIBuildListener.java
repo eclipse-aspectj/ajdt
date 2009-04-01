@@ -30,6 +30,7 @@ import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -134,18 +135,18 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	private boolean projectAlreadyMarked(IProject project, String errorMessage) {
 		try {
-			IMarker[] problemMarkers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-					false, IResource.DEPTH_INFINITE);
+			IMarker[] problemMarkers = project.findMarkers(
+			        IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+					false, IResource.DEPTH_ZERO);
 			if (problemMarkers.length > 0) {
 				for (int j = 0; j < problemMarkers.length; j++) {
 					IMarker marker = problemMarkers[j];
-					int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
-							-1);
-					String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-							"no message"); //$NON-NLS-1$
-					if (markerSeverity == IMarker.SEVERITY_ERROR
-							&& markerMessage.equals(errorMessage)) {
-						return true;
+					int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+					String markerMessage = marker.getAttribute(IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+					if (markerSeverity == IMarker.SEVERITY_ERROR) {
+					    if (markerMessage.equals(errorMessage)) {
+					        return true;
+					    }
 					}
 				}
 			}
@@ -224,11 +225,12 @@ public class UIBuildListener implements IAJBuildListener {
                     deleteUpdateMarkers.schedule();
                 }
 		}
-		
+		 
 		// sanity check the model if the event trace viewer is open
-		AJModelChecker.doModelCheckIfRequired(
-		        AJProjectModelFactory.getInstance().getModelForProject(project));
-		
+		if (DebugTracing.DEBUG_MODEL) {
+    		AJModelChecker.doModelCheckIfRequired(
+    		        AJProjectModelFactory.getInstance().getModelForProject(project));
+		}		
 		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
@@ -236,7 +238,7 @@ public class UIBuildListener implements IAJBuildListener {
 			AspectJUIPlugin.getDefault().getDisplay().asyncExec(
 				new Runnable() {
 					public void run() {
-				        AJLog.logStart("Post compile");
+				        AJLog.logStart("Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
 
 				        // TODO: can we determine whether there were
 						// actually changes to the set of advised elements?
@@ -264,7 +266,7 @@ public class UIBuildListener implements IAJBuildListener {
     							}
     						}
     					}
-    			        AJLog.logEnd(AJLog.BUILDER, "Post compile");
+    			        AJLog.logEnd(AJLog.BUILDER, "Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
     				}
     			});
 		}
@@ -320,18 +322,18 @@ public class UIBuildListener implements IAJBuildListener {
 				IProject referencingProject = referencingProjects[i];
 				IMarker[] problemMarkers = referencingProject.findMarkers(
 						IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-						false, IResource.DEPTH_INFINITE);
+						false, IResource.DEPTH_ZERO);
 				if (problemMarkers.length > 0) {
 					for (int j = 0; j < problemMarkers.length; j++) {
 						IMarker marker = problemMarkers[j];
 						int markerSeverity = marker.getAttribute(
 								IMarker.SEVERITY, -1);
-						String markerMessage = marker.getAttribute(
-								IMarker.MESSAGE, "no message"); //$NON-NLS-1$
-
-						if (markerSeverity == IMarker.SEVERITY_ERROR
-								&& markerMessage.equals(errorMessage)) {
-							marker.delete();
+						if (markerSeverity == IMarker.SEVERITY_ERROR) {
+	                        String markerMessage = marker.getAttribute(
+	                                IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+	                        if (markerMessage.equals(errorMessage)) {
+	                            marker.delete();
+	                        }
 						}
 					}
 				}

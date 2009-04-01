@@ -19,7 +19,15 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 
 /**
  * Notifies the AJCompilationUnitManager if files got added or removed.
- * 
+ */
+
+/*
+ * XXX This is horrible.  This class really should be separated out into
+ * the core and the ui parts.  The core part is the removing from the 
+ * AJCompilationUnitManager and the ui part is the refreshing of
+ * the package explorer.  The proper way to do this is to have a listener
+ * on the AJCompilationUnitManager that a UI class registers and listens for
+ * changes to the cu cache.
  */
 public class AJCompilationUnitResourceDeltaVisitor implements IResourceDeltaVisitor {
 
