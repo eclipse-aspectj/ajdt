@@ -189,6 +189,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				if (!continueToBuild) {
 					// bug 107027
 					compilerConfig.flushClasspathCache();
+					compilerConfig.configurationRead();  // reset config
 					postCallListeners(kind, true);
 	                AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
 	                AJLog.log(AJLog.BUILDER, "No source/resource changes found, exiting build");
@@ -224,6 +225,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		        compilerConfig.setClasspathElementsWithModifiedContents(getChangedRequiredProjects(timestamp));
 		    }
 		}
+		
+		// bug 270335 -- if output locations have changed, then 
+		// need a new output location manager.
+		compilerConfig.flushOutputLocationManagerIfNecessary(kind);
+		
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
 		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath = " + compilerConfig.getClasspath()); //$NON-NLS-1$
@@ -241,9 +247,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// compilation is done
 		// ----------------------------------------
 
-        AJLog.logStart("Refresh after build");
 		doRefreshAfterBuild(project, dependingProjects, javaProject);
-        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
 		
 		// do the cleanup
 		// bug 107027
@@ -460,6 +464,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     // bug 269604---refresh after build is greatly reduced in scope
     private void doRefreshAfterBuild(IProject project,
             IProject[] dependingProjects, IJavaProject javaProject) {
+        AJLog.logStart("Refresh after build");
         try {
             String outjarStr = AspectJCorePreferences.getProjectOutJar(project);
             if (outjarStr != null && outjarStr.length() > 0) {
@@ -475,6 +480,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         } catch (CoreException e) {
         }
+        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
     }
 
     private boolean hasValidPreviousBuildConfig(String configId) {
@@ -1262,14 +1268,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void removeProblemsAndTasksFor(IResource resource) {
 		try {
 			if (resource != null && resource.exists()) {
-			    if (resource instanceof IContainer) {
-			        IResource[] members = ((IContainer) resource).members();
-			        for (int i = 0; i < members.length; i++) {
-			            members[i].deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
-                    }
-			    } else { 
-			        resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
-			    }
+				resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
 				resource.deleteMarkers(IJavaModelMarker.TASK_MARKER, false, IResource.DEPTH_INFINITE);
 			}
 		} catch (CoreException e) {
