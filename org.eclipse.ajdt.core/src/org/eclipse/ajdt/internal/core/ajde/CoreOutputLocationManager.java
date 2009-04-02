@@ -430,7 +430,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 //                    }
 //                }
 //                
-//            }
+//            } 
 //        } catch (CoreException e) {
 //        }
 //	}
@@ -503,7 +503,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	
-	
+	/**
+	 * the field binFolderToProject must be refreshed before each build
+	 * because we are not sure if any bin folders in downstream projects 
+	 * have changed.
+	 * 
+	 * See bug 270335
+	 */
+	protected void zapBinFolderToProjectMap() {
+	    binFolderToProject = null;
+	}
 
 	/**
 	 * Initialize the binFolderToProject map so that the map contains 
@@ -511,12 +520,15 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 * and the project is where this output location is defined
 	 */
 	private void initDeclaringProjectsMap() {
+	    
+	    AJLog.logStart("OutputLocationManager: binary folder to declaring project map creation: " + project);
 	    binFolderToProject = new HashMap();
 	    IJavaProject jp = jProject;
         try {
             mapProject(jp);
         } catch (JavaModelException e) {
         }
+        AJLog.logEnd(AJLog.BUILDER_CLASSPATH, "OutputLocationManager: binary folder to declaring project map creation: " + project);
     }
 
     private void mapProject(IJavaProject jp) throws JavaModelException {
@@ -662,7 +674,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
 	
 	// Cached for performance reasons
-	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
-	private java.lang.reflect.Field structurallyChangedTypesField = null;
+	private static java.lang.reflect.Field lastStructuralBuildTimeField = null;
+	private static java.lang.reflect.Field structurallyChangedTypesField = null;
 	
 }

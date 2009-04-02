@@ -35,6 +35,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -56,7 +57,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
 	private String cachedClasspath = null;
 	protected IProject project;
-	private CoreOutputLocationManager locationManager;
+	protected CoreOutputLocationManager locationManager;
 
 	// fully qualified list of file names that have been touched since
     // last build
@@ -176,6 +177,32 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return locationManager;
 	}
 
+	/**
+	 * bug 270335 need to recreate locationManager if any of the
+	 * following configuration changes have occurred:
+	 * ASPECTPATH_CHANGED | CLASSPATH_CHANGED | INPATH_CHANGED | 
+	 * OUTJAR_CHANGED | OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
+	 * 
+	 * @return true if {@link #locationManager} field has been reset to 
+	 * null.  false otherwise
+	 */
+	public boolean flushOutputLocationManagerIfNecessary(int buildKind) {
+	    if (buildKind == IncrementalProjectBuilder.FULL_BUILD || 
+	            buildKind == IncrementalProjectBuilder.CLEAN_BUILD) {
+	        locationManager = null;
+	    } else if ((configurationChanges & 
+	            (ASPECTPATH_CHANGED | CLASSPATH_CHANGED | 
+	             INPATH_CHANGED | OUTJAR_CHANGED | 
+	             OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED)) != 0) {
+	        locationManager = null;
+	    } else {
+	        // we don't know if bin folders of depending projects
+	        // have changed, so just assume that they have
+	        locationManager.zapBinFolderToProjectMap();
+	    }
+	    return locationManager == null;
+	}
+	
 	public List getProjectSourceFiles() {
 		List files = BuildConfig.getIncludedSourceFiles(project);
 		List iofiles = new ArrayList(files.size());

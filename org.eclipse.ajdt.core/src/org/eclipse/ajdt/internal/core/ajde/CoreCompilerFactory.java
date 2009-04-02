@@ -35,14 +35,19 @@ public class CoreCompilerFactory implements ICompilerFactory {
 		if (compilerMap.get(project) != null) {
 			return (AjCompiler) compilerMap.get(project);
 		}
-		AjCompiler compiler = new AjCompiler(
+		AjCompiler compiler = createCompiler(project);
+		compilerMap.put(project,compiler);
+		return compiler;
+	}
+
+    protected AjCompiler createCompiler(IProject project) {
+        AjCompiler compiler = new AjCompiler(
 				project.getName(),
 				new CoreCompilerConfiguration(project),
 				new CoreBuildProgressMonitor(project),
 				new CoreBuildMessageHandler());
-		compilerMap.put(project,compiler);
-		return compiler;
-	}
+        return compiler;
+    }
 
 	/**
 	 * No longer record the AjCompiler for the given project.
