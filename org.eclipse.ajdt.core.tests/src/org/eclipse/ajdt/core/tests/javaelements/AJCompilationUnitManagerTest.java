@@ -45,14 +45,14 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) == null)
 			fail("AJCompilationUnit has not been created for Aspect.aj"); //$NON-NLS-1$
 		
+        // XXX this test is not working any more
+        // the listener for project closures sits in 
+        // AJDT ui, so it is not running now
+        // so instead simulate its effect when a project closes
+        AJCompilationUnitManager.INSTANCE.removeCUsfromJavaModel(myProject);
+
 		myProject.close(null);
 		
-		
-		// failing on linux only
-        if (System.getProperty("os.name").equals("Linux")) {
-            return;
-        }
-        
         // wait for project to be closed
 		int counter = 0;
 		while (myProject.isOpen() && counter < 10) {
