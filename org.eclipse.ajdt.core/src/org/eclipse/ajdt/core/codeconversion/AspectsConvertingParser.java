@@ -619,10 +619,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     if (pe.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
                         List/*String*/ parentTypes = pe.getParentTypes();
                         String details = pe.getDetails();
-                        if (details.startsWith(EXTENDS)) {
-                            declareExtends.addAll(parentTypes);
-                        } else if (details.startsWith(IMPLEMENTS)) {
-                            declareImplements.addAll(parentTypes);
+                        if (details != null) { // might be null if previous build had a compiler error
+                            if (details.startsWith(EXTENDS)) {
+                                declareExtends.addAll(parentTypes);
+                            } else if (details.startsWith(IMPLEMENTS)) {
+                                declareImplements.addAll(parentTypes);
+                            }
                         }
                     }
                 }
