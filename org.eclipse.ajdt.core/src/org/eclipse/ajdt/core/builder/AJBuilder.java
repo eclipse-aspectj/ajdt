@@ -309,7 +309,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			AJLog.log(AJLog.BUILDER,
 					"build: Abort due to missing inpath/aspectpath/classpath entries"); //$NON-NLS-1$
 			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
-            removeProblemsAndTasksFor(project); // make this the only problem for this project
+            removeProblemsAndTasksFor(project); 
+            // make this the only problem for this project
+            markProject(project, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
+                    project.getName()));
 			return false;
 		}
 		return true;
@@ -535,8 +538,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	            false, IResource.DEPTH_ZERO);
 	    for (int i = 0, l = markers.length; i < l; i++) {
 	        if (markers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
-	            markProject(p, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
-	                    p.getName()));
+	           
 	            return true;
 	        }
 	    }
