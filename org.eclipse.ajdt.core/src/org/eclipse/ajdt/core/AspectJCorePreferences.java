@@ -222,9 +222,6 @@ public class AspectJCorePreferences {
                     // don't add the source folder itself, but instead add the outfolder
                     IPath outputLocation = requiredEntry.getOutputLocation();
                     if (outputLocation != null) {
-	                    // XXX Not sure what I should be doing with these
-    	                // Should the values override the existing values on the
-        	            // entries, or should they be combined?
             	        IAccessRule[] rules = projEntry.getAccessRules();
                 	    IClasspathAttribute[] attributes = projEntry.getExtraAttributes();
 
