@@ -95,7 +95,10 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
-		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
+		try {
+    		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
+		} catch (NullPointerException npe) {
+		}
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();
 	}
