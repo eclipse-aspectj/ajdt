@@ -18,8 +18,10 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.tests.testutils.DefaultLogger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -40,6 +42,12 @@ import org.eclipse.jdt.core.JavaCore;
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
  */
 public class AJDTCoreTestCase extends TestCase {
+    
+    DefaultLogger defaultLogger = new DefaultLogger();
+    {
+        AspectJPlugin.getDefault().setAJLogger(defaultLogger);
+    }
+    
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
@@ -54,6 +62,9 @@ public class AJDTCoreTestCase extends TestCase {
 			deleteProject(project,true);
 		}
 		AJCompilationUnitManager.INSTANCE.clearCache();
+		
+		// ensure we use default logger for next test
+		AspectJPlugin.getDefault().setAJLogger(defaultLogger);
 	}
 
 	/**
