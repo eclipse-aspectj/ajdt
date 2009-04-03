@@ -108,6 +108,7 @@ public class AJCompilationUnitStructureRequestor extends
 	    // not keeping track of annotations
 	    // and this ensures that itd aware content assist 
 	    // still works when there are large numbers ofannotations
+	    // see bug 268620
 	    this.unitInfo.annotationNumber = 0;  
 	    
 	}
