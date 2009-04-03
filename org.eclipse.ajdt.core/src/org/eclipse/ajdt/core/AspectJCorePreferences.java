@@ -170,7 +170,7 @@ public class AspectJCorePreferences {
     /**
      * Checks to see if an entry is already on the aspect path
      */
-	public static boolean isOnAspectpath(IProject project, String jarPath) {
+	public static boolean isOnAspectpath(IProject project, String path) {
 		IJavaProject jp = JavaCore.create(project);
 		try {
 			IClasspathEntry[] cp = jp.getRawClasspath();
@@ -183,7 +183,7 @@ public class AspectJCorePreferences {
 					if (resolvedClasspathEntry != null) {
                         String entry = resolvedClasspathEntry
     							.getPath().toPortableString();
-    					if (entry.equals(jarPath)) {
+    					if (entry.equals(path)) {
     						if (isOnAspectpath(cp[i])) {
     							return true;
     						}

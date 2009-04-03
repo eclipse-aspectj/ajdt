@@ -69,7 +69,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	private List /*File*/ allOutputFolders = new ArrayList();
 	
-	private List /*IPath*/ allSourceFolders = new ArrayList();
+	// maps file system location to a path within the eclipse workspace
+	// needs to take into account linked sources, where the actual
+	// file system location may be different from the workspace location
+	private Map /*String, String*/ allSourceFolders;
 	
 	// Bug 243376 
 	// Gather all of the files that are touched by this compilation
@@ -120,13 +123,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 * initialize the source folder locations only
 	 */
 	private void initSourceFolders() {
+	    allSourceFolders = new HashMap();
 	    try {
             IClasspathEntry[] cpe = jProject.getRawClasspath();
             for (int i = 0; i < cpe.length; i++) {
                 if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
                     IPath path = cpe[i].getPath();
                     path = path.removeFirstSegments(1).makeRelative();
-                    allSourceFolders.add(path);
+                    IFile file = jProject.getProject().getFile(path);
+                    IPath rawPath = file.getLocation();
+                    allSourceFolders.put(rawPath.toOSString(), path.toOSString());
                 }
             }
         } catch (JavaModelException e) {
@@ -356,16 +362,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	public String getSourceFolderForFile(File sourceFile) {
-		IPath sourceFilePath = new Path(sourceFile.getAbsolutePath());
-		IPath projLoc = project.getLocation();
-		if (projLoc.isPrefixOf(sourceFilePath)) {
-			sourceFilePath = sourceFilePath.setDevice(null).removeFirstSegments(projLoc.segmentCount()).makeRelative();
-		}
-
-		for (Iterator pathIter = allSourceFolders.iterator(); pathIter.hasNext();) {
-			IPath sourceFolderPath = (IPath) pathIter.next();
-			if (sourceFolderPath.isPrefixOf(sourceFilePath)) {
-				return sourceFolderPath.toPortableString();
+		String sourceFilePath = sourceFile.getAbsolutePath();
+		for (Iterator pathIter = allSourceFolders.entrySet().iterator(); pathIter.hasNext();) {
+		    Map.Entry sourceFolderMapping = (Map.Entry) pathIter.next();
+			if (sourceFilePath.startsWith((String) sourceFolderMapping.getKey())) {
+				return (String) sourceFolderMapping.getValue();
 			}
 		}
 		return null;
