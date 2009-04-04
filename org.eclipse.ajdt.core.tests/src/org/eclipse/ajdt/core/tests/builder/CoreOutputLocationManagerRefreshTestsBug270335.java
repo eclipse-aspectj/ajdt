@@ -68,13 +68,14 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         
         public boolean flushOutputLocationManagerIfNecessary(int buildKind) {
             boolean val = super.flushOutputLocationManagerIfNecessary(buildKind);
-            iGotFlushed = val;
+            iGotFlushed |= val;
             return val;
             
         }
 
         boolean flushed() {
-            return iGotFlushed;
+            boolean val = iGotFlushed;
+            return val;
         }
         void unflush() {
             iGotFlushed = false;
@@ -98,9 +99,6 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
     IProject proj1;
     IProject proj2;
     
-    MockCoreCompilerConfiguration proj1Config;
-    
-    
     protected void setUp() throws Exception {
         super.setUp();
         origFactory = AspectJPlugin.getDefault().getCompilerFactory();
@@ -108,8 +106,6 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         
         proj2 = createPredefinedProject("ExportAsJar");
         proj1 = createPredefinedProject("JarOnInPath");
-        
-        proj1Config = (MockCoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(proj1).getCompilerConfiguration();
     }
     
     protected void tearDown() throws Exception {
@@ -124,7 +120,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         
         proj1.getFile(".classpath").touch(null);
         waitForAutoBuild();
@@ -139,7 +135,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         AspectJCorePreferences.addToAspectPath(proj1, getClasspathEntry());
         waitForAutoBuild();
         
@@ -153,7 +149,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         AspectJCorePreferences.removeFromInPath(proj1, getClasspathEntry());
         waitForAutoBuild();
         
@@ -167,7 +163,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         AspectJCorePreferences.setProjectOutJar(proj1, "out.jar");
         waitForAutoBuild();
         
@@ -181,7 +177,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         JavaCore.create(proj1).setOutputLocation(proj1.getFile("bin2").getFullPath(), null);
         waitForAutoBuild();
         
@@ -195,7 +191,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         proj1.getFile("src/A.aj").touch(null);
         waitForAutoBuild();
         
@@ -210,7 +206,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
         assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
         assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        proj1Config.unflush();
+        unflush();
         proj1.getFolder("src/A.txt").create(true, true, null);
         waitForAutoBuild();
         
@@ -227,6 +223,10 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
     private boolean hasBeenZapped() {
         return ((MockCoreOutputLocationManager) ((MockCoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory()
                 .getCompilerForProject(proj1).getCompilerConfiguration()).getOutputLocationManager()).zapped();
+    }
+    private void unflush() {
+        ((MockCoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory()
+                .getCompilerForProject(proj1).getCompilerConfiguration()).unflush();
     }
     
     private IClasspathEntry getClasspathEntry() throws Exception {
