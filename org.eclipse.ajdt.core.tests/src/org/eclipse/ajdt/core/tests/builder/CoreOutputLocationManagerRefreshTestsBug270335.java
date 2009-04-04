@@ -14,6 +14,7 @@ import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.ajdt.internal.core.ajde.CoreBuildMessageHandler;
 import org.eclipse.ajdt.internal.core.ajde.CoreBuildProgressMonitor;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
@@ -103,6 +104,8 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         super.setUp();
         origFactory = AspectJPlugin.getDefault().getCompilerFactory();
         AspectJPlugin.getDefault().setCompilerFactory(new MockCompilerFactory());
+        
+        Utils.setAutobuilding(true);
         
         proj2 = createPredefinedProject("ExportAsJar");
         proj1 = createPredefinedProject("JarOnInPath");
