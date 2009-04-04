@@ -129,9 +129,14 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
             for (int i = 0; i < cpe.length; i++) {
                 if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
                     IPath path = cpe[i].getPath();
+                    IPath rawPath;
                     path = path.removeFirstSegments(1).makeRelative();
-                    IFile file = jProject.getProject().getFile(path);
-                    IPath rawPath = file.getLocation();
+                    if (path.segmentCount() > 0) {
+                        IFolder folder = project.getFolder(path);
+                        rawPath = folder.getLocation();
+                    } else {
+                        rawPath = project.getLocation();
+                    }
                     allSourceFolders.put(rawPath.toOSString(), path.toOSString());
                 }
             }
