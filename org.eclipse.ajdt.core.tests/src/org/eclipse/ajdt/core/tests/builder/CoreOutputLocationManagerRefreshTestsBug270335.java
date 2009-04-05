@@ -108,7 +108,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         Utils.setAutobuilding(true);
         
         proj2 = createPredefinedProject("ExportAsJar");
-        proj1 = createPredefinedProject("JarOnInPath");
+        proj1 = createPredefinedProject("JarOnInpath");
         waitForAutoBuild();
     }
     
@@ -121,12 +121,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should cause location manager to be refreshed
      */
     public void testClasspathChanged() throws Exception {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         
         proj1.getFile(".classpath").touch(null);
@@ -139,12 +136,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should cause location manager to be refreshed
      */
     public void testAspectpathChanged() throws Exception {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         AspectJCorePreferences.addToAspectPath(proj1, getClasspathEntry());
         waitForAutoBuild();
@@ -156,12 +150,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should cause location manager to be refreshed
      */
     public void testInpathChanged() throws Exception {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         AspectJCorePreferences.removeFromInPath(proj1, getClasspathEntry());
         waitForAutoBuild();
@@ -173,12 +164,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should cause location manager to be refreshed
      */
     public void testOutjarChangedChanged() {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         AspectJCorePreferences.setProjectOutJar(proj1, "out.jar");
         waitForAutoBuild();
@@ -190,12 +178,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should cause location manager to be refreshed
      */
     public void testOutDestinationsChanged() throws Exception {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         JavaCore.create(proj1).setOutputLocation(proj1.getFile("bin2").getFullPath(), null);
         waitForAutoBuild();
@@ -207,12 +192,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should *not* cause location manager to be refreshed
      */
     public void testSourceChanged() throws Exception {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         proj1.getFile("src/A.aj").touch(null);
         waitForAutoBuild();
@@ -225,12 +207,9 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      * should *not* cause location manager to be refreshed
      */
     public void testResourceChanged() throws Exception {
-        // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (!System.getProperty("os.name").equals("Linux")) { 
-            // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
-            assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
-            assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
-        }
+        // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
+        assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
+        assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
         unflush();
         proj1.getFolder("src/A.txt").create(true, true, null);
         waitForAutoBuild();
