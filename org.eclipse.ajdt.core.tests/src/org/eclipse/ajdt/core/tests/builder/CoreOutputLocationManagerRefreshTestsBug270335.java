@@ -122,7 +122,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testClasspathChanged() throws Exception {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
@@ -140,7 +140,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testAspectpathChanged() throws Exception {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
@@ -157,7 +157,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testInpathChanged() throws Exception {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
@@ -174,7 +174,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testOutjarChangedChanged() {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
@@ -191,7 +191,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testOutDestinationsChanged() throws Exception {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
@@ -208,7 +208,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testSourceChanged() throws Exception {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
@@ -226,7 +226,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
      */
     public void testResourceChanged() throws Exception {
         // hmm...these asserts are failing on Linux, but shouldn't.  Don't know why
-        if (System.getProperty("os.name").equals("Linux")) { 
+        if (!System.getProperty("os.name").equals("Linux")) { 
             // first build of proj1 is full build, so should have been flushed, but is a noop since started out as null
             assertTrue(proj1 + "'s OutputLocationManager should have been flushed", hasBeenFlushed());
             assertFalse(proj1 + "'s OutputLocationManager's binToProject map should not have been zapped", hasBeenZapped());
