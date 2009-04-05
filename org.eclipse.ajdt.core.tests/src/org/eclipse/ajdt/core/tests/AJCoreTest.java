@@ -17,7 +17,6 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;

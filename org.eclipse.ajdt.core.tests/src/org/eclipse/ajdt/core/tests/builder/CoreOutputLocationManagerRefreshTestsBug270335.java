@@ -203,7 +203,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         assertTrue(proj1 + "'s OutputLocationManager's binToProject map should have been zapped after source file change", hasBeenZapped());
     }
     
-    /**
+    /** 
      * should *not* cause location manager to be refreshed
      */
     public void testResourceChanged() throws Exception {

@@ -11,7 +11,6 @@ package org.eclipse.ajdt.core.tests.ajde;
 
 import java.io.StringReader;
 
-import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;

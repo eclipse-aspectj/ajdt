@@ -10,24 +10,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.model;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.aspectj.asm.AsmManager;
-import org.aspectj.asm.IProgramElement;
-import org.aspectj.bridge.ISourceLocation;
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
-import org.eclipse.ajdt.core.model.AJComparator;
-import org.eclipse.ajdt.core.model.AJProjectModelFacade;
-import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
