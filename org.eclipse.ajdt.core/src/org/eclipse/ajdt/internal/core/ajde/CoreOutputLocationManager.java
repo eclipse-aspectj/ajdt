@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -680,7 +681,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
 	
 	// Cached for performance reasons
-	private static java.lang.reflect.Field lastStructuralBuildTimeField = null;
-	private static java.lang.reflect.Field structurallyChangedTypesField = null;
+	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
+	private java.lang.reflect.Field structurallyChangedTypesField = null;
+
+	public Map getInpathMap() {
+		return Collections.EMPTY_MAP;
+	}
 	
 }
