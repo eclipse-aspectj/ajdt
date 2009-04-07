@@ -198,7 +198,9 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	    } else {
 	        // we don't know if bin folders of depending projects
 	        // have changed, so just assume that they have
-	        locationManager.zapBinFolderToProjectMap();
+	        if (locationManager != null) {
+	            locationManager.zapBinFolderToProjectMap();
+	        }
 	    }
 	    return locationManager == null;
 	}

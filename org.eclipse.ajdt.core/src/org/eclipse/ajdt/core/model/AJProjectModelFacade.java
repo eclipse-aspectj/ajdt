@@ -433,20 +433,24 @@ public class AJProjectModelFacade {
     }
     
     private class HandleInfo {
-        public HandleInfo(String origAJHandle, String simpleName, String packageName, String qualName, boolean isFile, boolean isType) {
+        public HandleInfo(String origAJHandle, String simpleName, String packageName, String qualName, String restHandle, boolean isFile, boolean isType, boolean isInAspect) {
             this.origAJHandle = origAJHandle;
             this.simpleName = simpleName;
             this.packageName = packageName;
             this.qualName = qualName;
+            this.restHandle = restHandle;
             this.isFile = isFile;
             this.isType = isType;
+            this.isInAspect = isInAspect;
         }
         final String origAJHandle;
         final String simpleName;
         final String packageName;
         final String qualName;
+        final String restHandle;
         final boolean isFile;
         final boolean isType;
+        final boolean isInAspect;
         
         String extractInnerTypeName() {
             String typeNameNoParent;
@@ -525,12 +529,13 @@ public class AJProjectModelFacade {
             throws JavaModelException {
         IJavaElement candidate = classFile;
 
-        if (handleInfo.isType) {
+        if (handleInfo.isType && !handleInfo.isInAspect) {
             candidate = classFile.getType();
-        } else if (!handleInfo.isFile && !handleInfo.isType) {
-            IJavaElement newElt = (IJavaElement) AspectJCore.create(handleInfo.origAJHandle);
+        } else if (!handleInfo.isFile) {
+            String newHandle = classFile.getHandleIdentifier() + handleInfo.restHandle;
+            IJavaElement newElt = AspectJCore.create(newHandle);
             IProgramElement ipe;
-            if (!handleInfo.isFile && !handleInfo.isType) {
+            if (!handleInfo.isFile && (!handleInfo.isType || handleInfo.isInAspect)) {
                 // program element will exist only if coming from aspect path
                 ipe = getProgramElement(handleInfo.origAJHandle);
             } else {
@@ -540,8 +545,8 @@ public class AJProjectModelFacade {
                 JavaModelManager.getJavaModelManager().resetTemporaryCache();
                 AspectJMemberElement ajElt = (AspectJMemberElement) newElt;
                 ajElt.setStartLocation(offsetFromLine(classFile, ipe.getSourceLocation()));
-                candidate = newElt;
             }
+            candidate = newElt;
         }
         return candidate;
     }
@@ -586,6 +591,9 @@ public class AJProjectModelFacade {
             IProgramElement ipe = getProgramElement(handleInfo.origAJHandle);
             if (ipe != IHierarchy.NO_STRUCTURE) {
                 candidate = typeRoot.getElementAt(offsetFromLine(typeRoot, ipe.getSourceLocation()));
+            } else {
+                String newHandle = typeRoot.getHandleIdentifier() + handleInfo.restHandle;
+                candidate = AspectJCore.create(newHandle);
             }
         }
         return candidate;
@@ -601,6 +609,7 @@ public class AJProjectModelFacade {
         AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit(cunit);
         cunit = newUnit != null ? newUnit : cunit;
 
+        
         IProgramElement ipe;
         if (!handleInfo.isFile && !handleInfo.isType) {
             // program element will exist only if coming from aspect path
@@ -619,7 +628,8 @@ public class AJProjectModelFacade {
         } else {
             // we have a non-type, non-file handle that is coming from
             // the in path.  It has no program element associated with it
-            candidate = ERROR_JAVA_ELEMENT;
+            String newHandle = newUnit.getHandleIdentifier() + handleInfo.restHandle;
+            candidate = AspectJCore.create(newHandle);
         }
         return candidate;
     }
@@ -642,15 +652,22 @@ public class AJProjectModelFacade {
         }
         String simpleName = ajHandle.substring(packageEnd+1, typeNameEnd);
         sb.append(simpleName);
-        int typeStart = ajHandle.indexOf(JavaElement.JEM_TYPE, typeNameEnd);
+        int aspectStart = ajHandle.indexOf(AspectElement.JEM_ASPECT_TYPE, typeNameEnd);
+        int classStart = ajHandle.indexOf(JavaElement.JEM_TYPE, typeNameEnd);
+        
+        int typeStart = classStart == -1 ? aspectStart : 
+            aspectStart == -1 ? classStart : Math.min(classStart, aspectStart);
+        
         boolean isFile = typeStart == -1;
         boolean isType;
         if (!isFile) {
-            isType = typeStart + simpleName.length() < ajHandle.length();
+            isType = typeStart + simpleName.length() + 1 == ajHandle.length();
         } else {
             isType = false;
         }
-        return new HandleInfo(ajHandle, simpleName, packageName, sb.toString(), isFile, isType);
+        boolean isInAspect = aspectStart >= 0;
+        String restHandle = typeStart >= 0 ? ajHandle.substring(typeStart) : "";
+        return new HandleInfo(ajHandle, simpleName, packageName, sb.toString(), restHandle, isFile, isType, isInAspect);
     }
 
     private ITypeRoot getCUFromQualifiedName(HandleInfo handleInfo)
