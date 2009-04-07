@@ -50,6 +50,7 @@ import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.Bug268522;
+import org.eclipse.ajdt.core.tests.model.InpathRelationshipsTests;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
@@ -97,6 +98,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ModelCheckerTests.class));
         suite.addTest(new TestSuite(AspectJMemberElementTest.class));
         suite.addTest(new TestSuite(Bug268522.class));
+        suite.addTest(new TestSuite(InpathRelationshipsTests.class));
+        
         
 		
 		// core compiler configuration

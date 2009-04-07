@@ -1,13 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2009 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *  Andrew Eisenberg - initial implementation
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.model;
 
@@ -17,7 +16,7 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
 
 /**
- * @author hawkinsh
+ * @author Andrew Eisenberg
  *
  */
 public class ModelCheckerTests extends AJDTCoreTestCase {
@@ -27,6 +26,10 @@ public class ModelCheckerTests extends AJDTCoreTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         AJBuilder.removeStateListener();
+    }
+    protected void tearDown() throws Exception {
+        AJBuilder.addStateListener();
+        super.tearDown();
     }
     
     public void testShouldDoCheck() {
