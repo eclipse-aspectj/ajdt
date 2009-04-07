@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -21,7 +22,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IParent;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
@@ -158,9 +162,49 @@ public class CompilationUnitTools {
 	    if (unit instanceof AJCompilationUnit) {
             return (AJCompilationUnit) unit;
         } else if (unit instanceof CompilationUnit) {
-            return new AJCompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), AJWorkingCopyOwner.INSTANCE);
+            AJCompilationUnit maybeAJUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile) unit.getResource());
+            return maybeAJUnit;
         } else {
             return null;
         }
 	}
+	
+	/**
+	 * Returns the type with the given simple name in the given compilation unit.
+	 * 
+	 * If an inner type, then this name includes parent types.
+	 * 
+	 * The separator may either be source ('.') or binary ('$')
+	 */
+	public static IType findType(ICompilationUnit unit, String name, boolean isBinarySeparator) {
+	    String[] names = name.split("\\" + (isBinarySeparator ? '$' : '.'));
+	    IType candidate = unit.getType(names[0]); 
+	    if (names.length > 0) {
+	        for (int i = 1; i < names.length; i++) {
+                candidate = candidate.getType(names[i]);
+            }
+	    }
+	    return candidate.exists() ? candidate : null;
+	}
+	
+
+	
+//	
+//	private static IType internalFindType(IParent parent, String name) {
+//	    try {
+//            IJavaElement[] children = parent.getChildren();
+//            for (int i = 0; i < children.length; i++) {
+//                if (children[i].getElementType() == IJavaElement.TYPE && children[i].getElementName().equals(name)) {
+//                    return (IType) children[i];
+//                } else if (children[i] instanceof IParent){
+//                    IType type = internalFindType((IParent) children[i], name);
+//                    if (type != null) {
+//                        return type;
+//                    }
+//                }
+//            }
+//        } catch (JavaModelException e) {
+//        }
+//	    return null;
+//	}
 }

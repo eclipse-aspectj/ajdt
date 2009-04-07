@@ -60,6 +60,8 @@ import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IParent;
+import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -222,10 +224,15 @@ public class AJProjectModelFacade {
             }
         }
         // use element name instead, qualified with parent
-        if (je.getParent() != null) {
-            return je.getParent().getElementName() + '.' + je.getElementName();
+        String name = je.getElementName();
+        if (je instanceof ISourceReference && !(je instanceof ITypeRoot)) {
+            IJavaElement parent = je.getParent();
+            while (parent != null && !(parent instanceof ITypeRoot)) {
+                name = parent.getElementName() + "." + name;
+                parent = parent.getParent();
+            }
         }
-        return je.getElementName();
+        return name;
     }
 
     /**
@@ -405,17 +412,17 @@ public class AJProjectModelFacade {
         return je;
     }
 
-    private boolean isBinaryAspectJHandle(String jHandle) {
-        int classFileIndex = jHandle.indexOf(JavaElement.JEM_CLASSFILE);
+    private boolean isBinaryAspectJHandle(String ajHandle) {
+        int classFileIndex = ajHandle.indexOf(JavaElement.JEM_CLASSFILE);
         boolean doIt = false;
         if (classFileIndex != -1) {
-            int dotClassIndex = jHandle.indexOf(".class") + ".class".length();
-            if (dotClassIndex >= jHandle.length()) {
+            int dotClassIndex = ajHandle.indexOf(".class") + ".class".length();
+            if (dotClassIndex >= ajHandle.length()) {
                 // handle is for the class itself.
                 doIt = true;
             } else if (dotClassIndex != -1) {
                 // make sure this isn't a code element
-                char typeChar = jHandle.charAt(dotClassIndex);
+                char typeChar = ajHandle.charAt(dotClassIndex);
                 doIt = (typeChar == AspectElement.JEM_ASPECT_TYPE ||
                         typeChar == JavaElement.JEM_TYPE ||
                         typeChar == JavaElement.JEM_IMPORTDECLARATION ||
@@ -424,99 +431,80 @@ public class AJProjectModelFacade {
         }
         return doIt;
     }
+    
+    private class HandleInfo {
+        public HandleInfo(String origAJHandle, String simpleName, String packageName, String qualName, boolean isFile, boolean isType) {
+            this.origAJHandle = origAJHandle;
+            this.simpleName = simpleName;
+            this.packageName = packageName;
+            this.qualName = qualName;
+            this.isFile = isFile;
+            this.isType = isType;
+        }
+        final String origAJHandle;
+        final String simpleName;
+        final String packageName;
+        final String qualName;
+        final boolean isFile;
+        final boolean isType;
+        
+        String extractInnerTypeName() {
+            String typeNameNoParent;
+            int dollarIndex = this.simpleName.lastIndexOf('$');
+            if (dollarIndex > -1) {
+                typeNameNoParent = this.simpleName.substring(dollarIndex+1);
+            } else {
+                typeNameNoParent = this.simpleName;
+            }
+            return typeNameNoParent;
+        }
+        
+        String sourceTypeQualName() {
+            return qualName.replaceAll("\\$", "\\.");
+        }
+    }
 
     
+    /**
+     * In this method, we are not sure we can do better than 
+     * finding the Class file or compilation unit, even if 
+     * more information is supplied in the handle.
+     * We do our best effort
+     */
     private IJavaElement getElementFromClassFile(String jHandle) {
-        IProgramElement ipe = structureModel.findElementForHandleOrCreate(jHandle, false);
-
-        String packageName = ipe.getPackageName();
-        // need to find the top level type
-        IProgramElement candidate = ipe;
-        while (candidate != null && candidate.getKind() != IProgramElement.Kind.FILE) {
-            candidate = candidate.getParent();
+        HandleInfo handleInfo = qualifiedNameFromBinaryHandle(jHandle);
+        if (handleInfo == null) {
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                    AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle));
+            return ERROR_JAVA_ELEMENT;
         }
-        String typeName;
-        if (candidate != null) {
-            int typeIndex = 0;
-            while (typeIndex < candidate.getChildren().size() &&
-                    ((IProgramElement) candidate.getChildren().get(typeIndex)).getKind() 
-                    == IProgramElement.Kind.IMPORT_REFERENCE) {
-                typeIndex++;
-            }
-            if (typeIndex < candidate.getChildren().size()) {
-                typeName = ((IProgramElement) candidate.getChildren().get(typeIndex)).getName();
-            } else {
-                typeName = "";
-            }
-        } else {
-            typeName = "";
-        }        
-        String qualifiedName = (packageName.length() > 0 ? packageName + "." : "")
-            + typeName;
+        
         try {
-            // this gives us the type in the current project,
-            // but we don't want this if the type exists as source in 
-            // some other project in the workspace.
-            ITypeRoot unit = getTypeFromQualifiedName(qualifiedName);
+            // this gives us the type in the current project.
+            // However, the type may actually be source coming from another project
+            ITypeRoot typeRoot = getCUFromQualifiedName(handleInfo);
+            IJavaElement candidate;
             
-            
-            if (unit instanceof ICompilationUnit) {
+            if (typeRoot instanceof ICompilationUnit) {
                 // we're in luck...
                 // all this work has taken us straight to the compilation unit
-                if (unit instanceof ICompilationUnit) {
-                    AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) unit);
-                    unit = newUnit != null ? newUnit : unit;
-                }
-                if (ipe.getKind() == IProgramElement.Kind.FILE) {
-                    // the original kind was a compilation unit, so just return that
-                    return unit;
-                } else {
-                    return unit.getElementAt(offsetFromLine(unit, ipe.getSourceLocation()));
-                }
+
+                candidate = findElementInCU(handleInfo, (ICompilationUnit) typeRoot);
                 
             } else {
                 // we have a class file.
                 // search the rest of the workspace for this type
-                IResource file = unit.getResource();
+                IResource file = typeRoot.getResource();
+                IClassFile classFile = (IClassFile) typeRoot;
                 
                 // try to find the source
                 if (file != null && !file.getFileExtension().equals("jar")) {
-                    // we have a class file that is not in a jar.
-                    // can we find this as a source file in some project?
-                    IPath path = unit.getPath();
-                    IJavaProject otherProject = JavaCore.create(project).getJavaModel().getJavaProject(path.segment(0));
-                    if (otherProject.exists()) {
-                        IType type = otherProject.findType(qualifiedName);
-                        unit = type.getTypeRoot();
-                        if (unit instanceof ICompilationUnit) {
-                            AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) unit);
-                            unit = newUnit != null ? newUnit : unit;
-                        }
-                    }
-                    return unit.getElementAt(offsetFromLine(unit, ipe.getSourceLocation()));
-    
-                } else {
-                    // we have a class file in a jar
-                    // try finding the source by creating a handle identifier
-                    // if the source is not found, this will bring up a class file editor
-                    int classIndex = jHandle.indexOf(".class");
-                    String newHandle = unit.getHandleIdentifier() + 
-                            jHandle.substring(classIndex+".class".length());
-                    
-                    IJavaElement newElt = (IJavaElement) AspectJCore.create(newHandle);
-                    if (newElt instanceof AspectJMemberElement) {
-                        JavaModelManager.getJavaModelManager().resetTemporaryCache();
-                        AspectJMemberElement ajElt = (AspectJMemberElement) newElt;
-                        ajElt.setStartLocation(offsetFromLine(unit, ipe.getSourceLocation()));
-//                        Object info = ajElt.getElementInfo();
-//                        if (info instanceof AspectJMemberElementInfo) {
-//                            AspectJMemberElementInfo ajInfo = (AspectJMemberElementInfo) info;
-//                            ajInfo.setSourceRangeStart(offsetFromLine(unit, ipe.getSourceLocation()));
-//                        }
-                    }
-                    return newElt;
+                    candidate = findElementInBinaryFolder(handleInfo, classFile);
+                } else {  // we have a class file in a jar
+                    candidate = findElementInJar(handleInfo, classFile);
                 }
             }
+            return candidate;
         } catch (JavaModelException e) {
             AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
                     AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
@@ -528,10 +516,147 @@ public class AJProjectModelFacade {
         }
     }
 
-    private ITypeRoot getTypeFromQualifiedName(String qualifiedName)
+    /**
+     * this type root exists in a jar file.  Try to find the 
+     * java element specified in the handleInfo.  We are not going to be
+     * able to convert this to source
+     */
+    private IJavaElement findElementInJar(HandleInfo handleInfo, IClassFile classFile)
+            throws JavaModelException {
+        IJavaElement candidate = classFile;
+
+        if (handleInfo.isType) {
+            candidate = classFile.getType();
+        } else if (!handleInfo.isFile && !handleInfo.isType) {
+            IJavaElement newElt = (IJavaElement) AspectJCore.create(handleInfo.origAJHandle);
+            IProgramElement ipe;
+            if (!handleInfo.isFile && !handleInfo.isType) {
+                // program element will exist only if coming from aspect path
+                ipe = getProgramElement(handleInfo.origAJHandle);
+            } else {
+                ipe = IHierarchy.NO_STRUCTURE;
+            }
+            if (newElt instanceof AspectJMemberElement && ipe != IHierarchy.NO_STRUCTURE) {
+                JavaModelManager.getJavaModelManager().resetTemporaryCache();
+                AspectJMemberElement ajElt = (AspectJMemberElement) newElt;
+                ajElt.setStartLocation(offsetFromLine(classFile, ipe.getSourceLocation()));
+                candidate = newElt;
+            }
+        }
+        return candidate;
+    }
+
+    /**
+     * Find the java element corresponding to the handle.  We know that it exists in 
+     * as a class file in a binary folder, but it may actually be
+     * a source file in a different project
+     */
+    private IJavaElement findElementInBinaryFolder(HandleInfo handleInfo,
+            IClassFile classFile) throws JavaModelException {
+        IJavaElement candidate = classFile;
+        // we have a class file that is not in a jar.
+        // can we find this as a source file in some project?
+        IPath path = classFile.getPath();
+        IJavaProject otherProject = JavaCore.create(project).getJavaModel().getJavaProject(path.segment(0));
+        ITypeRoot typeRoot = classFile;
+        if (otherProject.exists()) {
+            IType type = otherProject.findType(handleInfo.sourceTypeQualName());
+            typeRoot = type.getTypeRoot();
+            if (typeRoot instanceof ICompilationUnit) {
+                AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit((ICompilationUnit) typeRoot);
+                typeRoot = newUnit != null ? newUnit : typeRoot;
+            }
+        }
+        
+        if (handleInfo.isType) {
+            switch (typeRoot.getElementType()) {
+                case IJavaElement.CLASS_FILE:
+                    candidate = ((IClassFile) typeRoot).getType();
+                    break;
+                case IJavaElement.COMPILATION_UNIT:
+                    candidate = CompilationUnitTools.findType((ICompilationUnit) typeRoot, classFile.getType().getElementName(), true);
+                    break;
+
+                default:
+                    // shouldn't happen
+                    break;
+            }
+        } else if (!handleInfo.isFile && !handleInfo.isType) {
+            // program element will exist only if coming from aspect path
+            IProgramElement ipe = getProgramElement(handleInfo.origAJHandle);
+            if (ipe != IHierarchy.NO_STRUCTURE) {
+                candidate = typeRoot.getElementAt(offsetFromLine(typeRoot, ipe.getSourceLocation()));
+            }
+        }
+        return candidate;
+    }
+
+    /**
+     * extracts an IJavaElement from a compilation unit
+     */
+    private IJavaElement findElementInCU(HandleInfo handleInfo,
+            ICompilationUnit cunit) throws JavaModelException {
+        IJavaElement candidate;
+        // converts to AJ Unit if necessary
+        AJCompilationUnit newUnit = CompilationUnitTools.convertToAJCompilationUnit(cunit);
+        cunit = newUnit != null ? newUnit : cunit;
+
+        IProgramElement ipe;
+        if (!handleInfo.isFile && !handleInfo.isType) {
+            // program element will exist only if coming from aspect path
+            ipe = getProgramElement(handleInfo.origAJHandle);
+        } else {
+            ipe = IHierarchy.NO_STRUCTURE;
+        }
+        
+        if (handleInfo.isFile) {
+            // the original kind was a compilation unit, so just return that
+            candidate = cunit;
+        } else if (handleInfo.isType) {
+            candidate = CompilationUnitTools.findType(cunit, handleInfo.simpleName, true);
+        } else if (ipe != IHierarchy.NO_STRUCTURE) {
+            candidate = cunit.getElementAt(offsetFromLine(cunit, ipe.getSourceLocation()));
+        } else {
+            // we have a non-type, non-file handle that is coming from
+            // the in path.  It has no program element associated with it
+            candidate = ERROR_JAVA_ELEMENT;
+        }
+        return candidate;
+    }
+
+    private HandleInfo qualifiedNameFromBinaryHandle(String ajHandle) {
+        int packageStart = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENT);
+        int packageEnd = ajHandle.indexOf(JavaElement.JEM_CLASSFILE, packageStart+1);
+        if (packageEnd < 0) {
+            return null;
+        }
+        int typeNameEnd = ajHandle.indexOf(".class", packageEnd+1);
+        if (typeNameEnd < 0) {
+            return null;
+        }
+        StringBuffer sb = new StringBuffer();
+        String packageName = ajHandle.substring(packageStart+1, packageEnd);
+        sb.append(packageName);
+        if (sb.length() > 0) {
+            sb.append(".");
+        }
+        String simpleName = ajHandle.substring(packageEnd+1, typeNameEnd);
+        sb.append(simpleName);
+        int typeStart = ajHandle.indexOf(JavaElement.JEM_TYPE, typeNameEnd);
+        boolean isFile = typeStart == -1;
+        boolean isType;
+        if (!isFile) {
+            isType = typeStart + simpleName.length() < ajHandle.length();
+        } else {
+            isType = false;
+        }
+        return new HandleInfo(ajHandle, simpleName, packageName, sb.toString(), isFile, isType);
+    }
+
+    private ITypeRoot getCUFromQualifiedName(HandleInfo handleInfo)
             throws JavaModelException {
         IJavaProject jproj = JavaCore.create(project);
-        IType type = jproj.findType(qualifiedName);
+        IType type = jproj.findType(handleInfo.qualName);
         // won't work if type is in a .aj file
         if (type != null) {
             return type.getTypeRoot();
@@ -541,47 +666,25 @@ public class AJProjectModelFacade {
         // will not work for inner types
         // but that's ok, because we are only working
         // top-level types
-        int dotIndex = qualifiedName.lastIndexOf('.');
-        String typeName = qualifiedName.substring(dotIndex+1);
-        String packageName = qualifiedName.substring(0,dotIndex);
         IPackageFragmentRoot[] pkgRoots = jproj.getAllPackageFragmentRoots();
-        IPackageFragment pkg = null;
         for (int i = 0; i < pkgRoots.length; i++) {
-            IPackageFragment candidate = pkgRoots[i].getPackageFragment(packageName);
+            IPackageFragment candidate = pkgRoots[i].getPackageFragment(handleInfo.packageName);
             if (candidate.exists()) {
-                pkg = candidate;
-                break;
-            }
-        }
-        if (pkg == null) {
-            return (ICompilationUnit) ERROR_JAVA_ELEMENT;
-        }
-        ICompilationUnit[] cus = pkg.getCompilationUnits();
-        int dollarIndex = typeName.lastIndexOf('$');
-        
-        // for compilation units, use the type name
-        // without the top level type
-        String typeNameNoParent;
-        if (dollarIndex > -1) {
-            typeNameNoParent = typeName.substring(dollarIndex+1);
-        } else {
-            typeNameNoParent = typeName;
-        }
-        // XXX uh-oh, will not find types declared in
-        // methods.  Worry about this later
-        for (int i = 0; i < cus.length; i++) {
-            IType[] types = cus[i].getAllTypes();
-            for (int j = 0; j < types.length; j++) {
-                if (types[j].getElementName().equals(typeNameNoParent)) {
-                    return cus[i];
+                ICompilationUnit[] cus = candidate.getCompilationUnits();
+                
+                for (int j = 0; j < cus.length; j++) {
+                    IType maybeType = CompilationUnitTools.findType(cus[j], handleInfo.simpleName, true);
+                    if (maybeType != null) {
+                        return cus[j];
+                    }
                 }
-            }
-        }
-        IClassFile[] cfs = pkg.getClassFiles();
-        for (int i = 0; i < cfs.length; i++) {
-            IType cType = cfs[i].getType();
-            if (cType.getElementName().equals(typeName)) {
-                    return cfs[i];
+                IClassFile[] cfs = candidate.getClassFiles();
+                for (int j = 0; j < cfs.length; j++) {
+                    IType cType = cfs[j].getType();
+                    if (cType.getElementName().equals(handleInfo.simpleName)) {
+                        return cfs[j];
+                    }
+                }
             }
         }
         return (ICompilationUnit) ERROR_JAVA_ELEMENT;

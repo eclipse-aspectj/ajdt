@@ -395,53 +395,12 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	}
 
-//	public void reportFileWrite(String outFileStr, int fileType) {
-//	    try {
-//            outer:
-//            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-//                Map.Entry entry = (Map.Entry) pathIter.next();
-//                String outFolderStr = (String)entry.getKey();
-//                if (outFileStr.startsWith(outFolderStr)) {
-//                    IContainer outFolder = (IContainer) entry.getValue();
-//                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
-//                    
-//                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
-//                    
-//                    if (outFile.exists()) {
-//                        outFile.setDerived(true);
-//                        
-//                        String pathFromProject;
-//                        IPath projectPath = project.getLocation();
-//                        IPath outFilePath = new Path(outFileStr);
-//                        if (projectPath.isPrefixOf(outFilePath)) {
-//                            pathFromProject = outFilePath.removeFirstSegments(
-//                                    projectPath.segmentCount()).makeRelative().toPortableString();
-//                        } else {
-//                            // location is outside of the workspace
-//                            pathFromProject = outFileStr;
-//                        }
-//                        
-//                        // only do this if output is not a source folder
-//                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
-//                            IContainer parent = outFile.getParent();
-//                            inner:
-//                            while (! parent.equals(outFolder) ) {
-//                                parent.setDerived(true);
-//                                parent = parent.getParent();
-//                                if (parent == null) {
-//                                    break inner;
-//                                }
-//                            }
-//                        }
-//                        break outer;
-//                    }
-//                }
-//                
-//            } 
-//        } catch (CoreException e) {
-//        }
-//	}
-//	
+
+	public Map getInpathMap() {
+		return Collections.EMPTY_MAP;
+	}
+
+
 	public void reportFileWrite(String outFileStr, int fileType) {
 	    try {
 	        outer:
@@ -662,7 +621,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	
-    private long getLastStructuralBuildTime(State state)
+    private static long getLastStructuralBuildTime(State state)
             throws Exception {
         if (lastStructuralBuildTimeField == null) {
             lastStructuralBuildTimeField = State.class.getDeclaredField("lastStructuralBuildTime");
@@ -671,7 +630,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
         return lastStructuralBuildTimeField.getLong(state);
     }
 
-    private StringSet getStructurallyChangedTypes(State state)
+    private static StringSet getStructurallyChangedTypes(State state)
             throws Exception {
         if (structurallyChangedTypesField == null) {
             structurallyChangedTypesField = State.class.getDeclaredField("structurallyChangedTypes");
@@ -681,11 +640,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
 	
 	// Cached for performance reasons
-	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
-	private java.lang.reflect.Field structurallyChangedTypesField = null;
-
-	public Map getInpathMap() {
-		return Collections.EMPTY_MAP;
-	}
+	private static java.lang.reflect.Field lastStructuralBuildTimeField = null;
+	private static java.lang.reflect.Field structurallyChangedTypesField = null;
 	
 }
