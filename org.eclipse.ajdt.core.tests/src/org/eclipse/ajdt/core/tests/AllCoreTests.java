@@ -55,6 +55,8 @@ import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.core.runtime.Platform;
+import org.osgi.framework.Bundle;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -63,8 +65,15 @@ import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
  */
 public class AllCoreTests {
 
-	public static Test suite() {
-		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static Test suite() throws Exception {
+        // ensure that the UI plugin is not going to start
+        Bundle ajdtui = 
+            Platform.getBundle("org.eclipse.ajdt.ui");
+        if (ajdtui != null) {
+            ajdtui.stop(Bundle.STOP_TRANSIENT);
+        }
+
+        boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 
 		suite.addTest(new TestSuite(AJCoreTest.class));
