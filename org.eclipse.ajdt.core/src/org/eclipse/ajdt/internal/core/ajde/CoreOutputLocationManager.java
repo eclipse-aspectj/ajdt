@@ -49,6 +49,10 @@ import org.eclipse.jdt.internal.core.builder.StringSet;
 /**
  * IOutputLocationManager implementation which uses the methods on IJavaProject
  * to work out where the output should be sent.
+ * 
+ * Important note about paths:
+ * Use Path.toOSString when describing a file on the filesystem
+ * Use Path.toPortableString when describing a resource in Eclipse's workspace.
  */
 public class CoreOutputLocationManager implements IOutputLocationManager {
 
@@ -138,7 +142,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                     } else {
                         rawPath = project.getLocation();
                     }
-                    allSourceFolders.put(rawPath.toOSString(), path.toOSString());
+                    allSourceFolders.put(rawPath.toOSString(), path.toPortableString());
                 }
             }
         } catch (JavaModelException e) {
@@ -450,7 +454,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
     
     private boolean isOutFolderASourceFolder(IContainer outFolder) {
-        return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toOSString());
+        return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toPortableString());
     }
 	
 	/**
