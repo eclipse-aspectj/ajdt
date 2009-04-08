@@ -132,6 +132,7 @@ public class BuildPathTests extends UITestCase {
         initializer.requestClasspathContainerUpdate(containerPath, aspectpathJProj, containerHint);
 
         hasAspectpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        waitForJobsToComplete();
         
         // do launch
         AspectJApplicationLaunchShortcut launcher = new AspectJApplicationLaunchShortcut();
