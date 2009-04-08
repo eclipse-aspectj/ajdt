@@ -668,11 +668,27 @@ public class AJCompilationUnitProblemFinder extends
             List rels = (List) relsMapIter.next();
             for (Iterator relsIter = rels.iterator(); relsIter.hasNext();) {
                 IRelationship rel = (IRelationship) relsIter.next();
-                IProgramElement ipe = model.getProgramElement(rel.getSourceHandle());
-                String longName = ipe.getName();
-                String[] split = longName.split("\\.");
-                String itdName = split[split.length-1];
-                names.add(itdName);
+                IProgramElement[] ipes;
+                if (rel.getName().equals(AJRelationshipManager.DECLARED_ON.getDisplayName())) {
+                    ipes = new IProgramElement[1];
+                    ipes[0] = model.getProgramElement(rel.getSourceHandle());
+                } else {
+                    List targets = rel.getTargets();
+                    ipes = new IProgramElement[targets.size()];
+                    for (int i = 0; i < ipes.length; i++) {
+                        ipes[i] = model.getProgramElement((String) targets.get(i));
+                    }
+                }
+                for (int i = 0; i < ipes.length; i++) {
+                    String longName = ipes[i].getName();
+                    String[] split = longName.split("\\.");
+                    String itdName = split[split.length-1];
+                    // ignore constructors
+                    if (split.length > 1 && itdName.equals(split[split.length-2])) {
+                        continue;
+                    }
+                    names.add(itdName);
+                }
             }
         }
         return names;
