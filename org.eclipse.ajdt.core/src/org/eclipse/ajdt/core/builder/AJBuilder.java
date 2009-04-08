@@ -421,7 +421,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
             if (inPathFiles != null) {
                 for (Iterator fileIter = inPathFiles.iterator(); fileIter.hasNext();) {
                     File inpathFile = (File) fileIter.next();
-                    changedEntries.add(inpathFile.getAbsolutePath());
+                    Path path = new Path(inpathFile.getAbsolutePath());
+                    changedEntries.add(path.toPortableString());
                 }
             }            
             return changedEntries;
