@@ -62,6 +62,7 @@ public class AJDTEventTraceConsolePage extends TextConsolePage implements EventL
 
         
     private FilterTraceAction filterAction;
+    private PrintCrossCuttingModelAction printModelAction;
 
     public AJDTEventTraceConsolePage(TextConsole console, IConsoleView view) {
         super(console, view);
@@ -93,6 +94,9 @@ public class AJDTEventTraceConsolePage extends TextConsolePage implements EventL
                 dlogMessage, UIMessages.eventTrace_filter_action_tooltip);
 
         filterAction.fillActionBars(actionBars);
+        
+        printModelAction = new PrintCrossCuttingModelAction();
+        printModelAction.fillActionBars(actionBars);
     }
     
     protected TextConsoleViewer createViewer(Composite parent) {
