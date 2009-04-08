@@ -104,8 +104,9 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			StringReader sr = new StringReader(sb.toString());
 			c.setContents(new ReaderInputStream(sr), IResource.FORCE, null);
 			sr.close();
-
+//			waitForAutoBuild();
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+//			waitForAutoBuild();
 			assertTrue("project should have errors", testLog //$NON-NLS-1$
 					.containsMessage("error at")); //$NON-NLS-1$
 			assertTrue("bin directory should contain class file", //$NON-NLS-1$
