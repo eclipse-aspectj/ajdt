@@ -1027,21 +1027,15 @@ public class AJProjectModelFacade {
     /**
      * useful for testing
      */
-    public static String printHierarchy(IHierarchy h, final int max) {
+    public static String printHierarchy(IHierarchy h) {
         final StringBuffer sb = new StringBuffer();
         HierarchyWalker walker = new HierarchyWalker() {
             int depth = 0;
-            int curr = 0;
             
             protected void preProcess(IProgramElement node) {
-                if (curr < max) {
-                    sb.append(spaces(depth));
-                    sb.append(node.getHandleIdentifier());
-                    sb.append("\n");
-                } if (curr == max) {
-                    sb.append("...");
-                }
-                curr++;
+                sb.append(spaces(depth));
+                sb.append(node.getHandleIdentifier());
+                sb.append("\n");
                 depth+=2;
             }
             protected void postProcess(IProgramElement node) {
@@ -1088,5 +1082,18 @@ public class AJProjectModelFacade {
 
     IRelationshipMap getAllRelationships() {
         return relationshipMap;
+    }
+    
+    public String getModelAsString() {
+        if (hasModel()) {
+            StringBuffer sb = new StringBuffer();
+            sb.append("Hierarchy:\n");
+            sb.append(printHierarchy(structureModel));
+            sb.append("\nRelationship map:\n");
+            sb.append(printRelationships(relationshipMap));
+            return sb.toString();
+        } else {
+            return "No structure model available for " + project.getName();
+        }
     }
 }
