@@ -119,6 +119,7 @@ public class ProblemFinderTests extends UITestCase {
      */
     public void testSyntaxError() throws Exception {
         otherClassCU.getBuffer().setContents(otherClassCU.getBuffer().getContents() + "gggg"); //$NON-NLS-1$
+        waitForJobsToComplete();
 
         HashMap problems = new HashMap();
         AJCompilationUnitProblemFinder.processAJ(otherClassCU, 
@@ -133,7 +134,8 @@ public class ProblemFinderTests extends UITestCase {
         String contents = otherClassCU.getBuffer().getContents();
         try {
             otherClassCU.getBuffer().setContents(contents.substring(0, contents.length()-2) + "t() { } }\n"); //$NON-NLS-1$
-    
+            waitForJobsToComplete();
+
             HashMap problems = new HashMap();
             AJCompilationUnitProblemFinder.processAJ(otherClassCU, 
                     AJWorkingCopyOwner.INSTANCE, problems, true, 
@@ -162,6 +164,7 @@ public class ProblemFinderTests extends UITestCase {
         try {
             otherClassCU.becomeWorkingCopy(new MockProblemRequestor(), null);
             otherClassCU.getBuffer().setContents(contents + "gggg"); //$NON-NLS-1$
+            waitForJobsToComplete();
             
             otherClassCU.reconcile(AST.JLS3, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) otherClassCU.getPerWorkingCopyInfo().getProblemRequestor();
@@ -180,6 +183,8 @@ public class ProblemFinderTests extends UITestCase {
             String s = contents;
             s = s.replaceFirst("foo", "fffffff"); //$NON-NLS-1$ //$NON-NLS-2$
             demoCU.getBuffer().setContents(s);
+            waitForJobsToComplete();
+            
             demoCU.reconcile(AST.JLS3, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) demoCU.getPerWorkingCopyInfo().getProblemRequestor();
             assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
