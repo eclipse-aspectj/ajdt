@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
@@ -63,25 +62,14 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
 	                IJavaElement target = model.programElementToJavaElement(
 	                        (String) targetIter.next());
-//	                if (BinaryWeavingSupport.isActive) {
-	                    if (target.getElementName().indexOf("before") != -1) { //$NON-NLS-1$
-	                        gotBinaryAdvice = true;
-	                    }
-//	                } else {
-//	                    if (target.getElementName().indexOf("binary aspect") != -1) { //$NON-NLS-1$
-//	                        gotBinaryAdvice = true;
-//	                    }
-//	                }
+                    if (target.getElementName().indexOf("before") != -1) { //$NON-NLS-1$
+                        gotBinaryAdvice = true;
+                    }
 			    }
 			}
 		}
-//		if (BinaryWeavingSupport.isActive) {
-			assertTrue("Didn't find main element advised by before advice", //$NON-NLS-1$
-					gotBinaryAdvice);
-//		} else {
-//			assertTrue("Didn't find main element advised by a binary aspect", //$NON-NLS-1$
-//					gotBinaryAdvice);
-//		}
+		assertTrue("Didn't find main element advised by before advice", //$NON-NLS-1$
+				gotBinaryAdvice);
 	}
 
 	/**

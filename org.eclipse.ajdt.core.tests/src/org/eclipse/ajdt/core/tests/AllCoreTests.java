@@ -23,8 +23,11 @@ import org.eclipse.ajdt.core.tests.builder.AspectPathTests;
 import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
 import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
+import org.eclipse.ajdt.core.tests.builder.BuilderArgsTestBug270554;
+import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerRefreshTestsBug270335;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.builder.DerivedTests;
+import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug270202;
 import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
@@ -47,10 +50,13 @@ import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.Bug268522;
+import org.eclipse.ajdt.core.tests.model.InpathRelationshipsTests;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.core.runtime.Platform;
+import org.osgi.framework.Bundle;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -59,8 +65,15 @@ import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
  */
 public class AllCoreTests {
 
-	public static Test suite() {
-		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static Test suite() throws Exception {
+        // ensure that the UI plugin is not going to start
+        Bundle ajdtui = 
+            Platform.getBundle("org.eclipse.ajdt.ui");
+        if (ajdtui != null) {
+            ajdtui.stop(Bundle.STOP_TRANSIENT);
+        }
+
+        boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 
 		suite.addTest(new TestSuite(AJCoreTest.class));
@@ -94,6 +107,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ModelCheckerTests.class));
         suite.addTest(new TestSuite(AspectJMemberElementTest.class));
         suite.addTest(new TestSuite(Bug268522.class));
+        suite.addTest(new TestSuite(InpathRelationshipsTests.class));
+        
         
 		
 		// core compiler configuration
@@ -117,6 +132,9 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(Bug43711Test.class));
         suite.addTest(new TestSuite(DerivedTests.class));
         suite.addTest(new TestSuite(RefreshTestsImprecise.class));
+        suite.addTest(new TestSuite(BuilderArgsTestBug270554.class));
+        suite.addTest(new TestSuite(CoreOutputLocationManagerRefreshTestsBug270335.class));
+        suite.addTest(new TestSuite(LinkedFoldersTestBug270202.class));
         
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));

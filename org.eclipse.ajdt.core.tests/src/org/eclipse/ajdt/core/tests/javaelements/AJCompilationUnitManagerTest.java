@@ -15,7 +15,6 @@ import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.jobs.Job;
 
 /**
  * 
@@ -48,13 +47,12 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
         // XXX this test is not working any more
         // the listener for project closures sits in 
         // AJDT ui, so it is not running now
-		// so instead simulate its effect when a project closes
+        // so instead simulate its effect when a project closes
         AJCompilationUnitManager.INSTANCE.removeCUsfromJavaModel(myProject);
 
-        myProject.close(null);
+		myProject.close(null);
 		
-		
-		// wait for project to be closed
+        // wait for project to be closed
 		int counter = 0;
 		while (myProject.isOpen() && counter < 10) {
 		    System.out.println("Waiting for project to close");
