@@ -9,13 +9,10 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.AspectJApplicationLaunchShortcut;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchManager;
@@ -55,12 +52,12 @@ public class BuildPathTests extends UITestCase {
         JavaCore.setClasspathVariable("Aspect_Path_Var", varProj.getLocation().append(new Path("variable.jar")), null); //$NON-NLS-1$ //$NON-NLS-2$
 
         // build all projects
+        containerProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        varProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        projProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        jarProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         setAutobuilding(true);
-        containerProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        varProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        projProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        jarProj.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-
+        waitForJobsToComplete();
     }   
 
     public void testInpath() throws Exception {
@@ -134,6 +131,9 @@ public class BuildPathTests extends UITestCase {
         initializer.initialize(containerPath, aspectpathJProj);
         initializer.requestClasspathContainerUpdate(containerPath, aspectpathJProj, containerHint);
 
+        waitForJobsToComplete();
+        
+        
         hasAspectpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         // do launch
@@ -152,11 +152,5 @@ public class BuildPathTests extends UITestCase {
         assertTrue("Did not find expected string '"+exp+"' in console output:\n"+console,console.indexOf(exp)!=-1);  //$NON-NLS-1$//$NON-NLS-2$
         exp = "from container aspect"; //$NON-NLS-1$
         assertTrue("Did not find expected string '"+exp+"' in console output:\n"+console,console.indexOf(exp)!=-1);  //$NON-NLS-1$//$NON-NLS-2$
-    }
-    
-    public static void setAutobuilding(boolean autobuild) throws CoreException {
-        IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
-        workspaceDesc.setAutoBuilding(autobuild);
-        AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
-    }
+    }    
 }
