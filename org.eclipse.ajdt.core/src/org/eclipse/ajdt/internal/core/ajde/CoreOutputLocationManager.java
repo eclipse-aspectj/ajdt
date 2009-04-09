@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,6 +49,10 @@ import org.eclipse.jdt.internal.core.builder.StringSet;
 /**
  * IOutputLocationManager implementation which uses the methods on IJavaProject
  * to work out where the output should be sent.
+ * 
+ * Important note about paths:
+ * Use Path.toOSString when describing a file on the filesystem
+ * Use Path.toPortableString when describing a resource in Eclipse's workspace.
  */
 public class CoreOutputLocationManager implements IOutputLocationManager {
 
@@ -69,7 +74,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	private List /*File*/ allOutputFolders = new ArrayList();
 	
-	private List /*IPath*/ allSourceFolders = new ArrayList();
+	// maps file system location to a path within the eclipse workspace
+	// needs to take into account linked sources, where the actual
+	// file system location may be different from the workspace location
+	private Map /*String, String*/ allSourceFolders;
 	
 	// Bug 243376 
 	// Gather all of the files that are touched by this compilation
@@ -120,13 +128,21 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 * initialize the source folder locations only
 	 */
 	private void initSourceFolders() {
+	    allSourceFolders = new HashMap();
 	    try {
             IClasspathEntry[] cpe = jProject.getRawClasspath();
             for (int i = 0; i < cpe.length; i++) {
                 if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
                     IPath path = cpe[i].getPath();
+                    IPath rawPath;
                     path = path.removeFirstSegments(1).makeRelative();
-                    allSourceFolders.add(path);
+                    if (path.segmentCount() > 0) {
+                        IFolder folder = project.getFolder(path);
+                        rawPath = folder.getLocation();
+                    } else {
+                        rawPath = project.getLocation();
+                    }
+                    allSourceFolders.put(rawPath.toOSString(), path.toPortableString());
                 }
             }
         } catch (JavaModelException e) {
@@ -356,16 +372,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	public String getSourceFolderForFile(File sourceFile) {
-		IPath sourceFilePath = new Path(sourceFile.getAbsolutePath());
-		IPath projLoc = project.getLocation();
-		if (projLoc.isPrefixOf(sourceFilePath)) {
-			sourceFilePath = sourceFilePath.setDevice(null).removeFirstSegments(projLoc.segmentCount()).makeRelative();
-		}
-
-		for (Iterator pathIter = allSourceFolders.iterator(); pathIter.hasNext();) {
-			IPath sourceFolderPath = (IPath) pathIter.next();
-			if (sourceFolderPath.isPrefixOf(sourceFilePath)) {
-				return sourceFolderPath.toPortableString();
+		String sourceFilePath = sourceFile.getAbsolutePath();
+		for (Iterator pathIter = allSourceFolders.entrySet().iterator(); pathIter.hasNext();) {
+		    Map.Entry sourceFolderMapping = (Map.Entry) pathIter.next();
+			if (sourceFilePath.startsWith((String) sourceFolderMapping.getKey())) {
+				return (String) sourceFolderMapping.getValue();
 			}
 		}
 		return null;
@@ -388,53 +399,12 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	}
 
-//	public void reportFileWrite(String outFileStr, int fileType) {
-//	    try {
-//            outer:
-//            for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-//                Map.Entry entry = (Map.Entry) pathIter.next();
-//                String outFolderStr = (String)entry.getKey();
-//                if (outFileStr.startsWith(outFolderStr)) {
-//                    IContainer outFolder = (IContainer) entry.getValue();
-//                    IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
-//                    
-//                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
-//                    
-//                    if (outFile.exists()) {
-//                        outFile.setDerived(true);
-//                        
-//                        String pathFromProject;
-//                        IPath projectPath = project.getLocation();
-//                        IPath outFilePath = new Path(outFileStr);
-//                        if (projectPath.isPrefixOf(outFilePath)) {
-//                            pathFromProject = outFilePath.removeFirstSegments(
-//                                    projectPath.segmentCount()).makeRelative().toPortableString();
-//                        } else {
-//                            // location is outside of the workspace
-//                            pathFromProject = outFileStr;
-//                        }
-//                        
-//                        // only do this if output is not a source folder
-//                        if (!outputIsRoot && srcFolderToOutput.containsKey(pathFromProject)) {
-//                            IContainer parent = outFile.getParent();
-//                            inner:
-//                            while (! parent.equals(outFolder) ) {
-//                                parent.setDerived(true);
-//                                parent = parent.getParent();
-//                                if (parent == null) {
-//                                    break inner;
-//                                }
-//                            }
-//                        }
-//                        break outer;
-//                    }
-//                }
-//                
-//            }
-//        } catch (CoreException e) {
-//        }
-//	}
-//	
+
+	public Map getInpathMap() {
+		return Collections.EMPTY_MAP;
+	}
+
+
 	public void reportFileWrite(String outFileStr, int fileType) {
 	    try {
 	        outer:
@@ -484,7 +454,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
     
     private boolean isOutFolderASourceFolder(IContainer outFolder) {
-        return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toOSString());
+        return outputIsRoot || srcFolderToOutput.containsKey(outFolder.getFullPath().removeFirstSegments(1).makeRelative().toPortableString());
     }
 	
 	/**
@@ -503,7 +473,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	
-	
+	/**
+	 * the field binFolderToProject must be refreshed before each build
+	 * because we are not sure if any bin folders in downstream projects 
+	 * have changed.
+	 * 
+	 * See bug 270335
+	 */
+	protected void zapBinFolderToProjectMap() {
+	    binFolderToProject = null;
+	}
 
 	/**
 	 * Initialize the binFolderToProject map so that the map contains 
@@ -511,12 +490,15 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 * and the project is where this output location is defined
 	 */
 	private void initDeclaringProjectsMap() {
+	    
+	    AJLog.logStart("OutputLocationManager: binary folder to declaring project map creation: " + project);
 	    binFolderToProject = new HashMap();
 	    IJavaProject jp = jProject;
         try {
             mapProject(jp);
         } catch (JavaModelException e) {
         }
+        AJLog.logEnd(AJLog.BUILDER_CLASSPATH, "OutputLocationManager: binary folder to declaring project map creation: " + project);
     }
 
     private void mapProject(IJavaProject jp) throws JavaModelException {
@@ -643,7 +625,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 	
-    private long getLastStructuralBuildTime(State state)
+    private static long getLastStructuralBuildTime(State state)
             throws Exception {
         if (lastStructuralBuildTimeField == null) {
             lastStructuralBuildTimeField = State.class.getDeclaredField("lastStructuralBuildTime");
@@ -652,7 +634,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
         return lastStructuralBuildTimeField.getLong(state);
     }
 
-    private StringSet getStructurallyChangedTypes(State state)
+    private static StringSet getStructurallyChangedTypes(State state)
             throws Exception {
         if (structurallyChangedTypesField == null) {
             structurallyChangedTypesField = State.class.getDeclaredField("structurallyChangedTypes");
@@ -662,7 +644,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
 	
 	// Cached for performance reasons
-	private java.lang.reflect.Field lastStructuralBuildTimeField = null;
-	private java.lang.reflect.Field structurallyChangedTypesField = null;
+	private static java.lang.reflect.Field lastStructuralBuildTimeField = null;
+	private static java.lang.reflect.Field structurallyChangedTypesField = null;
 	
 }

@@ -14,6 +14,9 @@ package org.eclipse.ajdt.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+
 /**
  * Minimal logging - if a logger hasn't been set, dump to sdout
  */ 
@@ -48,7 +51,7 @@ public class AJLog {
 		if (logger != null) {
 			logger.log(category,msg);
 		} else {
-			System.out.println(msg);
+		    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.INFO, AspectJPlugin.PLUGIN_ID, msg));
 		}
 	}
 	

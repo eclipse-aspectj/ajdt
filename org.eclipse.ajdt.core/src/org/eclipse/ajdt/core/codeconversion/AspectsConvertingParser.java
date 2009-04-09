@@ -500,6 +500,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	    if (unit != null && typeName != null) {
 	        IType type = getHandle(new String(typeName));
 	        if (type.exists()) {
+                List[] declares = getDeclareExtendsImplements(type);
+                if (declares[0].size() == 0 && declares[1].size() == 0) {
+                    // nothing to do
+                    return null;
+                }
+                
         	    try {
         	        StringBuffer sb = new StringBuffer();
                     sb.append(type.isInterface() ? "interface " : "class ");
@@ -517,7 +523,6 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         sb.append("> ");
                     }
                     
-                    List[] declares = getDeclareExtendsImplements(type);
                     List declareExtends = declares[0];
                     List declareImplements = declares[1];
                     if (! type.isInterface()) {
@@ -554,6 +559,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                             }
                         }
                     }
+                    sb.append(" ");
                     return sb.toString().toCharArray();
                 } catch (JavaModelException e) {
                     AspectJPlugin.getDefault().getLog().log(new Status(Status.ERROR, AspectJPlugin.PLUGIN_ID, e.getMessage(), e));
@@ -619,10 +625,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     if (pe.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
                         List/*String*/ parentTypes = pe.getParentTypes();
                         String details = pe.getDetails();
-                        if (details.startsWith(EXTENDS)) {
-                            declareExtends.addAll(parentTypes);
-                        } else if (details.startsWith(IMPLEMENTS)) {
-                            declareImplements.addAll(parentTypes);
+                        if (details != null) { // might be null if previous build had a compiler error
+                            if (details.startsWith(EXTENDS)) {
+                                declareExtends.addAll(parentTypes);
+                            } else if (details.startsWith(IMPLEMENTS)) {
+                                declareImplements.addAll(parentTypes);
+                            }
                         }
                     }
                 }

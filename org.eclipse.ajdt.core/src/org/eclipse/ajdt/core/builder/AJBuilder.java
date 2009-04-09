@@ -40,11 +40,13 @@ import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.core.internal.resources.ResourceException;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -147,6 +149,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Flush the list of included source files stored for this project
 		BuildConfig.flushIncludedSourceFileCache(project);
         AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
+        
+        // bug 270554 augment the aspect path with builder arguments
+        augmentAspectPath(project, args);
 
 		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
 				compiler.getCompilerConfiguration();
@@ -184,6 +189,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				if (!continueToBuild) {
 					// bug 107027
 					compilerConfig.flushClasspathCache();
+					compilerConfig.configurationRead();  // reset config
 					postCallListeners(kind, true);
 	                AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
 	                AJLog.log(AJLog.BUILDER, "No source/resource changes found, exiting build");
@@ -219,6 +225,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		        compilerConfig.setClasspathElementsWithModifiedContents(getChangedRequiredProjects(timestamp));
 		    }
 		}
+		
+		// bug 270335 -- if output locations have changed, then 
+		// need a new output location manager.
+		compilerConfig.flushOutputLocationManagerIfNecessary(kind);
+		
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
 		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath = " + compilerConfig.getClasspath()); //$NON-NLS-1$
@@ -236,9 +247,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// compilation is done
 		// ----------------------------------------
 
-        AJLog.logStart("Refresh after build");
 		doRefreshAfterBuild(project, dependingProjects, javaProject);
-        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
 		
 		// do the cleanup
 		// bug 107027
@@ -253,7 +262,38 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return requiredProjects;
 	}
 
-	/**
+	private void augmentAspectPath(IProject project, Map args) {
+	    if (args.containsKey("aspectPath")) {
+	        AJLog.logStart("Augmenting aspect path with args from builder");
+	        String toAugment = (String) args.get("aspectPath");
+	        String[] toAugmentArr = toAugment.split(",");
+	        for (int i = 0; i < toAugmentArr.length; i++) {
+                toAugmentArr[i] = toAugmentArr[i].trim();
+            }
+	        AspectJCorePreferences.augmentAspectPath(project, toAugmentArr);
+	        
+	        try {
+    	        IProjectDescription desc = project.getDescription();
+    	        ICommand[] commands = desc.getBuildSpec();
+    	        for (int i = 0; i < commands.length; i++) {
+                    if (commands[i].getBuilderName().equals(AspectJPlugin.ID_BUILDER)) {
+                        Map oldArgs = commands[i].getArguments();
+                        oldArgs.remove("aspectPath");
+                        commands[i].setArguments(oldArgs);
+                        break;
+                    }
+                }
+    	        desc.setBuildSpec(commands);
+    	        project.setDescription(desc, null);
+	        } catch (CoreException e) {
+	            
+	        }
+	        AJLog.logEnd(AJLog.BUILDER, "Augmenting aspect path with args from builder");
+
+	    }
+    }
+
+    /**
 	 * Check to see if the class paths are valid
 	 * @param progressMonitor
 	 * @param project
@@ -269,7 +309,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			AJLog.log(AJLog.BUILDER,
 					"build: Abort due to missing inpath/aspectpath/classpath entries"); //$NON-NLS-1$
 			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
-            removeProblemsAndTasksFor(project); // make this the only problem for this project
+            removeProblemsAndTasksFor(project); 
+            // make this the only problem for this project
+            markProject(project, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
+                    project.getName()));
 			return false;
 		}
 		return true;
@@ -378,7 +421,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
             if (inPathFiles != null) {
                 for (Iterator fileIter = inPathFiles.iterator(); fileIter.hasNext();) {
                     File inpathFile = (File) fileIter.next();
-                    changedEntries.add(inpathFile.getAbsolutePath());
+                    Path path = new Path(inpathFile.getAbsolutePath());
+                    changedEntries.add(path.toPortableString());
                 }
             }            
             return changedEntries;
@@ -424,6 +468,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     // bug 269604---refresh after build is greatly reduced in scope
     private void doRefreshAfterBuild(IProject project,
             IProject[] dependingProjects, IJavaProject javaProject) {
+        AJLog.logStart("Refresh after build");
         try {
             String outjarStr = AspectJCorePreferences.getProjectOutJar(project);
             if (outjarStr != null && outjarStr.length() > 0) {
@@ -439,6 +484,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         } catch (CoreException e) {
         }
+        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
     }
 
     private boolean hasValidPreviousBuildConfig(String configId) {
@@ -493,8 +539,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	            false, IResource.DEPTH_ZERO);
 	    for (int i = 0, l = markers.length; i < l; i++) {
 	        if (markers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
-	            markProject(p, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
-	                    p.getName()));
+	           
 	            return true;
 	        }
 	    }
@@ -1226,14 +1271,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void removeProblemsAndTasksFor(IResource resource) {
 		try {
 			if (resource != null && resource.exists()) {
-			    if (resource instanceof IContainer) {
-			        IResource[] members = ((IContainer) resource).members();
-			        for (int i = 0; i < members.length; i++) {
-			            members[i].deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
-                    }
-			    } else { 
-			        resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
-			    }
+				resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
 				resource.deleteMarkers(IJavaModelMarker.TASK_MARKER, false, IResource.DEPTH_INFINITE);
 			}
 		} catch (CoreException e) {
@@ -1248,13 +1286,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * the compiler configuration 
 	 */
 	public boolean hasChangesAndMark(IResourceDelta delta, IProject project) {
-	    AJLog.logStart("Looking for and marking configurartion changes in " + project.getName());
+	    AJLog.logStart("Looking for and marking configuration changes in " + project.getName());
 	    CoreCompilerConfiguration compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(project);
 	    boolean hasChanges = sourceFilesChanged(delta, project, compilerConfiguration);
 	    hasChanges |= classpathChanged(delta, compilerConfiguration);
 	    hasChanges |= manifestChanged(delta, compilerConfiguration);
 	    hasChanges |= projectSpecificSettingsChanged(delta, compilerConfiguration);
-        AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configurartion changes in " + project.getName());
+        AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configuration changes in " + project.getName());
         AJLog.log(AJLog.BUILDER, "\tConfiguration changes found: " + hasChanges);  
 	    return hasChanges;
 	}

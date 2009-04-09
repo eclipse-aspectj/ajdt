@@ -49,6 +49,7 @@ public class AJModelChecker {
             AJLog.logStart("Model sanity check for: " + model.getProject().getName());
             List problems = internalCheckModel(model);
             logProblems(problems);
+            AJLog.logEnd(AJLog.MODEL, "Model sanity check for: " + model.getProject().getName());
         }
     }
     
@@ -61,16 +62,16 @@ public class AJModelChecker {
     
     private static void logProblems(List/*String*/ problems) {
         if (problems.size() == 0) {
-            AJLog.log(AJLog.BUILDER, "Crosscutting model sanity checked with no problems");
+            AJLog.log(AJLog.MODEL, "Crosscutting model sanity checked with no problems");
             return;
         }
         
-        AJLog.log(AJLog.BUILDER, "Crosscutting model sanity checked.  The following problems found:");
+        AJLog.log(AJLog.MODEL, "Crosscutting model sanity checked.  The following problems found:");
         for (Iterator probIter = problems.iterator(); probIter.hasNext();) {
             String problem = (String) probIter.next();
-            AJLog.log(problem);
+            AJLog.log(AJLog.MODEL, problem);
         }
-        AJLog.log(AJLog.BUILDER, "");
+        AJLog.log(AJLog.MODEL, "");
     }
     
     /**
@@ -124,8 +125,7 @@ public class AJModelChecker {
                         "\n\tIt is the source relationship of " + toRelString(rel) +
                         "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
             }
-            if ( ( !rel.isAffects() && elt.getElementType() == IJavaElement.TYPE) || 
-                    elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
+            if (    elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                     elt.getElementType() == IJavaElement.CLASS_FILE) {
                 problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
                         rel.getSourceHandle() + 
@@ -141,8 +141,7 @@ public class AJModelChecker {
                             "\n\tThis may not actually be a problem if compiling broken code or advising static initializers.");
                 }
                 if (elt != AJProjectModelFacade.ERROR_JAVA_ELEMENT && 
-                        ( ( rel.isAffects() && elt.getElementType() == IJavaElement.TYPE) || // target of advice can be a type, but source cannot
-                        elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
+                       (elt.getElementType() == IJavaElement.COMPILATION_UNIT || 
                         elt.getElementType() == IJavaElement.CLASS_FILE)) {
                     problems.add("Java Element is wrong type (advice relationships should not contain any types or compilation units): " + 
                             target + 

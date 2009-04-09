@@ -103,6 +103,17 @@ public class AJCompilationUnitStructureRequestor extends
 	    this.parser.scanner.source = source;
 	}
 
+	public void exitCompilationUnit(int declarationEnd) {
+	    super.exitCompilationUnit(declarationEnd);
+	    
+	    // not keeping track of annotations
+	    // and this ensures that itd aware content assist 
+	    // still works when there are large numbers ofannotations
+	    // see bug 268620
+	    this.unitInfo.annotationNumber = 0;  
+	    
+	}
+	
 
 	/**
 	 * Common processing for AJ method infos and JDT method infos
@@ -326,7 +337,8 @@ public class AJCompilationUnitStructureRequestor extends
 			exceptionTypes= CharOperation.NO_CHAR_CHAR;
 		}
 		
-		String nameString = new String(decl.getOnType().getTypeName()[0]) + "." + new String(decl.getDeclaredSelector()); //$NON-NLS-1$
+		String nameString = concat(decl.getOnType().getTypeName()) + "." + new String(decl.getDeclaredSelector()); //$NON-NLS-1$
+		
 		String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
 		handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
 		
@@ -352,7 +364,7 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setName(nameString.toCharArray());
 		info.setNameSourceStart(nameSourceStart);
 		info.setNameSourceEnd(nameSourceEnd);
-		info.setTargetType(decl.getOnType().getTypeName()[0]);
+		info.setTargetType(concat(decl.getOnType().getTypeName()).toCharArray());
 		info.setFlags(flags);
 		info.setDeclaredModifiers(decl.declaredModifiers);
 		info.setArgumentNames(parameterNames);
@@ -366,7 +378,20 @@ public class AJCompilationUnitStructureRequestor extends
 		this.handleStack.push(handle);	
 	}
 	
-	public void enterDeclare(
+
+    private String concat(char[][] declName) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < declName.length; i++) {
+            String namePart = new String(declName[i]);
+            sb.append(namePart);
+            if (i < declName.length-1) {
+                sb.append(".");
+            }
+        }
+        return sb.toString();
+    }
+    
+    public void enterDeclare(
 			int declarationStart,
 			int modifiers,
 			char[] returnType,

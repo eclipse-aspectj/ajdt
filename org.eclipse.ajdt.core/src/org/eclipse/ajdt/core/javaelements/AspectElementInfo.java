@@ -34,6 +34,7 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	/* AJDT 1.7 */
 	public void setHandle(IType handle) {
 		this.handle = handle;
+		this.privileged = false;
 	}
 	
 	/**

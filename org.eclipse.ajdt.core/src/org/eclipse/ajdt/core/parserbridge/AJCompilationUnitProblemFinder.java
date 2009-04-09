@@ -252,7 +252,6 @@ public class AJCompilationUnitProblemFinder extends
                 problemFinder.handleInternalException(e, unit);
             }
             
-            // AspectJ Change begin
             // revert the compilation units that have ITDs in them
             ((ITDAwareLookupEnvironment) problemFinder.lookupEnvironment).revertCompilationUnits();
             // AspectJ Change end
@@ -304,7 +303,13 @@ public class AJCompilationUnitProblemFinder extends
             message.append(unitElement.getSource());
             message.append(lineDelimiter);
             message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
-            throw new JavaModelException(e,
+            
+            AJLog.log(message.toString());
+            StackTraceElement[] trace = e.getStackTrace();
+            for (int i = 0; i < trace.length; i++) {
+                AJLog.log(trace[i].toString());
+            }
+            throw new JavaModelException(new RuntimeException(message.toString(), e),
                     IJavaModelStatusConstants.COMPILER_FAILURE);
         } finally {
             if (environment != null)
@@ -550,8 +555,11 @@ public class AJCompilationUnitProblemFinder extends
             }
             
             if (id == IProblem.UnusedPrivateField && 
-                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor)) {
+                    (insideITD(categorizedProblem, unit, isJavaFileInAJEditor) ||
+                            getITDNames(unit, model).size() > 0)) {
                 // private itd is said to be unused, even if it is really used elsewhere
+                // also, if this type has some ITDs, then we really don't know if it is used in the
+                // ITDs, so just be safe and ignore this problem
                 return false;
             }
 
@@ -666,16 +674,32 @@ public class AJCompilationUnitProblemFinder extends
     // expensive to compute
     private static Set /*String*/ getITDNames(CompilationUnit unit, AJProjectModelFacade model) {
         Set names = new HashSet();
-        Map relsMap = model.getRelationshipsForFile(unit, new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON } );
+        Map relsMap = model.getRelationshipsForFile(unit, new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON, AJRelationshipManager.ASPECT_DECLARATIONS } );
         for (Iterator relsMapIter = relsMap.values().iterator(); relsMapIter.hasNext();) {
             List rels = (List) relsMapIter.next();
             for (Iterator relsIter = rels.iterator(); relsIter.hasNext();) {
                 IRelationship rel = (IRelationship) relsIter.next();
-                IProgramElement ipe = model.getProgramElement(rel.getSourceHandle());
-                String longName = ipe.getName();
-                String[] split = longName.split("\\.");
-                String itdName = split[split.length-1];
-                names.add(itdName);
+                IProgramElement[] ipes;
+                if (rel.getName().equals(AJRelationshipManager.DECLARED_ON.getDisplayName())) {
+                    ipes = new IProgramElement[1];
+                    ipes[0] = model.getProgramElement(rel.getSourceHandle());
+                } else {
+                    List targets = rel.getTargets();
+                    ipes = new IProgramElement[targets.size()];
+                    for (int i = 0; i < ipes.length; i++) {
+                        ipes[i] = model.getProgramElement((String) targets.get(i));
+                    }
+                }
+                for (int i = 0; i < ipes.length; i++) {
+                    String longName = ipes[i].getName();
+                    String[] split = longName.split("\\.");
+                    String itdName = split[split.length-1];
+                    // ignore constructors
+                    if (split.length > 1 && itdName.equals(split[split.length-2])) {
+                        continue;
+                    }
+                    names.add(itdName);
+                }
             }
         }
         return names;

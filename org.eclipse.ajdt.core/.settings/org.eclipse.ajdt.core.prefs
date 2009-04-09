@@ -1,4 +1,4 @@
-#Tue Nov 14 16:05:39 GMT 2006
+#Mon Apr 06 13:03:10 PDT 2009
 eclipse.preferences.version=1
 org.aspectj.ajdt.core.compiler.BuildOptions.buildAsm=true
 org.aspectj.ajdt.core.compiler.BuildOptions.incrementalMode=true
@@ -34,9 +34,9 @@ org.aspectj.ajdt.core.compiler.lint.unorderedAdviceAtShadow=ignore
 org.aspectj.ajdt.core.compiler.list.UnmatchedSuperTypeInCall=warning
 org.aspectj.ajdt.core.compiler.weaver.XHasMember=false
 org.aspectj.ajdt.core.compiler.weaver.XNoInline=false
-org.aspectj.ajdt.core.compiler.weaver.XNotReweavable=false
+org.aspectj.ajdt.core.compiler.weaver.XNotReweavable=true
 org.aspectj.ajdt.core.compiler.weaver.XSerializableAspects=false
-org.aspectj.ajdt.core.compiler.weaver.outxml=true
+org.aspectj.ajdt.core.compiler.weaver.outxml=false
 org.aspectj.ajdt.core.complier.lint.aspectExcludedByConfiguration=ignore
 org.eclipse.ajdt.core.compiler.nonStandardOptions=
 org.eclipse.ajdt.core.compiler.useProjectSettings=true

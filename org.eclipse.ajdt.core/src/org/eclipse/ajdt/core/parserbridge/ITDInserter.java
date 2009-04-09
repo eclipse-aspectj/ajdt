@@ -138,14 +138,20 @@ public class ITDInserter extends ASTVisitor {
                     // These are added to the first class that instantiates this interface
                     // See bug 257437
                     if (TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
-                        itdMethods.add(createMethod(elt, type, handle));
+                        if(elt.getAccessibility() != IProgramElement.Accessibility.PRIVATE) {
+                            itdMethods.add(createMethod(elt, type, handle));
+                        }
                     }
                     
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
-                    itdMethods.add(createConstructor(elt, type));
+                    if(elt.getAccessibility() != IProgramElement.Accessibility.PRIVATE) {
+                        itdMethods.add(createConstructor(elt, type));
+                    }
                 } else if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
                     // XXX hmmmm..should I also skip this if the type is an interface???
-                    itdFields.add(createField(elt, type));
+                    if(elt.getAccessibility() != IProgramElement.Accessibility.PRIVATE) {
+                        itdFields.add(createField(elt, type));
+                    }
                 } else if (elt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
                     String details = elt.getDetails();
                     boolean isExtends = details != null && details.startsWith("extends");
@@ -248,11 +254,16 @@ public class ITDInserter extends ASTVisitor {
                 }
                 sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
             }
-            for (int i = 0; i < args.length; i++) {
-                args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
-                        0,
-                        createTypeReference(Signature.getElementType(sig.paramTypes[i])),
-                        0);
+            
+            // possibly avoids npe in bug 270123
+            List/*String*/ pNames = method.getParameterNames();
+            if (pNames != null) {
+                for (int i = 0; i < args.length; i++) {
+                    args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
+                            0,
+                            createTypeReference(Signature.getElementType(sig.paramTypes[i])),
+                            0);
+                }
             }
         } catch (Exception e) {
             for (int i = 0; i < args.length; i++) {
