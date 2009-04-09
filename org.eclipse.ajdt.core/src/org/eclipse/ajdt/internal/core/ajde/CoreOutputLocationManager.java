@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
@@ -45,6 +47,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.builder.State;
 import org.eclipse.jdt.internal.core.builder.StringSet;
+import java.util.Comparator;
 
 /**
  * IOutputLocationManager implementation which uses the methods on IJavaProject
@@ -56,6 +59,41 @@ import org.eclipse.jdt.internal.core.builder.StringSet;
  */
 public class CoreOutputLocationManager implements IOutputLocationManager {
 
+    /**
+     * 
+     * @author Andrew Eisenberg
+     * @created Apr 9, 2009
+     * use this to ensure that the longest strings are looked at first
+     * 
+     * so, if src and src2 are both source folders, src2 will be
+     * examined first
+     */
+    static class StringLengthComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            if (o1 == null) {
+                if (o2 == null) {
+                    return 0;
+                }
+                return -1;
+            }
+            if (o2 == null) {
+                return 1;
+            }
+            int len1 = o1.toString().length();
+            int len2 = o2.toString().length();
+            if (len1 > len2) {  // a larger string should come first
+                return -1;
+            } else if (len1 == len2) {
+                return 0;
+            } else {
+                return 1;
+            }
+        }
+        
+    }
+    
+    private static final StringLengthComparator comparator = new StringLengthComparator();
+    
 	private String projectName;
 	private final IProject project;
 	private final IJavaProject jProject;
@@ -64,13 +102,13 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// location to use is recorded in the 'defaultOutput' field
 	private File defaultOutput;
 	
-	private Map /*String,File*/ srcFolderToOutput = new HashMap();
+	private Map /*String,File*/ srcFolderToOutput = new TreeMap(comparator);
 	
 	private Map /*File, IProject*/ binFolderToProject;
 	
 	// maps files in the file system to IFolders in the workspace
 	// this keeps track of output locations
-    private final Map /* String,IFolder */ fileSystemPathToIContainer = new HashMap();
+    private final Map /* String,IFolder */ fileSystemPathToIContainer = new TreeMap(comparator);
 
 	private List /*File*/ allOutputFolders = new ArrayList();
 	
@@ -128,7 +166,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 * initialize the source folder locations only
 	 */
 	private void initSourceFolders() {
-	    allSourceFolders = new HashMap();
+	    allSourceFolders = new TreeMap(comparator);
 	    try {
             IClasspathEntry[] cpe = jProject.getRawClasspath();
             for (int i = 0; i < cpe.length; i++) {
