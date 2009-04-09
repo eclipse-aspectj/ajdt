@@ -57,7 +57,7 @@ public class Bug270325 extends AJDTCoreTestCase {
             this.modifiedContents = modifiedContents;
         }
     }
-    
+     
     public void testNoDupsOnClasspath() throws Exception {
         
         Utils.setAutobuilding(false);
