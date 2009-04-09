@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension-point id="cuprovider" name="Compilation Unit Provider" schema="schema/cuprovider.exsd"/>
+   <extension-point id="sourcetransformer" name="Source Code Provider" schema="schema/sourcetransformer.exsd"/>
+   <extension-point id="imagedescriptorselector" name="Image Descriptor Selector" schema="schema/imagedescriptorselector.exsd"/>
+   <extension-point id="weavablenature" name="Weavable Nature" schema="schema/weavablenature.exsd"/>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.eclipse.contribution.jdt.preferences.JDTWeavingPreferencePage"
+            id="org.eclipse.contribution.weaving.jdt.preferences.JDTWeavingPreferences"
+            name="JDT Weaving">
+      </page>
+   </extension>
+   <extension
+         id="weavingtest"
+         name="Weaving Enabled Test"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            cardinality="singleton-global"
+            thread="main"
+            visible="true">
+         <run
+               class="org.eclipse.contribution.jdt.WeavingTestApplication">
+         </run>
+      </application>
+   </extension>
+</plugin>
