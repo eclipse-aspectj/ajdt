@@ -52,6 +52,8 @@ public class EventTraceView extends ViewPart
 	
 	private ClearEventTraceAction clearEventTraceAction;
 	
+	private PrintCrossCuttingModelAction printModelAction;
+	
 	private FilterTraceAction filterAction;
 	
 	private Font font = JFaceResources.getFont(JFaceResources.TEXT_FONT);
@@ -179,7 +181,8 @@ public class EventTraceView extends ViewPart
 	}
 	
 	private void makeActions() {
-		clearEventTraceAction = new ClearEventTraceAction(text);
+        clearEventTraceAction = new ClearEventTraceAction(text);
+        printModelAction = new PrintCrossCuttingModelAction();
 		
 		String dlogTitle = UIMessages.eventTrace_filter_dialog_title;
 		String dlogMessage = UIMessages.eventTrace_filter_dialog_message;		
@@ -207,7 +210,8 @@ public class EventTraceView extends ViewPart
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(clearEventTraceAction);
-		filterAction.fillActionBars(getViewSite().getActionBars());
+	    manager.add(clearEventTraceAction);
+	    manager.add(printModelAction);
+        filterAction.fillActionBars(getViewSite().getActionBars());
 	}
 }

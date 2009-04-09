@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
+
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
@@ -25,6 +26,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
+import org.eclipse.ajdt.internal.ui.EnsureAJBuilder;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
 import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
@@ -132,6 +134,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	public static final String ACCKIND_ATTRIBUTE = "acckind"; //$NON-NLS-1$
 	
 	public static final int PROGRESS_MONITOR_MAX = 100;
+
+    private EnsureAJBuilder ajProjectListener;
 
     /**
      * Creates an AspectJPlugin instance and initializes the supporting Ajde
@@ -304,6 +308,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		// set the compiler factory to be the ui one
 		setCompilerFactory(new UICompilerFactory());
+		
+        ajProjectListener = new EnsureAJBuilder();
+        AspectJPlugin.getWorkspace().addResourceChangeListener(ajProjectListener, IResourceChangeEvent.PRE_BUILD);
 
 		checkEclipseVersion();
 
@@ -331,6 +338,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	
 	public void stop(BundleContext context) throws Exception {
 	    super.stop(context);
+	    AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
 	}
 	
 

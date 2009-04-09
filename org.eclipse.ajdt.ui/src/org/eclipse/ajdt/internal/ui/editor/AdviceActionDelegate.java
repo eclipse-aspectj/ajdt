@@ -292,7 +292,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 						menuInitialized = true; 
 					}
 					// link might be in a different project
-					String linkName = AJProjectModelFactory.getInstance().getModelForJavaElement(el).getJavaElementLinkName(el);
+					String linkName = model.getJavaElementLinkName(el);
 					menu.add(new MenuAction(el, linkName));
 				}
 			}
