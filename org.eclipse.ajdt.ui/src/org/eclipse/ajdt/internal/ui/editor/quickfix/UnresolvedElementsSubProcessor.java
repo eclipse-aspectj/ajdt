@@ -462,7 +462,7 @@ public class UnresolvedElementsSubProcessor {
 							AST ast= astRoot.getAST();
 							ASTRewrite rewrite= ASTRewrite.create(ast);
 							/* AJDT 1.7 */
-							String label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_changetomethod_description, ASTResolving.getMethodSignature(curr));
+							String label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_changetomethod_description, ASTResolving.getMethodSignature(curr, false));
 							Image image= JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE);
 							LinkedCorrectionProposal proposal= new LinkedCorrectionProposal(label, cu, rewrite, 8, image);
 							proposals.add(proposal);
@@ -1054,7 +1054,7 @@ public class UnresolvedElementsSubProcessor {
 		// add arguments
 		{
             /* AJDT 1.7 */
-			String[] arg= new String[] { ASTResolving.getMethodSignature(methodBinding) };
+			String[] arg= new String[] { ASTResolving.getMethodSignature(methodBinding, false) };
 			String label;
 			if (diff == 1) {
 				label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_addargument_description, arg);
@@ -1084,7 +1084,7 @@ public class UnresolvedElementsSubProcessor {
 				changedTypes[i]= declParameterTypes[idx];
 			}
             /* AJDT 1.7 */
-			String[] arg= new String[] { ASTResolving.getMethodSignature(methodDecl), getTypeNames(changedTypes) };
+			String[] arg= new String[] { ASTResolving.getMethodSignature(methodDecl, !cu.equals(targetCU)), getTypeNames(changedTypes) };
 			String label;
 			if (methodDecl.isConstructor()) {
 				if (diff == 1) {
@@ -1160,7 +1160,7 @@ public class UnresolvedElementsSubProcessor {
 				rewrite.remove((Expression) arguments.get(indexSkipped[i]), null);
 			}
             /* AJDT 1.7 */
-			String[] arg= new String[] { ASTResolving.getMethodSignature(methodRef) };
+			String[] arg= new String[] { ASTResolving.getMethodSignature(methodRef, false) };
 			String label;
 			if (diff == 1) {
 				label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_removeargument_description, arg);
@@ -1207,7 +1207,7 @@ public class UnresolvedElementsSubProcessor {
 				changeTypes[i]= newType;
 			}
             /* AJDT 1.7 */
-			String[] arg= new String[] { ASTResolving.getMethodSignature(methodDecl), getTypeNames(changeTypes) };
+			String[] arg= new String[] { ASTResolving.getMethodSignature(methodDecl, isDifferentCU), getTypeNames(changeTypes) };
 			String label;
 			if (methodDecl.isConstructor()) {
 				if (diff == 1) {
@@ -1332,7 +1332,7 @@ public class UnresolvedElementsSubProcessor {
 
 						ITypeBinding[] swappedTypes= new ITypeBinding[] { declParamTypes[idx1], declParamTypes[idx2] };
                         /* AJDT 1.7 */
-						String[] args=  new String[] { ASTResolving.getMethodSignature(methodDecl), getTypeNames(swappedTypes) };
+						String[] args=  new String[] { ASTResolving.getMethodSignature(methodDecl, !targetCU.equals(cu)), getTypeNames(swappedTypes) };
 						String label;
 						if (methodDecl.isConstructor()) {
 							label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_swapparams_constr_description, args);
@@ -1363,7 +1363,7 @@ public class UnresolvedElementsSubProcessor {
 					}
 	
                     /* AJDT 1.7 */
-					String[] args=  new String[] { ASTResolving.getMethodSignature(methodDecl), ASTResolving.getMethodSignature(methodDecl.getName(), newParamTypes, false) };
+					String[] args=  new String[] { ASTResolving.getMethodSignature(methodDecl, !targetCU.equals(cu)), ASTResolving.getMethodSignature(methodDecl.getName(), newParamTypes, false) };
 					String label;
 					if (methodDecl.isConstructor()) {
 						label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_changeparamsignature_constr_description, args);
