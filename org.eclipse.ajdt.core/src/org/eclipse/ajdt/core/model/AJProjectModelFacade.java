@@ -353,7 +353,7 @@ public class AJProjectModelFacade {
         // For ITDs, the aspectj compiler generates program elements before the
         // rest of the program is in place, and they therfore have no parent.
         // They should not exist and we can ignore them.
-        if (ajHandle.charAt(0) != '=') {
+        if (ajHandle.length() == 0 || ajHandle.charAt(0) != '=') {
             return ERROR_JAVA_ELEMENT;
         }
         
