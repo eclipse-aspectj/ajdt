@@ -37,7 +37,9 @@ import org.eclipse.jdt.core.IJavaElement;
 public class LinkedFoldersTestBug270202 extends AJDTCoreTestCase {
 
     private IProject project;
-    private IFile file;
+    private IFile linkedFile;
+    private IFile nonLinkedFile1;
+    private IFile nonLinkedFile2;
     
     protected void setUp() throws Exception {
         super.setUp();
@@ -54,7 +56,9 @@ public class LinkedFoldersTestBug270202 extends AJDTCoreTestCase {
         src.createLink(rawPath, 0, null);
 
         project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-        file = project.getFile("src/p/AnAspect.aj");
+        linkedFile = project.getFile("src/p/AnAspect.aj");
+        nonLinkedFile1 = project.getFile("src1/q/AClass.java");
+        nonLinkedFile2 = project.getFile("src2/r/AnotherClass.java");
     }
     
     protected void tearDown() throws Exception {
@@ -62,18 +66,33 @@ public class LinkedFoldersTestBug270202 extends AJDTCoreTestCase {
         Utils.setAutobuilding(true);
     }
     
-    public void testGetSourceFolderForFile() throws Exception {
+    public void testGetSourceFolderForLinkedFile() throws Exception {
         assertEquals("Linked source folder not set up properly", 
                 project.getFolder("src").getLocation().toOSString(), 
                 project.getFolder("raw_location").getLocation().toOSString());
         IOutputLocationManager locationManager = AspectJPlugin.getDefault().getCompilerFactory()
                 .getCompilerForProject(project).getCompilerConfiguration().getOutputLocationManager();
-        String sourceFolderStr = locationManager.getSourceFolderForFile(new File(file.getLocation().toOSString()));
-        assertEquals("Source folder not found", "src", sourceFolderStr);
+        String sourceFolderStr = locationManager.getSourceFolderForFile(new File(linkedFile.getLocation().toOSString()));
+        assertEquals("Source folder 'src' not found", "src", sourceFolderStr);
+    }
+
+    public void testGetSourceFolderForNonLinkedFile1() throws Exception {
+        IOutputLocationManager locationManager = AspectJPlugin.getDefault().getCompilerFactory()
+                .getCompilerForProject(project).getCompilerConfiguration().getOutputLocationManager();
+        String sourceFolderStr = locationManager.getSourceFolderForFile(new File(nonLinkedFile1.getLocation().toOSString()));
+        assertEquals("Source folder 'src1' not found", "src1", sourceFolderStr);
     }
     
+    public void testGetSourceFolderForNonLinkedFile2() throws Exception {
+        IOutputLocationManager locationManager = AspectJPlugin.getDefault().getCompilerFactory()
+                .getCompilerForProject(project).getCompilerConfiguration().getOutputLocationManager();
+        String sourceFolderStr = locationManager.getSourceFolderForFile(new File(nonLinkedFile2.getLocation().toOSString()));
+        assertEquals("Source folder 'src2' not found", "src2", sourceFolderStr);
+    }
+    
+    
     public void testHandlesInsideLinkedFolders() throws Exception {
-        IJavaElement ije = AspectJCore.create(file);
+        IJavaElement ije = AspectJCore.create(linkedFile);
         assertTrue("Compilation unit should exist " + ije.getHandleIdentifier(), ije.exists());
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
         IProgramElement ipe = model.javaElementToProgramElement(ije);
