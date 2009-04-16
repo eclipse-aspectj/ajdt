@@ -17,6 +17,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -375,6 +376,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
             }
             List /*String*/ changedEntries = new ArrayList();
+            Set /*String*/ noDups = new HashSet();  // used to ensure there are no dups
             
             // now that we have all the projects, need to find out what they contribute to
             // this project's path.  could be itself, a jar, or a class folder
@@ -389,8 +391,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         case IClasspathEntry.CPE_PROJECT:
                             if (changedProject.getFullPath().equals(classpathEntry.getPath())) {
                                 // resolve project and add all entries
-                                changedEntries.addAll(listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
-                                        changedProject, classpathEntry)));
+                                List toAdd = listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
+                                        changedProject, classpathEntry));
+                                for (Iterator pathIter = toAdd.iterator(); pathIter
+                                        .hasNext();) {
+                                    String pathStr = (String) pathIter.next();
+                                    if (! noDups.contains(pathStr)) {
+                                        changedEntries.add(pathStr);
+                                        noDups.add(pathStr);
+                                    }
+                                }
                             }
                             break;
                         case IClasspathEntry.CPE_LIBRARY:
@@ -400,7 +410,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                 IFile onPath = root.getFile(classpathEntry.getPath());
                                 if (onPath.exists() || 
                                         root.getFolder(onPath.getFullPath()).exists()) {  // may be a folder
-                                    changedEntries.add(onPath.getLocation().toPortableString());
+                                    String pathStr = onPath.getLocation().toPortableString();
+                                    if (! noDups.contains(pathStr)) {
+                                        changedEntries.add(pathStr);
+                                        noDups.add(pathStr);
+                                    }
                                 }
                             }
                         }
@@ -422,7 +436,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 for (Iterator fileIter = inPathFiles.iterator(); fileIter.hasNext();) {
                     File inpathFile = (File) fileIter.next();
                     Path path = new Path(inpathFile.getAbsolutePath());
-                    changedEntries.add(path.toPortableString());
+                    String pathStr = path.toPortableString();
+                    if (! noDups.contains(pathStr)) {
+                        changedEntries.add(pathStr);
+                        noDups.add(pathStr);
+                    }
                 }
             }            
             return changedEntries;
@@ -1076,7 +1094,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * directories, recursively calls itself.
 	 * 
 	 * BUG 101489---also delete files marked as derived
-	 * BUG 253528---all folders below the output folder is marked as derived.
+	 * BUG 253528---all folders below the output folder are marked as derived.
 	 * so entire out folder is wiped.
 	 */
 	private static int wipeFiles(IResource outputResource, final String fileExtension) {
@@ -1084,15 +1102,21 @@ public class AJBuilder extends IncrementalProjectBuilder {
             int numDeleted = 0;
             public boolean visit(IResource resource) throws CoreException {
                 if (resource.isDerived()) {
-                    // non-class file 
-                    resource.delete(true, null);
-                    numDeleted++;   
+                    try {
+                        // non-class file 
+                        resource.delete(true, null);
+                        numDeleted++;   
+                    } catch(ResourceException e) {
+                    }
                     return false;
                 } else if (resource.getFileExtension() != null &&
                            resource.getFileExtension().equals(fileExtension)) {
-                    // class file
-                    resource.delete(true, null);
-                    numDeleted++;   
+                    try {
+                        // class file
+                        resource.delete(true, null);
+                        numDeleted++;
+                    } catch(ResourceException e) {
+                    }
                 }
                 // continue visit to children
                 return true;
