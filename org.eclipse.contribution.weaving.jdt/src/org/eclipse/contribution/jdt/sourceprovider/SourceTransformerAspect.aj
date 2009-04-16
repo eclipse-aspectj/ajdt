@@ -12,11 +12,19 @@
 package org.eclipse.contribution.jdt.sourceprovider;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
+import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BasicCompilationUnit;
+import org.eclipse.jdt.internal.core.BinaryType;
+import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.SourceMapper;
 
 public aspect SourceTransformerAspect {
     
@@ -36,12 +44,11 @@ public aspect SourceTransformerAspect {
      */
     void around(char[] sourceString, ICompilationUnit sourceUnit) : settingSource(sourceString) && 
             cflowbelow(startingParse(sourceUnit)) {
-        
         // See bug 265586
         // ignore BasicCompilationUnit because they are used for 
         // mocking up binary code
         // not sure if this should stay
-        // this means that binary asoects look transformed, but they also don't have structure
+        // this means that binary aspects look transformed, but they also don't have structure
         if (! (sourceUnit instanceof BasicCompilationUnit)) {
             String extension = getExtension(sourceUnit);
             ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
@@ -58,18 +65,66 @@ public aspect SourceTransformerAspect {
         proceed(sourceString, sourceUnit);
     }
     
+    /**
+     * Captures executions of {@link SourceMapper#mapSource(IType, char[], IBinaryType)}.
+     * This method is used to map a binary file to its attached source code.
+     * 
+     * This will help make the outline view for binary files appropriately view Java-like
+     * structure.
+     */
+    pointcut mappingSource(IType type, char[] contents, IBinaryType info) : 
+        execution(public void SourceMapper.mapSource(IType, char[], IBinaryType)) && 
+        args(type, contents, info);
     
-    private static String getExtension(ICompilationUnit sourceUnit) {
+    void around(IType type, char[] contents, IBinaryType info) : 
+            mappingSource(type, contents, info) {
+        char[] newContents = contents;
+        if (isInterestingProject(type)) {
+        
+            String extension = getExtension(type, info);
+            ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
+            if (transformer != null) {
+                try {
+                    newContents = transformer.convert(newContents);
+                } catch (Throwable t) {
+                    JDTWeavingPlugin.logException(t);
+                }
+            }
+        }
+        proceed(type, newContents, info);
+    }
+    
+    private String getExtension(IType type, IBinaryType info) {
+        String fName = null;
+        if (type != null && type instanceof BinaryType) {
+            fName = ((BinaryType) type).getSourceFileName(info);
+        }
+        return fName != null ? getExtension(fName.toCharArray()) : "" ;
+    }
+
+    private String getExtension(ICompilationUnit sourceUnit) {
         char[] name = sourceUnit.getFileName();
-        int extensionIndex = name.length - 1;
+        if (name != null) {
+            return getExtension(name);
+        }
+        return "";  //$NON-NLS-1$
+    }
+
+    private String getExtension(char[] sourceName) {
+        int extensionIndex = sourceName.length - 1;
         while (extensionIndex >= 0) {
-            if (name[extensionIndex] == '.') {
-                char[] extensionArr = new char[name.length - extensionIndex-1];
-                System.arraycopy(name, extensionIndex+1, extensionArr, 0, extensionArr.length);
+            if (sourceName[extensionIndex] == '.') {
+                char[] extensionArr = new char[sourceName.length - extensionIndex-1];
+                System.arraycopy(sourceName, extensionIndex+1, extensionArr, 0, extensionArr.length);
                 return new String(extensionArr);
             }
             extensionIndex --;
         }
         return "";  //$NON-NLS-1$
+    }
+
+    private boolean isInterestingProject(IJavaElement elt) {
+        return elt != null &&
+                WeavableProjectListener.getInstance().isInWeavableProject(elt);
     }
 }
