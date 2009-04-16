@@ -97,6 +97,7 @@ public class Bug270325Tests extends AJDTCoreTestCase {
         
         jp1.getFile("src/c/B.java").touch(null);
         jp2.getFile("src/Nothing2.java").touch(null);
+        Utils.sleep(1000);
 
         jp1.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         jp2.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
