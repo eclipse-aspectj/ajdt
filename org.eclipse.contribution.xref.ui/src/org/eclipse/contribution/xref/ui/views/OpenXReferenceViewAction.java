@@ -53,8 +53,13 @@ public class OpenXReferenceViewAction implements IObjectActionDelegate, IWorkben
      * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
      */
     public void selectionChanged(IAction action, ISelection selection) {
-    	IWorkbenchPart activePart = JavaPlugin.getActiveWorkbenchWindow().getActivePage().getActivePart();
-		action.setEnabled(activePart instanceof ContentOutline || activePart instanceof IEditorPart);
+        try {
+        	IWorkbenchPart activePart = JavaPlugin.getActiveWorkbenchWindow().getActivePage().getActivePart();
+    		action.setEnabled(activePart instanceof ContentOutline || activePart instanceof IEditorPart);
+        } catch (NullPointerException e) {
+            // see bug 271605
+            // ignore...workspace is shutting down
+        }
 	}
 
     /* (non-Javadoc)
