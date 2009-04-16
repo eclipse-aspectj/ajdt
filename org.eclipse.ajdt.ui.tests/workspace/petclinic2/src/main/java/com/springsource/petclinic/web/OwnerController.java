@@ -14,4 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/owner/**")
 public class OwnerController {
+    
+    void test() {
+        new Owner().toString();
+    }
 }
