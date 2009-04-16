@@ -11,7 +11,7 @@ import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 
-class MockProblemRequestor implements IProblemRequestor {
+public class MockProblemRequestor implements IProblemRequestor {
 
     List problems = new LinkedList();
     
@@ -44,7 +44,7 @@ class MockProblemRequestor implements IProblemRequestor {
      * we can't get around having an unused import
      * we should be able to remove this soon
      */
-    static HashMap filterProblems(HashMap problems) {
+    public static HashMap filterProblems(HashMap problems) {
         for (Iterator iterator = problems.values().iterator(); iterator.hasNext();) {
             if (((CategorizedProblem[]) iterator.next())[0].toString()
                     .equals("Pb(388) The import java.util.List is never used")) { //$NON-NLS-1$
@@ -53,7 +53,7 @@ class MockProblemRequestor implements IProblemRequestor {
         }
         return problems;
     }
-    static HashMap filterAllWarningProblems(HashMap problems) {
+    public static HashMap filterAllWarningProblems(HashMap problems) {
         for (Iterator iterator = problems.values().iterator(); iterator.hasNext();) {
             if (((CategorizedProblem[]) iterator.next())[0].isWarning()) { //$NON-NLS-1$
                 iterator.remove();
@@ -64,7 +64,7 @@ class MockProblemRequestor implements IProblemRequestor {
     
     
     
-    static List filterProblems(List problems) {
+    public static List filterProblems(List problems) {
         for (Iterator iterator = problems.iterator(); iterator.hasNext();) {
             if (((CategorizedProblem) iterator.next()).toString()
                     .equals("Pb(388) The import java.util.List is never used")) { //$NON-NLS-1$
@@ -74,7 +74,7 @@ class MockProblemRequestor implements IProblemRequestor {
         return problems;
     }
     
-    static String printProblems(HashMap problems) {
+    public static String printProblems(HashMap problems) {
         StringBuffer sb = new StringBuffer();
         sb.append("["); //$NON-NLS-1$
         for (Iterator probIter = problems.entrySet().iterator(); probIter.hasNext();) {
@@ -89,7 +89,7 @@ class MockProblemRequestor implements IProblemRequestor {
         return sb.toString();
     }
     
-    static int countProblems(HashMap problems) {
+    public static int countProblems(HashMap problems) {
         int count = 0;
         for (Iterator probIter = problems.values().iterator(); probIter.hasNext();) {
             CategorizedProblem[] probsArray = (CategorizedProblem[]) probIter.next();

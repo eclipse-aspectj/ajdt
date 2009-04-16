@@ -113,4 +113,16 @@ public class TestLogger implements IAJLogger {
 		}
     	System.out.println("-------------------------------------- Printing log end"); //$NON-NLS-1$
     }
+
+    public String getLogMessages() {
+        StringBuffer sb = new StringBuffer();
+        if (log == null) {
+            return "";
+        }
+        for (Iterator logIter = log.iterator(); logIter.hasNext();) {
+            String msg = (String) logIter.next();
+            sb.append(msg + "\n");
+        }
+        return sb.toString();
+    }
 }

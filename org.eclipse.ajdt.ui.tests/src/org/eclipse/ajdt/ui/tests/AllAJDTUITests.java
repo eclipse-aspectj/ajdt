@@ -50,6 +50,7 @@ import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests2;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests3;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests4;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests5;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.PetClinicTests;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug117327Test;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
@@ -169,7 +170,10 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ContentAssistTests3.class));
         suite.addTest(new TestSuite(ContentAssistTests4.class));
         suite.addTest(new TestSuite(ContentAssistTests5.class));
-		
+        
+        // test the roo petclinic project
+        suite.addTest(new TestSuite(PetClinicTests.class));
+        
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
 		
