@@ -11,18 +11,22 @@
 
 package org.eclipse.ajdt.core.model;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.ajdt.internal.core.builder.AjBuildManager;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Accessibility;
+import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.weaver.ConcreteTypeMunger;
-import org.aspectj.weaver.Member;
 import org.aspectj.weaver.ResolvedMember;
 import org.aspectj.weaver.ResolvedType;
+import org.aspectj.weaver.ResolvedTypeMunger;
 import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.World;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -38,6 +42,44 @@ import org.eclipse.jdt.core.Signature;
  * for longer than necessary
  */
 public final class AJWorldFacade {
+    public static class ErasedTypeSignature {
+        public ErasedTypeSignature(String returnType, String[] paramTypes) {
+            super();
+            this.returnType = returnType;
+            this.paramTypes = paramTypes;
+        }
+        public final String returnType;
+        public final String[] paramTypes;
+    }
+    
+    public static class ITDInfo {
+        
+        static ITDInfo create(ConcreteTypeMunger cMunger) {
+            ResolvedType aspectType = cMunger.getAspectType();
+            if (aspectType != null) {
+                ResolvedMember sig = cMunger.getSignature();
+                Accessibility a = sig != null ? 
+                        ProgramElement.genAccessibility(sig.getModifiers()) :
+                        Accessibility.PUBLIC;
+                String packageDeclaredIn = aspectType.getPackageName();
+                String topLevelAspectName = aspectType.getOutermostType().getClassName();
+                return new ITDInfo(a, packageDeclaredIn, topLevelAspectName);
+            } else { 
+                return null;
+            }
+        }
+        
+        public ITDInfo(Accessibility accessibility, String packageDeclaredIn,
+                String topLevelAspectName) {
+            this.accessibility = accessibility;
+            this.packageDeclaredIn = packageDeclaredIn;
+            this.topLevelAspectName = topLevelAspectName;
+        }
+        public final Accessibility accessibility;
+        public final String packageDeclaredIn;
+        public final String topLevelAspectName;
+    }
+
     private final AjBuildManager manager;
     private final World world;
     
@@ -53,8 +95,65 @@ public final class AJWorldFacade {
         }
     }
     
+    private Map /* char[] -> List<ConcreteTypeMunger> */ cachedMungers;
+    
+    private void cacheMunger(char[] typeName, List mungers) {
+        if (cachedMungers == null) {
+            cachedMungers = new HashMap();
+        }
+        cachedMungers.put(typeName, mungers);
+    }
+
+    public ITDInfo findITDInfoIfExists(char[] targetTypeSignature, char[] name) {
+        List itds;
+        String nameStr = new String(name);
+        if (cachedMungers != null && cachedMungers.containsKey(targetTypeSignature)) {
+            itds = (List) cachedMungers.get(targetTypeSignature);
+            if (itds == null) {
+                return null;
+            }
+        } else {
+            String sig = createSignature(targetTypeSignature);
+            ResolvedType type = world.resolve(UnresolvedType.forSignature(sig));
+            if (type == null || type.isMissing()) {
+                cacheMunger(targetTypeSignature, null);
+                return null;
+            }
+            itds = type.getInterTypeMungersIncludingSupers();
+            cacheMunger(targetTypeSignature, itds);
+        }
+        
+        for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
+            ConcreteTypeMunger cMunger = (ConcreteTypeMunger) iterator.next();
+            ResolvedTypeMunger munger = cMunger.getMunger();
+            if (munger == null) {
+                continue;
+            }
+            if (munger.getKind() == ResolvedTypeMunger.Field) {
+                if (munger.getSignature().getName().equals(nameStr)) {
+                    return ITDInfo.create(cMunger);
+                }
+            }
+            
+            if (munger.getKind() == ResolvedTypeMunger.Method) {
+                // also need to compare parameters, but parameters
+                // are expensive to calculate
+                if (munger.getSignature().getName().equals(nameStr)) {
+                    return ITDInfo.create(cMunger);
+                }
+            }
+        }
+        return null;
+    }
+
+    private String createSignature(char[] targetTypeSignature) {
+        String sig = new String(targetTypeSignature);
+        sig = sig.replace('.', '/');
+        return sig;
+    }
+
     public ErasedTypeSignature getTypeParameters(String typeSignature, IProgramElement elt) {
-        ResolvedType type = world.getCoreType(UnresolvedType.forSignature(typeSignature));
+        ResolvedType type = world.resolve(UnresolvedType.forSignature(typeSignature));
         if (type == null || type.isMissing()) {
             return null;
         }
@@ -123,17 +222,5 @@ public final class AJWorldFacade {
             }
         }
         return true;
-    }
-    
-    
-    public static class ErasedTypeSignature {
-        public ErasedTypeSignature(String returnType, String[] paramTypes) {
-            super();
-            this.returnType = returnType;
-            this.paramTypes = paramTypes;
-        }
-        public final String returnType;
-        public final String[] paramTypes;
-        
     }
 }

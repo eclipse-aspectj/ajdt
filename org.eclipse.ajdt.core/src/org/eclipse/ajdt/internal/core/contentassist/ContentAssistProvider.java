@@ -99,7 +99,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         }
 
         MockCompilationUnit mcu = new MockCompilationUnit((CompilationUnit) target);
-        requestor = new ProposalRequestorWrapper(requestor, mcu.insertionTable);
+        requestor = new ProposalRequestorWrapper(requestor, mcu, mcu.insertionTable);
         int transformedPos = mcu.translatePositionToFake(position);
         if (transformedPos < -1 || transformedPos > mcu.getContents().length) {
             throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));

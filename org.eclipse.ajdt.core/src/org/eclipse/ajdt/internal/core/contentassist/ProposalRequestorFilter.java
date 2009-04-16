@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.core.contentassist;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.ICompilationUnit;
 
 /**
  * This class filters either all completion proposals that depend on
@@ -30,8 +31,9 @@ public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 	private int proposalCounter = 0;
 	
 	public ProposalRequestorFilter(CompletionRequestor wrapped,
+            ICompilationUnit unit,
 			JavaCompatibleBuffer buffer) {
-		super(wrapped, buffer);
+		super(wrapped, unit, buffer);
 	}
 
 	/* This logic mimics the src30 version, which has multiple acceptXXX methods.
