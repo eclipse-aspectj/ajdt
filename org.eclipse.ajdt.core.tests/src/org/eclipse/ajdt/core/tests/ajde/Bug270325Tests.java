@@ -9,6 +9,7 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.ajde;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.ajde.core.AjCompiler;
@@ -105,13 +106,20 @@ public class Bug270325Tests extends AJDTCoreTestCase {
         Utils.sleep(1000);
         // incremental build
         myProj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        assertEquals("Should have only entries of modified contents", 2, config.modifiedContents.size());
-        assertTrue("'/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj2-On Inpath/bin' should be a modified entry",
-                config.modifiedContents.get(0).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj2-On Inpath/bin") ||
-                config.modifiedContents.get(1).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj2-On Inpath/bin"));
-        assertTrue("'/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj1/bin' should be a modified entry",
-                config.modifiedContents.get(0).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj1/bin") ||
-                config.modifiedContents.get(1).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj1/bin"));
-        
+        assertEquals("Should have only entries of modified contents.  Entries were:\n" + config.modifiedContents, 2, config.modifiedContents.size());
+        assertTrue("'JavaProj2-On Inpath/bin' should be a modified entry.  Entries were:\n" + config.modifiedContents,
+                listContains(config.modifiedContents, "JavaProj2-On Inpath"));
+        assertTrue("'JavaProj1/bin' should be a modified entry.  Entries were:\n" + config.modifiedContents,
+                listContains(config.modifiedContents, "JavaProj1"));        
+    }
+    
+    boolean listContains(List strings, String msg) {
+        for (Iterator iterator = strings.iterator(); iterator.hasNext();) {
+            String str = (String) iterator.next();
+            if (str.indexOf(msg) != -1) {
+                return true;
+            }
+        }
+        return false;
     }
 }
