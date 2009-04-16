@@ -143,8 +143,6 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
         file.touch(null);
         waitForAutoBuild();
         testInPathRelationshipsDefault();
-        
-        
     }
 
     private String printTargetTypes(Set targetTypes) {

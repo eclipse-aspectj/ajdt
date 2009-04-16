@@ -59,14 +59,14 @@ public class Bug270325Tests extends AJDTCoreTestCase {
 
     }
 
-    private IProject jp1;
+    IProject jp1;
 
-     private IProject jp2;
-    private IProject jp3;
-    private IProject ap1;
-    private IProject ap2;
-    private IProject ap3;
-    private IProject myProj;
+    IProject jp2;
+    IProject jp3;
+    IProject ap1;
+    IProject ap2;
+    IProject ap3;
+    IProject myProj;
 
     protected void setUp() throws Exception {
         super.setUp();
