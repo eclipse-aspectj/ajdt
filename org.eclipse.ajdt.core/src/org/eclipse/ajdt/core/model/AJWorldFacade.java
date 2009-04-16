@@ -113,8 +113,14 @@ public final class AJWorldFacade {
                 return null;
             }
         } else {
-            String sig = createSignature(targetTypeSignature);
-            ResolvedType type = world.resolve(UnresolvedType.forSignature(sig));
+            ResolvedType type = null;
+            try {
+                String sig = createSignature(targetTypeSignature);
+                type = world.getCoreType(UnresolvedType.forSignature(sig));
+            } catch (Exception e) {
+                // don't cache
+                return null;
+            }
             if (type == null || type.isMissing()) {
                 cacheMunger(targetTypeSignature, null);
                 return null;
@@ -147,8 +153,13 @@ public final class AJWorldFacade {
     }
 
     private String createSignature(char[] targetTypeSignature) {
+        // AspectJ parameterized signatures start with 'P' 
+        if (Signature.getTypeParameters(targetTypeSignature).length > 0) {
+            targetTypeSignature[0] = 'P';
+        }
         String sig = new String(targetTypeSignature);
         sig = sig.replace('.', '/');
+        
         return sig;
     }
 
