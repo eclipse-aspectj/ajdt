@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.tests.testutils.DefaultLogger;
+import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -51,6 +52,7 @@ public class AJDTCoreTestCase extends TestCase {
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
+        Utils.setAutobuilding(false);
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < allProjects.length; i++) {
 			IProject project = allProjects[i];
@@ -61,6 +63,7 @@ public class AJDTCoreTestCase extends TestCase {
 			IProject project = allProjects[i];
 			deleteProject(project,true);
 		}
+        Utils.setAutobuilding(true);
 		AJCompilationUnitManager.INSTANCE.clearCache();
 		
 		// ensure we use default logger for next test

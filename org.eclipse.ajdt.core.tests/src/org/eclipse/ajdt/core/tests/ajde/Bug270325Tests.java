@@ -80,7 +80,7 @@ public class Bug270325Tests extends AJDTCoreTestCase {
         ap2 = createPredefinedProject("AspectProj2-On AspectPath");
         ap3 = createPredefinedProject("AspectProj3-Has Outjar");
         myProj = createPredefinedProject("AspectProjWeCareAbout");
-
+        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
     }
 
     protected void tearDown() throws Exception {
@@ -94,14 +94,23 @@ public class Bug270325Tests extends AJDTCoreTestCase {
                 AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(myProj)
                 .getCompilerConfiguration();
         
+        
         jp1.getFile("src/c/B.java").touch(null);
         jp2.getFile("src/Nothing2.java").touch(null);
+
+        jp1.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        jp2.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        
         Utils.sleep(1000);
         // incremental build
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
         myProj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        System.out.println(config.modifiedContents);
+        assertEquals("Should have only entries of modified contents", 2, config.modifiedContents.size());
+        assertTrue("'/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj2-On Inpath/bin' should be a modified entry",
+                config.modifiedContents.get(0).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj2-On Inpath/bin") ||
+                config.modifiedContents.get(1).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj2-On Inpath/bin"));
+        assertTrue("'/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj1/bin' should be a modified entry",
+                config.modifiedContents.get(0).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj1/bin") ||
+                config.modifiedContents.get(1).equals("/Users/andrew/Eclipse/Workspaces/junit-workspace2/JavaProj1/bin"));
         
     }
 }
