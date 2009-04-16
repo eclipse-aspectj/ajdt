@@ -142,5 +142,12 @@ public class ITDAwareNameEnvironment extends
         }
         return type;
     }
+    
+    /**
+     * For diagnostic purposes
+     */
+    public org.eclipse.jdt.core.ICompilationUnit[] getWorkingCopies() {
+        return workingCopies;
+    }
 
 }

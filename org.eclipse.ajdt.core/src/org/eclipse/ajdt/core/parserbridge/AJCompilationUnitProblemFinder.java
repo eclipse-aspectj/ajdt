@@ -200,7 +200,7 @@ public class AJCompilationUnitProblemFinder extends
 	    boolean isJavaFileInAJEditor = (reconcileFlags & JAVA_FILE_IN_AJ_EDITOR) != 0;
 	    
 	    JavaProject project = (JavaProject) unitElement.getJavaProject();
-        CancelableNameEnvironment environment = null;
+	    ITDAwareNameEnvironment environment = null;
         CancelableProblemFactory problemFactory = null;
         AJCompilationUnitProblemFinder problemFinder = null; // AspectJ Change
         try {
@@ -303,6 +303,24 @@ public class AJCompilationUnitProblemFinder extends
             message.append(unitElement.getSource());
             message.append(lineDelimiter);
             message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
+            
+            
+            message.append("----------------------------------- WORKING COPIES -------------------------------------"); //$NON-NLS-1$
+            if (environment != null) {
+                ICompilationUnit[] workingCopies = environment.getWorkingCopies();
+                for (int i = 0; i < workingCopies.length; i++) {
+                    message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
+                    message.append(lineDelimiter);
+                    message.append(workingCopies[i].getSource());
+                    message.append(lineDelimiter);
+                    message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
+                }
+            } else {
+                message.append("none");
+            }
+            message.append("----------------------------------- WORKING COPIES END -------------------------------------"); //$NON-NLS-1$
+                
+            
             
             AJLog.log(message.toString());
             StackTraceElement[] trace = e.getStackTrace();
