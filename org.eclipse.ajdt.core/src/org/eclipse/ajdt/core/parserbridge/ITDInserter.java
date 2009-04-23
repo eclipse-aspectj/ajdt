@@ -267,6 +267,8 @@ public class ITDInserter extends ASTVisitor {
                 AJLog.log("Bug 270123 avoided on method: " + method.getName());
             }
         } catch (Exception e) {
+            AJLog.log("Exception occurred in ITDInserter.createMethod().  (Ignoring)");
+            AJLog.log("Relevant method: " + method.getParent().getName() + "." + method.getName());
             for (int i = 0; i < args.length; i++) {
                 args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
                         0,
