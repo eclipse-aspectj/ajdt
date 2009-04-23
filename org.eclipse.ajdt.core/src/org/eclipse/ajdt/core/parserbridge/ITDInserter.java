@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -241,9 +242,6 @@ public class ITDInserter extends ASTVisitor {
         Argument[] args = method.getParameterTypes() != null ? 
                 new Argument[method.getParameterTypes().size()] :
                     new Argument[0];
-        // using the World object to get type parameter bounds is still experimental.
-        // if there are any problems with it, go back to the old way and ignore type
-        // parameters
         try {
             AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
             ErasedTypeSignature sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
@@ -264,6 +262,9 @@ public class ITDInserter extends ASTVisitor {
                             createTypeReference(Signature.getElementType(sig.paramTypes[i])),
                             0);
                 }
+            } else {
+                // Let users know that bug 270123 was avoided
+                AJLog.log("Bug 270123 avoided on method: " + method.getName());
             }
         } catch (Exception e) {
             for (int i = 0; i < args.length; i++) {
