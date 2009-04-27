@@ -15,6 +15,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.ajdt.core.tests.ajde.Bug270325Tests;
+import org.eclipse.ajdt.core.tests.ajde.Bug273770Tests;
 import org.eclipse.ajdt.core.tests.ajde.CoreCompilerConfigurationTests;
 import org.eclipse.ajdt.core.tests.ajde.CoreCompilerConfigurationTests2;
 import org.eclipse.ajdt.core.tests.ajde.CoreCompilerFactoryTests;
@@ -112,11 +113,12 @@ public class AllCoreTests {
         
         
 		
-		// core compiler configuration
+		// core compiler configuration and ajde
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests.class));
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests2.class));
         suite.addTest(new TestSuite(CoreCompilerFactoryTests.class));
         suite.addTest(new TestSuite(Bug270325Tests.class));
+        suite.addTest(new TestSuite(Bug273770Tests.class));
 
 		// Java Element tests
         suite.addTest(new TestSuite(AspectElementTests.class));
