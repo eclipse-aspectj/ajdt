@@ -45,6 +45,7 @@ import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.Bug273691ContentAssist;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests2;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests3;
@@ -68,6 +69,7 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
+import org.eclipse.ajdt.ui.tests.reconciling.Bug273691Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
@@ -163,13 +165,14 @@ public class AllAJDTUITests {
 		// ui model tests
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 
-		// ui tests
+		// content assist tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));
 		suite.addTest(new TestSuite(ContentAssistTests.class));
         suite.addTest(new TestSuite(ContentAssistTests2.class));
         suite.addTest(new TestSuite(ContentAssistTests3.class));
         suite.addTest(new TestSuite(ContentAssistTests4.class));
         suite.addTest(new TestSuite(ContentAssistTests5.class));
+        suite.addTest(new TestSuite(Bug273691ContentAssist.class));
         
         // test the roo petclinic project
         suite.addTest(new TestSuite(PetClinicTests.class));
@@ -224,6 +227,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests10.class));
         suite.addTest(new TestSuite(ProblemFinderTests11.class));
         suite.addTest(new TestSuite(ProblemFinderTests12.class));
+        suite.addTest(new TestSuite(Bug273691Reconciling.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
