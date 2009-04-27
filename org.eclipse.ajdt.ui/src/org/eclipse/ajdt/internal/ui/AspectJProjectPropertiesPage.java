@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AJLog;
@@ -319,10 +320,15 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		                JavaCore.getClasspathContainer(allEntries[i].getPath(), jProject);
 		            if (container != null && !(container instanceof JREContainer)) {
 			            IClasspathEntry[] containerEntries = container.getClasspathEntries();
+			            // bug 273770
+//			            Set /*String*/ extraPathElements = AspectJCorePreferences.findExtraPathElements(allEntries[i], 
+//			                            AspectJCorePreferences.isAspectPathAttribute(attribute));
+	                    
 			            for (int j = 0; j < containerEntries.length; j++) {
 			    			// iterate through each element and add 
 			    			// 	to the path those that have the appropriate attribute
-			            	if (hasClasspathAttribute(containerEntries[j], attribute)) {
+			            	if (hasClasspathAttribute(containerEntries[j], attribute) /*||
+			            	        AspectJCorePreferences.containsAsPathFragment(extraPathElements, containerEntries[j])*/) {
 			            		addContainerToAttribute(containerEntries[j], attribute, container);
 			            		entriesWithAttribute.add(containerEntries[j]);
 			            	}

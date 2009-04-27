@@ -258,14 +258,6 @@ public abstract class PathBlock {
                     elementsToAdd.add(curr);
                     curr.setAttribute(CPListElement.SOURCEATTACHMENT,
                             BuildPathSupport.guessSourceAttachment(curr));
-                    
-                    // Not working and I don't think we need this.
-//                    try {
-//						curr.setAttribute(CPListElement.JAVADOC, 
-//								JavaUI.getJavadocBaseLocation(
-//										fCurrJProject.getJavaModel().findElement(curr.getPath())));
-//					} catch (JavaModelException e) {
-//					}
                 }
             }
             if (!elementsToAdd.isEmpty() && (index == IDX_ADDFOL)) {
@@ -412,11 +404,8 @@ public abstract class PathBlock {
                                 .toPortableString(), resolvedEntry);
                         break;
                     case IClasspathEntry.CPE_CONTAINER:
-                        IClasspathContainer container = JavaCore
-                        .getClasspathContainer(rawEntry.getPath(),
-                                currJProject);
                         List containerEntries = AspectJCorePreferences.resolveClasspathContainer(
-                                container, currJProject.getProject());
+                                rawEntry, currJProject.getProject());
                         
                         for (Iterator containerIter = containerEntries.iterator(); containerIter.hasNext(); ) {
                             IClasspathEntry containerEntry = (IClasspathEntry) containerIter.next();
@@ -745,23 +734,7 @@ public abstract class PathBlock {
         return (IPath[]) res.toArray(new IPath[res.size()]);
     }
 
-    private IPath[] getUsedJARFiles(CPListElement existing) {
-        List res = new ArrayList();
-        List cplist = fPathList.getElements();
-        for (int i = 0; i < cplist.size(); i++) {
-            CPListElement elem = (CPListElement) cplist.get(i);
-            if (elem.getEntryKind() == IClasspathEntry.CPE_LIBRARY
-                    && (elem != existing)) {
-                IResource resource = elem.getResource();
-                if (resource instanceof IFile) {
-                    res.add(resource.getFullPath());
-                }
-            }
-        }
-        return (IPath[]) res.toArray(new IPath[res.size()]);
-    }
-
-  public TabItem tabContent(TabFolder folder) {
+    public TabItem tabContent(TabFolder folder) {
 
         TabItem item;
 
