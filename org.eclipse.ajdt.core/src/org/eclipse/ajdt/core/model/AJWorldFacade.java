@@ -105,6 +105,9 @@ public final class AJWorldFacade {
     }
 
     public ITDInfo findITDInfoIfExists(char[] targetTypeSignature, char[] name) {
+        if (world == null) {
+            return null;
+        }
         List itds;
         String nameStr = new String(name);
         if (cachedMungers != null && cachedMungers.containsKey(targetTypeSignature)) {
@@ -164,6 +167,9 @@ public final class AJWorldFacade {
     }
 
     public ErasedTypeSignature getTypeParameters(String typeSignature, IProgramElement elt) {
+        if (world == null) {
+            return null;
+        }
         ResolvedType type = world.resolve(UnresolvedType.forSignature(typeSignature));
         if (type == null || type.isMissing()) {
             return null;

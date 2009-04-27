@@ -218,11 +218,14 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		boolean inFor = false;
 		
 		// Bug 258685: case statements should not be confused with pointcuts
-		// it is the colon that is confusing
 		boolean inCase = false;
 		
 		// bug 265977 the aspect keyword is OK if it is in a package declaration
 		boolean inPackageDecl = false;
+		
+		// bug 273691 class does not signify a start of a class declation if
+		// it is after a dot
+		boolean afterDot = false;
 		
 		char[] currentTypeName = null;
 		
@@ -347,6 +350,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			    break;
 
 			case TokenNameDOT:
+			    afterDot = true;
 				if (!inAspect) {
 					break;
 				} else if (inPointcutDesignator) {
@@ -452,8 +456,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			    break;
 				
 			case TokenNameclass:
-			    typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
-			    inClassDeclaration = true;
+			    if (!afterDot) {  // bug 273691
+			        typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
+			        inClassDeclaration = true;
+			    }
 			    break;
 
 			case TokenNameinterface:  // interface and @interface 
@@ -469,6 +475,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			case TokenNamepackage:
 			    inPackageDecl = true;
 			    break;
+			}
+			
+			if (tok != TokenNameDOT) {
+			    afterDot = false;
 			}
 		}
 
