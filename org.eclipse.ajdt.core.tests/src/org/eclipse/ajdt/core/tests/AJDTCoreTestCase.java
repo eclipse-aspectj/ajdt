@@ -49,6 +49,11 @@ public class AJDTCoreTestCase extends TestCase {
         AspectJPlugin.getDefault().setAJLogger(defaultLogger);
     }
     
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.out.println("------------------------\nStarting " + this.getName());
+    }
+    
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
