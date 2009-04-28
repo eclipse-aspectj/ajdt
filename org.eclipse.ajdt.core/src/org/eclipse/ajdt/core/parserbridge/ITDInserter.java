@@ -253,18 +253,20 @@ public class ITDInserter extends ASTVisitor {
                 sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
             }
             
-            // possibly avoids npe in bug 270123
             List/*String*/ pNames = method.getParameterNames();
-            if (pNames != null) {
+            // bug 270123... no parameter names if coming in from a jar and
+            // not build with debug info...mock it up.
+            if (pNames == null) {
+                pNames = new ArrayList(args.length);
                 for (int i = 0; i < args.length; i++) {
-                    args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
-                            0,
-                            createTypeReference(Signature.getElementType(sig.paramTypes[i])),
-                            0);
+                    pNames.add("args" + i);
                 }
-            } else {
-                // Let users know that bug 270123 was avoided
-                AJLog.log("Bug 270123 avoided on method: " + method.getName());
+            }
+            for (int i = 0; i < args.length; i++) {
+                args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
+                        0,
+                        createTypeReference(Signature.getElementType(sig.paramTypes[i])),
+                        0);
             }
         } catch (Exception e) {
             AJLog.log("Exception occurred in ITDInserter.createMethod().  (Ignoring)");
