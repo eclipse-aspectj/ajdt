@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
