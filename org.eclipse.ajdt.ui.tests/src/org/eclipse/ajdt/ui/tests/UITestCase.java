@@ -84,6 +84,7 @@ public abstract class UITestCase extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
+        System.out.println("------------------------\nStarting " + this.getName());
 	}
 	
 	protected void tearDown() throws Exception {
