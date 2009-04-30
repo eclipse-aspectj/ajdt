@@ -105,7 +105,7 @@ public final class AJWorldFacade {
     }
 
     public ITDInfo findITDInfoIfExists(char[] targetTypeSignature, char[] name) {
-        if (world == null) {
+        if (world == null || targetTypeSignature == null) {
             return null;
         }
         List itds;
