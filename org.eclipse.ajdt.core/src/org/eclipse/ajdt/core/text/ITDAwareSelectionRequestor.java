@@ -21,6 +21,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -55,7 +56,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             char[] uniqueKey, int start, int end) {
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            List /*IJavaElement*/ itds = model.getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+            List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
             for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
                 IJavaElement elt = (IJavaElement) iterator.next();
                 if (matchedField(elt, name)) {
@@ -75,7 +76,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             int start, int end) {
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            List /*IJavaElement*/ itds = model.getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+            List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
             for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
                 IJavaElement elt = (IJavaElement) iterator.next();
                 if (matchedMethod(elt, selector, parameterSignatures)) {
@@ -107,6 +108,14 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             int modifiers, boolean isDeclaration, char[] genericTypeSignature,
             int start, int end) {
         // can ignore
+    }
+    
+    private AJProjectModelFacade ensureModel(IJavaElement elt) {
+        if (model.getProject().equals(elt.getJavaProject().getProject())) {
+            return model;
+        } else {
+            return AJProjectModelFactory.getInstance().getModelForJavaElement(elt);
+        }
     }
 
     private boolean matchedField(IJavaElement elt, char[] name) throws JavaModelException {
