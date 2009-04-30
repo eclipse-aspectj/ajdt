@@ -364,6 +364,9 @@ public class AJProjectModelFacade {
         // if so, then we have to handle it specially
         // because we want to convert this into a source reference if possible
         if (isBinaryAspectJHandle(jHandle)) {
+            // Bug 274558 ADE HACK...fix aspect handles that are supposed to be binary, but are not.
+            jHandle = jHandle.replace('*', '(');
+            jHandle = jHandle.replace(".aj}", ".class}");
             return getElementFromClassFile(jHandle);
         }
 
@@ -427,6 +430,12 @@ public class AJProjectModelFacade {
                         typeChar == JavaElement.JEM_TYPE ||
                         typeChar == JavaElement.JEM_IMPORTDECLARATION ||
                         typeChar == JavaElement.JEM_PACKAGEDECLARATION);
+            }
+        } else {
+            // Bug 274558 ADE HACK...handles are not always right for aspects on aspect path
+            // sometimes the source handle is used, bug should be binary handle
+            if (ajHandle.indexOf("/binaries<") != -1) {
+                doIt = true;
             }
         }
         return doIt;
