@@ -292,43 +292,10 @@ public class AJCompilationUnitProblemFinder extends
             // catch(RuntimeException e) below
             throw e;
         } catch (RuntimeException e) {
-            // avoid breaking other tools due to internal compiler failure
-            // (40334)
-            String lineDelimiter = org.eclipse.jdt.internal.compiler.util.Util.LINE_SEPARATOR;
-            StringBuffer message = new StringBuffer(
-                    "Exception occurred during problem detection:"); //$NON-NLS-1$ 
-            message.append(lineDelimiter);
-            message.append("----------------------------------- SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
-            message.append(lineDelimiter);
-            message.append(unitElement.getSource());
-            message.append(lineDelimiter);
-            message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
-            
-            
-            message.append("----------------------------------- WORKING COPIES -------------------------------------"); //$NON-NLS-1$
-            if (environment != null) {
-                ICompilationUnit[] workingCopies = environment.getWorkingCopies();
-                for (int i = 0; i < workingCopies.length; i++) {
-                    message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
-                    message.append(lineDelimiter);
-                    message.append(workingCopies[i].getSource());
-                    message.append(lineDelimiter);
-                    message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
-                }
-            } else {
-                message.append("none");
-            }
-            message.append("----------------------------------- WORKING COPIES END -------------------------------------"); //$NON-NLS-1$
-                
-            
-            
-            AJLog.log(message.toString());
-            StackTraceElement[] trace = e.getStackTrace();
-            for (int i = 0; i < trace.length; i++) {
-                AJLog.log(trace[i].toString());
-            }
-            throw new JavaModelException(new RuntimeException(message.toString(), e),
+            String message = handleException(unitElement, environment, e);
+            throw new JavaModelException(new RuntimeException(message, e),
                     IJavaModelStatusConstants.COMPILER_FAILURE);
+
         } finally {
             if (environment != null)
                 environment.monitor = null; // don't hold a reference to this
@@ -341,6 +308,57 @@ public class AJCompilationUnitProblemFinder extends
                 problemFinder.lookupEnvironment.reset();
         }
 	}
+
+    private static String handleException(CompilationUnit unitElement,
+            ITDAwareNameEnvironment environment, RuntimeException e)
+            throws JavaModelException {
+        AJLog.log("Exception occurred during problem detection:");
+        AJLog.log(e.getClass().getName() + ": " + e.getMessage());
+        StackTraceElement[] trace = e.getStackTrace();
+        for (int i = 0; i < trace.length; i++) {
+            AJLog.log(trace[i].toString());
+        }
+        Throwable cause = e.getCause();
+        if (cause != null && cause != e) {
+            AJLog.log("Caused by:");
+            AJLog.log(cause.getClass().getName() + ": " + cause.getMessage());
+            trace = cause.getStackTrace();
+            for (int i = 0; i < trace.length; i++) {
+                AJLog.log(trace[i].toString());
+            }
+        }
+
+        String lineDelimiter = org.eclipse.jdt.internal.compiler.util.Util.LINE_SEPARATOR;
+        StringBuffer message = new StringBuffer(
+                "All Source code being worked on:"); //$NON-NLS-1$ 
+        message.append(lineDelimiter);
+        message.append("----------------------------------- SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
+        message.append(lineDelimiter);
+        message.append(unitElement.getSource());
+        message.append(lineDelimiter);
+        message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
+        
+        
+        message.append("----------------------------------- WORKING COPIES -------------------------------------"); //$NON-NLS-1$
+        if (environment != null) {
+            ICompilationUnit[] workingCopies = environment.getWorkingCopies();
+            for (int i = 0; i < workingCopies.length; i++) {
+                message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
+                message.append(lineDelimiter);
+                message.append(workingCopies[i].getSource());
+                message.append(lineDelimiter);
+                message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
+            }
+        } else {
+            message.append("none");
+        }
+        message.append("----------------------------------- WORKING COPIES END -------------------------------------"); //$NON-NLS-1$
+            
+        
+        
+        AJLog.log(message.toString());
+        return message.toString();
+    }
 
 	
 	// AspectJ Change to the end---removes spurious problems
