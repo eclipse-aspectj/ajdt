@@ -87,7 +87,7 @@ public class AspectJCorePreferences {
 
 	public static final String INPATH_ENT_KINDS = "org.eclipse.ajdt.ui.inPath.entryKind"; //$NON-NLS-1$
 
-    public static String getProjectOutJar(IProject project) {
+	public static String getProjectOutJar(IProject project) {
         IScopeContext projectScope = new ProjectScope(project);
         IEclipsePreferences projectNode = projectScope
                 .getNode(AspectJPlugin.UI_PLUGIN_ID);
@@ -469,13 +469,45 @@ public class AspectJCorePreferences {
     	}
     }
 
-    private static String[] getOldProjectAspectPath(IProject project) {
+    
+    private static boolean shouldCheckOldStylePath(IProject project, String pathKind) {
+        IScopeContext projectScope = new ProjectScope(project);
+        IEclipsePreferences projectNode = projectScope
+                .getNode(AspectJPlugin.UI_PLUGIN_ID);
+        return projectNode.get(pathKind, "").length() == 0 && projectNode.get(pathKind + "1", "").length() > 0;
+    }
+
+    private static void markOldStylePathAsRead(IProject project, String pathKind) {
+        IScopeContext projectScope = new ProjectScope(project);
+        IEclipsePreferences projectNode = projectScope
+                .getNode(AspectJPlugin.UI_PLUGIN_ID);
+        projectNode.put(pathKind, "visited");
+        try {
+            projectNode.flush();
+        } catch (BackingStoreException e) {
+        }
+    }
+    
+    private static String[] getOldProjectPath(IProject project, boolean aspectPath) {
+        String pathName;
+        String pathConKinds;
+        String pathEntKinds;
+        if (aspectPath) {
+            pathName = ASPECTPATH;
+            pathConKinds = ASPECTPATH_CON_KINDS;
+            pathEntKinds = ASPECTPATH_ENT_KINDS;
+        } else {
+            pathName = INPATH;
+            pathConKinds = INPATH_CON_KINDS;
+            pathEntKinds = INPATH_ENT_KINDS;
+        }
+        
     	IScopeContext projectScope = new ProjectScope(project);
     	IEclipsePreferences projectNode = projectScope
     			.getNode(AspectJPlugin.UI_PLUGIN_ID);
     	String pathString = ""; //$NON-NLS-1$
     	int index = 1;
-    	String value = projectNode.get(ASPECTPATH + index, ""); //$NON-NLS-1$
+    	String value = projectNode.get(pathName + index, ""); //$NON-NLS-1$
     	if (value.length() == 0) {
     		return null;
     	}
@@ -483,55 +515,29 @@ public class AspectJCorePreferences {
     		pathString += value;
     		pathString += File.pathSeparator;
     		index++;
-    		value = projectNode.get(ASPECTPATH + index, ""); //$NON-NLS-1$
+    		value = projectNode.get(pathName + index, ""); //$NON-NLS-1$
     	}
     
     	String contentString = ""; //$NON-NLS-1$
     	index = 1;
-    	value = projectNode.get(ASPECTPATH_CON_KINDS + index, ""); //$NON-NLS-1$
+    	value = projectNode.get(pathConKinds + index, ""); //$NON-NLS-1$
     	while (value.length() > 0) {
     		contentString += toContentKind(value.toUpperCase());
     		contentString += File.pathSeparator;
     		index++;
-    		value = projectNode.get(ASPECTPATH_CON_KINDS + index, ""); //$NON-NLS-1$
+    		value = projectNode.get(pathConKinds + index, ""); //$NON-NLS-1$
     	}
     
     	String entryString = ""; //$NON-NLS-1$
     	index = 1;
-    	value = projectNode.get(ASPECTPATH_ENT_KINDS + index, ""); //$NON-NLS-1$
+    	value = projectNode.get(pathEntKinds + index, ""); //$NON-NLS-1$
     	while (value.length() > 0) {
     		entryString += toEntryKind(value.toUpperCase());
     		entryString += File.pathSeparator;
     		index++;
-    		value = projectNode.get(ASPECTPATH_ENT_KINDS + index, ""); //$NON-NLS-1$
+    		value = projectNode.get(pathEntKinds + index, ""); //$NON-NLS-1$
     	}
     	return new String[] { pathString, contentString, entryString };
-    }
-
-    private static void removeOldAspectPathSetting(IProject project) {
-    	IScopeContext projectScope = new ProjectScope(project);
-    	IEclipsePreferences projectNode = projectScope
-    			.getNode(AspectJPlugin.UI_PLUGIN_ID);
-    	int index = 1;
-    	while (projectNode.get(ASPECTPATH + index, "").length() > 0) { //$NON-NLS-1$
-    		projectNode.remove(ASPECTPATH + index);
-    		index++;
-    	}
-    	index = 1;
-    	while (projectNode.get(ASPECTPATH_CON_KINDS + index, "").length() > 0) { //$NON-NLS-1$
-    		projectNode.remove(ASPECTPATH_CON_KINDS + index);
-    		index++;
-    	}
-    	index = 1;
-    	while (projectNode.get(ASPECTPATH_ENT_KINDS + index, "").length() > 0) { //$NON-NLS-1$
-    		projectNode.remove(ASPECTPATH_ENT_KINDS + index);
-    		index++;
-    	}
-    
-    	try {
-    		projectNode.flush();
-    	} catch (BackingStoreException e) {
-    	}
     }
 
     /**
@@ -598,19 +604,23 @@ public class AspectJCorePreferences {
 
     private static String[] internalGetProjectPath(IProject project, IClasspathAttribute attribute, boolean useResolvedPath) {
         if (isAspectPathAttribute(attribute)) {
-    		String[] old = getOldProjectAspectPath(project);
-    		if (old != null) {
-    			AJLog.log("Migrating aspect path settings for project "+project.getName()); //$NON-NLS-1$
-    			setProjectAspectPath(project,old[0],old[1],old[2]);
-    			removeOldAspectPathSetting(project);
-    		}
+            if (shouldCheckOldStylePath(project, ASPECTPATH)) {
+        		String[] old = getOldProjectPath(project, true);
+        		if (old != null) {
+        			AJLog.log("Migrating aspect path settings for project "+project.getName()); //$NON-NLS-1$
+        			setProjectAspectPath(project,old[0],old[1],old[2]);
+        		}
+        		markOldStylePathAsRead(project, ASPECTPATH);
+            }
         } else { // INPATH_ATTRIBUTE
-            String[] old = getOldProjectInPath(project);
-            if (old != null) {
-                AJLog.log("Migrating inpath settings for project "+project.getName()); //$NON-NLS-1$
-                setProjectInPath(project,old[0],old[1],old[2]);
-                removeOldInPathSetting(project);
-            }	        
+            if (shouldCheckOldStylePath(project, INPATH)) {
+                String[] old = getOldProjectPath(project, false);
+                if (old != null) {
+                    AJLog.log("Migrating aspect path settings for project "+project.getName()); //$NON-NLS-1$
+                    setProjectAspectPath(project,old[0],old[1],old[2]);
+                }
+                markOldStylePathAsRead(project, INPATH);
+            }
         }
     	String pathString = ""; //$NON-NLS-1$
     	String contentString = ""; //$NON-NLS-1$
@@ -819,72 +829,7 @@ public class AspectJCorePreferences {
     	}
     }
 
-    private static String[] getOldProjectInPath(IProject project) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJPlugin.UI_PLUGIN_ID);
-		String pathString = ""; //$NON-NLS-1$
-		int index = 1;
-		String value = projectNode.get(INPATH + index, ""); //$NON-NLS-1$
-		if (value.length() == 0) {
-			return null;
-		}
-		while (value.length() > 0) {
-			pathString += value;
-			pathString += File.pathSeparator;
-			index++;
-			value = projectNode.get(INPATH + index, ""); //$NON-NLS-1$
-		}
-	
-		String contentString = ""; //$NON-NLS-1$
-		index = 1;
-		value = projectNode.get(INPATH_CON_KINDS + index, ""); //$NON-NLS-1$
-		while (value.length() > 0) {
-			contentString += toContentKind(value.toUpperCase());
-			contentString += File.pathSeparator;
-			index++;
-			value = projectNode.get(INPATH_CON_KINDS + index, ""); //$NON-NLS-1$
-		}
-	
-		String entryString = ""; //$NON-NLS-1$
-		index = 1;
-		value = projectNode.get(INPATH_ENT_KINDS + index, ""); //$NON-NLS-1$
-		while (value.length() > 0) {
-			entryString += toEntryKind(value.toUpperCase());
-			entryString += File.pathSeparator;
-			index++;
-			value = projectNode.get(INPATH_ENT_KINDS + index, ""); //$NON-NLS-1$
-		}
-		return new String[] { pathString, contentString, entryString };
-	}
-
-	private static void removeOldInPathSetting(IProject project) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJPlugin.UI_PLUGIN_ID);
-		int index = 1;
-		while (projectNode.get(INPATH + index, "").length() > 0) { //$NON-NLS-1$
-			projectNode.remove(INPATH + index);
-			index++;
-		}
-		index = 1;
-		while (projectNode.get(INPATH_CON_KINDS + index, "").length() > 0) { //$NON-NLS-1$
-			projectNode.remove(INPATH_CON_KINDS + index);
-			index++;
-		}
-		index = 1;
-		while (projectNode.get(INPATH_ENT_KINDS + index, "").length() > 0) { //$NON-NLS-1$
-			projectNode.remove(INPATH_ENT_KINDS + index);
-			index++;
-		}
-
-		try {
-			projectNode.flush();
-		} catch (BackingStoreException e) {
-		}
-	}
-
-	/**
+    /**
 	 * Remove all occurrences of an attribute
 	 * @param javaProject
 	 * @param attribute
