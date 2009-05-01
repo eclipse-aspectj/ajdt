@@ -70,7 +70,7 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
 
     public void testGetProjectInPath() {
     	String[] inPath = AspectJCorePreferences.getResolvedProjectInpath(project);
-    	assertEquals("there should be 3 entries on the aspect path",3,inPath.length);   //$NON-NLS-1$
+    	assertEquals("there should be 3 entries on the in path",3,inPath.length);   //$NON-NLS-1$
     	assertTrue("test.jar should be on the inpath",inPath[0].startsWith("/CorePreferencesTestProject/test.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",inPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Entry kind should be LIBRARY", inPath[2].startsWith("1")); //$NON-NLS-1$ //$NON-NLS-2$
