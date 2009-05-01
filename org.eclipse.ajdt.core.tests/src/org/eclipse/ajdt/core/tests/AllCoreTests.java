@@ -23,6 +23,7 @@ import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.AspectPathTests;
 import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
+import org.eclipse.ajdt.core.tests.builder.Bug268609Test;
 import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.builder.BuilderArgsTestBug270554;
@@ -139,6 +140,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(BuilderArgsTestBug270554.class));
         suite.addTest(new TestSuite(CoreOutputLocationManagerRefreshTestsBug270335.class));
         suite.addTest(new TestSuite(LinkedFoldersTestBug270202.class));
+        suite.addTest(new TestSuite(Bug268609Test.class));
         
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));
