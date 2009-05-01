@@ -617,7 +617,7 @@ public class AspectJCorePreferences {
                 String[] old = getOldProjectPath(project, false);
                 if (old != null) {
                     AJLog.log("Migrating aspect path settings for project "+project.getName()); //$NON-NLS-1$
-                    setProjectAspectPath(project,old[0],old[1],old[2]);
+                    setProjectInPath(project,old[0],old[1],old[2]);
                 }
                 markOldStylePathAsRead(project, INPATH);
             }
