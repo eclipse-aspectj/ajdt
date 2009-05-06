@@ -637,6 +637,11 @@ public class AJCompilationUnitProblemFinder extends
         } catch (JavaModelException e) {
         }
         
+        if (id == IProblem.AbstractMethodMustBeImplemented && 
+                isITDName(categorizedProblem, unit, model, isJavaFileInAJEditor)) {
+            // a type implements an interface with an ITD method on it
+            return false;
+        }
         
         if (id == IProblem.AbstractMethodMustBeImplemented && 
                 (!hasModel || isAbstractITD(categorizedProblem, model, unit, isJavaFileInAJEditor))) {
