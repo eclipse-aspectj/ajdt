@@ -717,7 +717,7 @@ public class AspectJCorePreferences {
         return false;
     }
 
-    public static Set/*String*/ findExtraPathElements(IClasspathEntry containerEntry,
+    private static Set/*String*/ findExtraPathElements(IClasspathEntry containerEntry,
             boolean aspectPathAttribute) {
         if (containerEntry.getEntryKind() != IClasspathEntry.CPE_CONTAINER) {
             return Collections.EMPTY_SET;
@@ -728,7 +728,13 @@ public class AspectJCorePreferences {
             IClasspathAttribute attribute = attributes[i];
             if (attribute.getName().equals(aspectPathAttribute ? 
                     EXTRA_ASPECTPATH_ATTRIBUTE_NAME : EXTRA_INPATH_ATTRIBUTE_NAME)) {
-                extraPathElements.add(attribute.getValue());
+                String extraStr = attribute.getValue();
+                if (extraStr != null) {
+                    String[] extraArr = extraStr.split(",");
+                    for (int j = 0; j < extraArr.length; j++) {
+                        extraPathElements.add(extraArr[j]);
+                    }
+                }
             }
         }
         return extraPathElements;
