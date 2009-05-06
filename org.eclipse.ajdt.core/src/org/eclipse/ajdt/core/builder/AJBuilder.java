@@ -129,7 +129,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.log(AJLog.BUILDER,"Project=" //$NON-NLS-1$
 				+ project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
 		
-		if (!isWorthBuilding(project, requiredProjects)) {
+        // bug 270554 augment the aspect path with builder arguments
+        augmentAspectPath(project, args);
+
+		if (!isWorthBuilding(project)) {
 			postCallListeners(kind, true);
 			AJLog.log(AJLog.BUILDER,
 					"build: Abort due to missing classpath/inpath/aspectpath entries"); //$NON-NLS-1$
@@ -151,9 +154,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		BuildConfig.flushIncludedSourceFileCache(project);
         AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
         
-        // bug 270554 augment the aspect path with builder arguments
-        augmentAspectPath(project, args);
-
 		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
 				compiler.getCompilerConfiguration();
 
@@ -302,7 +302,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @return true if aspect, in, and class paths are valid.  False if there is a problem
 	 * @throws CoreException
 	 */
-    private boolean isWorthBuilding(IProject project, IProject[] requiredProjects) throws CoreException {
+    private boolean isWorthBuilding(IProject project) throws CoreException {
         // bug 159197: check inpath and aspectpath
         // and classpath
 		if (!validateInpathAspectPath(project) ||
@@ -1065,7 +1065,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		}
 
-		int numberDeleted = wipeFiles(outputResource, "class"); //$NON-NLS-1$
+		int numberDeleted = wipeFiles(outputResource); //$NON-NLS-1$
 		
 		
 		if (refresh) {
@@ -1078,7 +1078,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			IPath workspaceRelativeOutputPath) throws CoreException {
 		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
 				workspaceRelativeOutputPath);
-		int numberDeleted = wipeFiles(out, "aj"); //$NON-NLS-1$
+		int numberDeleted = wipeFilesOfKind(out, "aj"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
 		AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
@@ -1097,7 +1097,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * BUG 253528---all folders below the output folder are marked as derived.
 	 * so entire out folder is wiped.
 	 */
-	private static int wipeFiles(IResource outputResource, final String fileExtension) {
+	private static int wipeFiles(IResource outputResource) {
        class WipeResources implements IResourceVisitor {
             int numDeleted = 0;
             public boolean visit(IResource resource) throws CoreException {
@@ -1105,18 +1105,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     try {
                         // non-class file 
                         resource.delete(true, null);
+                        // num deleted will not include counts from children of deleted folders
                         numDeleted++;   
                     } catch(ResourceException e) {
                     }
                     return false;
-                } else if (resource.getFileExtension() != null &&
-                           resource.getFileExtension().equals(fileExtension)) {
-                    try {
-                        // class file
-                        resource.delete(true, null);
-                        numDeleted++;
-                    } catch(ResourceException e) {
-                    }
                 }
                 // continue visit to children
                 return true;
@@ -1128,8 +1121,44 @@ public class AJBuilder extends IncrementalProjectBuilder {
         } catch (CoreException e) {
         }
         return visitor.numDeleted;
-        
 	}
+
+	/**
+	 * Delete all files in the output folder with a certain 
+	 * file extension
+	 */
+    private static int wipeFilesOfKind(IResource outputResource,
+            final String fileExtension) {
+        class WipeResources implements IResourceVisitor {
+            int numDeleted = 0;
+
+            public boolean visit(IResource resource) throws CoreException {
+                if (resource.isDerived()) {
+                    try {
+                        // non-class file
+                        resource.delete(true, null);
+                        numDeleted++;
+                    } catch (ResourceException e) {}
+                    return false;
+                } else if (resource.getFileExtension() != null
+                        && resource.getFileExtension().equals(fileExtension)) {
+                    try {
+                        // class file
+                        resource.delete(true, null);
+                        numDeleted++;
+                    } catch (ResourceException e) {}
+                }
+                // continue visit to children
+                return true;
+            }
+        }
+        ;
+        WipeResources visitor = new WipeResources();
+        try {
+            outputResource.accept(visitor);
+        } catch (CoreException e) {}
+        return visitor.numDeleted;
+     }
 
 	
 	/**
