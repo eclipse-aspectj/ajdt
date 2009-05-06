@@ -12,9 +12,19 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeconversion;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 
 public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 
@@ -179,4 +189,38 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         char[] convertedContents = parser.content;
         assertEquals(new String(expectedContents), new String(convertedContents));
     }
+    
+    public void testBug273914() throws Exception {
+        IProject project = createPredefinedProject("Bug273914");
+        IFile file = project.getFile("src/DeclaresITDs.aj");
+        ICompilationUnit unit = (ICompilationUnit) AspectJCore.create(file);
+        String contents = getContents(file);
+        AspectsConvertingParser parser = new AspectsConvertingParser(contents.toCharArray());
+        parser.setUnit(unit);
+        parser.convert(ConversionOptions.CODE_COMPLETION);
+        String convertedContents = new String(parser.content);
+        assertTrue("Incorrect extends/implements clause for class A\n" + convertedContents, convertedContents.indexOf("class A {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface B\n" + convertedContents, convertedContents.indexOf("interface B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for class W\n" + convertedContents, convertedContents.indexOf("class W extends A {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface X\n" + convertedContents, convertedContents.indexOf("interface X {") != -1); 
+        assertTrue("Incorrect extends/implements clause for class Y\n" + convertedContents, convertedContents.indexOf("class Y extends DeclaresITDs.W implements DeclaresITDs.X, B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface Z\n" + convertedContents, convertedContents.indexOf("interface Z extends DeclaresITDs.X, B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for class C\n" + convertedContents, convertedContents.indexOf("class C extends DeclaresITDs.W implements DeclaresITDs.X, DeclaresITDs.B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface D\n" + convertedContents, convertedContents.indexOf("interface D extends DeclaresITDs.X {") != -1); 
+        
+    }
+    
+    private String getContents(IFile javaFile) throws CoreException, IOException {
+        InputStream is = javaFile.getContents();
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuffer buffer= new StringBuffer();
+        char[] readBuffer= new char[2048];
+        int n= br.read(readBuffer);
+        while (n > 0) {
+            buffer.append(readBuffer, 0, n);
+            n= br.read(readBuffer);
+        }
+        return buffer.toString();
+    }
+
 }
