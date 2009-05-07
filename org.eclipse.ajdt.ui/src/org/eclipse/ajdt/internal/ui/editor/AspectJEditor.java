@@ -510,32 +510,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 	}
 	
-	/**
-	 * Removes unsupported menu options. This is obviously not a nice way to do
-	 * that. It would be much better do never add them in the first place. But
-	 * this cannot easily be done since we cannot control specific actions - we
-	 * can only have all or none by calling or not calling our super method.
-	 * 
-	 * @author Luzius
-	 */
-	public void editorContextMenuAboutToShow(IMenuManager menu) {
-		super.editorContextMenuAboutToShow(menu);
-		if (isEditingAjFile) {
-			menu.remove("org.eclipse.jdt.ui.refactoring.menu"); //$NON-NLS-1$
 
-			//remove open type & call hierarchy
-			IContributionItem[] items = menu.getItems();
-			for (int i = 0; i < items.length; i++) {
-				IContributionItem item = items[i];
-				if ("group.open".equals(item.getId())) { //$NON-NLS-1$
-					menu.remove(items[i + 2]);
-					menu.remove(items[i + 3]);
-					break;
-				}
-			}
-		}
-
-	}
 	
 	protected ITypeRoot getInputJavaElement() {
 		return JavaUI.getWorkingCopyManager().getWorkingCopy(getEditorInput()); 	

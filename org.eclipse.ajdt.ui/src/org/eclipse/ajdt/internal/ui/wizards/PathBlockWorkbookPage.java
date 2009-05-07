@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
+import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElementAttribute;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.TreeListDialogField;
@@ -82,4 +83,8 @@ public class PathBlockWorkbookPage extends BuildPathBasePage {
     	fClassPathList.setFocus();
     }
 
+    boolean editCustomEntry(CPListElementAttribute attr) {
+        return editCustomAttribute(fClassPathList.getTreeViewer().getControl().getShell(), attr);
+    }
+    
 }
