@@ -969,7 +969,8 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			}
 		}
 	}
-
+	
+	/* AJDT 1.7 remove getDirtyEditors() */
 
 	protected void saveDescription() throws CoreException, IOException {
 		// Adjust JAR package attributes

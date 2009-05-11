@@ -84,4 +84,12 @@ public class AspectPathBlock extends PathBlock {
         return UIMessages.AspectPathBlock_tab_libraries;
     }
 
+    protected String getRestrictionPathAttrName() {
+//        return AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME;
+        return "org.eclipse.ajdt.aspectpath.restriction";
+    }
+
+    protected String getPathAttributeName() {
+        return AspectJCorePreferences.ASPECTPATH_ATTRIBUTE_NAME;
+    }
 }

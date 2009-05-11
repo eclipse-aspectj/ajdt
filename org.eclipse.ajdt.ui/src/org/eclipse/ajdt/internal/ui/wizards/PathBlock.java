@@ -95,8 +95,13 @@ public abstract class PathBlock {
     protected static final int IDX_ADDFOL = 6;
     protected static final int IDX_ADDCON = 7;
     protected static final int IDX_ADDPRJ = 8;
-    protected static final int IDX_REMOVE = 9;
+    protected static final int IDX_EDIT = 9;
+    protected static final int IDX_REMOVE = 10;
     
+
+    static final String RESTRICTED_TO = "Restricted to";
+    static final String NO_RESTRICTIONS = "<no restrictions>";
+
 
     protected class LibrariesAdapter implements IDialogFieldListener, ITreeListAdapter {
     	
@@ -116,16 +121,31 @@ public abstract class PathBlock {
 
 		public Object[] getChildren(TreeListDialogField field, Object element) {
 			if (element instanceof CPListElement) {
-				IClasspathEntry entry = ((CPListElement) element).getClasspathEntry();
+				CPListElement listElement = (CPListElement) element;
+                IClasspathEntry entry = listElement.getClasspathEntry();
+
+				// Bug 243356 : Check if entry is in a classpath container
 				IClasspathContainer container = getClasspathContainer(entry); 
 				if (container != null) {
 					return new Object[] { "From: " + container.getDescription() };
+				}
+				
+				// Bug 273770 : Check if entry is a classpath container that has been restricted
+				if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+				    Object[] children = listElement.getChildren(true);
+				    for (int i = 0; i < children.length; i++) {
+                        if (children[i] instanceof CPListElementAttribute &&
+                                !((CPListElementAttribute) children[i]).isBuiltIn() &&
+                                ((CPListElementAttribute) children[i]).getClasspathAttribute().getName().equals(getRestrictionPathAttrName())) {
+                            return new Object[] { children[i] };
+                        }
+                    }
 				}
 			} 
 			return null;
 		}
 
-		public Object getParent(TreeListDialogField field, Object element) {
+        public Object getParent(TreeListDialogField field, Object element) {
 			if (element instanceof CPListElementAttribute) {
 				return ((CPListElementAttribute) element).getParent();
 			} else {
@@ -155,6 +175,7 @@ public abstract class PathBlock {
     protected IStatusChangeListener fContext;
     protected StatusInfo fPathStatus;  /* status for path list being self-consistent */
     protected StatusInfo fJavaBuildPathStatus; /* status for path list being consistent with Java build path */
+    private PathBlockWorkbookPage workbookPage;
     
     protected PathBlock(IStatusChangeListener context, int pageToShow) {
         fWorkspaceRoot = AspectJPlugin.getWorkspace().getRoot();
@@ -172,18 +193,21 @@ public abstract class PathBlock {
                 /* IDX_ADDFOL */ UIMessages.PathLibrariesWorkbookPage_libraries_addclassfolder_button,
                 /* IDX_ADDCON */ UIMessages.PathLibrariesWorkbookPage_libraries_addlibrary_button,  
                 /* IDX_ADDPRJ */ UIMessages.PathLibrariesWorkbookPage_libraries_addproject_button,       
+                /* IDX_EDIT */   UIMessages.PathLibrariesWorkbookPage_libraries_edit_button,               
                 /* IDX_REMOVE */ UIMessages.PathLibrariesWorkbookPage_libraries_remove_button               
         };
         fPathList= new TreeListDialogField(adapter, buttonLabels, new CPListLabelProvider());
         fPathList.setDialogFieldListener(adapter);
         fPathList.setRemoveButtonIndex(IDX_REMOVE);
         fPathList.enableButton(IDX_REMOVE, false);
+        fPathList.enableButton(IDX_EDIT, false);
 
         fCurrJProject = null;
         
         fJavaBuildPathStatus= new StatusInfo();
         fPathStatus= new StatusInfo();
-
+        workbookPage = new PathBlockWorkbookPage(
+                fPathList);
     }
     
     protected abstract void internalSetProjectPath(List pathEntries,
@@ -194,6 +218,9 @@ public abstract class PathBlock {
     protected abstract String getBlockNote();
 
     public abstract String getBlockTitle();
+    
+    protected abstract String getPathAttributeName();
+    protected abstract String getRestrictionPathAttrName();
 
 
     
@@ -206,7 +233,9 @@ public abstract class PathBlock {
     private void libaryPageSelectionChanged(DialogField field) {
         List selElements = fPathList.getSelectedElements();
         fPathList.enableButton(IDX_REMOVE, canRemove(selElements));
+        fPathList.enableButton(IDX_EDIT, canEdit(selElements));
     }
+
     private void libaryPageDialogFieldChanged(DialogField field) {
         if (fCurrJProject != null) {
             // already initialized
@@ -239,6 +268,9 @@ public abstract class PathBlock {
             case IDX_ADDPRJ: /* add project reference */
                 libentries = openProjectSelectionDialog();
                 break;
+            case IDX_EDIT: /* edit the restrictions of a classpath container */
+                editRestictions(fPathList.getSelectedElements());
+                return;
             case IDX_REMOVE: /* remove */
                 removeEntry();
                 return;
@@ -258,14 +290,6 @@ public abstract class PathBlock {
                     elementsToAdd.add(curr);
                     curr.setAttribute(CPListElement.SOURCEATTACHMENT,
                             BuildPathSupport.guessSourceAttachment(curr));
-                    
-                    // Not working and I don't think we need this.
-//                    try {
-//						curr.setAttribute(CPListElement.JAVADOC, 
-//								JavaUI.getJavadocBaseLocation(
-//										fCurrJProject.getJavaModel().findElement(curr.getPath())));
-//					} catch (JavaModelException e) {
-//					}
                 }
             }
             if (!elementsToAdd.isEmpty() && (index == IDX_ADDFOL)) {
@@ -281,9 +305,26 @@ public abstract class PathBlock {
         }
     }
 
-  protected void doStatusLineUpdate() {
-        IStatus res = findMostSevereStatus();
-        fContext.statusChanged(res);
+    void editRestictions(List selectedElements) {
+        
+        if (selectedElements == null || selectedElements.size() != 1) {
+            return;
+        }
+        Object o = selectedElements.get(0);
+        if (o instanceof CPListElementAttribute) {
+            CPListElementAttribute attr = (CPListElementAttribute) o;
+            boolean success = workbookPage.editCustomEntry(attr);
+            if (success) {
+                fPathList.refresh(o);
+            }
+        }
+    }
+
+    protected void doStatusLineUpdate() {
+        if (fContext != null) {
+            IStatus res = findMostSevereStatus();
+            fContext.statusChanged(res);
+        }
     }
   
     /**
@@ -412,11 +453,8 @@ public abstract class PathBlock {
                                 .toPortableString(), resolvedEntry);
                         break;
                     case IClasspathEntry.CPE_CONTAINER:
-                        IClasspathContainer container = JavaCore
-                        .getClasspathContainer(rawEntry.getPath(),
-                                currJProject);
                         List containerEntries = AspectJCorePreferences.resolveClasspathContainer(
-                                container, currJProject.getProject());
+                                rawEntry, currJProject.getProject());
                         
                         for (Iterator containerIter = containerEntries.iterator(); containerIter.hasNext(); ) {
                             IClasspathEntry containerEntry = (IClasspathEntry) containerIter.next();
@@ -483,6 +521,24 @@ public abstract class PathBlock {
     }
   
     /**
+     * only able to edit the restrictions child of a classpath container entry
+     */
+    private boolean canEdit(List selElements) {
+        if (selElements.size() != 1) {
+            return false;
+        }
+        Object elem = selElements.get(0);
+        if (elem instanceof CPListElementAttribute) {
+            Object o = ((CPListElementAttribute) elem).getValue();
+            if (o != null && o instanceof String) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+    /**
      * Determines whether or not the remove button is active.
      * 
      * @param selElements Selected elements
@@ -529,7 +585,10 @@ public abstract class PathBlock {
     	for (int i = 0; i < attributes.length; i++) {
 			if (AspectJCorePreferences.isAspectPathAttribute(attributes[i]) || 
 					AspectJCorePreferences.isInPathAttribute(attributes[i])) {
-				if (attributes[i].getValue() != null) {
+			    // check to make sure this isn't the standard attribute, but one that is
+			    // enhanced with the container it came from.
+			    // When these attributes were created, the value was set to be the classpath container it came from
+				if (attributes[i].getValue() != null && !attributes[i].getValue().equals(attributes[i].getName())) {
 					try {
 						return JavaCore.getClasspathContainer(new Path(attributes[i].getValue()), fCurrJProject);
 					} catch (JavaModelException e) {
@@ -657,11 +716,23 @@ public abstract class PathBlock {
                 .chooseContainerEntries(getShell(), fCurrJProject,
                         getRawClasspath());
         if (created != null) {
+            // check for existing restrictions
+            try {
+                IClasspathEntry[] existing = getJavaProject().getRawClasspath();
+                for (int i = 0; i < created.length; i++) {
+                    for (int j = 0; j < existing.length; j++) {
+                        if (created[i].getPath().equals(existing[j].getPath())) {
+                            created[i] = existing[j];
+                        }
+                    }
+                    created[i] = ensureHasRestriction(created[i]);
+                }
+            } catch (JavaModelException e) {
+            }
+            
             CPListElement[] res = new CPListElement[created.length];
             for (int i = 0; i < res.length; i++) {
-                res[i] = new CPListElement(fCurrJProject,
-                        IClasspathEntry.CPE_CONTAINER,
-                        created[i].getPath(), null);
+                res[i] = CPListElement.createFromExisting(created[i], getJavaProject());
             }
             return res;
         }
@@ -687,7 +758,7 @@ public abstract class PathBlock {
             new JavaElementComparator().sort(null, selectArr);
                     
             ListSelectionDialog dialog= new ListSelectionDialog(getShell(), Arrays.asList(selectArr), new ArrayContentProvider(), new JavaUILabelProvider(), NewWizardMessages.ProjectsWorkbookPage_chooseProjects_message); 
-            dialog.setTitle(NewWizardMessages.ProjectsWorkbookPage_chooseProjects_title);  // TODO make our own text
+            dialog.setTitle("Select Projects");
             dialog.setHelpAvailable(false);
             if (dialog.open() == Window.OK) {
                 Object[] result= dialog.getResult();
@@ -745,23 +816,7 @@ public abstract class PathBlock {
         return (IPath[]) res.toArray(new IPath[res.size()]);
     }
 
-    private IPath[] getUsedJARFiles(CPListElement existing) {
-        List res = new ArrayList();
-        List cplist = fPathList.getElements();
-        for (int i = 0; i < cplist.size(); i++) {
-            CPListElement elem = (CPListElement) cplist.get(i);
-            if (elem.getEntryKind() == IClasspathEntry.CPE_LIBRARY
-                    && (elem != existing)) {
-                IResource resource = elem.getResource();
-                if (resource instanceof IFile) {
-                    res.add(resource.getFullPath());
-                }
-            }
-        }
-        return (IPath[]) res.toArray(new IPath[res.size()]);
-    }
-
-  public TabItem tabContent(TabFolder folder) {
+    public TabItem tabContent(TabFolder folder) {
 
         TabItem item;
 
@@ -769,13 +824,11 @@ public abstract class PathBlock {
         ImageRegistry imageRegistry = JavaPlugin.getDefault()
                 .getImageRegistry();
 
-        PathBlockWorkbookPage ordpage = new PathBlockWorkbookPage(
-                fPathList);
         item = new TabItem(folder, SWT.NONE);
         item.setText(getBlockTitle());
         item.setImage(imageRegistry.get(JavaPluginImages.IMG_OBJS_LIBRARY));
-        item.setData(ordpage);
-        item.setControl(ordpage.getControl(folder));
+        item.setData(workbookPage);
+        item.setControl(workbookPage.getControl(folder));
 
         Control control = item.getControl();
         if (control instanceof Composite) {
@@ -832,6 +885,9 @@ public abstract class PathBlock {
 
         monitor.worked(2);
 
+        
+        Map inpathRestrictions = new HashMap();
+        Map aspectpathRestrictions = new HashMap();
         StringBuffer pathBuffer = new StringBuffer();
         StringBuffer contentKindBuffer = new StringBuffer();
         StringBuffer entryKindBuffer = new StringBuffer();
@@ -843,6 +899,16 @@ public abstract class PathBlock {
             contentKindBuffer.append(File.pathSeparator);
             entryKindBuffer.append(pathEntry.getEntryKind());
             entryKindBuffer.append(File.pathSeparator);
+            String inpathRestriction = AspectJCorePreferences.getRestriction(pathEntry, 
+                    AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME);
+            if (inpathRestriction != null && inpathRestriction.length() > 0) {
+                inpathRestrictions.put(pathEntry.getPath(), inpathRestriction);
+            }
+            String aspectpathRestriction = AspectJCorePreferences.getRestriction(pathEntry, 
+                    AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME);
+            if (aspectpathRestriction != null && aspectpathRestriction.length() > 0) {
+                aspectpathRestrictions.put(pathEntry.getPath(), aspectpathRestriction);
+            }
         }
 
         pathBuffer = removeFinalPathSeparatorChar(pathBuffer);
@@ -851,18 +917,110 @@ public abstract class PathBlock {
 
         internalSetProjectPath(pathElements, pathBuffer,
                 contentKindBuffer, entryKindBuffer);
+        
+        // update the classpath with the restrictions
+        if (inpathRestrictions.size() > 0 || aspectpathRestrictions.size() > 0) {
+            IClasspathEntry[] entries = getJavaProject().getRawClasspath();
+            boolean hasChanges = false;
+            if (inpathRestrictions.size() > 0) {
+                hasChanges |= updatePathRestrictions(entries, inpathRestrictions, false);
+            }
+            if (aspectpathRestrictions.size() > 0) {
+                hasChanges |= updatePathRestrictions(entries, aspectpathRestrictions, true);
+            }
+            if (hasChanges) {
+                getJavaProject().setRawClasspath(entries, new NullProgressMonitor());
+            }
+        }
+    }
+
+    // ensure that all the entries have the expected restrictions 
+    private boolean updatePathRestrictions(IClasspathEntry[] entries,
+            Map restrictions, boolean isAspectPath) {
+        String restrictionKind = isAspectPath ? AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME
+                : AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME;
+        
+        boolean hasChanges = false;
+        for (int i = 0; i < entries.length; i++) {
+            if (entries[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+                // restrictions only available on container entries
+
+                if (restrictions.containsKey(entries[i].getPath())) {
+                    String restrictionStr = (String) restrictions.get(entries[i].getPath());
+                    IClasspathAttribute[] attrs = entries[i].getExtraAttributes();
+                    int index = indexOfAttribute(attrs, restrictionKind);
+                    IClasspathAttribute newAttr = JavaCore.newClasspathAttribute(restrictionKind, restrictionStr);
+                    if (index >= 0) {
+                        // just replace
+                        attrs[index] = newAttr;
+                    } else {
+                        // must create a new entry with more extra attributes
+                        IClasspathAttribute[] newAttrs;
+                        if (attrs == null || attrs.length == 0) {
+                            newAttrs = new IClasspathAttribute[] { newAttr };
+                        } else {
+                            newAttrs = new IClasspathAttribute[attrs.length+1];
+                            System.arraycopy(attrs, 0, newAttrs, 0, attrs.length);
+                            newAttrs[attrs.length] = newAttr;
+                        }
+                        entries[i] = copyContainerEntry(entries[i], newAttrs);
+                    }
+                    hasChanges = true;
+                }
+            }
+        }
+        return hasChanges;
+    }
+
+    private int indexOfAttribute(IClasspathAttribute[] attrs,
+            String attrName) {
+        for (int i = 0; i < attrs.length; i++) {
+            if (attrs[i].getName().equals(attrName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     protected ArrayList /*CPListElement*/ getExistingEntries(IClasspathEntry[] pathEntries) {
         ArrayList /*CPListElement*/ newPath = new ArrayList();
         for (int i = 0; i < pathEntries.length; i++) {
             IClasspathEntry curr = pathEntries[i];
+            if (curr.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+                curr = ensureHasRestriction(curr);
+            }
             newPath.add(CPListElement.createFromExisting(curr,
                     fCurrJProject));
         }
         return newPath;
     }
 
+    private IClasspathEntry ensureHasRestriction(IClasspathEntry curr) {
+        int index = indexOfAttribute(curr.getExtraAttributes(), getRestrictionPathAttrName());
+        if (index < 0) {
+            IClasspathAttribute[] attrs = curr.getExtraAttributes();
+            // must create a new entry with more extra attributes
+            IClasspathAttribute newAttr = JavaCore.newClasspathAttribute(getRestrictionPathAttrName(), "");
+            IClasspathAttribute[] newAttrs;
+            if (attrs == null || attrs.length == 0) {
+                newAttrs = new IClasspathAttribute[] { newAttr };
+            } else {
+                newAttrs = new IClasspathAttribute[attrs.length+1];
+                System.arraycopy(attrs, 0, newAttrs, 0, attrs.length);
+                newAttrs[attrs.length] = newAttr;
+            }
+            return copyContainerEntry(curr, newAttrs);
+        } else {
+            return curr;
+        }
+    }
+
+    private IClasspathEntry copyContainerEntry(IClasspathEntry containerEntry, 
+            IClasspathAttribute[] extraAttrs) {
+        return JavaCore.newContainerEntry(containerEntry.getPath(), 
+                containerEntry.getAccessRules(), extraAttrs, containerEntry.isExported());
+    }
+    
     protected Shell getShell() {
         return AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
                 .getShell();

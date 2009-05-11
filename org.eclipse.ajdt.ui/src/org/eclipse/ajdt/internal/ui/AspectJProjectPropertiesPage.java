@@ -14,7 +14,9 @@ package org.eclipse.ajdt.internal.ui;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AJLog;
@@ -246,50 +248,19 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			throws CoreException {
 		List newPath = new ArrayList();
 		
-		String[] v;
-		if (AspectJCorePreferences.isAspectPathAttribute(attribute)) {
-			v = AspectJCorePreferences.getRawProjectAspectPath(project);
-		} else {
-			v = AspectJCorePreferences.getRawProjectInpath(project);
+		IJavaProject jProject = JavaCore.create(project);
+		boolean isAspectPath = AspectJCorePreferences.isAspectPathAttribute(attribute);
+		try {
+		    IClasspathEntry[] entries = jProject.getRawClasspath();
+		    for (int i = 0; i < entries.length; i++) {
+		        if (AspectJCorePreferences.isOnPath(entries[i], isAspectPath)) {
+		            newPath.add(entries[i]);
+		        }
+            }
+		} catch (JavaModelException e) {
 		}
-		if (v == null) {
-			return null;
-		}
-		String paths = v[0];
-		String cKinds = v[1];
-		String eKinds = v[2];
-		if ((paths != null && paths.length() > 0)
-				&& (cKinds != null && cKinds.length() > 0)
-				&& (eKinds != null && eKinds.length() > 0)) {
-			StringTokenizer sTokPaths = new StringTokenizer(paths,
-					File.pathSeparator);
-			StringTokenizer sTokCKinds = new StringTokenizer(cKinds,
-					File.pathSeparator);
-			StringTokenizer sTokEKinds = new StringTokenizer(eKinds,
-					File.pathSeparator);
-			if ((sTokPaths.countTokens() == sTokCKinds.countTokens())
-					&& (sTokPaths.countTokens() == sTokEKinds.countTokens())) {
-				while (sTokPaths.hasMoreTokens()) {
-					IClasspathEntry entry = new ClasspathEntry(Integer
-							.parseInt(sTokCKinds.nextToken()), // content kind
-							Integer.parseInt(sTokEKinds.nextToken()), // entry
-							// kind
-							new Path(sTokPaths.nextToken()), // path
-							new IPath[] {}, // inclusion patterns
-							new IPath[] {}, // exclusion patterns
-							null, // src attachment path
-							null, // src attachment root path
-							null, // output location
-							false, // is exported ?
-							null, // accessRules
-							false, // combine access rules?
-							new IClasspathAttribute[0] // extra attributes?
-					);
-					newPath.add(entry);
-				}// end while
-			}// end if string token counts tally
-		}// end if we have something valid to work with
-
+		
+	
         // Bug 243356
         // also get entries that are contained in containers
         // where the containers *don't* have the path attribute
@@ -319,10 +290,15 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		                JavaCore.getClasspathContainer(allEntries[i].getPath(), jProject);
 		            if (container != null && !(container instanceof JREContainer)) {
 			            IClasspathEntry[] containerEntries = container.getClasspathEntries();
+			            // bug 273770
+//			            Set /*String*/ extraPathElements = AspectJCorePreferences.findExtraPathElements(allEntries[i], 
+//			                            AspectJCorePreferences.isAspectPathAttribute(attribute));
+	                    
 			            for (int j = 0; j < containerEntries.length; j++) {
 			    			// iterate through each element and add 
 			    			// 	to the path those that have the appropriate attribute
-			            	if (hasClasspathAttribute(containerEntries[j], attribute)) {
+			            	if (hasClasspathAttribute(containerEntries[j], attribute) /*||
+			            	        AspectJCorePreferences.containsAsPathFragment(extraPathElements, containerEntries[j])*/) {
 			            		addContainerToAttribute(containerEntries[j], attribute, container);
 			            		entriesWithAttribute.add(containerEntries[j]);
 			            	}

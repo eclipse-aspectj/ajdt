@@ -283,4 +283,12 @@ public class InPathBlock extends PathBlock {
         return settings.toString();
     }
 
+    protected String getRestrictionPathAttrName() {
+        return AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME;
+    }
+
+    protected String getPathAttributeName() {
+        return AspectJCorePreferences.INPATH_ATTRIBUTE_NAME;
+    }
+
 }
