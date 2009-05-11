@@ -609,7 +609,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			javaCompBuffer.setConversionOptions(ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType));
 			transformedPos = javaCompBuffer.translatePositionToFake(position);
 			
-			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer);
 			/* AJDT 1.7 */
 			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this, monitor);
 			
@@ -617,12 +617,12 @@ public class AJCompilationUnit extends CompilationUnit{
             javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
 
             //set up proposal filter to filter away all the proposals that would be wrong because of context switch
-			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
+			requestor = new ProposalRequestorFilter(requestor, this, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
 			
 		} else {
 		    javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
-		    requestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
+		    requestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer);
 		}
         transformedPos = javaCompBuffer.translatePositionToFake(position);
 		

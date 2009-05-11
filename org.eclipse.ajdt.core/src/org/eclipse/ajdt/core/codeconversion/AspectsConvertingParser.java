@@ -30,6 +30,7 @@ import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
@@ -218,11 +219,14 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 		boolean inFor = false;
 		
 		// Bug 258685: case statements should not be confused with pointcuts
-		// it is the colon that is confusing
 		boolean inCase = false;
 		
 		// bug 265977 the aspect keyword is OK if it is in a package declaration
 		boolean inPackageDecl = false;
+		
+		// bug 273691 class does not signify a start of a class declation if
+		// it is after a dot
+		boolean afterDot = false;
 		
 		char[] currentTypeName = null;
 		
@@ -347,6 +351,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			    break;
 
 			case TokenNameDOT:
+			    afterDot = true;
 				if (!inAspect) {
 					break;
 				} else if (inPointcutDesignator) {
@@ -452,8 +457,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			    break;
 				
 			case TokenNameclass:
-			    typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
-			    inClassDeclaration = true;
+			    if (!afterDot) {  // bug 273691
+			        typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
+			        inClassDeclaration = true;
+			    }
 			    break;
 
 			case TokenNameinterface:  // interface and @interface 
@@ -469,6 +476,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 			case TokenNamepackage:
 			    inPackageDecl = true;
 			    break;
+			}
+			
+			if (tok != TokenNameDOT) {
+			    afterDot = false;
 			}
 		}
 
@@ -525,7 +536,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     
                     List declareExtends = declares[0];
                     List declareImplements = declares[1];
-                    if (! type.isInterface()) {
+                    if (type.isClass()) {
                         String superClass = type.getSuperclassName();
                         if (declareExtends.size() > 0) {
                             superClass = (String) declareExtends.get(0);
@@ -534,22 +545,23 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         if (superClass != null) {
                             sb.append(" " + EXTENDS + " " + superClass);
                         }
-                    } 
+                    }
         
                     String[] superInterfaces = type.getSuperInterfaceNames();
+                    List interfaceParents = type.isClass() ? declareImplements : declareExtends;
                     for (int i = 0; i < superInterfaces.length; i++) {
-                        declareImplements.add(superInterfaces[i]);
+                        interfaceParents.add(superInterfaces[i]);
                     }
                     
-                    if (declareImplements.size() > 0) {
+                    if (interfaceParents.size() > 0) {
                         
-                        if (type.isInterface()) {
-                            sb.append(" " + EXTENDS + " ");
+                        if (type.isClass()) {
+                            sb.append(" " + IMPLEMENTS);
                         } else {
-                            sb.append(" " + IMPLEMENTS +  " ");
+                            sb.append(" " + EXTENDS);
                         }
-                    
-                        for (Iterator interfaceIter = declareImplements.iterator(); interfaceIter
+                        
+                        for (Iterator interfaceIter = interfaceParents.iterator(); interfaceIter
                                 .hasNext();) {
                             String interName = (String) interfaceIter.next();
                             interName = interName.replace('$', '.');
@@ -626,10 +638,37 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                         List/*String*/ parentTypes = pe.getParentTypes();
                         String details = pe.getDetails();
                         if (details != null) { // might be null if previous build had a compiler error
-                            if (details.startsWith(EXTENDS)) {
-                                declareExtends.addAll(parentTypes);
-                            } else if (details.startsWith(IMPLEMENTS)) {
-                                declareImplements.addAll(parentTypes);
+                            IJavaProject project = type.getJavaProject();
+                            
+                            // bug 273914---must determine if these are interfaces or classes
+                            for (Iterator parentIter = parentTypes.iterator(); parentIter
+                                    .hasNext();) {
+                                String parentType = (String) parentIter.next();
+                                IType parentTypeElt;
+                                try {
+                                    parentTypeElt = project.findType(parentType);
+                                } catch (JavaModelException e) {
+                                    parentTypeElt = null;
+                                }
+                                boolean parentIsClass;
+                                boolean typeIsClass;
+                                try {
+                                    parentIsClass = parentTypeElt == null || parentTypeElt.isClass();
+                                    typeIsClass = type.isClass();
+                                } catch (JavaModelException e) {
+                                    parentIsClass = true;
+                                    typeIsClass = true;
+                                }
+                                if (parentIsClass && typeIsClass) {
+                                    declareExtends.add(parentType);
+                                } else if (!parentIsClass && typeIsClass) {
+                                    declareImplements.add(parentType);
+                                } else if (!parentIsClass && !typeIsClass) {
+                                    declareExtends.add(parentType);
+                                } else if (parentIsClass && !typeIsClass) {
+                                    // error, but handle gracefully
+                                    declareExtends.add(parentType);
+                                }
                             }
                         }
                     }
@@ -637,6 +676,16 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             }
         }
         return new List[] { declareExtends, declareImplements };
+    }
+
+
+    private boolean isImplements(String details) {
+        return details.startsWith(IMPLEMENTS);
+    }
+
+
+    private boolean isExtends(String details) {
+        return details.startsWith(EXTENDS);
     }
 	
     protected char[] getInterTypeDecls(char[] currentTypeName) {

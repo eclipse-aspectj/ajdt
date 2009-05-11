@@ -17,6 +17,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -128,7 +129,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.log(AJLog.BUILDER,"Project=" //$NON-NLS-1$
 				+ project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
 		
-		if (!isWorthBuilding(project, requiredProjects)) {
+        // bug 270554 augment the aspect path with builder arguments
+        augmentAspectPath(project, args);
+
+		if (!isWorthBuilding(project)) {
 			postCallListeners(kind, true);
 			AJLog.log(AJLog.BUILDER,
 					"build: Abort due to missing classpath/inpath/aspectpath entries"); //$NON-NLS-1$
@@ -150,9 +154,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		BuildConfig.flushIncludedSourceFileCache(project);
         AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
         
-        // bug 270554 augment the aspect path with builder arguments
-        augmentAspectPath(project, args);
-
 		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
 				compiler.getCompilerConfiguration();
 
@@ -301,7 +302,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @return true if aspect, in, and class paths are valid.  False if there is a problem
 	 * @throws CoreException
 	 */
-    private boolean isWorthBuilding(IProject project, IProject[] requiredProjects) throws CoreException {
+    private boolean isWorthBuilding(IProject project) throws CoreException {
         // bug 159197: check inpath and aspectpath
         // and classpath
 		if (!validateInpathAspectPath(project) ||
@@ -375,6 +376,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
             }
             List /*String*/ changedEntries = new ArrayList();
+            Set /*String*/ noDups = new HashSet();  // used to ensure there are no dups
             
             // now that we have all the projects, need to find out what they contribute to
             // this project's path.  could be itself, a jar, or a class folder
@@ -389,8 +391,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         case IClasspathEntry.CPE_PROJECT:
                             if (changedProject.getFullPath().equals(classpathEntry.getPath())) {
                                 // resolve project and add all entries
-                                changedEntries.addAll(listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
-                                        changedProject, classpathEntry)));
+                                List toAdd = listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
+                                        changedProject, classpathEntry));
+                                for (Iterator pathIter = toAdd.iterator(); pathIter
+                                        .hasNext();) {
+                                    String pathStr = (String) pathIter.next();
+                                    if (! noDups.contains(pathStr)) {
+                                        changedEntries.add(pathStr);
+                                        noDups.add(pathStr);
+                                    }
+                                }
                             }
                             break;
                         case IClasspathEntry.CPE_LIBRARY:
@@ -400,7 +410,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                 IFile onPath = root.getFile(classpathEntry.getPath());
                                 if (onPath.exists() || 
                                         root.getFolder(onPath.getFullPath()).exists()) {  // may be a folder
-                                    changedEntries.add(onPath.getLocation().toPortableString());
+                                    String pathStr = onPath.getLocation().toPortableString();
+                                    if (! noDups.contains(pathStr)) {
+                                        changedEntries.add(pathStr);
+                                        noDups.add(pathStr);
+                                    }
                                 }
                             }
                         }
@@ -422,7 +436,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 for (Iterator fileIter = inPathFiles.iterator(); fileIter.hasNext();) {
                     File inpathFile = (File) fileIter.next();
                     Path path = new Path(inpathFile.getAbsolutePath());
-                    changedEntries.add(path.toPortableString());
+                    String pathStr = path.toPortableString();
+                    if (! noDups.contains(pathStr)) {
+                        changedEntries.add(pathStr);
+                        noDups.add(pathStr);
+                    }
                 }
             }            
             return changedEntries;
@@ -1047,7 +1065,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		}
 
-		int numberDeleted = wipeFiles(outputResource, "class"); //$NON-NLS-1$
+		int numberDeleted = wipeFiles(outputResource); //$NON-NLS-1$
 		
 		
 		if (refresh) {
@@ -1060,7 +1078,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			IPath workspaceRelativeOutputPath) throws CoreException {
 		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
 				workspaceRelativeOutputPath);
-		int numberDeleted = wipeFiles(out, "aj"); //$NON-NLS-1$
+		int numberDeleted = wipeFilesOfKind(out, "aj"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
 		AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
@@ -1076,23 +1094,22 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * directories, recursively calls itself.
 	 * 
 	 * BUG 101489---also delete files marked as derived
-	 * BUG 253528---all folders below the output folder is marked as derived.
+	 * BUG 253528---all folders below the output folder are marked as derived.
 	 * so entire out folder is wiped.
 	 */
-	private static int wipeFiles(IResource outputResource, final String fileExtension) {
+	private static int wipeFiles(IResource outputResource) {
        class WipeResources implements IResourceVisitor {
             int numDeleted = 0;
             public boolean visit(IResource resource) throws CoreException {
                 if (resource.isDerived()) {
-                    // non-class file 
-                    resource.delete(true, null);
-                    numDeleted++;   
+                    try {
+                        // non-class file 
+                        resource.delete(true, null);
+                        // num deleted will not include counts from children of deleted folders
+                        numDeleted++;   
+                    } catch(ResourceException e) {
+                    }
                     return false;
-                } else if (resource.getFileExtension() != null &&
-                           resource.getFileExtension().equals(fileExtension)) {
-                    // class file
-                    resource.delete(true, null);
-                    numDeleted++;   
                 }
                 // continue visit to children
                 return true;
@@ -1104,8 +1121,44 @@ public class AJBuilder extends IncrementalProjectBuilder {
         } catch (CoreException e) {
         }
         return visitor.numDeleted;
-        
 	}
+
+	/**
+	 * Delete all files in the output folder with a certain 
+	 * file extension
+	 */
+    private static int wipeFilesOfKind(IResource outputResource,
+            final String fileExtension) {
+        class WipeResources implements IResourceVisitor {
+            int numDeleted = 0;
+
+            public boolean visit(IResource resource) throws CoreException {
+                if (resource.isDerived()) {
+                    try {
+                        // non-class file
+                        resource.delete(true, null);
+                        numDeleted++;
+                    } catch (ResourceException e) {}
+                    return false;
+                } else if (resource.getFileExtension() != null
+                        && resource.getFileExtension().equals(fileExtension)) {
+                    try {
+                        // class file
+                        resource.delete(true, null);
+                        numDeleted++;
+                    } catch (ResourceException e) {}
+                }
+                // continue visit to children
+                return true;
+            }
+        }
+        ;
+        WipeResources visitor = new WipeResources();
+        try {
+            outputResource.accept(visitor);
+        } catch (CoreException e) {}
+        return visitor.numDeleted;
+     }
 
 	
 	/**

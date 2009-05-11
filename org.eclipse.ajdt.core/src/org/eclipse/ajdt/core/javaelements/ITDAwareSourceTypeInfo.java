@@ -43,9 +43,8 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     // since compiler will think these declarations are static
     boolean shouldRemoveInterfaceFlag = false;
     
-    private interface ITDAwareType { }
     
-    private final static class ITDAwareSourceType extends SourceType implements ITDAwareType {
+    private final static class ITDAwareSourceType extends SourceType {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareSourceType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
             super(parent, name);
@@ -56,7 +55,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return info;
         }
     }
-    private final static class ITDAwareAspectType extends AspectElement implements ITDAwareType {
+    private final static class ITDAwareAspectType extends AspectElement {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareAspectType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
             super(parent, name);
@@ -84,8 +83,10 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         this.setSourceRangeStart(toCopy.getDeclarationSourceStart());
         try {
             ITypeParameter[] parameters = type.getTypeParameters();
-            this.typeParameters = new ITypeParameter[parameters.length];
-            System.arraycopy(parameters, 0, this.typeParameters, 0, parameters.length);
+            if (parameters != null) {
+                this.typeParameters = new ITypeParameter[parameters.length];
+                System.arraycopy(parameters, 0, this.typeParameters, 0, parameters.length);
+            }
         } catch (JavaModelException e) {
         }
         

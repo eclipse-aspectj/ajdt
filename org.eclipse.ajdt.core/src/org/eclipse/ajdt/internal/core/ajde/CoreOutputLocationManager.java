@@ -84,7 +84,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
             if (len1 > len2) {  // a larger string should come first
                 return -1;
             } else if (len1 == len2) {
-                return 0;
+                // then compare by text:
+                return o1.toString().compareTo((String) o2);
             } else {
                 return 1;
             }

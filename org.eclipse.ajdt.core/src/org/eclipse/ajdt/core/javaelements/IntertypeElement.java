@@ -11,6 +11,9 @@
 package org.eclipse.ajdt.core.javaelements;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
@@ -91,9 +94,13 @@ public class IntertypeElement extends AspectJMemberElement {
 		return AspectElement.JEM_ITD;
 	}
 	
+    protected Integer getParamNum() {
+        return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
+    }
+	
 	/**
      * note that we set the accessibility to public because the modifiers 
-     * apply to the ITD element, not the target declaration.
+	 * apply to the ITD element, not the target declaration.
      * We are purposely being too liberal with the modifiers so that
      * we don't get accessibility problems when an ITD is declared private
      * and is used in the Aspect CU that declares it.
@@ -119,7 +126,7 @@ public class IntertypeElement extends AspectJMemberElement {
                         newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
-                        newInfo.setArgumentNames(info.getArgumentNames());
+                        newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
                         return newInfo;
@@ -142,7 +149,7 @@ public class IntertypeElement extends AspectJMemberElement {
                         newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
-                        newInfo.setArgumentNames(info.getArgumentNames());
+                        newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
                         return newInfo;
@@ -265,8 +272,23 @@ public class IntertypeElement extends AspectJMemberElement {
             super.setReturnType(type);
         }
 
-        protected void setArgumentNames(char[][] names) {
-            super.setArgumentNames(names);
+        protected void setArgumentNames(char[][] names, Integer min) {
+            if (min == null) {
+                super.setArgumentNames(null);
+            } else {
+                List /*char[][]*/ newNames; 
+                int minValue = min.intValue();
+                newNames = new ArrayList(minValue);
+                for (int i = 0; i < minValue; i++) {
+                    if (names != null && i < names.length) {
+                        newNames.add(names[i]);
+                    } else {
+                        newNames.add(("arg" + i).toCharArray());
+                    }
+                }
+                super.setArgumentNames((char[][]) 
+                        newNames.toArray(new char[newNames.size()][]));
+            }
         }
 
         protected void setExceptionTypeNames(char[][] types) {
@@ -310,8 +332,23 @@ public class IntertypeElement extends AspectJMemberElement {
             return original;
         }
 
-        protected void setArgumentNames(char[][] names) {
-            super.setArgumentNames(names);
+        protected void setArgumentNames(char[][] names, Integer min) {
+            if (min == null) {
+                super.setArgumentNames(null);
+            } else {
+                List /*char[][]*/ newNames; 
+                int minValue = min.intValue();
+                newNames = new ArrayList(minValue);
+                for (int i = 0; i < minValue; i++) {
+                    if (names != null && i < names.length) {
+                        newNames.add(names[i]);
+                    } else {
+                        newNames.add(("arg" + i).toCharArray());
+                    }
+                }
+                super.setArgumentNames((char[][]) 
+                        newNames.toArray(new char[newNames.size()][]));
+            }
         }
 
         protected void setExceptionTypeNames(char[][] types) {

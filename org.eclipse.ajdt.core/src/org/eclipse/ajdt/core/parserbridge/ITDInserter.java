@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -241,9 +242,6 @@ public class ITDInserter extends ASTVisitor {
         Argument[] args = method.getParameterTypes() != null ? 
                 new Argument[method.getParameterTypes().size()] :
                     new Argument[0];
-        // using the World object to get type parameter bounds is still experimental.
-        // if there are any problems with it, go back to the old way and ignore type
-        // parameters
         try {
             AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
             ErasedTypeSignature sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
@@ -255,19 +253,35 @@ public class ITDInserter extends ASTVisitor {
                 sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
             }
             
-            // possibly avoids npe in bug 270123
             List/*String*/ pNames = method.getParameterNames();
-            if (pNames != null) {
+            // bug 270123... no parameter names if coming in from a jar and
+            // not build with debug info...mock it up.
+            if (pNames == null || pNames.size() != args.length) {
+                pNames = new ArrayList(args.length);
                 for (int i = 0; i < args.length; i++) {
-                    args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
-                            0,
-                            createTypeReference(Signature.getElementType(sig.paramTypes[i])),
-                            0);
+                    pNames.add("args" + i);
                 }
             }
-        } catch (Exception e) {
             for (int i = 0; i < args.length; i++) {
-                args[i] = new Argument(((String) method.getParameterNames().get(i)).toCharArray(),
+                args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
+                        0,
+                        createTypeReference(Signature.getElementType(sig.paramTypes[i])),
+                        0);
+            }
+        } catch (Exception e) {
+            AJLog.log("Exception occurred in ITDInserter.createMethod().  (Ignoring)");
+            AJLog.log("Relevant method: " + method.getParent().getName() + "." + method.getName());
+            List/*String*/ pNames = method.getParameterNames();
+            // bug 270123... no parameter names if coming in from a jar and
+            // not build with debug info...mock it up.
+            if (pNames == null || pNames.size() != args.length) {
+                pNames = new ArrayList(args.length);
+                for (int i = 0; i < args.length; i++) {
+                    pNames.add("args" + i);
+                }
+            }
+            for (int i = 0; i < args.length; i++) {
+                args[i] = new Argument(((String) pNames.get(i)).toCharArray(),
                         0,
                         createTypeReference(new String((char[]) method.getParameterTypes().get(i))),
                         0);
@@ -296,7 +310,10 @@ public class ITDInserter extends ASTVisitor {
     }
     
     private void addSuperClass(IProgramElement ipe, TypeDeclaration decl) {
-        String typeName = (String) ipe.getParentTypes().get(0);
+        List/*String*/ types = ipe.getParentTypes();
+        if (types == null) return;
+        
+        String typeName = (String) types.get(0);
         typeName = typeName.replaceAll("\\$", "\\.");
         decl.superclass = createTypeReference(typeName); 
     }
@@ -399,82 +416,6 @@ public class ITDInserter extends ASTVisitor {
     }
 
     
-//    /**XXX NOT USED CAN DELETE!!!
-//     * traverse this type's interface hierarchy.  look for method ITDs that
-//     * provide implementations
-//     * 
-//     * if these methods are not added to this type, then there will be an
-//     * error saying that no implementation exists for the method
-//     */
-//    private List/*IProgramElement*/ addAllITDInterfaceMethods(IType handle) {
-//        List/*IProgramElement*/ declaredMethods = new LinkedList(); 
-//        try {
-//            ITypeHierarchy hierarchy = handle.newSupertypeHierarchy(new NullProgressMonitor());
-//            IType[] interfaceHandles = hierarchy.getSuperInterfaces(handle);
-//            
-//            for (int i = 0; i < interfaceHandles.length; i++) {
-//                Set/*IType*/ visitedInterfaces = new HashSet(); // avoid cycles and keep track of what we've already seen
-//                declaredMethods.addAll(getITDInterfaceMethods(interfaceHandles[i], hierarchy, visitedInterfaces));
-//            }
-//        } catch (JavaModelException e) {
-//        }
-//        return declaredMethods;
-//    }
-//    
-//
-//    private Collection/*IProgramElement*/ getITDInterfaceMethods(IType interfaceHandle, ITypeHierarchy hierarchy, Set/*IType*/ visitedInterfaces) {
-//        if (visitedInterfaces.contains(interfaceHandle)) {
-//            return Collections.EMPTY_LIST;
-//        }
-//        visitedInterfaces.add(interfaceHandle);
-//        if (model.hasModel()) {
-//            if (interfaceHandle.exists() && interfaceHandle instanceof SourceType) {
-//                List elts = new LinkedList();
-//                if (model.hasProgramElement(interfaceHandle)) {
-//                    List/*IRelationship*/ rels = model
-//                            .getRelationshipsForElement(interfaceHandle,
-//                                    AJRelationshipManager.ASPECT_DECLARATIONS);
-//                    for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-//                        IJavaElement je = (IJavaElement) relIter.next();
-//                        IProgramElement declareElt = model
-//                                .javaElementToProgramElement(je);
-//                        
-//                        // include the implementation of an interface method.  
-//                        if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
-//                            elts.add(declareElt);
-//                        } else if (declareElt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
-//                            // declare parent interface
-//                            List/*String*/ parentTypes = declareElt.getParentTypes();
-//                            for (Iterator parentIter = parentTypes.iterator(); parentIter
-//                                    .hasNext();) {
-//                                String parent = (String) parentIter.next();
-//                                parent = parent.replace('$', '.');
-//                                try {
-//                                    IType parentHandle = unit.getJavaProject().findType(parent, new NullProgressMonitor());
-//                                    if (parentHandle.exists()) {
-//                                        ITypeHierarchy otherHierarchy = parentHandle.newSupertypeHierarchy(new NullProgressMonitor());
-//                                        elts.addAll(getITDInterfaceMethods(parentHandle, otherHierarchy, visitedInterfaces));
-//                                    }
-//                                } catch (JavaModelException e) {
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                // go through the super interfaces
-//                IType[] superInterfaces = hierarchy.getSuperInterfaces(interfaceHandle);
-//                for (int i = 0; i < superInterfaces.length; i++) {
-//                    elts.addAll(getITDInterfaceMethods(superInterfaces[i], hierarchy, visitedInterfaces));
-//                }
-//                
-//                return elts;
-//            }
-//        }
-//        return Collections.EMPTY_LIST;
-//    }
-
-  
     /**
      * replaces type declarations with their original contents after the compilation is
      * complete
