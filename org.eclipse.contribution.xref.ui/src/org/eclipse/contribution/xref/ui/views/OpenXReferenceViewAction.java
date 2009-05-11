@@ -6,20 +6,22 @@
  * 
  * Contributors: IBM Corporation - initial API and implementation 
  * 				 Helen Hawkins   - iniital version
+ *               Neal Upstone    - Patch for bug 271605
  ******************************************************************************/
 package org.eclipse.contribution.xref.ui.views;
 
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IObjectActionDelegate;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.contentoutline.ContentOutline;
 
 /**
@@ -39,10 +41,12 @@ public class OpenXReferenceViewAction implements IObjectActionDelegate, IWorkben
      */
     public void run(IAction action) {
  		try {
-		    ISelection currentSelection = XRefUIUtils.getCurrentSelection();
-		    IWorkbenchPart workbenchPart = JavaPlugin.getActiveWorkbenchWindow().getActivePage().getActivePart();
-			XReferenceUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
-				.getActivePage().showView(XReferenceView.ID);
+ 			IWorkbenchPage page = getActiveWorkbenchPage();
+ 			if (page == null) return;
+			page.showView(XReferenceView.ID);
+
+ 			ISelection currentSelection = XRefUIUtils.getCurrentSelection();
+		    IWorkbenchPart workbenchPart = getActiveWorkbenchPart();
 			XReferenceView xrefView = XReferenceUIPlugin.xrefView;
 			xrefView.selectionChanged(workbenchPart,currentSelection);
 		} catch (PartInitException e) {
@@ -53,8 +57,26 @@ public class OpenXReferenceViewAction implements IObjectActionDelegate, IWorkben
      * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
      */
     public void selectionChanged(IAction action, ISelection selection) {
-    	IWorkbenchPart activePart = JavaPlugin.getActiveWorkbenchWindow().getActivePage().getActivePart();
+    	IWorkbenchPart activePart = getActiveWorkbenchPart();
 		action.setEnabled(activePart instanceof ContentOutline || activePart instanceof IEditorPart);
+	}
+
+	private static IWorkbenchPart getActiveWorkbenchPart() {
+		IWorkbenchPage page = getActiveWorkbenchPage();
+		if (page == null) {
+		    return null;
+		}
+		IWorkbenchPart activePart = page.getActivePart();
+		return activePart;
+	}
+
+	private static IWorkbenchPage getActiveWorkbenchPage() {
+		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (window == null) {
+		    return null;
+		}
+		IWorkbenchPage page = window.getActivePage();
+		return page;
 	}
 
     /* (non-Javadoc)
