@@ -91,7 +91,7 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
         AJCompilationUnit unit = (AJCompilationUnit) AspectJCore.create(file);
         Set /*IType*/ targetTypes = gatherTargetTypesNonDefault();
         Map relationships = model.getRelationshipsForFile(unit);
-        assertEquals("Should have found 10 relationships in the compilation unit", 10, relationships.size());
+        assertEquals("Should have found 15 relationships in the compilation unit", 15, relationships.size());
         for (Iterator allRelsIter = relationships.values().iterator(); allRelsIter.hasNext();) {
             List rels = (List) allRelsIter.next();
             for (Iterator relsIter = rels.iterator(); relsIter.hasNext();) {
@@ -113,7 +113,7 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
         AJCompilationUnit unit = (AJCompilationUnit) AspectJCore.create(file);
         Set /*IType*/ targetTypes = gatherTargetTypesDefault();
         Map relationships = model.getRelationshipsForFile(unit);
-        assertEquals("Should have found 10 relationships in the compilation unit", 10, relationships.size());
+        assertEquals("Should have found 15 relationships in the compilation unit", 15, relationships.size());
         for (Iterator allRelsIter = relationships.values().iterator(); allRelsIter.hasNext();) {
             List rels = (List) allRelsIter.next();
             for (Iterator relsIter = rels.iterator(); relsIter.hasNext();) {
@@ -128,6 +128,21 @@ public class InpathRelationshipsTests extends AJDTCoreTestCase {
         }
         
         assertTrue("The following types should have been a target of an ITD:\n" + printTargetTypes(targetTypes), targetTypes.size() == 0);
+    }
+    
+    /**
+     * relationships should not be removed after an incremental build
+     */
+    public void testRelationshipsAfterIncrementalBuild() throws Exception {
+        IFile file = target.getFile("src/snippet/AdvisesLinked.aj");;
+        file.touch(null);
+        waitForAutoBuild();
+        testInPathRelationshipsNonDefault();
+        
+        file = target.getFile("src/AdvisesLinkedDefault.aj");
+        file.touch(null);
+        waitForAutoBuild();
+        testInPathRelationshipsDefault();
     }
 
     private String printTargetTypes(Set targetTypes) {

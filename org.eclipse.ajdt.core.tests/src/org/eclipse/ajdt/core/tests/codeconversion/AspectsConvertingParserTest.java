@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2008 IBM Corporation, SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,15 +8,23 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
+ *     Andrew Eisenberg - MockITDConvertingParser and more tests
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeconversion;
 
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
+import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.jdt.core.IType;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 
 public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 
@@ -68,6 +76,38 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 				converted.indexOf("TestCase x") == -1); //$NON-NLS-1$
 	}
 	
+	/**
+	 * ensure that the RHS of an assignment is not processed as a potential ITD
+	 * eg- int x = Foo.y;  should not be converted into int x = Foo$y;
+	 */
+	public void testRHS() {
+	    String source =   "aspect Aspect { int x = Foo.y; }";
+	    String expected = "class  Aspect { int x = Foo.y; }";
+	    
+        ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+        AspectsConvertingParser conv = new AspectsConvertingParser(source
+                .toCharArray());
+        conv.convert(conversionOptions);
+        String converted = new String(conv.content);
+        assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
+	}
+	
+	
+	/**
+	 * test that ':' are properly handled in switch statements
+	 */
+    public void testBug26914() {
+        String source =   "aspect Aspect { pointcut foo() : execution(); \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
+        String expected = "class  Aspect { pointcut foo()              ; \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
+        
+        ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+        AspectsConvertingParser conv = new AspectsConvertingParser(source
+                .toCharArray());
+        conv.convert(conversionOptions);
+        String converted = new String(conv.content);
+        assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
+    }
+
 	
 	/**
 	 * inserts arbitrary conversion text at the proper places in the code
@@ -149,4 +189,38 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         char[] convertedContents = parser.content;
         assertEquals(new String(expectedContents), new String(convertedContents));
     }
+    
+    public void testBug273914() throws Exception {
+        IProject project = createPredefinedProject("Bug273914");
+        IFile file = project.getFile("src/DeclaresITDs.aj");
+        ICompilationUnit unit = (ICompilationUnit) AspectJCore.create(file);
+        String contents = getContents(file);
+        AspectsConvertingParser parser = new AspectsConvertingParser(contents.toCharArray());
+        parser.setUnit(unit);
+        parser.convert(ConversionOptions.CODE_COMPLETION);
+        String convertedContents = new String(parser.content);
+        assertTrue("Incorrect extends/implements clause for class A\n" + convertedContents, convertedContents.indexOf("class A {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface B\n" + convertedContents, convertedContents.indexOf("interface B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for class W\n" + convertedContents, convertedContents.indexOf("class W extends A {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface X\n" + convertedContents, convertedContents.indexOf("interface X {") != -1); 
+        assertTrue("Incorrect extends/implements clause for class Y\n" + convertedContents, convertedContents.indexOf("class Y extends DeclaresITDs.W implements DeclaresITDs.X, B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface Z\n" + convertedContents, convertedContents.indexOf("interface Z extends DeclaresITDs.X, B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for class C\n" + convertedContents, convertedContents.indexOf("class C extends DeclaresITDs.W implements DeclaresITDs.X, DeclaresITDs.B {") != -1); 
+        assertTrue("Incorrect extends/implements clause for interface D\n" + convertedContents, convertedContents.indexOf("interface D extends DeclaresITDs.X {") != -1); 
+        
+    }
+    
+    private String getContents(IFile javaFile) throws CoreException, IOException {
+        InputStream is = javaFile.getContents();
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuffer buffer= new StringBuffer();
+        char[] readBuffer= new char[2048];
+        int n= br.read(readBuffer);
+        while (n > 0) {
+            buffer.append(readBuffer, 0, n);
+            n= br.read(readBuffer);
+        }
+        return buffer.toString();
+    }
+
 }
