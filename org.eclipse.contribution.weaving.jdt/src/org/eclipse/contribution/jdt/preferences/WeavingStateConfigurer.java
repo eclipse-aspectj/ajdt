@@ -23,10 +23,13 @@ import java.net.URI;
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.DisabledInfo;
+import org.eclipse.osgi.service.resolver.State;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -83,10 +86,11 @@ public class WeavingStateConfigurer {
         
         
         IStatus success2 = changeAutoStartupAspectsBundle(becomeEnabled);
-        if (success != Status.OK_STATUS) {
-            return success;
-        } else if (success2 != Status.OK_STATUS) {
-            return success2;
+        if (success != Status.OK_STATUS || success2 != Status.OK_STATUS) {
+            return new MultiStatus(JDTWeavingPlugin.ID, IStatus.ERROR, 
+                    new IStatus[] { success, success2 }, "Could not "
+                    + (becomeEnabled ? "ENABLED" : "DISABLED") + " weaving service",
+                    null);
         } else {
             return new Status(IStatus.OK, JDTWeavingPlugin.ID,
                     "Weaving service successfully "
@@ -95,21 +99,45 @@ public class WeavingStateConfigurer {
     }
 
     private IStatus changeAutoStartupAspectsBundle(boolean becomeEnabled) {
-        Bundle b = Platform.getBundle("org.eclipse.equinox.weaving.aspectj"); //$NON-NLS-1$
-        if (b == null) {
+        
+        // get all versions of weaving.aspectj in the platform.  
+        // disable and stop all but the most receent
+        Bundle[] allEABundles = Platform.getBundles("org.eclipse.equinox.weaving.aspectj", null); //$NON-NLS-1$
+        if (allEABundles == null || allEABundles.length == 0) {
             return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Could not find org.eclipse.equinox.weaving.aspectj" +
             		" so weaving service cannot be " + 
             		(becomeEnabled ? "enabled" : "disabled") + ".");
         }
         try {
+            State state = Platform.getPlatformAdmin().getState(false);
             if (becomeEnabled) {
-                b.start();
+                allEABundles[0].start();
+                for (int i = 1; i < allEABundles.length; i++) {
+                    allEABundles[i].stop();
+                    BundleDescription desc = state.getBundle(allEABundles[i].getBundleId());
+                    DisabledInfo info = new DisabledInfo(
+                            "org.eclipse.contribution.weaving.jdt", //$NON-NLS-1$
+                            "Disabled older version of Equinox Aspects", desc); //$NON-NLS-1$
+                    try {
+                        Platform.getPlatformAdmin().addDisabledInfo(info);
+                    } catch (IllegalArgumentException e) {
+                        // can ignore
+                    }
+                }
             } else {
-                b.stop();
+                for (int i = 0; i < allEABundles.length; i++) {
+                    switch(allEABundles[i].getState()) {
+                        case Bundle.ACTIVE:
+                        case Bundle.INSTALLED:
+                        case Bundle.STARTING:
+                        case Bundle.RESOLVED:
+                            allEABundles[i].stop();
+                    }
+                }
             }
             
             return Status.OK_STATUS;
-        } catch (BundleException e) {
+        } catch (Exception e) {
             return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Error occurred in setting org.eclipse.equinox.weaving.aspectj to autostart" +
                     " so weaving service cannot be " + 
                     (becomeEnabled ? "enabled" : "disabled") + ".", e);
