@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -29,6 +30,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -82,6 +84,7 @@ public abstract class UITestCase extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
+        System.out.println("------------------------\nStarting " + this.getName());
 	}
 	
 	protected void tearDown() throws Exception {
@@ -468,4 +471,16 @@ public abstract class UITestCase extends TestCase {
         } catch (InterruptedException e) {
         }
     }
+    
+    public void setAutobuilding(boolean autobuild) throws CoreException {
+        IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
+        workspaceDesc.setAutoBuilding(autobuild);
+        AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
+
+    }
+    
+    public boolean isAutobuilding() {
+        return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
+    }
+
 }

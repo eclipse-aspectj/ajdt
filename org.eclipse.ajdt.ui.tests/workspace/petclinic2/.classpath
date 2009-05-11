@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/resources"/>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
+	<classpathentry kind="lib" path="org.springframework.aspects-3.0.0.M2.jar">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.aspectpath" value="org.eclipse.ajdt.aspectpath"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.inpath" value="org.eclipse.ajdt.inpath"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="org.springframework.beans-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="org.springframework.test-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="org.springframework.transaction-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="org.springframework.web-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="org.springframework.web.servlet-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="org.springframework.aop-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="org.springframework.context-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="com.springsource.javax.annotation-1.0.0.jar"/>
+	<classpathentry kind="lib" path="com.springsource.javax.persistence-1.0.0.jar"/>
+	<classpathentry kind="lib" path="com.springsource.javax.transaction-1.1.0.jar"/>
+	<classpathentry kind="lib" path="com.springsource.org.junit-4.5.0.jar"/>
+	<classpathentry kind="lib" path="org.springframework.core-3.0.0.M2.jar"/>
+	<classpathentry kind="lib" path="roo-core-0.2.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="com.springsource.org.hibernate.validator-3.0.0.GA.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
