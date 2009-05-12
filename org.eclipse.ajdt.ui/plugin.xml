@@ -2005,7 +2005,7 @@ M4 = Platform-specific fourth key
               targetId="org.eclipse.jdt.ui.javaCode">
         </hyperlinkDetector>
      </extension>
-	   <extension
+<!--	   <extension
          point="org.eclipse.ui.commands">
       <category
             description="Refactorings specific to AspectJ"
@@ -2017,7 +2017,6 @@ M4 = Platform-specific fourth key
             id="org.eclipse.ajdt.ui.pushin"
             name="Push In"/>
    </extension>
-   
    <extension
          point="org.eclipse.ltk.core.refactoring.refactoringContributions">
       <contribution
@@ -2025,6 +2024,7 @@ M4 = Platform-specific fourth key
             id="org.eclipse.ajdt.ui.pushin">
       </contribution>
    </extension>
+-->
    <extension
          point="org.eclipse.jdt.ui.classpathAttributeConfiguration">
       <classpathAttributeConfiguration
