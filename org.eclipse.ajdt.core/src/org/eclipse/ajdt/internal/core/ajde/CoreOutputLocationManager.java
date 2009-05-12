@@ -85,7 +85,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 return -1;
             } else if (len1 == len2) {
                 // then compare by text:
-                return o1.toString().compareTo((String) o2);
+                return o1.toString().compareTo(o2.toString());
             } else {
                 return 1;
             }
@@ -282,34 +282,51 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		if (resource == null || resource.toString() == null) {
 			return defaultOutput;
 		}
-		String fileName = resource.toString().replace('\\', '/');
-		if (projectName == null) {
-			projectName = jProject.getProject().getName();
-			if (projectName == null) {
-				AJLog.log(AJLog.DEFAULT, "CoreOutputLocationManager: cannot determine project name of this project: " + jProject); //$NON-NLS-1$
-				projectName = "/";
-			}
-		}
-		int ind = fileName.indexOf(projectName);
-		if (ind != -1) {
-			String rest = fileName.substring(ind + projectName.length() + 1);
-			for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
-				String src = (String) iter.next();
-				if (rest.startsWith(src)) {
-					File out = (File) srcFolderToOutput.get(src);
-					return out;
-				}
-			}
+		
+		// due to linked files, there may be multiple IResource relating to a single File
+		IResource[] resources;
+		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(resource.toURI());
+		if (files != null && files.length > 0) {
+		    resources = new IResource[files.length];
+		    for (int i = 0; i < files.length; i++) {
+                resources[i] = files[i];
+            }
 		} else {
-			// we might have a folder from a different project
-			for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
-				String src = (String) iter.next();
-				if (fileName.startsWith(src)) {
-					File out = (File) srcFolderToOutput.get(src);
-					return out;
-				}
-			}
+	        IContainer[] containers = ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(resource.toURI());
+	        if (containers != null && containers.length > 0) {
+	            resources = new IResource[containers.length];
+	            for (int i = 0; i < containers.length; i++) {
+	                resources[i] = containers[i];
+	            }
+	        } else {
+	            resources = null;
+	        }
 		}
+		
+		IResource thisResource = null;
+		if (resources != null) {
+		    IProject project = jProject.getProject();
+		    for (int i = 0; i < resources.length; i++) {
+                if (resources[i].getProject().equals(project)) {
+                    thisResource = resources[i];
+                    break;
+                }
+            }
+		}
+		
+		if (thisResource != null) {
+		    String pathStr = thisResource.getFullPath().removeFirstSegments(1).toPortableString();
+		    for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
+		        String src = (String) iter.next();
+                if (pathStr.startsWith(src)) {
+                    File out = (File) srcFolderToOutput.get(src);
+                    return out;
+                }
+		    }
+		}
+		
+		
+		// couldn't find anything
 		return defaultOutput;
 	}
 
