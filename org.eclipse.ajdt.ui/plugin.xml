@@ -2012,19 +2012,19 @@ M4 = Platform-specific fourth key
             description="Refactorings specific to AspectJ"
             id="org.eclipse.ajdt.refactoring.category"
             name="AspectJ Refactorings"/>
-      <command
+<!--      <command
             categoryId="org.eclipse.ajdt.refactoring.category"
             description="Pushes an intertypePush In declaration into its target type/"
             id="org.eclipse.ajdt.ui.pushin"
-            name="Push In"/>
+            name="Push In"/>-->
    </extension>
    
    <extension
          point="org.eclipse.ltk.core.refactoring.refactoringContributions">
-      <contribution
+<!--      <contribution
             class="org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringContribution"
             id="org.eclipse.ajdt.ui.pushin">
-      </contribution>
+      </contribution>-->
    </extension>
    <extension
          point="org.eclipse.jdt.ui.classpathAttributeConfiguration">
