@@ -31,6 +31,7 @@ import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerRefreshTests
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.builder.DerivedTests;
 import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug270202;
+import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug275903;
 import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
@@ -140,6 +141,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(BuilderArgsTestBug270554.class));
         suite.addTest(new TestSuite(CoreOutputLocationManagerRefreshTestsBug270335.class));
         suite.addTest(new TestSuite(LinkedFoldersTestBug270202.class));
+        suite.addTest(new TestSuite(LinkedFoldersTestBug275903.class));
         suite.addTest(new TestSuite(Bug268609Test.class));
         
         // build configuration tests
