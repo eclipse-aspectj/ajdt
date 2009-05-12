@@ -21,9 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
-
+ 
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
@@ -303,19 +302,27 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	        }
 		}
 		
-		IResource thisResource = null;
-		if (resources != null) {
+		String pathStr = null;
+		if (resources != null && resources.length > 0) {
+		    // check if there is another version of the file
+		    // that is linked to this project
+		    // since the IResources are returned in an 
+		    // arbitrary order, doesn't matter which one we choose
 		    IProject project = jProject.getProject();
 		    for (int i = 0; i < resources.length; i++) {
                 if (resources[i].getProject().equals(project)) {
-                    thisResource = resources[i];
+                    pathStr = resources[i].getFullPath().removeFirstSegments(1).toPortableString();
                     break;
                 }
             }
+		    if (pathStr == null) {
+		        // this is from a location outside of the current project,
+		        // use full path
+		        pathStr = resources[0].getLocation().toPortableString();
+		    }
 		}
 		
-		if (thisResource != null) {
-		    String pathStr = thisResource.getFullPath().removeFirstSegments(1).toPortableString();
+		if (pathStr != null) {
 		    for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
 		        String src = (String) iter.next();
                 if (pathStr.startsWith(src)) {
