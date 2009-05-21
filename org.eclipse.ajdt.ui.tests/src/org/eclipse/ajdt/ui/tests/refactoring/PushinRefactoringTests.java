@@ -318,6 +318,7 @@ public class PushinRefactoringTests extends UITestCase {
         RefactoringCore.getUndoManager().flush();
         System.gc();
         ResourcesPlugin.getWorkspace().run(operation, null);
+        waitForJobsToComplete();
         assertEquals(true, operation.getConditionStatus().getSeverity() == RefactoringStatus.OK);
         assertEquals(true, operation.getValidationStatus().isOK());
         RefactoringCore.getUndoManager().flush();
