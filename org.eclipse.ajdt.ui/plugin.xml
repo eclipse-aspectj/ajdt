@@ -578,7 +578,7 @@
                id="openajprojectwizard">
          </action>
       </actionSet>
-<!--      <actionSet
+      <actionSet
             label="AspectJ Refactorings"
             visible="true"
             id="ajrefactoring"
@@ -589,7 +589,7 @@
                path="edit">
             <separator name="pushIn"/>
          </menu>
-        </actionSet>-->
+        </actionSet>
    </extension>
 
  <!-- commands and their bindings
@@ -658,6 +658,7 @@ M4 = Platform-specific fourth key
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
 					<actionSet id="ajelementCreation"/>
 					<actionSet id="ajnavigation"/>
+					<actionSet id="ajrefactoring"/>
 					<newWizardShortcut id="ajaspectwizard"/>					
 					<newWizardShortcut id="ajprojectwizard"/>
 					<perspectiveShortcut
@@ -685,6 +686,7 @@ M4 = Platform-specific fourth key
 					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
+					<newWizardShortcut id="ajrefactoring"/>					
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
@@ -694,6 +696,7 @@ M4 = Platform-specific fourth key
 					<actionSet id="ajnavigation"/>				
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
+					<newWizardShortcut id="ajrefactoring"/>					
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
@@ -705,6 +708,7 @@ M4 = Platform-specific fourth key
 			targetID="org.eclipse.pde.ui.PDEPerspective">
 					<actionSet id="ajelementCreation"/>
 					<actionSet id="ajnavigation"/>
+					<actionSet id="ajrefactoring"/>
 		</perspectiveExtension>
 		
 		<!--
@@ -1911,17 +1915,16 @@ M4 = Platform-specific fourth key
                tooltip="%createJarAction.tooltip">
          </action>
       </objectContribution>
-      </extension><!--
+      </extension>
       <extension
             point="org.eclipse.ui.popupMenus">
          <objectContribution
                adaptable="false"
                id="org.eclipse.ajdt.ui.object.refactorings"
-               objectClass="org.eclipse.ajdt.core.javaelements.IntertypeElement">
+               objectClass="org.eclipse.jdt.core.IJavaElement">
             <action
                   class="org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction"
                   definitionId="org.eclipse.ajdt.ui.pushin"
-                  enablesFor="1"
                   id="org.eclipse.ajdt.ui.action.pushin"
                   label="Push In..."
                   menubarPath="org.eclipse.jdt.ui.refactoring.menu/typeGroup"
@@ -1935,7 +1938,6 @@ M4 = Platform-specific fourth key
             <action
                   class="org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction"
                   definitionId="org.eclipse.ajdt.ui.pushin"
-                  enablesFor="1"
                   id="org.eclipse.ajdt.ui.action.pushin"
                   label="Push In..."
                   menubarPath="org.eclipse.ajdt.ui.refactoring/itd"
@@ -1950,7 +1952,6 @@ M4 = Platform-specific fourth key
              </menu>
          </viewerContribution>
       </extension>
-      -->
      <extension
            point="org.eclipse.ui.navigator.navigatorContent">
        <commonFilter
@@ -2005,7 +2006,7 @@ M4 = Platform-specific fourth key
               targetId="org.eclipse.jdt.ui.javaCode">
         </hyperlinkDetector>
      </extension>
-<!--	   <extension
+	   <extension
          point="org.eclipse.ui.commands">
       <category
             description="Refactorings specific to AspectJ"
@@ -2024,7 +2025,6 @@ M4 = Platform-specific fourth key
             id="org.eclipse.ajdt.ui.pushin">
       </contribution>
    </extension>
--->
    <extension
          point="org.eclipse.jdt.ui.classpathAttributeConfiguration">
       <classpathAttributeConfiguration
