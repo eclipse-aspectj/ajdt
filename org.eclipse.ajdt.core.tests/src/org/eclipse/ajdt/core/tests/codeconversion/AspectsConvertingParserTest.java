@@ -128,7 +128,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
             super(content);
         }
 
-        protected char[] createImplementExtendsITDs(char[] typeName) {
+        public char[] createImplementExtendsITDs(char[] typeName) {
             return "Here I am!".toCharArray();
         }
     };
