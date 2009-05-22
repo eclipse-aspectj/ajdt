@@ -151,7 +151,6 @@ public class PushinRefactoringTests extends UITestCase {
         
         checkFileForContents(classFileC, "int y = 9;");
         checkFileForContents(classFileC, "int z = 9;");
-        checkFileForContents(classFileC, "@Deprecated");
         
         checkFileForContents(aspectFileD, "int y;");
         checkFileForNoContents(aspectFileD, "int B.z = 9;");
@@ -259,7 +258,6 @@ public class PushinRefactoringTests extends UITestCase {
             for (int i = numErrors; i < logs.length; i++) {
                 LogEntry entry = (LogEntry) logs[i];
                 sb.append(entry.getMessage() + "\n" + entry.getStack() + "\n");
-                
             }
             fail("Should not have any extra log entries after refactoring petclinic:\n" + sb.toString());
         }
@@ -270,11 +268,18 @@ public class PushinRefactoringTests extends UITestCase {
             StringBuffer sb = new StringBuffer();
             for (int i = 0; i < problems.length; i++) {
                 IMarker marker = problems[i];
+                String msg = (String) marker.getAttribute(IMarker.MESSAGE);
                 
-                sb.append(marker.getResource().getFullPath() + ": ");
-                sb.append(marker.getAttribute(IMarker.MESSAGE)  + "\n");
+                // ignore missing imports
+                if (((Integer) marker.getAttribute(IMarker.SEVERITY)).intValue() >= IMarker.SEVERITY_WARNING 
+                            && msg.indexOf("import") == -1) {
+                    sb.append(marker.getResource().getFullPath() + ": ");
+                    sb.append(msg  + "\n");
+                }
             }
-            fail("Should not have any compile errors after pushin refactoring:\n" + sb.toString());
+            if (sb.length() > 0) {
+                fail("Should not have any compile errors after pushin refactoring:\n" + sb.toString());
+            }
         }
     }
     
