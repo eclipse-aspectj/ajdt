@@ -124,7 +124,7 @@ public class PushInRefactoring extends Refactoring {
     }
 
     private RefactoringStatus checkFinalConditionsForITD(final ICompilationUnit unit, 
-            final List/*IntertypeElement*/ itdsForUnit, IProgressMonitor monitor) throws JavaModelException {
+            final List/*IAspectJElement*/ itdsForUnit, IProgressMonitor monitor) throws JavaModelException {
         
         final RefactoringStatus status = new RefactoringStatus();
         final Set[] imports = getImports(unit, itdsForUnit, monitor);
@@ -174,14 +174,37 @@ public class PushInRefactoring extends Refactoring {
                         
                         for (Iterator itdIter = itdsForUnit.iterator(); itdIter.hasNext();) {
                             IAspectJElement itd = (IAspectJElement) itdIter.next();
-                            if (itd.getAJKind() == Kind.DECLARE_PARENTS) {
-                                if (declareParentsDone) {
-                                    continue;
-                                } else {
-                                    declareParentsDone = true;
+                            
+                            // filter out the types not affected by itd 
+                            Collection/*IMember*/ members = new ArrayList();
+                            members.addAll((Collection) unitsToTypes.get(source));
+                            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
+                            List/*IJavaElement*/ realTargets;
+                            if (itd.getAJKind().isDeclareAnnotation()) {
+                                realTargets = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
+                            } else {
+                                realTargets = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
+                            }
+                            for (Iterator memberIter = members.iterator(); memberIter
+                                    .hasNext();) {
+                                IMember member = (IMember) memberIter.next();
+                                if (!realTargets.contains(member)) {
+                                    memberIter.remove();
                                 }
                             }
-                            rewriteTargetTypes(itd, source, (Collection) unitsToTypes.get(source), ast, status, typeImports, staticImports);
+
+                            if (members.size() > 0) {
+                                //  hmmmm...this may break if there are more than one 
+                                // type in a CU that has declare parents on it being pushed in
+                                if (itd.getAJKind() == Kind.DECLARE_PARENTS) {
+                                    if (declareParentsDone) {
+                                        continue;
+                                    } else {
+                                        declareParentsDone = true;
+                                    }
+                                }
+                                rewriteTargetTypes(itd, source, members, ast, status, typeImports, staticImports);
+                            }
                         }
                     }
                 } catch (JavaModelException e) {
@@ -639,16 +662,22 @@ public class PushInRefactoring extends Refactoring {
     }
 
 
+    // this method returns all members by any itd being pushed in from a CU
+    // it does not distinguish between which type is affected by which ITD
+    // later, we need to do that filtering
     private IMember[] getTargets(List/*IAspectJElement*/ itds) throws JavaModelException {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement((IJavaElement) itds.get(0));
-        
-        
         List/*IMember*/ targets = new ArrayList();
         
         for (Iterator itdIter = itds.iterator(); itdIter.hasNext();) {
             IAspectJElement itd = (IAspectJElement) itdIter.next();
-            List/*IJavaElement*/ elts = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
-            
+            List/*IJavaElement*/ elts;
+            if (itd.getAJKind().isDeclareAnnotation()) {
+                elts = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
+            } else {
+                elts = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
+            }
+
             for (Iterator eltIter = elts.iterator(); eltIter.hasNext();) {
                 targets.add(eltIter.next());
             }
