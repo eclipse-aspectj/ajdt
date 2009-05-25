@@ -21,7 +21,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.internal.ui.util.TableLayoutComposite;
 import org.eclipse.jface.viewers.CellLabelProvider;
-import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -32,7 +31,6 @@ import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.UserInputWizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -117,6 +115,8 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                     e2 = ((IJavaElement) e2).getElementName();
                 }
             } else if (column == ITD_SORT || column == TARGET_SORT) {
+                // This isn't quite right because what shows up in 
+                // the column isn't what gets sorted on.
                 if (e1 instanceof IJavaElement) {
                     e1 = ((IJavaElement) e1).getElementName();
                 }
