@@ -66,6 +66,11 @@ import org.eclipse.ltk.core.refactoring.RefactoringChangeDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.ltk.core.refactoring.resource.DeleteResourceChange;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -79,6 +84,8 @@ import org.eclipse.text.edits.TextEdit;
  */
 public class PushInRefactoring extends Refactoring {
     
+
+    
     public static final String ALL_ITDS = "all.itds";
     public static final String DELETE_EMPTY = "delete.empty";
     
@@ -87,6 +94,7 @@ public class PushInRefactoring extends Refactoring {
     private Map /* ICompilationUnit -> Change*/ allChanges = null; 
 
     private List/*IntertypeElement*/ itds = null;
+    
 
     public RefactoringStatus checkFinalConditions(IProgressMonitor monitor)
             throws CoreException, OperationCanceledException {
@@ -286,7 +294,7 @@ public class PushInRefactoring extends Refactoring {
                 typeDeletes.put(type, deletes);
             }
             
-            DeleteEdit edit = new DeleteEdit(itd.getSourceRange().getOffset(), itd.getSourceRange().getLength());
+            DeleteEdit edit = new DeleteEdit(itd.getSourceRange().getOffset()+1, itd.getSourceRange().getLength());
             deletes.add(edit);
         }
         
@@ -466,7 +474,7 @@ public class PushInRefactoring extends Refactoring {
             }
         }
 
-        String targetSource = "\t" + itd.getSource() + "\n";
+        String targetSource = "\n\t" + itd.getSource() + "\n";
         targetSource = targetSource.replaceAll(itdName, newName);
         return targetSource;
     }
@@ -478,7 +486,7 @@ public class PushInRefactoring extends Refactoring {
         String targetSource = "\t" + itd.getSource() + "\n";
         int nameStart = targetSource.indexOf(itdName);
         int closeParen = targetSource.indexOf(")", nameStart);  // big assumption here...that closing paren doesn't exist in comments 
-        targetSource = targetSource.substring(0, closeParen) + ";\n";
+        targetSource = "\n" + targetSource.substring(0, closeParen) + ";\n";
         targetSource = targetSource.replaceAll(itdName, newName);
         return targetSource;
     }
