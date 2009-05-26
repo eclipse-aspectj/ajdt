@@ -294,7 +294,7 @@ public class PushInRefactoring extends Refactoring {
                 typeDeletes.put(type, deletes);
             }
             
-            DeleteEdit edit = new DeleteEdit(itd.getSourceRange().getOffset()+1, itd.getSourceRange().getLength());
+            DeleteEdit edit = new DeleteEdit(itd.getSourceRange().getOffset(), itd.getSourceRange().getLength()+1);
             deletes.add(edit);
         }
         
