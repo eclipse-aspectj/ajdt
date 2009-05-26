@@ -1,6 +1,22 @@
 <project name="Build specific targets and properties" default="noDefault">
 
 	<!-- ===================================================================== -->
+	<!-- Create the timestamp tp be used for the build                         -->
+	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
+	<!-- a properties file or from the command line                            -->
+	<!-- ===================================================================== -->
+	<tstamp>
+		<format property="tstampQual" pattern="yyyyMMdd-HH00" locale="en,US" timezone="America/Vancouver"/>
+	</tstamp>
+	<echo message="tstampQual=${tstampQual}"/>
+	<property name="forceContextQualifier" value="${qualPrefix}-${tstampQual}"/>
+	<echo message="=============================================="/>
+	<echo message="forceContextQualifier=${forceContextQualifier}"/>
+	<echo message="=============================================="/>
+
+	
+	
+	<!-- ===================================================================== -->
 	<!-- Run a given ${target} on all elements being built -->
 	<!-- Add on <ant> task for each top level element being built. -->
 	<!-- ===================================================================== -->
