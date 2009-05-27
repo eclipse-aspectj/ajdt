@@ -507,7 +507,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	 * that contains all of the types that are declared parents of this one
 	 * returns null if could not find the super types and super interfaces
 	 */
-	protected char[] createImplementExtendsITDs(char[] typeName) {
+	public char[] createImplementExtendsITDs(char[] typeName) {
 	    if (unit != null && typeName != null) {
 	        IType type = getHandle(new String(typeName));
 	        if (type.exists()) {

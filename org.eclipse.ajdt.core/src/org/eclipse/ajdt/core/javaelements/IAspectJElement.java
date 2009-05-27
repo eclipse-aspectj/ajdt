@@ -16,12 +16,13 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * @author Luzius Meisser
  */
-public interface IAspectJElement extends IJavaElement {
+public interface IAspectJElement extends IMember {
 
 	public Kind getAJKind() throws JavaModelException;
 
