@@ -17,11 +17,12 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
 
     private DeleteAJMarkers delete;
     private UpdateAJMarkers update;
-    
+    private IProject project;
     private boolean deleteOnly = false;
     
     public DeleteAndUpdateAJMarkersJob(IProject project) {
         super("Delete and update AspectJ markers for " + project.getName());
+        this.project = project;
         update = new UpdateAJMarkers(project);
         delete = new DeleteAJMarkers(project);
     }
@@ -35,21 +36,10 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     protected IStatus run(IProgressMonitor monitor) {
         try {
             
-            // do not need to explicitly join with build jobs because
-            // getting the workspace lock does the same thing
-//            try {
-//                manager.join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new SubProgressMonitor(monitor, 1));
-//                manager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, new SubProgressMonitor(monitor, 1));
-//            } catch (InterruptedException e) {
-//            }
-//            
-//            if (monitor.isCanceled()) {
-//                throw new OperationCanceledException();
-//            }
 
             try {
                 // get a lock on the workspace so that no other marker operations can be performed at the same time
-                manager.beginRule(ResourcesPlugin.getWorkspace().getRoot(), monitor);
+                manager.beginRule(project, monitor);
                 
                 IStatus deleteStatus = delete.run(monitor);
                 
@@ -71,7 +61,7 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
                         new IStatus[] { deleteStatus, updateStatus }, 
                         "Finished deleting and updating markers", null);
             } finally {
-                manager.endRule(ResourcesPlugin.getWorkspace().getRoot());
+                manager.endRule(project);
             }
         } catch (OperationCanceledException e) {
             // we've been canceled.  Just exit.  No need to clean markers that have already been placed
