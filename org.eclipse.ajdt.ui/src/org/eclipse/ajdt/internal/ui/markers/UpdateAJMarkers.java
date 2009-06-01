@@ -60,7 +60,7 @@ public class UpdateAJMarkers {
 
     private final AJProjectModelFacade model;
 	private final IProject project;
-	private final File[] sourceFiles;
+	private final IFile[] sourceFiles;
     private int fileCount;
     private int markerCount;
 	
@@ -83,8 +83,25 @@ public class UpdateAJMarkers {
      * 
      * @param sourceFiles List of Strings of absolute paths of files that 
      * need updating 
+     * 
+     * @deprecated Use {@link UpdateAJMarkers#UpdateAJMarkers(IProject, IFile[])} instead
      */
     public UpdateAJMarkers(IProject project, File[] sourceFiles) {
+        this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
+        this.project = project;
+        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles);        
+    }
+    
+    /**
+     * to update markers for the given files only.
+     * 
+     * @param project the poject that needs updating
+     * 
+     * @param sourceFiles List of Strings of absolute paths of files that 
+     * need updating 
+     * 
+     */
+    public UpdateAJMarkers(IProject project, IFile[] sourceFiles) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = sourceFiles;        
@@ -151,21 +168,16 @@ public class UpdateAJMarkers {
 	    IWorkspace workspace= ResourcesPlugin.getWorkspace();
 	    SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, sourceFiles.length);
         for (int i = 0; i < sourceFiles.length; i++) {
-            IPath location = Path.fromOSString(sourceFiles[i].getAbsolutePath());
-            IFile[] files = workspace.getRoot().findFilesForLocation(location);
-            // inner loop---if a single file is mapped to several linked files in the workspace
-            for (int j = 0; j < files.length; j++) {
-                IJavaElement unit = JavaCore.create(files[j]);
-                if (unit != null && unit.exists() && unit instanceof ICompilationUnit) {
-                    subMonitor.subTask("Add markers for " + unit.getElementName());
-                    addMarkersForFile((ICompilationUnit) unit, files[j]);
-                    fileCount++;
-                }
-                if (subMonitor.isCanceled()) {
-                    throw new OperationCanceledException();
-                }
-                subMonitor.worked(1);
+            IJavaElement unit = JavaCore.create(sourceFiles[i]);
+            if (unit != null && unit.exists() && unit instanceof ICompilationUnit) {
+                subMonitor.subTask("Add markers for " + unit.getElementName());
+                addMarkersForFile((ICompilationUnit) unit, sourceFiles[i]);
+                fileCount++;
             }
+            if (subMonitor.isCanceled()) {
+                throw new OperationCanceledException();
+            }
+            subMonitor.worked(1);
         }
     }
 	
