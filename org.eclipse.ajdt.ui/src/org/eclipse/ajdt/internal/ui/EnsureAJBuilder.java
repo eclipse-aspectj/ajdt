@@ -55,27 +55,16 @@ public class EnsureAJBuilder implements IResourceChangeListener {
         }
     }
 
-//    public void handleEvent(LifecycleEvent event) throws CoreException {
-//        if (event.kind == LifecycleEvent.PRE_PROJECT_OPEN ||
-//                event.kind == LifecycleEvent.PRE_PROJECT_CREATE) {
-//            if (event.resource instanceof IProject && 
-//                    AspectJPlugin.isAJProject((IProject) event.resource)) {
-//                try {
-//                    Job.getJobManager().beginRule(ResourcesPlugin.getWorkspace().getRoot(), null);
-//                    ensureNoJavaBuilder((IProject) event.resource);
-//                    ensureAJBuilder((IProject) event.resource);
-//                } finally {
-//                    Job.getJobManager().endRule(ResourcesPlugin.getWorkspace().getRoot());
-//                }
-//            }
-//        }
-//
-//    }
-
     private void ensureNoJavaBuilder(IProject project) throws CoreException {
-        AspectJProjectNature.removeJavaBuilder(project);
+        // do not remove javaBuilder if it is set to not generate class files
+        // see bug 278535
+    	if (AspectJProjectNature.hasJavaBuilder(project)) {
+    		if (!AspectJProjectNature.isClassGenerationDisabled(project)) {
+    			AspectJProjectNature.removeJavaBuilder(project);
+    		}
+    	}
     }
-
+    
     private void ensureAJBuilder(IProject project) throws CoreException {
         AspectJProjectNature.addNewBuilder(project);
     }
