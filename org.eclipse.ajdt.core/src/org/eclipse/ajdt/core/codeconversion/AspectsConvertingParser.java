@@ -508,7 +508,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 	 * returns null if could not find the super types and super interfaces
 	 */
 	public char[] createImplementExtendsITDs(char[] typeName) {
-	    if (unit != null && typeName != null) {
+	    if (unit != null && typeName != null && typeName.length > 0) {
 	        IType type = getHandle(new String(typeName));
 	        if (type.exists()) {
                 List[] declares = getDeclareExtendsImplements(type);
@@ -689,7 +689,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     }
 	
     protected char[] getInterTypeDecls(char[] currentTypeName) {
-        if (unit != null) {
+        if (unit != null && currentTypeName != null && currentTypeName.length > 0) {
             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
             if (model.hasModel()) {
                 IType type = getHandle(new String(currentTypeName));
