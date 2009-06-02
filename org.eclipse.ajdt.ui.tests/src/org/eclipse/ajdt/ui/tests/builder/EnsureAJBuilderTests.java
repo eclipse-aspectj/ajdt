@@ -15,6 +15,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 /**
  * @author Andrew Eisenberg
@@ -50,9 +51,24 @@ public class EnsureAJBuilderTests extends UITestCase {
         assertTrue("Project should have javabuilder " + project, AspectJProjectNature.hasJavaBuilder(project));
     }
     
+    // tests that Java builder is not removed when generate class files is disabled
+    // Bug 278535
+    public void testNoRemoveJavaBuilder() throws Exception {
+        IProject project = createPredefinedProject("Bug278535JavaBuilderNoRemove");
+        checkNatureHasBuilder(project);
+        project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+        checkNatureHasBuilder(project);
+        project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+        checkNatureHasBuilder(project);
+    }
+
     private void checkNature(IProject project) throws Exception {
-        assertTrue("Project should have ajbuilder " + project, AspectJProjectNature.hasNewBuilder(project));
-        assertFalse("Project should not have javabuilder " + project, AspectJProjectNature.hasJavaBuilder(project));
+        assertTrue("Project should have ajBuilder " + project, AspectJProjectNature.hasNewBuilder(project));
+        assertFalse("Project should not have javaBuilder " + project, AspectJProjectNature.hasJavaBuilder(project));
     }
     
+    private void checkNatureHasBuilder(IProject project) throws Exception {
+        assertTrue("Project should have ajBuilder " + project, AspectJProjectNature.hasNewBuilder(project));
+        assertTrue("Project should have javaBuilder " + project, AspectJProjectNature.hasJavaBuilder(project));
+    }
 }
