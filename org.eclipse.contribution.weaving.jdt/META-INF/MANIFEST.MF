@@ -39,5 +39,5 @@ Eclipse-SupplementBundle: org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.jdt.debug.ui
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Bundle-Vendor: eclipse.org
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-ActivationPolicy: lazy
