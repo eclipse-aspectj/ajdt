@@ -14,7 +14,6 @@ package org.eclipse.ajdt.ui;
 // --- imports ---
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -28,7 +27,6 @@ import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.EnsureAJBuilder;
 import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
-import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
@@ -41,16 +39,18 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -65,6 +65,7 @@ import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
@@ -72,19 +73,14 @@ import org.osgi.framework.Version;
 /**
  * The main plugin class used in the desktop for AspectJ integration.
  * <p>
- * The AspectJPlugin (org.eclipse.ajdt.ui) provides the user interface and build
+ * The AspectJUIPlugin (org.eclipse.ajdt.ui) provides the user interface and build
  * integration to enable use of Aspect-Oriented Software Development (AOSD)
  * using AspectJ within Eclipse.
  * </p>
  * <p>
- * This plugin depends on the org.aspectj.ajde (AJTools) plugin for the AspectJ
+ * This plugin depends on the org.aspectj.ajde (AJDE) plugin for the AspectJ
  * compiler and tools. The AJTools plugin is available from <a
  * href="http://www.aspectj.org">aspectj.org </a>
- * <p>
- * This class is also responsible for tracking the current selected resource in
- * the workspace (and its associated project). Other classes can access the
- * information via some static getter methods :- getCurrentProject() and
- * getCurrentResource()
  */
 public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 
@@ -287,10 +283,10 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		display = Display.getDefault();
 		
 		// BUG 249045 and BUG 261045 don't do this any more
-		if (false) {
 //		if (!AspectJPlugin.USING_CU_PROVIDER) {
-		    insertAJCompilationUnitDocumentProvider();
-		}
+//		    insertAJCompilationUnitDocumentProvider();
+//		}
+		
 
 		// Create and register the resource change listener if necessary, it
 		// will be notified if resources are added/deleted or their content changed.
@@ -327,16 +323,38 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		checkAspectJVersion();
 
 		if (!AspectJPlugin.USING_CU_PROVIDER) {
-			AJCompilationUnitManager.INSTANCE
-					.initCompilationUnits(AspectJPlugin.getWorkspace());
-			AJDTUtils.refreshPackageExplorer();
+		    Job cuInitJob = new Job("Initialize CompilationUnit Manager") {
+                protected IStatus run(IProgressMonitor monitor) {
+                    // bug 278425 --- see if m2eclipse exists and ensure it is started before continuing
+                    startM2Eclipse();
+                    AJCompilationUnitManager.INSTANCE
+                            .initCompilationUnits(AspectJPlugin.getWorkspace());
+                    AJDTUtils.refreshPackageExplorer();
+                    return Status.OK_STATUS;
+                }
+            };
+            
+            cuInitJob.setPriority(Job.SHORT);
+            cuInitJob.schedule();
+		    
+		} else {
+		    ITDAwarenessAspect.provider = new AJDTNameEnvironmentProvider();
 		}
-		
-	      ITDAwarenessAspect.provider = new AJDTNameEnvironmentProvider();
-
 	}
 	
-	public void stop(BundleContext context) throws Exception {
+	private void startM2Eclipse() {
+	    Bundle m2eclipseBundle = Platform.getBundle("org.maven.ide.eclipse");
+	    if (m2eclipseBundle != null) {
+	        try {
+	            // start bundle, but don't force bundle to be restarted next time
+	            m2eclipseBundle.start(Bundle.START_TRANSIENT);
+	        } catch (BundleException e) {
+	            // bundle couldn't be started for some reason
+	        }
+	    }
+	}
+
+    public void stop(BundleContext context) throws Exception {
 	    super.stop(context);
 	    AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
 	}
@@ -348,33 +366,35 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * AJ CUs are properly created from .aj files (sometimes)
 	 * Only need if JDT Weaving is turned off
 	 * If weaving is on, then this happens automatically from the weaver
+	 * 
+	 * XXX this method is not used any more...can delete
 	 */
-	private void insertAJCompilationUnitDocumentProvider() {
-	    try {
-	        
-	        Field javaPluginDocumentProviderField = JavaPlugin.class.getDeclaredField("fCompilationUnitDocumentProvider");
-	        javaPluginDocumentProviderField.setAccessible(true);
-	        ICompilationUnitDocumentProvider oldProvider = (ICompilationUnitDocumentProvider) javaPluginDocumentProviderField.get(JavaPlugin.getDefault());
-	        if (oldProvider != null) {
-	            oldProvider.shutdown();
-	        }
-	        ICompilationUnitDocumentProvider newProvider = new AJCompilationUnitDocumentProvider();
-	        javaPluginDocumentProviderField.set(JavaPlugin.getDefault(), newProvider);
-
-            WorkingCopyManager manager = (WorkingCopyManager) JavaPlugin.getDefault().getWorkingCopyManager();
-            Field managerDocumentProviderField = manager.getClass().getDeclaredField("fDocumentProvider");
-            managerDocumentProviderField.setAccessible(true);
-            oldProvider = (ICompilationUnitDocumentProvider) managerDocumentProviderField.get(manager);
-            if (! (oldProvider instanceof AJCompilationUnitDocumentProvider)) {
-                oldProvider.shutdown();
-                managerDocumentProviderField.set(manager, newProvider);
-            }
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
-        } catch (IllegalAccessException e) {
-        }
-    }
+//	private void insertAJCompilationUnitDocumentProvider() {
+//	    try {
+//	        
+//	        Field javaPluginDocumentProviderField = JavaPlugin.class.getDeclaredField("fCompilationUnitDocumentProvider");
+//	        javaPluginDocumentProviderField.setAccessible(true);
+//	        ICompilationUnitDocumentProvider oldProvider = (ICompilationUnitDocumentProvider) javaPluginDocumentProviderField.get(JavaPlugin.getDefault());
+//	        if (oldProvider != null) {
+//	            oldProvider.shutdown();
+//	        }
+//	        ICompilationUnitDocumentProvider newProvider = new AJCompilationUnitDocumentProvider();
+//	        javaPluginDocumentProviderField.set(JavaPlugin.getDefault(), newProvider);
+//
+//            WorkingCopyManager manager = (WorkingCopyManager) JavaPlugin.getDefault().getWorkingCopyManager();
+//            Field managerDocumentProviderField = manager.getClass().getDeclaredField("fDocumentProvider");
+//            managerDocumentProviderField.setAccessible(true);
+//            oldProvider = (ICompilationUnitDocumentProvider) managerDocumentProviderField.get(manager);
+//            if (! (oldProvider instanceof AJCompilationUnitDocumentProvider)) {
+//                oldProvider.shutdown();
+//                managerDocumentProviderField.set(manager, newProvider);
+//            }
+//        } catch (SecurityException e) {
+//        } catch (IllegalArgumentException e) {
+//        } catch (NoSuchFieldException e) {
+//        } catch (IllegalAccessException e) {
+//        }
+//    }
 	
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.jdt.core"); //$NON-NLS-1$

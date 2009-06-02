@@ -13,6 +13,11 @@
 
 package org.eclipse.ajdt.internal.ui;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.resources.ICommand;
@@ -31,6 +36,16 @@ public class AspectJProjectNature implements IProjectNature {
 
 	// the previous builder id, before the builder was moved to the core plugin
 	private static final String OLD_BUILDER = "org.eclipse.ajdt.ui.ajbuilder"; //$NON-NLS-1$
+
+	/**
+	 * 
+	 */
+	private static final String JAVA_BUILDER_GENERATE_CLASSES = "org.eclipse.jdt.core.compiler.generateClassFiles"; //$NON-NLS-1$
+
+	/**
+	 * 
+	 */
+	private static final String FALSE = "false"; //$NON-NLS-1$
 
 	/**
 	 * Driven when this project nature is 'given' to a project, it adds the
@@ -216,5 +231,48 @@ public class AspectJProjectNature implements IProjectNature {
 			}
 		}
 		return newCommands;
+	}
+
+	/**
+	 * Does java builder command in given project has got binary file generation disabled.
+	 * @param project2
+	 * @return
+	 * @throws CoreException 
+	 */
+	public static boolean isClassGenerationDisabled(
+			IProject project) throws CoreException {
+		Collection resultCommands = findBuilder(project, JavaCore.BUILDER_ID);
+		for (Iterator it = resultCommands.iterator(); it.hasNext();) {
+			ICommand javaBuilderCommand = (ICommand) it.next();
+			Map arguments = javaBuilderCommand.getArguments();
+			String value = (String) arguments.get(JAVA_BUILDER_GENERATE_CLASSES);
+			if (value == null || !value.equals(FALSE)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Find builder commands in given project
+	 * 
+	 * @param project
+	 *            project to search in
+	 * @param builderId
+	 *            id of the builder to find
+	 * @return all commands of specified builder or empty collection if no
+	 *         commands for given builder was found
+	 * @throws CoreException
+	 */
+	private static Collection findBuilder(IProject project, String builderId)
+			throws CoreException {
+		ICommand[] commands = project.getDescription().getBuildSpec();
+		Collection resultCommands = new ArrayList();
+		for (int i = 0; i < commands.length; i++) {
+			if (commands[i].getBuilderName().equals(builderId)) {
+				resultCommands.add(commands[i]);
+			}
+		}
+		return resultCommands;
 	}
 }

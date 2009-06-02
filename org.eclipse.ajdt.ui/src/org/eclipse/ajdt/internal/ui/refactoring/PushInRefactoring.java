@@ -51,10 +51,10 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTRequestor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jface.text.Region;
@@ -66,11 +66,6 @@ import org.eclipse.ltk.core.refactoring.RefactoringChangeDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.ltk.core.refactoring.resource.DeleteResourceChange;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -321,7 +316,7 @@ public class PushInRefactoring extends Refactoring {
             if (type.getChildren().length == removals) {
                 List typeNodes = ast.types();
                 for (Iterator typeIter = typeNodes.iterator(); typeIter.hasNext();) {
-                    TypeDeclaration typeNode = (TypeDeclaration) typeIter.next();
+                    AbstractTypeDeclaration typeNode = (AbstractTypeDeclaration) typeIter.next();
                     if (typeNode.getName().toString().equals(type.getElementName())) {
                         List deletes = (List) typeDeletes.get(type);
                         deletes.clear();
@@ -429,12 +424,13 @@ public class PushInRefactoring extends Refactoring {
                 .getModelForJavaElement(itd).javaElementToProgramElement(itd);
         if (ipe != null) {
             String details = ipe.getDetails();
-            String[] split = details.split(":");
+            int colonIndex = details.indexOf(':');
+            String text = details.substring(colonIndex+1).trim();
             if (itd.getAJKind() == Kind.DECLARE_ANNOTATION_AT_TYPE) {
                 // assume top level type
-                return split[1].trim() + "\n";
+                return text + "\n";
             } else {
-                return split[1].trim() + "\n\t";
+                return text + "\n\t";
             }
         } else {
             throw new RuntimeException("Could not find program element in AspectJ model for " + itd.getHandleIdentifier());
