@@ -95,9 +95,12 @@ public class AJCompilationUnit extends CompilationUnit{
 	protected JavaCompatibleBuffer javaCompBuffer;
 	
 
+	private Object contentModeLock = new Object();
 	
-	public boolean isInOriginalContentMode(){
-		return originalContentMode > 0;
+	public boolean isInOriginalContentMode() {
+	    synchronized (contentModeLock) {
+	        return originalContentMode > 0;
+        }
 	}
 	
 	/**
@@ -105,18 +108,22 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * the actual AJ contents are returned (not the 
 	 * converted contents)
 	 */
-	public synchronized void requestOriginalContentMode(){
-		originalContentMode++;
+	public void requestOriginalContentMode() {
+        synchronized (contentModeLock) {
+            originalContentMode++;
+        }
 	}
 	
 	/**
 	 * discard this request for original contents
 	 */
-	public synchronized void discardOriginalContentMode(){
-		originalContentMode--;
+	public void discardOriginalContentMode() {
+        synchronized (contentModeLock) {
+            originalContentMode--;
+        }
 	}
 
-	public AJCompilationUnit(IFile ajFile){
+	public AJCompilationUnit(IFile ajFile) {
 		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), AJWorkingCopyOwner.INSTANCE);
 		this.ajFile = ajFile;
 	}
