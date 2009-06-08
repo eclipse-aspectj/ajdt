@@ -25,7 +25,7 @@
    <includes
          id="org.eclipse.ajdt.source"
          version="0.0.0"
-         name=""
+         name="" 
          optional="true"/>
 
 <!-- Do not remove these comments -->
