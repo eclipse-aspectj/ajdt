@@ -22,6 +22,7 @@ import org.eclipse.core.internal.registry.osgi.OSGIUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -34,11 +35,12 @@ import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jdt.internal.ui.text.javadoc.JavadocCompletionProcessor;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
-import org.eclipse.ui.part.FileEditorInput;
 
 /**
  * Tests that ITDAwarenessAspect is disabled for Java projects
@@ -65,10 +67,18 @@ public class ITDAwarenessTests extends WeavingTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         
-        // ensure the ajdt bundles are started
-        OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.core").start();
-        OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.ui").start();
-        
+        // ensure the ajdt bundles are started if they exist
+        try {
+            OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.core").start();
+        } catch (NullPointerException e) {
+            // ignore, bundle doesn't exist
+        }
+        try {
+            OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.ui").start();
+        } catch (NullPointerException e) {
+            // ignore, bundle doesn't exist
+        }
+
         origProvider = ITDAwarenessAspect.provider;
         origContentAssistProvider = ITDAwarenessAspect.contentAssistProvider;
 
@@ -101,7 +111,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
     }
     
     @SuppressWarnings("unchecked")
-    public void testFindProblemsInMckProject() throws Exception {
+    public void testFindProblemsInMockProject() throws Exception {
         IFile nothingMock = mock.getFile("src/nothing/Nothing.java");
         ICompilationUnit nothingCU = (ICompilationUnit) JavaCore.create(nothingMock);
         CompilationUnitProblemFinder.process((CompilationUnit) nothingCU, null,
@@ -131,6 +141,32 @@ public class ITDAwarenessTests extends WeavingTestCase {
         assertTrue("Should have triggered the content assist through the aspect", contentAssistProvider.contentAssistDone);
     }
     
+    /**
+     * Should not trigger the advice
+     */
+    public void testCodeSelectInJavaProject() throws Exception {
+        IFile nothingJava = java.getFile("src/nothing/Nothing.java");
+        ICompilationUnit unit = JavaCore.createCompilationUnitFrom(nothingJava);
+        int offset = 0;
+        int length = 1;
+        IJavaElement[] selection = unit.codeSelect(offset, length);
+        assertEquals("Should have found 0 completion proposals", 0, selection.length);
+        assertFalse("Should not have triggered the content assist through the aspect", contentAssistProvider.codeSelectDone);
+    }
+    
+    /**
+     * Should trigger the advice
+     */
+    public void testCodeSelectInMockProject() throws Exception {
+        IFile nothingJava = mock.getFile("src/nothing/Nothing.java");
+        ICompilationUnit unit = JavaCore.createCompilationUnitFrom(nothingJava);
+        int offset = 0;
+        int length = 1;
+        IJavaElement[] selection = unit.codeSelect(offset, length);
+        assertEquals("Should have found 0 completion proposal", 0, selection.length);
+        assertTrue("Should have triggered the content assist through the aspect", contentAssistProvider.codeSelectDone);
+    }
+    
     private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws Exception {
         JavaEditor editor = (JavaEditor) EditorUtility.openInEditor(file);
         JavaCompletionProcessor proc = 
@@ -141,7 +177,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
         int offset = content.indexOf(marker);
         return proc.computeCompletionProposals(editor.getViewer(), offset);
     }
-    
+
     private ContentAssistant getContentAssistant(JavaEditor editor) {
         ContentAssistant assistant= new ContentAssistant();
         IContentAssistProcessor javaProcessor= new JavaCompletionProcessor(editor, assistant, IDocument.DEFAULT_CONTENT_TYPE);

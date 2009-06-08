@@ -13,7 +13,9 @@ package org.eclipse.contribution.weaving.jdt.tests.itdawareness;
 
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.core.Openable;
@@ -27,6 +29,7 @@ public class MockContentAssistProvider implements IJavaContentAssistProvider {
     
     
     boolean contentAssistDone = false;
+    boolean codeSelectDone = false;
 
     public boolean doContentAssist(ICompilationUnit cu,
             ICompilationUnit unitToSkip, int position,
@@ -36,4 +39,10 @@ public class MockContentAssistProvider implements IJavaContentAssistProvider {
         return true;
     }
 
+    public IJavaElement[] doCodeSelect(
+            org.eclipse.jdt.core.ICompilationUnit unit, int offset, int length,
+            IJavaElement[] result) throws JavaModelException {
+        codeSelectDone = true;
+        return new IJavaElement[0];
+    }
 }
