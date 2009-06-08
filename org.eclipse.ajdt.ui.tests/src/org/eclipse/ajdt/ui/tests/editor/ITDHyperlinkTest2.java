@@ -13,13 +13,10 @@ package org.eclipse.ajdt.ui.tests.editor;
 
 import java.lang.reflect.Field;
 
-import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.text.ITDHyperlinkDetector;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaElementHyperlink;
@@ -27,11 +24,12 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
-import org.eclipse.ui.IEditorPart;
 
 /**
  * Further testing of ITD hyperlinks.
  * Ensure that hyperlinking works when target aspect is in separate project
+ * ITDHyperlink detector is not used any more, codeSelect (via ITDAwareness is used instead).
+ * but this is nonetheless a good test of ITDAwareness.
  * @author Andrew Eisenberg
  */
 public class ITDHyperlinkTest2 extends UITestCase {
