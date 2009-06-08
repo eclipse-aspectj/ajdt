@@ -29,6 +29,12 @@ import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+/**
+ * @author Andrew Eisenberg
+ * @created Jun 6, 2009
+ *
+ * This class is now unused since ITDHyperlinks are found via code select now (through the ITDAwareness aspect)
+ */
 public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
 
     public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
@@ -61,27 +67,7 @@ public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
                 return null;
             
             
-            JavaProject javaProject = (JavaProject) unit.getJavaProject();
-            SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
-
-            ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
-            SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true));
-            
-            final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
-            converter.setUnit(unit);
-            ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
-            
-            org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
-                    new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()){
-                public char[] getContents() {
-                    return converter.content;
-                }
-            };
-            int transformedStart = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset(), replacements);
-            int transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements)-1;
-            
-            engine.select(wrappedUnit, transformedStart, transformedEnd);
-            IJavaElement[] elements = requestor.getElements();
+            IJavaElement[] elements = findJavaElement(unit, wordRegion);
             if (elements.length == 0) {
                 return null;
             }
@@ -94,5 +80,31 @@ public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
         } catch (JavaModelException e) {
         }
         return null;
+    }
+
+    private IJavaElement[] findJavaElement(ICompilationUnit unit,
+            IRegion wordRegion) throws JavaModelException {
+        JavaProject javaProject = (JavaProject) unit.getJavaProject();
+        SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
+
+        ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
+        SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true));
+        
+        final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
+        converter.setUnit(unit);
+        ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
+        
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
+                new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()){
+            public char[] getContents() {
+                return converter.content;
+            }
+        };
+        int transformedStart = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset(), replacements);
+        int transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements)-1;
+        
+        engine.select(wrappedUnit, transformedStart, transformedEnd);
+        IJavaElement[] elements = requestor.getElements();
+        return elements;
     }
 }

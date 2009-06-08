@@ -1,16 +1,22 @@
 package org.eclipse.ajdt.internal.ui.markers;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.MultiRule;
 
 public class DeleteAndUpdateAJMarkersJob extends Job {
     public final static Object UPDATE_DELETE_AJ_MARKERS_FAMILY = new Object();
@@ -19,27 +25,28 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     private UpdateAJMarkers update;
     private IProject project;
     private boolean deleteOnly = false;
+    private ISchedulingRule rule;
     
     public DeleteAndUpdateAJMarkersJob(IProject project) {
         super("Delete and update AspectJ markers for " + project.getName());
         this.project = project;
         update = new UpdateAJMarkers(project);
         delete = new DeleteAJMarkers(project);
+        rule = createSchedulingRule(project, null);
     }
     
     public DeleteAndUpdateAJMarkersJob(IProject project, File[] sourceFiles) {
         super("Delete and update AspectJ markers for " + project.getName());
-        update = new UpdateAJMarkers(project, sourceFiles);
-        delete = new DeleteAJMarkers(project, sourceFiles);
+        IFile[] iFiles = javaFileToIFile(sourceFiles);
+        update = new UpdateAJMarkers(project, iFiles);
+        delete = new DeleteAJMarkers(project, iFiles);
+        rule = createSchedulingRule(project, iFiles);
     }
 
     protected IStatus run(IProgressMonitor monitor) {
         try {
-            
-
             try {
-                // get a lock on the workspace so that no other marker operations can be performed at the same time
-                manager.beginRule(project, monitor);
+                manager.beginRule(rule, monitor);
                 
                 IStatus deleteStatus = delete.run(monitor);
                 
@@ -61,7 +68,8 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
                         new IStatus[] { deleteStatus, updateStatus }, 
                         "Finished deleting and updating markers", null);
             } finally {
-                manager.endRule(project);
+                manager.endRule(rule);
+//                manager.endRule(project);
             }
         } catch (OperationCanceledException e) {
             // we've been canceled.  Just exit.  No need to clean markers that have already been placed
@@ -80,5 +88,41 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     
     public boolean belongsTo(Object family) {
         return family == UPDATE_DELETE_AJ_MARKERS_FAMILY;
+    }
+
+    /**
+     * Creates the minimum scheduling rule required for this job.
+     * This rule is either the combined rules for all affected resources
+     * or the rule for the project if the sourceFiles parameter is null.
+     */
+    private ISchedulingRule createSchedulingRule(IProject thisProject,
+            IFile[] sourceFiles) {
+        ISchedulingRule updateRule;
+        if (sourceFiles != null) {
+            ISchedulingRule[] subRules = new ISchedulingRule[sourceFiles.length];
+            for (int i = 0; i < sourceFiles.length; i++) {
+                subRules[i] = sourceFiles[i];
+            }
+            updateRule = new MultiRule(subRules);
+        } else {
+            updateRule = project;
+        }
+        return updateRule;
+    }
+    
+    /**
+     * converts from an array of java.io.File to an array of IFile
+     */
+    static IFile[] javaFileToIFile(File[] files) {
+        IWorkspace workspace= ResourcesPlugin.getWorkspace();
+        List iFiles = new ArrayList(files.length);
+        for (int i = 0; i < files.length; i++) {
+            IFile[] newFiles = workspace.getRoot().findFilesForLocationURI(files[i].toURI());
+            // inner loop---if a single file is mapped to several linked files in the workspace
+            for (int j = 0; j < newFiles.length; j++) {
+                iFiles.add(newFiles[j]);
+            }
+        }
+        return (IFile[]) iFiles.toArray(new IFile[iFiles.size()]);
     }
 }
