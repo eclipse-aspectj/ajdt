@@ -191,7 +191,7 @@ public class IntertypeElement extends AspectJMemberElement {
 
     private String extractName() {
         String[] split = name.split("\\.");
-        return split.length > 1 ? split[1] : name;
+        return split.length > 1 ? split[split.length-1] : name;
     }
 	
 	private String[] getQualifiedParameterTypes() {
