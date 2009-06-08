@@ -21,7 +21,9 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -32,11 +34,12 @@ import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.Openable;
 import org.eclipse.jdt.internal.core.PackageFragment;
+import org.eclipse.jface.text.Region;
 
 /**
  * @author Andrew Eisenberg
  * @created Jan 2, 2009
- *
+ * Provides ITD Aware content assist and code selection
  */
 public class ContentAssistProvider implements IJavaContentAssistProvider {
     
@@ -114,4 +117,68 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         
         return true;
     }
+
+    /**
+     * performs ITD-aware code select if necessary.
+     * The check to see if necessary does the following:
+     * 1. if prevResults is null or has length 0, then does it
+     * 2. (a) check to see if the prevResults has length 1 and is IType
+     *    (b) get the text covered by the selection and expand (or contract) to get the full word
+     *    (c) if the full word is not the same as the element name, then do it
+     */
+    public IJavaElement[] doCodeSelect(
+            org.eclipse.jdt.core.ICompilationUnit unit,
+            int offset, int length, IJavaElement[] prevResults)
+            throws JavaModelException {
+        
+        if (prevResults != null && prevResults.length > 1) {
+            return prevResults;
+        }
+        if (prevResults.length == 1) {
+            if (! (prevResults[0] instanceof IType)) {
+                return prevResults;
+            } else {
+                // get the expanded text region and see if it matches the type name
+                String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents());
+                if (expandedRegion.equals(prevResults[0].getElementName())) {
+                    // we really are looking for the type
+                    return prevResults;
+                }
+            }
+        }
+        // we want to do ITD Aware code select
+        IJavaElement[] newResults = new ITDCodeSelection(unit).findJavaElement(new Region(offset, length));
+        return newResults != null && newResults.length > 0 ?
+                newResults : prevResults;
+    }
+
+    /**
+     * Expands the region of the selection to include a full word.
+     * After finding this word, whitespace from the ends are removed
+     * Also, if the word contains a '.' or any whitespace in the center,
+     * then only the last segment is returned
+     */
+    protected String getExpandedRegion(int offset, int length, char[] contents) {
+        int start = offset;
+        int end = offset+length;
+        
+        start--;
+        while (start >= 0 && Character.isJavaIdentifierPart(contents[start])) {
+            start--;
+        }
+        start++;
+        
+        while (end < contents.length && Character.isJavaIdentifierPart(contents[end])) {
+            end++;
+        }
+        
+        String candidate = String.valueOf(contents, start, end-start);
+        candidate = candidate.trim();
+        String split[] = candidate.split("\\.|\\s");
+        if (split.length > 1) {
+            candidate = split[split.length-1];
+        }
+        return candidate;
+    }
+
 }

@@ -334,7 +334,13 @@ public class AJCompilationUnitProblemFinder extends
         message.append(lineDelimiter);
         message.append("----------------------------------- SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
         message.append(lineDelimiter);
+        if (unitElement instanceof AJCompilationUnit) {
+            ((AJCompilationUnit) unitElement).requestOriginalContentMode();
+        }
         message.append(unitElement.getSource());
+        if (unitElement instanceof AJCompilationUnit) {
+            ((AJCompilationUnit) unitElement).discardOriginalContentMode();
+        }
         message.append(lineDelimiter);
         message.append("----------------------------------- SOURCE END -------------------------------------"); //$NON-NLS-1$
         
@@ -345,7 +351,13 @@ public class AJCompilationUnitProblemFinder extends
             for (int i = 0; i < workingCopies.length; i++) {
                 message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
                 message.append(lineDelimiter);
+                if (workingCopies[i] instanceof AJCompilationUnit) {
+                    ((AJCompilationUnit) workingCopies[i]).requestOriginalContentMode();
+                }
                 message.append(workingCopies[i].getSource());
+                if (workingCopies[i] instanceof AJCompilationUnit) {
+                    ((AJCompilationUnit) workingCopies[i]).discardOriginalContentMode();
+                }
                 message.append(lineDelimiter);
                 message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
             }

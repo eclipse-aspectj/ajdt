@@ -68,8 +68,9 @@ public class AJReconcileWorkingCopyOperation extends
 	
 	/**
 	 * @param workingCopy
+	 * @param creatAST
 	 * @param astLevel
-	 * @param reconcileFlags
+	 * @param forceProblemDetection
 	 * @param workingCopyOwner
 	 */
 	public AJReconcileWorkingCopyOperation(IJavaElement workingCopy,

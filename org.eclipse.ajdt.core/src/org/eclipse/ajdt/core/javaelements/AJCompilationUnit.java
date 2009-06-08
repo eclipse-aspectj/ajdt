@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
@@ -43,7 +42,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.PerformanceStats;
 import org.eclipse.jdt.core.CompletionRequestor;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
