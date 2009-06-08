@@ -15,5 +15,5 @@ Require-Bundle: org.eclipse.contribution.xref.ui,
  org.eclipse.jdt.core,
  org.junit,
  org.eclipse.contribution.xref.core
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
