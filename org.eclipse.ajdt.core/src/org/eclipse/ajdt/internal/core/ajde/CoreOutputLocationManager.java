@@ -627,7 +627,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     }
 
     private File pathToFile(IPath path) {
-        IPath locPath = ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getLocation();
+        // Bug 279497 if path is only one segment, then assume it is a project
+        
+        IPath locPath = path.segmentCount() > 1 ? 
+                ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getLocation() :
+                ResourcesPlugin.getWorkspace().getRoot().getProject(path.makeRelative().toOSString()).getLocation();
         File f;
         if (locPath != null) {
             f = new File(locPath.toOSString());
