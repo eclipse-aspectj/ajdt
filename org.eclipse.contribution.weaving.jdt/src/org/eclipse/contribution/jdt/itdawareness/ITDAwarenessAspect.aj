@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -186,8 +187,10 @@ public aspect ITDAwarenessAspect {
     
     /**
      * for determining hyperlinks and open action
+     * Also used for ITD hyperlinking
      */
-    pointcut codeSelect() : execution(protected IJavaElement[] Openable.codeSelect(org.eclipse.jdt.internal.compiler.env.ICompilationUnit,int,int,WorkingCopyOwner) throws JavaModelException);
+    pointcut codeSelect() : 
+        execution(protected IJavaElement[] Openable.codeSelect(org.eclipse.jdt.internal.compiler.env.ICompilationUnit,int,int,WorkingCopyOwner) throws JavaModelException);
     
     /********************************************
      * This section handles reconciling of java CompilationUnits. 
@@ -273,5 +276,33 @@ public aspect ITDAwarenessAspect {
         if (!result) {
             proceed(cu, unitToSkip, position, requestor, owner, typeRoot, target);
         }
+    }
+    
+    /**
+     * 
+     * used for ITD hyperlinking
+     */
+    pointcut codeSelectWithArgs(CompilationUnit unit, int offset, int length) : 
+        execution(public IJavaElement[] CompilationUnit.codeSelect(int,int) throws JavaModelException) &&
+        this(unit) && args(offset, length);
+
+    
+    /**
+     * Performs codeSelect operations with ITDAwareness.  This will allow things 
+     * like Hovers and OpenDeclaration to work as exepcted with ITDs.
+     */
+    IJavaElement[] around(CompilationUnit unit, int offset, int length) : 
+            codeSelectWithArgs(unit, offset, length) {
+        IJavaElement[] result = proceed(unit, offset, length);
+        if (contentAssistProvider != null && provider != null &&
+                provider.shouldFindProblems((CompilationUnit) unit)) {
+            // look for ITDs at the current location if required
+            try {
+                result = contentAssistProvider.doCodeSelect(unit, offset, length, result);
+            } catch (Exception e) {
+                JDTWeavingPlugin.logException(e);
+            }
+        }
+        return result;
     }
 }

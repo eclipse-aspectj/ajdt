@@ -12,7 +12,10 @@
 package org.eclipse.contribution.jdt.itdawareness;
 
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.core.Openable;
 
@@ -20,7 +23,7 @@ import org.eclipse.jdt.internal.core.Openable;
  * @author Andrew Eisenberg
  * @created Jan 2, 2009
  * 
- * Allows a plugin to usurp content assist calculation
+ * Allows a plugin to usurp content assist and code select calculation
  * from the Java one to a custom one
  *
  */
@@ -30,4 +33,7 @@ public interface IJavaContentAssistProvider {
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
             ITypeRoot typeRoot, Openable target) throws Exception;
+    
+    public IJavaElement[] doCodeSelect(ICompilationUnit unit,
+            int offset, int length, IJavaElement[] result) throws JavaModelException;
 }
