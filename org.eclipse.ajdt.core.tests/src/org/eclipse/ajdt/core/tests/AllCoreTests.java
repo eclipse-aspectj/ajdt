@@ -54,6 +54,9 @@ import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.Bug268522;
+import org.eclipse.ajdt.core.tests.model.GetExpandedRegionTests;
+import org.eclipse.ajdt.core.tests.model.ITDAwareCodeSelectionTests;
+import org.eclipse.ajdt.core.tests.model.ITDAwareCodeSelectionTests2;
 import org.eclipse.ajdt.core.tests.model.InpathRelationshipsTests;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
@@ -84,6 +87,8 @@ public class AllCoreTests {
 		if (is50) {
 			suite.addTest(new TestSuite(AJCoreTestJava5.class));
 		}
+		
+		
 		suite.addTest(new TestSuite(AJPropertiesTest.class));
 		suite.addTest(new TestSuite(BuildConfigTest.class));
 		suite.addTest(new TestSuite(CoreUtilsTest.class));
@@ -112,6 +117,9 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(AspectJMemberElementTest.class));
         suite.addTest(new TestSuite(Bug268522.class));
         suite.addTest(new TestSuite(InpathRelationshipsTests.class));
+        suite.addTest(new TestSuite(ITDAwareCodeSelectionTests.class));
+        suite.addTest(new TestSuite(ITDAwareCodeSelectionTests2.class));
+        suite.addTest(new TestSuite(GetExpandedRegionTests.class));
         
         
 		
