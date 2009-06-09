@@ -469,7 +469,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     exists = true;
                 } else {
                     // might be a class folder
-                    onPath = root.getFile(path);
+                    onPath = root.getFolder(path);
                     exists = onPath.exists();
                 }
             } else {
