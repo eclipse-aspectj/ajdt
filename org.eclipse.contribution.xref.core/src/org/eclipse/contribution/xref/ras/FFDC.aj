@@ -32,7 +32,7 @@ public abstract aspect FFDC {
      * Exclude FFDC aspects from exception reporting to avoid unwanted
      * recursion. Also exclude exceptions for cancelled operations
      */
-    private pointcut excluded () : within(FFDC+) || handler(OperationCanceledException);
+    private pointcut excluded () : within(FFDC+) || handler(OperationCanceledException) || within(NoFFDC+);
 
     /** 
      * Advice for catch blocks in static context
