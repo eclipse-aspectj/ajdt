@@ -139,6 +139,18 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
         checkFileForDeclaringProject(level2.getFolder("bin"), com, level2);
 	}
 	
+	/**
+	 * tests bug 279497 when a required project uses root as the source folder
+	 * an IllegalArgumentException was being thrown
+	 */
+	public void testFindDeclaringProjectWithSrcAsRoot() throws Exception {
+        IProject base = createPredefinedProject("Bug279497AJ");
+        IProject required = createPredefinedProject("Bug279497RootAsSourceFolder");
+        
+        MockCoreOutputLocationManager com = new MockCoreOutputLocationManager(base);
+        checkFileForDeclaringProject(required, com, required);
+    }
+	
 	void checkFileForDeclaringProject(IResource resource, MockCoreOutputLocationManager com, IProject expected) {
 	    File file = new File(resource.getLocationURI());
 	    IProject actual = com.findDeclaringProject(file);

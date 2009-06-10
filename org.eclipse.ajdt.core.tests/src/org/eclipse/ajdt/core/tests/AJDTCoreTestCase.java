@@ -46,7 +46,11 @@ public class AJDTCoreTestCase extends TestCase {
     
     DefaultLogger defaultLogger = new DefaultLogger();
     {
-        AspectJPlugin.getDefault().setAJLogger(defaultLogger);
+        try {
+            AspectJPlugin.getDefault().setAJLogger(defaultLogger);
+        } catch (Exception e) {
+            // do nothing, plugin is probably not needed for this test
+        }
     }
     
     protected void setUp() throws Exception {
