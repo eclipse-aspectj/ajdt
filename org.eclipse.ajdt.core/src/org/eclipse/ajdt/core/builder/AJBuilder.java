@@ -459,12 +459,25 @@ public class AJBuilder extends IncrementalProjectBuilder {
         List strings = new ArrayList(entries.size());
         for (Iterator iterator = entries.iterator(); iterator
                 .hasNext();) {
-            IClasspathEntry entry = (IClasspathEntry) iterator.next();
-            IFile onPath = root.getFile(entry.getPath());
+            IPath path = ((IClasspathEntry) iterator.next()).getPath();
+            boolean exists;
             // only add if exists
-            if (onPath.exists() || 
-                    root.getFolder(onPath.getFullPath()).exists()) {  // may be a class folder
-
+            IResource onPath;
+            if (path.segmentCount() > 1) {
+                onPath = root.getFile(path);
+                if (onPath.exists()) {
+                    exists = true;
+                } else {
+                    // might be a class folder
+                    onPath = root.getFolder(path);
+                    exists = onPath.exists();
+                }
+            } else {
+                onPath = root.getProject(path.makeRelative().toOSString());
+                exists = onPath.exists();
+            }
+            
+            if (exists) {
                 strings.add(onPath.getLocation().toPortableString());
             }
         }

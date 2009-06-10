@@ -76,7 +76,7 @@ import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
  * @author Luzius Meisser 
  * @author Andrew Eisenberg
  */
- /* AJDT 1.7 lots of changes */
+ /* AJDT 1.7 lots of changes Do not sync with 1.6 */
 public class AJCompilationUnitStructureRequestor extends
 		CompilationUnitStructureRequestor implements IAspectSourceElementRequestor {
 

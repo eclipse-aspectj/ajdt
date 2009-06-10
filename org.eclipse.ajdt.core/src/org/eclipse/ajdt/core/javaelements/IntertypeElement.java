@@ -94,6 +94,7 @@ public class IntertypeElement extends AspectJMemberElement {
 		return AspectElement.JEM_ITD;
 	}
 	
+	/* AJDT 1.7 */
     protected Integer getParamNum() {
         return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
     }
@@ -188,7 +189,7 @@ public class IntertypeElement extends AspectJMemberElement {
 
     private String extractName() {
         String[] split = name.split("\\.");
-        return split.length > 1 ? split[1] : name;
+        return split.length > 1 ? split[split.length-1] : name;
     }
 	
 	private String[] getQualifiedParameterTypes() {
