@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import org.eclipse.contribution.xref.ras.NoFFDC;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -29,7 +30,7 @@ import org.eclipse.core.runtime.Status;
  * org.eclipse.contribution.xref.providers extension point.
  * 
  */
-public class XReferenceProviderManager {
+public class XReferenceProviderManager implements NoFFDC {
 
 	private static XReferenceProviderManager theManager;
 	private List providerList;
