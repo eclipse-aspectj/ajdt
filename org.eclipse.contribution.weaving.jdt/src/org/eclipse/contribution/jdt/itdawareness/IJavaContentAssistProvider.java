@@ -13,7 +13,10 @@ package org.eclipse.contribution.jdt.itdawareness;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.core.Openable;
 
@@ -32,4 +35,8 @@ public interface IJavaContentAssistProvider {
             WorkingCopyOwner owner,
                                                  /* AJDT 1.7 */
             ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception;
+            
+    public IJavaElement[] doCodeSelect(ICompilationUnit unit,
+            int offset, int length, IJavaElement[] result) throws JavaModelException;
+            
 }
