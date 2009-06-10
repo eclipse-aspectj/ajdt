@@ -72,6 +72,7 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug273691Reconciling;
+import org.eclipse.ajdt.ui.tests.reconciling.Bug279439Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
@@ -234,6 +235,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests11.class));
         suite.addTest(new TestSuite(ProblemFinderTests12.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
+        suite.addTest(new TestSuite(Bug279439Reconciling.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));

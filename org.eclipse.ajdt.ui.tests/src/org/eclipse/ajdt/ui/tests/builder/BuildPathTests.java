@@ -85,6 +85,7 @@ public class BuildPathTests extends UITestCase {
         UserLibraryClasspathContainerInitializer initializer = new UserLibraryClasspathContainerInitializer();
         initializer.initialize(containerPath, inpathJProj);
         initializer.requestClasspathContainerUpdate(containerPath, inpathJProj, containerHint);
+        waitForJobsToComplete();
         hasInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
 
         waitForJobsToComplete();
