@@ -29,6 +29,12 @@ import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+/**
+ * @author Andrew Eisenberg
+ * @created Jun 6, 2009
+ *
+ * This class is now unused since ITDHyperlinks are found via code select now (through the ITDAwareness aspect)
+ */
 public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
 
     public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
@@ -61,6 +67,23 @@ public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
                 return null;
             
             
+            IJavaElement[] elements = findJavaElement(unit, wordRegion);
+            if (elements.length == 0) {
+                return null;
+            }
+            IHyperlink[] result= new IHyperlink[elements.length];
+            for (int i= 0; i < elements.length; i++) {
+                result[i]= new JavaElementHyperlink(wordRegion, (SelectionDispatchAction) openAction, elements[i], elements.length > 1);
+            }
+            return result;
+
+        } catch (JavaModelException e) {
+        }
+        return null;
+    }
+
+    private IJavaElement[] findJavaElement(ICompilationUnit unit,
+            IRegion wordRegion) throws JavaModelException {
             JavaProject javaProject = (JavaProject) unit.getJavaProject();
             SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
 
@@ -82,17 +105,6 @@ public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
             
             engine.select(wrappedUnit, transformedStart, transformedEnd);
             IJavaElement[] elements = requestor.getElements();
-            if (elements.length == 0) {
-                return null;
-            }
-            IHyperlink[] result= new IHyperlink[elements.length];
-            for (int i= 0; i < elements.length; i++) {
-                result[i]= new JavaElementHyperlink(wordRegion, (SelectionDispatchAction) openAction, elements[i], elements.length > 1);
-            }
-            return result;
-
-        } catch (JavaModelException e) {
-        }
-        return null;
+        return elements;
     }
 }

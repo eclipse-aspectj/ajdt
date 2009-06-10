@@ -81,6 +81,7 @@ import org.eclipse.ui.PlatformUI;
  * Updated for Eclipse 3.1 - bug 109484
  * Changes marked with // AspectJ Extension
  */
+ /* AJDT 1.7 lots of changes.  Do not sync */
 public class AJdocWizard extends Wizard implements IExportWizard {
 
 //	 AspectJ Extension - using AJDoc pages rather than javadoc
