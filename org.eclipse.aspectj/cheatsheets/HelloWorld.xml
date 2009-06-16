@@ -33,7 +33,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/firstproject.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/firstproject.htm"
 		title="Create an AspectJ Project"
 		skip="true">
 		<action
@@ -156,7 +156,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/firstaspect.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/firstaspect.htm"
 		title="Create the World Aspect"
 		skip="true">
 		<action
@@ -177,7 +177,7 @@
 </item>
 
 	<item
-		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#d0e194"
+		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#pointcuts"
 		title="Define a greeting() pointcut">
 		<description>
 			Now that you have a World aspect, add the following statement to the
@@ -197,7 +197,7 @@
 </item>
 
 	<item
-		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#d0e304"
+		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#advice"
 		title="Define after() returning advice to print &quot;World!&quot;">
 		<description>
 			The greeting pointcut will match the execution of the sayHello() method, but
@@ -319,7 +319,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/crosscutting.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/crosscutting.htm"
 		title="Open the Cross Reference View">
 		<description>
 			AJDT provides a new view which shows you where your advice is affecting.
@@ -335,7 +335,7 @@
 
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/crosscutting.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/crosscutting.htm"
 		title="Viewing the World Aspect in the Cross Reference View">
 		<description>
 			Let us first look at the World Aspect. Select the World Aspect so that it 
@@ -358,7 +358,7 @@
 
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/crosscutting.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/crosscutting.htm"
 		title="Viewing the advised HelloWorld class in the Cross Reference View">
 		<description>
 			Select the HelloWorld class so that it appears in the editor. You see that the 
@@ -375,7 +375,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/visualising.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/visualising.htm"
 		title="Open the Aspect Visualization Perspective">
 		<description>
 			There is a whole perspective dedicated to showing you where the aspects you have
@@ -388,7 +388,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/visualising.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/visualising.htm"
 		title="The AspectJ Visualiser">
 		<description>
 			In the middle of your workbench is the <b>AspectJ Visualiser</b>. Selecting either your project 
@@ -423,7 +423,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/gettingStarted/launching.htm"
+		href="/org.eclipse.ajdt.doc.user/gettingStarted/launching.htm"
 		title="Test the application">
 		<description>
 			The final moment has arrived.  You are ready to test the AspectJ Hello World application.
@@ -443,7 +443,7 @@
 
 
 	<item
-		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#d0e304"
+		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#advice"
 		title="Saying World, Hello rather than Hello World">
 		<description>
 			In the example so far we have used after returning advice to print &quot;Hello World&quot; to the 
