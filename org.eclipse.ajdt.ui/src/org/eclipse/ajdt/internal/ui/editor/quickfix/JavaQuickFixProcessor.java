@@ -22,6 +22,7 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 
 
@@ -35,7 +36,7 @@ import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
  * @created Dec 27, 2008
  *
  */
-public class JavaQuickFixProcessor implements IQuickFixProcessor {
+public class JavaQuickFixProcessor implements IQuickAssistProcessor, IQuickFixProcessor {
 
     public IJavaCompletionProposal[] getCorrections(IInvocationContext context,
             IProblemLocation[] locations) throws CoreException {
@@ -79,6 +80,17 @@ public class JavaQuickFixProcessor implements IQuickFixProcessor {
 
     private boolean isAJProject(ICompilationUnit unit) {
         return AspectJPlugin.isAJProject(unit.getJavaProject().getProject());
+    }
+
+    public IJavaCompletionProposal[] getAssists(IInvocationContext context,
+            IProblemLocation[] locations) throws CoreException {
+        // none
+        return null;
+    }
+
+    public boolean hasAssists(IInvocationContext context) throws CoreException {
+        // no assists, only corrections
+        return false;
     }
 
 }

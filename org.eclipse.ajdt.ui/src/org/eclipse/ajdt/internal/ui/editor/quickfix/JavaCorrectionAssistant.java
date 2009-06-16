@@ -84,8 +84,9 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 		Color c= getColor(store, JFacePreferences.CONTENT_ASSIST_FOREGROUND_COLOR, manager);
 		setProposalSelectorForeground(c);
 
-		c= getColor(store, JFacePreferences.CONTENT_ASSIST_BACKGROUND_COLOR, manager);
-		setProposalSelectorBackground(c);
+		// use the default each time, rather than setting it here
+//		c= getColor(store, JFacePreferences.CONTENT_ASSIST_BACKGROUND_COLOR, manager);
+//		setProposalSelectorBackground(c);
 	}
 
 	public IEditorPart getEditor() {
