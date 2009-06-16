@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
@@ -493,9 +494,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (addReferencesForOrganizeImports)
             addReferences();
 
-        if (isSimulateContextSwitchNecessary)
+        if (isSimulateContextSwitchNecessary) {
             simulateContextSwitch(options.getCodeCompletePosition(), options
                     .getTargetType());
+        }
 
         applyReplacements();
 
@@ -713,11 +715,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                                         .hasNext();) {
                                     sb.append(iterator.next() + " ");
                                 }
-                                sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n");
+                                sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n\t");
                             } else if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD || 
                                        declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
                                 
-                                sb.append(declareElt.getAccessibility() + " ");
+                                sb.append(getAccessibilityString(declareElt));
                                 List modifiers = declareElt.getModifiers();
                                 for (Iterator iterator = modifiers.iterator(); iterator
                                         .hasNext();) {
@@ -753,6 +755,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         }
         
         return new char[0];
+    }
+
+
+    private String getAccessibilityString(IProgramElement declareElt) {
+        return (declareElt.getAccessibility() != Accessibility.PACKAGE ? declareElt.getAccessibility().toString() : "") + " ";
     }
 
     private boolean inTypeDeclaration() {

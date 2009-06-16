@@ -110,9 +110,6 @@ public class IntertypeElement extends AspectJMemberElement {
 	 */
 	public IMember createMockDeclaration(IType parent) {
 	    try {
-	        // REMOVE this line is only for Bug 270096
-	        AJLog.log("creating mock element for " + this.getHandleIdentifier() + " with target type " + parent.getHandleIdentifier());
-	        
             final IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
             boolean isConstructor = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR;
             boolean isMethod = info.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD;
