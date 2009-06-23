@@ -69,16 +69,16 @@ public class ITDAwarenessTests extends WeavingTestCase {
         
         // ensure the ajdt bundles are started if they exist
         try {
-        OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.core").start();
+            OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.core").start();
         } catch (NullPointerException e) {
             // ignore, bundle doesn't exist
         }
         try {
-        OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.ui").start();
+            OSGIUtils.getDefault().getBundle("org.eclipse.ajdt.ui").start();
         } catch (NullPointerException e) {
             // ignore, bundle doesn't exist
         }
-        
+
         origProvider = ITDAwarenessAspect.provider;
         origContentAssistProvider = ITDAwarenessAspect.contentAssistProvider;
 
