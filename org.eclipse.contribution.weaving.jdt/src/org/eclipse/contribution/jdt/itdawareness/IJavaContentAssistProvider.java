@@ -24,7 +24,7 @@ import org.eclipse.jdt.internal.core.Openable;
  * @author Andrew Eisenberg
  * @created Jan 2, 2009
  * 
- * Allows a plugin to usurp content assist calculation
+ * Allows a plugin to usurp content assist and code select calculation
  * from the Java one to a custom one
  *
  */
