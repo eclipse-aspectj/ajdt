@@ -109,7 +109,10 @@
 		</copy>
 		<replace file="${buildDirectory}/plugins/org.eclipse.aspectj/about.mappings"
 			token="@AJVERSION@" value="${ajde.version}"/>
-		
+		<!--
+		<replace file="${buildDirectory}/plugins/org.eclipse.ajdt.ui/src/org/eclipse/ajdt/internal/ui/text/UIMessages.properties"
+			token="@AJDEVERSION@" value="${ajde.version}"/>
+		--> 
 		<copy todir="${buildDirectory}/plugins/org.aspectj.runtime">
 			<fileset dir="${builder}/../org.aspectj.runtime"/>
 		</copy>
