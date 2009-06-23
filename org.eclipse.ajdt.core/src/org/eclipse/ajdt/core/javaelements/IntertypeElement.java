@@ -101,7 +101,7 @@ public class IntertypeElement extends AspectJMemberElement {
 	
 	/**
      * note that we set the accessibility to public because the modifiers 
-	 * apply to the ITD element, not the target declaration.
+     * apply to the ITD element, not the target declaration.
      * We are purposely being too liberal with the modifiers so that
      * we don't get accessibility problems when an ITD is declared private
      * and is used in the Aspect CU that declares it.

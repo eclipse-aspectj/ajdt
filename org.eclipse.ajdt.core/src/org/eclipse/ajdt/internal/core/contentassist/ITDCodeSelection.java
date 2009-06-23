@@ -45,6 +45,7 @@ public class ITDCodeSelection {
         SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
 
         ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
+        /* AJDT 1.7 */
         SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner());
         
         final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());

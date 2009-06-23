@@ -173,7 +173,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
 
     private String extractName(String name) {
         String[] split = name.split("\\.");
-        return split.length > 1 ? split[1] : name;
+        return split.length > 1 ? split[split.length-1] : name;
     }
 
 
