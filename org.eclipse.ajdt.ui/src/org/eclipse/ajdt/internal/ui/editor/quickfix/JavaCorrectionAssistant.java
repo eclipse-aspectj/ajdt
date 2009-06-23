@@ -14,19 +14,18 @@ package org.eclipse.ajdt.internal.ui.editor.quickfix;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
 import org.eclipse.jdt.internal.ui.text.correction.QuickAssistLightBulbUpdater;
 import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jdt.ui.PreferenceConstants;
+import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.jdt.ui.text.IColorManager;
 import org.eclipse.jdt.ui.text.JavaTextTools;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.JFacePreferences;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -82,11 +81,12 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 
 		IPreferenceStore store=  JavaPlugin.getDefault().getPreferenceStore();
 
-		Color c= getColor(store, PreferenceConstants.CODEASSIST_PROPOSALS_FOREGROUND, manager);
+		Color c= getColor(store, JFacePreferences.CONTENT_ASSIST_FOREGROUND_COLOR, manager);
 		setProposalSelectorForeground(c);
 
-		c= getColor(store, PreferenceConstants.CODEASSIST_PROPOSALS_BACKGROUND, manager);
-		setProposalSelectorBackground(c);
+		// use the default each time, rather than setting it here
+//		c= getColor(store, JFacePreferences.CONTENT_ASSIST_BACKGROUND_COLOR, manager);
+//		setProposalSelectorBackground(c);
 	}
 
 	public IEditorPart getEditor() {
@@ -246,7 +246,7 @@ public class JavaCorrectionAssistant extends QuickAssistAssistant {
 	private static void ensureUpdatedAnnotations(ITextEditor editor) {
 		Object inputElement= editor.getEditorInput().getAdapter(IJavaElement.class);
 		if (inputElement instanceof ICompilationUnit) {
-			JavaPlugin.getDefault().getASTProvider().getAST((ICompilationUnit) inputElement, ASTProvider.WAIT_ACTIVE_ONLY, null);
+			JavaPlugin.getDefault().getASTProvider().getAST((ICompilationUnit) inputElement, SharedASTProvider.WAIT_ACTIVE_ONLY, null);
 		}
 	}
 

@@ -84,27 +84,27 @@ public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
 
     private IJavaElement[] findJavaElement(ICompilationUnit unit,
             IRegion wordRegion) throws JavaModelException {
-            JavaProject javaProject = (JavaProject) unit.getJavaProject();
-            SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
+        JavaProject javaProject = (JavaProject) unit.getJavaProject();
+        SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
 
-            ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
-            SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner()); /* AJDT 1.7 */
-            
-            final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
-            converter.setUnit(unit);
-            ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
-            
-            org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
-                    new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()){
-                public char[] getContents() {
-                    return converter.content;
-                }
-            };
-            int transformedStart = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset(), replacements);
-            int transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements)-1;
-            
-            engine.select(wrappedUnit, transformedStart, transformedEnd);
-            IJavaElement[] elements = requestor.getElements();
+        ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
+        SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner()); /* AJDT 1.7 */
+        
+        final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
+        converter.setUnit(unit);
+        ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
+        
+        org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
+                new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()){
+            public char[] getContents() {
+                return converter.content;
+            }
+        };
+        int transformedStart = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset(), replacements);
+        int transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements)-1;
+        
+        engine.select(wrappedUnit, transformedStart, transformedEnd);
+        IJavaElement[] elements = requestor.getElements();
         return elements;
     }
 }

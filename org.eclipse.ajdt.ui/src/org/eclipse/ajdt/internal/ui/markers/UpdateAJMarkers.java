@@ -35,11 +35,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -213,11 +211,13 @@ public class UpdateAJMarkers {
                     String target = (String) targetIter.next();
                     String markerTypeForRelationship = 
                         getMarkerTypeForRelationship(relationship, target);
-                    if (markerType == null) {
-                        markerType = markerTypeForRelationship;
-                    } else if (!markerType.equals(markerTypeForRelationship)) {
-                        markerType = getCombinedMarkerType(markerType,
-                                markerTypeForRelationship, hasRuntime);
+                    if (markerTypeForRelationship != null) {
+                        if (markerType == null) {
+                            markerType = markerTypeForRelationship;
+                        } else if (!markerType.equals(markerTypeForRelationship)) {
+                            markerType = getCombinedMarkerType(markerType,
+                                    markerTypeForRelationship, hasRuntime);
+                        }
                     }
                 }
             }

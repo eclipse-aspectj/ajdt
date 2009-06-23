@@ -121,6 +121,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
+	
+	/**
+	 * Listens for AspectJ builds
+	 */
+	private UIBuildListener buildListener;
 
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
@@ -277,7 +282,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		super.start(context);
 
 		// listen for builds of AJ projects
-		AJBuilder.addAJBuildListener(new UIBuildListener());
+		buildListener = new UIBuildListener();
+        AJBuilder.addAJBuildListener(buildListener);
 		
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();
@@ -357,6 +363,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
     public void stop(BundleContext context) throws Exception {
 	    super.stop(context);
 	    AspectJPlugin.getWorkspace().removeResourceChangeListener(ajProjectListener);
+	    AJBuilder.removeAJBuildListener(buildListener);
 	}
 	
 

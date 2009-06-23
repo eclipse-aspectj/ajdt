@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -190,8 +191,11 @@ public class UIBuildListener implements IAJBuildListener {
 
 		// Bug22258: Get the compiler monitor to display any issues with
 		// that compile.
-		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
+		IBuildMessageHandler messageHandler = AspectJPlugin.getDefault().getCompilerFactory()
+		        .getCompilerForProject(project).getMessageHandler();
+		if (messageHandler instanceof UIMessageHandler) {
+            ((UIMessageHandler) messageHandler).showOutstandingProblems(project);
+        }
 
 		// before returning, check to see if the project sent its output
 		// to an outjar and if so, then update any depending projects
