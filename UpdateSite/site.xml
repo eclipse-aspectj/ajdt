@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<site>
+<site mirrorsURL="http://www.eclipse.org/downloads/download.php?file=/tools/ajdt/35/dev/update/site.xml&protocol=http&format=xml" pack200="true">
    <description>
       This update site provides the AspectJ feature and related
  tools.
