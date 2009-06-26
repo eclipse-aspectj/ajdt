@@ -1267,48 +1267,70 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return false;
 	}
 	
+	
 	public static void addAJBuildListener(IAJBuildListener listener) {
-		if (!buildListeners.contains(listener)) {
-			buildListeners.add(listener);
-		}
+	    // bug 281687 --- synchronize access to listener list
+	    synchronized (buildListeners) {
+            if (!buildListeners.contains(listener)) {
+                buildListeners.add(listener);
+            }
+        }
 	}
 
 	public static void removeAJBuildListener(IAJBuildListener listener) {
-		buildListeners.remove(listener);
+        // bug 281687 --- synchronize access to listener list
+		synchronized (buildListeners) {
+            buildListeners.remove(listener);
+        }
 	}
 
 	public static void addAdviceListener(IAdviceChangedListener adviceListener) {
-		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-			IAJBuildListener listener = (IAJBuildListener) iter.next();
-			listener.addAdviceListener(adviceListener);
-		}
+        // bug 281687 --- synchronize access to listener list
+		synchronized (buildListeners) {
+            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+                IAJBuildListener listener = (IAJBuildListener) iter.next();
+                listener.addAdviceListener(adviceListener);
+            }
+        }
 	}
 
 	public static void removeAdviceListener(IAdviceChangedListener adviceListener) {
-		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-			IAJBuildListener listener = (IAJBuildListener) iter.next();
-			listener.removeAdviceListener(adviceListener);
-		}
+        // bug 281687 --- synchronize access to listener list
+		synchronized (buildListeners) {
+            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+                IAJBuildListener listener = (IAJBuildListener) iter.next();
+                listener.removeAdviceListener(adviceListener);
+            }
+        }
 	}
 	
 	private void preCallListeners(int kind, IProject project, IProject[] requiredProjects) {
-		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-			IAJBuildListener listener = (IAJBuildListener) iter.next();
-			listener.preAJBuild(kind, project, requiredProjects);
-		}
+        // bug 281687 --- synchronize access to listener list
+		synchronized (buildListeners) {
+            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+                IAJBuildListener listener = (IAJBuildListener) iter.next();
+                listener.preAJBuild(kind, project, requiredProjects);
+            }
+        }
 	}
 	
     private void postCallListeners(int kind, boolean noSourceChanges) {
-        for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-            IAJBuildListener listener = (IAJBuildListener) iter.next();
-            listener.postAJBuild(kind, getProject(),noSourceChanges);
+        // bug 281687 --- synchronize access to listener list
+        synchronized (buildListeners) {
+            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+                IAJBuildListener listener = (IAJBuildListener) iter.next();
+                listener.postAJBuild(kind, getProject(), noSourceChanges);
+            }
         }
     }
     
     private void postCleanCallListeners() {
-        for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-            IAJBuildListener listener = (IAJBuildListener) iter.next();
-            listener.postAJClean(getProject());
+        // bug 281687 --- synchronize access to listener list
+        synchronized (buildListeners) {
+            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+                IAJBuildListener listener = (IAJBuildListener) iter.next();
+                listener.postAJClean(getProject());
+            }
         }
     }
     
