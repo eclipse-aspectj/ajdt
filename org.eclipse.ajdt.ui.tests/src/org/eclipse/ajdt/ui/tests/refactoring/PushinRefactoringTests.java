@@ -271,8 +271,10 @@ public class PushinRefactoringTests extends UITestCase {
                 String msg = (String) marker.getAttribute(IMarker.MESSAGE);
                 
                 // ignore missing imports
+                // ignore duplicate resource warnings
                 if (((Integer) marker.getAttribute(IMarker.SEVERITY)).intValue() >= IMarker.SEVERITY_WARNING 
-                            && msg.indexOf("import") == -1) {
+                            && msg.indexOf("import") == -1 
+                            && msg.indexOf("duplicate resource:") == -1) {
                     sb.append(marker.getResource().getFullPath() + ": ");
                     sb.append(msg  + "\n");
                 }
