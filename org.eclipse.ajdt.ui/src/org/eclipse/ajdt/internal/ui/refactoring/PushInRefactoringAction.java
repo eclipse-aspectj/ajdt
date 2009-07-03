@@ -93,8 +93,14 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
             for (int i = 0; i < elements.length; i++) {
                 if (elements[i] instanceof IJavaElement) {
                     candidates[i] = (IJavaElement) elements[i];
+                    if (candidates[i].isReadOnly()) {
+                        // can't refactor binary elements
+                        candidates = null;
+                        break;
+                    }
                 } else {
                     // invalid selection
+                    candidates = null;
                     break;
                 }
             }
