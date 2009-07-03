@@ -1931,6 +1931,18 @@ M4 = Platform-specific fourth key
                   style="push"
                   tooltip="Push intertype declaration into its target type">
             </action>
+            <visibility>
+            	<or>
+                <objectState
+                      name="readOnly"
+                      value="false">
+                </objectState>
+                <objectState
+                      name="aspectElement"
+                      value="true">
+                </objectState>
+               </or>
+            </visibility>
          </objectContribution>
          <viewerContribution
                id="org.eclipse.ajdt.ui.viewer.refactorings"
@@ -2037,5 +2049,15 @@ M4 = Platform-specific fourth key
             attributeName="org.eclipse.ajdt.aspectpath.restriction"
             class="org.eclipse.ajdt.internal.ui.wizards.AspectpathRestrictionAttributeConfiguration">
       </classpathAttributeConfiguration>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.eclipse.ajdt.core.javaelements.AspectJMemberElement"
+            class="org.eclipse.ajdt.internal.ui.actions.ActionFilterAdapterFactory">
+         <adapter
+               type="org.eclipse.ui.IActionFilter">
+         </adapter>
+      </factory>
    </extension>
 </plugin>
