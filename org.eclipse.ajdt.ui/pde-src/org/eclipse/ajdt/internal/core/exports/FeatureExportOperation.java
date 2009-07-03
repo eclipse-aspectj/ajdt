@@ -481,7 +481,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		}
 
 		setP2MetaDataProperties(fAntBuildProperties);
-		
+
 		return fAntBuildProperties;
 	}
 
