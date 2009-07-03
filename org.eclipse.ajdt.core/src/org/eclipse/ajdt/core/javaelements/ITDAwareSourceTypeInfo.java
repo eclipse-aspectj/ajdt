@@ -18,6 +18,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
@@ -27,6 +28,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnitElementInfo;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceMethodInfo;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
@@ -128,12 +131,15 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             
             
             
-            List itdChildren = getITDs(type);
-            if (itdChildren.size() > 0 || hasChanges) {
-                IJavaElement[] allChildren = new IJavaElement[origChildren.length + itdChildren.size()];
+            List augmentedChildren = getITDs(type);
+            if (type instanceof AspectElement) {
+                augmentedChildren.add(createAspectOf((AspectElement) this.handle));
+            }
+            if (augmentedChildren.size() > 0 || hasChanges) {
+                IJavaElement[] allChildren = new IJavaElement[origChildren.length + augmentedChildren.size()];
                 System.arraycopy(newChildren, 0, allChildren, 0, newChildren.length);
                 int i = origChildren.length;
-                for (Iterator childIter = itdChildren.iterator(); childIter.hasNext();) {
+                for (Iterator childIter = augmentedChildren.iterator(); childIter.hasNext();) {
                     IJavaElement elt = (IJavaElement) childIter.next();
                     allChildren[i++] = elt;
                 }
@@ -266,6 +272,35 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         return shouldAdd;
     }
 
+    
+    /**
+     * create the aspectOf method for 
+     */
+    private SourceMethod createAspectOf(AspectElement parent) {
+        return new SourceMethod(
+                (JavaElement) parent, 
+                "aspectOf", 
+                new String[0]) {
+            protected Object createElementInfo() {
+                return new SourceMethodInfo() {
+                    @Override
+                    public int getModifiers() {
+                        return Flags.AccPublic | Flags.AccStatic;
+                    }
+                    
+                    @Override
+                    public char[] getReturnTypeName() {
+                        return parent.getElementName().toCharArray();
+                    }
+                };
+            }
+            public boolean exists() {
+                return true;
+            }
+        };
+
+    }
+    
     private SourceType createITDAwareType(SourceType type, ITDAwareSourceTypeInfo info) {
         if (type instanceof AspectElement) {
             return new ITDAwareAspectType((JavaElement) type.getParent(), type.getElementName(), info);
