@@ -48,6 +48,7 @@ import org.eclipse.ajdt.ui.tests.editor.ITDHyperlinkTest;
 import org.eclipse.ajdt.ui.tests.editor.ITDHyperlinkTest2;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.Bug273691ContentAssist;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.Bug280508ContentAssist;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests2;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests3;
@@ -180,6 +181,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ContentAssistTests4.class));
         suite.addTest(new TestSuite(ContentAssistTests5.class));
         suite.addTest(new TestSuite(Bug273691ContentAssist.class));
+        suite.addTest(new TestSuite(Bug280508ContentAssist.class));
         
         // test the roo petclinic project
         suite.addTest(new TestSuite(PetClinicTests.class));
