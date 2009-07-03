@@ -692,7 +692,6 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     }
     
     protected char[] getInterTypeDecls(char[] currentTypeName) {
-//        if (unit != null) {
         if (unit != null && currentTypeName != null && currentTypeName.length > 0) {
             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
             if (model.hasModel()) {

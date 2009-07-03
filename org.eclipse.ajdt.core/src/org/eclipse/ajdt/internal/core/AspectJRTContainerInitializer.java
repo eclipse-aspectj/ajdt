@@ -22,10 +22,6 @@ import org.eclipse.jdt.core.JavaCore;
 public class AspectJRTContainerInitializer extends
 		ClasspathContainerInitializer {
 
-	public AspectJRTContainerInitializer() {
-
-	}
-
 	public void initialize(IPath containerPath, IJavaProject project)
 			throws CoreException {
 		int size = containerPath.segmentCount();

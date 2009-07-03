@@ -36,9 +36,6 @@ public class AspectJRTContainer implements IClasspathContainer {
 
 	private static String[] aspectjrtSourcePath = null;
 
-	public AspectJRTContainer() {
-	}
-
 	public IClasspathEntry[] getClasspathEntries() {
 		if (fClasspathEntries == null) {
 			String[] path = getAspectjrtClasspath();
