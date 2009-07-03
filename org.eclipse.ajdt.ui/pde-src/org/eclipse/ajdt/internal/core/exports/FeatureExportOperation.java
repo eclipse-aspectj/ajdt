@@ -481,7 +481,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		}
 
 		setP2MetaDataProperties(fAntBuildProperties);
-
+		
 		return fAntBuildProperties;
 	}
 
@@ -574,6 +574,16 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		generator.setStateExtraData(TargetPlatformHelper.getBundleClasspaths(TargetPlatformHelper.getPDEState()), TargetPlatformHelper.getPatchMap(TargetPlatformHelper.getPDEState()));
 		AbstractScriptGenerator.setForceUpdateJar(false);
 		AbstractScriptGenerator.setEmbeddedSource(fInfo.exportSource);
+		
+		// AspectJ change begin
+        // Bug 268667: allow binary cycles
+        // XXX consider adding this to the UI.
+		Properties properties = new Properties();
+		properties.put(IBuildPropertiesConstants.PROPERTY_ALLOW_BINARY_CYCLES, Boolean.toString(true));
+        properties.put(IBuildPropertiesConstants.PROPERTY_P2_GATHERING, Boolean.toString(fInfo.useJarFormat && fInfo.exportMetadata));
+		generator.setImmutableAntProperties(properties);
+        // AspectJ change end
+
 	}
 
 	protected State getState(String os, String ws, String arch) {
