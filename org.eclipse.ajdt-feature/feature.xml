@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.ajdt"
       label="%featureName"
-      version="2.0.0.qualifier"
+      version="2.0.1.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
@@ -19,7 +19,7 @@
    </license>
  
    <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/35/update"/>
    </url>
 
    <includes
