@@ -21,7 +21,7 @@
    <url>
       <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/35/update"/>
    </url>
-
+ 
    <includes
          id="org.eclipse.ajdt.source"
          version="0.0.0"
