@@ -68,7 +68,7 @@ public class AspectJRTContainer implements IClasspathContainer {
 
 	/**
 	 * Get the aspectjrt.jar classpath entry. This is usually in
-	 * plugins/org.aspectj.ajde_ <VERSION>/aspectjrt.jar
+	 * plugins/org.aspectj.runtime_<VERSION>/aspectjrt.jar
 	 * <p>
 	 * Synchronized method because static field aspectjrtPath is initialized here.
 	 */
