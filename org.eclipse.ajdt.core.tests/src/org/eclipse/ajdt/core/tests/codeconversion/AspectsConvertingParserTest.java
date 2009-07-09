@@ -25,6 +25,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 
@@ -96,7 +99,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 	/**
 	 * test that ':' are properly handled in switch statements
 	 */
-    public void testBug26914() {
+    public void testBug260914() {
         String source =   "aspect Aspect { pointcut foo() : execution(); \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
         String expected = "class  Aspect { pointcut foo()              ; \n void doNothing() { char i = 'o'; switch(i) { case 'o': break; default: break; } }}";
         
@@ -106,6 +109,29 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         conv.convert(conversionOptions);
         String converted = new String(conv.content);
         assertEquals("Improperly converted", expected, converted); //$NON-NLS-1$
+    }
+    
+    /**
+     * test that '?' in type parameters are converted correctly
+     */
+    public void testBug282948() throws Exception {
+        IProject bug282948 = createPredefinedProject("Bug282948");
+        IFile file = bug282948.getFile("src/RR.aj");
+        String source =   getContents(file);
+        
+        ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+        AspectsConvertingParser conv = new AspectsConvertingParser(source
+                .toCharArray());
+        conv.convert(conversionOptions);
+        String converted = new String(conv.content);
+        
+        // now convert using a regular Java parser:
+        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        parser.setSource(converted.toCharArray());
+        CompilationUnit result = (CompilationUnit) parser.createAST(null);
+        if (result.getProblems().length > 0) {
+            fail("Improperly converted.  Original:\n" + source + "\nConverted:\n" + converted); //$NON-NLS-1$
+        }
     }
 
 	
