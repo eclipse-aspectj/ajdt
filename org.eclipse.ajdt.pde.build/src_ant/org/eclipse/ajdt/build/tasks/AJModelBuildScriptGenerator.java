@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -39,6 +40,7 @@ import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.pde.build.Constants;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.BundleHelper;
 import org.eclipse.pde.internal.build.IBuildPropertiesConstants;
@@ -77,6 +79,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	public static final String PROPERTY_ASPECTPATH = "aspectpath"; //$NON-NLS-1$
 	// AspectJ Change end
 
+    public static boolean p2Gathering = false;
 
 	/**
 	 * Represents a entry that must be compiled and which is listed in the build.properties file.
@@ -370,14 +373,20 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		generatePrologue();
 		generateBuildUpdateJarTarget();
 
-		if (getBuildProperties().getProperty(SOURCE_PLUGIN, null) == null) {
+
+        if (getBuildProperties().getProperty(SOURCE_PLUGIN, null) == null) {
 			generateBuildJarsTarget(model);
 		} else {
 			generateBuildJarsTargetForSourceGathering();
 			generateEmptyBuildSourcesTarget();
 		}
-		generateGatherBinPartsTarget();
-		generateBuildZipsTarget();
+
+        if (p2Gathering)
+            generatePublishGatherBinPartsTarget();
+        else
+            generateGatherBinPartsTarget();
+		
+        generateBuildZipsTarget();
 		generateGatherSourcesTarget();
 		generateGatherIndividualSourcesTarget();
 		generateCopySourcesTarget();
@@ -607,6 +616,30 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printTargetEnd();
 	}
 
+	
+   private void generatePublishGatherBinPartsTarget() throws CoreException {
+        script.println();
+        script.printTargetDeclaration(TARGET_GATHER_BIN_PARTS, TARGET_INIT, null, null, null);
+
+        String exclude = (String) getBuildProperties().get(PROPERTY_BIN_EXCLUDES);
+
+        String files = JarFile.MANIFEST_NAME + "," + Constants.PLUGIN_FILENAME_DESCRIPTOR + "," + Constants.FRAGMENT_FILENAME_DESCRIPTOR; //$NON-NLS-1$ //$NON-NLS-2$
+        FileSet metadata = new FileSet(Utils.getPropertyFormat(PROPERTY_BASEDIR), null, files, null, exclude, null, null);
+        script.printCopyTask(null, Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER), new FileSet[] {metadata}, true, true);
+        genarateIdReplacementCall(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER));
+
+        script.println("<eclipse.gatherBundle "); //$NON-NLS-1$
+        script.println("   metadataRepository=\"file:${buildDirectory}/buildRepo\""); //$NON-NLS-1$
+        script.println("   artifactRepository=\"file:${buildDirectory}/buildRepo\""); //$NON-NLS-1$
+        script.println("   buildResultFolder=\"" + Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+        script.println("   baseDirectory=\"${basedir}\""); //$NON-NLS-1$
+        if (associatedEntry != null && associatedEntry.unpackSet())
+            script.println("  unpack=\"" + String.valueOf(associatedEntry.isUnpack()) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+        script.println("/>"); //$NON-NLS-1$
+        script.printTargetEnd();
+    }
+
+	
 	/**
 	 * Add the <code>gather.bin.parts</code> target to the given Ant script.
 	 * 
