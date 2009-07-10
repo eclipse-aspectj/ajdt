@@ -576,6 +576,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		AbstractScriptGenerator.setEmbeddedSource(fInfo.exportSource);
 		
 		// AspectJ change begin
+		/* AJDT 1.7 */
         // Bug 268667: allow binary cycles
         // XXX consider adding this to the UI.
 		Properties properties = new Properties();
