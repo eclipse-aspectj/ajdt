@@ -34,6 +34,7 @@ import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug270202;
 import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug275903;
 import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
+import org.eclipse.ajdt.core.tests.codeconversion.Bug279974Tests;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitManagerTest;
@@ -96,7 +97,9 @@ public class AllCoreTests {
 		
 		// code conversion tests
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
+		suite.addTest(new TestSuite(AspectsConvertingParserTest2.class));
 		suite.addTest(new TestSuite(CodeCheckerTest.class));
+		suite.addTest(new TestSuite(Bug279974Tests.class));
 
 		suite.addTest(new TestSuite(AspectJCorePreferencesTest.class));
 
@@ -134,7 +137,6 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(AspectElementTests.class));
         suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));
         suite.addTest(new TestSuite(AJCompilationUnitTest.class));
-        suite.addTest(new TestSuite(AspectsConvertingParserTest2.class));
 
 		// builder tests
 		suite.addTest(new TestSuite(CoreOutputLocationManagerTest.class));
