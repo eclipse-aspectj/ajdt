@@ -87,7 +87,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     private static final char[] privileged = "          ".toCharArray(); //$NON-NLS-1$
 
-    private static final String thizString = "thiz"; //$NON-NLS-1$
+    public static final String ITD_INSERTED_IDENTIFIER = "___ITD_INSERTED_IDENTIFIER___"; //$NON-NLS-1$
     
     // used to replace declare declarations
     private static final char[] intt = "int    ".toCharArray(); //$NON-NLS-1$
@@ -130,7 +130,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         this.usedIdentifiers = new HashSet();
         replacements = new ArrayList(5);
     }
-
+    
     public char[] content;
 
     private Set typeReferences;
@@ -838,11 +838,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             dotRequired = false;
         }
 
-        String ident = findFreeIdentifier();
-        char[] toInsert = (new String(targetType) + ' ' + ident + "; " + ident +
+        String contextSwitchIdentifier = findFreeIdentifier();
+        char[] toInsert = (new String(targetType) + ' ' + contextSwitchIdentifier + "; " + contextSwitchIdentifier +
                 (dotRequired ? "." : "")).toCharArray();
         addReplacement(pos, len, toInsert);
-
     }
 
     /**
@@ -850,10 +849,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
      */
     private String findFreeIdentifier() {
         int i = 0;
-        String ident = thizString + i;
+        String ident = ITD_INSERTED_IDENTIFIER + i;
         while (usedIdentifiers.contains(ident)) {
             i++;
-            ident = thizString + i;
+            ident = ITD_INSERTED_IDENTIFIER + i;
         }
         return ident;
     }

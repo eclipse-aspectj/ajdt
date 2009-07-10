@@ -42,17 +42,22 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	private AJWorldFacade world;
 	private ICompilationUnit unit;
 
+	   // this is the identifier added by the AspectsConvertingParser
+    // should be ignored
+    private final String contextSwitchIdentifier;
+
 	/**
 	 * @param wrapped
 	 * @param buffer
 	 */
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
             ICompilationUnit unit,
-            JavaCompatibleBuffer buffer) {
+            JavaCompatibleBuffer buffer, String contextSwitchIdentifier) {
         super();
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = buffer.getInsertionTable();
+        this.contextSwitchIdentifier = contextSwitchIdentifier;
     }
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
             ICompilationUnit unit,
@@ -61,6 +66,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = insertionTable;
+        this.contextSwitchIdentifier = "";
     }
 	
 	public void accept(CompletionProposal proposal) {
@@ -78,7 +84,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	protected boolean shouldAccept(CompletionProposal proposal) {
 	    if (proposal.getKind() == CompletionProposal.FIELD_REF ||
 	            proposal.getKind() == CompletionProposal.METHOD_REF) {
-	     
+	        
 	        if (world == null) {
 	            world = new AJWorldFacade(unit.getJavaProject().getProject());
 	        }
@@ -116,6 +122,13 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	            return true;
 	        }
 	    } else {
+	        
+	        // this is the proposal that has been added by the context switch for ITDs
+            if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF &&
+                    new String(proposal.getCompletion()).startsWith(contextSwitchIdentifier)) {
+                return false;
+            }
+
 	        return true;
 	    }
     }
@@ -140,7 +153,41 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	public void completionFailure(IProblem problem) {
 		wrapped.completionFailure(problem);
 	}
+	
+	public String[] getFavoriteReferences() {
+	    return wrapped.getFavoriteReferences();
+	}
 
+	public boolean isAllowingRequiredProposals(int proposalKind,
+	        int requiredProposalKind) {
+	    return wrapped.isAllowingRequiredProposals(proposalKind, requiredProposalKind);
+	}
+	
+	public boolean isExtendedContextRequired() {
+	    return wrapped.isExtendedContextRequired();
+	}
+	
+	public boolean isIgnored(int completionProposalKind) {
+	    return wrapped.isIgnored(completionProposalKind);
+	}
+	
+	public void setAllowsRequiredProposals(int proposalKind,
+	        int requiredProposalKind, boolean allow) {
+	    wrapped.setAllowsRequiredProposals(proposalKind, requiredProposalKind, allow);
+	}
+	
+	public void setFavoriteReferences(String[] favoriteImports) {
+	    wrapped.setFavoriteReferences(favoriteImports);
+	}
+	
+	public void setIgnored(int completionProposalKind, boolean ignore) {
+	    wrapped.setIgnored(completionProposalKind, ignore);
+	}
+	
+	public void setRequireExtendedContext(boolean require) {
+	    wrapped.setRequireExtendedContext(require);
+	}
+	
 	public boolean equals(Object obj) {
 		return wrapped.equals(obj);
 	}

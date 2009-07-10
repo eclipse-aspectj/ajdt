@@ -11,8 +11,8 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -237,7 +237,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             }
             return itds;
         } 
-        return Collections.EMPTY_LIST;
+        return new LinkedList();
     }
 
     private boolean isAlreadyAnITD(List itds, IMember member) {

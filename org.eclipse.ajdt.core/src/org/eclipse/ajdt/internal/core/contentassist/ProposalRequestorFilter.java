@@ -26,14 +26,17 @@ import org.eclipse.jdt.core.ICompilationUnit;
  */
 public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 	
-	boolean acceptMemberMode = false;
+	private boolean acceptMemberMode = false;
 	
-	private int proposalCounter = 0;
+	// bug 279974 don't do extra filtering if position is in a dotted expression
+	private boolean doNotDoExtraITDFiltering;
+	
 	
 	public ProposalRequestorFilter(CompletionRequestor wrapped,
             ICompilationUnit unit,
-			JavaCompatibleBuffer buffer) {
-		super(wrapped, unit, buffer);
+			JavaCompatibleBuffer buffer, boolean doNotDoExtraITDFiltering) {
+		super(wrapped, unit, buffer, "");
+		this.doNotDoExtraITDFiltering = doNotDoExtraITDFiltering;
 	}
 
 	/* This logic mimics the src30 version, which has multiple acceptXXX methods.
@@ -43,16 +46,11 @@ public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 		if ((proposal.getKind()==CompletionProposal.FIELD_REF)
 				|| (proposal.getKind()==CompletionProposal.METHOD_REF)
 				|| (proposal.getKind()==CompletionProposal.VARIABLE_DECLARATION)) {
-			if (acceptMemberMode){
-				proposalCounter++;
+			if (acceptMemberMode || doNotDoExtraITDFiltering) {
 				super.accept(proposal);
 			}			
 		} else {				
-			if (!acceptMemberMode){
-				proposalCounter++;
-				if (proposal.getKind()==CompletionProposal.ANONYMOUS_CLASS_DECLARATION) {
-					proposalCounter++;
-				}
+			if (!acceptMemberMode) {
 				super.accept(proposal);
 			}
 		}
@@ -74,8 +72,5 @@ public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 	 */
 	public void setAcceptMemberMode(boolean filterMembers) {
 		this.acceptMemberMode = filterMembers;
-	}
-	public int getProposalCounter() {
-		return proposalCounter;
 	}
 }

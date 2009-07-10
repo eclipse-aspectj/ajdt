@@ -22,6 +22,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.lang.annotation.Aspect;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
@@ -58,6 +59,7 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -605,17 +607,19 @@ public class AJCompilationUnit extends CompilationUnit{
 		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
 		
 		//check if inside intertype method declaration
-		char[] targetType = getITDTargetType(position);
-        if (targetType != null){
+		IntertypeElement itd = itdMethodOrNull(position);
+        if (itd != null){
 			// we are inside an intertype method declaration
             // perform content assist twice.  once with the context switch (ie- pretend to be in the ITD target type
             // and once in the context of the aspect.
+            char[] targetType = itd.getTargetType();
+            boolean doNotDoExtraITDFiltering = positionIsAtDottedExpression(itd, position);
             
             // simulate context switch to target class
 			javaCompBuffer.setConversionOptions(ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType));
 			transformedPos = javaCompBuffer.translatePositionToFake(position);
 			
-			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer);
+			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer, "");
 			/* AJDT 1.7 */
 			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this, monitor);
 			
@@ -623,12 +627,12 @@ public class AJCompilationUnit extends CompilationUnit{
             javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
 
             //set up proposal filter to filter away all the proposals that would be wrong because of context switch
-			requestor = new ProposalRequestorFilter(requestor, this, javaCompBuffer);
+			requestor = new ProposalRequestorFilter(requestor, this, javaCompBuffer, doNotDoExtraITDFiltering);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
 			
 		} else {
 		    javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
-		    requestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer);
+		    requestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer, "");
 		}
         transformedPos = javaCompBuffer.translatePositionToFake(position);
 		
@@ -638,7 +642,105 @@ public class AJCompilationUnit extends CompilationUnit{
 		
 	}
 	
-	/**
+	// bug 279974: determine if the position is inside a dotted expression
+	// and the expression is not 'this'
+	// eg- this.foo.b<here> ==> true
+	//     fo<here>         ==> false
+	//     this.f<here>     ==> false
+	protected boolean positionIsAtDottedExpression(IntertypeElement itd, int pos) 
+	            throws JavaModelException {
+	    String source = itd.getSource();
+	    int posInSource = pos - itd.getSourceRange().getOffset();
+        return positionIsAtDottedExpression(source, posInSource);
+    }
+	
+	// make static for easier testing
+	static protected boolean positionIsAtDottedExpression(String source, int posInSource) {
+	    if (posInSource <= 0) {
+	        return false;
+	    }
+	    // iterate backwards over chars
+	    // first stage:
+	    // '.'               ---> no filtering
+	    // any non-word char ---> do filtering
+	    // whitespace        ---> go to next stage
+
+	    char[] sourceArr = source.toCharArray();
+	    int currPos = posInSource-1;
+	    char currChar = sourceArr[currPos];
+	    
+	    boolean dotFound = false;
+	    boolean nonWordFound = false;
+	    while (currPos > 0) {
+	        if (currChar == '.') {
+	            dotFound = true;
+	            break;
+	        } else if (Character.isWhitespace(currChar)) {
+	            break;
+	        } else if (Character.isJavaIdentifierPart(currChar)) {
+	            // fall through
+	        } else {
+	            nonWordFound = true;
+	            break;
+	        }
+	        currPos--;
+	        currChar = sourceArr[currPos];
+	    }
+	    
+	    if (nonWordFound || currPos < 0) {
+	        return false;
+	    }
+	    
+	    // second stage:
+	    // follow whitespace backwards until:
+	    // '.'           ---> no filtering
+	    // anything else ---> do filtering
+	    if (!dotFound) {
+            currPos--;
+            boolean somethingElseFound = false;
+	        while (currPos >= 0) {
+	            currChar = sourceArr[currPos];
+	            if (Character.isWhitespace(currChar)) {
+	                // fall through
+	            } else if (currChar == '.') {
+	                dotFound = true;
+	                break;
+	            } else {
+	                somethingElseFound = true;
+	                break;
+	            }
+	            currPos--;
+	        }
+	        if (somethingElseFound) {
+	            return false;
+	        }
+	    }
+	    
+	    
+	    // third stage:
+	    // check to see if previous word is "this"
+	    // if so, then do filtering, it is not considered a dotted expression
+	    if (dotFound) {
+	        currPos--;
+	        while (currPos >= 0) {
+                currChar = sourceArr[currPos];
+                if (!Character.isWhitespace(currChar)) {
+                    break;
+                }
+                currPos--;
+	        }
+            
+             return currPos < 3 || 
+                     !(sourceArr[currPos-3] == 't' &&
+                       sourceArr[currPos-2] == 'h' &&
+                       sourceArr[currPos-1] == 'i' &&
+                       sourceArr[currPos-0] == 's');
+	    } 
+	    
+	    return false;
+	}
+
+    /**
 	 * this method is a copy of {@link Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, CompletionRequestor, WorkingCopyOwner, ITypeRoot)}
 	 * The only change is that we need to create an {@link ITDAwareNameEnvironment}, not  standard {@link SearchableEnvironment}.
      * 
@@ -708,14 +810,14 @@ public class AJCompilationUnit extends CompilationUnit{
     }
 
 	//return null if outside intertype method declaration or the name of the target type otherwise
-	private char[] getITDTargetType(int pos) throws JavaModelException{
+	private IntertypeElement itdMethodOrNull(int pos) throws JavaModelException{
 	    IJavaElement elt = this.getElementAt(pos);
 	    if (elt instanceof IntertypeElement) {
             IntertypeElement itd = (IntertypeElement) elt;
             if (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD ||
                 itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
                 
-                return itd.getTargetType();
+                return itd;
             }
         }
 	    return null;
