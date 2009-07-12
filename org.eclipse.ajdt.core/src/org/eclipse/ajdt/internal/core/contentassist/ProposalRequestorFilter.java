@@ -26,17 +26,15 @@ import org.eclipse.jdt.core.ICompilationUnit;
  */
 public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 	
-	private boolean acceptMemberMode = false;
-	
 	// bug 279974 don't do extra filtering if position is in a dotted expression
-	private boolean doNotDoExtraITDFiltering;
+	private boolean doExtraITDFiltering;
 	
 	
 	public ProposalRequestorFilter(CompletionRequestor wrapped,
             ICompilationUnit unit,
-			JavaCompatibleBuffer buffer, boolean doNotDoExtraITDFiltering) {
+			JavaCompatibleBuffer buffer, boolean doExtraITDFiltering) {
 		super(wrapped, unit, buffer, "");
-		this.doNotDoExtraITDFiltering = doNotDoExtraITDFiltering;
+		this.doExtraITDFiltering = doExtraITDFiltering;
 	}
 
 	/* This logic mimics the src30 version, which has multiple acceptXXX methods.
@@ -46,31 +44,16 @@ public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 		if ((proposal.getKind()==CompletionProposal.FIELD_REF)
 				|| (proposal.getKind()==CompletionProposal.METHOD_REF)
 				|| (proposal.getKind()==CompletionProposal.VARIABLE_DECLARATION)) {
-			if (acceptMemberMode || doNotDoExtraITDFiltering) {
+			if (!doExtraITDFiltering) {
 				super.accept(proposal);
 			}			
 		} else {				
-			if (!acceptMemberMode) {
-				super.accept(proposal);
-			}
+		    super.accept(proposal);
 		}
 	}
 	
 	public void beginReporting() {
 		// This is empty because we want to combine two sets of proposals
 		// so we don't want the wrapped requestor to clear the list
-	}
-	
-	/**
-	 * @return Returns the filterMembers.
-	 */
-	public boolean isAcceptMemberMode() {
-		return acceptMemberMode;
-	}
-	/**
-	 * @param filterMembers The filterMembers to set.
-	 */
-	public void setAcceptMemberMode(boolean filterMembers) {
-		this.acceptMemberMode = filterMembers;
 	}
 }

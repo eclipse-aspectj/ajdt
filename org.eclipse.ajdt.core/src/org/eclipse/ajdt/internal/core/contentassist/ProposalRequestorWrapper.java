@@ -57,7 +57,9 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = buffer.getInsertionTable();
-        this.contextSwitchIdentifier = contextSwitchIdentifier;
+        this.contextSwitchIdentifier = 
+            contextSwitchIdentifier == null || contextSwitchIdentifier.length() == 0 ? 
+                    null : contextSwitchIdentifier;
     }
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
             ICompilationUnit unit,
@@ -66,7 +68,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = insertionTable;
-        this.contextSwitchIdentifier = "";
+        this.contextSwitchIdentifier = null;
     }
 	
 	public void accept(CompletionProposal proposal) {
@@ -125,12 +127,18 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	        
 	        // this is the proposal that has been added by the context switch for ITDs
             if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF &&
-                    new String(proposal.getCompletion()).startsWith(contextSwitchIdentifier)) {
+                    contextSwitchIgnore(proposal)) {
                 return false;
             }
 
 	        return true;
 	    }
+    }
+	
+	// ignore the proposal added by the context switch identifier
+    private boolean contextSwitchIgnore(CompletionProposal proposal) {
+        return contextSwitchIdentifier != null &&
+                new String(proposal.getCompletion()).startsWith(contextSwitchIdentifier);
     }
 	
 	

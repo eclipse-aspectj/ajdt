@@ -613,7 +613,7 @@ public class AJCompilationUnit extends CompilationUnit{
             // perform content assist twice.  once with the context switch (ie- pretend to be in the ITD target type
             // and once in the context of the aspect.
             char[] targetType = itd.getTargetType();
-            boolean doNotDoExtraITDFiltering = positionIsAtDottedExpression(itd, position);
+            boolean doExtraITDFiltering = !positionIsAtDottedExpression(itd, position);
             
             // simulate context switch to target class
 			javaCompBuffer.setConversionOptions(ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType));
@@ -627,9 +627,7 @@ public class AJCompilationUnit extends CompilationUnit{
             javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
 
             //set up proposal filter to filter away all the proposals that would be wrong because of context switch
-			requestor = new ProposalRequestorFilter(requestor, this, javaCompBuffer, doNotDoExtraITDFiltering);
-			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
-			
+			requestor = new ProposalRequestorFilter(requestor, this, javaCompBuffer, doExtraITDFiltering);
 		} else {
 		    javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
 		    requestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer, "");
