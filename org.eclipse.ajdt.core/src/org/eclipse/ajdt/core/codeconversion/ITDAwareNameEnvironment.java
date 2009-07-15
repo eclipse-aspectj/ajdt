@@ -3,9 +3,13 @@ package org.eclipse.ajdt.core.codeconversion;
 import java.lang.reflect.Field;
 
 import org.eclipse.ajdt.core.AspectJCore;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
+import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -78,6 +82,13 @@ public class ITDAwareNameEnvironment extends
                         // try to recreate as AspectElement.
                         // This will only work if the type is a top-level aspect
                         String ajHandle = sourceType.getHandleIdentifier();
+                        
+                        // collect some diagnostics for Bug 283468
+                        String message = "Bug 283468: Unexpected JavaModelException thrown on type " + ajHandle + 
+                                ".\nWeaving Service turned on: '" + IsWovenTester.isWeavingActive() + "'\n" +
+                                e.getMessage();
+                        AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, message, e));
+                        
                         sourceType = ((SourceType) AspectJCore.create(
                                 AspectJCore.convertToAspectHandle(ajHandle, sourceType)));
                         sourceTypeInfo = (SourceTypeElementInfo) sourceType.getElementInfo();
