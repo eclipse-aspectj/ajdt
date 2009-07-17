@@ -83,11 +83,11 @@ public class ITDAwareNameEnvironment extends
                         // This will only work if the type is a top-level aspect
                         String ajHandle = sourceType.getHandleIdentifier();
                         
-                        // collect some diagnostics for Bug 283468
-                        String message = "Bug 283468: Unexpected JavaModelException thrown on type " + ajHandle + 
-                                ".\nWeaving Service turned on: '" + IsWovenTester.isWeavingActive() + "'\n" +
-                                e.getMessage();
-                        AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, message, e));
+                        // Bug 283468--ensure that pacakge-info does not cause problems
+                        // rethrow so that we return null
+                        if (sourceType.getElementName().equals("package-info")) {
+                            throw e;
+                        }
                         
                         sourceType = ((SourceType) AspectJCore.create(
                                 AspectJCore.convertToAspectHandle(ajHandle, sourceType)));
