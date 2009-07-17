@@ -41,6 +41,7 @@ import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.javaelements.AspectsConvertingParserTest2;
+import org.eclipse.ajdt.core.tests.javaelements.Bug283468Test;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
@@ -123,6 +124,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(ITDAwareCodeSelectionTests.class));
         suite.addTest(new TestSuite(ITDAwareCodeSelectionTests2.class));
         suite.addTest(new TestSuite(GetExpandedRegionTests.class));
+        suite.addTest(new TestSuite(Bug283468Test.class));
         
         
 		
