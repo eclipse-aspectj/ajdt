@@ -78,6 +78,7 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests12;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests13;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests2;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests3;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests4;
@@ -236,6 +237,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests10.class));
         suite.addTest(new TestSuite(ProblemFinderTests11.class));
         suite.addTest(new TestSuite(ProblemFinderTests12.class));
+        suite.addTest(new TestSuite(ProblemFinderTests13.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
 
