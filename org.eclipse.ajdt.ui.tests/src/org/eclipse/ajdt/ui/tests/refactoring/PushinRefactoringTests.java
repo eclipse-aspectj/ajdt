@@ -14,12 +14,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Comparator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoring;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -30,34 +26,23 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaElementTransfer;
-import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
-import org.eclipse.jdt.internal.ui.refactoring.reorg.PasteAction;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
 import org.eclipse.ltk.core.refactoring.PerformRefactoringOperation;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.views.log.AbstractEntry;
 import org.eclipse.ui.internal.views.log.LogEntry;
 import org.eclipse.ui.internal.views.log.LogView;
-
-import sun.security.action.GetLongAction;
 
 /**
  * 
@@ -218,6 +203,20 @@ public class PushinRefactoringTests extends UITestCase {
         lookForAJFiles(petClinic.getProject());
     }
 
+    // Test Bug 283657 when an ITD method and ITD field have the same
+    // name, push in refactoring should still work
+    public void testBug283657() throws Exception {
+        IJavaProject refactoringProj = JavaCore.create(createPredefinedProject("Bug283657Refactoring"));
+        List itds = action.findAllITDs(new IJavaElement[] { refactoringProj });
+        assertEquals("Should have found 2 ITDs in project", 2, itds.size());
+        doRefactoringAndInitialCheck(refactoringProj, itds);
+        
+        IType type = refactoringProj.findType("Target");
+        assertTrue("Should have found method 'foo'", type.getMethod("foo", new String[0]).exists());
+        assertTrue("Should have found field 'foo'", type.getField("foo").exists());
+    }
+    
+    
     private void lookForAJFiles(IResource resource) throws CoreException {
         if (resource.getType() == IResource.FILE) {
             if (resource.getFileExtension().equals("aj")) {
@@ -331,5 +330,4 @@ public class PushinRefactoringTests extends UITestCase {
         RefactoringCore.getUndoManager().flush();
         System.gc();
     }
-
 }
