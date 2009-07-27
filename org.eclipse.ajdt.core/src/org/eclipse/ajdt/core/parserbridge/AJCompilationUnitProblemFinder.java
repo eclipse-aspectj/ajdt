@@ -561,6 +561,18 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         try {
+            if (id == IProblem.TypeMismatch &&
+                    numArgs == 2 &&
+                    firstArg.equals(getTypeNameAtPosition(categorizedProblem, unit)) &&
+                    getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor).endsWith(secondArg)) {
+                // bug 284358
+                // this problem occurs when 'this' is returned from an ITD method
+                // the resolver thinks there is a type mismath because it was 
+                // expecting the aspect type (argument 1) instead of the ITD type
+                // (argument 2)
+                return false;
+            }
+            
             if (numArgs > 0 && 
                     (id == IProblem.UndefinedMethod ||
                      id == IProblem.UndefinedName) &&
@@ -676,6 +688,25 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         return true;
+    }
+
+    /*
+     * Returns the name of the aspect at the problem position
+     */
+    private static String getTypeNameAtPosition(
+            CategorizedProblem categorizedProblem, CompilationUnit unit) throws JavaModelException {
+        IJavaElement elt = unit.getElementAt(categorizedProblem.getSourceStart());
+        IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
+        if (type == null) {
+            // just return the name of the CU
+            int dotIndex = unit.getElementName().indexOf('.');
+            if (dotIndex > 0) {
+                return unit.getElementName().substring(0, dotIndex);
+            } else {
+                return unit.getElementName();
+            }
+        }
+        return type.getElementName();
     }
 
     private static boolean insideAdvice(CategorizedProblem categorizedProblem,
@@ -856,6 +887,21 @@ public class AJCompilationUnitProblemFinder extends
         return elementAt instanceof IntertypeElement ||
                elementAt instanceof DeclareElement;
     }
+    
+    private static String getITDTargetType(CategorizedProblem categorizedProblem,
+            CompilationUnit unit, boolean isJavaFileInAJEditor) throws JavaModelException {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return null;
+        }
+        IJavaElement elementAt = unit.getElementAt(categorizedProblem.getSourceStart());
+        if (elementAt instanceof IntertypeElement) {
+            IntertypeElement itd = (IntertypeElement) elementAt;
+            return new String(itd.getTargetType());
+        }
+        return null;
+    }        
 
     private static String extractProblemRegion(
             CategorizedProblem categorizedProblem, CompilationUnit unit) {
