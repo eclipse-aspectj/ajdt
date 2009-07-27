@@ -85,7 +85,7 @@ public class ITDAwareNameEnvironment extends
                         
                         // Bug 283468--ensure that pacakge-info does not cause problems
                         // rethrow so that we return null
-                        if (sourceType.getElementName().equals("package-info")) {
+                        if (!sourceType.exists()) {
                             throw e;
                         }
                         
