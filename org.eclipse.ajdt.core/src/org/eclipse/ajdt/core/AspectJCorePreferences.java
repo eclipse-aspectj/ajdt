@@ -36,6 +36,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -173,6 +175,54 @@ public class AspectJCorePreferences {
 		return attribute.getName().equals(AspectJCorePreferences.ASPECTPATH_ATTRIBUTE.getName());
 	}
 
+    /**
+     * determines if an element is on the aspect path taking into account
+     * the restrictions of the classpath container entry
+     */
+    public static boolean isOnAspectpathWithRestrictions(IClasspathEntry entry, String item) {
+        if (!isOnAspectpath(entry)) {
+            return false;
+        }
+        
+        Set restrictions = findContainerRestrictions(entry, true);
+        if (restrictions == null) {
+            // no restrictions, assume the jar entry is on the path
+            return true;
+        } else {
+            for (Iterator iterator = restrictions.iterator(); iterator.hasNext();) {
+                String restriction = (String) iterator.next();
+                if (item.indexOf(restriction) != -1) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
+    /**
+     * determines if an element is on the aspect path taking into account
+     * the restrictions of the classpath container entry
+     */
+    public static boolean isOnInpathWithRestrictions(IClasspathEntry entry, String item) {
+        if (!isOnInpath(entry)) {
+            return false;
+        }
+        
+        Set restrictions = findContainerRestrictions(entry, false);
+        if (restrictions == null || restrictions.isEmpty()) {
+            // no restrictions, assume the jar entry is on the path
+            return true;
+        } else {
+            for (Iterator iterator = restrictions.iterator(); iterator.hasNext();) {
+                String restriction = (String) iterator.next();
+                if (item.indexOf(restriction) != -1) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
 	
 	
     /**
@@ -729,13 +779,13 @@ public class AspectJCorePreferences {
     }
 
     private static Set/*String*/ findContainerRestrictions(IClasspathEntry containerEntry,
-            boolean aspectPathAttribute) {
+            boolean isAspectPathAttribute) {
         if (containerEntry.getEntryKind() != IClasspathEntry.CPE_CONTAINER) {
             return Collections.EMPTY_SET;
         }
         Set restrictionPaths = new HashSet();
         String restrictions = getRestriction(containerEntry, 
-                aspectPathAttribute ? ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME : INPATH_RESTRICTION_ATTRIBUTE_NAME);
+                isAspectPathAttribute ? ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME : INPATH_RESTRICTION_ATTRIBUTE_NAME);
         if (restrictions != null) {
             String[] restrictionsArr = restrictions.split(",");
             for (int j = 0; j < restrictionsArr.length; j++) {
@@ -793,7 +843,7 @@ public class AspectJCorePreferences {
     	}
     }
 
-    private static void removeAttribute(IJavaProject jp, IClasspathEntry entry, IClasspathAttribute attr) {
+    public static void removeAttribute(IJavaProject jp, IClasspathEntry entry, IClasspathAttribute attr) {
     	try {
     		IClasspathEntry[] cp = jp.getRawClasspath();
     		for (int i = 0; i < cp.length; i++) {
@@ -990,5 +1040,124 @@ public class AspectJCorePreferences {
         }
 
         return null;
+    }
+    
+    /**
+     * adds the classpath attribute to the entry with the default value if it doesn't already exist
+     * else does nothing
+     */
+    public static IClasspathEntry ensureHasAttribute(IClasspathEntry curr, String attributeName, String defaultVal) {
+        int index = indexOfAttribute(curr.getExtraAttributes(), attributeName);
+        if (index < 0) {
+            IClasspathAttribute[] attrs = curr.getExtraAttributes();
+            // must create a new entry with more extra attributes
+            IClasspathAttribute newAttr = JavaCore.newClasspathAttribute(attributeName, defaultVal);
+            IClasspathAttribute[] newAttrs;
+            if (attrs == null || attrs.length == 0) {
+                newAttrs = new IClasspathAttribute[] { newAttr };
+            } else {
+                newAttrs = new IClasspathAttribute[attrs.length+1];
+                System.arraycopy(attrs, 0, newAttrs, 0, attrs.length);
+                newAttrs[attrs.length] = newAttr;
+            }
+            return copyContainerEntry(curr, newAttrs);
+        } else {
+            return curr;
+        }
+    }
+    
+    /**
+     * adds the classpath attribute to the entry with the default value if it doesn't already exist
+     * else does nothing
+     */
+    public static IClasspathEntry ensureHasNoAttribute(IClasspathEntry curr, String attributeName) {
+        int index = indexOfAttribute(curr.getExtraAttributes(), attributeName);
+        if (index < 0) {
+            return curr;
+        } else {
+            IClasspathAttribute[] attrs = curr.getExtraAttributes();
+            // must create a new entry with more extra attributes
+            IClasspathAttribute[] newAttrs = new IClasspathAttribute[attrs.length-1];
+            for (int i = 0, j = 0; i < newAttrs.length; i++) {
+                if (i != index) {
+                    newAttrs[j] = attrs[i];
+                    j++;
+                }
+            }
+            return copyContainerEntry(curr, newAttrs);
+        }
+    }
+    
+
+
+    public static IClasspathEntry copyContainerEntry(IClasspathEntry containerEntry, 
+            IClasspathAttribute[] extraAttrs) {
+        return JavaCore.newContainerEntry(containerEntry.getPath(), 
+                containerEntry.getAccessRules(), extraAttrs, containerEntry.isExported());
+    }
+    
+    private static int indexOfAttribute(IClasspathAttribute[] attrs,
+            String attrName) {
+        for (int i = 0; i < attrs.length; i++) {
+            if (attrs[i].getName().equals(attrName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    
+    /**
+     * Adds the classpath restriction to the given classpath entry.
+     * Returns the new classpath entry
+     */
+    public static IClasspathEntry updatePathRestrictions(IClasspathEntry entry,
+            String restrictionStr, String restrictionKind) {
+        IClasspathAttribute[] attrs = entry.getExtraAttributes();
+        int index = indexOfAttribute(attrs, restrictionKind);
+        IClasspathAttribute newAttr = JavaCore.newClasspathAttribute(restrictionKind, restrictionStr);
+        if (index >= 0) {
+            // just replace
+            attrs[index] = newAttr;
+        } else {
+            // must create a new entry with more extra attributes
+            IClasspathAttribute[] newAttrs;
+            if (attrs == null || attrs.length == 0) {
+                newAttrs = new IClasspathAttribute[] { newAttr };
+            } else {
+                newAttrs = new IClasspathAttribute[attrs.length+1];
+                System.arraycopy(attrs, 0, newAttrs, 0, attrs.length);
+                newAttrs[attrs.length] = newAttr;
+            }
+            entry = copyContainerEntry(entry, newAttrs);
+        }
+        return entry;
+    }
+
+    /**
+     * If this classpath entry's path already exists on the classpath, then it is replaced
+     * else it is added
+     */
+    public static void updateClasspathEntry(IProject project, IClasspathEntry newEntry) {
+        IJavaProject jProject = JavaCore.create(project);
+        try {
+            IClasspathEntry[] entries = jProject.getRawClasspath();
+            for (int i = 0; i < entries.length; i++) {
+                IClasspathEntry entry = entries[i];
+                if (newEntry.getPath().equals(entry.getPath())) {
+                    entries[i] = newEntry;
+                    jProject.setRawClasspath(entries, null);
+                    return;
+                }
+            }
+            
+            // entry not found on classpath...add it
+            IClasspathEntry[] newEntries = new IClasspathEntry[entries.length + 1];
+            System.arraycopy(entries, 0, newEntries, 0, entries.length);
+            newEntries[entries.length] = newEntry;
+            jProject.setRawClasspath(newEntries, null);
+        } catch (JavaModelException e) {
+        }
     }
 }
