@@ -1790,6 +1790,12 @@ M4 = Platform-specific fourth key
     		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromInpathAction"
     		 id="org.eclipse.ajdt.removefrominpath">
     	 </action>
+    	 <action
+		     label="%UpdateInpathRestriction"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+    		 class="org.eclipse.ajdt.internal.buildpath.UpdateInpathRestriction"
+    		 id="org.eclipse.ajdt.updateinpath">
+    	 </action>
        	 <action
 		     label="%AddtoAspectpath"
 		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
@@ -1801,6 +1807,12 @@ M4 = Platform-specific fourth key
 		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
     		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromAspectpathAction"
     		 id="org.eclipse.ajdt.removefromAspectpath">
+    	 </action>
+    	 <action
+		     label="%UpdateAspectpathRestriction"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
+    		 class="org.eclipse.ajdt.internal.buildpath.UpdateAspectpathRestriction"
+    		 id="org.eclipse.ajdt.updateaspectpath">
     	 </action>
     	 <action
     	 	label="%ConfigureBuildPath"   

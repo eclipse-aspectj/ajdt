@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.buildpath;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.action.IAction;
@@ -28,7 +29,9 @@ public class RemoveFromInpathAction extends AJBuildPathAction implements IObject
 		if (project == null) {
 			return;
 		}
-		AspectJCorePreferences.removeFromInPath(project,cpEntry);
+        IClasspathEntry newEntry = AspectJCorePreferences.ensureHasNoAttribute(cpEntry, AspectJCorePreferences.INPATH_ATTRIBUTE_NAME);
+        newEntry = AspectJCorePreferences.ensureHasNoAttribute(newEntry, AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME);
+        AspectJCorePreferences.updateClasspathEntry(project, newEntry);
 		AJDTUtils.refreshPackageExplorer();
 	}
 

@@ -20,18 +20,20 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IObjectActionDelegate;
 
-public class AddToInpathAction extends AJBuildPathAction implements IObjectActionDelegate {
+public class UpdateInpathRestriction extends AJBuildPathAction implements IObjectActionDelegate {
 
 	public void run(IAction action) {
 		if (project == null) {
 			return;
 		}
 		if (cpEntry != null) {
-            // add to in path and ensure restrictions are properly set up
+		    // update the restrictions on this classpath element
+		    // although the element probably already is on the aspect/in path, we can ensure it's on, just in case
             IClasspathEntry newEntry = cpEntry;
             if (shouldAskForClasspathRestrictions(cpEntry)) {
-                String restriction = askForClasspathRestrictions(newEntry, fileName, "In path");
-                if (restriction != null && restriction.length() > 0) {
+                String currRestriction = AspectJCorePreferences.getRestriction(cpEntry, AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME);
+                String restriction = askForClasspathRestrictions(newEntry, currRestriction, "In path");
+                if (restriction != null) {
                     newEntry = AspectJCorePreferences.updatePathRestrictions(newEntry, restriction, AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME);
                 } else {
                     newEntry = AspectJCorePreferences.ensureHasAttribute(newEntry, AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME, "");
@@ -40,9 +42,6 @@ public class AddToInpathAction extends AJBuildPathAction implements IObjectActio
             newEntry = AspectJCorePreferences.ensureHasAttribute(newEntry, AspectJCorePreferences.INPATH_ATTRIBUTE_NAME, AspectJCorePreferences.INPATH_ATTRIBUTE_NAME);
             AspectJCorePreferences.updateClasspathEntry(project, newEntry);
             
-		} else {
-			String jarPath = jarFile.getFullPath().toPortableString();
-			AspectJCorePreferences.addToInPath(project,jarPath,IClasspathEntry.CPE_LIBRARY);
 		}
 		AJDTUtils.refreshPackageExplorer();
 	}
@@ -57,20 +56,18 @@ public class AddToInpathAction extends AJBuildPathAction implements IObjectActio
 					IPackageFragmentRoot root = (IPackageFragmentRoot)element;
 					project = root.getJavaProject().getProject();
 					cpEntry = root.getRawClasspathEntry();
-					jarFile = null;
-                    fileName = root.getElementName();
-					enable = !AspectJCorePreferences.isOnInpath(cpEntry);
-				} else {
-					jarFile = getJARFile(selection);
-					if (jarFile != null) {
-						cpEntry = null;
-						project = jarFile.getProject();
-						enable = (!AspectJCorePreferences.isOnInpath(
-								project, jarFile.getFullPath()
-										.toPortableString()) && !checkIfAddingOutjar(project));
-	                      fileName = jarFile.getName();
-					}
-				}
+                    if (cpEntry.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+                        fileName = root.getElementName();
+                        enable = AspectJCorePreferences.isOnInpath(cpEntry);
+                    } else {
+                        fileName = null;
+                        cpEntry = null;
+                        project = null;
+                        enable = false;
+                    }
+                } else {
+                    enable = false;
+                }
 			} catch (JavaModelException e) {
 			}
 			action.setEnabled(enable);
