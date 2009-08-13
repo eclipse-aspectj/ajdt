@@ -107,7 +107,7 @@ public class AJSourceElementParser2 extends CommentRecorderParser {
 	HashMap nodesToCategories = new HashMap(); // a map from ASTNode to char[][]
 	boolean useSourceJavadocParser = true;
 	
-	AJSourceElementNotifier notifier;
+	AJSourceElementNotifier notifier; // AspectJ Change
 
 public AJSourceElementParser2(
 		final AJCompilationUnitStructureRequestor requestor, // AspectJ Change
@@ -991,7 +991,7 @@ private void rememberCategories() {
 		}
 	}
 }
-private void reset() {
+public void reset() {
 	this.sourceEnds = new HashtableOfObjectToInt();
 	this.nodesToCategories = new HashMap();
 }
