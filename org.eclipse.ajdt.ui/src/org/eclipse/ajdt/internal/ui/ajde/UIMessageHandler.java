@@ -411,14 +411,14 @@ public class UIMessageHandler implements IBuildMessageHandler {
                     IResource[] srcContainer = new IResource[] { project
                             .findMember(sourcePath) };
                     ret = findFile(srcContainer, toFind);
-                    if (ret != null)
-                        break;
                 } else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
                     IPath projPath = cpEntry.getPath();
                     IResource projResource = AspectJPlugin.getWorkspace()
                             .getRoot().findMember(projPath);
                     ret = findFile(new IResource[] { projResource }, toFind);
                 }
+                if (ret != null)
+                	break;
             }
         } catch (JavaModelException jmEx) {
         	AJDTErrorHandler.handleAJDTError(UIMessages.jmCoreException, jmEx);
