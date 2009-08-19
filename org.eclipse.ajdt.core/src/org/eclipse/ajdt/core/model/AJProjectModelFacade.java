@@ -716,9 +716,23 @@ public class AJProjectModelFacade {
         return (ICompilationUnit) ERROR_JAVA_ELEMENT;
     }
     
+    
+    Map/* ISourceLocation -> Integer */ slocCache;
+    /**
+     * Open up the buffer to to convert from line number to offset
+     * this is slow
+     * We are always working in an AJCU with an aspect element
+     * 
+     * cache the results since it is likely that we will be 
+     * calling this often for the same sloc
+     */
     private int offsetFromLine(ITypeRoot unit, ISourceLocation sloc) throws JavaModelException {
         if (sloc.getOffset() > 0) {
             return sloc.getOffset();
+        }
+        
+        if (slocCache != null && slocCache.containsKey(sloc)) {
+            return ((Integer) slocCache.get(sloc)).intValue();
         }
         
         if (unit instanceof AJCompilationUnit) {
@@ -742,8 +756,14 @@ public class AJProjectModelFacade {
             while (offset < buf.getLength() && Character.isWhitespace(buf.getChar(offset))) {
                 offset++;
             }
+            
+            // cache
+            if (slocCache == null) {
+                slocCache = new HashMap();
+            }
+            slocCache.put(sloc, new Integer(offset));
             return offset;
-        } 
+        }
         // no source code
         return 0;
     }
