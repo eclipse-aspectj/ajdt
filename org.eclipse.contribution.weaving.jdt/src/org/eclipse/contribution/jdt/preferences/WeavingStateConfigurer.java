@@ -88,16 +88,96 @@ public class WeavingStateConfigurer {
         IStatus success2 = changeAutoStartupAspectsBundle(becomeEnabled);
         if (success != Status.OK_STATUS || success2 != Status.OK_STATUS) {
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.ERROR, 
-                    new IStatus[] { success, success2 }, "Could not "
+                    new IStatus[] { success, success2, getInstalledBundleInformation() }, "Could not "
                     + (becomeEnabled ? "ENABLED" : "DISABLED") + " weaving service",
                     null);
         } else {
-            return new Status(IStatus.OK, JDTWeavingPlugin.ID,
+            return new MultiStatus(JDTWeavingPlugin.ID, IStatus.OK, 
+                    new IStatus[] { getInstalledBundleInformation() },
                     "Weaving service successfully "
-                    + (becomeEnabled ? "ENABLED" : "DISABLED"));
+                    + (becomeEnabled ? "ENABLED" : "DISABLED"), null);
         } 
     }
 
+    private IStatus getInstalledBundleInformation() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("Information on currently installed bundles:\n");
+        
+        Bundle[] allEABundles = Platform.getBundles("org.eclipse.equinox.weaving.aspectj", null); //$NON-NLS-1$
+        if (allEABundles != null) {
+            for (int i = 0; i < allEABundles.length; i++) {
+                Bundle bundle = allEABundles[i];
+                sb.append(createBundleNameString(bundle));
+            }
+        } else {
+            sb.append("org.eclipse.equinox.weaving.aspectj not installed\n");
+        }
+        
+        Bundle[] allWeaverBundles = Platform.getBundles("org.aspectj.weaver", null);
+        if (allWeaverBundles != null) {
+            for (int i = 0; i < allWeaverBundles.length; i++) {
+                Bundle bundle = allWeaverBundles[i];
+                sb.append(createBundleNameString(bundle));
+            }
+        } else {
+            sb.append("org.aspectj.weaver not installed\n");
+        }
+        
+        allWeaverBundles = Platform.getBundles("com.springsource.org.aspectj.weaver", null);
+        if (allWeaverBundles != null) {
+            for (int i = 0; i < allWeaverBundles.length; i++) {
+                Bundle bundle = allWeaverBundles[i];
+                sb.append(createBundleNameString(bundle));
+            }
+        } else {
+            sb.append("com.springsource.org.aspectj.weaver not installed\n");
+        }
+        
+        Bundle[] allWeavingHooks = Platform.getBundles("org.eclipse.equinox.weaving.hook", null);
+        if (allWeavingHooks != null) {
+            for (int i = 0; i < allWeavingHooks.length; i++) {
+                Bundle bundle = allWeavingHooks[i];
+                sb.append(createBundleNameString(bundle));
+            }
+        } else {
+            sb.append("org.eclipse.equinox.weaving.hook not installed\n");
+        }
+
+        
+        return new Status(IStatus.INFO, JDTWeavingPlugin.ID, sb.toString());
+    }
+
+    private StringBuffer createBundleNameString(Bundle bundle) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(bundle.getSymbolicName()).append("_")
+            .append(bundle.getVersion()).append(" : ID ")
+            .append(bundle.getBundleId()).append(": STATE ");
+        switch (bundle.getState()) {
+            case Bundle.ACTIVE:
+                sb.append("ACTIVE");
+                break;
+
+            case Bundle.INSTALLED:
+                sb.append("INSTALLED");
+                break;
+
+            case Bundle.RESOLVED:
+                sb.append("RESOLVED");
+                break;
+
+            case Bundle.STARTING:
+                sb.append("STARTING");
+                break;
+
+            case Bundle.STOPPING:
+                sb.append("STOPPING");
+                break;
+        }
+        
+        sb.append("\n");
+        return sb;
+    }
+    
     private IStatus changeAutoStartupAspectsBundle(boolean becomeEnabled) {
         
         // get all versions of weaving.aspectj in the platform.  

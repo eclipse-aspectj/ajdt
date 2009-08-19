@@ -131,7 +131,7 @@ public class WeavingStateConfigurerUI {
         
         IStatus changeResult = configurer.changeWeavingState(!configurer.isWeaving());
         
-        if (changeResult.getSeverity() == IStatus.OK) {
+        if (changeResult.getSeverity() <= IStatus.INFO) {
             try {
                 JDTWeavingPlugin.getInstance().getLog().log(changeResult);
 
@@ -153,10 +153,6 @@ public class WeavingStateConfigurerUI {
     
     // must be run from UI thread
     public boolean ask() {
-//        MessageDialogWithToggle dialog = MessageDialogWithToggle
-//            .openYesNoQuestion(Display.getCurrent().getActiveShell(), "Turn Weaving Service on?",
-//                    MESSAGE, "Don't ask again until next upgrade", false, null, null);
-        
         EnableWeavingDialog dialog = new EnableWeavingDialog();
         dialog.open();
         JDTWeavingPreferences.setAskToEnableWeaving(! dialog.getToggleState());
