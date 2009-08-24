@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.AopXmlPreferences;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
@@ -133,6 +134,11 @@ public class ImageDecorator implements ILabelDecorator {
 					img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
 				} else if (file.getFileExtension().equals("jar") || file.getFileExtension().equals("zip")) { //$NON-NLS-1$ //$NON-NLS-2$
 					// TODO: decorate out-jars?
+				} else if (file.getFileExtension().equals("xml")) {
+				    // maybe this is an aop.xml that is part of the build config
+				    if (new AopXmlPreferences(file.getProject()).isAopXml(file)) {
+				        img = getImageLabel(((AJDTIcon) AspectJImages.AOP_XML).getImageDescriptor());
+				    }
 				}
 			} 
 		} else if (element instanceof JarPackageFragmentRoot) {
