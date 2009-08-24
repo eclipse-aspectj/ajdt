@@ -55,7 +55,6 @@ public class AJToggleActiveFoldingAction extends Action implements IWorkbenchWin
 		valueChanged(action, action.isChecked());
 	}
 
-	@SuppressWarnings("restriction")
 	private void valueChanged(IAction action, final boolean on) {
 		try {
 			if (on) {
@@ -79,7 +78,6 @@ public class AJToggleActiveFoldingAction extends Action implements IWorkbenchWin
 		// don't care when the selection changes
 	}
 
-	@SuppressWarnings("restriction")
 	public void init(IAction action) {
 		this.parentAction = action;
 		valueChanged(action, org.eclipse.mylyn.internal.java.ui.JavaUiBridgePlugin
