@@ -21,6 +21,7 @@ import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -92,7 +93,7 @@ public class ITDAwareNameEnvironment extends
                         sourceType = ((SourceType) AspectJCore.create(
                                 AspectJCore.convertToAspectHandle(ajHandle, sourceType)));
                         sourceTypeInfo = (SourceTypeElementInfo) sourceType.getElementInfo();
-                        types = ((AJCompilationUnit) sourceType.getParent()).getTypes();
+                        types = ((CompilationUnit) sourceType.getParent()).getTypes();
                     }
                     
                     ISourceType topLevelType = sourceTypeInfo;

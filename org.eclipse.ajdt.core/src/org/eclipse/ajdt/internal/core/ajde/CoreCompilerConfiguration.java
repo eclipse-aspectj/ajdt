@@ -24,6 +24,7 @@ import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AopXmlPreferences;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
@@ -678,7 +679,6 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	public List getProjectXmlConfigFiles() {
-		// No need to implement this properly yet
-		return null;
+		return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
 	}
 }
