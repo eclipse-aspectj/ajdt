@@ -37,7 +37,8 @@ Export-Package:
  org.eclipse.contribution.jdt.sourceprovider;version="2.0.1";uses:="org.eclipse.jdt.internal.compiler.env"
 Eclipse-SupplementBundle: org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
- org.eclipse.jdt.debug.ui
+ org.eclipse.jdt.debug.ui,
+ org.eclipse.jdt.groovy.core
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Bundle-ActivationPolicy: lazy
