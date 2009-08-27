@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.internal.codeassist.InternalCompletionProposal;
 
 /**
  * Translates code positions from fakeBuffer into realBuffer before
@@ -77,11 +78,25 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	        return;
 	    }
 	    
-		int s = proposal.getReplaceStart();
-		int e = proposal.getReplaceEnd();
-		proposal.setReplaceRange(trans(s), trans(e));
+	    if (insertionTable.size() > 0) {
+	        translateReplaceRange(proposal);
+	    }
 		wrapped.accept(proposal);
 	}
+	
+    private void translateReplaceRange(CompletionProposal proposal) {
+        int s = proposal.getReplaceStart();
+		int e = proposal.getReplaceEnd();
+		proposal.setReplaceRange(trans(s), trans(e));
+		if (proposal instanceof InternalCompletionProposal) {
+            InternalCompletionProposal internalProposal = (InternalCompletionProposal) proposal;
+            if (internalProposal.getRequiredProposals() != null) {
+                for (int i = 0; i < internalProposal.getRequiredProposals().length; i++) {
+                    translateReplaceRange(internalProposal.getRequiredProposals()[i]);
+                }
+            }
+        }
+    }
 	
 	protected boolean shouldAccept(CompletionProposal proposal) {
 	    if (proposal.getKind() == CompletionProposal.FIELD_REF ||

@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -24,7 +25,6 @@ import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AopXmlPreferences;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
@@ -679,6 +679,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	public List getProjectXmlConfigFiles() {
-		return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
+	    return Collections.EMPTY_LIST;
+//		return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
 	}
 }
