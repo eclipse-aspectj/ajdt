@@ -54,6 +54,8 @@ public class AJPluginExportWizard extends AntGeneratingExportWizard {
 		info.zipFileName = ((AJPluginExportWizardPage)fPage).getFileName();
 		info.items = ((AJPluginExportWizardPage)fPage).getSelectedItems();
 		info.signingInfo = ((AJPluginExportWizardPage)fPage).useJARFormat() ? ((AJPluginExportWizardPage)fPage).getSigningInfo() : null;
+		info.allowBinaryCycles = ((AJPluginExportWizardPage)fPage).allowBinaryCycles(); 
+		
 		
 		AJPluginExportJob job = new AJPluginExportJob(info);
 		job.setUser(true);

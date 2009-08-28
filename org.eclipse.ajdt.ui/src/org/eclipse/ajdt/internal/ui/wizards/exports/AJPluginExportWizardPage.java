@@ -46,4 +46,8 @@ public class AJPluginExportWizardPage extends PluginExportWizardPage {
 	protected String[] getSigningInfo() {
 		return super.getSigningInfo();
 	}
+	
+	protected boolean allowBinaryCycles() {
+		return super.allowBinaryCycles();
+	}
 }
