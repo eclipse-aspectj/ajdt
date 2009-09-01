@@ -1212,7 +1212,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 				BundleDescription ajdeBundle = getModel("org.aspectj.ajde", null);
 				// bug 244735
 				// ajde plugin is not included in this build environment.
-				// no worries...get the ajdeClasspath from the rnning 
+				// no worries...get the ajdeClasspath from the running 
 				// version
 				if (ajdeBundle == null) {
 					ajdeBundle = addBundleAndRequired("org.aspectj.ajde");
@@ -1625,10 +1625,13 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		}		
 		
 		// now add prerequisite bundles
-		BundleDescription[] prereqs = bundle.getResolvedRequires();
+		BundleSpecification[] prereqs = bundle.getRequiredBundles();
 		for (int i = 0; i < prereqs.length; i++) {
-			String[] pcp = bundleToCP(prereqs[i]);
-			pathList.addAll(Arrays.asList(pcp));
+			BundleDescription prereqBundle = getModel(prereqs[i].getName(), null);
+			if (prereqBundle != null ) {
+				String[] pcp = bundleToCP(prereqBundle);
+				pathList.addAll(Arrays.asList(pcp));
+			}
 		}
 		
 		String[] path = new String[pathList.size()];
