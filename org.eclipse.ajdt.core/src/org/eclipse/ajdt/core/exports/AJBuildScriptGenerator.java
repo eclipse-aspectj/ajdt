@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import org.eclipse.pde.internal.build.Messages;
 import org.eclipse.pde.internal.build.SourceFeatureInformation;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.builder.BuildDirector;
+import org.eclipse.pde.internal.build.builder.CompilationScriptGenerator;
 import org.eclipse.pde.internal.build.builder.DevClassPathHelper;
 import org.eclipse.pde.internal.build.packager.PackageScriptGenerator;
 import org.eclipse.pde.internal.build.site.BuildTimeFeature;
@@ -261,14 +263,19 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator { // AspectJ Ch
 
 		if (generator != null) {
 			try {
+                String[] featureInfo = null;
 				for (Iterator i = features.iterator(); i.hasNext();) {
-					String[] featureInfo = getNameAndVersion((String) i.next());
+					featureInfo = getNameAndVersion((String) i.next());
 					BuildTimeFeature feature = getSite(false).findFeature(featureInfo[0], featureInfo[1], true);
 					generator.generate(feature);
 				}
+				
+                if (shouldFlatten())
+                    generateCompileScript(assemblageInformation, featureInfo);
+
 
 				if (generateAssembleScript == true) {
-					String[] featureInfo = null;
+					featureInfo = null;
 					if (features.size() == 1)
 						featureInfo = getNameAndVersion((String) features.get(0));
 					else
@@ -291,7 +298,17 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator { // AspectJ Ch
 		}
 	}
 
-	protected void generateVersionsLists(AssemblyInformation assemblageInformation) throws CoreException {
+	private boolean shouldFlatten() {
+	    try {
+            Field flattenField = BuildScriptGenerator.class.getDeclaredField("flatten");
+            flattenField.setAccessible(true);
+            return flattenField.getBoolean(this);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    protected void generateVersionsLists(AssemblyInformation assemblageInformation) throws CoreException {
 		if (assemblageInformation == null)
 			return;
 		List configs = getConfigInfos();
@@ -415,17 +432,33 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator { // AspectJ Ch
 		assembler.generate();
 	}
 
-	private void generateAssembleScripts(AssemblyInformation assemblageInformation, String[] featureInfo, BuildTimeSiteFactory factory) throws CoreException {
-		AssembleScriptGenerator assembler = new AssembleScriptGenerator(workingDirectory, assemblageInformation, featureInfo[0]);
-		assembler.setSignJars(signJars);
-		assembler.setGenerateJnlp(generateJnlp);
-		assembler.setArchivesFormat(getArchivesFormat());
-		assembler.setProduct(product);
-		assembler.setBuildSiteFactory(factory);
-		assembler.setGroupConfigs(groupConfigs);
-		assembler.setVersionsList(generateVersionsList);
-		assembler.generate();
-	}
+    private void generateAssembleScripts(AssemblyInformation assemblageInformation, String[] featureInfo, BuildTimeSiteFactory factory) throws CoreException {
+        AssembleScriptGenerator assembler = new AssembleScriptGenerator(workingDirectory, assemblageInformation, featureInfo[0]);
+        assembler.setSignJars(signJars);
+        assembler.setGenerateJnlp(generateJnlp);
+        assembler.setArchivesFormat(getArchivesFormat());
+        assembler.setProduct(product);
+        assembler.setProductQualifier(productQualifier);
+        assembler.setBuildSiteFactory(factory);
+        assembler.setGroupConfigs(groupConfigs);
+        assembler.setVersionsList(generateVersionsList);
+        assembler.setContextMetadataRepositories(contextMetadata);
+        assembler.generate();
+    }
+	
+    private void generateCompileScript(
+            AssemblyInformation assemblageInformation, String[] featureInfo)
+            throws CoreException {
+        CompilationScriptGenerator generator = new CompilationScriptGenerator();
+        generator.setBuildSiteFactory(siteFactory);
+        generator.setWorkingDirectory(workingDirectory);
+        generator.setAssemblyData(assemblageInformation);
+        generator.setFeatureId(featureInfo[0]);
+        generator.setParallel(parallel);
+        generator.setThreadCount(threadCount);
+        generator.setThreadsPerProcessor(threadsPerProcessor);
+        generator.generate();
+    }
 
 	public void setGenerateArchive(boolean generateArchive) {
 		this.generateArchive = generateArchive;
