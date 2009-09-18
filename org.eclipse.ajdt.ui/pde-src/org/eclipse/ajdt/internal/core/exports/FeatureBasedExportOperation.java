@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2007 IBM Corporation and others.
+ * Copyright (c) 2006, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,52 +7,67 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     SpringSource    - adapted for use with AJDT
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.exports;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Properties;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import java.util.*;
+import org.eclipse.core.runtime.*;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.pde.core.IModel;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.TargetPlatform;
 import org.eclipse.pde.internal.core.PDECore;
+import org.eclipse.pde.internal.core.PDECoreMessages;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
+import org.eclipse.pde.internal.core.ifeature.IFeature;
+import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
 
 public abstract class FeatureBasedExportOperation extends FeatureExportOperation {
 
 	protected String fFeatureLocation;
 
-	public FeatureBasedExportOperation(FeatureExportInfo info) {
-		super(info);
+	public FeatureBasedExportOperation(FeatureExportInfo info, String name) {
+		super(info, name);
 	}
 
-	public void run(IProgressMonitor monitor) throws CoreException {
+	/* (non-Javadoc)
+	 * @see org.eclipse.pde.internal.core.exports.FeatureExportOperation#run(org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	public IStatus run(IProgressMonitor monitor) {
 		try {
 			createDestination();
-			monitor.beginTask("", 10); //$NON-NLS-1$
+			monitor.beginTask("Exporting...", 33); //$NON-NLS-1$
 			// create a feature to contain all plug-ins
 			String featureID = "org.eclipse.pde.container.feature"; //$NON-NLS-1$
 			fFeatureLocation = fBuildTempLocation + File.separator + featureID;
-			String[] config = new String[] {TargetPlatform.getOS(), TargetPlatform.getWS(), TargetPlatform.getOSArch(), TargetPlatform.getNL()};
+			String[][] config = new String[][] {{TargetPlatform.getOS(), TargetPlatform.getWS(), TargetPlatform.getOSArch(), TargetPlatform.getNL()}};
 			createFeature(featureID, fFeatureLocation, config, false);
 			createBuildPropertiesFile(fFeatureLocation);
 			if (fInfo.useJarFormat)
 				createPostProcessingFiles();
-			doExport(featureID, null, fFeatureLocation, TargetPlatform.getOS(), TargetPlatform.getWS(), TargetPlatform.getOSArch(), new SubProgressMonitor(monitor, 7));
+			IStatus status = testBuildWorkspaceBeforeExport(new SubProgressMonitor(monitor, 10));
+			doExport(featureID, null, fFeatureLocation, config, new SubProgressMonitor(monitor, 20));
+			if (monitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+			return status;
 		} catch (IOException e) {
+			return new Status(IStatus.ERROR, PDECore.PLUGIN_ID, PDECoreMessages.FeatureBasedExportOperation_ProblemDuringExport, e);
+		} catch (CoreException e) {
+			return e.getStatus();
 		} catch (InvocationTargetException e) {
-			throwCoreException(e);
+			return new Status(IStatus.ERROR, PDECore.PLUGIN_ID, PDECoreMessages.FeatureBasedExportOperation_ProblemDuringExport, e.getTargetException());
 		} finally {
 			for (int i = 0; i < fInfo.items.length; i++) {
 				if (fInfo.items[i] instanceof IModel)
-					deleteBuildFiles(fInfo.items[i]);
+					try {
+						deleteBuildFiles(fInfo.items[i]);
+					} catch (CoreException e) {
+						PDECore.log(e);
+					}
 			}
 			cleanup(null, new SubProgressMonitor(monitor, 3));
 			monitor.done();
@@ -75,18 +90,36 @@ public abstract class FeatureBasedExportOperation extends FeatureExportOperation
 			file.mkdirs();
 		Properties prop = new Properties();
 		prop.put("pde", "marker"); //$NON-NLS-1$ //$NON-NLS-2$
+
+		if (fInfo.exportSource && fInfo.exportSourceBundle) {
+			prop.put("individualSourceBundles", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+			Dictionary environment = new Hashtable(4);
+			environment.put("osgi.os", TargetPlatform.getOS()); //$NON-NLS-1$
+			environment.put("osgi.ws", TargetPlatform.getWS()); //$NON-NLS-1$
+			environment.put("osgi.arch", TargetPlatform.getOSArch()); //$NON-NLS-1$
+			environment.put("osgi.nl", TargetPlatform.getNL()); //$NON-NLS-1$
+
+			for (int i = 0; i < fInfo.items.length; i++) {
+				if (fInfo.items[i] instanceof IFeatureModel) {
+					IFeature feature = ((IFeatureModel) fInfo.items[i]).getFeature();
+					prop.put("generate.feature@" + feature.getId() + ".source", feature.getId()); //$NON-NLS-1$ //$NON-NLS-2$
+				} else {
+					BundleDescription bundle = null;
+					if (fInfo.items[i] instanceof IPluginModelBase) {
+						bundle = ((IPluginModelBase) fInfo.items[i]).getBundleDescription();
+					}
+					if (bundle == null) {
+						if (fInfo.items[i] instanceof BundleDescription)
+							bundle = (BundleDescription) fInfo.items[i];
+					}
+					if (bundle == null)
+						continue;
+					if (shouldAddPlugin(bundle, environment)) {
+						prop.put("generate.plugin@" + bundle.getSymbolicName() + ".source", bundle.getSymbolicName()); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+				}
+			}
+		}
 		save(new File(file, "build.properties"), prop, "Marker File"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
-
-	private void save(File file, Properties properties, String header) {
-		try {
-			FileOutputStream stream = new FileOutputStream(file);
-			properties.store(stream, header);
-			stream.flush();
-			stream.close();
-		} catch (IOException e) {
-			PDECore.logException(e);
-		}
-	}
-
 }

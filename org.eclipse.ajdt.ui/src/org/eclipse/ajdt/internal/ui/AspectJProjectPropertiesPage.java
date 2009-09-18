@@ -576,7 +576,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		if (testing) {
 			return thisProject;
 		} else {
-			return (IProject) getElement();
+			return (IProject) getElement().getAdapter(IProject.class);
 		}
 	}
 

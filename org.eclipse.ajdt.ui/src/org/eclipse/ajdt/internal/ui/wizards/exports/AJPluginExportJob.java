@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ui.wizards.exports;
 import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
 import org.eclipse.ajdt.internal.core.exports.PluginExportOperation;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
+import org.eclipse.pde.internal.ui.PDEUIMessages;
 
 
 public class AJPluginExportJob extends AJFeatureExportJob {
@@ -21,8 +22,8 @@ public class AJPluginExportJob extends AJFeatureExportJob {
 		super(info);
 	}
 	
-	protected FeatureExportOperation createOperation() {
-		return new PluginExportOperation(fInfo);
+	protected FeatureExportOperation getOperation() {
+		return new PluginExportOperation(fInfo, PDEUIMessages.PluginExportJob_name);
 	}
 
 }
