@@ -86,10 +86,15 @@ public class WeavingStateConfigurer {
         
         
         IStatus success2 = changeAutoStartupAspectsBundle(becomeEnabled);
-        if (success != Status.OK_STATUS || success2 != Status.OK_STATUS) {
+        if (success.getSeverity() >= IStatus.ERROR || success2.getSeverity() >= IStatus.ERROR) {
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.ERROR, 
                     new IStatus[] { success, success2, getInstalledBundleInformation() }, "Could not "
                     + (becomeEnabled ? "ENABLED" : "DISABLED") + " weaving service",
+                    null);
+        } else if (success.getSeverity() >= IStatus.WARNING || success2.getSeverity() >= IStatus.WARNING) {
+            return new MultiStatus(JDTWeavingPlugin.ID, IStatus.WARNING, 
+                    new IStatus[] { success, success2, getInstalledBundleInformation() }, "Weaving service "
+                    + (becomeEnabled ? "ENABLED" : "DISABLED") + " with warnings",
                     null);
         } else {
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.OK, 
@@ -232,20 +237,27 @@ public class WeavingStateConfigurer {
         try {
             String configArea = getConfigArea();
             File f = new File(new URI(configArea));
-            BufferedReader br = new BufferedReader(new FileReader(f));
-            
-            String newConfig = internalChangeWeavingState(becomeEnabled, br);
-            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            bw.write(newConfig);
-            bw.close();
-
-            
-            if (becomeEnabled == currentConfigStateIsWeaving()) {
-                success = Status.OK_STATUS;
+            if (f.canWrite()) {
+                BufferedReader br = new BufferedReader(new FileReader(f));
+                
+                String newConfig = internalChangeWeavingState(becomeEnabled, br);
+                BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+                bw.write(newConfig);
+                bw.close();
+    
+                
+                if (becomeEnabled == currentConfigStateIsWeaving()) {
+                    success = Status.OK_STATUS;
+                } else {
+                    success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Could not add or remove org.eclipse.equinox.weaving.hook as a framework adaptor.");
+                }
             } else {
-                success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Could not add or remove org.eclipse.equinox.weaving.hook as a framework adaptor.");
+                // cannot write to file...most likely this is because the config.ini 
+                // is in a global location that is read-only.
+                success = new Status(IStatus.WARNING, JDTWeavingPlugin.ID, "Could not add " +
+                		"'osgi.framework.extensions=org.eclipse.equinox.weaving.hook'\n " +
+                		"to the config.ini because the file is read-only.  Weaving may not be enabled.");
             }
-            
         } catch (Exception e) {
             success = new Status(IStatus.ERROR, JDTWeavingPlugin.ID, e
                     .getMessage(), e);

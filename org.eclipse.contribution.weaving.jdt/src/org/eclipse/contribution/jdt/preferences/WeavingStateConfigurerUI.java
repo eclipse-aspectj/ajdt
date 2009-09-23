@@ -131,13 +131,16 @@ public class WeavingStateConfigurerUI {
         
         IStatus changeResult = configurer.changeWeavingState(!configurer.isWeaving());
         
-        if (changeResult.getSeverity() <= IStatus.INFO) {
+        JDTWeavingPlugin.getInstance().getLog().log(changeResult);
+        if (changeResult.getSeverity() <= IStatus.WARNING) {
             try {
-                JDTWeavingPlugin.getInstance().getLog().log(changeResult);
-
+                String note = "";
+                if (changeResult.getSeverity() <= IStatus.WARNING) {
+                    note = "\n\nWeaving status changed with warnings.  See the error log for more details.";
+                }
                 boolean doRestart = MessageDialog.openQuestion(shell, "Restart", "Weaving will be " + 
                         (configurer.isWeaving() ? "DISABLED" : "ENABLED") + " after restarting the workbench.\n\n" +
-                                "Do you want to restart now?");
+                                "Do you want to restart now?" + note);
                 if (doRestart) {
                     PlatformUI.getWorkbench().restart();
                 }
@@ -145,10 +148,9 @@ public class WeavingStateConfigurerUI {
             } catch (Exception e) {
                 changeResult = new Status(IStatus.ERROR,JDTWeavingPlugin.ID, "Could not change weaving state", e);
             }
+        } else {
+            getFailureDialog(changeResult);
         }
-        JDTWeavingPlugin.getInstance().getLog().log(changeResult);
-        getFailureDialog(changeResult);
-        
     }
     
     // must be run from UI thread
