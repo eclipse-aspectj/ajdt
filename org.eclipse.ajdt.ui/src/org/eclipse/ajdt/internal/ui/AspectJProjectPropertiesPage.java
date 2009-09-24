@@ -11,13 +11,9 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
@@ -48,7 +44,6 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ClasspathAttribute;
-import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.launching.JREContainer;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
@@ -571,14 +566,17 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	 */
 	public void dispose() {
 		super.dispose();
-		thisProject.getWorkspace().removeResourceChangeListener(fListener);		
+		try {
+		    thisProject.getWorkspace().removeResourceChangeListener(fListener);
+		} catch(Exception e) {
+		}
 	}
 
 	private IProject getProject() {
 		if (testing) {
 			return thisProject;
 		} else {
-			return (IProject) getElement();
+			return (IProject) getElement().getAdapter(IProject.class);
 		}
 	}
 

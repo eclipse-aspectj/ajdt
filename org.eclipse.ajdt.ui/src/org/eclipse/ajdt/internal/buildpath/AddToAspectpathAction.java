@@ -27,7 +27,20 @@ public class AddToAspectpathAction extends AJBuildPathAction implements IObjectA
 			return;
 		}
 		if (cpEntry != null) {
-			AspectJCorePreferences.addToAspectPath(project,cpEntry);
+		    
+		    // add to aspect path and ensure restrictions are properly set up
+		    IClasspathEntry newEntry = cpEntry;
+		    if (shouldAskForClasspathRestrictions(cpEntry)) {
+		        String restriction = askForClasspathRestrictions(newEntry, fileName, "Aspect path");
+		        if (restriction != null && restriction.length() > 0) {
+		            newEntry = AspectJCorePreferences.updatePathRestrictions(newEntry, restriction, AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME);
+		        } else {
+		            newEntry = AspectJCorePreferences.ensureHasAttribute(newEntry, AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME, "");
+		        }
+		    }
+		    newEntry = AspectJCorePreferences.ensureHasAttribute(newEntry, AspectJCorePreferences.ASPECTPATH_ATTRIBUTE_NAME, AspectJCorePreferences.ASPECTPATH_ATTRIBUTE_NAME);
+			AspectJCorePreferences.updateClasspathEntry(project, newEntry);
+			
 		} else {
 			String jarPath = jarFile.getFullPath().toPortableString();
 			AspectJCorePreferences.addToAspectPath(project,jarPath,IClasspathEntry.CPE_LIBRARY);
@@ -46,6 +59,7 @@ public class AddToAspectpathAction extends AJBuildPathAction implements IObjectA
 					project = root.getJavaProject().getProject();
 					cpEntry = root.getRawClasspathEntry();
 					jarFile = null;
+					fileName = root.getElementName();
 					enable = !AspectJCorePreferences.isOnAspectpath(cpEntry);
 				} else {
 					jarFile = getJARFile(selection);
@@ -55,6 +69,7 @@ public class AddToAspectpathAction extends AJBuildPathAction implements IObjectA
 						enable = (!AspectJCorePreferences.isOnAspectpath(
 								project, jarFile.getFullPath()
 										.toPortableString()) && !checkIfAddingOutjar(project));
+						fileName = jarFile.getName();
 					}
 				}
 			} catch (JavaModelException e) {

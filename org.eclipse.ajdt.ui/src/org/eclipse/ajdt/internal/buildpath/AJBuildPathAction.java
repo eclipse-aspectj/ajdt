@@ -21,12 +21,17 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.ArchiveFileFilter;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchPart;
 
 public abstract class AJBuildPathAction {
 
 	protected IFile jarFile;
+	
+	protected String fileName;
 
 	protected IClasspathEntry cpEntry;
 	
@@ -77,5 +82,55 @@ public abstract class AJBuildPathAction {
 		
 		return false;
 	}
+	
+	protected boolean shouldAskForClasspathRestrictions(IClasspathEntry entry) {
+	    return entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER;
+	}
 
+	protected String askForClasspathRestrictions(IClasspathEntry entry, String jarName, String pathKind) {
+	    String message = "Do you want to add a restriction to the " + pathKind +"?\n" +
+	            "Currently, you are adding " + entry.getPath() + " to the " + pathKind + ".\n" +
+	            "By adding a restriction, you can restrict elements on the " + pathKind + "\n" +
+	            "in this entry to those whose names match the restriction path\n\n" +
+	            "You may add a comma separated list of entries.";
+	    
+	    InputDialog dialog = new InputDialog(null, "Add Classpath restriction?", message, jarName, new JarListValidator());
+	    int res = dialog.open();
+	    if (res == InputDialog.OK) {
+	        return dialog.getValue();
+	    } else {
+	        return null;
+	    }
+	}
+	
+	
+	/**
+	 * Must be a comma separated set of java identifiers
+	 * @author Andrew Eisenberg
+	 * 
+	 */
+	private class JarListValidator implements IInputValidator {
+
+        public String isValid(String newText) {
+            if (newText.length() == 0) {
+                // an empty string is OK
+                return null;
+            }
+            String[] splits = newText.split(",");
+            for (int i = 0; i < splits.length; i++) {
+                String val = splits[i];
+                val = val.trim();
+                if (val.length() == 0) {
+                    return "Invalid jar fragment name";
+                }
+                char[] array = val.toCharArray();
+                for (int j = 0; j < array.length; j++) {
+                    if (!Character.isUnicodeIdentifierPart(array[j]) && array[j] != '.' && array[j] != '-') {
+                        return "'" + array[j] + "' not allowed.";
+                    }
+                }
+            }
+            return null;
+        }
+	}
 }

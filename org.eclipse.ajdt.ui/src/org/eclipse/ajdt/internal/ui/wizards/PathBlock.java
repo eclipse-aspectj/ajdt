@@ -725,7 +725,7 @@ public abstract class PathBlock {
                             created[i] = existing[j];
                         }
                     }
-                    created[i] = ensureHasRestriction(created[i]);
+                    created[i] = AspectJCorePreferences.ensureHasAttribute(created[i], getRestrictionPathAttrName(), "");
                 }
             } catch (JavaModelException e) {
             }
@@ -947,24 +947,8 @@ public abstract class PathBlock {
 
                 if (restrictions.containsKey(entries[i].getPath())) {
                     String restrictionStr = (String) restrictions.get(entries[i].getPath());
-                    IClasspathAttribute[] attrs = entries[i].getExtraAttributes();
-                    int index = indexOfAttribute(attrs, restrictionKind);
-                    IClasspathAttribute newAttr = JavaCore.newClasspathAttribute(restrictionKind, restrictionStr);
-                    if (index >= 0) {
-                        // just replace
-                        attrs[index] = newAttr;
-                    } else {
-                        // must create a new entry with more extra attributes
-                        IClasspathAttribute[] newAttrs;
-                        if (attrs == null || attrs.length == 0) {
-                            newAttrs = new IClasspathAttribute[] { newAttr };
-                        } else {
-                            newAttrs = new IClasspathAttribute[attrs.length+1];
-                            System.arraycopy(attrs, 0, newAttrs, 0, attrs.length);
-                            newAttrs[attrs.length] = newAttr;
-                        }
-                        entries[i] = copyContainerEntry(entries[i], newAttrs);
-                    }
+                    entries[i] = AspectJCorePreferences.updatePathRestrictions(entries[i], restrictionStr,
+                            restrictionKind);
                     hasChanges = true;
                 }
             }
@@ -972,22 +956,13 @@ public abstract class PathBlock {
         return hasChanges;
     }
 
-    private int indexOfAttribute(IClasspathAttribute[] attrs,
-            String attrName) {
-        for (int i = 0; i < attrs.length; i++) {
-            if (attrs[i].getName().equals(attrName)) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     protected ArrayList /*CPListElement*/ getExistingEntries(IClasspathEntry[] pathEntries) {
         ArrayList /*CPListElement*/ newPath = new ArrayList();
         for (int i = 0; i < pathEntries.length; i++) {
             IClasspathEntry curr = pathEntries[i];
             if (curr.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-                curr = ensureHasRestriction(curr);
+                curr = AspectJCorePreferences.ensureHasAttribute(curr, getRestrictionPathAttrName(), "");
             }
             newPath.add(CPListElement.createFromExisting(curr,
                     fCurrJProject));
@@ -995,31 +970,6 @@ public abstract class PathBlock {
         return newPath;
     }
 
-    private IClasspathEntry ensureHasRestriction(IClasspathEntry curr) {
-        int index = indexOfAttribute(curr.getExtraAttributes(), getRestrictionPathAttrName());
-        if (index < 0) {
-            IClasspathAttribute[] attrs = curr.getExtraAttributes();
-            // must create a new entry with more extra attributes
-            IClasspathAttribute newAttr = JavaCore.newClasspathAttribute(getRestrictionPathAttrName(), "");
-            IClasspathAttribute[] newAttrs;
-            if (attrs == null || attrs.length == 0) {
-                newAttrs = new IClasspathAttribute[] { newAttr };
-            } else {
-                newAttrs = new IClasspathAttribute[attrs.length+1];
-                System.arraycopy(attrs, 0, newAttrs, 0, attrs.length);
-                newAttrs[attrs.length] = newAttr;
-            }
-            return copyContainerEntry(curr, newAttrs);
-        } else {
-            return curr;
-        }
-    }
-
-    private IClasspathEntry copyContainerEntry(IClasspathEntry containerEntry, 
-            IClasspathAttribute[] extraAttrs) {
-        return JavaCore.newContainerEntry(containerEntry.getPath(), 
-                containerEntry.getAccessRules(), extraAttrs, containerEntry.isExported());
-    }
     
     protected Shell getShell() {
         return AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()

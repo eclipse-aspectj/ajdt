@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.AopXmlPreferences;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
@@ -28,6 +29,7 @@ import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -132,15 +134,23 @@ public class ImageDecorator implements ILabelDecorator {
 					img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
 				} else if (file.getFileExtension().equals("jar") || file.getFileExtension().equals("zip")) { //$NON-NLS-1$ //$NON-NLS-2$
 					// TODO: decorate out-jars?
+				} else if (file.getFileExtension().equals("xml")) {
+				    // maybe this is an aop.xml that is part of the build config
+				    if (new AopXmlPreferences(file.getProject()).isAopXml(file)) {
+				        img = getImageLabel(((AJDTIcon) AspectJImages.AOP_XML).getImageDescriptor());
+				    }
 				}
 			} 
 		} else if (element instanceof JarPackageFragmentRoot) {
+		    JarPackageFragmentRoot root = (JarPackageFragmentRoot) element;
 			try {
-				IClasspathEntry entry = ((JarPackageFragmentRoot)element).getRawClasspathEntry();
+				IClasspathEntry entry = root.getRawClasspathEntry();
 				if (entry != null) {
-					if (AspectJCorePreferences.isOnAspectpath(entry)) {
+				    IResource resource = root.getResource();
+				    String name = resource == null ? root.getElementName() : resource.getName();
+					if (AspectJCorePreferences.isOnAspectpathWithRestrictions(entry, name)) {
 						img = getImageLabel(AspectJImages.JAR_ON_ASPECTPATH.getImageDescriptor());
-					} else if (AspectJCorePreferences.isOnInpath(entry)) {
+					} else if (AspectJCorePreferences.isOnInpathWithRestrictions(entry, name)) {
 						img = getImageLabel(AspectJImages.JAR_ON_INPATH.getImageDescriptor());
 					}
 				}

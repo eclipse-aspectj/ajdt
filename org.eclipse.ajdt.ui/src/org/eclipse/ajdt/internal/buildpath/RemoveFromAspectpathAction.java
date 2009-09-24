@@ -12,7 +12,10 @@ package org.eclipse.ajdt.internal.buildpath;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -29,7 +32,9 @@ public class RemoveFromAspectpathAction extends AJBuildPathAction implements
 		if (project == null) {
 			return;
 		}
-		AspectJCorePreferences.removeFromAspectPath(project,cpEntry);
+        IClasspathEntry newEntry = AspectJCorePreferences.ensureHasNoAttribute(cpEntry, AspectJCorePreferences.ASPECTPATH_ATTRIBUTE_NAME);
+        newEntry = AspectJCorePreferences.ensureHasNoAttribute(newEntry, AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME);
+        AspectJCorePreferences.updateClasspathEntry(project, newEntry);
 		AJDTUtils.refreshPackageExplorer();
 	}
 

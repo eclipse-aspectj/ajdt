@@ -84,6 +84,90 @@ public class PushInRefactoring extends Refactoring {
     public static final String ALL_ITDS = "all.itds";
     public static final String DELETE_EMPTY = "delete.empty";
     
+    /**
+     * Since each class is visited multiple times, and each visit may introduce
+     * new imports, we must delay import rewriting
+     * until each class has its ITDs already pushed in.
+     *
+     */
+    private class NewImportsHolder {
+        Set/* Name */ staticImports;
+        Set/* Name */ typeImports;
+        Set/* String */ extraImports;
+        ICompilationUnit unit;
+        
+        NewImportsHolder(ICompilationUnit unit) {
+            staticImports = new HashSet();
+            typeImports = new HashSet();
+            extraImports = new HashSet();
+            this.unit = unit;
+        }
+        
+        // does not handle imports for declare annotations and declare parents
+        void rewriteImports() throws CoreException {
+            // first check to see if this unit has been deleted.
+            Change change = (Change) allChanges.get(unit);
+            if (! (change instanceof TextFileChange)) {
+                return;
+            }
+            
+            ImportRewrite rewrite = ImportRewrite.create(unit, true);
+            for (Iterator importIter = typeImports.iterator(); importIter.hasNext();) {
+                Name name = (Name) importIter.next();
+                ITypeBinding binding = name.resolveTypeBinding();
+                if (binding != null) {
+                    rewrite.addImport(binding);
+                }
+            }
+            for (Iterator importIter = staticImports.iterator(); importIter.hasNext();) {
+                Name name = (Name) importIter.next();
+                rewrite.addImport(name.resolveTypeBinding());
+            }
+
+            for (Iterator importIter = extraImports.iterator(); importIter.hasNext();) {
+                String qualName = (String) importIter.next();
+                rewrite.addImport(qualName);
+            }
+            TextEdit importEdit = rewrite.rewriteImports(new NullProgressMonitor());
+            
+            TextFileChange textChange = (TextFileChange) change;
+            if (change == null) {
+                change= new TextFileChange(unit.getElementName(), (IFile) unit.getResource());
+                textChange.setTextType("java");
+                textChange.setEdit(new MultiTextEdit());
+                allChanges.put(unit, change);
+            }
+            textChange.getEdit().addChild(importEdit);
+        }
+
+        void computeImports(List/* IntertypeElement */itds, ICompilationUnit ajUnit, IProgressMonitor monitor)
+                throws JavaModelException {
+            IJavaProject project = ajUnit.getJavaProject();
+            ASTParser parser = ASTParser.newParser(AST.JLS3);
+            parser.setProject(project);
+            parser.setResolveBindings(true);
+            parser.setSource(ajUnit);
+            ASTNode ajAST = parser.createAST(monitor);
+
+            for (Iterator itdsIter = itds.iterator(); itdsIter.hasNext();) {
+                IAspectJElement itd = (IAspectJElement) itdsIter.next();
+                ISourceRange range = itd.getSourceRange();
+                ImportReferencesCollector.collect(ajAST, project, new Region(
+                        range.getOffset(), range.getLength()),
+                        typeImports, staticImports);
+                if (itd instanceof DeclareElement) {
+                    // need to find out the qualified name of the type being declared
+                    
+                    System.out.println(itd.getHandleIdentifier());
+                }
+            }
+        }
+        
+        void addExtraImport(String typeImport) {
+            extraImports.add(typeImport);
+        }
+    }
+    
     private boolean deleteEmpty = true;
     
     private Map /* ICompilationUnit -> Change*/ allChanges = null; 
@@ -111,12 +195,20 @@ public class PushInRefactoring extends Refactoring {
                 itds.add(itd);
             }
             
+            Map/*ICompilationUnit -> NewImportsHolder*/ importsMap = new HashMap();
             for (Iterator unitIter = unitToITDs.entrySet().iterator(); unitIter.hasNext();) {
                 Map.Entry entry = (Map.Entry) unitIter.next();
                 
                 status.merge(checkFinalConditionsForITD(
-                        (ICompilationUnit) entry.getKey(), 
-                        (List) entry.getValue(), monitor));
+                        (ICompilationUnit) entry.getKey(),
+                        (List) entry.getValue(), importsMap,
+                        monitor));
+            }
+            
+            // now go through and create the import edits
+            for (Iterator iterator = importsMap.values().iterator(); iterator.hasNext();) {
+                NewImportsHolder holder = (NewImportsHolder) iterator.next();
+                holder.rewriteImports();
             }
             
         } finally {
@@ -126,14 +218,14 @@ public class PushInRefactoring extends Refactoring {
         return status;
     }
 
-    private RefactoringStatus checkFinalConditionsForITD(final ICompilationUnit unit, 
-            final List/*IAspectJElement*/ itdsForUnit, IProgressMonitor monitor) throws JavaModelException {
+    private RefactoringStatus checkFinalConditionsForITD(final ICompilationUnit ajUnit, 
+            final List/*IAspectJElement*/ itdsForUnit, 
+            final Map/*ICompilationUnit -> NewImportsHolder*/ imports, 
+            final IProgressMonitor monitor) throws JavaModelException {
         
         final RefactoringStatus status = new RefactoringStatus();
-        final Set[] imports = getImports(unit, itdsForUnit, monitor);
-        final Set typeImports = imports[0];
-        final Set staticImports = imports[1];
-
+        
+        
         final Map/*ICompilationUnit -> IMember[]*/ unitsToTypes = getUnitTypeMap(getTargets(itdsForUnit));
         final Map/*IJavaProject, Collection<ICompilationUnit>*/ projects= new HashMap();
         
@@ -152,18 +244,30 @@ public class PushInRefactoring extends Refactoring {
         
         
         Collection units;
-        IJavaProject aspectProject = unit.getJavaProject();
+        IJavaProject aspectProject = ajUnit.getJavaProject();
         if (projects.containsKey(aspectProject)) {
             units = (Collection) projects.get(aspectProject);
         } else {
             units = new ArrayList();
             projects.put(aspectProject, units);
         }
-        units.add(unit);
+        units.add(ajUnit);
         
         ASTRequestor requestors = new ASTRequestor() {
             public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
                 try {
+                    
+                    // compute the imports that this itd adds to this unit
+                    NewImportsHolder holder;
+                    if (imports.containsKey(source)) {
+                        holder = (NewImportsHolder) imports.get(source);
+                    } else {
+                        holder = new NewImportsHolder(source);
+                        imports.put(source, holder);
+                    }
+                    holder.computeImports(itdsForUnit, ajUnit, monitor);
+
+
                 
                     // make the simplifying assumption that the CU that contains the
                     // ITD does not also contain a target type
@@ -174,6 +278,7 @@ public class PushInRefactoring extends Refactoring {
                         // avoid overlapping edits...the declare parents rewrite
                         // takes care of *all* declare parents on that target
                         boolean declareParentsDone = false;
+                        
                         
                         for (Iterator itdIter = itdsForUnit.iterator(); itdIter.hasNext();) {
                             IAspectJElement itd = (IAspectJElement) itdIter.next();
@@ -206,9 +311,9 @@ public class PushInRefactoring extends Refactoring {
                                         declareParentsDone = true;
                                     }
                                 }
-                                rewriteTargetTypes(itd, source, members, ast, status, typeImports, staticImports);
+                                rewriteTargetTypes(itd, source, members, ast, status);
                             }
-                        }
+                        }  // for (Iterator itdIter = itdsForUnit.iterator(); itdIter.hasNext();) {
                     }
                 } catch (JavaModelException e) {
                 } catch (CoreException e) {
@@ -241,26 +346,6 @@ public class PushInRefactoring extends Refactoring {
         return status;
     }
 
-    private Set[] getImports(ICompilationUnit unit, List/*IntertypeElement*/ itds, IProgressMonitor monitor)
-            throws JavaModelException {
-        IJavaProject project = unit.getJavaProject();
-        ASTParser parser = ASTParser.newParser(AST.JLS3);
-        parser.setProject(project);
-        parser.setResolveBindings(true);
-        parser.setSource(unit);
-        ASTNode node = parser.createAST(monitor);
-        Set resultingTypeImports = new HashSet();
-        Set resultingStaticImports = new HashSet();
-
-        for (Iterator itdsIter = itds.iterator(); itdsIter
-                .hasNext();) {
-            IAspectJElement itd = (IAspectJElement) itdsIter.next();
-            ISourceRange range = itd.getSourceRange();
-            ImportReferencesCollector.collect(node, project, new Region(range.getOffset(), range.getLength()), 
-                    resultingTypeImports, resultingStaticImports);
-        }
-        return new Set[] { resultingTypeImports, resultingStaticImports };
-    }
 
     
     protected void rewriteAspectType(List itdsForUnit,
@@ -333,31 +418,15 @@ public class PushInRefactoring extends Refactoring {
     protected void rewriteTargetTypes(
             IAspectJElement itd,
             ICompilationUnit source, Collection/*IMember*/ targets,
-            CompilationUnit node, RefactoringStatus status, 
-            Set typeImports, Set staticImports) throws JavaModelException, CoreException {
+            CompilationUnit node, RefactoringStatus status) throws JavaModelException, CoreException {
         
-        // does not handle imports for declare annotations and declare parents
-        ImportRewrite rewrite = ImportRewrite.create(node, true);
-        for (Iterator importIter = typeImports.iterator(); importIter.hasNext();) {
-            Name name = (Name) importIter.next();
-            ITypeBinding binding = name.resolveTypeBinding();
-            if (binding != null) {
-                rewrite.addImport(binding);
-            }
-        }
-        for (Iterator importIter = staticImports.iterator(); importIter.hasNext();) {
-            Name name = (Name) importIter.next();
-            rewrite.addImport(name.resolveTypeBinding());
-        }
         
-        applyTargetTypeEdits(itd, source, targets, rewrite);
+        applyTargetTypeEdits(itd, source, targets);
 
     }
 
     private void applyTargetTypeEdits(IAspectJElement itd,
-            ICompilationUnit source, Collection/*IMember*/ targets, 
-            ImportRewrite rewrite) throws CoreException, JavaModelException {
-        TextEdit importEdit = rewrite.rewriteImports(new NullProgressMonitor());
+            ICompilationUnit source, Collection/*IMember*/ targets) throws CoreException, JavaModelException {
         MultiTextEdit multiEdit = new MultiTextEdit();
         for (Iterator targetIter = targets.iterator(); targetIter.hasNext();) {
             IMember target = (IMember) targetIter.next();
@@ -390,7 +459,6 @@ public class PushInRefactoring extends Refactoring {
                 change.setEdit(new MultiTextEdit());
                 allChanges.put(source, change);
             }
-            change.getEdit().addChild(importEdit);
             change.getEdit().addChild(multiEdit);
         }
     }

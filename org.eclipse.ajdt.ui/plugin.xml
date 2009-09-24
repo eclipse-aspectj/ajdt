@@ -478,13 +478,13 @@
    <extension
          point="org.eclipse.ui.exportWizards">
       <wizard
-            name="%ajExportWizard"
+            name="%ajPluginExportWizard"
             icon="icons/actions/exp_deployplug.gif"
             class="org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard"
             category="org.eclipse.pde.ui.PluginDevelopment"
             id="org.eclipse.ajdt.ui.ajPluginExportWizard">
          <description>
-            %ajExportWizard.description
+            %ajPluginExportWizard.description
          </description>
          <selection
                name="plugin.xml"
@@ -684,9 +684,9 @@ M4 = Platform-specific fourth key
 			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
 					<actionSet id="ajelementCreation"/>
 					<actionSet id="ajnavigation"/>
+					<actionSet id="ajrefactoring"/>					
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
-					<newWizardShortcut id="ajrefactoring"/>					
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
@@ -694,9 +694,9 @@ M4 = Platform-specific fourth key
 			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
 					<actionSet id="ajelementCreation"/>
 					<actionSet id="ajnavigation"/>				
+					<actionSet id="ajrefactoring"/>					
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
-					<newWizardShortcut id="ajrefactoring"/>					
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
@@ -715,7 +715,7 @@ M4 = Platform-specific fourth key
 		Below two perspective extensions added for IBM Rational 6.x tooling.
 		-->    	
     	<perspectiveExtension 
-			targetID="com.ibm.etools.j2ee.J2EEPerspective">
+ 			  targetID="org.eclipse.jst.j2ee.J2EEPerspective">
 					<actionSet id="ajelementCreation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<perspectiveShortcut
@@ -735,25 +735,35 @@ M4 = Platform-specific fourth key
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
-            objectClass="org.eclipse.core.resources.IProject"
-            adaptable="true"
             name="%aspectj"
             class="org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage"
             id="org.eclipse.ajdt.ui.ProjectPage">
-         <filter
-               name="projectNature"
-               value="org.eclipse.ajdt.ui.ajnature">
-         </filter>
+         <enabledWhen>
+		     <adapt type="org.eclipse.core.resources.IProject">
+		          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
+		     </adapt>         
+         </enabledWhen>
       </page>
       <page
-            adaptable="true"
-            objectClass="org.eclipse.core.resources.IProject"
             class="org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage"
             name="%aspectJCompiler"
             id="org.eclipse.ajdt.ui.propertyPages.AJCompilerPreferencePage">
-         <filter
-               value="org.eclipse.ajdt.ui.ajnature"
-               name="projectNature"/>
+         <enabledWhen>
+		     <adapt type="org.eclipse.core.resources.IProject">
+		          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
+		     </adapt>         
+         </enabledWhen>
+      </page>
+      <page
+            category="org.eclipse.ajdt.ui.ProjectPage"
+            class="org.eclipse.ajdt.internal.ui.preferences.AopXmlPreferencePage"
+            id="org.eclipse.ajdt.ui.AOPXML"
+            name="aop.xml management">
+         <enabledWhen>
+		     <adapt type="org.eclipse.core.resources.IProject">
+		          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
+		     </adapt>         
+         </enabledWhen>
       </page>  
    </extension>
 
@@ -1182,6 +1192,28 @@ M4 = Platform-specific fourth key
             value="true">
       </persistent>
 	</extension>
+    <extension
+   	      id="annotationmarker"
+   	      name="%annotationDeclarationMarker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.declarationmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+	</extension>
+    <extension
+   	      id="sourceannotationmarker"
+   	      name="%annotationDeclarationSourceMarker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.declarationmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+	</extension>
 
 
  
@@ -1247,7 +1279,7 @@ M4 = Platform-specific fourth key
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.dynamicaroundadvicemarker"
             name="org.eclipse.ajdt.dynamicAroundAdvice"/>            
-	  <type
+	    <type
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.sourcedynamicafteradvicemarker"
             name="org.eclipse.ajdt.sourceDynamicAfterAdvice"/>
@@ -1259,16 +1291,16 @@ M4 = Platform-specific fourth key
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker"
             name="org.eclipse.ajdt.sourceDynamicAroundAdvice"/>
-	  <type
+	    <type
             markerType="org.eclipse.ajdt.ui.declarationmarker"
             name="org.eclipse.ajdt.aspectDeclaration"/>
-	  <type
+	    <type
    		 	super="org.eclipse.ajdt.aspectDeclaration"
             markerType="org.eclipse.ajdt.ui.itdmarker"
             name="org.eclipse.ajdt.intertypeDeclaration"/>
-	  <type
+	    <type
    		 	super="org.eclipse.ajdt.aspectDeclaration"
-            markerType="org.eclipse.ajdt.ui.annotatedmarker"
+            markerType="org.eclipse.ajdt.ui.annotationmarker"
             name="org.eclipse.ajdt.annotationDeclaration"/>
 	  <type
    		 	super="org.eclipse.ajdt.aspectDeclaration"
@@ -1276,7 +1308,7 @@ M4 = Platform-specific fourth key
             name="org.eclipse.ajdt.sourceIntertypeDeclaration"/>
 	  <type
    		 	super="org.eclipse.ajdt.aspectDeclaration"
-            markerType="org.eclipse.ajdt.ui.sourceannotatedmarker"
+            markerType="org.eclipse.ajdt.ui.sourceannotationmarker"
             name="org.eclipse.ajdt.sourceAnnotationDeclaration"/>
       <type
         	name="org.eclipse.ajdt.customAdvice"
@@ -1789,6 +1821,12 @@ M4 = Platform-specific fourth key
     		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromInpathAction"
     		 id="org.eclipse.ajdt.removefrominpath">
     	 </action>
+    	 <action
+		     label="%UpdateInpathRestriction"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+    		 class="org.eclipse.ajdt.internal.buildpath.UpdateInpathRestriction"
+    		 id="org.eclipse.ajdt.updateinpath">
+    	 </action>
        	 <action
 		     label="%AddtoAspectpath"
 		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
@@ -1800,6 +1838,12 @@ M4 = Platform-specific fourth key
 		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
     		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromAspectpathAction"
     		 id="org.eclipse.ajdt.removefromAspectpath">
+    	 </action>
+    	 <action
+		     label="%UpdateAspectpathRestriction"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
+    		 class="org.eclipse.ajdt.internal.buildpath.UpdateAspectpathRestriction"
+    		 id="org.eclipse.ajdt.updateaspectpath">
     	 </action>
     	 <action
     	 	label="%ConfigureBuildPath"   

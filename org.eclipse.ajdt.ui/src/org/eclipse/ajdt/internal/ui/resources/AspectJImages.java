@@ -233,6 +233,8 @@ public class AspectJImages  {
 				"icons/buildconfig/buildconfig_file.gif"); //$NON-NLS-1$
 	public static final AJDTIcon RESET_COLOURS = new AJDTIcon(
 				"icons/actions/reset_colours.gif"); //$NON-NLS-1$
+	public static final AJDTIcon AOP_XML = new AJDTIcon(
+	            "icons/buildconfig/aopxml.gif"); //$NON-NLS-1$
 	
 	// icons for crosscutting changes view
 	public static final AJDTIcon CHANGES_ADDED = new AJDTIcon(
