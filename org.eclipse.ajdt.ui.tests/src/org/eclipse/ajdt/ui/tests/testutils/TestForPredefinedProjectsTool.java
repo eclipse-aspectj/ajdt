@@ -28,22 +28,21 @@ import org.eclipse.jdt.core.JavaModelException;
 public class TestForPredefinedProjectsTool extends UITestCase {
 	
 	public void testPredefinedProjectsTool() throws CoreException{
-        System.out.println("Skip this test");
-//		IProject p = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
-//		if (p == null)
-//			fail("Project 'Hello World Project' could not be imported."); //$NON-NLS-1$
-//		IJavaProject jp = JavaCore.create(p);
-//		try {
-//			IType type = jp.findType("", "HelloWorld"); //$NON-NLS-1$ //$NON-NLS-2$
-//			if (type == null)
-//				fail("Project 'Hello World Project' was not imported correctly."); //$NON-NLS-1$
-//		} catch (JavaModelException e) {
-//			fail("Project 'Hello World Project' was not imported correctly."); //$NON-NLS-1$
-//		}
-//		
-//		p = createPredefinedProject("project name that (hopefully) does not exist"); //$NON-NLS-1$
-//		if (p != null)
-//			fail("Could import project that does not exist."); //$NON-NLS-1$		
+		IProject p = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
+		if (p == null)
+			fail("Project 'Hello World Project' could not be imported."); //$NON-NLS-1$
+		IJavaProject jp = JavaCore.create(p);
+		try {
+			IType type = jp.findType("", "HelloWorld"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (type == null)
+				fail("Project 'Hello World Project' was not imported correctly."); //$NON-NLS-1$
+		} catch (JavaModelException e) {
+			fail("Project 'Hello World Project' was not imported correctly."); //$NON-NLS-1$
+		}
+		
+		p = createPredefinedProject("project name that (hopefully) does not exist"); //$NON-NLS-1$
+		if (p != null)
+			fail("Could import project that does not exist."); //$NON-NLS-1$		
 	}
 	
 	/**
@@ -52,14 +51,12 @@ public class TestForPredefinedProjectsTool extends UITestCase {
 	 * @throws Exception
 	 */
 	public void testProjectsToolWithClosedProjects() throws Exception {
-	    System.out.println("Skip this test");
-//		IProject p = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
-//		p.close(null);
-//		waitForJobsToComplete();
-//		
-//		IProject p2 = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
-//		assertTrue("project should now be open",p2.isOpen()); //$NON-NLS-1$
-
+		IProject p = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
+		p.close(null);
+		waitForJobsToComplete();
+		
+		IProject p2 = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
+		assertTrue("project should now be open",p2.isOpen()); //$NON-NLS-1$
 	}
 	
 }
