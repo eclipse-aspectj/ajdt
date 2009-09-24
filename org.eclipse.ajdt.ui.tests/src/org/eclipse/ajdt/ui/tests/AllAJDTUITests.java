@@ -30,6 +30,7 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest7;
 import org.eclipse.ajdt.ui.tests.builder.Bug128803Test;
 import org.eclipse.ajdt.ui.tests.builder.Bug151818Test;
 import org.eclipse.ajdt.ui.tests.builder.Bug243376Test;
+import org.eclipse.ajdt.ui.tests.builder.Bug285188DecErrorTests;
 import org.eclipse.ajdt.ui.tests.builder.BuildPathTests;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.ChangingMarkersTest;
@@ -78,6 +79,8 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests12;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests13;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests14;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests2;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests3;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests4;
@@ -204,6 +207,7 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
         suite.addTest(new TestSuite(AdviceMarkersTest6.class));
         suite.addTest(new TestSuite(AdviceMarkersTest7.class));
+        suite.addTest(new TestSuite(Bug285188DecErrorTests.class));
 		suite.addTest(new TestSuite(Bug128803Test.class));
         suite.addTest(new TestSuite(Bug151818Test.class));
         suite.addTest(new TestSuite(Bug243376Test.class));
@@ -236,6 +240,8 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests10.class));
         suite.addTest(new TestSuite(ProblemFinderTests11.class));
         suite.addTest(new TestSuite(ProblemFinderTests12.class));
+        suite.addTest(new TestSuite(ProblemFinderTests13.class));
+        suite.addTest(new TestSuite(ProblemFinderTests14.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
 
