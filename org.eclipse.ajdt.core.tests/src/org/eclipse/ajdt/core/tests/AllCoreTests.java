@@ -34,12 +34,14 @@ import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug270202;
 import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug275903;
 import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
+import org.eclipse.ajdt.core.tests.codeconversion.Bug279974Tests;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.javaelements.AspectsConvertingParserTest2;
+import org.eclipse.ajdt.core.tests.javaelements.Bug283468Test;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
@@ -96,7 +98,9 @@ public class AllCoreTests {
 		
 		// code conversion tests
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
+		suite.addTest(new TestSuite(AspectsConvertingParserTest2.class));
 		suite.addTest(new TestSuite(CodeCheckerTest.class));
+		suite.addTest(new TestSuite(Bug279974Tests.class));
 
 		suite.addTest(new TestSuite(AspectJCorePreferencesTest.class));
 
@@ -120,6 +124,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(ITDAwareCodeSelectionTests.class));
         suite.addTest(new TestSuite(ITDAwareCodeSelectionTests2.class));
         suite.addTest(new TestSuite(GetExpandedRegionTests.class));
+        suite.addTest(new TestSuite(Bug283468Test.class));
         
         
 		
@@ -134,7 +139,6 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(AspectElementTests.class));
         suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));
         suite.addTest(new TestSuite(AJCompilationUnitTest.class));
-        suite.addTest(new TestSuite(AspectsConvertingParserTest2.class));
 
 		// builder tests
 		suite.addTest(new TestSuite(CoreOutputLocationManagerTest.class));
