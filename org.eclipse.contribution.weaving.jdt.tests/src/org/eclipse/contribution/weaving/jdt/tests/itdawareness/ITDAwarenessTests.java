@@ -127,7 +127,13 @@ public class ITDAwarenessTests extends WeavingTestCase {
     public void testContentAssistInJavaProject() throws Exception {
         IFile nothingJava = java.getFile("src/nothing/Nothing.java");
         ICompletionProposal[] completions = getCompletionProposals(nothingJava, "Nothing();");
-        assertEquals("Should have found 1 completion proposal", 1, completions.length);
+        
+        // seems like depending on which completion processors are currently installed, the
+        // result can be 1 or 2 proposals.
+        // Looks like the important processors are the JavaNoTypeCompletionProposalComputer and the JavaAllCompletionProposalComputer
+        if (completions.length < 1 || completions.length > 2) {
+            fail("Should have found 1 or 2 completion proposals");
+        }
         assertFalse("Should not have triggered the content assist through the aspect", contentAssistProvider.contentAssistDone);
     }
     
@@ -177,7 +183,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
         int offset = content.indexOf(marker);
         return proc.computeCompletionProposals(editor.getViewer(), offset);
     }
-
+    
     private ContentAssistant getContentAssistant(JavaEditor editor) {
         ContentAssistant assistant= new ContentAssistant();
         IContentAssistProcessor javaProcessor= new JavaCompletionProcessor(editor, assistant, IDocument.DEFAULT_CONTENT_TYPE);
