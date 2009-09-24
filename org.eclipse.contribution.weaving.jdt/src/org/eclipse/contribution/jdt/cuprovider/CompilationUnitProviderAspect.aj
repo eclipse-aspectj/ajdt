@@ -32,7 +32,11 @@ public aspect CompilationUnitProviderAspect {
      */
     pointcut compilationUnitCreations(PackageFragment parent, String name, WorkingCopyOwner owner) : 
             call(public CompilationUnit.new(PackageFragment, String, WorkingCopyOwner)) &&
-            within(org.eclipse.jdt..*) &&
+            (
+                    within(org.eclipse.jdt..*) ||
+                    within(org.codehaus.jdt.groovy.integration.internal.*) ||  // Captures GroovyLanguageSupport if groovy plugin is installed
+                    within(org.codehaus.jdt.groovy.integration.*) // Captures DefaultLanguageSupport if groovy plugin is installed
+            ) &&
             args(parent, name, owner);
     
     CompilationUnit around(PackageFragment parent, String name, WorkingCopyOwner owner) : 
