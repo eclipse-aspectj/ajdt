@@ -102,7 +102,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         }
 
         MockCompilationUnit mcu = new MockCompilationUnit((CompilationUnit) target);
-        requestor = new ProposalRequestorWrapper(requestor, mcu, mcu.insertionTable);
+        ProposalRequestorWrapper wrapped = new ProposalRequestorWrapper(requestor, mcu, mcu.insertionTable);
         int transformedPos = mcu.translatePositionToFake(position);
         if (transformedPos < -1 || transformedPos > mcu.getContents().length) {
             throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
@@ -112,7 +112,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         environment.setUnitToSkip(unitToSkip);
 
         // code complete
-        CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner);
+        CompletionEngine engine = new CompletionEngine(environment, wrapped, project.getOptions(true), project, owner);
         engine.complete(mcu, transformedPos, 0, typeRoot);
         
         return true;

@@ -26,6 +26,7 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
+import org.eclipse.jdt.core.IMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.eclipse.ajdt.core.AJLog;
@@ -452,7 +453,6 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         
-        
         if (numArgs == 0 && 
         		id == IProblem.MissingReturnType) {
             // ITD constructors don't have return types
@@ -561,6 +561,41 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         try {
+            
+            if (numArgs > 1 &&
+                    id == IProblem.DuplicateMethod &&
+                    simpleNamesEquals(firstArg, secondArg)) {
+                // bug 280385
+                // no arg constructor ITD when the target type 
+                // has an implicit no arg constructor
+
+                IJavaElement elt = unit.getElementAt(categorizedProblem.getSourceStart());
+                // here, check to see if the method name is the same as the 
+                // type name. If so, then look for the default constructor,
+                // if none exists, then we can ignore this problem
+                if (elt.getElementType() == IJavaElement.TYPE) {
+                    IType type = (IType) elt;
+                    if (type.getElementName().equals(firstArg)) {
+                        IMethod method = type.getMethod(type.getElementName(), new String[0]);
+                        if (!method.exists()) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            if (id == IProblem.TypeMismatch &&
+                    numArgs == 2 &&
+                    firstArg.equals(getTypeNameAtPosition(categorizedProblem, unit)) &&
+                    getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor).endsWith(secondArg)) {
+                // bug 284358
+                // this problem occurs when 'this' is returned from an ITD method
+                // the resolver thinks there is a type mismath because it was 
+                // expecting the aspect type (argument 1) instead of the ITD type
+                // (argument 2)
+                return false;
+            }
+            
             if (numArgs > 0 && 
                     (id == IProblem.UndefinedMethod ||
                      id == IProblem.UndefinedName) &&
@@ -665,6 +700,39 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         return true;
+    }
+
+    private static boolean simpleNamesEquals(String firstArg, String secondArg) {
+        if (firstArg.equals(secondArg)) {
+            return true;
+        }
+        
+        String[] firstArgSplit = firstArg.split("\\.");
+        String[] secondArgSplit = secondArg.split("\\.");
+        
+        String newFirst = firstArgSplit[firstArgSplit.length-1];
+        String newSecond = secondArgSplit[secondArgSplit.length-1];
+        
+        return newFirst.equals(newSecond);
+    }
+
+    /*
+     * Returns the name of the aspect at the problem position
+     */
+    private static String getTypeNameAtPosition(
+            CategorizedProblem categorizedProblem, CompilationUnit unit) throws JavaModelException {
+        IJavaElement elt = unit.getElementAt(categorizedProblem.getSourceStart());
+        IType type = elt != null ? (IType) elt.getAncestor(IJavaElement.TYPE) : null;
+        if (type == null) {
+            // just return the name of the CU
+            int dotIndex = unit.getElementName().indexOf('.');
+            if (dotIndex > 0) {
+                return unit.getElementName().substring(0, dotIndex);
+            } else {
+                return unit.getElementName();
+            }
+        }
+        return type.getElementName();
     }
 
     private static boolean insideAdvice(CategorizedProblem categorizedProblem,
@@ -788,6 +856,7 @@ public class AJCompilationUnitProblemFinder extends
         
         return false;
     }
+    
 
     private static boolean isPrivilegedAspect(CategorizedProblem problem, CompilationUnit unit, boolean isJavaFileInAJEditor) {
         if (isJavaFileInAJEditor) {
@@ -823,6 +892,21 @@ public class AJCompilationUnitProblemFinder extends
         return elementAt instanceof IntertypeElement ||
                elementAt instanceof DeclareElement;
     }
+    
+    private static String getITDTargetType(CategorizedProblem categorizedProblem,
+            CompilationUnit unit, boolean isJavaFileInAJEditor) throws JavaModelException {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return "";
+        }
+        IJavaElement elementAt = unit.getElementAt(categorizedProblem.getSourceStart());
+        if (elementAt instanceof IntertypeElement) {
+            IntertypeElement itd = (IntertypeElement) elementAt;
+            return new String(itd.getTargetType());
+        }
+        return "";
+    }        
 
     private static String extractProblemRegion(
             CategorizedProblem categorizedProblem, CompilationUnit unit) {

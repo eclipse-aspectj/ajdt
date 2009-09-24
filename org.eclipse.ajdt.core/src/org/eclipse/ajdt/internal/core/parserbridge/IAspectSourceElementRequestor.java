@@ -44,78 +44,74 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
  * other simpler elements (package, import) are read all at once:
  * - accept<Element>
  */
- 
 public interface IAspectSourceElementRequestor extends ISourceElementRequestor {
-	
 
-void enterMethod(
-	int declarationStart,
-	int modifiers,
-	char[] returnType,
-	char[] name,
-	int nameSourceStart,
-	int nameSourceEnd,	
-	char[][] parameterTypes,
-	char[][] parameterNames,
-	char[][] exceptionTypes,
-    boolean isConstructor,
-    boolean isMethod,
-	TypeParameterInfo[] typeParameters,
-	AbstractMethodDeclaration decl);
-
-void enterMethod(MethodInfo methodInfo,AbstractMethodDeclaration decl);
-
-void enterType(TypeInfo typeInfo,boolean isAspect, boolean isPrivilegedAspect);
-
-void enterAdvice(
-		int declarationStart,
-		int modifiers,
-		char[] returnType,
-		char[] name,
-		int nameSourceStart,
-		int nameSourceEnd,	
-		char[][] parameterTypes,
-		char[][] parameterNames,
-		char[][] exceptionTypes,
-		AdviceDeclaration decl);
-
-void enterPointcut(
-		int declarationStart,
-		int modifiers,
-		char[] returnType,
-		char[] name,
-		int nameSourceStart,
-		int nameSourceEnd,	
-		char[][] parameterTypes,
-		char[][] parameterNames,
-		char[][] exceptionTypes,
-		PointcutDeclaration decl);
-
-void enterDeclare(
-		int declarationStart,
-		int modifiers,
-		char[] returnType,
-		char[] name,
-		int nameSourceStart,
-		int nameSourceEnd,	
-		char[][] parameterTypes,
-		char[][] parameterNames,
-		char[][] exceptionTypes,
-		DeclareDeclaration decl);
-
-void enterInterTypeDeclaration(
-		int declarationStart,
-		int modifiers,
-		char[] returnType,
-		char[] name,
-		int nameSourceStart,
-		int nameSourceEnd,	
-		char[][] parameterTypes,
-		char[][] parameterNames,
-		char[][] exceptionTypes,
-		InterTypeDeclaration decl);
-
-void acceptPackage(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference ir);
+    void enterMethod(
+    	int declarationStart,
+    	int modifiers,
+    	char[] returnType,
+    	char[] name,
+    	int nameSourceStart,
+    	int nameSourceEnd,	
+    	char[][] parameterTypes,
+    	char[][] parameterNames,
+    	char[][] exceptionTypes,
+        boolean isConstructor,
+        boolean isMethod,
+    	TypeParameterInfo[] typeParameters,
+    	AbstractMethodDeclaration decl);
+    
+    void enterMethod(MethodInfo methodInfo,AbstractMethodDeclaration decl);
+    
+    void enterType(TypeInfo typeInfo,boolean isAspect, boolean isPrivilegedAspect);
+    
+    void enterAdvice(
+    		int declarationStart,
+    		int modifiers,
+    		char[] returnType,
+    		char[] name,
+    		int nameSourceStart,
+    		int nameSourceEnd,	
+    		char[][] parameterTypes,
+    		char[][] parameterNames,
+    		char[][] exceptionTypes,
+    		AdviceDeclaration decl);
+    
+    void enterPointcut(
+    		int declarationStart,
+    		int modifiers,
+    		char[] returnType,
+    		char[] name,
+    		int nameSourceStart,
+    		int nameSourceEnd,	
+    		char[][] parameterTypes,
+    		char[][] parameterNames,
+    		char[][] exceptionTypes,
+    		PointcutDeclaration decl);
+    
+    void enterDeclare(
+    		int declarationStart,
+    		int modifiers,
+    		char[] returnType,
+    		char[] name,
+    		int nameSourceStart,
+    		int nameSourceEnd,	
+    		char[][] parameterTypes,
+    		char[][] parameterNames,
+    		char[][] exceptionTypes,
+    		DeclareDeclaration decl);
+    
+    void enterInterTypeDeclaration(
+    		int declarationStart,
+    		int modifiers,
+    		char[] returnType,
+    		char[] name,
+    		int nameSourceStart,
+    		int nameSourceEnd,	
+    		char[][] parameterTypes,
+    		char[][] parameterNames,
+    		char[][] exceptionTypes,
+    		InterTypeDeclaration decl);
+    
+    void acceptPackage(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference ir);
 }
-
-

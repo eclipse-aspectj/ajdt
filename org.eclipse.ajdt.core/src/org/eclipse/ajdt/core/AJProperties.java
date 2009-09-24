@@ -34,6 +34,7 @@ public class AJProperties {
 			project.accept(new IResourceVisitor() {
 				public boolean visit(IResource res) {
 					if (res.getType() == IResource.FILE
+					        && res.getFileExtension() != null
 							&& (res.getFileExtension().equals(EXTENSION))) {
 						files.add(res);
 					}

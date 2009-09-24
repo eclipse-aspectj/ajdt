@@ -156,11 +156,21 @@ public final class AJWorldFacade {
     }
 
     private String createSignature(char[] targetTypeSignature) {
-        // AspectJ parameterized signatures start with 'P' 
-        if (Signature.getTypeParameters(targetTypeSignature).length > 0) {
-            targetTypeSignature[0] = 'P';
+        char[] copy = new char[targetTypeSignature.length];
+        System.arraycopy(targetTypeSignature, 0, copy, 0, copy.length);
+        
+        // AspectJ parameterized signatures start with 'P'
+        boolean isGeneric = false;
+        for (int i = 0; i < copy.length; i++) {
+            if (copy[i] == '<') {
+                isGeneric = true;
+            }
         }
-        String sig = new String(targetTypeSignature);
+        
+        if (isGeneric) {
+            copy[0] = 'P';
+        }
+        String sig = new String(copy);
         sig = sig.replace('.', '/');
         
         return sig;

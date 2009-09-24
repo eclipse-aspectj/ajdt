@@ -87,7 +87,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     private static final char[] privileged = "          ".toCharArray(); //$NON-NLS-1$
 
-    private static final String thizString = "thiz"; //$NON-NLS-1$
+    public static final String ITD_INSERTED_IDENTIFIER = "___ITD_INSERTED_IDENTIFIER___"; //$NON-NLS-1$
     
     // used to replace declare declarations
     private static final char[] intt = "int    ".toCharArray(); //$NON-NLS-1$
@@ -130,7 +130,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         this.usedIdentifiers = new HashSet();
         replacements = new ArrayList(5);
     }
-
+    
     public char[] content;
 
     private Set typeReferences;
@@ -170,6 +170,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     
     private boolean inInterfaceDeclaration;
     
+    private boolean inEnumDeclaration;
+    
     /**
      * keeps track of being in the right hand side of a declaration
      * 
@@ -200,6 +202,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
         
         Stack/*Boolean*/ inAspectBodyStack = new Stack();
+        Stack/*Boolean*/ inTypeBodyStack = new Stack();
         
         scanner = new Scanner();
         scanner.setSource(content);
@@ -209,6 +212,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         inAspectDeclaration = false;
         inClassDeclaration = false;
         inInterfaceDeclaration = false;
+        inEnumDeclaration = false;
         inRHS = false;
         
         // Bug 93248: Count question marks so as to ignore colons that are part of conditional statements       
@@ -229,6 +233,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         // bug 273691 class does not signify a start of a class declation if
         // it is after a dot
         boolean afterDot = false;
+        
+        // Bug 282948: keep track of type params because question marks inside of
+        // type params do not signify the start of a ternary conditional statement
+        // (ie- question mark count)
+        int typeParamDepth = 0;
         
         char[] currentTypeName = null;
         
@@ -332,7 +341,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 break;
                 
             case TokenNameQUESTION:
-                questionMarkCount++;
+                // bug 282948: only update question mark count if not in type parameter
+                if (typeParamDepth == 0) {
+                    questionMarkCount++;
+                }
                 break;
                 
             case TokenNameSEMICOLON:
@@ -405,6 +417,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     }
                 }
                 
+                if (inTypeDeclaration()) {
+                    inTypeBodyStack.push(Boolean.TRUE);
+                } else {
+                    inTypeBodyStack.push(Boolean.FALSE);
+                }
+                
                 if (inAspectDeclaration) {
                     inAspectDeclaration = false;
                     inAspectBodyStack.push(Boolean.TRUE);
@@ -412,9 +430,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     inAspectBodyStack.push(Boolean.FALSE);
                 }
                 
+                
                 inCase = false;
                 inClassDeclaration = false;
                 inInterfaceDeclaration = false;
+                inEnumDeclaration = false;
                 currentTypeName = null;
                 
                 break;
@@ -426,6 +446,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 }
                 if (!inAspectBodyStack.empty()) {
                     inAspectBodyStack.pop();
+                }
+                if (!inTypeBodyStack.empty()) {
+                    inTypeBodyStack.pop();
                 }
                 inCase = false;
                 break;
@@ -470,6 +493,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 inInterfaceDeclaration = true;
                 break;
                 
+            case TokenNameenum:  // interface and @interface 
+                typeDeclStart = pos = scanner.getCurrentTokenStartPosition();
+                inEnumDeclaration = true;
+                break;
+                
             case TokenNameprivileged:
                 pos = scanner.getCurrentTokenStartPosition();
                 addReplacement(pos, privileged.length, privileged);
@@ -477,6 +505,28 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
             case TokenNamepackage:
                 inPackageDecl = true;
+                break;
+                
+            case TokenNameLESS:
+                // bug 282948 check to see if inside type parameter
+                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                    typeParamDepth++;
+                }
+                break;
+            case TokenNameGREATER:
+                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                    typeParamDepth--;
+                }
+                break;
+            case TokenNameRIGHT_SHIFT:
+                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                    typeParamDepth-=2;
+                }
+                break;
+            case TokenNameUNSIGNED_RIGHT_SHIFT:
+                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                    typeParamDepth-=3;
+                }
                 break;
             }
             
@@ -755,7 +805,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     private boolean inTypeDeclaration() {
         return (inAspectDeclaration || 
                  inClassDeclaration || 
-                 inInterfaceDeclaration);
+                 inInterfaceDeclaration ||
+                 inEnumDeclaration);
     }
 
     /**
@@ -787,11 +838,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             dotRequired = false;
         }
 
-        String ident = findFreeIdentifier();
-        char[] toInsert = (new String(targetType) + ' ' + ident + "; " + ident +
+        String contextSwitchIdentifier = findFreeIdentifier();
+        char[] toInsert = (new String(targetType) + ' ' + contextSwitchIdentifier + "; " + contextSwitchIdentifier +
                 (dotRequired ? "." : "")).toCharArray();
         addReplacement(pos, len, toInsert);
-
     }
 
     /**
@@ -799,10 +849,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
      */
     private String findFreeIdentifier() {
         int i = 0;
-        String ident = thizString + i;
+        String ident = ITD_INSERTED_IDENTIFIER + i;
         while (usedIdentifiers.contains(ident)) {
             i++;
-            ident = thizString + i;
+            ident = ITD_INSERTED_IDENTIFIER + i;
         }
         return ident;
     }

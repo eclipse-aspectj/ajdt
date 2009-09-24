@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.internal.codeassist.InternalCompletionProposal;
 
 /**
  * Translates code positions from fakeBuffer into realBuffer before
@@ -42,17 +43,24 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	private AJWorldFacade world;
 	private ICompilationUnit unit;
 
+	   // this is the identifier added by the AspectsConvertingParser
+    // should be ignored
+    private final String contextSwitchIdentifier;
+
 	/**
 	 * @param wrapped
 	 * @param buffer
 	 */
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
             ICompilationUnit unit,
-            JavaCompatibleBuffer buffer) {
+            JavaCompatibleBuffer buffer, String contextSwitchIdentifier) {
         super();
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = buffer.getInsertionTable();
+        this.contextSwitchIdentifier = 
+            contextSwitchIdentifier == null || contextSwitchIdentifier.length() == 0 ? 
+                    null : contextSwitchIdentifier;
     }
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
             ICompilationUnit unit,
@@ -61,6 +69,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         this.wrapped = wrapped;
         this.unit = unit;
         this.insertionTable = insertionTable;
+        this.contextSwitchIdentifier = null;
     }
 	
 	public void accept(CompletionProposal proposal) {
@@ -69,16 +78,22 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	        return;
 	    }
 	    
-		int s = proposal.getReplaceStart();
-		int e = proposal.getReplaceEnd();
-		proposal.setReplaceRange(trans(s), trans(e));
+	    if (insertionTable.size() > 0) {
+	        translateReplaceRange(proposal);
+	    }
 		wrapped.accept(proposal);
 	}
+	
+    private void translateReplaceRange(CompletionProposal proposal) {
+        int s = proposal.getReplaceStart();
+		int e = proposal.getReplaceEnd();
+		proposal.setReplaceRange(trans(s), trans(e));
+    }
 	
 	protected boolean shouldAccept(CompletionProposal proposal) {
 	    if (proposal.getKind() == CompletionProposal.FIELD_REF ||
 	            proposal.getKind() == CompletionProposal.METHOD_REF) {
-	     
+	        
 	        if (world == null) {
 	            world = new AJWorldFacade(unit.getJavaProject().getProject());
 	        }
@@ -116,8 +131,21 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	            return true;
 	        }
 	    } else {
+	        
+	        // this is the proposal that has been added by the context switch for ITDs
+            if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF &&
+                    contextSwitchIgnore(proposal)) {
+                return false;
+            }
+
 	        return true;
 	    }
+    }
+	
+	// ignore the proposal added by the context switch identifier
+    private boolean contextSwitchIgnore(CompletionProposal proposal) {
+        return contextSwitchIdentifier != null &&
+                new String(proposal.getCompletion()).startsWith(contextSwitchIdentifier);
     }
 	
 	
@@ -140,7 +168,41 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	public void completionFailure(IProblem problem) {
 		wrapped.completionFailure(problem);
 	}
+	
+	public String[] getFavoriteReferences() {
+	    return wrapped.getFavoriteReferences();
+	}
 
+	public boolean isAllowingRequiredProposals(int proposalKind,
+	        int requiredProposalKind) {
+	    return wrapped.isAllowingRequiredProposals(proposalKind, requiredProposalKind);
+	}
+	
+	public boolean isExtendedContextRequired() {
+	    return wrapped.isExtendedContextRequired();
+	}
+	
+	public boolean isIgnored(int completionProposalKind) {
+	    return wrapped.isIgnored(completionProposalKind);
+	}
+	
+	public void setAllowsRequiredProposals(int proposalKind,
+	        int requiredProposalKind, boolean allow) {
+	    wrapped.setAllowsRequiredProposals(proposalKind, requiredProposalKind, allow);
+	}
+	
+	public void setFavoriteReferences(String[] favoriteImports) {
+	    wrapped.setFavoriteReferences(favoriteImports);
+	}
+	
+	public void setIgnored(int completionProposalKind, boolean ignore) {
+	    wrapped.setIgnored(completionProposalKind, ignore);
+	}
+	
+	public void setRequireExtendedContext(boolean require) {
+	    wrapped.setRequireExtendedContext(require);
+	}
+	
 	public boolean equals(Object obj) {
 		return wrapped.equals(obj);
 	}

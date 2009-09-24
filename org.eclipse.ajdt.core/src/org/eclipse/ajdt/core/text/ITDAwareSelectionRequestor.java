@@ -111,10 +111,15 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     }
     
     private AJProjectModelFacade ensureModel(IJavaElement elt) {
-        if (model.getProject().equals(elt.getJavaProject().getProject())) {
+        try {
+            if (model.getProject().equals(elt.getJavaProject().getProject())) {
+                return model;
+            } else {
+                return AJProjectModelFactory.getInstance().getModelForJavaElement(elt);
+            }
+        } catch (Exception e) {
+            // catch NPE if elt is null, or core exception if not stored to disk yet.
             return model;
-        } else {
-            return AJProjectModelFactory.getInstance().getModelForJavaElement(elt);
         }
     }
 
