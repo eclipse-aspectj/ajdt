@@ -29,6 +29,7 @@ public class SynchronizationUtils {
 		boolean interrupted= true;
 		while (interrupted) {
 			try {
+			    System.out.println("Join auto build...");
 				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 				interrupted= false;
 			} catch (InterruptedException e) {
@@ -38,6 +39,7 @@ public class SynchronizationUtils {
 		boolean wasInterrupted = false;
 		do {
 			try {
+			    System.out.println("Join manual build...");
 				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
@@ -60,6 +62,7 @@ public class SynchronizationUtils {
 		long endTime= maxTime > 0  && maxTime < Long.MAX_VALUE ? System.currentTimeMillis() + maxTime : Long.MAX_VALUE;
 		boolean calm= allJobsQuiet();
 		while (!calm && System.currentTimeMillis() < endTime) {
+		    System.out.println("Run event queue...");
 			runEventQueue(intervalTime);
 			calm= allJobsQuiet();
 		}
@@ -79,10 +82,9 @@ public class SynchronizationUtils {
 		for (int i= 0; i < jobs.length; i++) {
 			Job job= jobs[i];
 			int state= job.getState();
-			// ignore Mylyn's Flush Cache Job
-			// it is always running and we don't 
-			// care about it
+			//ignore jobs we don't care about
 			if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+			        !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
 					(state == Job.RUNNING || state == Job.WAITING)) {
 				return false;
 			}
