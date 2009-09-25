@@ -312,7 +312,7 @@ public class FeatureExportOperation extends Job {
             monitor.beginTask("", 6 + (configs.length * 4) + (publishingP2Metadata() ? 2 : 0)); //$NON-NLS-1$
             monitor.setTaskName(PDECoreMessages.FeatureExportJob_taskName);
             HashMap properties = createAntBuildProperties(configs);
-            BuildScriptGenerator generator = new AJBuildScriptGenerator();
+            BuildScriptGenerator generator = new AJBuildScriptGenerator();  // AspectJ Change
             setupGenerator(generator, featureID, version, configs, featureLocation);
             generator.generate();
             monitor.worked(1);

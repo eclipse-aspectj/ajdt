@@ -67,6 +67,7 @@ public class BuildPluginAction extends BaseBuildAction {
 		generator.setStateExtraData(TargetPlatformHelper.getBundleClasspaths(TargetPlatformHelper.getPDEState()), TargetPlatformHelper.getPatchMap(TargetPlatformHelper.getPDEState()));
 		generator.setBuildingOSGi(true);
 
+		/* AJDT 1.7 */
 		// allow binary cycles
 		Properties properties = new Properties();
 		properties.put(IBuildPropertiesConstants.PROPERTY_ALLOW_BINARY_CYCLES, "true"); //$NON-NLS-1$
