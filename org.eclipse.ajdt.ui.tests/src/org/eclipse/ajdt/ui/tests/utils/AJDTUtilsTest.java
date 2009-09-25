@@ -63,25 +63,28 @@ public class AJDTUtilsTest extends UITestCase {
 	public void testAddAndRemoveAspectJNatureWithPluginProject()
 			throws Exception {
 		setUpPluginEnvironment();
-		IProject testPluginProject = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
-		waitForJobsToComplete();
-		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
-				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
-				hasDependencyOnAJDE(testPluginProject));
-		AspectJUIPlugin.convertToAspectJProject(testPluginProject.getProject());
-		waitForJobsToComplete();
-		assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
-				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		assertTrue("Plugin should now import AJDE plugin", //$NON-NLS-1$
-				hasDependencyOnAJDE(testPluginProject));
-		AspectJUIPlugin.convertFromAspectJProject(testPluginProject.getProject());
-		waitForJobsToComplete();
-		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
-				hasDependencyOnAJDE(testPluginProject));
-		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
-				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		resetPluginEnvironment();
+		try {
+    		IProject testPluginProject = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
+    		waitForJobsToComplete();
+    		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
+    				AspectJPlugin.isAJProject(testPluginProject.getProject()));
+    		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
+    				hasDependencyOnAJDE(testPluginProject));
+    		AspectJUIPlugin.convertToAspectJProject(testPluginProject.getProject());
+    		waitForJobsToComplete();
+    		assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
+    				AspectJPlugin.isAJProject(testPluginProject.getProject()));
+    		assertTrue("Plugin should now import AJDE plugin", //$NON-NLS-1$
+    				hasDependencyOnAJDE(testPluginProject));
+    		AspectJUIPlugin.convertFromAspectJProject(testPluginProject.getProject());
+    		waitForJobsToComplete();
+    		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
+    				hasDependencyOnAJDE(testPluginProject));
+    		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
+    				AspectJPlugin.isAJProject(testPluginProject.getProject()));
+		} finally {
+		    resetPluginEnvironment();
+		}
 	}
 
 	// bug 137922: test with a bundle project with has no plugin.xml
