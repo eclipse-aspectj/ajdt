@@ -86,6 +86,7 @@ public class SynchronizationUtils {
 			if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
 			        !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
 					(state == Job.RUNNING || state == Job.WAITING)) {
+			    System.out.println("  Waiting on: " + job.getName());
 				return false;
 			}
 		}
