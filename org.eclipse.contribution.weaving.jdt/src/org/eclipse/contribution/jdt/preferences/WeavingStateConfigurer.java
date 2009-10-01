@@ -97,6 +97,10 @@ public class WeavingStateConfigurer {
                     + (becomeEnabled ? "ENABLED" : "DISABLED") + " with warnings",
                     null);
         } else {
+            // if successful, also schedule to ask for reindexing on startup
+            if (becomeEnabled) {
+                JDTWeavingPreferences.setAskToReindex(true);
+            }
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.OK, 
                     new IStatus[] { getInstalledBundleInformation() },
                     "Weaving service successfully "

@@ -12,6 +12,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.core.util.Util;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.MessageBox;
 
 /**
  * 
@@ -60,5 +62,4 @@ public class ReindexingJob extends WorkspaceJob {
         }
         
     }
-
 }
