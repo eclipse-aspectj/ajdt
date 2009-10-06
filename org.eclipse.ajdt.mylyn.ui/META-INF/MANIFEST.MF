@@ -2,24 +2,24 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mylyn-AJDT Bridge Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.mylyn.ui;singleton:=true
-Bundle-Version: 2.0.1.qualifier
+Bundle-Version: 2.0.2.qualifier
 Bundle-Activator: org.eclipse.ajdt.mylyn.ui.AspectJStructureBridgePlugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.mylyn.java.ui;bundle-version="3.0.0";resolution:=optional,
  org.eclipse.mylyn.context.core;bundle-version="3.0.0";resolution:=optional,
  org.eclipse.jface.text;bundle-version="[3.5.0,3.6.0)",
- org.eclipse.ajdt.ui;bundle-version="2.0.1",
+ org.eclipse.ajdt.ui;bundle-version="2.0.2",
  org.eclipse.jdt.core;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.jdt.ui;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.mylyn.monitor.core;bundle-version="2.3.2";resolution:=optional,
- org.eclipse.ajdt.core;bundle-version="2.0.1",
+ org.eclipse.ajdt.core;bundle-version="2.0.2",
  org.eclipse.core.resources;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.ui.ide;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.mylyn.context.ui;bundle-version="2.3.2";resolution:=optional,
  org.eclipse.ui.workbench.texteditor;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.ui.editors;bundle-version="[3.5.0,3.6.0)",
- org.eclipse.contribution.xref.ui;bundle-version="2.0.1",
+ org.eclipse.contribution.xref.ui;bundle-version="2.0.2",
  org.eclipse.mylyn.commons.core;bundle-version="3.0.0";resolution:=optional,
  org.eclipse.mylyn.commons.ui;bundle-version="3.0.0";resolution:=optional,
  org.eclipse.mylyn.tasks.ui;bundle-version="3.0.0";resolution:=optional,
