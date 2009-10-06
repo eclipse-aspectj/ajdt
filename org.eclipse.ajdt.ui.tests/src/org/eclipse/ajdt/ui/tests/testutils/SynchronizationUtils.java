@@ -34,9 +34,9 @@ public class SynchronizationUtils {
 				interrupted= false;
 			} catch (InterruptedException e) {
 				interrupted= true;
-			} catch (RuntimeException e) {
-			    e.printStackTrace();
-			    throw e;
+//			} catch (RuntimeException e) {
+//			    e.printStackTrace();
+//			    throw e;
 			}
 		}
 		boolean wasInterrupted = false;
