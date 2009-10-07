@@ -11,12 +11,14 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
-import org.eclipse.ajdt.internal.ui.build.ProductExportJob;
+import org.eclipse.ajdt.internal.core.exports.ProductExportOperation;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -71,26 +73,29 @@ public class ProductExportWizard extends BaseExportWizard {
 	}
 
 	protected void scheduleExportJob() {
-		FeatureExportInfo info = new FeatureExportInfo();
-		info.toDirectory = fPage.doExportToDirectory();
-		info.exportSource = fPage.doExportSource();
-		info.exportMetadata = fPage.doExportMetadata();
-		info.destinationDirectory = fPage.getDestination();
-		info.zipFileName = fPage.getFileName();
-		if (fPage2 != null && fPage.doMultiPlatform())
-			info.targets = fPage2.getTargets();
-		if (fProductModel.getProduct().useFeatures())
-			info.items = getFeatureModels();
-		else
-			info.items = getPluginModels();
+        FeatureExportInfo info = new FeatureExportInfo();
+        info.toDirectory = fPage.doExportToDirectory();
+        info.exportSource = fPage.doExportSource();
+        info.exportSourceBundle = fPage.doExportSourceBundles();
+        info.allowBinaryCycles = fPage.doBinaryCycles();
+        info.exportMetadata = fPage.doExportMetadata();
+        info.destinationDirectory = fPage.getDestination();
+        info.zipFileName = fPage.getFileName();
+        if (fPage2 != null && fPage.doMultiPlatform())
+            info.targets = fPage2.getTargets();
+        if (fProductModel.getProduct().useFeatures())
+            info.items = getFeatureModels();
+        else
+            info.items = getPluginModels();
 
-		String rootDirectory = fPage.getRootDirectory();
-		if ("".equals(rootDirectory.trim())) //$NON-NLS-1$
-			rootDirectory = "."; //$NON-NLS-1$
-		ProductExportJob job = new ProductExportJob(info, fProductModel, rootDirectory);
-		job.setUser(true);
-		job.schedule();
-		job.setProperty(IProgressConstants.ICON_PROPERTY, PDEPluginImages.DESC_FEATURE_OBJ);
+        String rootDirectory = fPage.getRootDirectory();
+        if ("".equals(rootDirectory.trim())) //$NON-NLS-1$
+            rootDirectory = "."; //$NON-NLS-1$
+        ProductExportOperation job = new ProductExportOperation(info, PDEUIMessages.ProductExportJob_name, fProductModel.getProduct(), rootDirectory);
+        job.setUser(true);
+        job.setRule(ResourcesPlugin.getWorkspace().getRoot());
+        job.schedule();
+        job.setProperty(IProgressConstants.ICON_PROPERTY, PDEPluginImages.DESC_FEATURE_OBJ);
 	}
 
 	private IFeatureModel[] getFeatureModels() {

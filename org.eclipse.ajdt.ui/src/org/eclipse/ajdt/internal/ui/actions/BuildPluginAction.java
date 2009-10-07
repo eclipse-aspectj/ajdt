@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.exports.AJBuildScriptGenerator;
@@ -23,11 +24,15 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
+import org.eclipse.pde.internal.build.IBuildPropertiesConstants;
 import org.eclipse.pde.internal.core.ClasspathHelper;
-import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.TargetPlatformHelper;
+import org.eclipse.pde.internal.ui.PDEUIMessages;
 import org.eclipse.pde.internal.ui.build.BaseBuildAction;
 
 /**
@@ -61,9 +66,19 @@ public class BuildPluginAction extends BaseBuildAction {
 		generator.setNextId(TargetPlatformHelper.getPDEState().getNextId());
 		generator.setStateExtraData(TargetPlatformHelper.getBundleClasspaths(TargetPlatformHelper.getPDEState()), TargetPlatformHelper.getPatchMap(TargetPlatformHelper.getPDEState()));
 		generator.setBuildingOSGi(true);
-		IPluginModelBase model = PDECore.getDefault().getModelManager().findModel(project);
-		generator.setElements(new String[] { "plugin@" +model.getPluginBase().getId() }); //$NON-NLS-1$
-		generator.generate();
+
+		/* AJDT 1.7 */
+		// allow binary cycles
+		Properties properties = new Properties();
+		properties.put(IBuildPropertiesConstants.PROPERTY_ALLOW_BINARY_CYCLES, "true"); //$NON-NLS-1$
+		generator.setImmutableAntProperties(properties);
+		IPluginModelBase model = PluginRegistry.findModel(project);
+		if (model != null && model.getPluginBase().getId() != null) {
+			generator.setBundles(new BundleDescription[] {model.getBundleDescription()});
+			generator.generate();
+		} else {
+			MessageDialog.openError(null, PDEUIMessages.BuildPluginAction_ErrorDialog_Title, PDEUIMessages.BuildPluginAction_ErrorDialog_Message);
+		}
 	}
 
 	private List getAspectpath(IProject project) {

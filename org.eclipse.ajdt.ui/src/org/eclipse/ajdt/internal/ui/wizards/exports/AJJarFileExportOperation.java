@@ -60,18 +60,15 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
-import org.eclipse.jdt.internal.ui.refactoring.RefactoringSaveHelper;
 import org.eclipse.jdt.internal.ui.util.BusyIndicatorRunnableContext;
 import org.eclipse.jdt.ui.StandardJavaElementContentProvider;
 import org.eclipse.jdt.ui.jarpackager.IJarDescriptionWriter;
 import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
 import org.eclipse.jdt.ui.jarpackager.JarPackageData;
 import org.eclipse.jdt.ui.jarpackager.JarWriter3;
+import org.eclipse.jdt.ui.refactoring.RefactoringSaveHelper;
 import org.eclipse.jface.operation.ModalContext;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 
 /**
@@ -937,7 +934,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				public void run() {
 					RefactoringSaveHelper refactoringSaveHelper= new RefactoringSaveHelper(RefactoringSaveHelper.SAVE_ALL_ALWAYS_ASK);
 					res[0]= refactoringSaveHelper.saveEditors(fParentShell);
-					fFilesSaved= refactoringSaveHelper.hasFilesSaved();
+					fFilesSaved= refactoringSaveHelper.didSaveFiles(); /* AJDT 1.7 */
 				}
 			});
 			if (!res[0]) {
@@ -972,19 +969,8 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			}
 		}
 	}
-
-	private IEditorPart[] getDirtyEditors(Shell parent) {
-		Display display= parent.getDisplay();
-		final Object[] result= new Object[1];
-		display.syncExec(
-			new Runnable() {
-				public void run() {
-					result[0]= EditorUtility.getDirtyEditors();
-				}
-			}
-		);
-		return (IEditorPart[])result[0];
-	}
+	
+	/* AJDT 1.7 remove getDirtyEditors() */
 
 	protected void saveDescription() throws CoreException, IOException {
 		// Adjust JAR package attributes

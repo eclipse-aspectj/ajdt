@@ -10,16 +10,18 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+import java.net.URI;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.pde.internal.ui.wizards.exports.PluginExportWizardPage;
+import org.eclipse.pde.internal.ui.wizards.exports.FeatureExportWizardPage;
 
 /**
- * Extends PluginExportWizardPage to allow AJPluginExportWizard
+ * Extends {@link FeatureExportWizardPage} to allow {@link AJFeatureExportWizard}
  * access to protected methods
  */
-public class AJPluginExportWizardPage extends PluginExportWizardPage {
+public class AJFeatureExportWizardPage extends FeatureExportWizardPage {
 
-	public AJPluginExportWizardPage(IStructuredSelection selection) {
+	public AJFeatureExportWizardPage(IStructuredSelection selection) {
 		super(selection);
 	}
 	
@@ -46,8 +48,40 @@ public class AJPluginExportWizardPage extends PluginExportWizardPage {
 	protected String[] getSigningInfo() {
 		return super.getSigningInfo();
 	}
-	
-	protected boolean allowBinaryCycles() {
-		return super.allowBinaryCycles();
+
+	protected boolean doMultiPlatform() {
+		return super.doMultiPlatform();
 	}
+
+	protected String[] getJNLPInfo() {
+		return super.getJNLPInfo();
+	}
+
+	protected boolean doExportMetadata() {
+		return super.doExportMetadata();
+	}
+
+	protected String getQualifier() {
+		return super.getQualifier();
+	}
+	
+    protected boolean allowBinaryCycles() {
+        return super.allowBinaryCycles();
+    }
+    
+    protected boolean useWorkspaceCompiledClasses() {
+        return super.useWorkspaceCompiledClasses();
+    }
+
+    protected boolean doExportSourceBundles() {
+        return super.doExportSourceBundles();
+    }
+    
+    protected boolean doInstall() {
+        return super.doInstall();
+    }
+    
+    protected URI getCategoryDefinition() {
+        return super.getCategoryDefinition();
+    }
 }

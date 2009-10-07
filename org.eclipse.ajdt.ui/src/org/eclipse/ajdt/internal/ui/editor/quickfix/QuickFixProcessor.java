@@ -30,8 +30,8 @@ import org.eclipse.jdt.internal.ui.text.correction.ReorgCorrectionsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ReturnTypeSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.SerialVersionSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.SuppressWarningsSubProcessor;
+import org.eclipse.jdt.internal.ui.text.correction.TypeArgumentMismatchSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.TypeMismatchSubProcessor;
-import org.eclipse.jdt.internal.ui.text.correction.TypeParameterMismatchSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.proposals.ReplaceCorrectionProposal;
 import org.eclipse.jdt.internal.ui.text.correction.proposals.TaskMarkerProposal;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
@@ -512,7 +512,8 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				ReorgCorrectionsSubProcessor.getNeed50ComplianceProposals(context, problem, proposals);
 				break;
 			case IProblem.NonGenericType:
-				TypeParameterMismatchSubProcessor.removeMismatchedParameters(context, problem, proposals);
+			    /* AJDT 1.7 */
+                TypeArgumentMismatchSubProcessor.removeMismatchedArguments(context, problem, proposals);
 				break;
 			case IProblem.MissingOverrideAnnotation:
 				ModifierCorrectionSubProcessor.addOverrideAnnotationProposal(context, problem, proposals);

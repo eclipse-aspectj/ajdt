@@ -49,10 +49,11 @@
 		        <objectState name="open" value="true"/>
 		    </and>
          </visibility>
+         <!-- /* AJDT 1.7 */ change menu location -->
          <action
                label="%convertToAJP"
                class="org.eclipse.ajdt.internal.ui.actions.AddAJNatureAction"
-               menubarPath="org.eclipse.ajdt.ui.project.tools/group0"
+               menubarPath="org.eclipse.ui.projectConfigure/additions"
                id="addajnatureaction">
          </action>
       </objectContribution>
@@ -492,6 +493,23 @@
          </selection>
          <selection
                name="fragment.xml"
+               class="org.eclipse.core.resources.IFile">
+         </selection>
+         <selection
+               class="org.eclipse.core.resources.IProject">
+         </selection>
+      </wizard>
+      <wizard
+            name="%ajFeatureExportWizard"
+            icon="icons/actions/exp_deployfeat.gif"
+            class="org.eclipse.ajdt.internal.ui.wizards.exports.AJFeatureExportWizard"
+            category="org.eclipse.pde.ui.PluginDevelopment"
+            id="org.eclipse.ajdt.ui.ajFeatureExportWizard">
+         <description>
+            %ajFeatureExportWizard.description
+         </description>
+         <selection
+               name="feature.xml"
                class="org.eclipse.core.resources.IFile">
          </selection>
          <selection

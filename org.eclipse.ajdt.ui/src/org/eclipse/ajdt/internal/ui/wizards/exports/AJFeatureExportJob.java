@@ -40,7 +40,8 @@ public class AJFeatureExportJob extends Job {
 	}
 
 	protected FeatureExportInfo fInfo;
-
+	protected FeatureExportOperation op;
+	
 	public AJFeatureExportJob(FeatureExportInfo info) {
 		super(PDEUIMessages.FeatureExportJob_name); 
 		fInfo = info;
@@ -48,38 +49,15 @@ public class AJFeatureExportJob extends Job {
 	}
 
 	protected IStatus run(IProgressMonitor monitor) {
-		String errorMessage = null;
-		FeatureExportOperation op = createOperation();
-		try {
-			op.run(monitor);
-		} catch (final CoreException e) {
-			final Display display = getStandardDisplay();
-			display.asyncExec(new Runnable() {
-				public void run() {
-					ErrorDialog.openError(display.getActiveShell(), "Export feature error", "Problems exporting feature.", e.getStatus()); // 
-					done(new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null)); //$NON-NLS-1$
-				}
-			});
-			return Job.ASYNC_FINISH;
-		}
-		
-		if (errorMessage == null && op.hasErrors()) 
-			errorMessage = getLogFoundMessage();
-		
-		if (errorMessage != null) {
-			final String em = errorMessage;
-			getStandardDisplay().asyncExec(new Runnable() {
-				public void run() {
-					asyncNotifyExportException(em);
-				}
-			});
-			return Job.ASYNC_FINISH;
-		}
-		return new Status(IStatus.OK, PDEPlugin.getPluginId(), IStatus.OK, "", null); //$NON-NLS-1$
+		 op = getOperation();
+		return op.run(monitor);
 	}
 	
-	protected FeatureExportOperation createOperation() {
-		return new FeatureExportOperation(fInfo);
+	protected FeatureExportOperation getOperation() {
+	    if (op == null) {
+	        op = new FeatureExportOperation(fInfo, PDEUIMessages.FeatureExportJob_name);
+	    }
+	    return op;
 	}
 	
 	/**

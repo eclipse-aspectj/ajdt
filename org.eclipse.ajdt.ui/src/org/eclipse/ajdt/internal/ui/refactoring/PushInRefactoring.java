@@ -52,9 +52,14 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTRequestor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jface.text.Region;
@@ -103,7 +108,7 @@ public class PushInRefactoring extends Refactoring {
             this.unit = unit;
         }
         
-        // does not handle imports for declare annotations and declare parents
+        // does not handle imports for declare parents
         void rewriteImports() throws CoreException {
             // first check to see if this unit has been deleted.
             Change change = (Change) allChanges.get(unit);
@@ -147,7 +152,8 @@ public class PushInRefactoring extends Refactoring {
             parser.setProject(project);
             parser.setResolveBindings(true);
             parser.setSource(ajUnit);
-            ASTNode ajAST = parser.createAST(monitor);
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            CompilationUnit ajAST = (CompilationUnit) parser.createAST(monitor);
 
             for (Iterator itdsIter = itds.iterator(); itdsIter.hasNext();) {
                 IAspectJElement itd = (IAspectJElement) itdsIter.next();
@@ -156,13 +162,67 @@ public class PushInRefactoring extends Refactoring {
                         range.getOffset(), range.getLength()),
                         typeImports, staticImports);
                 if (itd instanceof DeclareElement) {
-                    // need to find out the qualified name of the type being declared
-                    
-                    System.out.println(itd.getHandleIdentifier());
+                    String qualType = getQualifiedTypeForDeclareAnnotation((DeclareElement) itd);
+                    if (qualType != null && qualType.length() > 0) {
+                        extraImports.add(qualType);
+                    }
+                    List/*Type*/ types = getExtraImportsFromDeclareElement((DeclareElement) itd, ajAST);
+                    for (Iterator typeIter = types.iterator(); typeIter
+                            .hasNext();) {
+                        Type type = (Type) typeIter.next();
+                        ImportReferencesCollector.collect(type, project, new Region(
+                                type.getStartPosition(), type.getLength()),
+                                typeImports, staticImports);
+                    }
                 }
             }
         }
         
+        // This method finds the extra imports required by a declare element
+        // (eg- used inside of a declare @annotation's annotation)
+        // We take advantage of the format of the converted source from aspectj to java
+        // the last fields of the last type when following a particular naming convention, 
+        // are around to force import statements to exist.  We can read them and use them 
+        // to seed the extra imports list
+        private List/*Type*/ getExtraImportsFromDeclareElement(DeclareElement itd,
+                CompilationUnit ajAST) {
+            int numTypes = ajAST.types().size();
+            if (numTypes == 0) {
+                return Collections.EMPTY_LIST;
+            }
+            
+            String details = null;
+            AbstractTypeDeclaration lastType = (AbstractTypeDeclaration) ajAST.types().get(numTypes-1);
+            List bodyDecls = lastType.bodyDeclarations();
+            List/*Type*/ extraSimpleNames = new LinkedList();
+            for (int i = bodyDecls.size()-1; i >= 0; i--) {
+                BodyDeclaration decl = (BodyDeclaration) bodyDecls.get(i);
+                if (decl.getNodeType() == ASTNode.FIELD_DECLARATION) {
+                    FieldDeclaration fDecl = (FieldDeclaration) decl;
+                    if (fDecl.fragments().size() == 1) {
+                        VariableDeclarationFragment frag = (VariableDeclarationFragment) fDecl.fragments().get(0);
+                        if (frag.getName().toString().startsWith(AspectsConvertingParser.ITD_INSERTED_IDENTIFIER)) {
+                            if (details == null) {
+                                IProgramElement ipe = AJProjectModelFactory.getInstance()
+                                    .getModelForJavaElement(itd).javaElementToProgramElement(itd);
+                                details = ipe.getDetails();
+                            }
+                            Type type = fDecl.getType();
+                            // only add if this type exists in the declare @annotation 
+                            if (details.indexOf(type.toString()) != -1) {
+                                 extraSimpleNames.add(type);
+                            }
+                            
+                            continue;
+                        }
+                    }
+                }
+                // break on the first body declaration that does not conform
+                break;
+            }
+            return extraSimpleNames;
+        }
+
         void addExtraImport(String typeImport) {
             extraImports.add(typeImport);
         }
@@ -311,7 +371,7 @@ public class PushInRefactoring extends Refactoring {
                                         declareParentsDone = true;
                                     }
                                 }
-                                rewriteTargetTypes(itd, source, members, ast, status);
+                                applyTargetTypeEdits(itd, source, members);
                             }
                         }  // for (Iterator itdIter = itdsForUnit.iterator(); itdIter.hasNext();) {
                     }
@@ -415,15 +475,6 @@ public class PushInRefactoring extends Refactoring {
     }
 
 
-    protected void rewriteTargetTypes(
-            IAspectJElement itd,
-            ICompilationUnit source, Collection/*IMember*/ targets,
-            CompilationUnit node, RefactoringStatus status) throws JavaModelException, CoreException {
-        
-        
-        applyTargetTypeEdits(itd, source, targets);
-
-    }
 
     private void applyTargetTypeEdits(IAspectJElement itd,
             ICompilationUnit source, Collection/*IMember*/ targets) throws CoreException, JavaModelException {
@@ -463,6 +514,15 @@ public class PushInRefactoring extends Refactoring {
         }
     }
 
+
+    private String getQualifiedTypeForDeclareAnnotation(DeclareElement itd) {
+        IProgramElement ipe = AJProjectModelFactory.getInstance()
+                .getModelForJavaElement(itd).javaElementToProgramElement(itd);
+        if (ipe != null) {
+            return ipe.getAnnotationType();
+        }
+        return null;
+    }
 
     // Uses AspectsConvertingParser to recreate the class/interface declaration line
     // this inserts *all* declare parents into the target type.

@@ -88,7 +88,7 @@ public class ITDHyperlinkDetector extends AbstractHyperlinkDetector {
         SearchableEnvironment environment = new ITDAwareNameEnvironment(javaProject, unit.getOwner(), null);
 
         ITDAwareSelectionRequestor requestor = new ITDAwareSelectionRequestor(AJProjectModelFactory.getInstance().getModelForJavaElement(javaProject), unit);
-        SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true));
+        SelectionEngine engine = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner()); /* AJDT 1.7 */
         
         final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
         converter.setUnit(unit);

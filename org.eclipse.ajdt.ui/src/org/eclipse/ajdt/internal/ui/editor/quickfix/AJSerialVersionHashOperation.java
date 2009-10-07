@@ -374,7 +374,8 @@ public final class AJSerialVersionHashOperation extends AbstractSerialVersionOpe
      * {@inheritDoc}
      * @throws CoreException 
      */
-    protected boolean addInitializer(final VariableDeclarationFragment fragment, final ASTNode declarationNode) throws CoreException {
+ 	 /* AJDT 1.7 */
+     protected boolean addInitializer(final VariableDeclarationFragment fragment, final ASTNode declarationNode) {
         Assert.isNotNull(fragment);
         try {
             PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
