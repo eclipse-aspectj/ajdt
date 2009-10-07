@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<site pack200="true">
+<site 
+pack200="true">
 <!-- uncomment this for release update site -->
 <!--<site 
-mirrorsURL="http://www.eclipse.org/downloads/download.php?file=/tools/ajdt/34/update/site.xml&amp;protocol=http&amp;format=xml" 
+mirrorsURL="http://www.eclipse.org/downloads/download.php?file=/tools/ajdt/35/dev/update/site.xml&amp;protocol=http&amp;format=xml" 
 pack200="true">-->
    <description>
       This update site provides the AspectJ feature and related
