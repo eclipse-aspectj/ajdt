@@ -29,15 +29,20 @@ public class SynchronizationUtils {
 		boolean interrupted= true;
 		while (interrupted) {
 			try {
+			    System.out.println("Join auto build...");
 				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 				interrupted= false;
 			} catch (InterruptedException e) {
 				interrupted= true;
+//			} catch (RuntimeException e) {
+//			    e.printStackTrace();
+//			    throw e;
 			}
 		}
 		boolean wasInterrupted = false;
 		do {
 			try {
+			    System.out.println("Join manual build...");
 				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
@@ -60,6 +65,7 @@ public class SynchronizationUtils {
 		long endTime= maxTime > 0  && maxTime < Long.MAX_VALUE ? System.currentTimeMillis() + maxTime : Long.MAX_VALUE;
 		boolean calm= allJobsQuiet();
 		while (!calm && System.currentTimeMillis() < endTime) {
+		    System.out.println("Run event queue...");
 			runEventQueue(intervalTime);
 			calm= allJobsQuiet();
 		}
@@ -83,6 +89,7 @@ public class SynchronizationUtils {
 			if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
 			        !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
 					(state == Job.RUNNING || state == Job.WAITING)) {
+			    System.out.println("  Waiting on: " + job.getName());
 				return false;
 			}
 		}
