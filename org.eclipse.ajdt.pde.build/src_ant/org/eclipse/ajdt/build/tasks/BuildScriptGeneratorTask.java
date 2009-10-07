@@ -1,10 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2007, 2008, 2009 SpringSource, IBM Corporation and others. All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors: IBM - Initial API and implementation
+ *              Andrew Eisenberg - Adapted for Eclipse 3.4
+ *              Andrew Eisenberg - Adapted for Eclipse 3.5
+ *              
  ******************************************************************************/
 package org.eclipse.ajdt.build.tasks;
 
@@ -16,12 +19,14 @@ import org.apache.tools.ant.Task;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.pde.internal.build.*;
 import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
+import org.eclipse.pde.internal.build.site.ProfileManager;
 import org.eclipse.pde.internal.build.site.QualifierReplacer;
 
 /**
  * Generate build scripts for the listed elements. This is the implementation of the "eclipse.buildScript" Ant task.
  */
 public class BuildScriptGeneratorTask extends Task {
+    
 	private final Properties antProperties = new Properties();
 	/**
 	 * The application associated with this Ant task.
@@ -48,6 +53,11 @@ public class BuildScriptGeneratorTask extends Task {
 	 */
 	public void setDevEntries(String devEntries) {
 		generator.setDevEntries(devEntries);
+	}
+
+	/* AJDT 1.7 */
+	public void setFlattenDependencies(boolean flatten) {
+		generator.setFlattenDependencies(flatten);
 	}
 
 	/**
@@ -109,15 +119,13 @@ public class BuildScriptGeneratorTask extends Task {
 	}
 
 	private void setEEProfileProperties(Properties antProperties) {
-		//TODO this relies on the formatting of the profile file names in osgi.
-		// More robust would be to load each profile and check its name directly.
-		String[] profiles = BundleHelper.getDefault().getRuntimeJavaProfiles();
+		/* AJDT 1.7 */
+		ProfileManager manager = new ProfileManager(generator.getEESources(), true);
+		String[] profiles = manager.getJavaProfiles();
 		for (int i = 0; i < profiles.length; i++) {
-			String profileName = profiles[i].substring(0, profiles[i].length() - 8); //strip .profile off the end
-			profileName = profileName.replace('_', '/');
-			String value = getProject().getProperty(profileName);
+			String value = getProject().getProperty(profiles[i]);
 			if (value != null) {
-				antProperties.put(profileName, value);
+				antProperties.put(profiles[i], value);
 			}
 		}
 	}
@@ -203,6 +211,13 @@ public class BuildScriptGeneratorTask extends Task {
 		generator.setWorkingDirectory(installLocation);
 	}
 
+	/* AJDT 1.7 */
+	public void setCustomEESources(String eeSources) {
+		if (eeSources != null && !eeSources.startsWith("${")) { //$NON-NLS-1$
+			generator.setEESources(Utils.getArrayFromString(eeSources, File.pathSeparator));
+		}
+	}
+
 	/**
 	 * Set the location of the product being built. This should be a / separated path
 	 * where the first segment is the id of the plugin containing the .product file.
@@ -277,4 +292,25 @@ public class BuildScriptGeneratorTask extends Task {
 		generator.setFilterP2Base(value);
 	}
 
+	/* AJDT 1.7 begin */
+	public void setParallelCompilation(boolean parallel) {
+		generator.setParallel(parallel);
+	}
+
+	public void setParallelThreadCount(String count) {
+		try {
+			generator.setThreadCount(Integer.parseInt(count));
+		} catch (NumberFormatException e) {
+			//ignore
+		}
+	}
+
+	public void setParallelThreadsPerProcessor(String threads) {
+		try {
+			generator.setThreadsPerProcessor(Integer.parseInt(threads));
+		} catch (NumberFormatException e) {
+			//ignore
+		}
+	}
+	/* AJDT 1.7 end */
 }

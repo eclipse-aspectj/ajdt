@@ -111,7 +111,8 @@ public class AJBuildDirector extends BuildDirector {
 
 	
 	private void generateChildrenScripts(BuildTimeFeature feature) throws CoreException {
-		List plugins = computeElements(feature);
+		/* AJDT 1.7 */
+		Set plugins = computeElements(feature);
 		String suffix = generateFeatureVersionSuffix(feature);
 		if (suffix != null) {
 			Version versionId = new Version(feature.getVersion());
@@ -127,20 +128,6 @@ public class AJBuildDirector extends BuildDirector {
 	}
 
 	
-	// execute private method
-	private static Method generateFeatureVersionSuffixMethod;
-	private String generateFeatureVersionSuffix(BuildTimeFeature buildFeature) throws CoreException {
-		try {
-			if (generateFeatureVersionSuffixMethod == null) {
-				generateFeatureVersionSuffixMethod = BuildDirector.class.getDeclaredMethod(
-						"generateFeatureVersionSuffix", new Class[]{ BuildTimeFeature.class } ); //$NON-NLS-1$
-				generateFeatureVersionSuffixMethod.setAccessible(true);
-			}
-			return (String) generateFeatureVersionSuffixMethod.invoke(this, new Object[] { buildFeature });
-		} catch (Exception e) {
-		}
-		return null;
-	}
 	
 	/**
 	 * Sets the scriptGeneration.

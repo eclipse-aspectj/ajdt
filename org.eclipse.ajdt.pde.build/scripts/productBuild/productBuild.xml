@@ -5,7 +5,7 @@
 <!-- the properties which callers can control. -->
 <!-- ===================================================================== -->
 <property name="allElementsFile" value="productBuild/allElements.xml"/>
-<import file="${ajdt.pdebuild.scripts}/build.xml"/>
+<import file="${ajdt.pdebuild.scripts}/productBuild/allElements.xml"/>
 <property name="pluginPath" value=""/>
 <property name="pluginList" value=""/>
 <property name="featureList" value=""/>
