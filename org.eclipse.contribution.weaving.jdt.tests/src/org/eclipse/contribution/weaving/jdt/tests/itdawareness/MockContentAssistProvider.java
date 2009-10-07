@@ -12,6 +12,7 @@
 package org.eclipse.contribution.weaving.jdt.tests.itdawareness;
 
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
@@ -34,7 +35,7 @@ public class MockContentAssistProvider implements IJavaContentAssistProvider {
     public boolean doContentAssist(ICompilationUnit cu,
             ICompilationUnit unitToSkip, int position,
             CompletionRequestor requestor, WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target) throws Exception {
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) throws Exception {  /* AJDT 1.7 */
         contentAssistDone = true;
         return true;
     }

@@ -91,9 +91,9 @@ public class ImageDescriptorSelectorTests extends WeavingTestCase {
             Method getItemsListLabelProviderMethod = FilteredItemsSelectionDialog.class.getDeclaredMethod("getItemsListLabelProvider");
             getItemsListLabelProviderMethod.setAccessible(true);
             Object fItemsListLabelProvider = getItemsListLabelProviderMethod.invoke(this);
-            Method getProviderMethod = fItemsListLabelProvider.getClass().getMethod("getProvider");
-            getProviderMethod.setAccessible(true);
-            return (ILabelProvider) getProviderMethod.invoke(fItemsListLabelProvider);
+            Field providerField = fItemsListLabelProvider.getClass().getDeclaredField("provider");
+            providerField.setAccessible(true);
+            return (ILabelProvider) providerField.get(fItemsListLabelProvider);
         }
     }
     

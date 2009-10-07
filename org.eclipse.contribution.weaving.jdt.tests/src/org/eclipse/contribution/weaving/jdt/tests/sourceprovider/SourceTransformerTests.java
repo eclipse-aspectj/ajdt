@@ -166,5 +166,10 @@ public class SourceTransformerTests extends WeavingTestCase {
             return null;
         }
         
+        /* AJDT 1.7 */
+        public char[] getEnclosingMethod() {
+            return null;
+        }
+        
     }
 }

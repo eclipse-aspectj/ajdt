@@ -8,7 +8,7 @@
             file_extension="mock">
       </provider>
    </extension>
-   <extension point="org.eclipse.core.runtime.contentTypes">
+   <extension point="org.eclipse.core.contenttype.contentTypes">
 		  <content-type id="mockSource" name="Mock Source" 
 			base-type="org.eclipse.jdt.core.javaSource"
 			file-extensions="mock"/>
