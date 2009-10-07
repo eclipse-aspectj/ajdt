@@ -11,9 +11,15 @@
 
 package org.eclipse.contribution.jdt.preferences;
 
+import java.io.IOException;
+
+import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Preferences;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
@@ -27,7 +33,7 @@ public class JDTWeavingPreferences {
     public final static String ASK_TO_ENABLE_WEAVING = "org.eclipse.contribution.weaving.jdt.ask";
     public final static String LAST_VERSION = "org.eclipse.contribution.weaving.jdt.version";
     public final static String HOOK_ID = "org.eclipse.equinox.weaving.hook";
-    
+    public final static String ASK_TO_REINDEX_PROJECTS = "org.eclipse.contribution.weaving.jdt.reindex";
 
     private JDTWeavingPreferences() {
         // singleton
@@ -40,36 +46,53 @@ public class JDTWeavingPreferences {
      * If version has changed, then ask
      */
     public static boolean shouldAskToEnableWeaving() {
-        return getAsk() || 
+        return getAskToEnableWeaving() || 
           ! getCurrentVersion().equals(getLastVersion()); 
     }
     
     public static void setAskToEnableWeaving(boolean value) {
-        setAsk(value);
+        internalSetAsk(value);
         setLastVersion();
     }
  
-    public static void setAsk(boolean value) {
-        Preferences store = getPreferences();
+    private static void internalSetAsk(boolean value) {
+        IPreferenceStore store = getPreferences();
         store.setValue(ASK_TO_ENABLE_WEAVING, value ? "true" : "false");
-        JDTWeavingPlugin.getInstance().savePluginPreferences();
     }
     
-    public static boolean getAsk() {
-        Preferences store = getPreferences();
+    public static boolean getAskToEnableWeaving() {
+        IPreferenceStore store = getPreferences();
         String value = store.getString(ASK_TO_ENABLE_WEAVING);
         return value == "" || value.equals("true");
     }
     
-   
+    /**
+     * only ask to reindex if the property is set and 
+     * currently weaving
+     */
+    public static boolean shouldAskToReindex() {
+        return getAskToReindex() &&
+          IsWovenTester.isWeavingActive(); 
+    }
+
+    public static boolean getAskToReindex() {
+        IPreferenceStore store = getPreferences();
+        String value = store.getString(ASK_TO_REINDEX_PROJECTS);
+        return value.equals("true");
+    }
+
+    public static void setAskToReindex(boolean value) {
+        IPreferenceStore store = getPreferences();
+        store.setValue(ASK_TO_REINDEX_PROJECTS, value ? "true" : "false");
+    }
+    
     public static void setLastVersion() {
-        Preferences store = getPreferences();
+        IPreferenceStore store = getPreferences();
         store.setValue(LAST_VERSION, getCurrentVersion().toString());
-        JDTWeavingPlugin.getInstance().savePluginPreferences();
     }
     
     public static String getLastVersion() {
-        Preferences store = getPreferences();
+        IPreferenceStore store = getPreferences();
         return store.getString(LAST_VERSION);
     }
     
@@ -83,7 +106,7 @@ public class JDTWeavingPreferences {
     
     
     
-    public static Preferences getPreferences() {
-        return JDTWeavingPlugin.getInstance().getPluginPreferences();
+    public static IPreferenceStore getPreferences() {
+        return JDTWeavingPlugin.getInstance().getPreferenceStore();
     }
 }

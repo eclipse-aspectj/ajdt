@@ -8,7 +8,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -247,37 +246,38 @@ public aspect ITDAwarenessAspect {
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target) : 
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor /* AJDT 1.7 */) : 
         execution(protected void Openable.codeComplete(
                 org.eclipse.jdt.internal.compiler.env.ICompilationUnit,
                 org.eclipse.jdt.internal.compiler.env.ICompilationUnit,
                 int, CompletionRequestor,
                 WorkingCopyOwner,
-                ITypeRoot)) && within(Openable) && this(target) && args(cu, unitToSkip, position, requestor, owner, typeRoot);
+                ITypeRoot, IProgressMonitor)) &&  /* AJDT 1.7 */
+                within(Openable) && this(target) && 
+                args(cu, unitToSkip, position, requestor, owner, typeRoot, monitor);  /* AJDT 1.7 */
     
     void around(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
-            ITypeRoot typeRoot, Openable target) : 
-                codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target) {
+            ITypeRoot typeRoot, Openable target, IProgressMonitor monitor) :  /* AJDT 1.7 */
+                codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor) {
         
         boolean result = false;
         if (contentAssistProvider != null && provider != null && 
                 (cu instanceof CompilationUnit) && 
                 provider.shouldFindProblems((CompilationUnit) cu)) {
             try {
-                result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target);
+                result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor); /* AJDT 1.7 */
             } catch (Exception e) {
                 JDTWeavingPlugin.logException(e);
                 result = false;
             }
         }            
         if (!result) {
-            proceed(cu, unitToSkip, position, requestor, owner, typeRoot, target);
+            proceed(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor);  /* AJDT 1.7 */
         }
     }
-    
     /**
      * 
      * used for ITD hyperlinking
