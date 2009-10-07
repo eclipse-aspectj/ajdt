@@ -88,6 +88,17 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         int s = proposal.getReplaceStart();
 		int e = proposal.getReplaceEnd();
 		proposal.setReplaceRange(trans(s), trans(e));
+		
+		/* AJDT 1.7 */
+		// translate all proposals contained in this one
+		if (proposal instanceof InternalCompletionProposal) {
+            InternalCompletionProposal internalProposal = (InternalCompletionProposal) proposal;
+            if (internalProposal.getRequiredProposals() != null) {
+                for (int i = 0; i < internalProposal.getRequiredProposals().length; i++) {
+                    translateReplaceRange(internalProposal.getRequiredProposals()[i]);
+                }
+            }
+        }
     }
 	
 	protected boolean shouldAccept(CompletionProposal proposal) {

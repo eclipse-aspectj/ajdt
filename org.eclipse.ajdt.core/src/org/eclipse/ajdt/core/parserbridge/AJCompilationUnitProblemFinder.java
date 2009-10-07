@@ -26,7 +26,6 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
-import org.eclipse.jdt.core.IMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.eclipse.ajdt.core.AJLog;
@@ -39,6 +38,7 @@ import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -54,6 +54,7 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMemberValuePair;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -75,7 +76,6 @@ import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.jdt.internal.core.AnnotatableInfo;
 import org.eclipse.jdt.internal.core.Annotation;
-import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
 import org.eclipse.jdt.internal.core.CancelableProblemFactory;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
@@ -178,7 +178,7 @@ public class AJCompilationUnitProblemFinder extends
 	public static CompilationUnitDeclaration processAJ(
 	        CompilationUnit unitElement, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
-	        HashMap problems,
+	        HashMap<String, CategorizedProblem[]> problems,
 	        boolean creatingAST,
 	        int reconcileFlags,
 	        IProgressMonitor monitor)
@@ -191,7 +191,7 @@ public class AJCompilationUnitProblemFinder extends
             CompilationUnit unitElement, // AspectJ Change
 	        CommentRecorderParser parser, // AspectJ Change
 	        WorkingCopyOwner workingCopyOwner,
-	        HashMap problems,
+	        HashMap<String, CategorizedProblem[]> problems,
 	        boolean creatingAST,
 	        int reconcileFlags,
 	        IProgressMonitor monitor)
@@ -392,15 +392,14 @@ public class AJCompilationUnitProblemFinder extends
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
 	    boolean hasModel = model.hasModel();
 
-        List newProblems = new LinkedList();
+        List<CategorizedProblem> newProblems = new LinkedList<CategorizedProblem>();
         for (int i = 0; i < categorizedProblems.length; i++) {
             // determine if this problem should be filtered
             if (isARealProblem(categorizedProblems[i], unit, model, hasModel, isJavaFileInAJEditor)) {
                 newProblems.add(categorizedProblems[i]);
             }
         }
-        categorizedProblems = (CategorizedProblem[]) 
-                newProblems.toArray(new CategorizedProblem[newProblems.size()]);
+        categorizedProblems = newProblems.toArray(new CategorizedProblem[newProblems.size()]);
         return categorizedProblems;
      }
 
@@ -681,6 +680,27 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
 
+            if (id == IProblem.AbstractMethodsInConcreteClass &&
+                    isAspect(categorizedProblem, unit, isJavaFileInAJEditor)) {
+                /* AJDT 1.7 */
+                // an aspect that has an abstract ITD will have this problem
+                // in this case it is a spurious problem.  Filter it
+                // unfortunately, this also means filtering real problems
+                // where concrete aspects have abstract methods
+                // new for 1.7
+                return false;
+            }
+            
+            if (id == IProblem.JavadocMissingReturnTag
+                    && insidePointcut(categorizedProblem, unit)) {
+                // pointcuts are parsed as methods with 'pointcut' 
+                // as the return type
+                // when JavaDoc checking is set, the parser thinks that
+                // 'pointcut' should have its own javadoc tag
+                return false;
+            }
+
+
         } catch (JavaModelException e) {
         }
         
@@ -698,6 +718,7 @@ public class AJCompilationUnitProblemFinder extends
             // the implementation of this abstract method is not necessarily there
             return false;
         }
+        
         
         return true;
     }
@@ -747,6 +768,18 @@ public class AJCompilationUnitProblemFinder extends
         return false;
     }
     
+    private static boolean insidePointcut(CategorizedProblem categorizedProblem,
+            CompilationUnit unit) throws JavaModelException {
+        IJavaElement candidate = unit.getElementAt(categorizedProblem.getSourceStart());
+        while (candidate != null && !(candidate instanceof ICompilationUnit)) {
+            if (candidate instanceof PointcutElement) {
+                return true;
+            }
+            candidate = candidate.getParent();
+        }
+        return false;
+    }
+    
     
     private static boolean isITDName(CategorizedProblem problem, CompilationUnit unit, AJProjectModelFacade model, boolean isJavaFileInAJEditor) {
         if (isJavaFileInAJEditor) {
@@ -754,7 +787,7 @@ public class AJCompilationUnitProblemFinder extends
             // let compiler do the errors
             return true;
         }
-        Set itdNames = getITDNames(unit, model);
+        Set<String> itdNames = getITDNames(unit, model);
         String[] args = problem.getArguments();
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
@@ -782,8 +815,8 @@ public class AJCompilationUnitProblemFinder extends
     
     // would be good if we can cache this value somehow.
     // expensive to compute
-    private static Set /*String*/ getITDNames(CompilationUnit unit, AJProjectModelFacade model) {
-        Set names = new HashSet();
+    private static Set <String> getITDNames(CompilationUnit unit, AJProjectModelFacade model) {
+        Set<String> names = new HashSet<String>();
         Map relsMap = model.getRelationshipsForFile(unit, new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON, AJRelationshipManager.ASPECT_DECLARATIONS } );
         for (Iterator relsMapIter = relsMap.values().iterator(); relsMapIter.hasNext();) {
             List rels = (List) relsMapIter.next();
@@ -794,10 +827,10 @@ public class AJCompilationUnitProblemFinder extends
                     ipes = new IProgramElement[1];
                     ipes[0] = model.getProgramElement(rel.getSourceHandle());
                 } else {
-                    List targets = rel.getTargets();
+                    List<String> targets = rel.getTargets();
                     ipes = new IProgramElement[targets.size()];
                     for (int i = 0; i < ipes.length; i++) {
-                        ipes[i] = model.getProgramElement((String) targets.get(i));
+                        ipes[i] = model.getProgramElement(targets.get(i));
                     }
                 }
                 for (int i = 0; i < ipes.length; i++) {
@@ -854,6 +887,27 @@ public class AJCompilationUnitProblemFinder extends
         }
         
         
+        return false;
+    }
+    
+    /* AJDT 1.7 */
+    private static boolean isAspect(CategorizedProblem problem, CompilationUnit unit, boolean isJavaFileInAJEditor) {
+        if (isJavaFileInAJEditor) {
+            // we don't know...be safe and 
+            // let compiler do the errors
+            return true;
+        } 
+
+        if (unit instanceof AJCompilationUnit) {
+            try {
+                IJavaElement elt = unit.getElementAt(problem.getSourceStart());
+                if (elt != null) {
+	                IType type = (IType) elt.getAncestor(IJavaElement.TYPE);
+    	            return type != null && type instanceof AspectElement;
+    	        }
+            } catch (JavaModelException e) {
+            }
+        }
         return false;
     }
     
@@ -934,7 +988,7 @@ public class AJCompilationUnitProblemFinder extends
         return sb.toString();
     }
 
-    static final Set aspectMemberNames = new HashSet();
+    static final Set<String> aspectMemberNames = new HashSet<String>();
     static {
         aspectMemberNames.add("parents");
         aspectMemberNames.add("declare");
@@ -950,7 +1004,7 @@ public class AJCompilationUnitProblemFinder extends
         aspectMemberNames.add("privileged");
     }
     
-    static final Set adviceBodyNames = new HashSet();
+    static final Set<String> adviceBodyNames = new HashSet<String>();
     static {
         adviceBodyNames.add("proceed");
         adviceBodyNames.add("thisJoinPoint");
@@ -958,13 +1012,13 @@ public class AJCompilationUnitProblemFinder extends
         adviceBodyNames.add("thisEnclosingJoinPointStaticPart");
     }
     
-    static final Set extraAspectMethods = new HashSet();
+    static final Set<String> extraAspectMethods = new HashSet<String>();
     static {
         extraAspectMethods.add("hasAspect");
         extraAspectMethods.add("aspectOf");
     }
 
-    static final Set declareAnnotationKinds = new HashSet();
+    static final Set<String> declareAnnotationKinds = new HashSet<String>();
     static {
         declareAnnotationKinds.add("constructor");
         declareAnnotationKinds.add("field");

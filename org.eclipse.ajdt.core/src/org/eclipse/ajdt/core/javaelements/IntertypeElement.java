@@ -17,20 +17,20 @@ import java.util.List;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
-import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.SourceConstructorInfo;
+import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
 import org.eclipse.jdt.internal.core.SourceField;
-import org.eclipse.jdt.internal.core.SourceFieldElementInfo;
+import org.eclipse.jdt.internal.core.SourceFieldWithChildrenInfo;
 import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceMethodInfo;
+import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
 
 /**
  * @author Luzius Meisser
@@ -94,7 +94,8 @@ public class IntertypeElement extends AspectJMemberElement {
 		return AspectElement.JEM_ITD;
 	}
 	
-    private Integer getParamNum() {
+	/* AJDT 1.7 */
+    protected Integer getParamNum() {
         return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
     }
 	
@@ -121,8 +122,8 @@ public class IntertypeElement extends AspectJMemberElement {
                         parent.getElementName(), 
                         this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
-                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(IntertypeElement.this);
-                        newInfo.setChildren(info.getChildren());
+						/* AJDT 1.7 */
+                        ITDSourceConstructorElementInfo newInfo = new ITDSourceConstructorElementInfo(IntertypeElement.this, info.getChildren());
                         newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
@@ -143,8 +144,8 @@ public class IntertypeElement extends AspectJMemberElement {
                         extractName(), 
                         this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
-                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this);
-                        newInfo.setChildren(info.getChildren());
+						/* AJDT 1.7 */
+                        ITDSourceMethodElementInfo newInfo = new ITDSourceMethodElementInfo(IntertypeElement.this, info.getChildren());
                         newInfo.setReturnType(getQualifiedReturnTypeName(info));
                         newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
@@ -165,8 +166,8 @@ public class IntertypeElement extends AspectJMemberElement {
                 // field
                 IField itd = new SourceField((JavaElement) parent, extractName()) {
                     protected Object createElementInfo() {
-                        ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this);
-                        newInfo.setChildren(info.getChildren());
+						/* AJDT 1.7 */
+                        ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this, info.getChildren());
                         newInfo.setFlags(CompilationUnitTools.getPublicModifierCode(info));
                         newInfo.setNameSourceEnd(info.getNameSourceEnd());
                         newInfo.setNameSourceStart(info.getNameSourceStart());
@@ -219,10 +220,13 @@ public class IntertypeElement extends AspectJMemberElement {
 	 * @author andrew
 	 * just expose all the protected setter methods
 	 */
-	private static class ITDSourceFieldElementInfo extends SourceFieldElementInfo implements IIntertypeInfo {
+						/* AJDT 1.7 */
+	private static class ITDSourceFieldElementInfo extends SourceFieldWithChildrenInfo implements IIntertypeInfo {
         IntertypeElement original;
 
-        public ITDSourceFieldElementInfo(IntertypeElement original) {
+						/* AJDT 1.7 */
+        public ITDSourceFieldElementInfo(IntertypeElement original, IJavaElement[] children) {
+            super(children);
             this.original = original;
         }
 
@@ -250,11 +254,14 @@ public class IntertypeElement extends AspectJMemberElement {
 	    }
 	}
 	
-	private static class ITDSourceMethodElementInfo extends SourceMethodInfo implements IIntertypeInfo {
+						/* AJDT 1.7 */
+	private static class ITDSourceMethodElementInfo extends SourceMethodWithChildrenInfo implements IIntertypeInfo {
 
         IntertypeElement original;
 
-        public ITDSourceMethodElementInfo(IntertypeElement original) {
+						/* AJDT 1.7 */
+        public ITDSourceMethodElementInfo(IntertypeElement original, IJavaElement[] children) {
+            super(children);
             this.original = original;
         }
 
@@ -311,11 +318,14 @@ public class IntertypeElement extends AspectJMemberElement {
 	    
 	}
 	
-   private static class ITDSourceConstructorElementInfo extends SourceConstructorInfo implements IIntertypeInfo {
+						/* AJDT 1.7 */
+   private static class ITDSourceConstructorElementInfo extends SourceConstructorWithChildrenInfo implements IIntertypeInfo {
 
         IntertypeElement original;
 
-        public ITDSourceConstructorElementInfo(IntertypeElement original) {
+						/* AJDT 1.7 */
+        public ITDSourceConstructorElementInfo(IntertypeElement original, IJavaElement[] children) {
+            super(children);
             this.original = original;
         }
 

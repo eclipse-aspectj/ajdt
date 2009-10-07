@@ -22,6 +22,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.lang.annotation.Aspect;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
@@ -58,6 +59,7 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -587,7 +589,9 @@ public class AJCompilationUnit extends CompilationUnit{
 			org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
 			int position, CompletionRequestor requestor,
 			WorkingCopyOwner owner,
-			ITypeRoot typeRoot) throws JavaModelException {
+			ITypeRoot typeRoot,
+			/* AJDT 1.7 */
+            IProgressMonitor monitor) throws JavaModelException {
 	    // Bug 76146
 	    // if we are not editing in an AspectJ editor 
 	    // (i.e., we are editing in a Java editor), 
@@ -616,7 +620,8 @@ public class AJCompilationUnit extends CompilationUnit{
 			transformedPos = javaCompBuffer.translatePositionToFake(position);
 			
 			CompletionRequestor wrappedRequestor = new ProposalRequestorWrapper(requestor, this, javaCompBuffer, "");
-			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this);
+			/* AJDT 1.7 */
+			internalCodeComplete(cu, unitToSkip, transformedPos, wrappedRequestor, owner, this, monitor);
 			
             // now set up for the regular code completion
             javaCompBuffer.setConversionOptions(ConversionOptions.CODE_COMPLETION);
@@ -629,7 +634,8 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
         transformedPos = javaCompBuffer.translatePositionToFake(position);
 		
-		internalCodeComplete(cu, unitToSkip, transformedPos, requestor, owner, this);
+		/* AJDT 1.7 */
+		internalCodeComplete(cu, unitToSkip, transformedPos, requestor, owner, this, monitor);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
 	}
@@ -749,7 +755,9 @@ public class AJCompilationUnit extends CompilationUnit{
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
             WorkingCopyOwner owner,
-            ITypeRoot typeRoot) throws JavaModelException {
+            ITypeRoot typeRoot,
+			/* AJDT 1.7 */
+            IProgressMonitor monitor) throws JavaModelException {
 
 	    if (requestor == null) {
 	        throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
@@ -768,12 +776,14 @@ public class AJCompilationUnit extends CompilationUnit{
 	        throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
 	    }
 	    JavaProject project = (JavaProject) getJavaProject();
-	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, null);
+		/* AJDT 1.7 */
+	    ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor);
 
 	    environment.setUnitToSkip(unitToSkip);
 
 	    // code complete
-	    CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner);
+	    /* AJDT 1.7 */
+	    CompletionEngine engine = new CompletionEngine(environment, requestor, project.getOptions(true), project, owner, monitor);
 	    engine.complete(cu, position, 0, typeRoot);
 	    if(performanceStats != null) {
 	        performanceStats.endRun();

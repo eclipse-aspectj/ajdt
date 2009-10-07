@@ -991,7 +991,7 @@ private void rememberCategories() {
 		}
 	}
 }
-private void reset() {
+public void reset() {
 	this.sourceEnds = new HashtableOfObjectToInt();
 	this.nodesToCategories = new HashMap();
 }

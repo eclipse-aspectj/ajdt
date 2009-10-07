@@ -15,6 +15,7 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
@@ -30,9 +31,9 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	
 	protected boolean privileged;
 	
+	/* AJDT 1.7 */
 	public void setHandle(IType handle) {
 		this.handle = handle;
-		this.privileged = false;
 	}
 	
 	/**
@@ -68,10 +69,12 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	}
 	
 	public void setSourceRangeEnd(int end) {
-		fSourceRangeEnd = end;
+		/* AJDT 1.7 */
+		sourceRangeEnd = end;
 	}
 	public void setSourceRangeStart(int start) {
-		fSourceRangeStart = start;
+		/* AJDT 1.7 */
+		sourceRangeStart = start;
 	}
 	
 	public Kind getAJKind() {
@@ -137,5 +140,23 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	
 	public boolean isPrivileged() {
 	    return privileged;
+	}
+	
+    /* AJDT 1.7 */
+    /*
+     * make public
+     */
+	public void setChildren(IJavaElement[] children) {
+	    this.children = children;
+	}
+	
+	/* AJDT 1.7 */
+	/*
+	 * make public
+	 */
+	@Override
+	public void addCategories(IJavaElement element,
+	        char[][] elementCategories) {
+	    super.addCategories(element, elementCategories);
 	}
 }

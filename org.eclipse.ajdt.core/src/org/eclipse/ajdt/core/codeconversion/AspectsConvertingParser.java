@@ -854,6 +854,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             i++;
             ident = ITD_INSERTED_IDENTIFIER + i;
         }
+        usedIdentifiers.add(ident);
         return ident;
     }
 
@@ -1325,12 +1326,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             return;
         StringBuffer temp = new StringBuffer(typeReferences.size() * 10);
         Iterator iter = typeReferences.iterator();
-        int varCount=1;
         while (iter.hasNext()) {
             String ref = (String) iter.next();
-            temp.append(ref);
-            temp.append(" x"); //$NON-NLS-1$
-            temp.append(varCount++);
+            temp.append(ref).append(" ").append(findFreeIdentifier()); //$NON-NLS-1$
             temp.append(';');
         }
         char[] decls = new char[temp.length()];

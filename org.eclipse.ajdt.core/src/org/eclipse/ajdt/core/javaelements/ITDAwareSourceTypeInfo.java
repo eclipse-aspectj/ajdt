@@ -11,7 +11,6 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -284,10 +283,12 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 new String[0]) {
             protected Object createElementInfo() {
                 return new SourceMethodInfo() {
+                    @Override
                     public int getModifiers() {
                         return Flags.AccPublic | Flags.AccStatic;
                     }
                     
+                    @Override
                     public char[] getReturnTypeName() {
                         return parent.getElementName().toCharArray();
                     }
@@ -311,4 +312,10 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     public IJavaElement[] getChildren() {
         return super.getChildren();
     }
+    
+						/* AJDT 1.7 */
+    public void setChildren(IJavaElement[] children) {
+        this.children = children;
+    }
+    
 }

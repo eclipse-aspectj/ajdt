@@ -7,7 +7,7 @@
  * 
  * Contributors:
  *     IBM - Initial API and implementation
- *     Andre Eisenberg - Adapted for AJDT 1.6
+ *     Andre Eisenberg - Adapted for AJDT 1.7
  *******************************************************************************/
 package org.eclipse.ajdt.core.exports;
 
@@ -23,11 +23,13 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.JarFile;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -40,11 +42,13 @@ import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.pde.build.Constants;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.BundleHelper;
 import org.eclipse.pde.internal.build.IBuildPropertiesConstants;
 import org.eclipse.pde.internal.build.IXMLConstants;
 import org.eclipse.pde.internal.build.Messages;
+import org.eclipse.pde.internal.build.PDEUIStateWrapper;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.AntScript;
 import org.eclipse.pde.internal.build.ant.FileSet;
@@ -54,7 +58,9 @@ import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
 import org.eclipse.pde.internal.build.builder.IClasspathComputer;
 import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0.ClasspathElement;
+import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator.CompiledEntry;
 import org.eclipse.pde.internal.build.site.PDEState;
+import org.eclipse.pde.internal.build.site.ProfileManager;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;
 import org.osgi.framework.Bundle;
 
@@ -104,7 +110,8 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			this.excludedFromJar = excludedFromJar;
 		}
 
-		protected String getName(boolean resolved) {
+		/* AJDT 1.7 */
+		public String getName(boolean resolved) {
 			if (!resolved)
 				return name;
 
@@ -171,6 +178,10 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	private boolean dotOnTheClasspath = false;
 	private boolean binaryPlugin = false;
 	private boolean signJars = false;
+	private Map workspaceOutputFolders = null;
+
+	private boolean generateErrorPropertyAttribute = true;
+
 
 	// added bundles required for AspectJ
 	private List addedBundles; // AspectJ Change
@@ -291,6 +302,19 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		customCallbacksFailOnError = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_FAILONERROR, FALSE);
 		customCallbacksInheritAll = properties.getProperty(PROPERTY_CUSTOM_CALLBACKS_INHERITALL);
 		
+        if (featureGenerator != null && featureGenerator.useWorkspaceBinaries()
+                && havePDEUIState()) {
+            PDEUIStateWrapper wrapper = getSite(false).getSiteContentProvider()
+                    .getInitialState();
+            if (wrapper != null && wrapper.getOutputFolders() != null) {
+                Map folders = wrapper.getOutputFolders();
+                if (folders.containsKey(model.getSymbolicName())) {
+                    workspaceOutputFolders = (Map) folders.get(model
+                            .getSymbolicName());
+                }
+            }
+        }
+
 		// AspectJ change begin
 		String inpathProp = getBuildProperties().getProperty(PROPERTY_INPATH);
 		if (inpathProp != null) {
@@ -376,6 +400,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			generateBuildJarsTargetForSourceGathering();
 			generateEmptyBuildSourcesTarget();
 		}
+		generatePublishBinPartsTarget();
 		generateGatherBinPartsTarget();
 		generateBuildZipsTarget();
 		generateGatherSourcesTarget();
@@ -385,6 +410,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		generateCleanTarget();
 		generateRefreshTarget();
 		generateZipPluginTarget();
+		generateAPIToolsTarget();
 		generateEpilogue();
 	}
 
@@ -602,6 +628,214 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printTargetEnd();
 	}
 
+	   private void generateAPIToolsTarget() {
+	        script.println();
+	        script.printTargetDeclaration(TARGET_API_GENERATION, null, PROPERTY_GENERATE_API_DESCRIPTION, null, null);
+	        script.printTab();
+	        script.print("<apitooling.apigeneration "); //$NON-NLS-1$
+	        script.printAttribute("projectName", Utils.getPropertyFormat(PROPERTY_PROJECT_NAME), true); //$NON-NLS-1$
+	        script.printAttribute("project", Utils.getPropertyFormat(PROPERTY_PROJECT_LOCATION), true); //$NON-NLS-1$
+	        script.printAttribute("binary", Utils.getPropertyFormat(PROPERTY_BINARY_FOLDERS), true); //$NON-NLS-1$
+	        script.printAttribute("target", Utils.getPropertyFormat(PROPERTY_TARGET_FOLDER), true); //$NON-NLS-1$
+	        script.println("/>"); //$NON-NLS-1$
+	        script.printTargetEnd();
+	    }
+
+	    private void generateAPIToolsCall(String[] binaries, boolean dotIncluded, String target) throws CoreException {
+	        Set classpathEntries = new HashSet(Arrays.asList(getClasspathEntries(model)));
+	        StringBuffer binaryFolders = new StringBuffer();
+	        for (int i = 0; i < binaries.length; i++) {
+	            if (binaries[i] != null) {
+	                if (i > 0)
+	                    binaryFolders.append(File.pathSeparator);
+	                binaryFolders.append(target + '/' + binaries[i]);
+	                classpathEntries.remove(binaries[i]);
+	            }
+	        }
+	        if (dotIncluded) {
+	            if (binaryFolders.length() > 0)
+	                binaryFolders.append(File.pathSeparator);
+	            binaryFolders.append(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + '/' + EXPANDED_DOT);
+	            classpathEntries.remove(EXPANDED_DOT);
+	        }
+	        for (Iterator iterator = classpathEntries.iterator(); iterator.hasNext();) {
+	            String entry = (String) iterator.next();
+	            if (entry.equals(EXPANDED_DOT) || new File(model.getLocation(), entry).exists()) {
+	                if (binaryFolders.length() > 0)
+	                    binaryFolders.append(File.pathSeparator);
+	                if (entry.equals(EXPANDED_DOT))
+	                    binaryFolders.append(model.getLocation());
+	                else {
+	                    binaryFolders.append(model.getLocation() + '/' + entry);
+	                }
+	            }
+	        }
+	        Map params = new HashMap();
+	        params.put(PROPERTY_PROJECT_NAME, Utils.getPropertyFormat(PROPERTY_BUNDLE_ID) + "_" + Utils.getPropertyFormat(PROPERTY_BUNDLE_VERSION)); //$NON-NLS-1$
+	        params.put(PROPERTY_PROJECT_LOCATION, Utils.getPropertyFormat(PROPERTY_BASEDIR));
+	        params.put(PROPERTY_BINARY_FOLDERS, binaryFolders.toString());
+	        params.put(PROPERTY_TARGET_FOLDER, target);
+	        script.printAntCallTask(TARGET_API_GENERATION, true, params);
+	    }
+
+	
+	   private void generatePublishBinPartsTarget() throws CoreException {
+	        script.println();
+	        script.printTargetDeclaration(TARGET_PUBLISH_BIN_PARTS, TARGET_INIT, PROPERTY_P2_PUBLISH_PARTS, PROPERTY_COMPILE_PROBLEM_MARKER_EXISTS, null);
+	        IPath destination = new Path(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER));
+	        destination = destination.append(fullName);
+	        String root = destination.toString();
+	        script.printMkdirTask(root);
+
+	        Map params = null;
+	        if (customBuildCallbacks != null) {
+	            params = new HashMap(3);
+	            params.put(PROPERTY_TARGET_FOLDER, root);
+	            params.put(PROPERTY_BUILD_RESULT_FOLDER, Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER));
+	            script.printSubantTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), PROPERTY_PRE + TARGET_GATHER_BIN_PARTS, customCallbacksBuildpath, customCallbacksFailOnError, customCallbacksInheritAll, params, null);
+
+	            generateGatherBinParts(destination);
+
+	            script.printSubantTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), PROPERTY_POST + TARGET_GATHER_BIN_PARTS, customCallbacksBuildpath, customCallbacksFailOnError, customCallbacksInheritAll, params, null);
+	        } else {
+	            String include = (String) getBuildProperties().get(PROPERTY_BIN_INCLUDES);
+	            String exclude = (String) getBuildProperties().get(PROPERTY_BIN_EXCLUDES);
+
+	            String files = JarFile.MANIFEST_NAME + "," + Constants.PLUGIN_FILENAME_DESCRIPTOR + "," + Constants.FRAGMENT_FILENAME_DESCRIPTOR; //$NON-NLS-1$ //$NON-NLS-2$
+	            FileSet metadata = new FileSet(Utils.getPropertyFormat(PROPERTY_BASEDIR), null, files, null, exclude, null, null);
+	            script.printCopyTask(null, Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER), new FileSet[] {metadata}, true, true);
+
+	            if (Utils.isSourceBundle(model)) {
+	                Set pluginsToGatherSourceFrom = (Set) featureGenerator.getSourceToGather().getElementEntries().get(model.getSymbolicName());
+	                if (pluginsToGatherSourceFrom != null) {
+	                    for (Iterator iter = pluginsToGatherSourceFrom.iterator(); iter.hasNext();) {
+	                        BundleDescription plugin = (BundleDescription) iter.next();
+	                        IPath location = Utils.makeRelative(new Path(getLocation(plugin)), new Path(getLocation(model)));
+	                        HashMap taskParams = new HashMap(1);
+	                        taskParams.put(PROPERTY_DESTINATION_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + "/sources"); //$NON-NLS-1$
+	                        script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_GATHER_INDIVIDUAL_SOURCES, null, null, taskParams);
+	                    }
+	                }
+	            }
+
+	            String[] splitIncludes = Utils.getArrayFromString(include);
+	            genarateIdReplacementCall(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER));
+	            generateAPIToolsCall(getCompiledLocations(), Utils.isStringIn(splitIncludes, EXPANDED_DOT + '/') != -1, Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER));
+	        }
+
+	        script.println("<eclipse.gatherBundle "); //$NON-NLS-1$
+	        script.println("   metadataRepository=\"" + Utils.getPropertyFormat(PROPERTY_P2_BUILD_REPO) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+	        script.println("   artifactRepository=\"" + Utils.getPropertyFormat(PROPERTY_P2_BUILD_REPO) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+	        script.println("   buildResultFolder=\"" + Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+
+	        if (customBuildCallbacks != null) {
+	            script.println("   targetFolder=\"" + root + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+	            script.println("/>"); //$NON-NLS-1$
+	        } else {
+	            script.println("   baseDirectory=\"${basedir}\""); //$NON-NLS-1$
+	            //if the feature specifies the bundle shape, or the bundle itself doesn't have a preferred shape, then use the feature shape value (true by default)
+	            if (associatedEntry != null && (associatedEntry.unpackSet() || !Utils.hasBundleShapeHeader(model)))
+	                script.println("   unpack=\"" + String.valueOf(associatedEntry.isUnpack()) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+	            if (Utils.isSourceBundle(model)) {
+	                script.println("   gatheredSource=\"" + Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + "/sources\""); //$NON-NLS-1$//$NON-NLS-2$
+	            }
+
+	            if (workspaceOutputFolders == null || workspaceOutputFolders.size() == 0 || customBuildCallbacks != null) {
+	                script.println("/>"); //$NON-NLS-1$
+	            } else {
+	                //reuse workspace compiled classes
+	                script.println(">"); //$NON-NLS-1$
+
+	                for (Iterator iterator = workspaceOutputFolders.keySet().iterator(); iterator.hasNext();) {
+	                    String key = (String) iterator.next();
+	                    Set paths = (Set) workspaceOutputFolders.get(key);
+
+	                    for (Iterator pathIterator = paths.iterator(); pathIterator.hasNext();) {
+	                        IPath path = (IPath) pathIterator.next();
+	                        script.printTabs();
+	                        script.print("   <outputFolder "); //$NON-NLS-1$ 
+	                        script.printAttribute("library", key, true); //$NON-NLS-1$
+	                        script.printAttribute("dir", Utils.getPropertyFormat(PROPERTY_BASEDIR), true); //$NON-NLS-1$
+	                        script.printAttribute("includes", path.toString() + "/**", true); //$NON-NLS-1$ //$NON-NLS-2$
+	                        script.println("/>"); //$NON-NLS-1$
+	                    }
+	                }
+	                script.printEndTag("eclipse.gatherBundle"); //$NON-NLS-1$
+	            }
+	        }
+	        script.printTargetEnd();
+	    }
+	   
+	    private String[] getCompiledLocations() {
+	        int count = 0;
+	        String[] fileSetValues = new String[compiledJarNames.size()];
+	        for (Iterator iter = compiledJarNames.iterator(); iter.hasNext();) {
+	            CompiledEntry entry = (CompiledEntry) iter.next();
+	            String formatedName = entry.getName(false) + (entry.getType() == CompiledEntry.FOLDER ? "/" : ""); //$NON-NLS-1$//$NON-NLS-2$
+	            if (dotOnTheClasspath && formatedName.startsWith(EXPANDED_DOT)) {
+	                continue;
+	            }
+	            fileSetValues[count++] = formatedName;
+	        }
+	        return fileSetValues;
+	    }
+
+	   
+	    private void generateGatherBinParts(IPath destination) throws CoreException {
+	        String root = destination.toString();
+	        List destinations = new ArrayList(5);
+	        destinations.add(destination);
+	        String include = (String) getBuildProperties().get(PROPERTY_BIN_INCLUDES);
+	        String exclude = (String) getBuildProperties().get(PROPERTY_BIN_EXCLUDES);
+
+	        //Copy only the jars that has been compiled and are listed in the includes
+	        String[] splitIncludes = Utils.getArrayFromString(include);
+	        String[] fileSetValues = getCompiledLocations();
+
+	        boolean dotIncluded = false; //This flag indicates if . should be gathered
+	        int pos = Utils.isStringIn(splitIncludes, EXPANDED_DOT + '/');
+	        if (pos != -1) {
+	            splitIncludes[pos] = null;
+	            dotIncluded = true;
+	        }
+
+	        if (fileSetValues.length > 0 && fileSetValues[0] != null) {
+	            FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER), null, Utils.getStringFromArray(fileSetValues, ","), null, replaceVariables(exclude, true), null, null); //$NON-NLS-1$
+	            script.printCopyTask(null, root, new FileSet[] {fileSet}, true, false);
+	        }
+	        //Dot on the classpath need to be copied in a special way
+	        if (dotIncluded) {
+	            FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + '/' + EXPANDED_DOT, null, "**", null, replaceVariables(exclude, true), null, null); //$NON-NLS-1$
+	            script.printCopyTask(null, root, new FileSet[] {fileSet}, true, false);
+	        }
+	        //General copy of the files listed in the includes
+	        if (include != null || exclude != null) {
+	            String includeSet = replaceVariables(Utils.getStringFromArray(splitIncludes, ","), true); //$NON-NLS-1$
+	            if (includeSet != null && includeSet.length() > 0) {
+	                FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BASEDIR), null, includeSet, null, replaceVariables(exclude, true), null, null);
+	                script.printCopyTask(null, root, new FileSet[] {fileSet}, true, true);
+	            }
+	        }
+
+	        if (Utils.isSourceBundle(model)) {
+	            Set pluginsToGatherSourceFrom = (Set) featureGenerator.getSourceToGather().getElementEntries().get(model.getSymbolicName());
+	            if (pluginsToGatherSourceFrom != null) {
+	                for (Iterator iter = pluginsToGatherSourceFrom.iterator(); iter.hasNext();) {
+	                    BundleDescription plugin = (BundleDescription) iter.next();
+	                    IPath location = Utils.makeRelative(new Path(getLocation(plugin)), new Path(getLocation(model)));
+	                    HashMap taskParams = new HashMap(1);
+	                    taskParams.put(PROPERTY_DESTINATION_TEMP_FOLDER, root);
+	                    script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_GATHER_INDIVIDUAL_SOURCES, null, null, taskParams);
+	                }
+	            }
+	        }
+
+	        generatePermissionProperties(root);
+	        genarateIdReplacementCall(destination.toString());
+	        generateAPIToolsCall(fileSetValues, dotIncluded, root);
+	    }
+
+
 	/**
 	 * Add the <code>gather.bin.parts</code> target to the given Ant script.
 	 * 
@@ -623,67 +857,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			script.printSubantTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), PROPERTY_PRE + TARGET_GATHER_BIN_PARTS, customCallbacksBuildpath, customCallbacksFailOnError, customCallbacksInheritAll, params, null);
 		}
 
-		List destinations = new ArrayList(5);
-		destinations.add(destination);
-		String include = (String) getBuildProperties().get(PROPERTY_BIN_INCLUDES);
-		String exclude = (String) getBuildProperties().get(PROPERTY_BIN_EXCLUDES);
-
-		//Copy only the jars that has been compiled and are listed in the includes
-		String[] splitIncludes = Utils.getArrayFromString(include);
-		String[] fileSetValues = new String[compiledJarNames.size()];
-		int count = 0;
-
-		boolean dotIncluded = false; //This flag indicates if . should be gathered
-		int pos = Utils.isStringIn(splitIncludes, EXPANDED_DOT + '/');
-		if (pos != -1) {
-			splitIncludes[pos] = null;
-			dotIncluded = true;
-		}
-
-		//Iterate over the classpath
-		for (Iterator iter = compiledJarNames.iterator(); iter.hasNext();) {
-			CompiledEntry entry = (CompiledEntry) iter.next();
-			String formatedName = entry.getName(false) + (entry.getType() == CompiledEntry.FOLDER ? "/" : ""); //$NON-NLS-1$//$NON-NLS-2$
-			if (dotOnTheClasspath && formatedName.startsWith(EXPANDED_DOT)) {
-				dotIncluded = dotIncluded & true;
-				continue;
-			}
-			fileSetValues[count++] = formatedName;
-			continue;
-		}
-		if (count != 0) {
-			FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER), null, Utils.getStringFromArray(fileSetValues, ","), null, replaceVariables(exclude, true), null, null); //$NON-NLS-1$
-			script.printCopyTask(null, root, new FileSet[] {fileSet}, true, false);
-		}
-		//Dot on the classpath need to be copied in a special way
-		if (dotIncluded) {
-			FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + '/' + EXPANDED_DOT, null, "**", null, replaceVariables(exclude, true), null, null); //$NON-NLS-1$
-			script.printCopyTask(null, root, new FileSet[] {fileSet}, true, false);
-		}
-		//General copy of the files listed in the includes
-		if (include != null || exclude != null) {
-			String includeSet = replaceVariables(Utils.getStringFromArray(splitIncludes, ","), true); //$NON-NLS-1$
-			if (includeSet != null && includeSet.length() > 0) {
-				FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BASEDIR), null, includeSet, null, replaceVariables(exclude, true), null, null);
-				script.printCopyTask(null, root, new FileSet[] {fileSet}, true, false);
-			}
-		}
-
-		if (Utils.isSourceBundle(model)) {
-			Set pluginsToGatherSourceFrom = (Set) featureGenerator.getSourceToGather().getElementEntries().get(model.getSymbolicName());
-			if (pluginsToGatherSourceFrom != null) {
-				for (Iterator iter = pluginsToGatherSourceFrom.iterator(); iter.hasNext();) {
-					BundleDescription plugin = (BundleDescription) iter.next();
-					IPath location = Utils.makeRelative(new Path(getLocation(plugin)), new Path(getLocation(model)));
-					HashMap taskParams = new HashMap(1);
-					taskParams.put(PROPERTY_DESTINATION_TEMP_FOLDER, root);
-					script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toOSString(), TARGET_GATHER_INDIVIDUAL_SOURCES, null, null, taskParams);
-				}
-			}
-		}
-
-		generatePermissionProperties(root);
-		genarateIdReplacementCall(destination.toString());
+        generateGatherBinParts(destination);
 
 		if (customBuildCallbacks != null) {
 			script.printSubantTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), PROPERTY_POST + TARGET_GATHER_BIN_PARTS, customCallbacksBuildpath, customCallbacksFailOnError, customCallbacksInheritAll, params, null);
@@ -808,126 +982,143 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	/**
 	 * Defines, the XML declaration, Ant project and targets init and initTemplate.
 	 */
-	private void generatePrologue() {
-		script.printProjectDeclaration(model.getSymbolicName(), TARGET_BUILD_JARS, DOT);
-		script.println();
+	private void generatePrologue() throws CoreException {
+        script.printProjectDeclaration(model.getSymbolicName(), TARGET_BUILD_JARS, DOT);
+        script.println();
 
-		script.printProperty(PROPERTY_BASE_WS, Utils.getPropertyFormat(PROPERTY_WS));
-		script.printProperty(PROPERTY_BASE_OS, Utils.getPropertyFormat(PROPERTY_OS));
-		script.printProperty(PROPERTY_BASE_ARCH, Utils.getPropertyFormat(PROPERTY_ARCH));
-		script.printProperty(PROPERTY_BASE_NL, Utils.getPropertyFormat(PROPERTY_NL));
-		script.printProperty(PROPERTY_BUNDLE_ID, model.getSymbolicName());
-		script.printProperty(PROPERTY_BUNDLE_VERSION, model.getVersion().toString());
-		script.println();
+        script.printProperty(PROPERTY_P2_BUILD_REPO, "file:" + Utils.getPropertyFormat(PROPERTY_BUILD_DIRECTORY) + "/buildRepo"); //$NON-NLS-1$ //$NON-NLS-2$
+        script.printProperty(PROPERTY_BASE_WS, Utils.getPropertyFormat(PROPERTY_WS));
+        script.printProperty(PROPERTY_BASE_OS, Utils.getPropertyFormat(PROPERTY_OS));
+        script.printProperty(PROPERTY_BASE_ARCH, Utils.getPropertyFormat(PROPERTY_ARCH));
+        script.printProperty(PROPERTY_BASE_NL, Utils.getPropertyFormat(PROPERTY_NL));
+        script.printProperty(PROPERTY_BUNDLE_ID, model.getSymbolicName());
+        script.printProperty(PROPERTY_BUNDLE_VERSION, model.getVersion().toString());
+        script.printProperty(PROPERTY_P2_PUBLISHONERROR, FALSE);
+        script.println();
 
-		if (customBuildCallbacks != null && !customBuildCallbacks.equals(FALSE)) {
-			script.printAvailableTask(PROPERTY_CUSTOM_BUILD_CALLBACKS, customCallbacksBuildpath + '/' + customBuildCallbacks, customBuildCallbacks);
-			script.println();
-		}
+        if (customBuildCallbacks != null && !customBuildCallbacks.equals(FALSE)) {
+            script.printAvailableTask(PROPERTY_CUSTOM_BUILD_CALLBACKS, customCallbacksBuildpath + '/' + customBuildCallbacks, customBuildCallbacks);
+            script.println();
+        }
 
-		generateCompilerSettings();
+        generateCompilerSettings();
 
-		script.printTargetDeclaration(TARGET_INIT, TARGET_PROPERTIES, null, null, null);
-		script.printConditionIsSet(PROPERTY_PLUGIN_TEMP, Utils.getPropertyFormat(PROPERTY_BUILD_TEMP) + '/' + DEFAULT_PLUGIN_LOCATION, PROPERTY_BUILD_TEMP);
-		script.printProperty(PROPERTY_PLUGIN_TEMP, Utils.getPropertyFormat(PROPERTY_BASEDIR));
-		script.printConditionIsSet(PROPERTY_BUILD_RESULT_FOLDER, Utils.getPropertyFormat(PROPERTY_PLUGIN_TEMP) + '/' + model.getSymbolicName() + '_' + model.getVersion(), PROPERTY_BUILD_TEMP);
-		script.printProperty(PROPERTY_BUILD_RESULT_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR));
+        script.printTargetDeclaration(TARGET_INIT, TARGET_PROPERTIES, null, null, null);
+        script.printConditionIsSet(PROPERTY_PLUGIN_TEMP, Utils.getPropertyFormat(PROPERTY_BUILD_TEMP) + '/' + DEFAULT_PLUGIN_LOCATION, PROPERTY_BUILD_TEMP);
+        script.printProperty(PROPERTY_PLUGIN_TEMP, Utils.getPropertyFormat(PROPERTY_BASEDIR));
+        script.printConditionIsSet(PROPERTY_BUILD_RESULT_FOLDER, Utils.getPropertyFormat(PROPERTY_PLUGIN_TEMP) + '/' + model.getSymbolicName() + '_' + model.getVersion(), PROPERTY_BUILD_TEMP);
+        script.printProperty(PROPERTY_BUILD_RESULT_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR));
+        script.printProperty(PROPERTY_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR) + '/' + PROPERTY_TEMP_FOLDER);
+        script.printProperty(PROPERTY_PLUGIN_DESTINATION, Utils.getPropertyFormat(PROPERTY_BASEDIR));
+        script.printConditionIsTrue(PROPERTY_P2_PUBLISH_PARTS, TRUE, Utils.getPropertyFormat(PROPERTY_P2_GATHERING));
+        script.printProperty(PROPERTY_COMPILE_PROBLEM_MARKER, Utils.getPropertyFormat(PROPERTY_BUILD_RESULT_FOLDER) + '/' + "compilation.problem"); //$NON-NLS-1$
 
-		script.printProperty(PROPERTY_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR) + '/' + PROPERTY_TEMP_FOLDER);
-		script.printProperty(PROPERTY_PLUGIN_DESTINATION, Utils.getPropertyFormat(PROPERTY_BASEDIR));
-		script.printTargetEnd();
-		script.println();
-		script.printTargetDeclaration(TARGET_PROPERTIES, null, PROPERTY_ECLIPSE_RUNNING, null, null);
-		script.printProperty(PROPERTY_BUILD_COMPILER, JDT_COMPILER_ADAPTER);
-		script.println();
+        script.printConditionStart(PROPERTY_COMPILE_PROBLEM_MARKER_EXISTS, TRUE, null);
+        script.printStartTag("and"); //$NON-NLS-1$
+        script.printAvailableTask(null, Utils.getPropertyFormat(PROPERTY_COMPILE_PROBLEM_MARKER));
+        script.printIsFalse(PROPERTY_P2_PUBLISHONERROR);
+        script.printEndTag("and"); //$NON-NLS-1$
+        script.printEndCondition();
 
-		script.printTargetEnd();
+        script.printTargetEnd();
+        script.println();
+        script.printTargetDeclaration(TARGET_PROPERTIES, null, PROPERTY_ECLIPSE_RUNNING, null, null);
+        script.printProperty(PROPERTY_BUILD_COMPILER, JDT_COMPILER_ADAPTER);
+        script.println();
+
+        script.printTargetEnd();
 	}
 
-	private void generateCompilerSettings() {
-		String javacSource = null;
-		String javacTarget = null;
-		String bootClasspath = null;
-		String jreProfile = null;
-		try {
-			Properties properties = getBuildProperties();
-			javacSource = properties.getProperty(IBuildPropertiesConstants.PROPERTY_JAVAC_SOURCE);
-			javacTarget = properties.getProperty(IBuildPropertiesConstants.PROPERTY_JAVAC_TARGET);
-			bootClasspath = properties.getProperty(IBuildPropertiesConstants.PROPERTY_BOOT_CLASSPATH);
-			jreProfile = properties.getProperty(IBuildPropertiesConstants.PROPERTY_JRE_COMPILATION_PROFILE);
-		} catch (CoreException e) {
-			//ignore
-		}
+	private void generateCompilerSettings() throws CoreException {
+        String javacSource = null;
+        String javacTarget = null;
+        String bootClasspath = null;
+        String jreProfile = null;
+        try {
+            Properties properties = getBuildProperties();
+            javacSource = properties.getProperty(IBuildPropertiesConstants.PROPERTY_JAVAC_SOURCE);
+            javacTarget = properties.getProperty(IBuildPropertiesConstants.PROPERTY_JAVAC_TARGET);
+            bootClasspath = properties.getProperty(IBuildPropertiesConstants.PROPERTY_BOOT_CLASSPATH);
+            jreProfile = properties.getProperty(IBuildPropertiesConstants.PROPERTY_JRE_COMPILATION_PROFILE);
+        } catch (CoreException e) {
+            //ignore
+        }
 
-		script.printComment(Messages.build_compilerSetting);
-		script.printProperty(PROPERTY_JAVAC_FAIL_ON_ERROR, "false"); //$NON-NLS-1$
-		script.printProperty(PROPERTY_JAVAC_DEBUG_INFO, "on"); //$NON-NLS-1$
-		script.printProperty(PROPERTY_JAVAC_VERBOSE, "false"); //$NON-NLS-1$
-		script.printProperty(PROPERTY_LOG_EXTENSION, ".log"); //$NON-NLS-1$
-		script.printProperty(PROPERTY_JAVAC_COMPILERARG, ""); //$NON-NLS-1$  
+        script.printComment(Messages.build_compilerSetting);
+        script.printProperty(PROPERTY_JAVAC_FAIL_ON_ERROR, "false"); //$NON-NLS-1$
+        script.printProperty(PROPERTY_JAVAC_DEBUG_INFO, "on"); //$NON-NLS-1$
+        script.printProperty(PROPERTY_JAVAC_VERBOSE, "false"); //$NON-NLS-1$
+        script.printProperty(PROPERTY_LOG_EXTENSION, ".log"); //$NON-NLS-1$
+        script.printProperty(PROPERTY_JAVAC_COMPILERARG, ""); //$NON-NLS-1$  
 
-		if (javacSource == null)
-			script.printProperty(IXMLConstants.PROPERTY_JAVAC_SOURCE, "1.3"); //$NON-NLS-1$
-		if (javacTarget == null)
-			script.printProperty(IXMLConstants.PROPERTY_JAVAC_TARGET, "1.2"); //$NON-NLS-1$  
-		if (bootClasspath == null) {
-			script.println("<condition property=\"dir_bootclasspath\" value=\"${java.home}/../Classes\">");//$NON-NLS-1$  
-			script.println("\t<os family=\"mac\"/>");//$NON-NLS-1$  
-			script.println("</condition>");//$NON-NLS-1$  
-			script.println("<property name=\"dir_bootclasspath\" value=\"${java.home}/lib\"/>");//$NON-NLS-1$  
-			script.println("<path id=\"path_bootclasspath\">");//$NON-NLS-1$  
-			script.println("\t<fileset dir=\"${dir_bootclasspath}\">");//$NON-NLS-1$  
-			script.println("\t\t<include name=\"*.jar\"/>");//$NON-NLS-1$  
-			script.println("\t</fileset>");//$NON-NLS-1$  
-			script.println("</path>");//$NON-NLS-1$  
-			script.printPropertyRefid(PROPERTY_BOOTCLASSPATH, "path_bootclasspath"); //$NON-NLS-1$
-		}
+        if (javacSource == null)
+            script.printProperty(IXMLConstants.PROPERTY_JAVAC_SOURCE, "1.3"); //$NON-NLS-1$
+        if (javacTarget == null)
+            script.printProperty(IXMLConstants.PROPERTY_JAVAC_TARGET, "1.2"); //$NON-NLS-1$  
+        if (bootClasspath == null) {
+            script.println("<condition property=\"dir_bootclasspath\" value=\"${java.home}/../Classes\">");//$NON-NLS-1$  
+            script.println("\t<os family=\"mac\"/>");//$NON-NLS-1$  
+            script.println("</condition>");//$NON-NLS-1$  
+            script.println("<property name=\"dir_bootclasspath\" value=\"${java.home}/lib\"/>");//$NON-NLS-1$  
+            script.println("<path id=\"path_bootclasspath\">");//$NON-NLS-1$  
+            script.println("\t<fileset dir=\"${dir_bootclasspath}\">");//$NON-NLS-1$  
+            script.println("\t\t<include name=\"*.jar\"/>");//$NON-NLS-1$  
+            script.println("\t</fileset>");//$NON-NLS-1$  
+            script.println("</path>");//$NON-NLS-1$  
+            script.printPropertyRefid(PROPERTY_BOOTCLASSPATH, "path_bootclasspath"); //$NON-NLS-1$
+        }
 
-		Properties environmentMappings = getExecutionEnvironmentMappings();
-		if (jreProfile != null && !environmentMappings.containsKey(jreProfile + '.' + IXMLConstants.PROPERTY_JAVAC_SOURCE)) {
-			if (reportResolutionErrors) {
-				IStatus status = new Status(IStatus.ERROR, model.getSymbolicName(), IStatus.ERROR, NLS.bind(Messages.build_plugin_unrecognizedJRE, jreProfile), null);
-				BundleHelper.getDefault().getLog().log(status);
-			}
-			jreProfile = null;
-		}
+        Properties environmentMappings = getExecutionEnvironmentMappings();
+        if (jreProfile != null && !environmentMappings.containsKey(jreProfile + '.' + IXMLConstants.PROPERTY_JAVAC_SOURCE)) {
+            if (reportResolutionErrors) {
+                IStatus status = new Status(IStatus.ERROR, model.getSymbolicName(), IStatus.ERROR, NLS.bind(Messages.build_plugin_unrecognizedJRE, jreProfile), null);
+                BundleHelper.getDefault().getLog().log(status);
+            }
+            jreProfile = null;
+        }
 
-		if (javacSource != null)
-			script.printProperty(PROPERTY_BUNDLE_JAVAC_SOURCE, javacSource);
-		if (javacTarget != null)
-			script.printProperty(PROPERTY_BUNDLE_JAVAC_TARGET, javacTarget);
-		if (bootClasspath != null)
-			script.printProperty(PROPERTY_BUNDLE_BOOTCLASSPATH, bootClasspath);
+        if (javacSource != null)
+            script.printProperty(PROPERTY_BUNDLE_JAVAC_SOURCE, javacSource);
+        if (javacTarget != null)
+            script.printProperty(PROPERTY_BUNDLE_JAVAC_TARGET, javacTarget);
+        if (bootClasspath != null)
+            script.printProperty(PROPERTY_BUNDLE_BOOTCLASSPATH, bootClasspath);
 
-		String source, target = null;
-		String[] modelEnvironments = model.getExecutionEnvironments();
-		String[] environments = null;
-		if (jreProfile != null) {
-			environments = new String[modelEnvironments.length + 1];
-			environments[0] = jreProfile;
-			System.arraycopy(modelEnvironments, 0, environments, 1, modelEnvironments.length);
-		} else {
-			environments = modelEnvironments;
-		}
-		for (int i = 0; i < environments.length; i++) {
-			if (bootClasspath == null)
-				script.printConditionIsSet(PROPERTY_BUNDLE_BOOTCLASSPATH, Utils.getPropertyFormat(environments[i]), environments[i]);
+        String source, target = null;
+        String[] modelEnvironments = model.getExecutionEnvironments();
+        String[] environments = null;
+        if (jreProfile != null) {
+            environments = new String[modelEnvironments.length + 1];
+            environments[0] = jreProfile;
+            System.arraycopy(modelEnvironments, 0, environments, 1, modelEnvironments.length);
+        } else {
+            environments = modelEnvironments;
+        }
 
-			source = (String) environmentMappings.get(environments[i] + '.' + IXMLConstants.PROPERTY_JAVAC_SOURCE);
-			target = (String) environmentMappings.get(environments[i] + '.' + IXMLConstants.PROPERTY_JAVAC_TARGET);
-			if (javacSource == null && source != null)
-				script.printConditionIsSet(PROPERTY_BUNDLE_JAVAC_SOURCE, source, environments[i]);
-			if (javacTarget == null && target != null)
-				script.printConditionIsSet(PROPERTY_BUNDLE_JAVAC_TARGET, target, environments[i]);
-		}
+        ProfileManager profileManager = getSite(false).getRegistry().getProfileManager();
+        for (int i = 0; i < environments.length; i++) {
+            if (bootClasspath == null)
+                script.printConditionIsSet(PROPERTY_BUNDLE_BOOTCLASSPATH, Utils.getPropertyFormat(environments[i]), environments[i]);
 
-		if (javacSource == null)
-			script.printProperty(PROPERTY_BUNDLE_JAVAC_SOURCE, Utils.getPropertyFormat(IXMLConstants.PROPERTY_JAVAC_SOURCE));
-		if (javacTarget == null)
-			script.printProperty(PROPERTY_BUNDLE_JAVAC_TARGET, Utils.getPropertyFormat(IXMLConstants.PROPERTY_JAVAC_TARGET));
-		if (bootClasspath == null)
-			script.printProperty(PROPERTY_BUNDLE_BOOTCLASSPATH, Utils.getPropertyFormat(PROPERTY_BOOTCLASSPATH));
-		script.println();
+            source = profileManager.getJavacSource(environments[i]);
+            if (source == null)
+                source = (String) environmentMappings.get(environments[i] + '.' + IXMLConstants.PROPERTY_JAVAC_SOURCE);
+            target = profileManager.getJavacTarget(environments[i]);
+            if (target == null)
+                target = (String) environmentMappings.get(environments[i] + '.' + IXMLConstants.PROPERTY_JAVAC_TARGET);
+            if (javacSource == null && source != null)
+                script.printConditionIsSet(PROPERTY_BUNDLE_JAVAC_SOURCE, source, environments[i]);
+            if (javacTarget == null && target != null)
+                script.printConditionIsSet(PROPERTY_BUNDLE_JAVAC_TARGET, target, environments[i]);
+        }
+
+        if (javacSource == null)
+            script.printProperty(PROPERTY_BUNDLE_JAVAC_SOURCE, Utils.getPropertyFormat(IXMLConstants.PROPERTY_JAVAC_SOURCE));
+        if (javacTarget == null)
+            script.printProperty(PROPERTY_BUNDLE_JAVAC_TARGET, Utils.getPropertyFormat(IXMLConstants.PROPERTY_JAVAC_TARGET));
+        if (bootClasspath == null)
+            script.printProperty(PROPERTY_BUNDLE_BOOTCLASSPATH, Utils.getPropertyFormat(PROPERTY_BOOTCLASSPATH));
+        script.println();
 	}
 
 	/**
@@ -1211,7 +1402,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 				BundleDescription ajdeBundle = getModel("org.aspectj.ajde", null);
 				// bug 244735
 				// ajde plugin is not included in this build environment.
-				// no worries...get the ajdeClasspath from the rnning 
+				// no worries...get the ajdeClasspath from the running 
 				// version
 				if (ajdeBundle == null) {
 					ajdeBundle = addBundleAndRequired("org.aspectj.ajde");
@@ -1280,6 +1471,8 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		}
 		script.printTargetEnd();
 	}
+	
+	
 
 	// AspectJ Change Begin
     // bug 244735
@@ -1624,10 +1817,13 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		}		
 		
 		// now add prerequisite bundles
-		BundleDescription[] prereqs = bundle.getResolvedRequires();
+		BundleSpecification[] prereqs = bundle.getRequiredBundles();
 		for (int i = 0; i < prereqs.length; i++) {
-			String[] pcp = bundleToCP(prereqs[i]);
-			pathList.addAll(Arrays.asList(pcp));
+			BundleDescription prereqBundle = getModel(prereqs[i].getName(), null);
+			if (prereqBundle != null ) {
+				String[] pcp = bundleToCP(prereqBundle);
+				pathList.addAll(Arrays.asList(pcp));
+			}
 		}
 		
 		String[] path = new String[pathList.size()];
@@ -1635,5 +1831,9 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		return path;
 	}
 	// AspectJ Change End
+
+	protected void setWorkspaceOutputFolders(Map folders) {
+        this.workspaceOutputFolders = folders;
+    }
 
 }

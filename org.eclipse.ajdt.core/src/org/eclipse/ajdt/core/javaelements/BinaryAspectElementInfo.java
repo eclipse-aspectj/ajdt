@@ -130,4 +130,8 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
         return fileName;
     }
 
+    /* AJDT 1.7 */
+    public char[] getEnclosingMethod() {
+        return null;
+    }
 }

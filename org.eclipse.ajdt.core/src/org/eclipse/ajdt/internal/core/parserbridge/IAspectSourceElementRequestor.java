@@ -46,6 +46,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
  */
 public interface IAspectSourceElementRequestor extends ISourceElementRequestor {
 
+    /* AJDT 1.7 begin */
+    class AspectTypeInfo extends org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo {
+        public boolean isAspect;
+        public boolean isPrivilegedAspect;
+    }
+    /* AJDT 1.7 end */
+
     void enterMethod(
     	int declarationStart,
     	int modifiers,

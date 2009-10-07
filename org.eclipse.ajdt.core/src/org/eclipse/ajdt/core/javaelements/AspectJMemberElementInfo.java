@@ -15,6 +15,7 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceRange;
@@ -103,9 +104,11 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	}
 
 	public ISourceRange getSourceRange() {
-		if (fSourceRangeEnd == 0)
-			return new SourceRange(fSourceRangeStart, name != null ? name.length : 0);
-		return new SourceRange(fSourceRangeStart, fSourceRangeEnd - fSourceRangeStart + 1);
+		/* AJDT 1.7 Begin */
+		if (sourceRangeEnd == 0)
+			return new SourceRange(sourceRangeStart, name != null ? name.length : 0);
+		return new SourceRange(sourceRangeStart, sourceRangeEnd - sourceRangeStart + 1);
+		/* AJDT 1.7 End */
 	}
 
 	public void setSourceRangeEnd(int end) {
@@ -116,11 +119,13 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		if ((this instanceof PointcutElementInfo) && (end == 0)) {
 			return;
 		}
-		fSourceRangeEnd = end;
+		/* AJDT 1.7 */
+		sourceRangeEnd = end;
 	}
 	
 	public void setSourceRangeStart(int start) {
-		fSourceRangeStart = start;
+		/* AJDT 1.7 */
+		sourceRangeStart = start;
 	}
 	
 	public void setFlags(int flags) {
@@ -162,4 +167,15 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public char[] getReturnTypeName() {
 		return returnType;
 	}	
+	
+	/* AJDT 1.7 */
+	protected IJavaElement[] children;
+	public IJavaElement[] getChildren() {
+	    return super.getChildren();
+	}
+	public void setChildren(IJavaElement[] children) {
+        this.children = children;
+    }
+	/* AJDT 1.7 end */
+	
 }
