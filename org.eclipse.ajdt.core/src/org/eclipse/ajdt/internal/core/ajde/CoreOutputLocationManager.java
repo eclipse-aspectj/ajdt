@@ -468,6 +468,13 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 
+	/**
+	 * This method must do two things.  First, it performs a refreshLocal on
+	 * the newly changed file.  Then it marks the file and all of its parent
+	 * folders as derived (up to, but not including the output folder itself).
+	 * Folders are marked as derived only if the output folder is not the same
+	 * as the source folder.
+	 */
 	public void reportFileWrite(String outFileStr, int fileType) {
 	    try {
 	        outer:
@@ -493,10 +500,17 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	                    if (!outputIsSourceFolder) {
 	                        IContainer parent = outFile.getParent();
 	                        inner:
-	                        while (! parent.equals(outFolder) ) {
-	                            parent.setDerived(true);
+	                        while (!parent.equals(outFolder) ) {
+	                            if (!parent.isDerived()) {
+    	                            parent.setDerived(true);
+	                            } else {
+	                                // no need to continnue
+	                                // assume that all folders are derived all the way up
+	                                break inner;
+	                            }
 	                            parent = parent.getParent();
 	                            if (parent == null) {
+	                                // shouldn't happen
 	                                break inner;
 	                            }
 	                        }
