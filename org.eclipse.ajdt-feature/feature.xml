@@ -17,7 +17,7 @@
    <license url="%licenseURL">
       %license
    </license>
-
+ 
    <url>
       <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/35/update"/>
    </url>
