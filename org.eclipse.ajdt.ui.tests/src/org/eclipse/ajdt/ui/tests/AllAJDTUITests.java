@@ -117,21 +117,6 @@ public class AllAJDTUITests {
 		
 		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
 		
-		// all tests from the core tests plugin
-		//suite.addTest(AllAJDTCoreTests.suite());
-		
-		suite.addTest(new TestSuite(ErrorLogTest.class));
-		suite.addTest(new TestSuite(VerificationTest.class));
-		suite.addTest(new TestSuite(Bug106813Test.class));
-		
-		
-		// test the predefined project tool
-		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
-		
-		
-		// internal.core tests
-		suite.addTest(new TestSuite(AJDTUtilsTest.class));
-
 		// internal.ui.actions tests
 		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
 		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
@@ -259,6 +244,21 @@ public class AllAJDTUITests {
 
         suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
 
+        
+        suite.addTest(new TestSuite(ErrorLogTest.class));
+        suite.addTest(new TestSuite(VerificationTest.class));
+        suite.addTest(new TestSuite(Bug106813Test.class));
+        
+        
+        // test the predefined project tool
+        suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
+        
+        
+        // internal.core tests
+        suite.addTest(new TestSuite(AJDTUtilsTest.class));
+
+
+        
 		//$JUnit-END$
 		return suite;
 	}
