@@ -44,7 +44,7 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
     private static Field reconcileFlagsField;
     static {
         try {
-            reconcileFlagsField = ASTHolderCUInfo.class.getDeclaredField("reconcileFlads");
+            reconcileFlagsField = ASTHolderCUInfo.class.getDeclaredField("reconcileFlags");
             reconcileFlagsField.setAccessible(true);
         } catch (NoSuchFieldException e) {
         }
