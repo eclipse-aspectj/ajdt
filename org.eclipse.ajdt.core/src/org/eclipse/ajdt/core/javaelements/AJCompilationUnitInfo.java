@@ -22,88 +22,106 @@ import org.eclipse.jdt.internal.core.ASTHolderCUInfo;
  */
 public class AJCompilationUnitInfo extends ASTHolderCUInfo {
 
-	public void setTimestamp(long stamp){
-		this.timestamp = stamp;
-	}
-	
 	// get super's fields by reflection
 	private static Field astLevelField;
-	public int getASTLevel() {
+	static {
+        try {
+            astLevelField = ASTHolderCUInfo.class.getDeclaredField("astLevel");
+            astLevelField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+        }
+	}
+	
+    private static Field resolveBindingsField;
+    static {
+        try {
+            resolveBindingsField = ASTHolderCUInfo.class.getDeclaredField("resolveBindings");
+            resolveBindingsField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+        }
+    }
+	
+    private static Field reconcileFlagsField;
+    static {
+        try {
+            reconcileFlagsField = ASTHolderCUInfo.class.getDeclaredField("reconcileFlags");
+            reconcileFlagsField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+        }
+    }
+    
+    private static Field problemsField;
+    static {
+        try {
+            problemsField = ASTHolderCUInfo.class.getDeclaredField("problems");
+            problemsField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+        }
+    }
+
+    private static Field astField;
+    static {
+        try {
+            astField = ASTHolderCUInfo.class.getDeclaredField("ast");
+            astField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+        }
+    }
+
+
+    
+    public void setTimestamp(long stamp){
+        this.timestamp = stamp;
+    }
+    
+
+    public int getASTLevel() {
 	    try {
-            if (astLevelField == null) {
-                astLevelField = ASTHolderCUInfo.class.getDeclaredField("astLevel");
-                astLevelField.setAccessible(true);
-            }
             return astLevelField.getInt(this);
         } catch (SecurityException e) {
         } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
         }
         return ICompilationUnit.NO_AST;
 	}
 	
 	
-	private static Field resolveBindingsField;
     public boolean doResolveBindings() {
         try {
-            if (resolveBindingsField == null) {
-                resolveBindingsField = ASTHolderCUInfo.class.getDeclaredField("resolveBindings");
-                resolveBindingsField.setAccessible(true);
-            }
             return resolveBindingsField.getBoolean(this);
         } catch (SecurityException e) {
         } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
         }
         return false;
 	}
 	
-    private static Field reconcileFlagsField;
     public int getReconcileFlags() {
         try {
-            if (reconcileFlagsField == null) {
-                reconcileFlagsField = ASTHolderCUInfo.class.getDeclaredField("reconcileFlags");
-                reconcileFlagsField.setAccessible(true);
-            }
             return reconcileFlagsField.getInt(this);
         } catch (SecurityException e) {
         } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
         }
         return ICompilationUnit.NO_AST;
 	}
 	
     
-    private static Field problemsField;
     public HashMap getProblems() {
         try {
-            if (problemsField == null) {
-                problemsField = ASTHolderCUInfo.class.getDeclaredField("problems");
-                problemsField.setAccessible(true);
-            }
             return (HashMap) problemsField.get(this);
         } catch (SecurityException e) {
         } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
         }
         return null;
     }
     
-    private static Field astField;
     public void setAST(CompilationUnit cu) {
         try {
-            if (astField == null) {
-                astField = ASTHolderCUInfo.class.getDeclaredField("ast");
-                astField.setAccessible(true);
-            }
             astField.set(this, cu);
         } catch (SecurityException e) {
         } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
         }
 
