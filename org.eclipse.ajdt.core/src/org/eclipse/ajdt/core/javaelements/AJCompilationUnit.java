@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.internal.core.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.core.contentassist.ProposalRequestorWrapper;
 import org.eclipse.ajdt.internal.core.parserbridge.AJCompilationUnitDeclarationWrapper;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -89,7 +91,7 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
  * 
  * @author Luzius Meisser
  */
-public class AJCompilationUnit extends CompilationUnit{
+public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	
 	int originalContentMode = 0;
 	private IFile ajFile;
@@ -180,6 +182,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			IBuffer buffer = this.getBuffer();
 			return buffer == null ? CharOperation.NO_CHAR : buffer.getCharacters();
 		} catch (JavaModelException e) {
+            AspectJPlugin.getDefault().getLog().log(e.getStatus());
 			return CharOperation.NO_CHAR;
 		}
 	}
@@ -245,6 +248,7 @@ public class AJCompilationUnit extends CompilationUnit{
                 }
             }
         } catch (JavaModelException e) {
+            AspectJPlugin.getDefault().getLog().log(e.getStatus());
         }
         return null;
 	}
@@ -491,18 +495,74 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 
 		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, astLevel, reconcileFlags, workingCopyOwner);
-	    JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	    try {
-	        manager.cacheZipFiles(); // cache zip files for performance (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=134172)
+	        // Eclipse 3.5.1 and 3.5.2 have different signatures for this method 
+	        cacheZipFiles(); // cache zip files for performance (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=134172)
 	        op.runOperation(monitor);
 	    } finally {
-	        manager.flushZipFiles();
+	        flushZipFiles();
 	    }
 	    if(ReconcileWorkingCopyOperation.PERF) {
 	        stats.endRun();
 	    }
 		return op.ast;
 	}
+
+    private void flushZipFiles() throws JavaModelException {
+        Method flushZipFilesMethod;
+        JavaModelManager manager = JavaModelManager.getJavaModelManager();
+        try {
+            try {
+                // Eclipse 3.5.1
+                flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles", new Class[0]);
+                flushZipFilesMethod.invoke(manager, new Object[0]);
+            } catch (NoSuchMethodException e) {
+                // Eclipse 3.5.2
+                try {
+                    flushZipFilesMethod = JavaModelManager.class.getMethod("flushZipFiles", new Class[]  { Object.class });
+                    flushZipFilesMethod.invoke(manager, new Object[] { this });
+                } catch (NoSuchMethodException e1) {
+                    throw new JavaModelException(e1, IJavaModelStatusConstants.CORE_EXCEPTION);
+                }
+            }
+        } catch (SecurityException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        } catch (IllegalArgumentException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        } catch (IllegalAccessException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        } catch (InvocationTargetException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        }        
+    }
+
+    private void cacheZipFiles() throws JavaModelException {
+        Method cacheZipFilesMethod;
+        JavaModelManager manager = JavaModelManager.getJavaModelManager();
+        try {
+            try {
+                // Eclipse 3.5.1
+                cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles", new Class[0]);
+                cacheZipFilesMethod.invoke(manager, new Object[0]);
+            } catch (NoSuchMethodException e) {
+                // Eclipse 3.5.2
+                try {
+                    cacheZipFilesMethod = JavaModelManager.class.getMethod("cacheZipFiles", new Class[]  { Object.class });
+                    cacheZipFilesMethod.invoke(manager, new Object[] { this });
+                } catch (NoSuchMethodException e1) {
+                    throw new JavaModelException(e1, IJavaModelStatusConstants.CORE_EXCEPTION);
+                }
+            }
+        } catch (SecurityException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        } catch (IllegalArgumentException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        } catch (IllegalAccessException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        } catch (InvocationTargetException e) {
+            throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+        }
+    }
 
 	public IJavaElement[] codeSelect(int offset, int length,
 			WorkingCopyOwner workingCopyOwner) throws JavaModelException {
@@ -824,18 +884,28 @@ public class AJCompilationUnit extends CompilationUnit{
 
 	// hack: need to use protected constructor in SourceType
 	private JavaElement getType(JavaElement type, String typeName) {
-		try {
-			Constructor cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
-			cons.setAccessible(true);
-			Object obj = cons.newInstance(new Object[]{type,typeName});
-			return (JavaElement)obj;
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (InstantiationException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
-		}
+	    try {
+    		try {
+    			Constructor cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
+    			cons.setAccessible(true);
+    			Object obj = cons.newInstance(new Object[]{type,typeName});
+    			return (JavaElement)obj;
+    		} catch (SecurityException e) {
+    		    throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (NoSuchMethodException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (IllegalArgumentException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (InstantiationException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (IllegalAccessException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (InvocationTargetException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		}
+	    } catch (JavaModelException jme) {
+            AspectJPlugin.getDefault().getLog().log(jme.getStatus());
+	    }
 		return null;
 	}
 	
