@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -25,7 +26,6 @@ import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.IAccessRule;
@@ -36,8 +36,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
-import org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -269,8 +268,13 @@ public class AspectJCorePreferences {
         
 
         try {
-            IJavaProject requiredJavaProj = JavaCore.create(requiredProj);
-            IClasspathEntry[] requiredEntries = requiredJavaProj.getResolvedClasspath(true);
+            JavaProject requiredJavaProj = (JavaProject) JavaCore.create(requiredProj);
+            // bug 288395 Do not use the default mechanism for resolving classpath here
+            // this will look into jar files at the Classpath header in the jar's manifest
+            // and include jar files that are potentially missing, but have no effect on
+            // the build.
+            Object resolvedClasspath = requiredJavaProj.resolveClasspath(requiredJavaProj.getRawClasspath(), true, false);
+            IClasspathEntry[] requiredEntries = extractRequiredEntries(resolvedClasspath);
             for (int i = 0; i < requiredEntries.length; i++) {
                 IClasspathEntry requiredEntry = requiredEntries[i];
                 if (requiredEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
@@ -342,6 +346,23 @@ public class AspectJCorePreferences {
         } catch (JavaModelException e) {
         }
         return actualEntries;
+    }
+
+    
+    /**
+     * resolvedClasspath is a package protected static class inside JavaProject
+     * must use reflection to access it 
+     */
+    private static IClasspathEntry[] extractRequiredEntries(
+            Object resolvedClasspath) {
+        try {
+            Class resolvedClasspathClass = Class.forName("org.eclipse.jdt.internal.core.JavaProject$ResolvedClasspath");
+            Field resolvedClasspathField = resolvedClasspathClass.getDeclaredField("resolvedClasspath");
+            resolvedClasspathField.setAccessible(true);
+            return (IClasspathEntry[]) resolvedClasspathField.get(resolvedClasspath);
+        } catch (Exception e) {
+            return new IClasspathEntry[0];
+        }
     }
 
     public static List /* IClasspathEntry */ resolveClasspathContainer(IClasspathEntry classpathContainerEntry, IProject thisProject) 
@@ -446,9 +467,9 @@ public class AspectJCorePreferences {
 
 
     public static void setIncrementalCompilationOptimizationsEnabled(boolean value) {
-        Preferences store = AspectJPlugin.getDefault()
-                .getPluginPreferences();
-        store.setValue(OPTION_IncrementalCompilationOptimizations, value);
+        IEclipsePreferences store = AspectJPlugin.getDefault()
+                .getPreferences();
+        store.putBoolean(OPTION_IncrementalCompilationOptimizations, value);
     }
     
     /**
@@ -494,9 +515,9 @@ public class AspectJCorePreferences {
      * @return
      */
     public static boolean isIncrementalCompilationOptimizationsEnabled() {
-        Preferences store = AspectJPlugin.getDefault()
-                .getPluginPreferences();
-        return store.getBoolean(OPTION_IncrementalCompilationOptimizations);
+        IEclipsePreferences store = AspectJPlugin.getDefault()
+                .getPreferences();
+        return store.getBoolean(OPTION_IncrementalCompilationOptimizations, true);
     }
 
     private static void setProjectPath(IProject project, String path,
