@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.osgi.util.NLS;
 
 public class UIBuildProgressMonitor implements IAJCompilerMonitor {
@@ -179,10 +180,13 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
                 IFile[] files = workspaceRoot
                         .findFilesForLocation(resourcePath);
                 for (int i = 0; i < files.length; i++) {
-                	getMessageHandler().addAffectedResource(files[i]);
+                    if (files[i].getProject().equals(project)) {
+                        getMessageHandler().addAffectedResource(files[i]);
+                    }
                 }
             } else {
-                IFile file = workspaceRoot.getFileForLocation(resourcePath);
+                IFile file = 
+                    project.getFile(resourcePath.makeRelativeTo(project.getLocation()));
                 if (file == null) {
                 	AJLog.log(AJLog.COMPILER,"Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
                                     + text);
@@ -212,7 +216,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
      */
     private String removePrefix(String msg) {
         String ret = msg;
-        //IProject p = AspectJPlugin.getDefault().getCurrentProject();
         IProject p = project;
         
         //Bug 150936                   
@@ -306,54 +309,9 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     private boolean buildWasCancelled = false;
 
 	
-//    /**
-//     * Has the most recent compile finished?
-//     */
-//    public boolean finished() {
-//        return !compilationInProgress;
-//    }
-
     /**
      * Called from the Builder to set up the compiler for a new build.
      */
-//    public void prepare(IProject project, List buildList,
-//            IProgressMonitor eclipseMonitor) {
-//    	this.project = project;
-//    	
-//        //check if the folder contains linked resources
-//        linked = false;
-//        IResource[] res = null;
-//
-//        try {
-//            res = project.members();
-//        } catch (CoreException e) {
-//            //should not occur but for some reason one of the following it
-//            // true:
-//            //1. This resource does not exist.
-//            //2. includePhantoms is false and resource does not exist.
-//            //3. includePhantoms is false and this resource is a project that
-//            // is not open.
-//        }
-//
-//        for (int i = 0; (linked == false) && (i < res.length); i++) {
-//            if (res[i].getType() == IResource.FOLDER) {
-//                linked = res[i].isLinked();
-//            }
-//        }
-//
-//        monitor = eclipseMonitor;
-//        if (monitor != null) {
-//            monitor.beginTask(UIMessages.ajCompilation,
-//                    AspectJUIPlugin.PROGRESS_MONITOR_MAX);
-//        }
-//
-//        AJLog.logStart(TimerLogEvent.FIRST_COMPILED);
-//        AJLog.logStart(TimerLogEvent.FIRST_WOVEN);
-//        reportedCompiledMessages = false;
-//        reportedWovenMessages = false;
-//        compilationInProgress = true;
-//
-//    }
     public void prepare(IProgressMonitor eclipseMonitor) {
     	buildWasCancelled = false;
         //check if the folder contains linked resources
@@ -374,6 +332,9 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         for (int i = 0; (linked == false) && (i < res.length); i++) {
             if (res[i].getType() == IResource.FOLDER) {
                 linked = res[i].isLinked();
+                if (linked) {
+                    break;
+                }
             }
         }
 
