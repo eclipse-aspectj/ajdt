@@ -658,6 +658,18 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
             
+            if (numArgs > 0 &&
+                    id == IProblem.UndefinedType &&
+                    firstArg.indexOf('$') != -1) {
+                // based on previous test, we are not inside of an ITD, 
+                // so we may be defining a field or variable with a 
+                // type of an inner class using a '.'.
+                // the AspectsConvertingParser converts this '.' into a '$'
+                // ignore.
+                
+                return false;
+            }
+            
             if (id == IProblem.NonStaticAccessToStaticField
                     && isITDName(categorizedProblem, unit, model, isJavaFileInAJEditor)) { 
                 // this is a reference to an ITD field on an interface
