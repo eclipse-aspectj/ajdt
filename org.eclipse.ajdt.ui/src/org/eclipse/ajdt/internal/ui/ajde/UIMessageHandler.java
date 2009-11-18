@@ -78,7 +78,10 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
 	public UIMessageHandler(IProject project) {
         ignoring = new ArrayList();
-        ignore(IMessage.INFO);
+        
+        if (!AspectJPreferences.getBooleanPrefValue(project, AspectJPreferences.OPTION_verbose)) {
+            ignore(IMessage.INFO);
+        }
         if (!AspectJPreferences.getShowWeaveMessagesOption(project)) {
         	ignore(IMessage.WEAVEINFO);
 		}
@@ -98,7 +101,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
             return true;
         }
 		if (message.getSourceLocation() == null) {
-			AJLog.log(AJLog.COMPILER_MESSAGES,"addSourcelineTask message="+message.getMessage()); //$NON-NLS-1$
+			AJLog.log(AJLog.COMPILER_MESSAGES, message.getMessage()); //$NON-NLS-1$
 			problems.add(new ProblemTracker(message.getMessage(),
 					null,message.getKind()));
 		} else {

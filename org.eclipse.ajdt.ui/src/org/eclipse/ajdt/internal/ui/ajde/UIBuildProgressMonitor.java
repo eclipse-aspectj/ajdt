@@ -10,6 +10,9 @@
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
@@ -179,9 +182,13 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
                 IFile[] files = workspaceRoot
                         .findFilesForLocation(resourcePath);
                 for (int i = 0; i < files.length; i++) {
-                	getMessageHandler().addAffectedResource(files[i]);
+                    if (files[i].getProject().equals(project)) {
+                        getMessageHandler().addAffectedResource(files[i]);
+                    }
                 }
             } else {
+                // this is what the code looks like for 3.5, but the makeRelativeTo method is not available.
+//                IFile file = project.getFile(resourcePath.makeRelativeTo(project.getLocation()));
                 IFile file = workspaceRoot.getFileForLocation(resourcePath);
                 if (file == null) {
                 	AJLog.log(AJLog.COMPILER,"Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
@@ -205,6 +212,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
 
     }
 
+
     /**
      * A compiler message has been emitted, which potentially includes the fully
      * qualifed path of a resource. Chop it down to just the project-relative
@@ -212,7 +220,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
      */
     private String removePrefix(String msg) {
         String ret = msg;
-        //IProject p = AspectJPlugin.getDefault().getCurrentProject();
         IProject p = project;
         
         //Bug 150936                   
@@ -306,54 +313,9 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     private boolean buildWasCancelled = false;
 
 	
-//    /**
-//     * Has the most recent compile finished?
-//     */
-//    public boolean finished() {
-//        return !compilationInProgress;
-//    }
-
     /**
      * Called from the Builder to set up the compiler for a new build.
      */
-//    public void prepare(IProject project, List buildList,
-//            IProgressMonitor eclipseMonitor) {
-//    	this.project = project;
-//    	
-//        //check if the folder contains linked resources
-//        linked = false;
-//        IResource[] res = null;
-//
-//        try {
-//            res = project.members();
-//        } catch (CoreException e) {
-//            //should not occur but for some reason one of the following it
-//            // true:
-//            //1. This resource does not exist.
-//            //2. includePhantoms is false and resource does not exist.
-//            //3. includePhantoms is false and this resource is a project that
-//            // is not open.
-//        }
-//
-//        for (int i = 0; (linked == false) && (i < res.length); i++) {
-//            if (res[i].getType() == IResource.FOLDER) {
-//                linked = res[i].isLinked();
-//            }
-//        }
-//
-//        monitor = eclipseMonitor;
-//        if (monitor != null) {
-//            monitor.beginTask(UIMessages.ajCompilation,
-//                    AspectJUIPlugin.PROGRESS_MONITOR_MAX);
-//        }
-//
-//        AJLog.logStart(TimerLogEvent.FIRST_COMPILED);
-//        AJLog.logStart(TimerLogEvent.FIRST_WOVEN);
-//        reportedCompiledMessages = false;
-//        reportedWovenMessages = false;
-//        compilationInProgress = true;
-//
-//    }
     public void prepare(IProgressMonitor eclipseMonitor) {
     	buildWasCancelled = false;
         //check if the folder contains linked resources
@@ -374,6 +336,9 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         for (int i = 0; (linked == false) && (i < res.length); i++) {
             if (res[i].getType() == IResource.FOLDER) {
                 linked = res[i].isLinked();
+                if (linked) {
+                    break;
+                }
             }
         }
 
