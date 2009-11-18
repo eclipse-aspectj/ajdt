@@ -32,7 +32,6 @@ import org.eclipse.osgi.service.resolver.DisabledInfo;
 import org.eclipse.osgi.service.resolver.State;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 /**
@@ -98,6 +97,10 @@ public class WeavingStateConfigurer {
                     + (becomeEnabled ? "ENABLED" : "DISABLED") + " with warnings",
                     null);
         } else {
+            // if successful, also schedule to ask for reindexing on startup
+            if (becomeEnabled) {
+                JDTWeavingPreferences.setAskToReindex(true);
+            }
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.OK, 
                     new IStatus[] { getInstalledBundleInformation() },
                     "Weaving service successfully "
@@ -156,7 +159,6 @@ public class WeavingStateConfigurer {
     private StringBuffer createBundleNameString(Bundle bundle) {
         StringBuffer sb = new StringBuffer();
         sb.append(bundle.getSymbolicName()).append("_")
-            .append(bundle.getHeaders().get(Constants.BUNDLE_VERSION)).append(" : ID ")
             .append(bundle.getBundleId()).append(": STATE ");
         switch (bundle.getState()) {
             case Bundle.ACTIVE:

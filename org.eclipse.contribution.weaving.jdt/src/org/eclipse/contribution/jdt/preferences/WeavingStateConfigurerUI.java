@@ -135,7 +135,7 @@ public class WeavingStateConfigurerUI {
         if (changeResult.getSeverity() <= IStatus.WARNING) {
             try {
                 String note = "";
-                if (changeResult.getSeverity() <= IStatus.WARNING) {
+                if (changeResult.getSeverity() == IStatus.WARNING) {
                     note = "\n\nWeaving status changed with warnings.  See the error log for more details.";
                 }
                 boolean doRestart = MessageDialog.openQuestion(shell, "Restart", "Weaving will be " + 
@@ -153,7 +153,9 @@ public class WeavingStateConfigurerUI {
         }
     }
     
-    // must be run from UI thread
+    /**
+     *  must be run from UI thread
+     */
     public boolean ask() {
         EnableWeavingDialog dialog = new EnableWeavingDialog();
         dialog.open();
