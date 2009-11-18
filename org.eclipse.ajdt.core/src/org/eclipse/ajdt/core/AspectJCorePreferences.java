@@ -25,7 +25,6 @@ import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.IAccessRule;
@@ -36,8 +35,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
-import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -446,9 +443,9 @@ public class AspectJCorePreferences {
 
 
     public static void setIncrementalCompilationOptimizationsEnabled(boolean value) {
-        Preferences store = AspectJPlugin.getDefault()
-                .getPluginPreferences();
-        store.setValue(OPTION_IncrementalCompilationOptimizations, value);
+        IEclipsePreferences store = AspectJPlugin.getDefault()
+                .getPreferences();
+        store.putBoolean(OPTION_IncrementalCompilationOptimizations, value);
     }
     
     /**
@@ -494,9 +491,9 @@ public class AspectJCorePreferences {
      * @return
      */
     public static boolean isIncrementalCompilationOptimizationsEnabled() {
-        Preferences store = AspectJPlugin.getDefault()
-                .getPluginPreferences();
-        return store.getBoolean(OPTION_IncrementalCompilationOptimizations);
+        IEclipsePreferences store = AspectJPlugin.getDefault()
+                .getPreferences();
+        return store.getBoolean(OPTION_IncrementalCompilationOptimizations, true);
     }
 
     private static void setProjectPath(IProject project, String path,

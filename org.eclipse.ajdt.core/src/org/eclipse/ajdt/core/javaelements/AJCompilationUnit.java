@@ -34,6 +34,7 @@ import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.internal.core.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.core.contentassist.ProposalRequestorWrapper;
 import org.eclipse.ajdt.internal.core.parserbridge.AJCompilationUnitDeclarationWrapper;
+import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -87,7 +88,7 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
  * 
  * @author Luzius Meisser
  */
-public class AJCompilationUnit extends CompilationUnit{
+public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	
 	int originalContentMode = 0;
 	private IFile ajFile;
@@ -178,6 +179,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			IBuffer buffer = this.getBuffer();
 			return buffer == null ? CharOperation.NO_CHAR : buffer.getCharacters();
 		} catch (JavaModelException e) {
+            AspectJPlugin.getDefault().getLog().log(e.getStatus());
 			return CharOperation.NO_CHAR;
 		}
 	}
@@ -243,6 +245,7 @@ public class AJCompilationUnit extends CompilationUnit{
                 }
             }
         } catch (JavaModelException e) {
+            AspectJPlugin.getDefault().getLog().log(e.getStatus());
         }
         return null;
 	}
@@ -814,18 +817,28 @@ public class AJCompilationUnit extends CompilationUnit{
 
 	// hack: need to use protected constructor in SourceType
 	private JavaElement getType(JavaElement type, String typeName) {
-		try {
-			Constructor cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
-			cons.setAccessible(true);
-			Object obj = cons.newInstance(new Object[]{type,typeName});
-			return (JavaElement)obj;
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (InstantiationException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
-		}
+	    try {
+    		try {
+    			Constructor cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
+    			cons.setAccessible(true);
+    			Object obj = cons.newInstance(new Object[]{type,typeName});
+    			return (JavaElement)obj;
+    		} catch (SecurityException e) {
+    		    throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (NoSuchMethodException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (IllegalArgumentException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (InstantiationException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (IllegalAccessException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		} catch (InvocationTargetException e) {
+                throw new JavaModelException(e, IJavaModelStatusConstants.CORE_EXCEPTION);
+    		}
+	    } catch (JavaModelException jme) {
+            AspectJPlugin.getDefault().getLog().log(jme.getStatus());
+	    }
 		return null;
 	}
 	

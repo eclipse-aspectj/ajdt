@@ -26,6 +26,8 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -199,5 +201,9 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 
 	public void setCompilerFactory(ICompilerFactory compilerFactory) {
 		this.compilerFactory = compilerFactory;
+	}
+	
+	public IEclipsePreferences getPreferences() {
+        return new InstanceScope().getNode(PLUGIN_ID);
 	}
 }

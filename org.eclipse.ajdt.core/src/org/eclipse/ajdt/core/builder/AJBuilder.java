@@ -314,6 +314,36 @@ public class AJBuilder extends IncrementalProjectBuilder {
             // make this the only problem for this project
             markProject(project, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
                     project.getName()));
+            
+            
+            // Bug 288395---log all problem markers to the AJDT Event log
+            IMarker[] markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, 
+                    false, IResource.DEPTH_INFINITE);
+            if (markers.length > 0) {
+                AJLog.log("Bug 288395---logging build path problems, found " + markers.length);
+                for (int i = 0; i < markers.length; i++) {
+                    AJLog.log("  " + markers[i].getResource().getFullPath() + " : " + markers[i].getAttribute(IMarker.MESSAGE, "<no message>"));
+                }
+            }
+            
+            markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.CYCLE_DETECTED, 
+                    false, IResource.DEPTH_INFINITE);
+            if (markers.length > 0) {
+                AJLog.log("Bug 288395---logging build path cycles, found " + markers.length);
+                for (int i = 0; i < markers.length; i++) {
+                    AJLog.log("  " + markers[i].getResource().getFullPath() + " : " + markers[i].getAttribute(IMarker.MESSAGE, "<no message>"));
+                }
+            }
+            
+            markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, 
+                    false, IResource.DEPTH_INFINITE);
+            if (markers.length > 0) {
+                AJLog.log("Bug 288395---logging build path problems, found " + markers.length);
+                for (int i = 0; i < markers.length; i++) {
+                    AJLog.log("  " + markers[i].getResource().getFullPath() + " : " + markers[i].getAttribute(IMarker.MESSAGE, "<no message>"));
+                }
+            }
+            
             return false;
         }
         return true;

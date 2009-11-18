@@ -39,6 +39,7 @@ import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -659,6 +660,18 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
             
+            if (numArgs > 0 &&
+                    id == IProblem.UndefinedType &&
+                    firstArg.indexOf('$') != -1) {
+                // based on previous test, we are not inside of an ITD, 
+                // so we may be defining a field or variable with a 
+                // type of an inner class using a '.'.
+                // the AspectsConvertingParser converts this '.' into a '$'
+                // ignore.
+                
+                return false;
+            }
+            
             if (id == IProblem.NonStaticAccessToStaticField
                     && isITDName(categorizedProblem, unit, model, isJavaFileInAJEditor)) { 
                 // this is a reference to an ITD field on an interface
@@ -680,6 +693,15 @@ public class AJCompilationUnitProblemFinder extends
                 // these dummy fields are implicitly converted to public static final
                 return false;
             }
+            
+            if (id == IProblem.JavadocMissingReturnTag
+                    && insidePointcut(categorizedProblem, unit)) {
+                // pointcuts are parsed as methods with 'pointcut' 
+                // as the return type
+                // when JavaDoc checking is set, the parser thinks that
+                // 'pointcut' should have its own javadoc tag
+                return false;
+            }
 
         } catch (JavaModelException e) {
         }
@@ -698,6 +720,7 @@ public class AJCompilationUnitProblemFinder extends
             // the implementation of this abstract method is not necessarily there
             return false;
         }
+        
         
         return true;
     }
@@ -740,6 +763,18 @@ public class AJCompilationUnitProblemFinder extends
         IJavaElement candidate = unit.getElementAt(categorizedProblem.getSourceStart());
         while (candidate != null && !(candidate instanceof ICompilationUnit)) {
             if (candidate instanceof AdviceElement) {
+                return true;
+            }
+            candidate = candidate.getParent();
+        }
+        return false;
+    }
+    
+    private static boolean insidePointcut(CategorizedProblem categorizedProblem,
+            CompilationUnit unit) throws JavaModelException {
+        IJavaElement candidate = unit.getElementAt(categorizedProblem.getSourceStart());
+        while (candidate != null && !(candidate instanceof ICompilationUnit)) {
+            if (candidate instanceof PointcutElement) {
                 return true;
             }
             candidate = candidate.getParent();
