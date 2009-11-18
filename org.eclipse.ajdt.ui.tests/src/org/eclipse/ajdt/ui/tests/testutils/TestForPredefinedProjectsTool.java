@@ -43,7 +43,6 @@ public class TestForPredefinedProjectsTool extends UITestCase {
 		p = createPredefinedProject("project name that (hopefully) does not exist"); //$NON-NLS-1$
 		if (p != null)
 			fail("Could import project that does not exist."); //$NON-NLS-1$		
-		
 	}
 	
 	/**
@@ -58,7 +57,6 @@ public class TestForPredefinedProjectsTool extends UITestCase {
 		
 		IProject p2 = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
 		assertTrue("project should now be open",p2.isOpen()); //$NON-NLS-1$
-
 	}
 	
 }
