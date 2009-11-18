@@ -168,6 +168,10 @@ public class AspectJPreferences {
 	public static final String OPTION_XHasMember = "org.aspectj.ajdt.core.compiler.weaver.XHasMember"; //$NON-NLS-1$
 
 	public static final String OPTION_Outxml = "org.aspectj.ajdt.core.compiler.weaver.outxml"; //$NON-NLS-1$
+
+	public static final String OPTION_verbose = "org.aspectj.ajdt.core.compiler.weaver.verbose"; //$NON-NLS-1$
+	
+	public static final String OPTION_timers = "org.aspectj.ajdt.core.compiler.weaver.timers"; //$NON-NLS-1$
 	
 	// Preferences for Changes View
 	public static final String CHANGES_VIEW_PROPAGATE_UP = "org.eclipse.ajdt.ui.preferences.propagateup"; //$NON-NLS-1$
@@ -396,6 +400,12 @@ public class AspectJPreferences {
 		if (getBooleanPrefValue(project, OPTION_Outxml)) {
 			opts += "-outxml "; //$NON-NLS-1$
 		}
+		if (getBooleanPrefValue(project, OPTION_verbose)) {
+		    opts += "-verbose "; //$NON-NLS-1$
+		}
+		if (getBooleanPrefValue(project, OPTION_timers)) {
+		    opts += "-timers "; //$NON-NLS-1$
+		}
 		return opts;
 	}
 
@@ -542,7 +552,7 @@ public class AspectJPreferences {
 		return store.getString(key);
 	}
 
-	private static boolean getBooleanPrefValue(IProject project, String key) {
+	public static boolean getBooleanPrefValue(IProject project, String key) {
 		if (isUsingProjectSettings(project)) {
 			IScopeContext projectScope = new ProjectScope(project);
 			IEclipsePreferences projectNode = projectScope

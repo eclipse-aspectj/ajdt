@@ -215,6 +215,15 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				AspectJPreferences.VALUE_IGNORE);
 		
+		defaultValueMap.put(
+		        AspectJPreferences.OPTION_verbose,
+		        AspectJPreferences.VALUE_FALSE);
+		defaultValueMap.put(
+		        AspectJPreferences.OPTION_timers,
+		        AspectJPreferences.VALUE_FALSE);
+		
+		
+		
 		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, ""); //$NON-NLS-1$
 
 		defaultValueMap.put(AspectJPreferences.OPTION_cantFindType, 
@@ -265,7 +274,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			AspectJPreferences.COMPILER_OPTIONS, 
 			AspectJPreferences.OPTION_cantFindType,
 			AspectJPreferences.OPTION_calculatingSerialVersionUID,
-			AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch
+			AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch,
+			AspectJPreferences.OPTION_verbose,
+			AspectJPreferences.OPTION_timers,
 	};
 
 	public AJCompilerPreferencePage() {
@@ -350,6 +361,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(AspectJPreferences.OPTION_Outxml, false);
 
 		store.setDefault(AspectJPreferences.OPTION_WeaveMessages, false);
+		store.setDefault(AspectJPreferences.OPTION_verbose, false);
+		store.setDefault(AspectJPreferences.OPTION_timers, false);
 
 		store.setDefault(AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
 				AspectJPreferences.VALUE_WARNING);
@@ -654,6 +667,14 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_Outxml,
 				enableDisableValues, 0, true);
 
+		label = "Verbose-Send extra information to the AJDT Event Trace view.\nMust use with 'Compiler / Task List Messages'\nfilter enabled.";
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_verbose,
+		        enableDisableValues, 0, true);
+		
+		label = "Pointcut matching timers-Show timing information to the AJDT Event Trace view \n(use with the 'Verbose' option)";
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_timers,
+		        enableDisableValues, 0, true);
+		
 		Composite row3Comp = createRowComposite(othersComposite,2);
 
 		//fills the editor with the stored preference if there is one.
