@@ -76,6 +76,11 @@ public class DeleteAJMarkers {
             // project has been closed
         }
         subMonitor.worked(1);
+
+        if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+        }
+
         
         try {
             subMonitor.subTask("Delete advice markers");
@@ -87,6 +92,10 @@ public class DeleteAJMarkers {
         }
         subMonitor.worked(1);
 
+        if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+        }
+
         try {
             subMonitor.subTask("Delete declare markers");
             project.deleteMarkers(
@@ -96,7 +105,11 @@ public class DeleteAJMarkers {
             // project has been closed
         }
         subMonitor.worked(1);
-        
+
+        if (subMonitor.isCanceled()) {
+            throw new OperationCanceledException();
+        }
+
         try {
             subMonitor.subTask("Delete custom markers");
             project.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
@@ -124,17 +137,29 @@ public class DeleteAJMarkers {
                 file.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
                         true, IResource.DEPTH_INFINITE);
                 subMonitor.worked(1);
+
+                if (subMonitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                }
                 
                 file.deleteMarkers(
                         IAJModelMarker.SOURCE_ADVICE_MARKER, true,
                         IResource.DEPTH_INFINITE);
                 subMonitor.worked(1);
 
+                if (subMonitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                }
+
                 file.deleteMarkers(
                         IAJModelMarker.DECLARATION_MARKER, true,
                         IResource.DEPTH_INFINITE);
                 subMonitor.worked(1);
                 
+                if (subMonitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                }
+
                 file.deleteMarkers(IAJModelMarker.CUSTOM_MARKER,
                         true, IResource.DEPTH_INFINITE);
                 subMonitor.worked(1);

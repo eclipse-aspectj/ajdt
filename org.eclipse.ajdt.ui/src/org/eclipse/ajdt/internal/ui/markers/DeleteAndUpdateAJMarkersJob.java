@@ -97,18 +97,33 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
      */
     private ISchedulingRule createSchedulingRule(IProject thisProject,
             IFile[] sourceFiles) {
-        ISchedulingRule updateRule;
-        if (sourceFiles != null) {
-            ISchedulingRule[] subRules = new ISchedulingRule[sourceFiles.length];
-            for (int i = 0; i < sourceFiles.length; i++) {
-                subRules[i] = sourceFiles[i];
-            }
-            updateRule = new MultiRule(subRules);
-        } else {
-            updateRule = project;
-        }
-        return updateRule;
+//        ISchedulingRule updateRule;
+//        if (sourceFiles != null) {
+//            ISchedulingRule[] subRules = new ISchedulingRule[sourceFiles.length];
+//            for (int i = 0; i < sourceFiles.length; i++) {
+//                subRules[i] = sourceFiles[i];
+//            }
+//            updateRule = new MultiRule(subRules);
+//        } else {
+//            updateRule = project;
+//        }
+//        return updateRule;
+        return new AJMarkerSchedulingRule();
     }
+    
+    
+    private static class AJMarkerSchedulingRule implements ISchedulingRule {
+
+        public boolean contains(ISchedulingRule rule) {
+            return this == rule;
+        }
+
+        public boolean isConflicting(ISchedulingRule rule) {
+            return rule instanceof AJMarkerSchedulingRule;
+        }
+        
+    }
+    private final static AJMarkerSchedulingRule ajMarkerRule = new AJMarkerSchedulingRule();
     
     /**
      * converts from an array of java.io.File to an array of IFile

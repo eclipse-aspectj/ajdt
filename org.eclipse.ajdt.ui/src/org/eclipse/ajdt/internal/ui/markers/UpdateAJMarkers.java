@@ -147,11 +147,11 @@ public class UpdateAJMarkers {
                                     completedCUNames.add(resource.getName());
                                     fileCount++;
                                 }
+                                if (subMonitor.isCanceled()) {
+                                    throw new OperationCanceledException();
+                                }
                             }
                         }
-                    }
-                    if (subMonitor.isCanceled()) {
-                        throw new OperationCanceledException();
                     }
                     subMonitor.worked(1);
                 }
