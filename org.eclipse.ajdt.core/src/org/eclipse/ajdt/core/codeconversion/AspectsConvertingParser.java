@@ -383,7 +383,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 break;
 
             case TokenNameLBRACE:
-                if (inPointcutDesignator) {
+                if (inPointcutDesignator && parenLevel == 0) {  // Bug 296044: make sure that lbrace is not inside of a declare declaration
                     endPointcutDesignator();
                     if (options.isKeepPointcuts()) {
                         addReplacement(scanner.getCurrentTokenStartPosition(), 
@@ -439,7 +439,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 
                 break;
             case TokenNameRBRACE:
-                if (inPointcutDesignator) {
+                if (inPointcutDesignator && parenLevel == 0) {  // Bug 296044: make sure that lbrace is not inside of a declare declaration
                     // bug 129367: if we've hit a } here, we must be
                     // in the middle of an unterminated pointcut
                     endPointcutDesignator();
