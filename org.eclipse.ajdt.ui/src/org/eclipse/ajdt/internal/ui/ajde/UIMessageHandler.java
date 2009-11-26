@@ -102,8 +102,13 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
 		if (message.getSourceLocation() == null) {
 			AJLog.log(AJLog.COMPILER_MESSAGES, message.getMessage()); //$NON-NLS-1$
-			problems.add(new ProblemTracker(message.getMessage(),
-					null,message.getKind()));
+			
+			// Bug 296096: do not create a marker for info messages
+			// the messages can be too long and they are rarely interesting
+			if (kind != IMessage.INFO) {
+    			problems.add(new ProblemTracker(message.getMessage(),
+    					null,message.getKind()));
+			}
 		} else {
 			if (DebugTracing.DEBUG_COMPILER_MESSAGES) {
 				// avoid constructing log string if trace is not active
@@ -112,7 +117,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
 						+ message.getSourceLocation().getSourceFile().getPath()
 						+ " line=" + message.getSourceLocation().getLine()); //$NON-NLS-1$
 			}
-			problems.add(new ProblemTracker(message.getMessage(), 
+	         // Bug 296096: do not create a marker for info messages
+            if (kind != IMessage.INFO) {
+                problems.add(new ProblemTracker(message.getMessage(), 
 					message.getSourceLocation(), 
 					message.getKind(), 
 					message.getDeclared(), 
@@ -121,6 +128,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 					message.getSourceStart(), 
 					message.getSourceEnd(),
 					message.getThrown()));
+            }
 		}
 		return true;
 	}
