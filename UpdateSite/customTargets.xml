@@ -102,7 +102,7 @@
 		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
 			<fileset dir="${builder}/../org.eclipse.contribution.weaving-feature"/>
 		</copy>
-		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.pde.build-feature">
+		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.pde.build">
 			<fileset dir="${builder}/../org.eclipse.ajdt.pde.build-feature"/>
 		</copy>
 
