@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.eclipse.ajdt.pde.build"
+      id="org.eclipse.aspectj.feature_tests"
       label="%featureName"
       version="2.0.2.qualifier"
       provider-name="%providerName">
@@ -18,10 +18,45 @@
    </license>
 
    <plugin
-         id="org.eclipse.ajdt.pde.build"
+         id="org.eclipse.ajdt.core.tests"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.ajdt.ui.tests"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.contribution.visualiser.tests"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.contribution.xref.core.tests"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.contribution.xref.ui.tests"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.ajdt.ui.visual.tests"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.contribution.weaving.jdt.tests"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>
