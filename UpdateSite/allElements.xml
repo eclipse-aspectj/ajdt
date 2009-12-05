@@ -25,6 +25,10 @@
 	 		<property name="type" value="feature" />
 	 		<property name="id" value="org.eclipse.aspectj.feature_tests" />
  		</ant>
+ 		<ant antfile="${genericTargets}" target="${target}">
+	 		<property name="type" value="feature" />
+	 		<property name="id" value="org.eclipse.ajdt.pde.build" />
+ 		</ant>
  	</target>
  
  	<!-- ===================================================================== -->
@@ -44,6 +48,9 @@
  		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
  	</target>
  	<target name="assemble.org.eclipse.aspectj.feature_tests">
+ 		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
+ 	</target>
+ 	<target name="assemble.org.eclipse.ajdt.pde.build">
  		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
  	</target>
 </project>

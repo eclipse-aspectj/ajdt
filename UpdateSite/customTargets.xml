@@ -102,6 +102,9 @@
 		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
 			<fileset dir="${builder}/../org.eclipse.contribution.weaving-feature"/>
 		</copy>
+		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.pde.build-feature">
+			<fileset dir="${builder}/../org.eclipse.ajdt.pde.build-feature"/>
+		</copy>
 
 		<!-- plugins -->
 		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
@@ -178,6 +181,9 @@
 	  </copy>
 	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt.tests">
 	  	<fileset dir="${builder}/../org.eclipse.contribution.weaving.jdt.tests"/>
+  	</copy>
+	  <copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.pde.build">
+	  	<fileset dir="${builder}/../org.eclipse.ajdt.pde.build"/>
   	</copy>
 	</target>
 
