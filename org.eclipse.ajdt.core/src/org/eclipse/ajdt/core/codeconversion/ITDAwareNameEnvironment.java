@@ -3,13 +3,9 @@ package org.eclipse.ajdt.core.codeconversion;
 import java.lang.reflect.Field;
 
 import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
-import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;

@@ -126,26 +126,32 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
-		checkForCUprovider();
 		getWorkspace().addResourceChangeListener(
 				new CompilerConfigResourceChangeListener(),
 				IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE);
 		setCompilerFactory(new CoreCompilerFactory());
 		
-		ITDAwarenessAspect.contentAssistProvider = new ContentAssistProvider();
+		try {
+		    initializeContentAssistProvider();
+		} catch (Throwable t) {
+		    // ignore, likely that JDT weaving plugin is not available
+		}
 		
 		AJProjectModelFacade.installListener();
 	}
+
+    private void initializeContentAssistProvider() {
+//        ITDAwarenessAspect.contentAssistProvider = new ContentAssistProvider();
+    }
 
 	/**
 	 * Sets the usingCUprovider flag if the experimental JDT extension is available
 	 *
 	 */
 	private static boolean checkForCUprovider() {
-	    
 	    try {
 	        return IsWovenTester.isWeavingActive();
-	    } catch (Exception e) {
+	    } catch (Throwable t) {
 	        return false;
 	    }
 	}

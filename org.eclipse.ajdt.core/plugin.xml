@@ -86,4 +86,14 @@
             class="org.eclipse.ajdt.core.AJDTPreferencesInitializer">
       </initializer>
    </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.eclipse.contribution.jdt.itdawareness.ContentAssistAdapter"
+            class="org.eclipse.ajdt.core.ContentAssistProviderAdapterFactory">
+         <adapter
+               type="org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider">
+         </adapter>
+      </factory>
+   </extension>
 </plugin>
