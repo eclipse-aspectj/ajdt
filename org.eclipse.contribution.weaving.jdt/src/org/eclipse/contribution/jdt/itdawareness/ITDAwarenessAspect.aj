@@ -240,7 +240,7 @@ public aspect ITDAwarenessAspect {
      * Hmmmm...maybe want to promote this one to its own package because other plugins may
      * want to add their own way of doing completions for Java files
      */
-    public static IJavaContentAssistProvider contentAssistProvider;
+    public ContentAssistAdapter adapter = new ContentAssistAdapter();
             
     pointcut codeCompleteInJavaFile(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
@@ -264,6 +264,7 @@ public aspect ITDAwarenessAspect {
                 codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor) {
         
         boolean result = false;
+        IJavaContentAssistProvider contentAssistProvider = adapter.getProvider();
         if (contentAssistProvider != null && provider != null && 
                 (cu instanceof CompilationUnit) && 
                 provider.shouldFindProblems((CompilationUnit) cu)) {
@@ -294,6 +295,7 @@ public aspect ITDAwarenessAspect {
     IJavaElement[] around(CompilationUnit unit, int offset, int length) : 
             codeSelectWithArgs(unit, offset, length) {
         IJavaElement[] result = proceed(unit, offset, length);
+        IJavaContentAssistProvider contentAssistProvider = adapter.getProvider();
         if (contentAssistProvider != null && provider != null &&
                 provider.shouldFindProblems((CompilationUnit) unit)) {
             // look for ITDs at the current location if required
