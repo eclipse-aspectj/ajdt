@@ -80,11 +80,11 @@ public class ITDAwarenessTests extends WeavingTestCase {
         }
 
         origProvider = ITDAwarenessAspect.provider;
-        origContentAssistProvider = ITDAwarenessAspect.contentAssistProvider;
+        origContentAssistProvider = ITDAwarenessAspect.aspectOf().adapter.getProvider();
 
         provider = new MockNameEnvironmentProvider();
         contentAssistProvider = new MockContentAssistProvider();
-        ITDAwarenessAspect.contentAssistProvider = contentAssistProvider;
+        ITDAwarenessAspect.aspectOf().adapter.setProvider(contentAssistProvider);
         ITDAwarenessAspect.provider = provider;
         
         mock = this.createPredefinedProject("MockCUProject");
@@ -95,7 +95,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
     public void tearDown() throws Exception {
         super.tearDown();
         ITDAwarenessAspect.provider = origProvider;
-        ITDAwarenessAspect.contentAssistProvider = origContentAssistProvider;
+        ITDAwarenessAspect.aspectOf().adapter.setProvider(origContentAssistProvider);
     }
     
     
