@@ -11,7 +11,7 @@ import org.eclipse.jdt.internal.ui.javaeditor.saveparticipant.IPostSaveListener;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * Ensures AJCompialtionUnits are created properly.
+ * Ensures AJCompilationUnits are created properly.
  * Also ensures that format on save does not occur for AJ files
  */
 public class AJCompilationUnitDocumentProvider extends
