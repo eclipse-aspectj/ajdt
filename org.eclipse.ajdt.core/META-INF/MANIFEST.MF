@@ -6,24 +6,24 @@ Bundle-Version: 2.0.2.qualifier
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Export-Package: org.eclipse.ajdt.core,
- org.eclipse.ajdt.core.builder,
- org.eclipse.ajdt.core.buildpath,
- org.eclipse.ajdt.core.codeconversion,
- org.eclipse.ajdt.core.dom.rewrite,
- org.eclipse.ajdt.core.exports,
- org.eclipse.ajdt.core.javaelements,
- org.eclipse.ajdt.core.lazystart,
- org.eclipse.ajdt.core.model,
- org.eclipse.ajdt.core.parserbridge,
- org.eclipse.ajdt.core.ras,
- org.eclipse.ajdt.core.text,
- org.eclipse.ajdt.internal.core;x-friends:="org.eclipse.ajdt.core.tests",
- org.eclipse.ajdt.internal.core.ajde;x-friends:="org.eclipse.ajdt.core.tests",
- org.eclipse.ajdt.internal.core.builder;x-friends:="org.eclipse.ajdt.core.tests",
- org.eclipse.ajdt.internal.core.contentassist;x-friends:="org.eclipse.ajdt.core.tests",
- org.eclipse.ajdt.internal.core.parserbridge;x-friends:="org.eclipse.ajdt.core.tests",
- org.eclipse.ajdt.internal.core.ras;x-friends:="org.eclipse.ajdt.core.tests",
+Export-Package: org.eclipse.ajdt.core;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.builder;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.buildpath;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.codeconversion;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.dom.rewrite;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.exports;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.javaelements;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.lazystart;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.model;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.parserbridge;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.ras;aspect-policy:=opt-in,
+ org.eclipse.ajdt.core.text;aspect-policy:=opt-in,
+ org.eclipse.ajdt.internal.core;x-friends:="org.eclipse.ajdt.core.tests";aspect-policy:=opt-in,
+ org.eclipse.ajdt.internal.core.ajde;x-friends:="org.eclipse.ajdt.core.tests";aspect-policy:=opt-in,
+ org.eclipse.ajdt.internal.core.builder;x-friends:="org.eclipse.ajdt.core.tests";aspect-policy:=opt-in,
+ org.eclipse.ajdt.internal.core.contentassist;x-friends:="org.eclipse.ajdt.core.tests";aspect-policy:=opt-in,
+ org.eclipse.ajdt.internal.core.parserbridge;x-friends:="org.eclipse.ajdt.core.tests";aspect-policy:=opt-in,
+ org.eclipse.ajdt.internal.core.ras;x-friends:="org.eclipse.ajdt.core.tests";aspect-policy:=opt-in,
  org.eclipse.ajdt.internal.core.refactoring;x-friends:="org.eclipse.ajdt.core.tests"
 Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.pde.build;bundle-version="[3.5.0,3.6.0)";resolution:=optional,
@@ -36,3 +36,4 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.5.0,3.6.0)",
  org.eclipse.contribution.weaving.jdt;bundle-version="2.0.2";resolution:=optional
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.core.lazystart"
+Eclipse-AspectBundle: finished
