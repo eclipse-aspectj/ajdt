@@ -16,20 +16,17 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.MultiRule;
 
 public class DeleteAndUpdateAJMarkersJob extends Job {
     public final static Object UPDATE_DELETE_AJ_MARKERS_FAMILY = new Object();
 
     private DeleteAJMarkers delete;
     private UpdateAJMarkers update;
-    private IProject project;
     private boolean deleteOnly = false;
     private ISchedulingRule rule;
     
     public DeleteAndUpdateAJMarkersJob(IProject project) {
         super("Delete and update AspectJ markers for " + project.getName());
-        this.project = project;
         update = new UpdateAJMarkers(project);
         delete = new DeleteAJMarkers(project);
         rule = createSchedulingRule(project, null);
@@ -92,22 +89,10 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
 
     /**
      * Creates the minimum scheduling rule required for this job.
-     * This rule is either the combined rules for all affected resources
-     * or the rule for the project if the sourceFiles parameter is null.
+     * This is a unique scheduling rule for each Job.
      */
     private ISchedulingRule createSchedulingRule(IProject thisProject,
             IFile[] sourceFiles) {
-//        ISchedulingRule updateRule;
-//        if (sourceFiles != null) {
-//            ISchedulingRule[] subRules = new ISchedulingRule[sourceFiles.length];
-//            for (int i = 0; i < sourceFiles.length; i++) {
-//                subRules[i] = sourceFiles[i];
-//            }
-//            updateRule = new MultiRule(subRules);
-//        } else {
-//            updateRule = project;
-//        }
-//        return updateRule;
         return new AJMarkerSchedulingRule();
     }
     
@@ -123,7 +108,6 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
         }
         
     }
-    private final static AJMarkerSchedulingRule ajMarkerRule = new AJMarkerSchedulingRule();
     
     /**
      * converts from an array of java.io.File to an array of IFile
