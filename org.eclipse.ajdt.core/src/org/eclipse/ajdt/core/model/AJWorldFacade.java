@@ -221,8 +221,21 @@ public final class AJWorldFacade {
 
     private boolean equalNames(IProgramElement elt, ConcreteTypeMunger munger) {
         ResolvedMember signature = munger.getSignature();
-        return signature != null && (signature.getDeclaringType().getBaseName() +"."+signature.getName()).equals(
-                elt.getPackageName() + "." + elt.getName());
+        return signature != null && (qualifiedElementName(signature)).equals(
+                qualifiedElementName(elt));
+    }
+
+    private String qualifiedElementName(ResolvedMember signature) {
+        return signature.getDeclaringType().getBaseName() + "." + signature.getName();
+    }
+
+    private String qualifiedElementName(IProgramElement elt) {
+        String packageName = elt.getPackageName();
+        if (packageName != null && packageName.length() > 0) {
+            return elt.getPackageName() + "." + elt.getName();
+        } else {
+            return elt.getName();
+        }
     }
 
     private boolean equalParams(IProgramElement elt, ConcreteTypeMunger munger) {

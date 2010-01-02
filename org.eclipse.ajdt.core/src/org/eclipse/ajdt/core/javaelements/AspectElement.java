@@ -47,9 +47,6 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	public static final char JEM_ITD = ')';
 	public static final char JEM_DECLARE = '`';
 	public static final char JEM_POINTCUT = '+';
-	// TYPE_PARAMETER is defined in Eclipse 3.1, but not 3.0
-	public static final char JEM_TYPE_PARAMETER = ']';
-//	public static final char JEM_EXTRA_INFO = '>';
 	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {
@@ -250,7 +247,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 				switch (token.charAt(0)) {
 					case JEM_TYPE:
                         break nextParam;
-					case JEM_TYPE_PARAMETER:
+					case JavaElement.JEM_TYPE_PARAMETER:
 					    token = null;
 						break nextParam;
 					case JEM_ADVICE:

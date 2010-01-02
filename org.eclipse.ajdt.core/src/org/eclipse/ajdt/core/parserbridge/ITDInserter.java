@@ -248,7 +248,7 @@ public class ITDInserter extends ASTVisitor {
             if (sig == null) {
                 String[] params = new String[method.getParameterTypes().size()];
                 for (int i = 0; i < params.length; i++) {
-                    params[i] = new String((char[]) method.getParameterTypes().get(i));
+                    params[i] = new String(Signature.getTypeErasure((char[]) method.getParameterTypes().get(i)));
                 }
                 sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
             }

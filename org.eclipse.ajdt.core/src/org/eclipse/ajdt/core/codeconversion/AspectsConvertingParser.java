@@ -263,6 +263,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 if (!inAspect && !inTypeDeclaration())
                     break;
 
+                // FIXADE Hmmm...here we should be including enclosing types
                 char[] name = scanner.getCurrentIdentifierSource();
 
                 if (inTypeDeclaration() && !inPointcutDesignator) {
