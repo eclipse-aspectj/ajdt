@@ -1,4 +1,7 @@
 public aspect MyAspect {
+    MyAspect() {
+        super();
+    }
 
     declare parents: MyObject implements MyInterface;
 
@@ -8,9 +11,16 @@ public aspect MyAspect {
 }
 
 interface MyInterface { }
-class MyObject { }
+class MyObject { 
+    MyObject() {
+        super();
+    }
+}
 
 class Main {
+    Main() {
+        super();
+    }
     public static void main(String[] args) {
         new MyObject().instanceOf(MyObject.class);
     }
