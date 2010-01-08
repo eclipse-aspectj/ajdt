@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AJDT Core Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.core.tests;singleton:=true
-Bundle-Version: 2.0.2.qualifier
+Bundle-Version: 2.0.3.qualifier
 Bundle-ClassPath: ajdtcoretests.jar
 Bundle-Activator: org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin
 Bundle-Vendor: Eclipse AspectJ Development Tools
@@ -26,6 +26,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.aspectj.weaver,
  org.eclipse.text,
  org.eclipse.ltk.core.refactoring,
- org.eclipse.contribution.weaving.jdt;bundle-version="2.0.2"
+ org.eclipse.contribution.weaving.jdt;bundle-version="2.0.3"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
