@@ -65,6 +65,11 @@ Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
 		<mkdir dir="${destination.temp.folder}/org.aspectj.runtime_${ajde.version}"/>
 		<copy file="aspectjrtsrc.zip" todir="${destination.temp.folder}/org.aspectj.runtime_${ajde.version}" failonerror="false" overwrite="false"/>
 	</target>
+	
+	<target name="gather.individual.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.runtime_${ajde.version}"/>
+		<copy file="aspectjrtsrc.zip" todir="${destination.temp.folder}/org.aspectj.runtime_${ajde.version}" failonerror="false" overwrite="false"/>
+	</target>
 
 	<target name="build.update.jar">
 		<delete dir="${temp.folder}"/>
