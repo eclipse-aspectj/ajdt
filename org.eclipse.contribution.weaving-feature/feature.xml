@@ -30,7 +30,7 @@
 <!-- Do not remove these comments --> 
 <!--EAINCLUDES
    <includes
-         id="org.eclipse.equinox.weaving"
+         id="org.eclipse.equinox.weaving.sdk"
          version="0.0.0.EAVERSION"
          name="Equinox Aspects"
          optional="true"/>
