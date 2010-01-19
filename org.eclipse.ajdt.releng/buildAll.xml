@@ -119,6 +119,7 @@
 	<!-- for now, only tar files are supported -->
 	<target name="provision-build-eclipse" depends="check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		
+		<chmod perm="755" file="${builder}/provisioning_support/provision_build.sh" />
 		<exec dir="." executable="${builder}/provisioning_support/provision_build.sh">
 			<arg value="${download.home}/${build.eclipse.tar.3.5}"/>
 			<arg value="${build.dest}"/>
@@ -146,6 +147,7 @@
 		</delete>
 		<mkdir dir="${target.eclipse}"/>
 
+		<chmod perm="755" file="${builder}/provisioning_support/provision_target.sh" />
 		<exec dir="." executable="${builder}/provisioning_support/provision_target.sh">
 			<arg value="${download.home}/${build.eclipse.tar.3.5}"/>
 			<arg value="${build.dest}/target"/>
@@ -154,6 +156,7 @@
 	
 	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
 	<target name="provision-test-eclipse">
+		<chmod perm="755" file="${builder}/provisioning_support/provision_test.sh" />
 		<exec dir="." executable="${builder}/provisioning_support/provision_test.sh">
 			<arg value="${build.dest}/target"/>
 			<arg value="file:${updateSite.loc}"/>
