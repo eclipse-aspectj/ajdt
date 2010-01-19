@@ -66,6 +66,11 @@ Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
 		<copy file="aspectjweaversrc.zip" todir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}" failonerror="false" overwrite="false"/>
 	</target>
 
+	<target name="gather.individual.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}"/>
+		<copy file="aspectjweaversrc.zip" todir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}" failonerror="false" overwrite="false"/>
+	</target>
+
 	<target name="build.update.jar">
 		<delete dir="${temp.folder}"/>
 		<mkdir dir="${temp.folder}"/>
