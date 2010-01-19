@@ -36,6 +36,7 @@
 	<target name="clean" unless="noclean">
 		<delete dir="${build.home}" />
 		<delete dir="${build.dist}" />
+		<delete dir="${target.eclipse}" />
 	</target>
 	
 	<target name="pdebuild" description="Perform the pde headless build">
