@@ -223,11 +223,11 @@
 		<delete dir="${test.results}" failonerror="false" />
 		<mkdir dir="${test.results}" />
 		<copy overwrite="true"
-			file="${test.eclipse.home}/org.eclipse.ajdt.ui.tests.xml" todir="${test.results}" />
+			file="${target.eclipse}/results/org.eclipse.ajdt.ui.tests.xml" todir="${test.results}" />
 		<copy overwrite="true"
-			file="${test.eclipse.home}/org.eclipse.ajdt.core.tests.xml" todir="${test.results}" />
+			file="${target.eclipse}/results/org.eclipse.ajdt.core.tests.xml" todir="${test.results}" />
 		<copy overwrite="true"
-			file="${test.eclipse.home}/org.eclipse.contribution.weaving.jdt.tests.xml"
+			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.xml"
 			todir="${test.results}" />
 	</target>
 
