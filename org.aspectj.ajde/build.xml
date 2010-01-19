@@ -299,6 +299,11 @@ Creates a packaged plug-in jar for AJDE
 		<copy file="ajdesrc.zip" todir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}" failonerror="false" overwrite="false"/>
 	</target>
 
+	<target name="gather.individual.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}"/>
+		<copy file="ajdesrc.zip" todir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}" failonerror="false" overwrite="false"/>
+	</target>
+
 	<target name="build.update.jar">
 		<delete dir="${temp.folder}"/>
 		<mkdir dir="${temp.folder}"/>
