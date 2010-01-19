@@ -223,22 +223,22 @@
 		<delete dir="${test.results}" failonerror="false" />
 		<mkdir dir="${test.results}" />
 		<copy overwrite="true"
-			file="${target.eclipse}/results/org.eclipse.ajdt.ui.tests.xml" todir="${test.results}" />
+			file="${target.eclipse}/results/org.eclipse.ajdt.ui.tests.AllUITests.xml" todir="${test.results}" />
 		<copy overwrite="true"
-			file="${target.eclipse}/results/org.eclipse.ajdt.core.tests.xml" todir="${test.results}" />
+			file="${target.eclipse}/results/org.eclipse.ajdt.core.tests.AllCoreTests.xml" todir="${test.results}" />
 		<copy overwrite="true"
-			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.xml"
+			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.xml"
 			todir="${test.results}" />
 	</target>
 
 	<target name="check-results">
 		<!-- Will set property only if failures detected -->
 		<checkutresults property="ajdt.junit.failed"
-			file="${test.results}/org.eclipse.ajdt.ui.tests.xml" />
+			file="${test.results}/org.eclipse.ajdt.ui.tests.AllUITests.xml" />
 		<checkutresults property="ajdt.junit.failed"
-			file="${test.results}/org.eclipse.ajdt.core.tests.xml" />
+			file="${test.results}/org.eclipse.ajdt.core.tests.AllCoreTests.xml" />
 		<checkutresults property="ajdt.junit.failed"
-			file="${test.results}/org.eclipse.contribution.weaving.jdt.tests.xml" />
+			file="${test.results}/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.xml" />
 	</target>
 
 	<target name="check-tests-failed" if="ajdt.junit.failed">
@@ -257,7 +257,7 @@
 			<arg value="-application" />
 			<arg value="org.eclipse.update.core.siteOptimizer" />
 			<arg line="-jarProcessor -processAll -repack -verbose" />
-			<arg line="-outputDir ${build.home}/updateSite" />
+			<arg line="-outputDir ${updateSite.loc}" />
 			<arg value="${updateSite.loc}" />
       <classpath>
 		  		<fileset dir="${build.eclipse}/plugins">
@@ -272,7 +272,7 @@
 			<arg value="-application" />
 			<arg value="org.eclipse.update.core.siteOptimizer" />
 			<arg line="-jarProcessor -pack -verbose" />
-			<arg line="-outputDir ${build.home}/updateSite" />
+			<arg line="-outputDir ${updateSite.loc}" />
 			<arg value="${updateSite.loc}" />
       <classpath>
 		  		<fileset dir="${build.eclipse}/plugins">
