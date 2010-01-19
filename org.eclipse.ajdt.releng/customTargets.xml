@@ -1,0 +1,408 @@
+<project name="Build specific targets and properties" default="noDefault">
+
+	<property file="${builder}/local.properties" />
+	
+	<!-- ===================================================================== -->
+	<!-- Run a given ${target} on all elements being built -->
+	<!-- Add on <ant> task for each top level element being built. -->
+	<!-- ===================================================================== -->
+	<property name="allElementsFile" value="${builder}/allElements.xml"/>
+	<import file="allElements.xml" />
+	<target name="allElements">
+		<antcall target="allElementsDelegator" />
+	</target>
+	
+	<!-- ===================================================================== -->
+	<!-- ===================================================================== -->
+	<target name="getBaseComponents" depends="checkLocalBase" unless="skipBase">
+	</target>
+
+	<target name="checkLocalBase">
+		<echo message="base = ${base}"></echo>
+		<echo message="skipFetch = ${skipFetch}"></echo>
+		<available file="${base}" property="skipBase" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Check out map files from correct repository -->
+	<!-- Replace values for mapsCheckoutTag as desired. -->
+	<!-- ===================================================================== -->
+	<target name="getMapFiles" depends="checkLocalMaps" unless="skipMaps">
+		<!--
+		don't do this...instead get map files from releng plugin
+		<property name="mapsCheckoutTag" value="HEAD" />
+		<cvs cvsRoot="${mapsRepo}" package="${mapsRoot}" dest="${buildDirectory}/maps" tag="${mapsCheckoutTag}" />
+		-->
+		<copy todir="${buildDirectory}/maps">
+				<fileset dir="${builder}/maps" />
+		</copy>
+	</target>
+
+	
+    <target name="copy-sources">
+  		<mkdir dir="${buildDirectory}/features"/>
+  		<mkdir dir="${buildDirectory}/plugins/"/>
+  		
+  		<!-- features -->
+  		<copy todir="${buildDirectory}/features/org.eclipse.ajdt">
+  			<fileset dir="${workdir}/org.eclipse.ajdt-feature"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/features/org.eclipse.aspectj.feature_tests">
+  			<fileset dir="${workdir}/org.eclipse.aspectj.feature_tests"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/features/org.eclipse.contribution.xref">
+  			<fileset dir="${workdir}/org.eclipse.contribution.xref-feature"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
+  			<fileset dir="${workdir}/org.eclipse.contribution.weaving-feature"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.pde.build">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.pde.build-feature"/>
+  		</copy>
+
+  		<!-- plugins -->
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
+  			<fileset dir="${workdir}/org.eclipse.aspectj"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.aspectj.runtime">
+  			<fileset dir="${workdir}/org.aspectj.runtime"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.aspectj.weaver">
+  			<fileset dir="${workdir}/org.aspectj.weaver"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.aspectj.ajde">
+  			<fileset dir="${workdir}/org.aspectj.ajde"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.core">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.core"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.core.tests">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.core.tests"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.ui"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.mylyn.ui">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.mylyn.ui"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.doc.user">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.doc.user"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui.tests">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.ui.tests"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui.visual.tests">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.ui.visual.tests"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.examples">
+  			<fileset dir="${workdir}/org.eclipse.ajdt.examples"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.visualiser">
+  			<fileset dir="${workdir}/org.eclipse.contribution.visualiser"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.visualiser.tests">
+  			<fileset dir="${workdir}/org.eclipse.contribution.visualiser.tests"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.core">
+  			<fileset dir="${workdir}/org.eclipse.contribution.xref.core"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.core.tests">
+  			<fileset dir="${workdir}/org.eclipse.contribution.xref.core.tests"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.ui">
+  			<fileset dir="${workdir}/org.eclipse.contribution.xref.ui"/>
+  		</copy>
+  		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.ui.tests">
+  			<fileset dir="${workdir}/org.eclipse.contribution.xref.ui.tests"/>
+  		</copy>
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt">
+  		  <fileset dir="${workdir}/org.eclipse.contribution.weaving.jdt"/>
+  	  </copy>
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt.tests">
+  	  	<fileset dir="${workdir}/org.eclipse.contribution.weaving.jdt.tests"/>
+    	</copy>
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.pde.build">
+  	  	<fileset dir="${workdir}/org.eclipse.ajdt.pde.build"/>
+    	</copy>
+    	
+    	<!-- Equinox Aspects -->
+    	<!-- Retrieved from map file
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj">
+  	  	<fileset dir="${workdir}/org.eclipse.equinox.weaving.aspectj"/>
+    	</copy>
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook">
+  	  	<fileset dir="${workdir}/org.eclipse.equinox.weaving.hook"/>
+    	</copy>
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching">
+  	  	<fileset dir="${workdir}/org.eclipse.equinox.weaving.caching"/>
+    	</copy>
+  	  <copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching.j9">
+  	  	<fileset dir="${workdir}/org.eclipse.equinox.weaving.caching.j9"/>
+    	</copy>
+  	  <copy todir="${buildDirectory}/features/org.eclipse.equinox.weaving.sdk">
+  	  	<fileset dir="${workdir}/org.eclipse.equinox.weaving.sdk"/>
+    	</copy>
+    	-->
+
+    	<!-- include proper aspectj version -->
+    	<antcall target="replace-aspectj-qualifier" />
+    </target>
+
+	<target name="replace-aspectj-qualifier">
+  	<replace file="${buildDirectory}/plugins/org.aspectj.runtime/META-INF/MANIFEST.MF"
+			token="92.2.29" value="${ajde.version}"/>
+		<replace file="${buildDirectory}/plugins/org.aspectj.weaver/META-INF/MANIFEST.MF"
+			token="92.2.29" value="${ajde.version}"/>
+		<replace file="${buildDirectory}/plugins/org.aspectj.ajde/META-INF/MANIFEST.MF"
+			token="92.2.29" value="${ajde.version}"/>
+<!-- 
+		 These property files are not available at this point
+		 If we ever need these files, these should be set later 
+		<replace file="${buildDirectory}/finalPluginsVersions.properties"
+			token="92.2.29" value="${ajde.version}"/>
+		<replace file="${buildDirectory}/finalPluginsVersions.ANY_ANY_ANY.properties"
+			token="92.2.29" value="${ajde.version}"/>
+			-->
+		<replace file="${buildDirectory}/plugins/org.eclipse.aspectj/about.mappings"
+			token="@AJVERSION@" value="${ajde.version}"/>
+	</target>
+	
+	<target name="checkLocalMaps">
+		<available property="skipMaps" file="${buildDirectory}/maps" />
+	</target>
+
+	<target name="tagMapFiles" if="tagMaps">
+		<cvs dest="${buildDirectory}/maps/${mapsRoot}" command="tag ${mapsTagTag}" />
+	</target>
+
+	<!-- ===================================================================== -->
+
+	<target name="clean" unless="noclean">
+		<antcall target="allElements">
+			<param name="target" value="cleanElement" />
+		</antcall>
+	</target>
+
+	<target name="gatherLogs">
+		<mkdir dir="${buildDirectory}/${buildLabel}/compilelogs" />
+		<antcall target="allElements">
+			<param name="target" value="gatherLogs" />
+		</antcall>
+		<unzip dest="${buildDirectory}/${buildLabel}/compilelogs" overwrite="true">
+			<fileset dir="${buildDirectory}/features">
+				<include name="**/*.log.zip" />
+			</fileset>
+		</unzip>
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before setup -->
+	<!-- ===================================================================== -->
+	<target name="preSetup">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after setup but before starting the build proper -->
+	<!-- ===================================================================== -->
+	<target name="postSetup">
+		<antcall target="getBaseComponents" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before fetching the build elements -->
+	<!-- ===================================================================== -->
+	<target name="preFetch">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after fetching the build elements -->
+	<!-- ===================================================================== -->
+	<target name="postFetch">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before generating the build scripts. -->
+	<!-- ===================================================================== -->
+	<target name="preGenerate">
+		<!-- skipFetch is set, but we still need to fetch Equinox aspects from cvs -->
+		<ant antfile="${genericTargets}" target="fetchElement">
+	 		<property name="type" value="feature" />
+	 		<property name="id" value="org.eclipse.equinox.weaving.sdk" />
+		</ant>
+
+		<antcall target="replace-equinox-aspects-qualifier">
+		</antcall>
+		
+		
+		<!-- Get AJDT sources from checked out cache -->
+		<antcall target="copy-sources" />
+  	<!-- include proper aspectj version -->
+  	<antcall target="replace-aspectj-qualifier" />
+	</target>
+	
+	<!-- ===================================================================== -->
+	<!-- 
+			OK...this is a bit of a hack, but we need to ensure that the EA version number is the same as 
+			the tag that we checked out from CVS.  To do that, we need to go into each of the
+			build.properties files for the EA features, plugins, and fragments and add a 'qualifier' entry
+	 -->
+	<!-- ===================================================================== -->
+	<target name="replace-equinox-aspects-qualifier">
+		<property file="${buildDirectory}/featureVersions.properties" />	
+		<property file="${buildDirectory}/pluginVersions.properties" />
+		
+		<replace file="${buildDirectory}/features/org.eclipse.equinox.weaving.sdk/build.properties"
+			token="qualifier=${org.eclipse.equinox.weaving.sdk,0.0.0}" value=""/>
+		<concat append="true" destfile="${buildDirectory}/features/org.eclipse.equinox.weaving.sdk/build.properties">
+			qualifier=${org.eclipse.equinox.weaving.sdk,0.0.0}
+		</concat>
+
+		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/build.properties"
+			token="qualifier=${org.eclipse.equinox.weaving.aspectj,0.0.0}" value=""/>
+		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/build.properties">
+			qualifier=${org.eclipse.equinox.weaving.aspectj,0.0.0}
+		</concat>
+
+		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook/build.properties"
+			token="qualifier=${org.eclipse.equinox.weaving.hook,0.0.0}" value=""/>
+		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook/build.properties">
+			qualifier=${org.eclipse.equinox.weaving.hook,0.0.0}
+		</concat>
+
+		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching/build.properties"
+			token="qualifier=${org.eclipse.equinox.weaving.caching,0.0.0}" value=""/>
+		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching/build.properties">
+			qualifier=${org.eclipse.equinox.weaving.caching,0.0.0}
+		</concat>
+		
+		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching.j9/build.properties"
+			token="qualifier=${org.eclipse.equinox.weaving.caching.j9,0.0.0}" value=""/>
+		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching.j9/build.properties">
+			qualifier=${org.eclipse.equinox.weaving.caching.j9,0.0.0}
+		</concat>
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after generating the build scripts. -->
+	<!-- ===================================================================== -->
+	<target name="postGenerate">
+		<antcall target="clean" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before running the build.xmls for the elements being built. -->
+	<!-- ===================================================================== -->
+	<target name="preProcess">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after running the build.xmls for the elements being built. -->
+	<!-- ===================================================================== -->
+	<target name="postProcess">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before running assemble. -->
+	<!-- ===================================================================== -->
+	<target name="preAssemble">
+	  <mkdir dir="${updateSite.loc}"/>
+
+		<property file="${buildDirectory}/finalFeaturesVersions.properties"/>
+
+		<!-- replace feature versions to force feature dependencies -->
+		<property file="${buildDirectory}/finalFeaturesVersions.properties"/>
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="0.0.0.AJFVERSION" value="${org.eclipse.ajdt}"/>
+
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="&lt;!--EAINCLUDES" value=""/>
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="EAINCLUDES--&gt;" value=""/>
+		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
+			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving.sdk}"/>
+
+		<property file="${buildDirectory}/featureVersions.properties" />	
+		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
+			token="&lt;!--EAINCLUDES" value=""/>
+		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
+			token="EAINCLUDES--&gt;" value=""/>
+		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
+			token="0.0.0.EAVERSION" value="1.0.0.${org.eclipse.equinox.weaving.sdk,0.0.0}"/>
+		
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after  running assemble. -->
+	<!-- ===================================================================== -->
+	<target name="postAssemble">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before running package. -->
+	<!-- ===================================================================== -->
+	<target name="prePackage">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after  running package. -->
+	<!-- ===================================================================== -->
+	<target name="postPackage">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after the build is done. -->
+	<!-- ===================================================================== -->
+	<target name="postBuild">
+		<antcall target="gatherLogs" />
+		<antcall target="generateUpdateSite"/>
+	</target>
+
+	<target name="generateUpdateSite">
+		<property file="${buildDirectory}/finalFeaturesVersions.properties"/>
+		<property file="${buildDirectory}/featureVersions.properties" />	
+
+		<!-- Create the directory structure -->
+	  <mkdir dir="${updateSite.loc}/features"/>
+	  <mkdir dir="${updateSite.loc}/plugins"/>
+	  <!-- Build the jar files -->
+	  <antcall target="allElements">
+	    <param name="genericTargets" value="${builder}/customTargets.xml"/>
+	    <param name="target" value="updateSiteExport"/>
+	  </antcall>
+	  <!-- add site.xml and update qualifiers -->
+	  <copy file="${builder}/site.xml" tofile="${updateSite.loc}/site.xml"/>
+    <replace file="${updateSite.loc}/site.xml" token="0.0.0.AJFVERSION"
+	       value="${org.eclipse.ajdt}"/>
+    <replace file="${updateSite.loc}/site.xml" token="0.0.0.EAFVERSION"
+	       value="1.0.0.${org.eclipse.equinox.weaving.sdk,0.0.0}"/>
+	</target>
+	
+	
+	
+	<target name="updateSiteExport">
+	  <ant antfile="build.xml" dir="${buildDirectory}/features/${id}/" target="build.update.jar">
+	    <property name="feature.destination" value="${updateSite.loc}/features"/>
+	    <property name="plugin.destination" value="${updateSite.loc}/plugins"/>
+	  </ant>
+	</target>
+			
+	<!-- ===================================================================== -->
+	<!-- Steps to do to test the build results -->
+	<!-- ===================================================================== -->
+	<target name="test">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do to publish the build results -->
+	<!-- ===================================================================== -->
+	<target name="publish">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Default target                                                        -->
+	<!-- ===================================================================== -->
+	<target name="noDefault">
+		<echo message="You must specify a target when invoking this file" />
+	</target>
+
+</project>

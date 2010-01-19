@@ -1,0 +1,6 @@
+!!*** EQUINOX ASPECTS ******
+plugin@org.eclipse.equinox.weaving.aspectj=v20100108,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.aspectj
+plugin@org.eclipse.equinox.weaving.caching=v20100108,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.caching
+plugin@org.eclipse.equinox.weaving.caching.j9=v20100108,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.caching.j9
+fragment@org.eclipse.equinox.weaving.hook=v20100108,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.hook
+feature@org.eclipse.equinox.weaving.sdk=v20090817,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/features/org.eclipse.equinox.weaving.sdk

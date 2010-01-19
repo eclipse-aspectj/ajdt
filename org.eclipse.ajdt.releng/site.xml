@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site 
+pack200="true">
+   <description>
+      This update site provides the AspectJ feature and related
+ tools.
+   </description>
+   <feature url="features/org.eclipse.ajdt_0.0.0.AJFVERSION.jar" id="org.eclipse.ajdt" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.weaving_0.0.0.AJFVERSION.jar" id="org.eclipse.contribution.weaving" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt.other"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.xref_0.0.0.AJFVERSION.jar" id="org.eclipse.contribution.xref" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt.other"/>
+   </feature>
+   <feature url="features/org.eclipse.ajdt.pde.build_0.0.0_AJFVERSION.jar" id="org.eclipse.ajdt.pde.build" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt.other"/>
+   </feature>
+   <feature url="features/org.eclipse.ajdt.source_0.0.0.AJFVERSION.jar" id="org.eclipse.ajdt.source" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.weaving.source_0.0.0.AJFVERSION.jar" id="org.eclipse.contribution.weaving.source" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
+   <feature url="features/org.eclipse.contribution.xref.source_0.0.0.AJFVERSION.jar" id="org.eclipse.contribution.xref.source" version="0.0.0.AJFVERSION">
+      <category name="org.eclipse.ajdt.source"/>
+   </feature>
+   <feature url="features/org.eclipse.equinox.weaving.sdk_0.0.0.EAFVERSION.jar" id="org.eclipse.equinox.weaving.sdk" version="0.0.0.EAFVERSION">
+      <category name="org.eclipse.ajdt.other"/>
+   </feature>
+   <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools (Required)">
+      <description>
+         The AJDT project provides Eclipse tooling for the AspectJ language.  See http://eclispe.org/ajdt
+      </description>
+   </category-def>
+   <category-def name="org.eclipse.ajdt.other" label="Other AJDT Tools (Optional)">
+      <description>
+         Parts of AJDT that some may want to consume independently.
+      </description>
+   </category-def>
+   <category-def name="org.eclipse.ajdt.source" label="AspectJ Development Tools Source (Optional)">
+      <description>
+         Source code for all AJDT and related tools.
+      </description>
+   </category-def>
+</site>

@@ -1,0 +1,292 @@
+<?xml version="1.0"?>
+<project name="ajdt-build" basedir="." default="run">
+
+	<!-- set the properties for os -->
+	<import file="os_support/os.xml" />
+	
+	<!-- help with provisioning -->
+	<import file="provisioning_support/get-dependencies.xml"/>
+
+	<property file="provisioning_support/download.properties" />
+	<property file="local.properties" />
+	<property file="build.properties" />
+	
+	<taskdef resource="com/ibm/lakeba/ant/taskdefs.properties">
+		<classpath>
+			<pathelement path="checkresults.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- ===================================================================== -->
+	<!-- Create the timestamp tp be used for the build                         -->
+	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
+	<!-- a properties file or from the command line                            -->
+	<!-- ===================================================================== -->
+	<tstamp>
+		<format property="tstampQual" pattern="yyyyMMdd-HH00" locale="en,US" timezone="America/Vancouver"/>
+	</tstamp>
+	<echo message="tstampQual=${tstampQual}"/>
+	<property name="forceContextQualifier" value="${qualPrefix}-${tstampQual}"/>
+	<property name="buildLabel" value="build-${forceContextQualifier}"/>
+
+	<echo message="=============================================="/>
+	<echo message="forceContextQualifier=${forceContextQualifier}"/>
+	<echo message="=============================================="/>
+	
+	<target name="clean" unless="noclean">
+		<delete dir="${build.home}" />
+		<delete dir="${build.dist}" />
+	</target>
+	
+	<target name="pdebuild" description="Perform the pde headless build">
+		<java fork="true" failonerror="true"
+			dir="${ajdt.pdebuild.home}/scripts"
+			classname="org.eclipse.core.launcher.Main">
+			<arg value="-application" />
+			<arg value="org.eclipse.ant.core.antRunner" />
+			<arg value="-verbose" />
+			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
+			<arg value="-DbaseLocation=${target.eclipse}" />
+			<arg value="-DbuildDirectory=${build.home}" />
+			<arg value="-Dbuild.dest=${build.dest}" />
+			<arg value="-Dajdt.pdebuild.home=${ajdt.pdebuild.home}" />
+			<arg value="-DforceContextQualifier=${forceContextQualifier}" />
+      <classpath>
+		  		<fileset dir="${build.eclipse}/plugins">
+          	<include name="org.eclipse.equinox.launcher_*.jar"/>
+        	</fileset>
+      </classpath>
+		</java>
+	</target>
+
+	<target name="zip-archive" description="Zip up a copy of the archive for local installation">
+		<zip destfile="${build.dist}/ajdt-${forceContextQualifier}.zip">
+			<fileset dir="${updateSite.loc}" />
+		</zip>
+	</target>
+	
+	<target name="generateP2metadata" description="Generate p2 metadata for the AJDT update site">
+		<java fork="true" failonerror="true"
+			dir="${ajdt.pdebuild.home}/scripts"
+			classname="org.eclipse.core.launcher.Main">
+			<arg value="-application" />
+			<arg value="org.eclipse.equinox.p2.metadata.generator.EclipseGenerator" />
+			<arg value="-updateSite" />
+			<arg value="${updateSite.loc}" />
+			<arg value="-base" />
+			<arg value="${updateSite.loc}" />
+			<arg value="-site" />
+			<arg value="file:${updateSite.loc}/site.xml" />
+			<arg value="-metadataRepository" />
+			<arg value="file:${updateSite.loc}" />
+			<arg value="-metadataRepositoryName" />
+			<arg value="AJDT Update Site" />
+			<arg value="-artifactRepository" />
+			<arg value="file:${updateSite.loc}" />
+			<arg value="-artifactRepositoryName" />
+			<arg value="AJDT Artifacts" />
+			<arg value="-reusePack200Files" />
+			<arg value="-noDefaultIUs" />
+			<jvmarg value="-Xmx128M" />
+      <classpath>
+		  		<fileset dir="${build.eclipse}/plugins">
+          	<include name="org.eclipse.equinox.launcher_*.jar"/>
+        	</fileset>
+      </classpath>
+		</java>
+	</target>
+
+	<target name="check.provision.build" description="Check to see if the build eclipse has already been provisioned">
+		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
+  </target>
+	<target name="check-eclipse-already-downloaded" description="Check to see if the target Eclipse is already downloaded">
+		<available file="${download.home}/${build.eclipse.tar.3.5}" property="provision.build.completed"/>
+	</target>
+	
+	<target name="download-eclipse" unless="check-eclipse-already-downloaded" description="Downloads Eclipse if not already downloaded">
+		<mkdir dir="${download.home}"/>
+		<antcall target="downloadFile">
+			<param name="theURL" value="${build.url.3.5}"/>
+			<param name="downloadsDir" value="${download.home}"/>
+			<param name="theFile" value="${build.eclipse.tar.3.5}"/>
+		</antcall>
+	</target>
+
+	<!-- for now, only tar files are supported -->
+	<target name="provision-build-eclipse" depends="check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
+		
+		<exec dir="." executable="provisioning_support/provision_build.sh">
+			<arg value="${download.home}/${build.eclipse.tar.3.5}"/>
+			<arg value="${build.dest}"/>
+		</exec>
+		
+		<!-- ajdt-pde integration and test framework -->
+		<unzip src="${builder}/build_bundles/${ajdt.pdebuild.version}.zip" dest="${build.dest}/eclipse/plugins" overwrite="true" />
+		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
+		
+		<touch file="${build.dest}/eclipse/.provisioned" />
+	</target>
+	
+	<!-- for now, only tar files are supported -->
+	<!-- Sets up the Target eclipse to build against-->
+	<target name="provision-target-eclipse" unless="no.provision.target">
+		<mkdir dir="${download.home}"/>
+		<antcall target="downloadFile">
+			<param name="theURL" value="${build.url.3.5}"/>
+			<param name="downloadsDir" value="${download.home}"/>
+			<param name="theFile" value="${build.eclipse.tar.3.5}"/>
+		</antcall>
+		
+		<delete failonerror="false">
+			<fileset dir="${target.eclipse}"/>
+		</delete>
+		<mkdir dir="${target.eclipse}"/>
+
+		<exec dir="." executable="provisioning_support/provision_target.sh">
+			<arg value="${download.home}/${build.eclipse.tar.3.5}"/>
+			<arg value="${build.dest}/target"/>
+		</exec>
+	</target>
+	
+	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
+	<target name="provision-test-eclipse">
+		<exec dir="." executable="provisioning_support/provision_test.sh">
+			<arg value="${build.dest}/target"/>
+			<arg value="file:${updateSite.loc}"/>
+		</exec>
+		
+		<!-- Ensure that weaving bundle is auto-started, but ensure that we don't add the line twice -->
+		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
+			token="osgi.bundles=org.eclipse.equinox.weaving.aspectj@1\:start," value="osgi.bundles="/>
+		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
+			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@1\:start,"/>
+		
+		<!-- org.eclipse.test needs to be in the target AND the build eclipses -->
+		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target" overwrite="true" />
+		
+		<!-- start with a clean workspace -->
+		<delete failonerror="false">
+			<fileset dir="${test.workspace}" />
+		</delete>
+
+	</target>
+	
+	<target name="run-test-eclipse">
+		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
+
+		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true"/>
+
+		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+			<property name="data-dir" value="${test.workspace} -clean" />
+			<property name="plugin-name" value="org.eclipse.ajdt.core.tests" />
+    	<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
+			<property name="eclipse-home" value="${target.eclipse}" />
+			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="arch" value="${build.arch}"/>
+			<property name="os" value="${build.os}"/>
+			<property name="ws" value="${build.ws}"/>
+		</ant>
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+			<property name="data-dir" value="${test.workspace} -clean" />
+			<property name="plugin-name" value="org.eclipse.ajdt.ui.tests" />
+    	<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
+			<property name="eclipse-home" value="${target.eclipse}" />
+			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="arch" value="${build.arch}"/>
+			<property name="os" value="${build.os}"/>
+			<property name="ws" value="${build.ws}"/>
+		</ant>
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+			<property name="data-dir" value="${test.workspace} -clean" />
+			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
+    	<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
+			<property name="eclipse-home" value="${target.eclipse}" />
+			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="arch" value="${build.arch}"/>
+			<property name="os" value="${build.os}"/>
+			<property name="ws" value="${build.ws}"/>
+		</ant>
+	</target>
+
+	<target name="copy-test-results">
+		<!--
+			Copy the xml output files created by the plugin test harness to a
+			temp location from where it can be merged into build log
+		-->
+		<delete dir="${test.results}" failonerror="false" />
+		<mkdir dir="${test.results}" />
+		<copy overwrite="true"
+			file="${test.eclipse.home}/org.eclipse.ajdt.ui.tests.xml" todir="${test.results}" />
+		<copy overwrite="true"
+			file="${test.eclipse.home}/org.eclipse.ajdt.core.tests.xml" todir="${test.results}" />
+		<copy overwrite="true"
+			file="${test.eclipse.home}/org.eclipse.contribution.weaving.jdt.tests.xml"
+			todir="${test.results}" />
+	</target>
+
+	<target name="check-results">
+		<!-- Will set property only if failures detected -->
+		<checkutresults property="ajdt.junit.failed"
+			file="${test.results}/org.eclipse.ajdt.ui.tests.xml" />
+		<checkutresults property="ajdt.junit.failed"
+			file="${test.results}/org.eclipse.ajdt.core.tests.xml" />
+		<checkutresults property="ajdt.junit.failed"
+			file="${test.results}/org.eclipse.contribution.weaving.jdt.tests.xml" />
+	</target>
+
+	<target name="check-tests-failed" if="ajdt.junit.failed">
+		<fail>JUnit plugin tests failed: ${ajdt.junit.failed}</fail>
+	</target>
+	
+	
+	<!--
+		Run the site optimizer over the update site directory, prior to
+		uploading to the update server - spyoung
+	-->
+	<target name="optimizeUpdateSite">
+		<!-- Step 1 - process all the JARs and mark them for packing -->
+		<java fork="true" failonerror="true"
+		  classname="org.eclipse.core.launcher.Main">
+			<arg value="-application" />
+			<arg value="org.eclipse.update.core.siteOptimizer" />
+			<arg line="-jarProcessor -processAll -repack -verbose" />
+			<arg line="-outputDir ${build.home}/updateSite" />
+			<arg value="${updateSite.loc}" />
+      <classpath>
+		  		<fileset dir="${build.eclipse}/plugins">
+          	<include name="org.eclipse.equinox.launcher_*.jar"/>
+        	</fileset>
+      </classpath>
+		</java>
+
+		<!-- Step 2 - "repack" all the JARs (i.e actaully pack them!) -->
+		<java fork="true" failonerror="true"
+			classname="org.eclipse.core.launcher.Main">
+			<arg value="-application" />
+			<arg value="org.eclipse.update.core.siteOptimizer" />
+			<arg line="-jarProcessor -pack -verbose" />
+			<arg line="-outputDir ${build.home}/updateSite" />
+			<arg value="${updateSite.loc}" />
+      <classpath>
+		  		<fileset dir="${build.eclipse}/plugins">
+          	<include name="org.eclipse.equinox.launcher_*.jar"/>
+        	</fileset>
+      </classpath>
+		</java>
+	</target>
+
+	<target name="upload">
+		<!--
+		not supported yet
+		<ant antfile="upload-build1.7.xml" inheritAll="false" />
+		-->
+	</target>
+
+	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,optimizeUpdateSite,generateP2metadata,zip-archive" />
+
+	<target name="tests"
+		depends="provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
+
+	<target name="run" depends="clean,build,tests,upload" />
+</project>
+    
