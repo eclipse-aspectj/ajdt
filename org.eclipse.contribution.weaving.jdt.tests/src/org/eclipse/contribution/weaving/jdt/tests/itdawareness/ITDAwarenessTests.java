@@ -131,12 +131,12 @@ public class ITDAwarenessTests extends WeavingTestCase {
         // seems like depending on which completion processors are currently installed, the
         // result can be 1 or 2 proposals.
         // Looks like the important processors are the JavaNoTypeCompletionProposalComputer and the JavaAllCompletionProposalComputer
-        if (completions.length < 1 || completions.length > 2) {
+        if (completions.length < 1 || completions.length > 3) {
             StringBuffer sb = new StringBuffer();
             for (int i = 0; i < completions.length; i++) {
                 sb.append("\n" + completions[i].getDisplayString());
             }
-            fail("Should have found 1 or 2 completion proposals, but instead found: " + completions.length + sb.toString());
+            fail("Should have found 1, 2, or 3 completion proposals, but instead found: " + completions.length + sb.toString());
         }
         assertFalse("Should not have triggered the content assist through the aspect", contentAssistProvider.contentAssistDone);
     }
