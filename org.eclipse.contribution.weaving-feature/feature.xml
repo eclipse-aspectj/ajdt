@@ -27,14 +27,11 @@
          name=""
          optional="true"/>
 
-<!-- Do not remove these comments --> 
-<!--EAINCLUDES
    <includes
          id="org.eclipse.equinox.weaving.sdk"
          version="0.0.0.EAVERSION"
          name="Equinox Aspects"
          optional="true"/>
-EAINCLUDES-->
          
    <requires>
       <import plugin="org.eclipse.osgi" version="3.5.0" match="greaterOrEqual"/>
