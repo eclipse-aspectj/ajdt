@@ -22,7 +22,7 @@
           target: delete-old              
        ================================= -->
   <target name="delete-old" description="Deletes the old version of the plugin">
-  	<sshexec host="${upload.host}" username="${upload.userid}" password="${upload.pwd}" command="rm -rf ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
+  	<sshexec host="${upload.host}" username="${upload.userid}" password="${upload.pwd}" command="unalias rm ; rm -rf ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
   </target>
 
 	<!-- ================================= 
