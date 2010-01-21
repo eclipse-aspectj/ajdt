@@ -299,6 +299,10 @@
 	<!--
 		Run the site optimizer over the update site directory, prior to
 		uploading to the update server - spyoung
+		
+		ADE - this is not working any more, so disable.  It seems that
+		some jars are not being properly processed.  As this is not a
+		requirement any longer, it is ok to disable.
 	-->
 	<target name="optimizeUpdateSite">
 		<!-- Step 1 - process all the JARs and mark them for packing -->
@@ -339,7 +343,9 @@
 		-->
 	</target>
 
-	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,optimizeUpdateSite,generateP2metadata,zip-archive" />
+<!--	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,optimizeUpdateSite,generateP2metadata,zip-archive" /> -->
+	<!-- Disable optimizeUpdateSite -->
+	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,zip-archive" /> 
 
 	<target name="tests"
 		depends="provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
