@@ -29,13 +29,13 @@
           target: unzip-build              
        ================================= -->
 	<target name="unzip-build" description="Unzips build on download server">
-		<sshexec host="${upload.host}" username="${upload.userid}" password="${upload.pwd}" command="unzip ${upload.dir}/${zip.name} -d ${upload.dir}" failonerror="true" trust="true" />
+		<sshexec host="${upload.host}" username="${upload.userid}" password="${upload.pwd}" command="unzip -o ${upload.dir}/${zip.name} -d ${upload.dir}" failonerror="true" trust="true" />
 	</target>
 
 	<!-- ================================= 
           target: upload-and-unzip              
        ================================= -->
-	<target name="upload-and-unzip" depends="upload-build,unzip-build" description="Uploads, and unzips build on download server">
+	<target name="upload-and-unzip" depends="upload-build,delete-old,unzip-build" description="Uploads, and unzips build on download server">
 	</target>
 
 
