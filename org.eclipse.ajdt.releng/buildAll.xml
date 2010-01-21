@@ -3,14 +3,14 @@
 
 	<!-- set the properties for os -->
 	<import file="os_support/os.xml" />
-	
+
 	<!-- help with provisioning -->
 	<import file="provisioning_support/get-dependencies.xml"/>
 
 	<property file="provisioning_support/download.properties" />
 	<property file="local.properties" />
 	<property file="build.properties" />
-	
+
 	<taskdef resource="com/ibm/lakeba/ant/taskdefs.properties">
 		<classpath>
 			<pathelement path="checkresults.jar" />
@@ -32,13 +32,13 @@
 	<echo message="=============================================="/>
 	<echo message="forceContextQualifier=${forceContextQualifier}"/>
 	<echo message="=============================================="/>
-	
+
 	<target name="clean" unless="noclean">
 		<delete dir="${build.home}" />
 		<delete dir="${build.dist}" />
 		<delete dir="${target.eclipse}" />
 	</target>
-	
+
 	<target name="pdebuild" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
 			dir="${ajdt.pdebuild.home}/scripts"
@@ -52,20 +52,29 @@
 			<arg value="-Dbuild.dest=${build.dest}" />
 			<arg value="-Dajdt.pdebuild.home=${ajdt.pdebuild.home}" />
 			<arg value="-DforceContextQualifier=${forceContextQualifier}" />
-      <classpath>
-		  		<fileset dir="${build.eclipse}/plugins">
-          	<include name="org.eclipse.equinox.launcher_*.jar"/>
-        	</fileset>
-      </classpath>
+			<classpath>
+				<fileset dir="${build.eclipse}/plugins">
+					<include name="org.eclipse.equinox.launcher_*.jar"/>
+				</fileset>
+			</classpath>
 		</java>
 	</target>
 
 	<target name="zip-archive" description="Zip up a copy of the archive for local installation">
-		<zip destfile="${build.dist}/ajdt-${forceContextQualifier}.zip">
+		<property name="zip.name" value="ajdt-${forceContextQualifier}.zip"/>
+		<property name="zip.full.location" value="${build.dist}/${zip.name}"/>
+
+		<zip destfile="${zip.full.location}">
 			<fileset dir="${updateSite.loc}" />
 		</zip>
+		
+		<!-- now store the zip name and location in a property file-->
+		<propertyfile file="${build.dist}/ajdt-zip.properties" comment="This properties file contains the location and name of the AJDT update site archive produced by the latest build">
+			<entry key="zip.name" value="${zip.name}"/>
+			<entry key="zip.full.location" value="${zip.full.location}"/>
+		</propertyfile>
 	</target>
-	
+
 	<target name="generateP2metadata" description="Generate p2 metadata for the AJDT update site">
 		<java fork="true" failonerror="true"
 			dir="${ajdt.pdebuild.home}/scripts"
@@ -89,23 +98,25 @@
 			<arg value="-reusePack200Files" />
 			<arg value="-noDefaultIUs" />
 			<jvmarg value="-Xmx128M" />
-      <classpath>
-		  		<fileset dir="${build.eclipse}/plugins">
-          	<include name="org.eclipse.equinox.launcher_*.jar"/>
-        	</fileset>
-      </classpath>
+			<classpath>
+				<fileset dir="${build.eclipse}/plugins">
+					<include name="org.eclipse.equinox.launcher_*.jar"/>
+				</fileset>
+			</classpath>
 		</java>
 	</target>
 
 	<target name="check.provision.build" description="Check to see if the build eclipse has already been provisioned">
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
-  </target>
+	</target>
 	<target name="check-eclipse-already-downloaded" description="Check to see if the target Eclipse is already downloaded">
 		<available file="${download.home}/${build.eclipse.tar.3.5}" property="provision.build.completed"/>
 	</target>
-	
+
 	<target name="download-eclipse" unless="check-eclipse-already-downloaded" description="Downloads Eclipse if not already downloaded">
-<!--
+		<echo message="Would have downloaded eclipse, but functionality is disabled" />
+		
+		<!--
 		don't download eclipse
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
@@ -113,71 +124,110 @@
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${build.eclipse.tar.3.5}"/>
 		</antcall>
--->
+		-->
 	</target>
 
 	<!-- for now, only tar files are supported -->
 	<target name="provision-build-eclipse" depends="check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
-		
-		<chmod perm="755" file="${builder}/provisioning_support/provision_build.sh" />
-		<exec dir="." executable="${builder}/provisioning_support/provision_build.sh">
-			<arg value="${download.home}/${build.eclipse.tar.3.5}"/>
-			<arg value="${build.dest}"/>
-		</exec>
-		
+
+		<!-- Unpack eclipse -->
+		<mkdir dir="${build.dest}"/>
+		<antcall target="unpack-archive">
+			<param name="theFile" value="${download.home}/${build.eclipse.tar.3.5}" />
+			<param name="theDir" value="${build.dest}" />
+		</antcall>
+
+		<!-- Install AspectJ -->
+		<install-bundle 
+			eclipse.loc="${build.dest}/eclipse" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/aspectj/update" 
+			feature.id="org.aspectj" />
+
 		<!-- ajdt-pde integration and test framework -->
 		<unzip src="${builder}/build_bundles/${ajdt.pdebuild.version}.zip" dest="${build.dest}/eclipse/plugins" overwrite="true" />
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
-		
+
+		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/eclipse/.provisioned" />
 	</target>
-	
+
 	<!-- for now, only tar files are supported -->
 	<!-- Sets up the Target eclipse to build against-->
 	<target name="provision-target-eclipse" unless="no.provision.target">
+
+		<!-- download if not already there -->
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
 			<param name="theURL" value="${build.url.3.5}"/>
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${build.eclipse.tar.3.5}"/>
 		</antcall>
-		
-		<delete failonerror="false">
-			<fileset dir="${target.eclipse}"/>
-		</delete>
-		<mkdir dir="${target.eclipse}"/>
 
-		<chmod perm="755" file="${builder}/provisioning_support/provision_target.sh" />
-		<exec dir="." executable="${builder}/provisioning_support/provision_target.sh">
-			<arg value="${download.home}/${build.eclipse.tar.3.5}"/>
-			<arg value="${build.dest}/target"/>
-		</exec>
+		<!-- Unpack a fresh eclipse -->
+		<delete failonerror="false">
+			<fileset dir="${build.dest}/target/eclipse"/>
+		</delete>
+		<mkdir dir="${build.dest}/target"/>
+		<antcall target="unpack-archive">
+			<param name="theFile" value="${download.home}/${build.eclipse.tar.3.5}" />
+			<param name="theDir" value="${build.dest}/target" />
+		</antcall>
+
+		<!-- Install Mylyn -->
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/releases/galileo" 
+			feature.id="org.eclipse.mylyn_feature" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/releases/galileo" 
+			feature.id="org.eclipse.mylyn.context_feature" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/releases/galileo" 
+			feature.id="org.eclipse.mylyn.ide_feature" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/releases/galileo" 
+			feature.id="org.eclipse.mylyn.java_feature" />
+
+		<!-- Mark as provisioned -->
+		<touch file="${build.dest}/target/eclipse/.provisioned" />
+
 	</target>
-	
+
 	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
 	<target name="provision-test-eclipse">
-		<chmod perm="755" file="${builder}/provisioning_support/provision_test.sh" />
-		<exec dir="." executable="${builder}/provisioning_support/provision_test.sh">
-			<arg value="${build.dest}/target"/>
-			<arg value="file:${updateSite.loc}"/>
-		</exec>
-		
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="file:${updateSite.loc}" 
+			feature.id="org.eclipse.ajdt" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="file:${updateSite.loc}" 
+			feature.id="org.eclipse.equinox.weaving.sdk" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="file:${updateSite.loc}" 
+			feature.id="org.eclipse.aspectj.feature_tests" />
+
+
 		<!-- Ensure that weaving bundle is auto-started, but ensure that we don't add the line twice -->
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
 			token="osgi.bundles=org.eclipse.equinox.weaving.aspectj@1\:start," value="osgi.bundles="/>
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
 			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@1\:start,"/>
-		
+
 		<!-- org.eclipse.test needs to be in the target AND the build eclipses -->
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target" overwrite="true" />
-		
+
 		<!-- start with a clean workspace -->
 		<delete failonerror="false">
 			<fileset dir="${test.workspace}" />
 		</delete>
 
 	</target>
-	
+
 	<target name="run-test-eclipse">
 		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
 
@@ -186,7 +236,7 @@
 		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace} -clean" />
 			<property name="plugin-name" value="org.eclipse.ajdt.core.tests" />
-    	<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
+			<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
@@ -196,7 +246,7 @@
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace} -clean" />
 			<property name="plugin-name" value="org.eclipse.ajdt.ui.tests" />
-    	<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
+			<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
@@ -206,7 +256,7 @@
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace} -clean" />
 			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
-    	<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
+			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
@@ -244,8 +294,8 @@
 	<target name="check-tests-failed" if="ajdt.junit.failed">
 		<fail>JUnit plugin tests failed: ${ajdt.junit.failed}</fail>
 	</target>
-	
-	
+
+
 	<!--
 		Run the site optimizer over the update site directory, prior to
 		uploading to the update server - spyoung
@@ -259,11 +309,11 @@
 			<arg line="-jarProcessor -processAll -repack -verbose" />
 			<arg line="-outputDir ${updateSite.loc}" />
 			<arg value="${updateSite.loc}" />
-      <classpath>
-		  		<fileset dir="${build.eclipse}/plugins">
-          	<include name="org.eclipse.equinox.launcher_*.jar"/>
-        	</fileset>
-      </classpath>
+			<classpath>
+				<fileset dir="${build.eclipse}/plugins">
+					<include name="org.eclipse.equinox.launcher_*.jar"/>
+				</fileset>
+			</classpath>
 		</java>
 
 		<!-- Step 2 - "repack" all the JARs (i.e actaully pack them!) -->
@@ -274,11 +324,11 @@
 			<arg line="-jarProcessor -pack -verbose" />
 			<arg line="-outputDir ${updateSite.loc}" />
 			<arg value="${updateSite.loc}" />
-      <classpath>
-		  		<fileset dir="${build.eclipse}/plugins">
-          	<include name="org.eclipse.equinox.launcher_*.jar"/>
-        	</fileset>
-      </classpath>
+			<classpath>
+				<fileset dir="${build.eclipse}/plugins">
+					<include name="org.eclipse.equinox.launcher_*.jar"/>
+				</fileset>
+			</classpath>
 		</java>
 	</target>
 
@@ -296,4 +346,3 @@
 
 	<target name="run" depends="clean,build,tests,upload" />
 </project>
-    
