@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <project name="ajdt-upload" basedir="." default="upload-and-unzip">
-
+	<!-- note that this script requires jsch to be on the ant classpath in order to work
+	     a version of this jar is included in the build_bundles directory. -->
+	
 	<property file="local.properties" />
 	<property file="build.properties" />
 	<property file="${build.dist}/ajdt-zip.properties" />
