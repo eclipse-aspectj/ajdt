@@ -27,6 +27,13 @@
          version="0.0.0"
          name=""
          optional="true"/>
+         
+   <includes
+	       id="org.eclipse.equinox.weaving.sdk"
+	       version="0.0.0.EAVERSION"
+	       name="Equinox Aspects"
+	       optional="true"/>
+         
 
    <requires>
       <import plugin="org.apache.ant"/>
