@@ -245,11 +245,16 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         typeReferences.clear();
         usedIdentifiers.clear();
 
-        int tok;
+        int tok = 1;
+        int prevTok = -1;
         int pos;
         int typeDeclStart = 0;
+        char[] text = null;
+        char[] prevText = null;
+        
         while (true) {
-
+            prevTok = tok;
+            prevText = text;
             try {
                 tok = scanner.getNextToken();
             } catch (InvalidInputException e) {
@@ -258,14 +263,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             if (tok == TokenNameEOF)
                 break;
 
+            text = scanner.getCurrentIdentifierSource();
+
             switch (tok) {
             case TokenNameIdentifier:
                 if (!inAspect && !inTypeDeclaration())
                     break;
 
                 // FIXADE Hmmm...here we should be including enclosing types
-                char[] name = scanner.getCurrentIdentifierSource();
-
+                char[] name = text;
                 if (inTypeDeclaration() && !inPointcutDesignator) {
                     
                     // only do this if we are not adding ITDs
@@ -305,7 +311,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 }
                 break;
             case TokenNamefor:
-                inFor=true;
+                inFor = true;
                 break;
                 
             case TokenNameLPAREN:
@@ -317,6 +323,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 inFor = false;
                 inCase = false;
                 parenLevel--;
+                // Bug 301268: just in case there is a variable with a capital first letter before a '<'
+                // reset the typeParamDepth
+                typeParamDepth = 0;
                 break;
                 
             case TokenNameCOLON:
@@ -510,22 +519,27 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 
             case TokenNameLESS:
                 // bug 282948 check to see if inside type parameter
-                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                // bug 301268 type parameters can also occur in local variable declarations
+                // if the previous token looks like a type name (ie- identifier that starts with caps)
+                // also bump up typeParamDepth.  Note that this will still fail
+                // when there is a var name that starts with caps on the LHS of a '<' comparison
+                if ((!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) ||
+                        tokenLooksLikeTypeName(prevTok, prevText)) {
                     typeParamDepth++;
                 }
                 break;
             case TokenNameGREATER:
-                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                if (typeParamDepth > 0) {
                     typeParamDepth--;
                 }
                 break;
             case TokenNameRIGHT_SHIFT:
-                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                if (typeParamDepth > 0) {
                     typeParamDepth-=2;
                 }
                 break;
             case TokenNameUNSIGNED_RIGHT_SHIFT:
-                if (!inTypeBodyStack.isEmpty() && inTypeBodyStack.peek() == Boolean.TRUE) {
+                if (typeParamDepth > 0) {
                     typeParamDepth-=3;
                 }
                 break;
@@ -555,6 +569,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         return replacements;
     }
     
+    private boolean tokenLooksLikeTypeName(int token, char[] text) {
+        return token == TokenNameIdentifier && text != null && text.length > 0 && Character.isUpperCase(text[0]);
+    }
+
+
     /**
      * @param typeName name of the type
      * @return new type declaration string to replace the original
