@@ -11,6 +11,15 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.javaelements;
 
+import org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 
@@ -189,5 +198,97 @@ public class AspectsConvertingParserTest2 extends AbstractTestCase {
         parser.content = testContent;
         parser.convert(ConversionOptions.CONSTANT_SIZE);
         assertEquals(target, new String(parser.content));
+    }
+    
+    public void testTypeParamOnLocalVariable1() throws Exception {
+        assertConvertingParse(
+                "aspect Test {\n" +
+        		"  private pointcut none();\n" +
+        		"  before(): none() {\n" + 
+        		"    Class<?>[] x;\n" + 
+                "  }\n" +
+                "  before() : none() {}\n" +  
+                "}");
+    }
+    public void testTypeParamOnLocalVariable2() throws Exception {
+        assertConvertingParse(
+                "aspect Test {\n" +
+                "  private pointcut none();\n" +
+                "  before(): none() {\n" + 
+                "    Class<?>[] x;\n" +
+                "    int y = 0;\n" +
+                "    if ((y < 8) ? true : false) {} \n" + 
+                "  }\n" +
+                "  before() : none() {}\n" + 
+                "}");
+    }
+    public void testTypeParamOnLocalVariable3() throws Exception {
+        assertConvertingParse(
+                "aspect Test {\n" +
+                "  private pointcut none();\n" +
+                "  before(): none() {\n" + 
+                "    Class<?>[] x;\n" +
+                "    int Y = 0;\n" +
+                "    if ((Y < 8) ? true : false) {} \n" + 
+                "  }\n" +
+                "  before() : none() {}\n" +  
+                "}");
+    }
+    public void testTypeParamOnLocalVariable4() throws Exception {
+        assertConvertingParse(
+                "aspect Test {\n" +
+                "  private pointcut none();\n" +
+                "  before(): none() {\n" + 
+                "    Class<?>[] x;\n" +
+                "    int Y = 6 < 7 ? 6: 7;\n" +
+                "    if ((Y < 8) ? true : false) {} \n" + 
+                "  }\n" +
+                "  before() : none() {}\n" +  
+        "}");
+    }
+
+    // Main type name must be "Test" and must be in default package
+    private void assertConvertingParse(String testContentStr) {
+        char[] testContent = testContentStr.toCharArray();
+        final AspectsConvertingParser convertingParser = new AspectsConvertingParser(testContent);
+        convertingParser.content = testContent;
+        convertingParser.convert(ConversionOptions.CONSTANT_SIZE);
+        
+        ICompilationUnit unit = new ICompilationUnit() {
+            
+            public char[] getFileName() {
+                return "Test.java".toCharArray();
+            }
+            
+            public char[][] getPackageName() {
+                return new char[0][];
+            }
+            
+            public char[] getMainTypeName() {
+                return "Test".toCharArray();
+            }
+            
+            public char[] getContents() {
+                return convertingParser.content;
+            }
+        };
+        CompilerOptions options = new CompilerOptions();
+        options.sourceLevel = ClassFileConstants.JDK1_5;
+        options.targetJDK = ClassFileConstants.JDK1_5;
+        Parser parser = new Parser(
+                new ProblemReporter(DefaultErrorHandlingPolicies
+                        .proceedWithAllProblems(), options,
+                        new DefaultProblemFactory()), true);
+        CompilationResult result = new CompilationResult(unit, 0, 1, 100);
+        CompilationUnitDeclaration decl = parser.parse(unit, result);
+        if (result.hasErrors()) {
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < result.getErrors().length; i++) {
+                sb.append("\n\t" + result.getErrors()[i].getMessage());
+            }
+            sb.append("\n============\nOriginal text:\n" + testContentStr);
+            sb.append("\n============\nConverted text:\n" + String.valueOf(convertingParser.content));
+            fail("Converted unit has errors:" + sb.toString());
+        }
     }
 }
