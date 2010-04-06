@@ -34,7 +34,7 @@
 	 		<property name="id" value="org.eclipse.ajdt.pde.build" />
  		</ant>
  	</target>
- 
+  
  	<!-- ===================================================================== -->
  	<!-- Targets to assemble the built elements for particular configurations  -->
  	<!-- These generally call the generated assemble scripts (named in         -->
