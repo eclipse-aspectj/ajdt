@@ -9,7 +9,7 @@ Creates a packaged plug-in jar for AJDE
 	<!-- VERSION-STRING -->
 	<!-- these property values will be overridden when called from the master build script -->
 	<property name="ajde.version" value="9.9.9" />
- 
+  
 
 	<property name="build.dir" value="build" />
 	<property name="ajde.build.dir" value="build/ajdetemp" />
