@@ -20,6 +20,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +41,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
+import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.build.Constants;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
@@ -59,6 +62,7 @@ import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0.ClasspathElem
 import org.eclipse.pde.internal.build.site.PDEState;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 /**
  * Generic class for generating scripts for plug-ins and fragments.
@@ -1243,19 +1247,14 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		try {
 			addedBundles = new ArrayList();
 			try {
-				BundleDescription ajdeBundle = getModel("org.aspectj.ajde", null);//$NON-NLS-1$
-				// bug 244735
-				// ajde plugin is not included in this build environment.
-				// no worries...get the ajdeClasspath from the rnning 
-				// version
-				if (ajdeBundle == null) {
-					ajdeBundle = addBundleAndRequired("org.aspectj.ajde");//$NON-NLS-1$
-				}
-				ajdeClasspath = bundleToCP(ajdeBundle); 
+                BundleDescription ajdeBundle =
+                    Platform.getPlatformAdmin().getState(false).getBundle("org.aspectj.ajde", null);
+                ajdeClasspath = bundleToCP(ajdeBundle); 
 			} catch (NullPointerException npe) {
-				
-//				ajdeClasspath = bundleToCP();
-			}
+			    npe.printStackTrace();
+			} catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
 		} catch (CoreException e) {
 		}		
 		AJCTask javac = new AJCTask(buildConfig, ajdeClasspath);
@@ -1322,43 +1321,43 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	// this essentially forces the bundle to be resolvable for this
 	// build process even if it is not in the target workspace
 	private BundleDescription addBundleAndRequired(String bundleName) throws CoreException {
-		PDEState state = getSite(false).getRegistry();
-		BundleDescription realBundle = state.getBundle(bundleName, null, false);
+        PDEState state = getSite(false).getRegistry();
+        BundleDescription realBundle = state.getBundle(bundleName, null, false);
         if (realBundle == null) {
             // the bundle is not part of the target workspace
             // this tempBundle is used only so we can get the location 
             // which is in the installed workspace, but not the target.
             // This allows target workspaces to be used that do not
             // include the ajde or weaver bundles.
-			Bundle tempBundle = Platform.getBundle(bundleName);
-			String location = tempBundle.getLocation();
-			
-            int refIndex = location.indexOf("reference:");//$NON-NLS-1$
+            Bundle tempBundle = Platform.getBundle(bundleName);
+            String location = tempBundle.getLocation();
+            
+            int refIndex = location.indexOf("reference:");
             if (refIndex != -1) {
-                location = location.substring(refIndex + "reference:".length());//$NON-NLS-1$
+                location = location.substring(refIndex + "reference:".length());
             }
-            int fileIndex = location.indexOf("file:");//$NON-NLS-1$
+            int fileIndex = location.indexOf("file:");
             if (fileIndex != -1) {
-                location = location.substring(fileIndex + "file:".length());//$NON-NLS-1$
+                location = location.substring(fileIndex + "file:".length());
             }
-			if (!location.startsWith("/")) {//$NON-NLS-1$
-				Location installLocation = Platform.getInstallLocation();
+            if (!location.startsWith("/")) {
+                Location installLocation = Platform.getInstallLocation();
 
-				if (installLocation != null) {
-					location = installLocation.getURL().getPath() + location;
-				}
-			}
-			
-			state.addBundle(new File(location));
-		    realBundle = state.getBundle(bundleName, null, false);
-		    
-			// must add required bundles before this bundle can be resolved
-	        BundleSpecification[] requiredBundles = realBundle.getRequiredBundles();
-	        for (int i = 0; i < requiredBundles.length; i++) {
-	            addBundleAndRequired(requiredBundles[i].getName());
+                if (installLocation != null) {
+                    location = installLocation.getURL().getPath() + location;
+                }
             }
-		}
-		return realBundle;
+            
+            state.addBundle(new File(location));
+            realBundle = state.getBundle(bundleName, null, false);
+            
+            // must add required bundles before this bundle can be resolved
+            BundleSpecification[] requiredBundles = realBundle.getRequiredBundles();
+            for (int i = 0; i < requiredBundles.length; i++) {
+                addBundleAndRequired(requiredBundles[i].getName());
+            }
+        }
+        return realBundle;
 	}
     // AspectJ Change End
 	
@@ -1632,43 +1631,68 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		this.inpath = inpath;
 	}
 
-	private String[] bundleToCP(BundleDescription bundle) throws CoreException {
-		if (addedBundles.contains(bundle)) {
-			return new String[]{};
-		}
-		addedBundles.add(bundle);
-		if (bundle.getSymbolicName() != null &&
-				bundle.getSymbolicName().equals("org.apache.ant")) { //$NON-NLS-1$
-			return new String[]{};
-		}
-		
-		List pathList = new ArrayList();
-		String loc = bundle.getLocation();
-		Path absPath = new Path(loc);
-		IPath basePath = Utils.makeRelative(absPath, new Path(getLocation(model)));
-		
-		if ("jar".equalsIgnoreCase(basePath.getFileExtension())) { //$NON-NLS-1$
-			pathList.add(basePath.toString());
-		} else {
-			String[] cpe = getClasspathEntries(bundle);
-			if (cpe != null) {
-			    for (int i = 0; i < cpe.length; i++) {
-			        pathList.add(basePath.append(cpe[i]).toString());
-			    }
-			}
-		}		
-		
-		// now add prerequisite bundles
-		BundleDescription[] prereqs = bundle.getResolvedRequires();
-		for (int i = 0; i < prereqs.length; i++) {
-			String[] pcp = bundleToCP(prereqs[i]);
-			pathList.addAll(Arrays.asList(pcp));
-		}
-		
-		String[] path = new String[pathList.size()];
-		pathList.toArray(path);
-		return path;
+	private String[] bundleToCP(BundleDescription bundle) throws CoreException, MalformedURLException {
+        if (addedBundles.contains(bundle)) {
+            return new String[]{};
+        }
+        addedBundles.add(bundle);
+        if (bundle.getSymbolicName() != null &&
+                bundle.getSymbolicName().equals("org.apache.ant")) { //$NON-NLS-1$
+            return new String[]{};
+        }
+        
+        List pathList = new ArrayList();
+        String loc = bundle.getLocation();
+        int refIndex = loc.indexOf("reference:") + "reference:".length();
+        if (refIndex >= "reference:".length()) {
+            loc = loc.substring(refIndex);
+            URL locURL = new URL(loc);
+            loc = locURL.getFile();
+        }
+        
+        IPath basePath = new Path(loc);
+        
+        if (!basePath.isAbsolute()) {
+            URL configLoc = Platform.getConfigurationLocation().getURL();
+            basePath = new Path(configLoc.getFile() + "../").append(basePath);
+            System.out.println("ConfigLoc" + configLoc);
+        }
+        System.out.println("BasePath: " + basePath);
+        
+        if ("jar".equalsIgnoreCase(basePath.getFileExtension())) { //$NON-NLS-1$
+            pathList.add(basePath.toString());
+        } else {
+            String[] cpe = getClasspathEntriesFromInstallLocation(bundle);
+            if (cpe != null && cpe.length > 0) {
+                for (int i = 0; i < cpe.length; i++) {
+                    pathList.add(basePath.append(cpe[i]).toString());
+                }
+            } else {
+                pathList.add(basePath.toString());
+            }
+        }       
+        
+        // now add prerequisite bundles
+        BundleSpecification[] prereqs = bundle.getRequiredBundles();
+        for (int i = 0; i < prereqs.length; i++) {
+            System.out.println("Prereq: " + prereqs[i].getName());
+            BundleDescription prereqBundle = Platform.getPlatformAdmin().getState(false).getBundle(prereqs[i].getName(), null);
+            //            BundleDescription prereqBundle = getModel(prereqs[i].getName(), null);
+            if (prereqBundle != null ) {
+                String[] pcp = bundleToCP(prereqBundle);
+                pathList.addAll(Arrays.asList(pcp));
+            }
+        }
+        
+        String[] path = new String[pathList.size()];
+        pathList.toArray(path);
+        return path;
 	}
+    protected String[] getClasspathEntriesFromInstallLocation(BundleDescription lookedUpModel) throws CoreException {
+        Bundle b = Platform.getBundle(lookedUpModel.getSymbolicName());
+        return BundleHelper.getClasspath(b.getHeaders());
+    }
+
 	// AspectJ Change End
 
 }
