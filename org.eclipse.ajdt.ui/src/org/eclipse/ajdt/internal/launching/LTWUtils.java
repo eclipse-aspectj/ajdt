@@ -114,7 +114,6 @@ public class LTWUtils {
 				}
 			}
 		} catch (Exception e) {
-		    e.printStackTrace();
 		}
 
 	}
