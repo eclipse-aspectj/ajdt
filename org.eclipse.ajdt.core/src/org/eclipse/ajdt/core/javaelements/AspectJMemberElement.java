@@ -182,7 +182,11 @@ public IJavaElement getPrimaryElement(boolean checkOwner) {
  */
 public String getReturnType() throws JavaModelException {
 	AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
-	return Signature.createTypeSignature(info.getReturnTypeName(), false);
+	char[] returnTypeName = info.getReturnTypeName();
+	if (returnTypeName == null) {
+	    returnTypeName = "void".toCharArray();
+	}
+	return Signature.createTypeSignature(returnTypeName, false);
 }
 /**
  * @see IMethod
@@ -190,7 +194,11 @@ public String getReturnType() throws JavaModelException {
 public String getSignature() throws JavaModelException {
 	AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
 	//return info.getSignature();
-    return Signature.createMethodSignature(fParameterTypes, Signature.createTypeSignature(info.getReturnTypeName(), false));
+    char[] returnTypeName = info.getReturnTypeName();
+    if (returnTypeName == null) {
+        returnTypeName = "void".toCharArray();
+    }
+    return Signature.createMethodSignature(fParameterTypes, Signature.createTypeSignature(returnTypeName, false));
 }
 /**
  * @see org.eclipse.jdt.internal.core.JavaElement#hashCode()
