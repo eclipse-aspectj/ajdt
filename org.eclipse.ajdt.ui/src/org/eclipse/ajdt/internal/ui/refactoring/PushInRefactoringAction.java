@@ -111,13 +111,15 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
                 CompilationUnitDocumentProvider provider = (CompilationUnitDocumentProvider)
                     editor.getDocumentProvider();
                 ICompilationUnit unit = provider.getWorkingCopy(editor.getEditorInput());
-                try {
-                    IJavaElement candidate = unit.getElementAt(textSel.getOffset());
-                    if (candidate != null) {
-                        currSelection = new IJavaElement[1];
-                        currSelection[0] = candidate;
+                if (unit != null) {
+                    try {
+                        IJavaElement candidate = unit.getElementAt(textSel.getOffset());
+                        if (candidate != null) {
+                            currSelection = new IJavaElement[1];
+                            currSelection[0] = candidate;
+                        }
+                    } catch (JavaModelException e) {
                     }
-                } catch (JavaModelException e) {
                 }
             }
 	    }
