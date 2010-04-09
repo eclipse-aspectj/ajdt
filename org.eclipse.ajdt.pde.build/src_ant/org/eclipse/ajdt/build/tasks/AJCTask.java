@@ -94,7 +94,8 @@ public class AJCTask extends JavacTask {
 			
 			ajScript.indent++;
 	
-			ajScript.println("<forkclasspath refid=\"" + classpathId + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.println("<classpath refid=\"" + classpathId + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.println("<classpath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ 
 			ajScript.println("<forkclasspath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ 
 	
 			// Add aspectpath and inpath
