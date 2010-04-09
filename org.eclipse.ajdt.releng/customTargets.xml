@@ -63,107 +63,107 @@
   		<!-- plugins -->
   		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
   			<fileset dir="${workdir}/org.eclipse.aspectj">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.aspectj.runtime">
   			<fileset dir="${workdir}/org.aspectj.runtime">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.aspectj.weaver">
   			<fileset dir="${workdir}/org.aspectj.weaver">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.aspectj.ajde">
   			<fileset dir="${workdir}/org.aspectj.ajde">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.core">
   			<fileset dir="${workdir}/org.eclipse.ajdt.core">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.core.tests">
   			<fileset dir="${workdir}/org.eclipse.ajdt.core.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui">
   			<fileset dir="${workdir}/org.eclipse.ajdt.ui">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.mylyn.ui">
   			<fileset dir="${workdir}/org.eclipse.ajdt.mylyn.ui">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.doc.user">
   			<fileset dir="${workdir}/org.eclipse.ajdt.doc.user">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui.tests">
   			<fileset dir="${workdir}/org.eclipse.ajdt.ui.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui.visual.tests">
   			<fileset dir="${workdir}/org.eclipse.ajdt.ui.visual.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.examples">
   			<fileset dir="${workdir}/org.eclipse.ajdt.examples">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.visualiser">
   			<fileset dir="${workdir}/org.eclipse.contribution.visualiser">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.visualiser.tests">
   			<fileset dir="${workdir}/org.eclipse.contribution.visualiser.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.core">
   			<fileset dir="${workdir}/org.eclipse.contribution.xref.core">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.core.tests">
   			<fileset dir="${workdir}/org.eclipse.contribution.xref.core.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.ui">
   			<fileset dir="${workdir}/org.eclipse.contribution.xref.ui">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.contribution.xref.ui.tests">
   			<fileset dir="${workdir}/org.eclipse.contribution.xref.ui.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
   	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt">
   		  <fileset dir="${workdir}/org.eclipse.contribution.weaving.jdt">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
   	  </copy>
   	  <copy todir="${buildDirectory}/plugins/org.eclipse.contribution.weaving.jdt.tests">
   	  	<fileset dir="${workdir}/org.eclipse.contribution.weaving.jdt.tests">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
     	</copy>
   	  <copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.pde.build">
   	  	<fileset dir="${workdir}/org.eclipse.ajdt.pde.build">
-  				<exclude name="bin"/>
+  				<exclude name="bin/**"/>
   			</fileset>
     	</copy>
     	
