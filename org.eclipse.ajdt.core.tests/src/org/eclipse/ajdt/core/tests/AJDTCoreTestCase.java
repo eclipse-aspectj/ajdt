@@ -23,6 +23,8 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.tests.testutils.DefaultLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -36,8 +38,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
@@ -356,4 +364,91 @@ public class AJDTCoreTestCase extends TestCase {
 			throw lastException;
 		}
 	}
+	
+    private void ensureExists(IFolder folder) throws CoreException {
+        if (folder.getParent().getType() == IResource.FOLDER && !folder.getParent().exists()) {
+            ensureExists((IFolder) folder.getParent());
+        }
+        folder.create(false, true, null);
+    }
+
+	
+    private IPackageFragmentRoot createDefaultSourceFolder(IJavaProject javaProject) throws CoreException {
+        IProject project = javaProject.getProject();
+        IFolder folder = project.getFolder("src");
+        if (!folder.exists())
+            ensureExists(folder);
+        final IClasspathEntry[] entries = javaProject
+                .getResolvedClasspath(false);
+        final IPackageFragmentRoot root = javaProject
+                .getPackageFragmentRoot(folder);
+        for (int i = 0; i < entries.length; i++) {
+            final IClasspathEntry entry = entries[i];
+            if (entry.getPath().equals(folder.getFullPath()))
+                return root;
+        }
+        IClasspathEntry[] oldEntries = javaProject.getRawClasspath();
+        IClasspathEntry[] newEntries = new IClasspathEntry[oldEntries.length + 1];
+        System.arraycopy(oldEntries, 0, newEntries, 0, oldEntries.length);
+        newEntries[oldEntries.length] = JavaCore.newSourceEntry(root.getPath());
+        javaProject.setRawClasspath(newEntries, null);
+        return root;
+    }
+
+    
+    public IPackageFragment createPackage(String name, IJavaProject javaProject) throws CoreException {
+        return createPackage(name, null, javaProject);
+    }
+    public IPackageFragment createPackage(String name, IPackageFragmentRoot sourceFolder, IJavaProject javaProject) throws CoreException {
+        if (sourceFolder == null)
+            sourceFolder = createDefaultSourceFolder(javaProject);
+        return sourceFolder.createPackageFragment(name, false, null);
+    }
+
+    public ICompilationUnit createCompilationUnit(IPackageFragment pack, String cuName,
+            String source) throws JavaModelException {
+        StringBuffer buf = new StringBuffer();
+        if (!pack.isDefaultPackage()) {
+            buf.append("package " + pack.getElementName() + ";" + System.getProperty("line.separator"));
+        }
+        buf.append(System.getProperty("line.separator"));
+        buf.append(source);
+        return pack.createCompilationUnit(cuName,
+                buf.toString(), false, null);
+    }
+    
+    public ICompilationUnit createCompilationUnitAndPackage(String packageName, String fileName,
+            String source, IJavaProject javaProject) throws CoreException {
+        return createCompilationUnit(createPackage(packageName, javaProject), fileName, source);
+    }
+
+
+    public void assertNoProblems(IProject project) throws CoreException {
+        String problems = getProblems(project);
+        if (problems != null) {
+            fail("Expecting no problems for project " + project.getName() + ", but found:\n\n" + problems);
+        }
+    }
+    
+    public String getProblems(IProject project) throws CoreException {
+        IMarker[] markers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+        StringBuffer sb = new StringBuffer();
+        if (markers == null || markers.length == 0) {
+            return null;
+        }
+        boolean errorFound = false;
+        sb.append("Problems:\n");
+        for (int i = 0; i < markers.length; i++) {
+            if (((Integer) markers[i].getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
+                sb.append("  ");
+                sb.append(markers[i].getResource().getName()).append(" : ");
+                sb.append(markers[i].getAttribute(IMarker.LOCATION)).append(" : ");
+                sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
+                errorFound = true;
+            }
+        }
+        return errorFound ? sb.toString() : null;
+    }
+    
+    
 }

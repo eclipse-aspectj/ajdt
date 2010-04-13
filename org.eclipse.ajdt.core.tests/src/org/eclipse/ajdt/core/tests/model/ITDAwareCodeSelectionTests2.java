@@ -88,8 +88,8 @@ public class ITDAwareCodeSelectionTests2 extends AJDTCoreTestCase {
      * @see TestCase#setUp()
      */
     protected void setUp() throws Exception {
-        origProvider = ITDAwarenessAspect.provider;
-        ITDAwarenessAspect.provider = mockProvider;
+        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
+        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(mockProvider);
         super.setUp();
         base = createPredefinedProject("Bug273334base"); //$NON-NLS-1$
         depending = createPredefinedProject("Bug273334depending"); //$NON-NLS-1$
@@ -100,7 +100,7 @@ public class ITDAwareCodeSelectionTests2 extends AJDTCoreTestCase {
 
     protected void tearDown() throws Exception {
         super.tearDown();
-        ITDAwarenessAspect.provider = origProvider;
+        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
     }
 
     

@@ -8,4 +8,7 @@ public class HasAnITD {
 		this.method();
 		method();
 	}
+	
+	void regularMethod() { }
+	int regularField = 9;
 }

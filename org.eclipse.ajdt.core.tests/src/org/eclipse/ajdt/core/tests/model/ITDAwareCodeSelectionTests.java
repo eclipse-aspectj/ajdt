@@ -88,8 +88,8 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
      * @see TestCase#setUp()
      */
     protected void setUp() throws Exception {
-        origProvider = ITDAwarenessAspect.provider;
-        ITDAwarenessAspect.provider = mockProvider;
+        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
+        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(mockProvider);
         super.setUp();
         project = createPredefinedProject("Bug273334"); //$NON-NLS-1$
         targetFile = project.getFile("src/a/HasAnITD.java");
@@ -103,7 +103,7 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
 
     protected void tearDown() throws Exception {
         super.tearDown();
-        ITDAwarenessAspect.provider = origProvider;
+        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
     }
     /**
      * Test that ITD hyperlinks work when inside the CU that
@@ -114,23 +114,35 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
         validateCodeSelect(targetUnit, findRegion(targetUnit, "field", 2), "HasAnITD.field");
         validateCodeSelect(targetUnit, findRegion(targetUnit, "method", 1), "HasAnITD.method");
         validateCodeSelect(targetUnit, findRegion(targetUnit, "method", 2), "HasAnITD.method");
-        
     }
+    
     /**
      * Test that ITD hyperlinks work when in another CU
      */
     public void testOtherFileHyperlink() throws Exception {
         validateCodeSelect(otherUnit, findRegion(otherUnit, "field", 1), "HasAnITD.field");
         validateCodeSelect(otherUnit, findRegion(otherUnit, "method", 1), "HasAnITD.method");
-        
     }
     /**
      * Test that ITD hyperlinks work when in an aspect
      */
     public void testAspectFileHyperlink() throws Exception {
         validateCodeSelect(aspectUnit, findRegion(aspectUnit, "field", 1), "HasAnITD.field");
+        validateCodeSelect(aspectUnit, findRegion(aspectUnit, "field", 3), "HasAnITD.field");
+        validateCodeSelect(aspectUnit, findRegion(aspectUnit, "field", 4), "HasAnITD.field");
         validateCodeSelect(aspectUnit, findRegion(aspectUnit, "method", 1), "HasAnITD.method");
-        
+        validateCodeSelect(aspectUnit, findRegion(aspectUnit, "method", 3), "HasAnITD.method");
+        validateCodeSelect(aspectUnit, findRegion(aspectUnit, "method", 4), "HasAnITD.method");
+    }
+    
+    /**
+     * tests that a regular method can be located inside of an ITD
+     */
+    public void testRegularAccessInITD() throws Exception {
+    	validateCodeSelect(aspectUnit, findRegion(aspectUnit, "regularMethod", 1), "regularMethod");
+    	validateCodeSelect(aspectUnit, findRegion(aspectUnit, "regularMethod", 2), "regularMethod");
+    	validateCodeSelect(aspectUnit, findRegion(aspectUnit, "regularField", 1), "regularField");
+    	validateCodeSelect(aspectUnit, findRegion(aspectUnit, "regularField", 2), "regularField");
     }
     
     private void validateCodeSelect(ICompilationUnit unit,
