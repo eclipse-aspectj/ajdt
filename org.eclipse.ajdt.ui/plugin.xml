@@ -394,7 +394,7 @@
             contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
             class="org.eclipse.ajdt.internal.ui.editor.AspectJEditor"
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">
-            <contentTypeBinding contentTypeId="org.eclipse.ajdt.core.aspectJSource"/> 
+            <contentTypeBinding contentTypeId="ajSource"/> 
       </editor>
       <!-- also register the editor for .java files, but not as the default -->
       <editor
@@ -2119,6 +2119,13 @@ M4 = Platform-specific fourth key
             class="org.eclipse.ajdt.internal.ui.actions.ActionFilterAdapterFactory">
          <adapter
                type="org.eclipse.ui.IActionFilter">
+         </adapter>
+      </factory>
+      <factory
+            adaptableType="org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter"
+            class="org.eclipse.ajdt.ui.AJDTNameEnvironmentAdapterFactory">
+         <adapter
+               type="org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider">
          </adapter>
       </factory>
    </extension>

@@ -342,9 +342,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
             
             cuInitJob.setPriority(Job.SHORT);
             cuInitJob.schedule();
-		    
-		} else {
-		    ITDAwarenessAspect.provider = new AJDTNameEnvironmentProvider();
 		}
 	}
 	
@@ -367,42 +364,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	}
 	
 
-	/**
-	 * use reflection to insert our own
-	 * document provider so that 
-	 * AJ CUs are properly created from .aj files (sometimes)
-	 * Only need if JDT Weaving is turned off
-	 * If weaving is on, then this happens automatically from the weaver
-	 * 
-	 * XXX this method is not used any more...can delete
-	 */
-//	private void insertAJCompilationUnitDocumentProvider() {
-//	    try {
-//	        
-//	        Field javaPluginDocumentProviderField = JavaPlugin.class.getDeclaredField("fCompilationUnitDocumentProvider");
-//	        javaPluginDocumentProviderField.setAccessible(true);
-//	        ICompilationUnitDocumentProvider oldProvider = (ICompilationUnitDocumentProvider) javaPluginDocumentProviderField.get(JavaPlugin.getDefault());
-//	        if (oldProvider != null) {
-//	            oldProvider.shutdown();
-//	        }
-//	        ICompilationUnitDocumentProvider newProvider = new AJCompilationUnitDocumentProvider();
-//	        javaPluginDocumentProviderField.set(JavaPlugin.getDefault(), newProvider);
-//
-//            WorkingCopyManager manager = (WorkingCopyManager) JavaPlugin.getDefault().getWorkingCopyManager();
-//            Field managerDocumentProviderField = manager.getClass().getDeclaredField("fDocumentProvider");
-//            managerDocumentProviderField.setAccessible(true);
-//            oldProvider = (ICompilationUnitDocumentProvider) managerDocumentProviderField.get(manager);
-//            if (! (oldProvider instanceof AJCompilationUnitDocumentProvider)) {
-//                oldProvider.shutdown();
-//                managerDocumentProviderField.set(manager, newProvider);
-//            }
-//        } catch (SecurityException e) {
-//        } catch (IllegalArgumentException e) {
-//        } catch (NoSuchFieldException e) {
-//        } catch (IllegalAccessException e) {
-//        }
-//    }
-	
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.jdt.core"); //$NON-NLS-1$
 		String versionStr = (String) bundle.getHeaders().get(
