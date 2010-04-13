@@ -13,9 +13,12 @@ package org.eclipse.ajdt.internal.core.contentassist;
 
 import java.util.ArrayList;
 
+import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.text.ITDAwareSelectionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -39,6 +42,7 @@ public class ITDCodeSelection {
         this.unit = unit;
     }
     
+    // will not work inside of ITD methods when 'this' has been changed
     public IJavaElement[] findJavaElement(IRegion wordRegion)
             throws JavaModelException {
         JavaProject javaProject = (JavaProject) unit.getJavaProject();
@@ -53,18 +57,64 @@ public class ITDCodeSelection {
         ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
         
         org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
-                new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()){
+                new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
             public char[] getContents() {
                 return converter.content;
             }
         };
         int transformedStart = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset(), replacements);
         int transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements)-1;
-        
+        requestor.setReplacements(replacements);
         engine.select(wrappedUnit, transformedStart, transformedEnd);
+        
+        
+        
+        // maybe perform code select again.  If we are inside of an ITD method
+        // must check for ITD references to the target type
+        IntertypeElement itd = itdOrNull(unit, wordRegion.getOffset());
+        if (itd != null && 
+                (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_METHOD ||
+                itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR)) {
+            char[] targetType = itd.getTargetType();
+            
+            final AspectsConvertingParser converter2 = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
+            converter2.setUnit(unit);
+            ArrayList replacements2 = converter2.convert(ConversionOptions.getCodeCompletionOptionWithContextSwitch(wordRegion.getOffset(), targetType));
+            wrappedUnit = 
+                new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
+                public char[] getContents() {
+                    return converter2.content;
+                }
+            };
+            transformedStart = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset(), replacements2);
+            transformedEnd = AspectsConvertingParser.translatePositionToAfterChanges(wordRegion.getOffset() + wordRegion.getLength(), replacements2)-1;
+            requestor.setReplacements(replacements2);
+
+            SelectionEngine engine2 = new SelectionEngine(environment, requestor, javaProject.getOptions(true), unit.getOwner());
+            engine2.select(wrappedUnit, transformedStart, transformedEnd);
+        }
+        
         IJavaElement[] elements = requestor.getElements();
+        if (itd != null && elements.length == 0) {
+            // maybe we are selecting on the name of the itd itself
+            if (itd.getNameRange().getOffset() <= wordRegion.getOffset() && 
+                    itd.getNameRange().getLength() >= wordRegion.getLength()) {
+                elements = new IJavaElement[] { itd };
+            }
+        }
         return elements;
     }
 
+    //return null if outside intertype method declaration or the name of the target type otherwise
+    private IntertypeElement itdOrNull(ICompilationUnit unit, int pos) throws JavaModelException{
+        if (unit instanceof AJCompilationUnit) {
+            IJavaElement elt = unit.getElementAt(pos);
+            if (elt instanceof IntertypeElement) {
+                IntertypeElement itd = (IntertypeElement) elt;
+                return itd;
+            }
+        }
+        return null;
+    }
 
 }

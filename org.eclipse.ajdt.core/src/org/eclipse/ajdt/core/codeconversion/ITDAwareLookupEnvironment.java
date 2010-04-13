@@ -5,16 +5,17 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.parserbridge.ITDInserter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
 public class ITDAwareLookupEnvironment extends LookupEnvironment {
     
@@ -60,12 +61,19 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
     
     private ICompilationUnit findCU(CompilationUnitDeclaration unit) {
         String fileName = new String(unit.getFileName());
-        IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(fileName));
-        if (fileName.endsWith(".aj")) {
-            return AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
-        } else {
+        IPath path = new Path(fileName);
+        if (path.segmentCount() > 1) {
+            IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
             return (ICompilationUnit) JavaCore.create(file);
-        }
+        } else {
+            // we might be part of a PossibleMatch, which doesn't include the path part of the file name
+            // get the full file name a different way.
+            if (unit.compilationResult.compilationUnit instanceof PossibleMatch && 
+                    ((PossibleMatch) unit.compilationResult.compilationUnit).openable instanceof ICompilationUnit) {
+                return (ICompilationUnit) ((PossibleMatch) unit.compilationResult.compilationUnit).openable;
+            }
+        } 
+        return null;
     }
 
 

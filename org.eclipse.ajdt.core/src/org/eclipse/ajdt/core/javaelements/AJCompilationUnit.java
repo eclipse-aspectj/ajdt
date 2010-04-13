@@ -867,8 +867,12 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
         return getPerWorkingCopyInfo() != null;
     }
 
-	//return null if outside intertype method declaration or the name of the target type otherwise
-	private IntertypeElement itdMethodOrNull(int pos) throws JavaModelException{
+	/**
+	 * @param pos
+	 * @return null if outside intertype method declaration or the name of the target type otherwise
+	 * @throws JavaModelException
+	 */
+	public IntertypeElement itdMethodOrNull(int pos) throws JavaModelException{
 	    IJavaElement elt = this.getElementAt(pos);
 	    if (elt instanceof IntertypeElement) {
             IntertypeElement itd = (IntertypeElement) elt;

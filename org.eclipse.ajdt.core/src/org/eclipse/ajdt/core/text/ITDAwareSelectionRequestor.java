@@ -11,21 +11,28 @@
 
 package org.eclipse.ajdt.core.text;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.aspectj.asm.IProgramElement.Kind;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
 
@@ -33,7 +40,10 @@ import org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
  * @author Andrew Eisenberg
  * @created Apr 28, 2009
  * 
- * A selection requestor that knows about ITDs
+ * A selection requestor that knows about ITDs.
+ * 
+ * If the carat is on the ITD itself, this cannot be selected...
+ * Need some different logic to deal with this
  */
 public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     
@@ -41,12 +51,18 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     private ICompilationUnit currentUnit;
     private Set /* IJavaElement */ accepted;
     
+    private ArrayList<Replacement> replacements;
+    
     public ITDAwareSelectionRequestor(AJProjectModelFacade model, ICompilationUnit currentUnit) {
         this.model = model;
         this.currentUnit = currentUnit;
         this.accepted = new HashSet();
     }
 
+    public void setReplacements(ArrayList<Replacement> replacements) {
+        this.replacements = replacements;
+    }
+    
     public void acceptError(CategorizedProblem error) {
         // can ignore
     }
@@ -61,10 +77,29 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                 IJavaElement elt = (IJavaElement) iterator.next();
                 if (matchedField(elt, name)) {
                     accepted.add(elt);
+                    return;
+                }
+            }
+            
+            // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
+            if (isInsideITD(start)) {
+                IField field = targetType.getField(String.valueOf(name));
+                if (field.exists()) {
+                    accepted.add(field);
                 }
             }
         } catch (JavaModelException e) {
         }
+    }
+
+    /**
+     * @param pos
+     * @return
+     * @throws JavaModelException
+     */
+    private boolean isInsideITD(int pos) throws JavaModelException {
+        return replacements != null && currentUnit instanceof AJCompilationUnit && 
+        currentUnit.getElementAt(AspectsConvertingParser.translatePositionToBeforeChanges(pos, replacements)) instanceof IntertypeElement;
     }
 
     public void acceptMethod(char[] declaringTypePackageName,
@@ -74,13 +109,32 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             char[][] typeParameterNames, char[][][] typeParameterBoundNames,
             boolean isConstructor, boolean isDeclaration, char[] uniqueKey,
             int start, int end) {
+        String[] simpleParameterSigs;
+        if (parameterSignatures != null) {
+            simpleParameterSigs = new String[parameterSignatures.length];
+            for (int i = 0; i < parameterSignatures.length; i++) {
+                simpleParameterSigs[i] = toSimpleName(parameterSignatures[i]);
+            }
+        } else {
+            simpleParameterSigs = null;
+        }
+        
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
             List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
             for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
                 IJavaElement elt = (IJavaElement) iterator.next();
-                if (matchedMethod(elt, selector, parameterSignatures)) {
+                if (matchedMethod(elt, selector, simpleParameterSigs)) {
                     accepted.add(elt);
+                    return;
+                }
+            }
+            
+            // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
+            if (isInsideITD(start)) {
+                IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
+                if (method.exists()) {
+                    accepted.add(method);
                 }
             }
         } catch (JavaModelException e) {
@@ -135,34 +189,114 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         }
         return false;
     }
-
+    
+    
+    // This method checks to see if the selected method matches the 
+    // method we are searching for.  However, we take some shortcuts here.
+    // Rather than looking at qualified, resolved type signatures of both methods
+    // we look at the simple type names of all paramters.  The reason for this 
+    // is that the parameters on the elt argument may be unresolved (ie- simple names)
+    // whereas the paramter signatures passed in may be resolved (ie- fully qualified).
+    // Thus, there could be a match that wouldn't be found.
+    // The solution is to compare simple names only.  The danger is that there might be false
+    // positives with the match, but they would be rare and not particularly worrisome if 
+    // they exist.
     private boolean matchedMethod(IJavaElement elt, char[] selector, 
-            String[] parameterSignatures) throws JavaModelException {
+            String[] simpleParameterSigs) throws JavaModelException {
         if (elt instanceof IntertypeElement) {
             IntertypeElement itd = (IntertypeElement) elt;
             IntertypeElementInfo info = (IntertypeElementInfo) 
-                    ((IntertypeElement) elt).getElementInfo();
+            ((IntertypeElement) elt).getElementInfo();
             if (info.getAJKind() == Kind.INTER_TYPE_METHOD ||
                     info.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR) {
-                if (extractName(elt.getElementName()).equals(new String(selector))) {
-                    String[] pTypes = itd.getParameterTypes();
-                    if (pTypes != null && parameterSignatures!= null &&
-                            pTypes.length == parameterSignatures.length) {
-                        for (int i = 0; i < pTypes.length; i++) {
-                            if (!pTypes[i].equals(parameterSignatures[i])) {
+                if (extractName(elt.getElementName()).equals(String.valueOf(selector))) {
+                    String[] itdParameterSigs = itd.getParameterTypes();
+                    if (itdParameterSigs == null || simpleParameterSigs == null) {
+                        return (itdParameterSigs == null || itdParameterSigs.length == 0) && 
+                               (simpleParameterSigs == null || simpleParameterSigs.length == 0);
+                    }
+                    
+                    if (itdParameterSigs.length == simpleParameterSigs.length) {
+                        for (int i = 0; i < itdParameterSigs.length; i++) {
+                            String simple = toSimpleName(itdParameterSigs[i]);
+                            if (! simple.equals(simpleParameterSigs[i])) {
                                 return false;
                             }
                         }
-                        // all param sigs the same
                         return true;
-                    } else { 
-                        // both have 0 paramss
-                        return pTypes == null && parameterSignatures == null;
                     }
                 }
             }
         }
         return false;
+    }
+    
+    private String toSimpleName(String signature) {
+        String simple = Signature.getSignatureSimpleName(signature);
+        int typeParamIndex = simple.indexOf('<');
+        if (typeParamIndex > 0) {
+            simple = simple.substring(typeParamIndex+1);
+        }
+        int dotIndex = simple.indexOf('.');
+        if (dotIndex > 0) {
+            simple = simple.substring(dotIndex+1);
+        }
+        return simple;
+    }
+    
+
+
+    /**
+     * Converts from a 'Q' kind of signature to an 'L' kind of signature.
+     * This is actually quite tricky.
+     * @param signature
+     * @return
+     */
+    private String resolveSignture(IType type, String signature) {
+        String simple = Signature.getSignatureSimpleName(signature);
+        String qual = Signature.getSignatureQualifier(signature);
+        String[] typeParams = Signature.getTypeArguments(signature);
+        int arrayCount = Signature.getArrayCount(signature);
+        
+        String fullyQual = qual != null && qual.length() > 0 ? qual + '.' + simple : simple;
+        try {
+            String[][] resolvedArr = type.resolveType(fullyQual);
+            if (resolvedArr != null && resolvedArr.length > 0) {
+                String resolved = (resolvedArr[0][0].length() > 0) ? 
+                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1]; 
+                String newSig = Signature.createTypeSignature(resolved, true);
+                if (arrayCount > 0) {
+                    newSig = Signature.createArraySignature(newSig, arrayCount);
+                }
+                
+                // uggh...don't know if this will work
+                if (typeParams != null && typeParams.length > 0) {
+                    newSig = newSig.substring(0, newSig.length()-1) + "<";
+                    for (int i = 0; i < typeParams.length; i++) {
+                        typeParams[i] = resolveSignture(type, typeParams[i]);
+                        newSig = newSig.substring(0, newSig.length()-1) + typeParams[i];
+                    }
+                    newSig += ">;";
+                }
+                return newSig;
+            }
+        } catch (JavaModelException e) {
+        }
+        
+        // couldn't resolve
+        return signature;
+    }
+
+    /**
+     * @param signature
+     * @return true if this is an unresolved signature
+     */
+    private boolean isUnresolvedSignature(String signature) {
+        int typeStart = 0;
+        while (signature.length() < typeStart && signature.charAt(typeStart) == '[') {
+            typeStart++;
+        }
+        return signature.charAt(typeStart) == 'Q';
     }
 
     private String toQualifiedName(char[] declaringTypePackageName,
@@ -177,8 +311,21 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     }
 
     private String extractName(String name) {
+        
         String[] split = name.split("\\.");
-        return split.length > 1 ? split[split.length-1] : name;
+        if (split.length <= 1) {
+            return name;
+        }
+        int splitLength = split.length;
+        // maybe this is a constructor ITD
+        if (name.endsWith("_new")) {
+            if ((split[splitLength-2] + "_new").equals(split[splitLength-1])) {
+                return split[splitLength-2];
+            }
+        } else if (name.endsWith("$new")) {
+            return name.substring(0, name.length()-"$new".length());
+        }
+        return split[splitLength-1];
     }
 
 

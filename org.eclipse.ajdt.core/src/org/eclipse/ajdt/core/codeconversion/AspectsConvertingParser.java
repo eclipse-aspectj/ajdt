@@ -192,7 +192,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     //returns a list of Insertions to let the client now what has been inserted
     //into the buffer so he can translate positions from the old into the new
     //buffer
-    public ArrayList convert(ConversionOptions options) {
+    public ArrayList<Replacement> convert(ConversionOptions options) {
         this.options = options;
         boolean insertIntertypeDeclarations = options
                 .isThisJoinPointReferencesEnabled();

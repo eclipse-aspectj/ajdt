@@ -100,7 +100,9 @@ public class AopXmlPreferences {
         for (int i = 0; i < paths.length; i++) {
             try {
                 IFile file = root.getFile(paths[i]);
-                strings.add(file.getLocation().toOSString());
+                if (file != null) {
+                    strings.add(file.getLocation().toOSString());
+                }
             } catch (Exception e) {
                 // print the error and continue
             }

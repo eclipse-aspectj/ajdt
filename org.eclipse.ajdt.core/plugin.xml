@@ -90,10 +90,26 @@
          point="org.eclipse.core.runtime.adapters">
       <factory
             adaptableType="org.eclipse.contribution.jdt.itdawareness.ContentAssistAdapter"
-            class="org.eclipse.ajdt.core.ContentAssistProviderAdapterFactory">
+            class="org.eclipse.ajdt.internal.core.contentassist.ContentAssistProviderAdapterFactory">
          <adapter
                type="org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider">
          </adapter>
       </factory>
+      <factory
+            adaptableType="org.eclipse.contribution.jdt.itdawareness.SearchAdapter"
+            class="org.eclipse.ajdt.internal.core.search.SearchAdapterFactory">
+         <adapter
+               type="org.eclipse.contribution.jdt.itdawareness.ISearchProvider">
+         </adapter>
+      </factory>
+   </extension>
+   <!-- for AJDT in 3.6 only -->
+   <extension
+         point="org.eclipse.ant.core.extraClasspathEntries">
+      <extraClasspathEntry
+            eclipseRuntime="true"
+            headless="true"
+            library="ajc_compiler_adapter.jar">
+      </extraClasspathEntry>
    </extension>
 </plugin>

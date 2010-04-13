@@ -176,6 +176,11 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             end++;
         }
         
+        // include paren or bracket because this would be the start of a constructor call
+        // TODO handle situation where there are spaces after the name and before the '(' or '<'
+        if (contents[end] == '(' || contents[end] == '<') {
+            end++;
+        }
         String candidate = String.valueOf(contents, start, end-start);
         candidate = candidate.trim();
         String split[] = candidate.split("\\.|\\s");
