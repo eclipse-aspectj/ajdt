@@ -10,10 +10,6 @@ import org.eclipse.core.runtime.CoreException;
 
 public class ITDinSeparateProjects extends UITestCase {
     
-    protected void setUp() throws Exception {
-        // TODO Auto-generated method stub
-        super.setUp();
-    }
     /**
      * Test to ensure that a dependent project on the aspect path can send an ITD
      * into another project
