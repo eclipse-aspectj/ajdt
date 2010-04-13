@@ -79,13 +79,13 @@ public class ITDAwarenessTests extends WeavingTestCase {
             // ignore, bundle doesn't exist
         }
 
-        origProvider = ITDAwarenessAspect.provider;
-        origContentAssistProvider = ITDAwarenessAspect.aspectOf().adapter.getProvider();
+        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
+        origContentAssistProvider = ITDAwarenessAspect.aspectOf().contentAssistAdapter.getProvider();
 
         provider = new MockNameEnvironmentProvider();
         contentAssistProvider = new MockContentAssistProvider();
-        ITDAwarenessAspect.aspectOf().adapter.setProvider(contentAssistProvider);
-        ITDAwarenessAspect.provider = provider;
+        ITDAwarenessAspect.aspectOf().contentAssistAdapter.setProvider(contentAssistProvider);
+        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(provider);
         
         mock = this.createPredefinedProject("MockCUProject");
         java = this.createPredefinedProject("RealJavaProject");
@@ -94,8 +94,8 @@ public class ITDAwarenessTests extends WeavingTestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        ITDAwarenessAspect.provider = origProvider;
-        ITDAwarenessAspect.aspectOf().adapter.setProvider(origContentAssistProvider);
+        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
+        ITDAwarenessAspect.aspectOf().contentAssistAdapter.setProvider(origContentAssistProvider);
     }
     
     
