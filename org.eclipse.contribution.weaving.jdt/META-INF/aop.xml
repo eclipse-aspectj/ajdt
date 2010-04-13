@@ -5,6 +5,7 @@
 <aspect name="org.eclipse.contribution.jdt.cuprovider.CompilationUnitProviderAspect"/>
 <aspect name="org.eclipse.contribution.jdt.imagedescriptor.ImageDescriptorSelectorAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect"/>
+<aspect name="org.eclipse.contribution.jdt.itdawareness.MatchLocationManipulatorAspect"/>
 </aspects>
 </aspectj>
 
