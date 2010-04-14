@@ -13,7 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.internal.core.SourceRange;
+import org.eclipse.jdt.core.SourceRange;
 
 /**
  * Used to represent injar aspects (which have no parent)

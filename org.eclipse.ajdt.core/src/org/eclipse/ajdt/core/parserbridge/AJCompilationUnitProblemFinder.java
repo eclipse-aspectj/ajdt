@@ -299,7 +299,7 @@ public class AJCompilationUnitProblemFinder extends
 
         } finally {
             if (environment != null)
-                environment.monitor = null; // don't hold a reference to this
+                environment.setMonitor(null); // AJDT 3.6 // don't hold a reference to this
                                             // external object
             if (problemFactory != null)
                 problemFactory.monitor = null; // don't hold a reference to this
@@ -418,6 +418,7 @@ public class AJCompilationUnitProblemFinder extends
         if (!hasModel && 
             (id == IProblem.UndefinedType ||
              id == IProblem.UndefinedName ||
+             id == IProblem.UnresolvedVariable || // AJDT 3.6
              id == IProblem.UndefinedField ||
              id == IProblem.UndefinedMethod ||
              id == IProblem.UndefinedConstructor ||
@@ -518,6 +519,7 @@ public class AJCompilationUnitProblemFinder extends
         
         if (numArgs > 0 && 
                 (id == IProblem.UndefinedName || 
+                 id == IProblem.UnresolvedVariable || // AJDT 3.6 
                  id == IProblem.UndefinedField ||
                  id == IProblem.UndefinedMethod ||
                  id == IProblem.UndefinedType ||
@@ -597,7 +599,8 @@ public class AJCompilationUnitProblemFinder extends
             
             if (numArgs > 0 && 
                     (id == IProblem.UndefinedMethod ||
-                     id == IProblem.UndefinedName) &&
+                     id == IProblem.UndefinedName ||
+                     id == IProblem.UnresolvedVariable) && // AJDT 3.6 
                    (adviceBodyNames.contains(firstArg) || adviceBodyNames.contains(secondArg) ) &&
                    insideAdvice(categorizedProblem, unit)) {
                 // proceed/thisJoinPoint... statement
@@ -647,6 +650,7 @@ public class AJCompilationUnitProblemFinder extends
 
             if (numArgs > 0 && 
                     (id == IProblem.UndefinedName || 
+                     id == IProblem.UnresolvedVariable || // AJDT 3.6 
                      id == IProblem.UndefinedField ||
                      id == IProblem.UndefinedMethod ||
                      id == IProblem.UndefinedType ||

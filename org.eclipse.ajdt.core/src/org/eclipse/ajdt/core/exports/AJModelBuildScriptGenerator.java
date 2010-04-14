@@ -58,7 +58,6 @@ import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
 import org.eclipse.pde.internal.build.builder.IClasspathComputer;
 import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0.ClasspathElement;
-import org.eclipse.pde.internal.build.builder.ModelBuildScriptGenerator.CompiledEntry;
 import org.eclipse.pde.internal.build.site.PDEState;
 import org.eclipse.pde.internal.build.site.ProfileManager;
 import org.eclipse.pde.internal.build.site.compatibility.FeatureEntry;

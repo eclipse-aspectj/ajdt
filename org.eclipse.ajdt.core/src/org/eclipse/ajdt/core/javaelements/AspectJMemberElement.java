@@ -31,7 +31,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
 import org.eclipse.jdt.internal.core.SourceMethodInfo;
-import org.eclipse.jdt.internal.core.SourceRange;
+import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**

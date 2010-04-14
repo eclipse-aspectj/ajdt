@@ -16,5 +16,5 @@ package org.eclipse.ajdt.core;
  */
 public class EclipseVersion {
 	public static final int MAJOR_VERSION = 3;
-	public static final int MINOR_VERSION = 5;
+	public static final int MINOR_VERSION = 6;
 }

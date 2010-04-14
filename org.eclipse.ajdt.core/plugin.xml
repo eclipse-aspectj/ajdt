@@ -112,4 +112,12 @@
             library="ajc_compiler_adapter.jar">
       </extraClasspathEntry>
    </extension>
+   <extension
+         point="org.eclipse.ant.core.antTasks">
+      <antTask
+            class="org.eclipse.ajdt.core.ant.AjcTask"
+            library="ajc_compiler_adapter.jar"
+            name="iajc">
+      </antTask>
+   </extension>
 </plugin>

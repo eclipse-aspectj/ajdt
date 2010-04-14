@@ -18,7 +18,7 @@ import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
-import org.eclipse.jdt.internal.core.SourceRange;
+import org.eclipse.jdt.core.SourceRange;
 
 /**
  * @author Luzius Meisser
