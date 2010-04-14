@@ -109,16 +109,16 @@
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
 	</target>
 	<target name="check-eclipse-already-downloaded" description="Check to see if the target Eclipse is already downloaded">
-		<available file="${download.home}/${build.eclipse.tar.3.5}" property="provision.build.completed"/>
+		<available file="${download.home}/${build.eclipse.tar.3.6}" property="provision.build.completed"/>
 	</target>
 
 	<target name="download-eclipse" unless="check-eclipse-already-downloaded" description="Downloads Eclipse if not already downloaded">
 		
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
-			<param name="theURL" value="${build.url.3.5}"/>
+			<param name="theURL" value="${build.url.3.6}"/>
 			<param name="downloadsDir" value="${download.home}"/>
-			<param name="theFile" value="${build.eclipse.tar.3.5}"/>
+			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
 		</antcall>
 	</target>
 
