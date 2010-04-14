@@ -41,7 +41,7 @@
 
 	<target name="pdebuild" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
-			dir="${ajdt.pdebuild.home}/scripts"
+			dir="${pdebuild.home}/scripts"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.ant.core.antRunner" />
@@ -50,7 +50,6 @@
 			<arg value="-DbaseLocation=${target.eclipse}" />
 			<arg value="-DbuildDirectory=${build.home}" />
 			<arg value="-Dbuild.dest=${build.dest}" />
-			<arg value="-Dajdt.pdebuild.home=${ajdt.pdebuild.home}" />
 			<arg value="-DforceContextQualifier=${forceContextQualifier}" />
 			<classpath>
 				<fileset dir="${build.eclipse}/plugins">
@@ -129,15 +128,15 @@
 		<!-- Unpack eclipse -->
 		<mkdir dir="${build.dest}"/>
 		<antcall target="unpack-archive">
-			<param name="theFile" value="${download.home}/${build.eclipse.tar.3.5}" />
+			<param name="theFile" value="${download.home}/${build.eclipse.tar.3.6}" />
 			<param name="theDir" value="${build.dest}" />
 		</antcall>
 
-		<!-- Install AspectJ -->
+		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/aspectj/update" 
-			feature.id="org.aspectj" />
+			updatesite.url="http://download.eclipse.org/tools/ajdt/36/dev/update" 
+			feature.id="org.eclipse.ajdt" />
 
 		<!-- ajdt-pde integration and test framework -->
 		<unzip src="${builder}/build_bundles/${ajdt.pdebuild.version}.zip" dest="${build.dest}/eclipse/plugins" overwrite="true" />
