@@ -198,7 +198,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				return true;
 			default:
 				if (JavaModelUtil.is50OrHigher(cu.getJavaProject())) {
-					return SuppressWarningsSubProcessor.hasSuppressWarningsProposal(problemId);
+					return SuppressWarningsSubProcessor.hasSuppressWarningsProposal(cu.getJavaProject(), problemId);  // AJDT 3.6
 				}
 				return false;
 		}

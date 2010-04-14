@@ -322,7 +322,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	 */
 	public void runOnMultiple(final ICompilationUnit[] cus) {
 		try {
-			String message= ActionMessages.OrganizeImportsAction_multi_status_description; 
+			String message= "Problems while organizing imports on some compilation units. See 'Details' for more information."; 
 			final MultiStatus status= new MultiStatus(JavaUI.ID_PLUGIN, IStatus.OK, message, null);
 			
 			IProgressService progressService= PlatformUI.getWorkbench().getProgressService();
@@ -332,7 +332,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				}
 			})); // workspace lock
 			if (!status.isOK()) {
-				String title= ActionMessages.OrganizeImportsAction_multi_status_title; 
+				String title= "Organize Imports"; 
 				ErrorDialog.openError(getShell(), title, null, status);
 			}
 		} catch (InvocationTargetException e) {
@@ -351,7 +351,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		if (monitor == null) {
 			monitor= new NullProgressMonitor();
 		}	
-		monitor.setTaskName(ActionMessages.OrganizeImportsAction_multi_op_description); 
+		monitor.setTaskName("Organizing imports..."); 
 	
 		monitor.beginTask("", cus.length); //$NON-NLS-1$
 		try {
@@ -393,7 +393,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 						} 	
 					} catch (CoreException e) {
 						JavaPlugin.log(e);
-						String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_unexpected, e.getStatus().getMessage()); 
+						String message= Messages.format("{0}: Unexpected error. See log for details.", e.getStatus().getMessage()); 
 						status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));					
 					}
 
@@ -411,7 +411,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		IJavaProject project= cu.getJavaProject();
 		if (!project.isOnClasspath(cu)) {
 			String cuLocation= cu.getPath().makeRelative().toString();
-			String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_notoncp, cuLocation); 
+			String message= Messages.format("{0}: Compilation unit not on build path. No changes applied.", cuLocation); 
 			status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
 			return false;
 		}
@@ -428,7 +428,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					status.add(e.getStatus());
 				} catch (CoreException e) {
 					JavaPlugin.log(e);
-					String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_unexpected, e.getStatus().getMessage()); 
+					String message= Messages.format("{0}: Unexpected error. See log for details.", e.getStatus().getMessage()); 
 					status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));					
 				} catch (OrganizeImportError e) {
 					String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_unresolvable, cuLocation); 

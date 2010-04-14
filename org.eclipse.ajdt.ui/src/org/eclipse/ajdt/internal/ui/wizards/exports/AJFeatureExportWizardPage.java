@@ -14,6 +14,9 @@ import java.net.URI;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.pde.internal.ui.wizards.exports.FeatureExportWizardPage;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 /**
  * Extends {@link FeatureExportWizardPage} to allow {@link AJFeatureExportWizard}
@@ -83,5 +86,15 @@ public class AJFeatureExportWizardPage extends FeatureExportWizardPage {
     
     protected URI getCategoryDefinition() {
         return super.getCategoryDefinition();
+    }
+    
+    public void createControl(Composite parent) {
+        Label l = new Label(parent, SWT.WRAP);
+        l.setText("Warning...this wizard is not working in Eclipse 3.6 and\n" +
+                "it will likely be removed before the final release.\n" +
+                "For a better solution, please see:\n" +
+                "https://bugs.eclipse.org/bugs/show_bug.cgi?id=303960");
+        
+        super.createControl(parent);
     }
 }

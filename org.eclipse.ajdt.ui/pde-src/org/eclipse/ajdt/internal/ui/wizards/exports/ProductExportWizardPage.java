@@ -63,6 +63,12 @@ public class ProductExportWizardPage extends AbstractExportWizardPage {
         layout.verticalSpacing = 10;
         container.setLayout(layout);
 
+        Label l = new Label(container, SWT.WRAP);
+        l.setText("Warning...this wizard is not working in Eclipse 3.6 and\n" +
+        		"it will likely be removed before the final release.\n" +
+        		"For a better solution, please see:\n" +
+        		"https://bugs.eclipse.org/bugs/show_bug.cgi?id=303960");
+        
         createConfigurationSection(container);
         createSynchronizationSection(container);
         createDestinationSection(container);

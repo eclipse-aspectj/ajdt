@@ -60,36 +60,6 @@ public class AspectJApplicationLaunchShortcut extends
 	}
 
 	/**
-	 * Returns the Java elements corresponding to the given objects.
-	 * 
-	 * @param objects
-	 *            selected objects
-	 * @return corresponding Java elements
-	 */
-	private IJavaElement[] getJavaElements(Object[] objects) {
-		List list = new ArrayList(objects.length);
-		for (int i = 0; i < objects.length; i++) {
-			Object object = objects[i];
-			if (object instanceof IAdaptable) {
-				IJavaElement element = (IJavaElement) ((IAdaptable) object)
-						.getAdapter(IJavaElement.class);
-				if (element != null) {
-					if (element instanceof IMember) {
-						// Use the declaring type if available
-						IJavaElement type = ((IMember) element)
-								.getDeclaringType();
-						if (type != null) {
-							element = type;
-						}
-					}
-					list.add(element);
-				}
-			}
-		}
-		return (IJavaElement[]) list.toArray(new IJavaElement[list.size()]);
-	}
-
-	/**
 	 * Returns the AspectJ launch config type
 	 */
 	protected static ILaunchConfigurationType getAJConfigurationType() {

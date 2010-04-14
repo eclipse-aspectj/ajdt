@@ -549,7 +549,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			try {
 				IPath indexFile = fDestination.append("index.html"); //$NON-NLS-1$
 				URL url = indexFile.toFile().toURL();
-				OpenBrowserUtil.open(url, display, getWindowTitle());
+				OpenBrowserUtil.open(url, display);  // AJDT 3.6
 			} catch (MalformedURLException e) {
 				JavaPlugin.log(e);
 			}
