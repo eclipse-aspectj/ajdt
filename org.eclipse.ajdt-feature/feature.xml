@@ -27,47 +27,60 @@
          version="0.0.0"
          name=""
          optional="true"/>
-         
+
    <includes
-	       id="org.eclipse.equinox.weaving.sdk"
-	       version="0.0.0.EAVERSION"
-	       name="Equinox Aspects"
-	       optional="true"/>
-         
+         id="org.eclipse.equinox.weaving.sdk"
+         version="0.0.0.EAVERSION"
+         name="Equinox Aspects"
+         optional="true"/>
 
    <requires>
       <import plugin="org.apache.ant"/>
-      <import plugin="org.eclipse.core.resources" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.core.runtime" version="3.5.0" match="compatible"/>
       <import plugin="org.eclipse.core.runtime.compatibility"/>
-      <import plugin="org.eclipse.text" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.jdt.core" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.ltk.core.refactoring" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.ui.workbench.texteditor" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.ui.editors" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.ui" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.jdt.ui" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.jface.text" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.search" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.eclipse.help" version="3.4.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ui.forms" version="3.4.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ui.workbench" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.jface" version="3.5.0" match="equivalent"/>
+      <import plugin="org.aspectj.runtime" version="1.5.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.runtime" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.core.resources" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.jdt.core" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.text" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ltk.core.refactoring" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.aspectj.ajde" version="1.6.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.workbench" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.jface" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.ui.ide" version="3.6.0" match="equivalent"/>
       <import plugin="org.eclipse.ui.views" version="3.3.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.debug.core" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.debug.ui" version="3.5.0" match="equivalent"/>
-      <import plugin="org.eclipse.jdt.debug.ui" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jface.text" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.ui.editors" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.search" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.jdt.ui" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.debug.core" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.debug.ui" version="3.6.0" match="equivalent"/>
+      <import plugin="org.eclipse.jdt.debug.ui" version="3.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.jdt.launching"/>
-      <import plugin="org.eclipse.ui.console" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.console" version="3.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.cheatsheets" version="3.3.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.jdt.debug" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.debug" version="3.5.0"/>
       <import plugin="org.eclipse.ui.intro"/>
       <import plugin="org.eclipse.ant.core" version="3.2.0" match="greaterOrEqual"/>
-      <import plugin="org.aspectj.weaver" version="1.6.4" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.help" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="org.aspectj.weaver" version="1.6.3" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.filesystem"/>
-      <import plugin="org.eclipse.ui.navigator" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.navigator" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.contribution.weaving.jdt" version="2.0.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ltk.ui.refactoring" version="3.4.100" match="greaterOrEqual"/>
+      <import plugin="com.ibm.icu"/>
+      <import plugin="org.eclipse.ajdt.ui" version="2.0.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ajdt.core" version="2.0.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.contribution.xref.ui" version="2.0.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide.application" version="1.0.100" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.osgi" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.browser" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.forms" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.commands"/>
+      <import plugin="org.eclipse.core.expressions"/>
    </requires>
 
    <plugin
