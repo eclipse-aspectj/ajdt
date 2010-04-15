@@ -1,5 +1,9 @@
 package org.eclipse.contribution.jdt.itdawareness;
 
+import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -26,34 +30,39 @@ public privileged aspect MatchLocationManipulatorAspect /*percflow(execution(pro
 
     ISearchProvider provider = new SearchAdapter().getProvider();
     
-    pointcut possibleMatchContents(PossibleMatch possible) : execution(public char[] PossibleMatch.getContents()) &&
-        this(possible);
+//    pointcut possibleMatchContents(PossibleMatch possible) : execution(public char[] PossibleMatch.getContents()) &&
+//        this(possible);
+//    
+//    char[] around(PossibleMatch possible) : possibleMatchContents(possible) {
+//        char[] orig = proceed(possible);
+//        if (possible.openable instanceof CompilationUnit) {
+//            char[] translated = provider.translateForMatchProcessing(orig, (CompilationUnit) possible.openable);
+//            possible.source = translated;
+//            return translated;
+//        } else {
+//            return orig;
+//        }
+//    }
     
-    char[] around(PossibleMatch possible) : possibleMatchContents(possible) {
-        char[] orig = proceed(possible);
-        if (possible.openable instanceof CompilationUnit) {
-            char[] translated = provider.translateForMatchProcessing(orig, (CompilationUnit) possible.openable);
-            possible.source = translated;
-            return translated;
-        } else {
-            return orig;
-        }
-    }
-    
+    // not used now, but maybe use for when we are searching inside of ITDs
     pointcut matchReported(SearchMatch match) : execution(protected void MatchLocator.report(SearchMatch)) 
             && args(match);
     
 //    void around(SearchMatch match) : matchReported(match) {
-//        match.setOffset(provider.translateLocationToOriginal(match.getOffset()));
-//        proceed(match);
 //    }
     
     pointcut matchLocatorInitialization(MatchLocator locator, JavaProject project) : execution(public void MatchLocator.initialize(JavaProject, int) throws JavaModelException) 
             && this(locator) && args(project,..);
     
     after(MatchLocator locator, JavaProject project) : matchLocatorInitialization(locator, project) {
-        locator.lookupEnvironment = provider.createLookupEnvironment(locator.lookupEnvironment, locator.workingCopies, project);
-        locator.nameEnvironment = locator.lookupEnvironment.nameEnvironment;
+        if (isInterestingProject(project.getProject())) {
+            locator.lookupEnvironment = provider.createLookupEnvironment(locator.lookupEnvironment, locator.workingCopies, project);
+            locator.nameEnvironment = locator.lookupEnvironment.nameEnvironment;
+        } 
     }
     
+    private boolean isInterestingProject(IProject proj) {
+        return proj != null &&
+                WeavableProjectListener.getInstance().isWeavableProject(proj);
+    }
 }

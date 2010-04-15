@@ -13,7 +13,7 @@ package org.eclipse.contribution.jdt.sourceprovider;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
@@ -23,8 +23,9 @@ import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BasicCompilationUnit;
 import org.eclipse.jdt.internal.core.BinaryType;
-import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceMapper;
+import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring.CleanUpChange;
+import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
 
 public aspect SourceTransformerAspect {
     
@@ -93,6 +94,35 @@ public aspect SourceTransformerAspect {
         }
         proceed(type, newContents, info);
     }
+    
+    /**
+     * Captures calls to code formatting and other cleanUps when executed from outside of an AJEditor
+     */
+    pointcut gettingBufferForCleanUp(org.eclipse.jdt.core.ICompilationUnit unit) : 
+        cflow(execution(public static CleanUpChange CleanUpRefactoring.calculateChange(..))) && 
+        call(public IBuffer org.eclipse.jdt.core.ICompilationUnit.getBuffer()) && 
+        !cflow(adviceexecution()) && target(unit);
+    
+    
+    /**
+     * Need to make sure that all cleanups access the actual contents, nothing translated
+     */
+    IBuffer around(org.eclipse.jdt.core.ICompilationUnit unit) : gettingBufferForCleanUp(unit) {
+        if (isInterestingProject(unit)) {
+            String extension = getExtension(unit.getElementName().toCharArray());
+            ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
+            if (transformer != null) {
+                try {
+                    IBuffer buffer = transformer.ensureRealBuffer(unit);
+                    return buffer;
+                } catch (Throwable t) {
+                    JDTWeavingPlugin.logException(t);
+                }
+            }
+        }
+        return proceed(unit);
+    }
+    
     
     private String getExtension(IType type, IBinaryType info) {
         String fName = null;
