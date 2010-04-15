@@ -54,6 +54,10 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 			upToDate = false;
 		}
 	}
+	
+	public IBuffer getRealBuffer() {
+        return realBuffer;
+    }
 
 	public void close() {
 	}
