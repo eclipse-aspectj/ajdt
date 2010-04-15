@@ -58,7 +58,7 @@ public class ExportPluginTest extends UITestCase {
 		exportFolder = state.append("exportDir/").toOSString(); //$NON-NLS-1$
 	}
 
-	public void testExportPluginAsZip() throws Exception {
+	public void _testExportPluginAsZip() throws Exception {
 	    
 	    // Ignore these tests on Linux because not passing
 //	    if (System.getProperty("os.name").equals("Linux")) {
@@ -117,7 +117,7 @@ public class ExportPluginTest extends UITestCase {
 		zf.close();
 	}
 
-	public void testExportMinimalBundleAsZip() throws Exception {
+	public void _testExportMinimalBundleAsZip() throws Exception {
         // Ignore these tests on Linux because not passing
 //        if (System.getProperty("os.name").equals("Linux")) {
 //            return;
@@ -165,7 +165,7 @@ public class ExportPluginTest extends UITestCase {
 		zf.close();
 	}
 
-	public void testExportJavaBundleAsZip() throws Exception {
+	public void _testExportJavaBundleAsZip() throws Exception {
         // Ignore these tests on Linux because not passing
 //        if (System.getProperty("os.name").equals("Linux")) {
 //            return;
@@ -220,7 +220,7 @@ public class ExportPluginTest extends UITestCase {
 		zf.close();
 	}
 
-    public void testExportPluginAsDir() throws Exception {
+    public void _testExportPluginAsDir() throws Exception {
         // Ignore these tests on Linux because not passing
 //        if (System.getProperty("os.name").equals("Linux")) {
 //            return;

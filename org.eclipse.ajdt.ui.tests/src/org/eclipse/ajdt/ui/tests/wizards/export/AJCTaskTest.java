@@ -56,7 +56,7 @@ public class AJCTaskTest extends UITestCase {
 		os.close();
 	}
 
-	public void testPrint() throws Exception {
+	public void _testPrint() throws Exception {
 		InputStream stream = new FileInputStream(tempFile);
 		BufferedReader reader = new BufferedReader(
 				new InputStreamReader(stream));
@@ -83,7 +83,7 @@ public class AJCTaskTest extends UITestCase {
 		stream.close();
 	}
 
-	public void testSetClasspath() throws Exception {
+	public void _testSetClasspath() throws Exception {
 		InputStream stream;
 
 		stream = new FileInputStream(tempFile);
@@ -103,7 +103,7 @@ public class AJCTaskTest extends UITestCase {
 		stream.close();
 	}
 
-	public void testSetScrDir() throws Exception {
+	public void _testSetScrDir() throws Exception {
 		InputStream stream;
 
 		stream = new FileInputStream(tempFile);
