@@ -170,6 +170,8 @@ public class Main {
 	/** ReflectionFactory identifier for command (compiler) */
 	protected String commandName;
 
+	protected ICommand command;
+	
 	/** client-set message sink */
 	private IMessageHolder clientHolder;
 
@@ -189,6 +191,10 @@ public class Main {
 		ourHandler = new MessageHandler(true);
 	}
 
+	public void setCommand(ICommand command) {
+        this.command = command;
+    }
+	
 	public MessageHandler getMessageHandler() {
 		return ourHandler;
 	}
@@ -346,8 +352,9 @@ public class Main {
 		if (0 < holder.numMessages(IMessage.ERROR, true)) {
 			return;
 		}
-		ICommand command = new org.aspectj.ajdt.ajc.AjdtCommand();
-//		ICommand command = ReflectionFactory.makeCommand(commandName, holder);
+		if (command == null) {
+		    command = ReflectionFactory.makeCommand(commandName, holder);
+		}
 		if (0 < holder.numMessages(IMessage.ERROR, true)) {
 			return;
 		}

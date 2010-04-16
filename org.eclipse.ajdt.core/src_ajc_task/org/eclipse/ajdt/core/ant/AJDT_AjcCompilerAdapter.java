@@ -21,7 +21,6 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Javac;
 import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.taskdefs.compilers.CompilerAdapter;
-import org.apache.tools.ant.util.GlobPatternMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.IMessageHolder;
@@ -85,6 +84,12 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
     }
 
     public boolean execute() throws BuildException {
+        javac.log("Note that you may see messages about skipping *.aj files above. " +
+        		"These messages can be ignored as these files are handled directly by " +
+        		"ajc.  Similarly, the messages below about skipping *.java files can be ignored.", Project.MSG_INFO);
+        
+        // javac task spits out messages that it 
+        
         if (null == javac) {
             throw new IllegalStateException("null javac");
         }
@@ -125,17 +130,9 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
                     String msg = "Compilation has errors or warnings. Log is available in " + logFile; 
                     javac.log(msg, Project.MSG_INFO);
                     return false;
+                } else {
+                    return ajc.wasCompilationSuccessful();
                 }
-                
-                // check log file for errors...if it exists
-//                if (logFile != null) {
-//                    File file = new File(logFile);
-//                    if (file.exists() && file.isFile()) {
-//                        String msg = "Compilation has errors or warnings. Log is available in " + logFile; 
-//                        javac.log(msg, Project.MSG_INFO);
-//                        return false;
-//                    }
-//                }
                 
             } finally {
                 inSelfCall.set(Boolean.FALSE);
@@ -148,13 +145,7 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
      * @param ajc
      */
     private void addAJFiles(AjcTask ajc) {
-        try {
-            Method addFilesMethod = AjcTask.class.getDeclaredMethod("addFiles", File[].class);
-            addFilesMethod.setAccessible(true);
-            addFilesMethod.invoke(ajc, new Object[] { getAJFiles() });
-        } catch (Exception e) {
-            throw new BuildException("Problem finding directory scanner for ajc task", e);
-        }
+        ajc.addFiles(getAJFiles());
     }
 
     /**
@@ -203,9 +194,7 @@ public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
             DirectoryScanner ds = getDirectoryScanner(srcDir);
             String[] files = ds.getIncludedFiles();
 
-            GlobPatternMapper m = new GlobPatternMapper();
-            m.setFrom("*.aj");
-            m.setTo("*.class");
+            AJFileNameMapper m = new AJFileNameMapper();
             SourceFileScanner sfs = new SourceFileScanner(javac);
             File[] moreFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
             if (moreFiles != null) {

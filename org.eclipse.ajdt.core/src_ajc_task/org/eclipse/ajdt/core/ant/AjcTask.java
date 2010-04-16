@@ -379,6 +379,8 @@ public class AjcTask extends MatchingTask {
 	/** used when forking */
 	private CommandlineJava javaCmd = new CommandlineJava();
 
+    private boolean wasCompilationSuccessful;
+
 	// also note MatchingTask grabs source files...
 
 	public AjcTask() {
@@ -997,7 +999,7 @@ public class AjcTask extends MatchingTask {
 		argfiles = incPath(argfiles, path);
 	}
 
-	public Path createArgfiles() {
+    public Path createArgfiles() {
 		if (argfiles == null) {
 			argfiles = new Path(project);
 		}
@@ -1043,9 +1045,9 @@ public class AjcTask extends MatchingTask {
 				logVerbose("ajc " + Arrays.asList(args));
 			}
 			if (!fork) {
-				executeInSameVM(args);
+				wasCompilationSuccessful = executeInSameVM(args);
 			} else { // when forking, Adapter handles failonerror
-				executeInOtherVM(args);
+			    wasCompilationSuccessful = executeInOtherVM(args);
 			}
 		} catch (BuildException e) {
 			throw e;
@@ -1058,6 +1060,10 @@ public class AjcTask extends MatchingTask {
 				tmpOutjar.delete();
 			}
 		}
+	}
+	
+	boolean wasCompilationSuccessful() {
+	    return wasCompilationSuccessful;
 	}
 
 	/**
@@ -1200,10 +1206,11 @@ public class AjcTask extends MatchingTask {
 	 * Run the compile in the same VM by loading the compiler (Main), setting up any message holders, doing the compile, and
 	 * converting abort/failure and error messages to BuildException, as appropriate.
 	 * 
+     * @return true on successful compilation
 	 * @throws BuildException if abort or failure messages or if errors and failonerror.
 	 * 
 	 */
-	protected void executeInSameVM(String[] args) {
+	protected boolean executeInSameVM(String[] args) {
 		if (null != maxMem) {
 			log("maxMem ignored unless forked: " + maxMem, Project.MSG_WARN);
 		}
@@ -1219,8 +1226,10 @@ public class AjcTask extends MatchingTask {
 		} else {
 			numPreviousErrors = holder.numMessages(IMessage.ERROR, true);
 		}
+		AjdtCommandForAnt command = new AjdtCommandForAnt();
 		{
 			Main newmain = new Main();
+			newmain.setCommand(command);
 			newmain.setHolder(holder);
 			newmain.setCompletionRunner(new Runnable() {
 				public void run() {
@@ -1229,7 +1238,7 @@ public class AjcTask extends MatchingTask {
 			});
 			if (null != main) {
 				MessageUtil.fail(holder, "still running prior main");
-				return;
+				return false;
 			}
 			main = newmain;
 		}
@@ -1284,6 +1293,7 @@ public class AjcTask extends MatchingTask {
 				}
 			}
 		}
+		return command.isFailed();
 	}
 
 	/**
@@ -1295,11 +1305,12 @@ public class AjcTask extends MatchingTask {
 	 * </ul>
 	 * 
 	 * @param args String[] of the complete compiler command to execute
+	 * @return true on successful compilation
 	 * 
 	 * @see DefaultCompilerAdapter#executeExternalCompile(String[], int)
 	 * @throws BuildException if ajc aborts (negative value) or if failonerror and there were compile errors.
 	 */
-	protected void executeInOtherVM(String[] args) {
+	protected boolean executeInOtherVM(String[] args) {
 		javaCmd.setClassname(org.eclipse.ajdt.core.ant.Main.class.getName());
 
 		final Path vmClasspath = javaCmd.createClasspath(getProject());
@@ -1371,6 +1382,8 @@ public class AjcTask extends MatchingTask {
 				tempFile.delete();
 			}
 		}
+		// if we get here, then compilation was successful
+		return true;
 	}
 
 	/**
