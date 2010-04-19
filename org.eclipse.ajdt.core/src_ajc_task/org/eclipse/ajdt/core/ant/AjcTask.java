@@ -56,6 +56,7 @@ import org.aspectj.bridge.IMessageHolder;
 import org.aspectj.bridge.MessageHandler;
 import org.aspectj.bridge.MessageUtil;
 import org.aspectj.bridge.IMessage.Kind;
+import org.aspectj.tools.ajc.Main;
 import org.aspectj.tools.ant.taskdefs.ICommandEditor;
 import org.aspectj.util.FileUtil;
 import org.aspectj.util.LangUtil;
@@ -1311,7 +1312,7 @@ public class AjcTask extends MatchingTask {
 	 * @throws BuildException if ajc aborts (negative value) or if failonerror and there were compile errors.
 	 */
 	protected boolean executeInOtherVM(String[] args) {
-		javaCmd.setClassname(org.eclipse.ajdt.core.ant.Main.class.getName());
+		javaCmd.setClassname(Main.class.getName());
 
 		final Path vmClasspath = javaCmd.createClasspath(getProject());
 		{

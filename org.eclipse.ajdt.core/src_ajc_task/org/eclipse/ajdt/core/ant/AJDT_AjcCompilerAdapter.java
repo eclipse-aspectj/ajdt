@@ -1,4 +1,4 @@
-/* *******************************************************************
+/********************************************************************
  * Copyright (c) 2003 Contributors.
  * All rights reserved.
  * This program and the accompanying materials are made available
@@ -7,8 +7,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Wes Isberg     initial implementation
- * ******************************************************************/
+ *     Wes Isberg        initial implementation
+ *     Andrew Eisenberg  Adapted for use with AJDT
+ *******************************************************************/
 
 package org.eclipse.ajdt.core.ant;
 
@@ -26,9 +27,6 @@ import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.IMessageHolder;
 import org.aspectj.bridge.MessageHandler;
 import org.aspectj.util.FileUtil;
-//import java.io.FileFilter;
-//import java.io.FileWriter;
-//import java.io.IOException;
 
 /**
  * Adapt ajc to javac commands.
@@ -56,7 +54,8 @@ import org.aspectj.util.FileUtil;
  * <p>
  * 
  * @author Wes Isberg
- * @since AspectJ 1.1, Ant 1.5.1
+ * @author Andrew Eisenberg
+ * @since AspectJ 1.1, Ant 1.5.1, AJDT 2.1.0
  */
 public class AJDT_AjcCompilerAdapter implements CompilerAdapter {
     
