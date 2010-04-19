@@ -1,5 +1,8 @@
 package org.eclipse.contribution.jdt.itdawareness;
 
+import java.util.List;
+
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
@@ -30,26 +33,21 @@ public privileged aspect MatchLocationManipulatorAspect /*percflow(execution(pro
 
     ISearchProvider provider = new SearchAdapter().getProvider();
     
-//    pointcut possibleMatchContents(PossibleMatch possible) : execution(public char[] PossibleMatch.getContents()) &&
-//        this(possible);
-//    
-//    char[] around(PossibleMatch possible) : possibleMatchContents(possible) {
-//        char[] orig = proceed(possible);
-//        if (possible.openable instanceof CompilationUnit) {
-//            char[] translated = provider.translateForMatchProcessing(orig, (CompilationUnit) possible.openable);
-//            possible.source = translated;
-//            return translated;
-//        } else {
-//            return orig;
-//        }
-//    }
+    pointcut matchProcessing(MatchLocator locator, PossibleMatch match, boolean bindingsWereCreated) : execution(protected void MatchLocator.process(PossibleMatch, boolean)) 
+            && args(match, bindingsWereCreated) && this(locator);
     
-    // not used now, but maybe use for when we are searching inside of ITDs
-    pointcut matchReported(SearchMatch match) : execution(protected void MatchLocator.report(SearchMatch)) 
-            && args(match);
-    
-//    void around(SearchMatch match) : matchReported(match) {
-//    }
+    after(MatchLocator locator, PossibleMatch match, boolean bindingsWereCreated) : matchProcessing(locator, match, bindingsWereCreated) {
+        try {
+            if (locator.requestor != null && match.openable != null && isInterestingProject(match.openable.getJavaProject().getProject())) {
+                List<SearchMatch> extraMatches = provider.findExtraMatches(match, locator.pattern);
+                for (SearchMatch extraMatch : extraMatches) {
+                    locator.requestor.acceptSearchMatch(extraMatch);
+                }
+            }
+        } catch (Exception e) {
+            JDTWeavingPlugin.logException("Exception while search for: " + match, e);
+        }
+    }
     
     pointcut matchLocatorInitialization(MatchLocator locator, JavaProject project) : execution(public void MatchLocator.initialize(JavaProject, int) throws JavaModelException) 
             && this(locator) && args(project,..);
