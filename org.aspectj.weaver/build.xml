@@ -81,5 +81,21 @@ Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
 		<zip destfile="${plugin.destination}/org.aspectj.weaver_${ajde.version}.jar" basedir="${temp.folder}/org.aspectj.weaver_${ajde.version}" filesonly="false" whenempty="skip" update="false"/>
 		<delete dir="${temp.folder}"/>
 	</target>
+	<target name="publish.bin.parts" depends="init" if="p2.publish.parts" unless="compilation.problem.marker.exists">
+		<mkdir dir="${build.result.folder}/org.aspectj.weaver_${ajde.version}"/>
+		<copy todir="${build.result.folder}" failonerror="true" overwrite="true">
+			<fileset dir="${basedir}">
+				<include name="META-INF/MANIFEST.MF"/>
+				<include name="plugin.xml"/>
+				<include name="fragment.xml"/>
+			</fileset>
+		</copy>
+		<eclipse.gatherBundle 
+		   metadataRepository="${p2.build.repo}"
+		   artifactRepository="${p2.build.repo}"
+		   buildResultFolder="${build.result.folder}"
+		   baseDirectory="${basedir}"
+		/>
+	</target>
 
 </project>
