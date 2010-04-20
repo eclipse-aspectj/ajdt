@@ -21,6 +21,7 @@ import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
 /**
@@ -40,5 +41,5 @@ public interface ISearchProvider {
             LookupEnvironment lookupEnvironment,
             ICompilationUnit[] workingCopies, JavaProject project);
     
-    public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern) throws JavaModelException;
+    public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern, HierarchyResolver resolver) throws JavaModelException;
 }
