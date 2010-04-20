@@ -11,6 +11,12 @@
  *******************************************************************************/
 package org.eclipse.contribution.jdt.sourceprovider;
 
+import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
+
 public interface ISourceTransformer {
     public char[] convert(char[] toConvert);
+    
+    public IBuffer ensureRealBuffer(ICompilationUnit unit) throws JavaModelException;
 }
