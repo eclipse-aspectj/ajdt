@@ -54,8 +54,11 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.search.matching.FieldPattern;
+import org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 import org.eclipse.jdt.internal.core.search.matching.MethodPattern;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
@@ -101,9 +104,8 @@ public class AJDTSearchProvider implements ISearchProvider {
     public LookupEnvironment createLookupEnvironment(
             LookupEnvironment orig,
             ICompilationUnit[] workingCopies, JavaProject project) {
-        ITDAwareNameEnvironment env;
         try {
-            env = new ITDAwareNameEnvironment(project, workingCopies);
+            ITDAwareNameEnvironment env = new ITDAwareNameEnvironment(project, workingCopies);
             return new ITDAwareLookupEnvironment(orig, env);
         } catch (JavaModelException e) {
         }
@@ -123,7 +125,7 @@ public class AJDTSearchProvider implements ISearchProvider {
      * for further possible matching matching.
      * @throws JavaModelException 
      */
-    public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern) throws JavaModelException {
+    public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern, HierarchyResolver resolver) throws JavaModelException {
         
         if (! (match.openable instanceof AJCompilationUnit)) {
             return Collections.EMPTY_LIST;
@@ -146,10 +148,13 @@ public class AJDTSearchProvider implements ISearchProvider {
         if (targetTypeName == null || targetTypeName.length == 0) {
             return Collections.emptyList();
         }
+        if (resolver != null) {
+            resolver.setFocusType(CharOperation.splitOn('.', targetTypeName));
+        }
         
         for (Iterator<IntertypeElement> itdIter = allItds.iterator(); itdIter.hasNext();) {
             IntertypeElement itd = itdIter.next();
-            if (! CharOperation.equals(targetTypeName, itd.getTargetType())) {
+            if (!isSubtypeOfSearchPattern(targetTypeName, itd, resolver)) {
                 itdIter.remove();
             }
         }
@@ -157,6 +162,20 @@ public class AJDTSearchProvider implements ISearchProvider {
         CompilationUnit ajDomUnit = getDom(unit);
         List<SearchMatch> matches = walkITDs(ajDomUnit, allItds, pattern, match);
         return matches;
+    }
+
+    private boolean isSubtypeOfSearchPattern(char[] targetTypeName,
+            IntertypeElement itd, HierarchyResolver resolver) throws JavaModelException {
+        if (CharOperation.equals(targetTypeName, itd.getTargetType())) {
+            return true;
+        }
+        if (resolver != null) {
+            ReferenceBinding targetBinding = getLookupEnvironment(resolver).askForType(CharOperation.splitOn('.', targetTypeName));
+            if (targetBinding != null) {
+                return resolver.subOrSuperOfFocus(targetBinding);
+            }
+        }
+        return false;
     }
 
     private List<SearchMatch> walkITDs(CompilationUnit ajDomUnit,
@@ -252,6 +271,19 @@ public class AJDTSearchProvider implements ISearchProvider {
             return (char[]) declaringSimpleNameField.get(pattern);
         } catch (Exception e) {
             return new char[0];
+        }
+    }
+    
+    static private Field lookupEnvironmentField = null;
+    static private LookupEnvironment getLookupEnvironment(HierarchyResolver resolver) {
+        try {
+            if (lookupEnvironmentField == null) {
+                lookupEnvironmentField = HierarchyResolver.class.getDeclaredField("lookupEnvironment");
+                lookupEnvironmentField.setAccessible(true);
+            }
+            return (LookupEnvironment) lookupEnvironmentField.get(resolver);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Could not access LookupEnvironment");
         }
     }
     
