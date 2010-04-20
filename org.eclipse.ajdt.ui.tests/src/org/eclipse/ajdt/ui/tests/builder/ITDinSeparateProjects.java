@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2009-2010 SpringSource and others
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Andrew Eisenberg - initial version
+ *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -20,9 +30,10 @@ public class ITDinSeparateProjects extends UITestCase {
             AspectJPlugin.getDefault().setAJLogger(testLog);
             
             IProject project = createPredefinedProject("ProjectWithITD_Bug121810"); //$NON-NLS-1$
-            createPredefinedProject("DependentProjectWithITD_Bug121810"); //$NON-NLS-1$
+            IProject otherProject = createPredefinedProject("DependentProjectWithITD_Bug121810"); //$NON-NLS-1$
             
             project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+            otherProject.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
             waitForJobsToComplete();
             
             // now the ITD should have been applied to the java file in ProjectWithITD_Bug121810
