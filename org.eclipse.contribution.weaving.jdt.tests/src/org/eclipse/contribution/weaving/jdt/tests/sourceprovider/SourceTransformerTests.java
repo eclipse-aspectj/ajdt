@@ -11,6 +11,9 @@
 
 package org.eclipse.contribution.weaving.jdt.tests.sourceprovider;
 
+import java.util.Hashtable;
+import java.util.Map;
+
 import junit.framework.Assert;
 
 import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
@@ -18,6 +21,7 @@ import org.eclipse.contribution.weaving.jdt.tests.MockSourceTransformer;
 import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
@@ -28,6 +32,15 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceMapper;
+import org.eclipse.jdt.internal.corext.fix.CleanUpConstants;
+import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.RefactoringExecutionStarter;
+import org.eclipse.jdt.internal.ui.fix.CodeFormatCleanUp;
+import org.eclipse.jdt.internal.ui.fix.SortMembersCleanUp;
+import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
+import org.eclipse.jdt.ui.cleanup.ICleanUp;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author Andrew Eisenberg
@@ -60,6 +73,39 @@ public class SourceTransformerTests extends WeavingTestCase {
         
         assertTrue("Contents have not been transformed", mapper.sourceMapped);
     }
+    
+    // Ensure that the source transformer gets called when invoking 
+    // formatting on the compilation unit
+    public void testFormatCleanUp() throws Exception {
+        MockSourceTransformer.ensureRealBufferCalled = 0;
+        IProject proj = createPredefinedProject("MockCUProject");
+        IFile file = proj.getFile("src/nothing/nothing.mock");
+        Shell shell = new Shell();
+        MockCompilationUnit cu = (MockCompilationUnit) JavaCore.create(file);
+        
+        Map settings= new Hashtable();
+        settings.put(CleanUpConstants.FORMAT_SOURCE_CODE, CleanUpOptions.TRUE);
+
+        RefactoringExecutionStarter.startCleanupRefactoring(new ICompilationUnit[] { cu }, 
+                new ICleanUp[] { new CodeFormatCleanUp(settings) }, 
+                false, shell, false, "Format");
+        shell.dispose();
+        assertEquals("Should have had 'ensureRealBuffer' called exactly once", 
+                1, MockSourceTransformer.ensureRealBufferCalled);
+    }
+    
+//    public void testSortCleanUp() throws Exception {
+//        MockSourceTransformer.ensureRealBufferCalled = 0;
+//        IProject proj = createPredefinedProject("MockCUProject");
+//        IFile file = proj.getFile("src/nothing/nothing.mock");
+//        MockCompilationUnit cu = (MockCompilationUnit) JavaCore.create(file);
+//        RefactoringExecutionStarter.startCleanupRefactoring(new ICompilationUnit[] { cu }, 
+//                new ICleanUp[] { new SortMembersCleanUp() }, 
+//                false, null, false, "Format");
+//        
+//        assertEquals("Should have had 'ensureRealBuffer' called exactly once", 
+//                1, MockSourceTransformer.ensureRealBufferCalled);
+//    }
     
     
     class MockType extends BinaryType {
