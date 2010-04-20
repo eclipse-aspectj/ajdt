@@ -64,6 +64,7 @@ import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.ajdt.core.tests.search.ITDAwarePolymorphicSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareSearchTests;
 import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
@@ -170,6 +171,7 @@ public class AllCoreTests {
 		
 		// search tests
 		suite.addTest(new TestSuite(ITDAwareSearchTests.class));
+		suite.addTest(new TestSuite(ITDAwarePolymorphicSearchTests.class));
 		
 
 		return suite;
