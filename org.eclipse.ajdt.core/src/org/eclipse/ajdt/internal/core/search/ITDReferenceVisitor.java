@@ -92,6 +92,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
             this.fieldPattern = (FieldPattern) pattern;
         }
         this.definitiveMatches = new LinkedList<SearchMatch>();
+        this.tentativeMatches = new LinkedList<SearchMatch>();
         this.participant = participant;
     }
     
