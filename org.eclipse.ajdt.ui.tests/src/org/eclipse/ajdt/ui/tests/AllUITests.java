@@ -16,16 +16,37 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.intro.IIntroPart;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 public class AllUITests {
 
 	public static Test suite() {
+	    
+	    // avoid deadlock when starting tests.
+	    // ensure that jdt core is already started before we try
+	    // loading the jdt weaving bundle
+	    Bundle b = Platform.getBundle("org.eclipse.jdt.core");
+	    synchronized (AllUITests.class) {
+	        try {
+                b.start();
+                while(b.getState() != Bundle.ACTIVE) {
+                    try {
+                        AllUITests.class.wait(1);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            } catch (BundleException e) {
+                AspectJTestPlugin.log(e);
+            }
+        }
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
