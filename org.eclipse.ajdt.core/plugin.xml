@@ -59,6 +59,28 @@
            </with>
          </enablement>
       </renameParticipant>
+      <renameParticipant
+            class="org.eclipse.ajdt.internal.core.refactoring.ITDAccessorRenameParticipant"
+            id="org.eclipse.ajdt.core.refactoring.itd.accessors"
+            name="ITD Getter Setter rename participant">
+         <enablement>
+            <with
+                  variable="affectedNatures">
+               <iterate
+                     operator="or">
+                  <equals
+                        value="org.eclipse.ajdt.ui.ajnature">
+                  </equals>
+               </iterate>
+            </with>
+            <with
+                  variable="element">
+               <instanceof
+                     value="org.eclipse.jdt.core.IField">
+               </instanceof>
+            </with>
+         </enablement>
+      </renameParticipant>
    </extension>
    <extension
          point="org.eclipse.contribution.weaving.jdt.cuprovider">
@@ -102,14 +124,5 @@
                type="org.eclipse.contribution.jdt.itdawareness.ISearchProvider">
          </adapter>
       </factory>
-   </extension>
-   <!-- for AJDT in 3.6 only -->
-   <extension
-         point="org.eclipse.ant.core.extraClasspathEntries">
-      <extraClasspathEntry
-            eclipseRuntime="true"
-            headless="true"
-            library="ajc_compiler_adapter.jar">
-      </extraClasspathEntry>
    </extension>
 </plugin>
