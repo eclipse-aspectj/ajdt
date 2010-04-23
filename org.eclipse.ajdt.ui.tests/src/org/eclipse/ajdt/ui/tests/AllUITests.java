@@ -33,20 +33,9 @@ public class AllUITests {
 	    // avoid deadlock when starting tests.
 	    // ensure that jdt core is already started before we try
 	    // loading the jdt weaving bundle
-	    Bundle b = Platform.getBundle("org.eclipse.jdt.core");
-	    synchronized (AllUITests.class) {
-	        try {
-                b.start();
-                while(b.getState() != Bundle.ACTIVE) {
-                    try {
-                        AllUITests.class.wait(1);
-                    } catch (InterruptedException e) {
-                    }
-                }
-            } catch (BundleException e) {
-                AspectJTestPlugin.log(e);
-            }
-        }
+	    waitForIt("org.eclipse.contribution.weaving.jdt");
+        waitForIt("org.eclipse.jdt.core");
+        
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
@@ -63,6 +52,24 @@ public class AllUITests {
 		//$JUnit-END$
 		return suite;
 	}
+
+    private static void waitForIt(String jdtCore) {
+        Bundle b = Platform.getBundle(jdtCore);
+	    synchronized (AllUITests.class) {
+	        try {
+                b.start();
+                while(b.getState() != Bundle.ACTIVE) {
+                    try {
+                        System.out.println("Waiting for " + jdtCore + " to activate");
+                        AllUITests.class.wait(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            } catch (BundleException e) {
+                AspectJTestPlugin.log(e);
+            }
+        }
+    }
 		
 	/**
 	 * Prevents AJDTPrefWizard from popping up during tests and simulates normal

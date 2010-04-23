@@ -65,5 +65,5 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.browser,
  org.eclipse.contribution.visualiser,
  org.eclipse.ui.views.log;bundle-version="1.0.0"
-Bundle-ActivationPolicy: lazy
+Bundle-ActivationPolicy: lazy;exclude:="org.eclipse.ajdt.ui.tests"
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
