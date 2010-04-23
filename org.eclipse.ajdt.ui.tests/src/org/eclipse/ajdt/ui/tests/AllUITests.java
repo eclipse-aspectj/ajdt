@@ -56,17 +56,12 @@ public class AllUITests {
     private static void waitForIt(String jdtCore) {
         Bundle b = Platform.getBundle(jdtCore);
 	    synchronized (AllUITests.class) {
-	        try {
-                b.start();
-                while(b.getState() != Bundle.ACTIVE) {
-                    try {
-                        System.out.println("Waiting for " + jdtCore + " to activate");
-                        AllUITests.class.wait(1000);
-                    } catch (InterruptedException e) {
-                    }
+            while(b.getState() != Bundle.ACTIVE) {
+                try {
+                    System.out.println("Waiting for " + jdtCore + " to activate");
+                    AllUITests.class.wait(1000);
+                } catch (InterruptedException e) {
                 }
-            } catch (BundleException e) {
-                AspectJTestPlugin.log(e);
             }
         }
     }
