@@ -10,12 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.refactoring;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement.Kind;
-import org.eclipse.jdt.core.Signature;
-import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -31,6 +30,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -44,13 +44,12 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.TextEditChangeGroup;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
+import org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor;
 import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
-
-import sun.reflect.ReflectionFactory.GetReflectionFactoryAction;
 
 /**
  * @author Andrew Eisenberg
@@ -62,6 +61,8 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
 
     private IField field;
     
+    private boolean useIsForBooleanGetter = false;
+    
     @Override
     public RefactoringStatus checkConditions(IProgressMonitor pm,
             CheckConditionsContext context) throws OperationCanceledException {
@@ -72,16 +73,23 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     public Change createChange(IProgressMonitor pm) throws CoreException,
             OperationCanceledException {
         checkCancelled(pm);
+        
+        boolean shouldRenameGetter = shouldRename(true);
+        boolean shouldRenameSetter = shouldRename(false);
 
+        if (! shouldRenameGetter && ! shouldRenameSetter) {
+            return null;
+        }
+        
         IType declaring = field.getDeclaringType();
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(declaring);
         if (model.hasModel()) {
             List<IJavaElement> itds = model.getRelationshipsForElement(declaring, AJRelationshipManager.ASPECT_DECLARATIONS);
             IntertypeElement getter = null, setter = null;
             for (IJavaElement elt : itds) {
-                if (isGetter(elt)) {
+                if (shouldRenameGetter && isGetter(elt)) {
                     getter = (IntertypeElement) elt;
-                } else if (isSetter(elt)) {
+                } else if (shouldRenameSetter && isSetter(elt)) {
                     setter = (IntertypeElement) elt;
                 }
             }
@@ -108,9 +116,9 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             checkCancelled(pm);
             
             CompositeChange change = new CompositeChange(getName());
-            createDeclarationChange(getter, change, getOldGetterName(), getNewGetterName());
+            createDeclarationChange(getter, change, getOldGetterName(useIsForBooleanGetter), getNewGetterName(useIsForBooleanGetter));
             createDeclarationChange(setter, change, getOldSetterName(), getNewSetterName());
-            createMatchedChanges(getterReferences, change, getOldGetterName(), getNewGetterName());
+            createMatchedChanges(getterReferences, change, getOldGetterName(useIsForBooleanGetter), getNewGetterName(useIsForBooleanGetter));
             createMatchedChanges(setterReferences, change, getOldSetterName(), getNewSetterName());
             if (change.getChildren().length > 0) {
                 return change;
@@ -118,6 +126,31 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             
         }
         return null;
+    }
+
+    private Field fRenameGetterField;
+    private Field fRenameSetterField;
+    private boolean shouldRename(boolean getter) {
+        try {
+            RefactoringProcessor processor = getProcessor();
+            Field thisField;
+            if (getter) {
+                if (fRenameGetterField == null) {
+                    fRenameGetterField = processor.getClass().getDeclaredField("fRenameGetter");
+                    fRenameGetterField.setAccessible(true);
+                }
+                thisField = fRenameGetterField;
+            } else {
+                if (fRenameSetterField == null) {
+                    fRenameSetterField = processor.getClass().getDeclaredField("fRenameSetter");
+                    fRenameSetterField.setAccessible(true);
+                } 
+                thisField = fRenameSetterField;
+            }
+            return thisField.getBoolean(processor);
+        } catch (Exception e) {
+        }
+        return false;
     }
 
     private void createMatchedChanges(List<SearchMatch> references,
@@ -234,8 +267,17 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     }
 
     private boolean isGetter(IJavaElement elt) throws JavaModelException {
+        boolean nameMatch = false;
+        boolean isFound = false;
         if (elt instanceof IntertypeElement && 
-                elt.getElementName().endsWith("." + getOldGetterName())) {
+                elt.getElementName().endsWith("." + getOldGetterName(false))) {
+            nameMatch = true;
+        } else if (elt instanceof IntertypeElement && 
+                elt.getElementName().endsWith("." + getOldGetterName(true))) {
+            nameMatch = true;
+        }
+        if (nameMatch) {
+            useIsForBooleanGetter = isFound;
             IntertypeElement itd = (IntertypeElement) elt;
             String[] parameterTypes = itd.getParameterTypes();
             if (itd.getAJKind() == Kind.INTER_TYPE_METHOD &&
@@ -251,14 +293,14 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     private String getNewSetterName() {
         return accessorName("set", getArguments().getNewName());
     }
-    private String getNewGetterName() {
+    private String getNewGetterName(boolean useIsForBoolean) {
         return accessorName("get", getArguments().getNewName());
     }
     private String getOldSetterName() {
         return accessorName("set", field.getElementName());
     }
-    private String getOldGetterName() {
-        return accessorName("get", field.getElementName());
+    private String getOldGetterName(boolean useIsForBoolean) {
+        return accessorName(useIsForBoolean ? "is" : "get", field.getElementName());
     }
 
     private String accessorName(String prefix, String name) {
