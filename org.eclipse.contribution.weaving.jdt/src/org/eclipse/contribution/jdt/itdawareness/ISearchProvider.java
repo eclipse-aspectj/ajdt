@@ -13,13 +13,12 @@ package org.eclipse.contribution.jdt.itdawareness;
 import java.util.List;
 
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
-import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
@@ -30,6 +29,10 @@ import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
  * @created Mar 8, 2010
  */
 public interface ISearchProvider {
+    
+    public IJavaElement findITDGetter(IField field);
+
+    public IJavaElement findITDSetter(IField field);
     /**
      * Converts the element into something that should be searched for.
      * Should be a no-op if there is no change required
