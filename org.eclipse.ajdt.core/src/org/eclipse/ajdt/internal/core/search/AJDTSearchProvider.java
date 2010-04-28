@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.internal.core.search;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -41,6 +42,7 @@ import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
@@ -77,7 +79,10 @@ public class AJDTSearchProvider implements ISearchProvider {
                 if (isAccessorITDName(itd.getElementName(), 
                         field.getElementName(), 
                         field.getDeclaringType().getElementName(), 
-                        getter)) {
+                        field.getDeclaringType().getFullyQualifiedName(),
+                        getter) &&
+                        checkParameters(itd, field, getter) &&
+                        checkReturnType(itd, field, getter)) {
                     return itd;
                 }
             }
@@ -85,13 +90,62 @@ public class AJDTSearchProvider implements ISearchProvider {
         return null;
     }
     
+    private boolean checkReturnType(IntertypeElement itd, IField field,
+            boolean getter) {
+        try {
+            if (getter) {
+                    return itd.getReturnType().equals(field.getTypeSignature()) || 
+                        field.getTypeSignature().equals(String.valueOf(itd.getQualifiedReturnType()));
+            } else {
+                return itd.getReturnType().equals(Signature.SIG_VOID);
+            }
+        } catch (JavaModelException e) {
+        }
+        return false;
+    }
+
+    private boolean checkParameters(IntertypeElement itd, IField field,
+            boolean getter) {
+        String[] parameterTypes = itd.getParameterTypes();
+        if (getter) {
+            return parameterTypes == null || 
+                    parameterTypes.length == 0;
+        } else {
+            try {
+                if (parameterTypes != null &&
+                    parameterTypes.length == 1) {
+                    String typeSignature = field.getTypeSignature();
+                    if (parameterTypes[0].equals(typeSignature)) {
+                        return true;
+                    }
+                    // now try fully qualified, and ensure that the type is unbound
+                    String itdParamSignature = itd.getQualifiedParameterTypes()[0];
+                    int arrayCount = Signature.getArrayCount(itdParamSignature);
+                    if (itdParamSignature.charAt(arrayCount) == 'L') {
+                        itdParamSignature = itdParamSignature.substring(0, arrayCount) + 'Q' + itdParamSignature.substring(arrayCount+1);
+                    }
+                    return typeSignature.equals(itdParamSignature);
+                }
+            } catch (JavaModelException e) {
+            }
+        }
+        return false;
+    }
+
     private boolean isAccessorITDName(String itdName, String fieldName,
-            String declaringTypeName, boolean getter) {
+            String declaringTypeName, String declaringFullyQualifedName, boolean getter) {
         String prefix = getter ? "get" : "set";
-        if (getter && itdName.indexOf(".is") > 0) {
+        // there might be a package fragment that starts with 'is'
+        int lastDot = itdName.lastIndexOf('.');
+        if (getter && lastDot >= 0 && itdName.indexOf(".is", lastDot) > 0) {
             prefix = "is";
         }
-        String accessorName = declaringTypeName + "." + prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1); 
+        String suffix = prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        String accessorName = declaringTypeName + "." + suffix; 
+        if (itdName.equals(accessorName)) {
+            return true;
+        }
+        accessorName = declaringFullyQualifedName + "." + suffix;
         return itdName.equals(accessorName);
     }
 

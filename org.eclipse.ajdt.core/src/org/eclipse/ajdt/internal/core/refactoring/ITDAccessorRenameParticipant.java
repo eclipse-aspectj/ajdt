@@ -93,6 +93,9 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
                     setter = (IntertypeElement) elt;
                 }
             }
+            if (getter == null && setter == null) {
+                return null;
+            }
             
             checkCancelled(pm);
             
