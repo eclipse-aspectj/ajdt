@@ -12,10 +12,13 @@ package org.eclipse.ajdt.internal.core.refactoring;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -24,6 +27,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
@@ -70,16 +75,35 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     }
 
     @Override
+    public String getName() {
+        return "Rename occurrences of intertype getters and setters";
+    }
+
+    @Override
+    protected boolean initialize(Object element) {
+        if (element instanceof IField) {
+            field = (IField) element;
+            if (AspectJPlugin.isAJProject(field.getJavaProject().getProject())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Change createChange(IProgressMonitor pm) throws CoreException,
             OperationCanceledException {
         checkCancelled(pm);
         
         boolean shouldRenameGetter = shouldRename(true);
         boolean shouldRenameSetter = shouldRename(false);
+        boolean shouldRenamePrivateField = shouldRenamePrivateField();
+        
 
-        if (! shouldRenameGetter && ! shouldRenameSetter) {
+        if (! shouldRenameGetter && ! shouldRenameSetter && ! shouldRenamePrivateField) {
             return null;
         }
+        
         
         IType declaring = field.getDeclaringType();
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(declaring);
@@ -115,6 +139,14 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             } else {
                 setterReferences = Collections.emptyList();
             }
+            
+            // now look for private field references in Aspects
+            List<SearchMatch> privateFieldReferences;
+            if (shouldRenamePrivateField) {
+                privateFieldReferences = findPrivateAspectReferences();
+            } else {
+                privateFieldReferences = Collections.emptyList();
+            }
 
             checkCancelled(pm);
             
@@ -123,6 +155,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             createDeclarationChange(setter, change, getOldSetterName(), getNewSetterName());
             createMatchedChanges(getterReferences, change, getOldGetterName(useIsForBooleanGetter), getNewGetterName(useIsForBooleanGetter));
             createMatchedChanges(setterReferences, change, getOldSetterName(), getNewSetterName());
+            createMatchedChanges(privateFieldReferences, change, field.getElementName(), getArguments().getNewName());
             if (change.getChildren().length > 0) {
                 return change;
             }
@@ -131,29 +164,21 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         return null;
     }
 
-    private Field fRenameGetterField;
-    private Field fRenameSetterField;
-    private boolean shouldRename(boolean getter) {
-        try {
-            RefactoringProcessor processor = getProcessor();
-            Field thisField;
-            if (getter) {
-                if (fRenameGetterField == null) {
-                    fRenameGetterField = processor.getClass().getDeclaredField("fRenameGetter");
-                    fRenameGetterField.setAccessible(true);
+    private List<SearchMatch> findPrivateAspectReferences() {
+        List<SearchMatch> maybeMatches = findReferences(field);
+        // now remove all matches that are not inside of aspects
+        // We could be checking for privileged aspects here, but
+        // I think it is better to be more general.
+        for (Iterator<SearchMatch> matchIter = maybeMatches.iterator(); matchIter.hasNext();) {
+            SearchMatch maybeMatch = matchIter.next();
+            if (maybeMatch.getElement() instanceof IMember) {
+                IMember member = (IMember) maybeMatch.getElement();
+                if (! (member.getAncestor(IJavaElement.TYPE) instanceof AspectElement)) {
+                    matchIter.remove();
                 }
-                thisField = fRenameGetterField;
-            } else {
-                if (fRenameSetterField == null) {
-                    fRenameSetterField = processor.getClass().getDeclaredField("fRenameSetter");
-                    fRenameSetterField.setAccessible(true);
-                } 
-                thisField = fRenameSetterField;
             }
-            return thisField.getBoolean(processor);
-        } catch (Exception e) {
         }
-        return false;
+        return maybeMatches;
     }
 
     private void createMatchedChanges(List<SearchMatch> references,
@@ -236,7 +261,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         }
     }
 
-    private List<SearchMatch> findReferences(IntertypeElement accessor) {
+    private List<SearchMatch> findReferences(IMember accessor) {
         SearchPattern pattern = SearchPattern.createPattern(accessor, IJavaSearchConstants.REFERENCES);
         SearchEngine engine = new SearchEngine();
         JavaSearchScope scope = new JavaSearchScope();
@@ -310,18 +335,40 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         return prefix + Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
-    @Override
-    public String getName() {
-        return "Rename occurrences of intertype getters and setters";
+    /** 
+     * Privileged aspects can see private fields.  But, they 
+     * are not renamed in the RenameFieldProcessor, so must check
+     * here to see if we need to do extra logic to rename in an
+     * aspect
+     * @throws JavaModelException 
+     */
+    private boolean shouldRenamePrivateField() throws JavaModelException {
+        return Flags.isPrivate(field.getFlags());
     }
 
-    @Override
-    protected boolean initialize(Object element) {
-        if (element instanceof IField) {
-            field = (IField) element;
-            if (AspectJPlugin.isAJProject(field.getJavaProject().getProject())) {
-                return true;
+    private Field fRenameGetterField;
+
+    private Field fRenameSetterField;
+
+    private boolean shouldRename(boolean getter) {
+        try {
+            RefactoringProcessor processor = getProcessor();
+            Field thisField;
+            if (getter) {
+                if (fRenameGetterField == null) {
+                    fRenameGetterField = processor.getClass().getDeclaredField("fRenameGetter");
+                    fRenameGetterField.setAccessible(true);
+                }
+                thisField = fRenameGetterField;
+            } else {
+                if (fRenameSetterField == null) {
+                    fRenameSetterField = processor.getClass().getDeclaredField("fRenameSetter");
+                    fRenameSetterField.setAccessible(true);
+                } 
+                thisField = fRenameSetterField;
             }
+            return thisField.getBoolean(processor);
+        } catch (Exception e) {
         }
         return false;
     }
