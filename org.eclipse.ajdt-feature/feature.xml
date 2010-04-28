@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.ajdt"
       label="%featureName"
-      version="2.0.3.qualifier"
+      version="2.1.0.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
@@ -68,12 +68,12 @@
       <import plugin="org.aspectj.weaver" version="1.6.3" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.filesystem"/>
       <import plugin="org.eclipse.ui.navigator" version="3.3.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.contribution.weaving.jdt" version="2.0.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.contribution.weaving.jdt" version="2.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ltk.ui.refactoring" version="3.4.100" match="greaterOrEqual"/>
       <import plugin="com.ibm.icu"/>
-      <import plugin="org.eclipse.ajdt.ui" version="2.0.3" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ajdt.core" version="2.0.3" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.contribution.xref.ui" version="2.0.3" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ajdt.ui" version="2.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ajdt.core" version="2.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.contribution.xref.ui" version="2.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.ide.application" version="1.0.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.osgi" version="3.6.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui" version="3.6.0" match="greaterOrEqual"/>
