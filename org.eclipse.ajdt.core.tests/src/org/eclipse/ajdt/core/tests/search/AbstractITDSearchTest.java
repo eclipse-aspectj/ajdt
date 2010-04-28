@@ -112,6 +112,10 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         return createCompilationUnitAndPackage("", name, contents, javaProject);
     }
 
+    protected ICompilationUnit createCU(String pack, String name, String contents) throws CoreException {
+        return createCompilationUnitAndPackage(pack, name, contents, javaProject);
+    }
+    
     protected void assertNoMatch(String contents, List matches) {
         assertEquals("Should not have found any matches, but instead found matches in:\n" + contents + "\n\nMatches were:" + printMatches(matches), 0, matches.size());
     }
@@ -134,6 +138,19 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
             
             // disabled because we can't get this right right now.
     //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
-        }
+    }
+    protected void assertTwoMatches(String matchName, String contents, List matches) {
+        assertEquals("Should have found exactly 2 matches, but instead found " + printMatches(matches), 2, matches.size());
+        SearchMatch match = (SearchMatch) matches.get(0);
+        assertEquals("Wrong match location", contents.indexOf(matchName)+1, match.getOffset());
+        assertEquals("Wrong match length", matchName.length(), match.getLength());
+        
+        match = (SearchMatch) matches.get(1);
+        assertEquals("Wrong match location", contents.lastIndexOf(matchName)+1, match.getOffset());
+        assertEquals("Wrong match length", matchName.length(), match.getLength());
+        
+        // disabled because we can't get this right right now.
+        //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
+    }
 
 }

@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 
 
@@ -242,4 +243,14 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         assertMatch("new Java(7)", contents, matches);
     }
     
+    public void testITDInOtherPackages() throws Exception {
+        String contents = "package com.f; import com.bar.Bar; aspect Aspect {   \n  public int Bar.getFoo() { return foo; }  \n d   public void Bar.setFoo(int newval) { this.foo = newval; } }";
+        createCU("com.f", "Aspect.aj", contents);
+        ICompilationUnit unit = createCU("com.bar", "Bar.java", "package com.bar; \n public class Bar { public int foo;} ");
+        
+        IJavaElement elt = findFirstChild(unit);
+        
+        List matches = findSearchMatches(elt, this.getName());
+        assertTwoMatches("foo", contents, matches);
+    }
 }
