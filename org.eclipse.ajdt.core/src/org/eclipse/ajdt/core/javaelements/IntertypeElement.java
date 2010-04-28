@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
 import org.eclipse.jdt.internal.core.SourceField;
@@ -86,7 +87,16 @@ public class IntertypeElement extends AspectJMemberElement {
 	    return info;
 	}
 
-	
+	public char[] getQualifiedReturnType() throws JavaModelException {
+	    IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
+	    char[] returnTypeName = info.getQualifiedReturnType();
+	    if (returnTypeName == null) {
+	        returnTypeName = getQualifiedReturnTypeName(info);
+	        info.setQualifiedReturnType(returnTypeName);
+	    }
+	    return Signature.createCharArrayTypeSignature(returnTypeName, false);
+	}
+
 	/**
 	 * @see JavaElement#getHandleMemento()
 	 */
@@ -192,7 +202,7 @@ public class IntertypeElement extends AspectJMemberElement {
         return split.length > 1 ? split[split.length-1] : name;
     }
 	
-	private String[] getQualifiedParameterTypes() {
+	public String[] getQualifiedParameterTypes() {
 	    IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
 	    if (ipe != IHierarchy.NO_STRUCTURE) {
 	        return CoreUtils.listAJSigToJavaSig(ipe.getParameterSignatures());

@@ -92,6 +92,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
             this.fieldPattern = (FieldPattern) pattern;
         }
         this.definitiveMatches = new LinkedList<SearchMatch>();
+        this.tentativeMatches = new LinkedList<SearchMatch>();
         this.participant = participant;
     }
     
@@ -197,7 +198,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
                     }
                 }
                 definitiveMatches.add(new MethodReferenceMatch(itd, 
-                        SearchMatch.A_INACCURATE, 
+                        SearchMatch.A_ACCURATE, 
                         node.getName().getStartPosition(), 
                         node.getName().getLength(), false, false, false, 
                         true, participant, itd.getResource()));
@@ -215,7 +216,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
                         // reported by standard searching
                         // so, add to tentative matches instead.
                         tentativeMatches.add(new MethodReferenceMatch(itd, 
-                                SearchMatch.A_INACCURATE, 
+                                SearchMatch.A_ACCURATE, 
                                 node.getStartPosition(), 
                                 node.getLength(), false, false, false, 
                                 true, participant, itd.getResource()));
@@ -230,7 +231,7 @@ public class ITDReferenceVisitor extends AjASTVisitor {
                 ((Assignment) name.getParent()).getLeftHandSide() == name);
 
         if (fieldPattern != null && String.valueOf(fieldPattern.getIndexKey()).equals(name.getIdentifier())) {
-            definitiveMatches.add(new FieldReferenceMatch(itd, SearchMatch.A_INACCURATE, name.getStartPosition(), name.getLength(), !isWrite, 
+            definitiveMatches.add(new FieldReferenceMatch(itd, SearchMatch.A_ACCURATE, name.getStartPosition(), name.getLength(), !isWrite, 
                     isWrite, name.getParent().getNodeType() == ASTNode.MEMBER_REF, 
                     participant, itd.getResource()));
         }

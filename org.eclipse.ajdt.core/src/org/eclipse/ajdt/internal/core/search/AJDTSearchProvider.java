@@ -11,14 +11,13 @@
 package org.eclipse.ajdt.internal.core.search;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.aspectj.ajdt.internal.core.builder.AjCompilerOptions;
 import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTParser;
 import org.aspectj.org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -26,30 +25,24 @@ import org.aspectj.org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.dom.InterTypeFieldDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.InterTypeMethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
-import org.aspectj.org.eclipse.jdt.internal.core.BasicCompilationUnit;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
-import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
-import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
 import org.eclipse.contribution.jdt.itdawareness.ISearchProvider;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
@@ -58,7 +51,6 @@ import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.search.matching.FieldPattern;
-import org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 import org.eclipse.jdt.internal.core.search.matching.MethodPattern;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
@@ -69,17 +61,94 @@ import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
  */
 public class AJDTSearchProvider implements ISearchProvider {
     
-    // not used yet
-//    private static class Tuple <T> {
-//        final T first;
-//        final T second;
-//        Tuple(T first, T second) {
-//            this.first = first;
-//            this.second = second;
-//        }
-//        static Tuple<List> EMPTY_TUPLE = new Tuple(Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-//    }
     
+    public IntertypeElement findITDGetter(IField field) {
+        return findITDAccessor(field, true);
+    }
+
+    public IntertypeElement findITDSetter(IField field) {
+        return findITDAccessor(field, false);
+    }
+    
+    private IntertypeElement findITDAccessor(IField field, boolean getter) {
+        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(field);
+        List<IJavaElement> rels = model.getRelationshipsForElement(field.getDeclaringType(), AJRelationshipManager.ASPECT_DECLARATIONS);
+        for (IJavaElement elt : rels) {
+            if (elt instanceof IntertypeElement) {
+                IntertypeElement itd = (IntertypeElement) elt;
+                if (isAccessorITDName(itd.getElementName(), 
+                        field.getElementName(), 
+                        field.getDeclaringType().getElementName(), 
+                        field.getDeclaringType().getFullyQualifiedName(),
+                        getter) &&
+                        checkParameters(itd, field, getter) &&
+                        checkReturnType(itd, field, getter)) {
+                    return itd;
+                }
+            }
+        }
+        return null;
+    }
+    
+    private boolean checkReturnType(IntertypeElement itd, IField field,
+            boolean getter) {
+        try {
+            if (getter) {
+                    return itd.getReturnType().equals(field.getTypeSignature()) || 
+                        field.getTypeSignature().equals(String.valueOf(itd.getQualifiedReturnType()));
+            } else {
+                return itd.getReturnType().equals(Signature.SIG_VOID);
+            }
+        } catch (JavaModelException e) {
+        }
+        return false;
+    }
+
+    private boolean checkParameters(IntertypeElement itd, IField field,
+            boolean getter) {
+        String[] parameterTypes = itd.getParameterTypes();
+        if (getter) {
+            return parameterTypes == null || 
+                    parameterTypes.length == 0;
+        } else {
+            try {
+                if (parameterTypes != null &&
+                    parameterTypes.length == 1) {
+                    String typeSignature = field.getTypeSignature();
+                    if (parameterTypes[0].equals(typeSignature)) {
+                        return true;
+                    }
+                    // now try fully qualified, and ensure that the type is unbound
+                    String itdParamSignature = itd.getQualifiedParameterTypes()[0];
+                    int arrayCount = Signature.getArrayCount(itdParamSignature);
+                    if (itdParamSignature.charAt(arrayCount) == 'L') {
+                        itdParamSignature = itdParamSignature.substring(0, arrayCount) + 'Q' + itdParamSignature.substring(arrayCount+1);
+                    }
+                    return typeSignature.equals(itdParamSignature);
+                }
+            } catch (JavaModelException e) {
+            }
+        }
+        return false;
+    }
+
+    private boolean isAccessorITDName(String itdName, String fieldName,
+            String declaringTypeName, String declaringFullyQualifedName, boolean getter) {
+        String prefix = getter ? "get" : "set";
+        // there might be a package fragment that starts with 'is'
+        int lastDot = itdName.lastIndexOf('.');
+        if (getter && lastDot >= 0 && itdName.indexOf(".is", lastDot) > 0) {
+            prefix = "is";
+        }
+        String suffix = prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        String accessorName = declaringTypeName + "." + suffix; 
+        if (itdName.equals(accessorName)) {
+            return true;
+        }
+        accessorName = declaringFullyQualifedName + "." + suffix;
+        return itdName.equals(accessorName);
+    }
+
     public IJavaElement convertJavaElement(IJavaElement origElement) {
         if (origElement instanceof IntertypeElement) {
             try {
@@ -295,6 +364,12 @@ public class AJDTSearchProvider implements ISearchProvider {
         } else {
             targetTypeName = name;
         }
+        // trim any \0 that are added to the end of target type
+        int lastChar = targetTypeName.length;
+        while (targetTypeName[lastChar-1] == '\0' && lastChar > 0) lastChar --;
+        
+        targetTypeName = CharOperation.subarray(targetTypeName, 0, lastChar);
+        
         return targetTypeName;
     }
 
