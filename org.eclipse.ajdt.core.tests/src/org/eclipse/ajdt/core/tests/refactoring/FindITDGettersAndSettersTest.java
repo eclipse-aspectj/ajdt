@@ -30,8 +30,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n int Java.getFoo() { \n return foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n int Java.getFoo() { \n return foo; } }"}
                 );
 
         IField field = getFirstField(units);
@@ -43,8 +43,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n void Java.setFoo(int foo) { \nthis.foo = foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.setFoo(int foo) { \nthis.foo = foo; } }"}
                 );
 
         IField field = getFirstField(units);
@@ -57,7 +57,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
                 "privileged aspect Aspect { \n int foo.Java.getFoo() { \n return foo; } }"}
         );
         
@@ -71,7 +71,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
                 "privileged aspect Aspect { \n void foo.Java.setFoo(int foo) { \nthis.foo = foo; } }"}
         );
         
@@ -84,8 +84,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n int Java.getFoo() { \n return foo; } \n void Java.setFoo(int foo) { \nthis.foo = foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n int Java.getFoo() { \n return foo; } \n void Java.setFoo(int foo) { \nthis.foo = foo; } }"}
                 );
 
         IField field = getFirstField(units);
@@ -97,8 +97,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n void Java.setFoo(int foo) { \nthis.foo = foo; }\n int Java.getFoo() { \n return foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.setFoo(int foo) { \nthis.foo = foo; }\n int Java.getFoo() { \n return foo; } }"}
                 );
 
         IField field = getFirstField(units);
@@ -110,8 +110,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private String foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n String Java.getFoo() { \n return foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private String foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n String Java.getFoo() { \n return foo; } }"}
                 );
 
         IField field = getFirstField(units);
@@ -123,8 +123,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private String foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n void Java.setFoo(String foo) { \nthis.foo = foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private String foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.setFoo(String foo) { \nthis.foo = foo; } }"}
                 );
 
         IField field = getFirstField(units);
@@ -136,8 +136,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { }",
-                "import foo.Java; privileged aspect Aspect { \n String Java.getFoo() { \n return foo; } \n String Java.foo; }"}
+                new String[] {"package foo;\npublic class Java { }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n String Java.getFoo() { \n return foo; } \n String Java.foo; }"}
         );
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
@@ -150,8 +150,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { }",
-                "import foo.Java; privileged aspect Aspect { \n void Java.setFoo(String foo) { \nthis.foo = foo; }\n String Java.foo;  }"}
+                new String[] {"package foo;\npublic class Java { }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.setFoo(String foo) { \nthis.foo = foo; }\n String Java.foo;  }"}
         );
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
@@ -164,8 +164,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { }",
-                "import foo.Java; privileged aspect Aspect { \n String[] Java.getFoo() { \n return foo; } \n String[] Java.foo; }"}
+                new String[] {"package foo;\npublic class Java { }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n String[] Java.getFoo() { \n return foo; } \n String[] Java.foo; }"}
         );
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
@@ -178,8 +178,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { }",
-                "import foo.Java; privileged aspect Aspect { \n void Java.setFoo(String[] foo) { \nthis.foo = foo; }\n String[] Java.foo;  }"}
+                new String[] {"package foo;\npublic class Java { }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.setFoo(String[] foo) { \nthis.foo = foo; }\n String[] Java.foo;  }"}
         );
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
@@ -195,8 +195,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                "import foo.Java; privileged aspect Aspect { \n int Java.getFoo(int x) { \n return foo; } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n int Java.getFoo(int x) { \n return foo; } }"}
         );
         
         IField field = getFirstField(units);
@@ -208,8 +208,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                              "import foo.Java; privileged aspect Aspect { \n int Java.setFoo(int foo) { \nthis.foo = foo; return foo;} }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                              "package bar;\nimport foo.Java; privileged aspect Aspect { \n int Java.setFoo(int foo) { \nthis.foo = foo; return foo;} }"}
                 );
 
         IField field = getFirstField(units);
@@ -221,8 +221,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                "import foo.Java; privileged aspect Aspect { \n void Java.getFoo() { \n  } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.getFoo() { \n  } }"}
         );
         
         IField field = getFirstField(units);
@@ -234,8 +234,8 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
                 new String[] {"Java.java", "Aspect.aj"}, 
-                new String[] {"public class Java { \n private int foo; }",
-                "import foo.Java; privileged aspect Aspect { \n void Java.setFoo() { \n } }"}
+                new String[] {"package foo;\npublic class Java { \n private int foo; }",
+                "package bar;\nimport foo.Java; privileged aspect Aspect { \n void Java.setFoo() { \n } }"}
         );
         
         IField field = getFirstField(units);
