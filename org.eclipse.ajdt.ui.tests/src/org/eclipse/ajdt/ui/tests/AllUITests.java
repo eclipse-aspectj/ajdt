@@ -24,7 +24,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.intro.IIntroPart;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 
 public class AllUITests {
 
