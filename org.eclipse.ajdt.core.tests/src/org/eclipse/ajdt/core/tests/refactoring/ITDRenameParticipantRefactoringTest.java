@@ -145,6 +145,31 @@ public class ITDRenameParticipantRefactoringTest extends
         true, true
         );
     }
+    public void testITDRename5() throws Exception {
+        performRefactoringAndUndo("xxx",
+                new String[] {
+                "a",
+                "b",
+                "c"
+        }, 
+        new String[] {
+                "F.java",
+                "A.aj",
+                "Other.java"
+        }, 
+        new String[] {
+                "package a;\n\npublic class F {\n private String x; }",
+                "package b;\n\nimport a.F; privileged aspect A {\n public String F.getX() { return x; }\n public void F.setX(String x) { this.x = x; } }",
+                "package c;\n\nimport a.F; class Other { void foo() { new F().setX(new F().getX()); } }"
+        }, 
+        new String[] {
+                "package a;\n\npublic class F {\n public String xxx; }",
+                "package b;\n\nimport a.F; privileged aspect A {\n public String F.getXxx() { return xxx; }\n public void F.setXxx(String x) { this.xxx = x; } }",
+                "package c;\n\nimport a.F; class Other { void foo() { new F().setXxx(new F().getXxx()); } }"
+        }, 
+        true, true
+        );
+    }
     public void testITDRenameGetterOnly1() throws Exception {
         performRefactoringAndUndo("xxx",
                 new String[] {
