@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AJDT UI Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.ui.tests;singleton:=true
-Bundle-Version: 2.0.3.qualifier
+Bundle-Version: 2.1.0.qualifier
 Bundle-ClassPath: ajdtuitests.jar
 Bundle-Activator: org.eclipse.ajdt.ui.tests.AspectJTestPlugin
 Bundle-Vendor: Eclipse.org
