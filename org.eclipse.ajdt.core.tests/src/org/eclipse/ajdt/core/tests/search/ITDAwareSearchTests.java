@@ -244,7 +244,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     }
     
     public void testITDInOtherPackages() throws Exception {
-        String contents = "package com.f; import com.bar.Bar; aspect Aspect {   \n  public int Bar.getFoo() { return foo; }  \n d   public void Bar.setFoo(int newval) { this.foo = newval; } }";
+        String contents = "package com.f; import com.bar.Bar; aspect Aspect {   \n  public int Bar.getFoo() { return foo; }  \n   public void Bar.setFoo(int newval) { this.foo = newval; } }";
         createCU("com.f", "Aspect.aj", contents);
         ICompilationUnit unit = createCU("com.bar", "Bar.java", "package com.bar; \n public class Bar { public int foo;} ");
         

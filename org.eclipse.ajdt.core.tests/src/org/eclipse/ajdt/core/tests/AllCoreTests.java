@@ -87,13 +87,10 @@ public class AllCoreTests {
             ajdtui.stop(Bundle.STOP_TRANSIENT);
         }
 
-        boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 
 		suite.addTest(new TestSuite(AJCoreTest.class));
-		if (is50) {
-			suite.addTest(new TestSuite(AJCoreTestJava5.class));
-		}
+		suite.addTest(new TestSuite(AJCoreTestJava5.class));
 		
 		
 		suite.addTest(new TestSuite(AJPropertiesTest.class));

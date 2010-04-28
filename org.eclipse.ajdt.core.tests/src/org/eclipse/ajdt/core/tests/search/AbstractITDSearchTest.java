@@ -133,7 +133,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     protected void assertMatch(String matchName, String contents, List matches) {
             assertEquals("Should have found exactly 1 match, but instead found " + printMatches(matches), 1, matches.size());
             SearchMatch match = (SearchMatch) matches.get(0);
-            assertEquals("Wrong match location", contents.indexOf(matchName)+1, match.getOffset());
+            assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
             assertEquals("Wrong match length", matchName.length(), match.getLength());
             
             // disabled because we can't get this right right now.
@@ -142,11 +142,11 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     protected void assertTwoMatches(String matchName, String contents, List matches) {
         assertEquals("Should have found exactly 2 matches, but instead found " + printMatches(matches), 2, matches.size());
         SearchMatch match = (SearchMatch) matches.get(0);
-        assertEquals("Wrong match location", contents.indexOf(matchName)+1, match.getOffset());
+        assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
         
         match = (SearchMatch) matches.get(1);
-        assertEquals("Wrong match location", contents.lastIndexOf(matchName)+1, match.getOffset());
+        assertEquals("Wrong match location", contents.lastIndexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
         
         // disabled because we can't get this right right now.

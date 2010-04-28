@@ -145,7 +145,7 @@ public class ITDRenameParticipantRefactoringTest extends
         true, true
         );
     }
-    public void testITDRename5() throws Exception {
+    public void testITDRenamePrivileged1() throws Exception {
         performRefactoringAndUndo("xxx",
                 new String[] {
                 "a",
@@ -163,9 +163,33 @@ public class ITDRenameParticipantRefactoringTest extends
                 "package c;\n\nimport a.F; class Other { void foo() { new F().setX(new F().getX()); } }"
         }, 
         new String[] {
-                "package a;\n\npublic class F {\n public String xxx; }",
+                "package a;\n\npublic class F {\n private String xxx; }",
                 "package b;\n\nimport a.F; privileged aspect A {\n public String F.getXxx() { return xxx; }\n public void F.setXxx(String x) { this.xxx = x; } }",
                 "package c;\n\nimport a.F; class Other { void foo() { new F().setXxx(new F().getXxx()); } }"
+        }, 
+        true, true
+        );
+    }
+    
+    // rename not working for private members in privileged aspects 
+    // outside of ITDs.
+    public void _testITDRenamePrivileged2() throws Exception {
+        performRefactoringAndUndo("xxx",
+                new String[] {
+                "a",
+                "b"
+        }, 
+        new String[] {
+                "F.java",
+                "A.aj"
+        }, 
+        new String[] {
+                "package a;\n\npublic class F {\n private String x; }",
+                "package b;\n\nimport a.F; privileged aspect A {\n public String getX() { return new F().x; }\n public void setX(String x) { new F().x = x; } }"
+        }, 
+        new String[] {
+                "package a;\n\npublic class F {\n private String xxx; }",
+                "package b;\n\nimport a.F; privileged aspect A {\n public String getX() { return new F().xxx; }\n public void setX(String x) { new F().xxx = x; } }"
         }, 
         true, true
         );
