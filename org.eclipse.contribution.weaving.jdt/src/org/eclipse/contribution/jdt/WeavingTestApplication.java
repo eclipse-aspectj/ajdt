@@ -1,12 +1,9 @@
 package org.eclipse.contribution.jdt;
 
 import org.eclipse.contribution.jdt.preferences.WeavingStateConfigurer;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * Simple application to test if weaving is enabled in this installation

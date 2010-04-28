@@ -31,7 +31,6 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.DisabledInfo;
 import org.eclipse.osgi.service.resolver.State;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 /**

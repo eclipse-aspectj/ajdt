@@ -14,7 +14,6 @@ package org.eclipse.contribution.jdt;
 import org.eclipse.contribution.jdt.preferences.AskToReindexJob;
 import org.eclipse.contribution.jdt.preferences.EnableWeavingServiceJob;
 import org.eclipse.contribution.jdt.preferences.JDTWeavingPreferences;
-import org.eclipse.contribution.jdt.preferences.ReindexingJob;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IProject;
