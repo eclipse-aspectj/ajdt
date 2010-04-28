@@ -18,6 +18,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -89,16 +90,18 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         return (IMember) children[0];
     }
 
-    protected List findSearchMatches(IJavaElement elt) throws Exception {
+    protected List findSearchMatches(IJavaElement elt, String name) throws Exception {
         javaProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         waitForManualBuild();
         assertNoProblems(javaProject.getProject());
         
+        AspectJCoreTestPlugin.logInfo("About to create Search pattern in " + name);
         SearchPattern pattern = SearchPattern.createPattern(elt, IJavaSearchConstants.REFERENCES);
         SearchEngine engine = new SearchEngine();
         JavaSearchScope scope = new JavaSearchScope();
         scope.add(javaProject);
-        
+
+        AspectJCoreTestPlugin.logInfo("About to perform search in " + name);
         ITDAwareSearchRequestor requestor = new ITDAwareSearchRequestor();
         engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, 
                 scope, requestor, new NullProgressMonitor());
@@ -109,6 +112,10 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         return createCompilationUnitAndPackage("", name, contents, javaProject);
     }
 
+    protected ICompilationUnit createCU(String pack, String name, String contents) throws CoreException {
+        return createCompilationUnitAndPackage(pack, name, contents, javaProject);
+    }
+    
     protected void assertNoMatch(String contents, List matches) {
         assertEquals("Should not have found any matches, but instead found matches in:\n" + contents + "\n\nMatches were:" + printMatches(matches), 0, matches.size());
     }
@@ -126,11 +133,24 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     protected void assertMatch(String matchName, String contents, List matches) {
             assertEquals("Should have found exactly 1 match, but instead found " + printMatches(matches), 1, matches.size());
             SearchMatch match = (SearchMatch) matches.get(0);
-            assertEquals("Wrong match location", contents.indexOf(matchName)+1, match.getOffset());
+            assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
             assertEquals("Wrong match length", matchName.length(), match.getLength());
             
             // disabled because we can't get this right right now.
     //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
-        }
+    }
+    protected void assertTwoMatches(String matchName, String contents, List matches) {
+        assertEquals("Should have found exactly 2 matches, but instead found " + printMatches(matches), 2, matches.size());
+        SearchMatch match = (SearchMatch) matches.get(0);
+        assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
+        assertEquals("Wrong match length", matchName.length(), match.getLength());
+        
+        match = (SearchMatch) matches.get(1);
+        assertEquals("Wrong match location", contents.lastIndexOf(matchName), match.getOffset());
+        assertEquals("Wrong match length", matchName.length(), match.getLength());
+        
+        // disabled because we can't get this right right now.
+        //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
+    }
 
 }

@@ -31,7 +31,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IJavaElement child = findFirstChild(unit);
         
-        List matches = findSearchMatches(child);
+        List matches = findSearchMatches(child, this.getName());
         assertMatch("foo", contents, matches);
     }
     public void testITDSearch2() throws Exception {
@@ -43,7 +43,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IJavaElement child = findFirstChild(unit);
         
-        List matches = findSearchMatches(child);
+        List matches = findSearchMatches(child, this.getName());
         assertMatch("foo()", contents, matches);
     }
     public void testITDSearch3() throws Exception {
@@ -55,7 +55,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IJavaElement child = findFirstChild(unit);
         
-        List matches = findSearchMatches(child);
+        List matches = findSearchMatches(child, this.getName());
         assertMatch("foo", contents, matches);
     }
     public void testITDSearch4() throws Exception {
@@ -67,7 +67,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IJavaElement child = findFirstChild(unit);
         
-        List matches = findSearchMatches(child);
+        List matches = findSearchMatches(child, this.getName());
         assertMatch("foo()", contents, matches);
     }
     public void testITDSearch5() throws Exception {
@@ -79,7 +79,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd);
+        List matches = findSearchMatches(itd, this.getName());
         assertMatch("foo", contents, matches);
     }
     public void testITDSearch6() throws Exception {
@@ -91,7 +91,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd);
+        List matches = findSearchMatches(itd, this.getName());
         assertMatch("foo()", contents, matches);
     }
     public void testITDSearch7() throws Exception {
@@ -103,7 +103,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd);
+        List matches = findSearchMatches(itd, this.getName());
         assertMatch("foo", contents, matches);
     }
     public void testITDSearch8() throws Exception {
@@ -115,7 +115,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd);
+        List matches = findSearchMatches(itd, this.getName());
         assertMatch("foo()", contents, matches);
     }
     public void testITDSearch9() throws Exception {
@@ -127,7 +127,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd);
+        List matches = findSearchMatches(itd, this.getName());
         assertMatch("foo()", contents, matches);
     }
     public void testITDSearch10() throws Exception {
@@ -139,7 +139,7 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd);
+        List matches = findSearchMatches(itd, this.getName());
         assertMatch("foo", contents, matches);
     }
 }

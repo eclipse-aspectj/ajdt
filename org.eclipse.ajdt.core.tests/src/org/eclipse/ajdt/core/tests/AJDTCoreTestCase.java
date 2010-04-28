@@ -408,10 +408,6 @@ public class AJDTCoreTestCase extends TestCase {
     public ICompilationUnit createCompilationUnit(IPackageFragment pack, String cuName,
             String source) throws JavaModelException {
         StringBuffer buf = new StringBuffer();
-        if (!pack.isDefaultPackage()) {
-            buf.append("package " + pack.getElementName() + ";" + System.getProperty("line.separator"));
-        }
-        buf.append(System.getProperty("line.separator"));
         buf.append(source);
         return pack.createCompilationUnit(cuName,
                 buf.toString(), false, null);
