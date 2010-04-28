@@ -45,7 +45,7 @@
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.ant.core.antRunner" />
-			<arg value="-verbose" />
+			<!--<arg value="-verbose" />-->
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
 			<arg value="-DbaseLocation=${target.eclipse}" />
 			<arg value="-DbuildDirectory=${build.home}" />
