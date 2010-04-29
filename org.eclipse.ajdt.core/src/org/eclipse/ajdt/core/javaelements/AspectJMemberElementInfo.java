@@ -95,6 +95,12 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 
 	// make public
 	public void setReturnType(char[] type) {
+	    // bug 310704, remove starting dot if it exists
+	    if (type != null && type.length > 0 && type[0] == '.') {
+	        char[] newType = new char[type.length-1];
+	        System.arraycopy(type, 1, newType, 0, type.length-1);
+	        type = newType;
+	    }
 		this.returnType = type;
 	}
 	
