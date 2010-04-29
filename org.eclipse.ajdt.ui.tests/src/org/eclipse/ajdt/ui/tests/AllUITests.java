@@ -16,16 +16,25 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.intro.IIntroPart;
+import org.osgi.framework.Bundle;
 
 public class AllUITests {
 
 	public static Test suite() {
+	    
+	    // avoid deadlock when starting tests.
+	    // ensure that jdt core is already started before we try
+	    // loading the jdt weaving bundle
+	    waitForIt("org.eclipse.contribution.weaving.jdt");
+        waitForIt("org.eclipse.jdt.core");
+        
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
@@ -42,6 +51,19 @@ public class AllUITests {
 		//$JUnit-END$
 		return suite;
 	}
+
+    private static void waitForIt(String jdtCore) {
+        Bundle b = Platform.getBundle(jdtCore);
+	    synchronized (AllUITests.class) {
+            while(b.getState() != Bundle.ACTIVE) {
+                try {
+                    System.out.println("Waiting for " + jdtCore + " to activate");
+                    AllUITests.class.wait(1000);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+    }
 		
 	/**
 	 * Prevents AJDTPrefWizard from popping up during tests and simulates normal
