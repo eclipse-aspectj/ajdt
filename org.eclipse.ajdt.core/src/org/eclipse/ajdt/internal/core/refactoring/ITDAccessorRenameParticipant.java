@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
@@ -66,7 +67,18 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
 
     private IField field;
     
+    private AJCompilationUnit aspectDeclaringGetter;
+    private AJCompilationUnit aspectDeclaringSetter;
+
     private boolean useIsForBooleanGetter = false;
+    
+    /**
+     * Although I don't like referring to Roo from
+     * within AJDT, we need a way to disable the renaming of
+     * the Aspect that declares the ITDs since Roo will 
+     * automatically regenerate these files anyway.
+     */
+    private boolean disableITDUpdatingForRoo;
     
     @Override
     public RefactoringStatus checkConditions(IProgressMonitor pm,
@@ -84,6 +96,7 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         if (element instanceof IField) {
             field = (IField) element;
             if (AspectJPlugin.isAJProject(field.getJavaProject().getProject())) {
+                disableITDUpdatingForRoo = shouldDisableITDUpdatingForRoo();
                 return true;
             }
         }
@@ -113,8 +126,10 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             for (IJavaElement elt : itds) {
                 if (shouldRenameGetter && isGetter(elt)) {
                     getter = (IntertypeElement) elt;
+                    aspectDeclaringGetter = (AJCompilationUnit) getter.getCompilationUnit();
                 } else if (shouldRenameSetter && isSetter(elt)) {
                     setter = (IntertypeElement) elt;
+                    aspectDeclaringSetter = (AJCompilationUnit) setter.getCompilationUnit();
                 }
             }
             if (getter == null && setter == null) {
@@ -153,9 +168,9 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             CompositeChange change = new CompositeChange(getName());
             createDeclarationChange(getter, change, getOldGetterName(useIsForBooleanGetter), getNewGetterName(useIsForBooleanGetter));
             createDeclarationChange(setter, change, getOldSetterName(), getNewSetterName());
+            createMatchedChanges(privateFieldReferences, change, field.getElementName(), getArguments().getNewName());
             createMatchedChanges(getterReferences, change, getOldGetterName(useIsForBooleanGetter), getNewGetterName(useIsForBooleanGetter));
             createMatchedChanges(setterReferences, change, getOldSetterName(), getNewSetterName());
-            createMatchedChanges(privateFieldReferences, change, field.getElementName(), getArguments().getNewName());
             if (change.getChildren().length > 0) {
                 return change;
             }
@@ -202,6 +217,11 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
 
     private void addChange(CompositeChange finalChange, IMember enclosingElement,
             int offset, int length, String newName) {
+        ICompilationUnit unit = enclosingElement.getCompilationUnit();
+        if (disableITDUpdatingForRoo && unit != null && (unit.equals(aspectDeclaringGetter) || unit.equals(aspectDeclaringSetter))) {
+            return;
+        }
+        
         CompilationUnitChange existingChange = findOrCreateChange(
                 enclosingElement, finalChange);
         TextEditChangeGroup[] groups = existingChange.getTextEditChangeGroups();
@@ -245,12 +265,12 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             }
         }
         
+        
         if (existingChange == null) {
             // nope...must create a new change
             existingChange = new CompilationUnitChange("ITD accessor renamings for " + accessor.getCompilationUnit().getElementName(), accessor.getCompilationUnit());
             existingChange.setEdit(new MultiTextEdit());
             finalChange.add(existingChange);
-//            existingChange.setDescriptor(get)
         }
         return existingChange;
     }
@@ -373,4 +393,16 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
         return false;
     }
 
+    
+    /**
+     * if this is a roo project and roo is installed in the system.
+     */
+    private boolean shouldDisableITDUpdatingForRoo() {
+        try {
+            return field.getJavaProject().getProject().hasNature("com.springsource.sts.roo.core.nature") && 
+                Platform.getBundle("com.springsource.sts.roo.core") != null;
+        } catch (CoreException e) {
+            return false;
+        }
+    }
 }
