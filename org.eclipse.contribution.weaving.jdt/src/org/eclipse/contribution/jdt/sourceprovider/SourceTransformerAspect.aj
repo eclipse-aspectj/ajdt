@@ -24,8 +24,8 @@ import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BasicCompilationUnit;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.SourceMapper;
-import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring.CleanUpChange;
 import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
+import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring.CleanUpChange;
 
 public aspect SourceTransformerAspect {
     

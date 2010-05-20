@@ -13,6 +13,7 @@ package org.eclipse.contribution.jdt.itdawareness;
 import java.util.HashMap;
 
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
+import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.CompletionRequestor;
@@ -21,21 +22,20 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.Openable;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
-import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
-import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
-import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
-import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
-import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE

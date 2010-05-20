@@ -11,15 +11,10 @@
 
 package org.eclipse.contribution.jdt.preferences;
 
-import java.io.IOException;
-
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Preferences;
-import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
