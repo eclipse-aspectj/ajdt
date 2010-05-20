@@ -13,7 +13,7 @@
 
 	<taskdef resource="com/ibm/lakeba/ant/taskdefs.properties">
 		<classpath>
-			<pathelement path="checkresults.jar" />
+			<pathelement path="ant_libs/checkresults.jar" />
 		</classpath>
 	</taskdef>
 
@@ -28,7 +28,7 @@
 	<echo message="tstampQual=${tstampQual}"/>
 	<property name="forceContextQualifier" value="${qualPrefix}-${tstampQual}"/>
 	<property name="buildLabel" value="build-${forceContextQualifier}"/>
-
+	
 	<echo message="=============================================="/>
 	<echo message="forceContextQualifier=${forceContextQualifier}"/>
 	<echo message="=============================================="/>
