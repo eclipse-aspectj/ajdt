@@ -14,15 +14,19 @@
 
 package org.eclipse.ajdt.ui.tests.testutils;
 
+import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.ajde.UICompilerFactoryTests;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
+import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 
 public aspect Enforcement {
 
-	declare error: execution(* TestCase+.*(..)) && !execution(* UITestCase+.*(..)):
+	declare error: execution(* TestCase+.*(..)) && !execution(* UITestCase+.*(..)) &&
+    !within(ITDAwareRippleSearchTests) &&
+    !within(ITDRenameProcessorTests):
 		"All test classes should extend UITestCase"; //$NON-NLS-1$
 	
 	declare error: call(* UITestCase.deleteProject(..)) && !within(UITestCase)

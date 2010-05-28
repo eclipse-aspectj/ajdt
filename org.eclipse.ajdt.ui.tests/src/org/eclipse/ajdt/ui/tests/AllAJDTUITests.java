@@ -92,6 +92,8 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests9;
 import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
+import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
+import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
@@ -246,6 +248,8 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(OrganizeImportsTest.class));
         suite.addTest(new TestSuite(CopyPasteAJTest.class));
         suite.addTest(new TestSuite(PushinRefactoringTests.class));
+        suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
+        suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
 
         suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
 
