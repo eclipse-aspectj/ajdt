@@ -11,6 +11,7 @@
 
 package org.eclipse.contribution.weaving.jdt.tests.sourceprovider;
 
+import java.io.StringReader;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -18,9 +19,13 @@ import junit.framework.Assert;
 
 import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
 import org.eclipse.contribution.weaving.jdt.tests.MockSourceTransformer;
+import org.eclipse.contribution.weaving.jdt.tests.StringInputStream;
 import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
@@ -31,7 +36,9 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.SourceMapper;
+import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.corext.fix.CleanUpConstants;
 import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.RefactoringExecutionStarter;
@@ -106,6 +113,18 @@ public class SourceTransformerTests extends WeavingTestCase {
 //        assertEquals("Should have had 'ensureRealBuffer' called exactly once", 
 //                1, MockSourceTransformer.ensureRealBufferCalled);
 //    }
+    
+    // Ensure that the custom source indexer requestor is created
+    public void testSourceIndexerRequestor() throws Exception {
+        IProject proj = createPredefinedProject("MockCUProject");
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+        MockSourceTransformer.ensureSourceIndexerRequestorCreated = 0;
+        
+        IndexManager manager = JavaModelManager.getIndexManager();
+        manager.indexAll(proj);
+        waitForJobsToComplete();
+        assertEquals("Should have created one custom indexer.", 1, MockSourceTransformer.ensureSourceIndexerRequestorCreated);
+    }
     
     
     class MockType extends BinaryType {
