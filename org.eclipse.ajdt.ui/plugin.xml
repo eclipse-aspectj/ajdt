@@ -2100,6 +2100,10 @@ M4 = Platform-specific fourth key
             class="org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringContribution"
             id="org.eclipse.ajdt.ui.pushin">
       </contribution>
+      <contribution
+            class="org.eclipse.ajdt.internal.ui.refactoring.ITDRenameRefactoringContribution"
+            id="org.eclipse.ajdt.ui.renameITD">
+      </contribution>
    </extension>
    <extension
          point="org.eclipse.jdt.ui.classpathAttributeConfiguration">
@@ -2126,6 +2130,13 @@ M4 = Platform-specific fourth key
             class="org.eclipse.ajdt.ui.AJDTNameEnvironmentAdapterFactory">
          <adapter
                type="org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider">
+         </adapter>
+      </factory>
+      <factory
+            adaptableType="org.eclipse.contribution.jdt.itdawareness.RenameAdapter"
+            class="org.eclipse.ajdt.internal.ui.refactoring.RenameProviderAdapterFactory">
+         <adapter
+               type="org.eclipse.contribution.jdt.itdawareness.IRenameRefactoringProvider">
          </adapter>
       </factory>
    </extension>

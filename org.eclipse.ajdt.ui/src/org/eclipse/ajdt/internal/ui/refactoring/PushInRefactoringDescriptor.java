@@ -12,7 +12,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 public class PushInRefactoringDescriptor extends RefactoringDescriptor {
 
-	public static final String REFACTORING_ID = "org.eclipse.ajdt.core.pushin";
+	public static final String REFACTORING_ID = "org.eclipse.ajdt.ui.pushin";
 
 	private final Map arguments;
 
