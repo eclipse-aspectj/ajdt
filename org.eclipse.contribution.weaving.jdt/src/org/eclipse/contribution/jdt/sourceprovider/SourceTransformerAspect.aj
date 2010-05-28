@@ -16,6 +16,7 @@ import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.search.SearchDocument;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
@@ -24,10 +25,12 @@ import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BasicCompilationUnit;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.SourceMapper;
+import org.eclipse.jdt.internal.core.search.indexing.SourceIndexer;
+import org.eclipse.jdt.internal.core.search.indexing.SourceIndexerRequestor;
 import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
 import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring.CleanUpChange;
 
-public aspect SourceTransformerAspect {
+public privileged aspect SourceTransformerAspect {
     
     pointcut settingSource(char[] sourceString) : 
             execution(public final void Scanner+.setSource(char[])) &&
@@ -121,6 +124,31 @@ public aspect SourceTransformerAspect {
             }
         }
         return proceed(unit);
+    }
+    
+    
+    //////////////////////////////////////////////
+    // Extend indexing
+    //////////////////////////////////////////////
+    pointcut indexingSourceDocument() : call(public SourceIndexerRequestor.new(SourceIndexer))  &&
+        // prevent infinite recursion when the transformer decides to return a SourceIndexerRequestor
+        !cflowbelow(execution(public SourceIndexerRequestor ISourceTransformer.createIndexerRequestor(SourceIndexer)));
+    
+    SourceIndexerRequestor around(SourceIndexer indexer) : indexingSourceDocument() && args(indexer) {
+        SearchDocument document = indexer.document;
+        String extension = getExtension(document.getPath().toCharArray());
+        ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
+        
+        // unfortunately, we do not have access to an IJavaElement here, 
+        // so we can't weed out uninteresting projects.
+        if (transformer != null) {
+            try {
+                return transformer.createIndexerRequestor(indexer);
+            } catch (Throwable t) {
+                JDTWeavingPlugin.logException(t);
+            }
+        }
+        return proceed(indexer);
     }
     
     
