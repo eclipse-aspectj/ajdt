@@ -8,15 +8,14 @@
  * Contributors:
  *     Andrew Eisenberg - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.core;
+package org.eclipse.ajdt.core.codeconversion;
 
-import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
-import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
-import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.contribution.jdt.sourceprovider.ISourceTransformer;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.search.indexing.SourceIndexer;
+import org.eclipse.jdt.internal.core.search.indexing.SourceIndexerRequestor;
 
 public class AJSourceTransformer implements ISourceTransformer {
 
@@ -32,6 +31,10 @@ public class AJSourceTransformer implements ISourceTransformer {
             buffer = ((JavaCompatibleBuffer) buffer).getRealBuffer();
         }
         return buffer;
+    }
+
+    public SourceIndexerRequestor createIndexerRequestor(SourceIndexer indexer) {
+        return new AJSourceIndexerRequestor(indexer);
     }
 
 }

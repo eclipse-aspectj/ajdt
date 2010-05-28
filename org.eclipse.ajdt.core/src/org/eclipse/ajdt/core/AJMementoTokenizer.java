@@ -70,52 +70,11 @@ public class AJMementoTokenizer extends MementoTokenizer {
     }
 
     public AJMementoTokenizer(MementoTokenizer tokenizer) {
-        super(String.valueOf(getMemento(tokenizer)));
-        memento = getMemento(tokenizer);
+        super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
+        memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
         length = memento.length;
-        index = getIndex(new String(memento));
-        setIndex(this, index);
-    }
-
-    private static Field mementoField;
-
-    private static char[] getMemento(MementoTokenizer tokenizer) {
-        if (mementoField == null) {
-            try {
-                mementoField = MementoTokenizer.class
-                        .getDeclaredField("memento"); //$NON-NLS-1$
-                mementoField.setAccessible(true);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        try {
-            return (char[]) mementoField.get(tokenizer);
-        } catch (IllegalArgumentException e) {} catch (IllegalAccessException e) {}
-        return null;
-    }
-
-    private static Field indexField;
-
-    private static int getIndex(String memento) {
-        return Math.max(memento.indexOf(AspectElement.JEM_ASPECT_TYPE), memento
-                .indexOf(JavaElement.JEM_TYPE));
-    }
-
-    private static void setIndex(MementoTokenizer tokenizer, int val) {
-        if (indexField == null) {
-            try {
-                indexField = MementoTokenizer.class.getDeclaredField("index"); //$NON-NLS-1$
-                indexField.setAccessible(true);
-            } catch (Exception e) {}
-        }
-        try {
-            indexField.setInt(tokenizer, val);
-        } catch (IllegalArgumentException e) {} catch (IllegalAccessException e) {}
-    }
-
-    void setIndexTo(int newIndex) {
-        this.index = newIndex;
+        index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
+        ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
     }
 
     public boolean hasMoreTokens() {
@@ -220,5 +179,9 @@ public class AJMementoTokenizer extends MementoTokenizer {
             return buffer.toString();
         }
         return new String(this.memento, start, this.index - start);
+    }
+    
+    void setIndexTo(int newIndex) {
+        this.index = newIndex;
     }
 }

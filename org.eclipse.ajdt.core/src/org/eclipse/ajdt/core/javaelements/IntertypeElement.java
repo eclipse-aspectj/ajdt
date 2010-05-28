@@ -18,7 +18,9 @@ import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
@@ -35,8 +37,12 @@ import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
 
 /**
  * @author Luzius Meisser
+ * @author andrew
  */
-public class IntertypeElement extends AspectJMemberElement {
+public class IntertypeElement extends AspectJMemberElement implements IField {
+    
+    private IType targetTypeCache = null;
+    
 	public IntertypeElement(JavaElement parent, String name, String[] parameterTypes) {
 		super(parent, name, parameterTypes);
 	}
@@ -109,6 +115,32 @@ public class IntertypeElement extends AspectJMemberElement {
         return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
     }
 	
+    public IType findTargetType() {
+        if (targetTypeCache == null) {
+            AJProjectModelFacade model = AJProjectModelFactory
+            .getInstance().getModelForJavaElement(this);
+            List rels = model.getRelationshipsForElement(this,
+                    AJRelationshipManager.DECLARED_ON);
+            if (rels.size() > 0 && rels.get(0) instanceof IType) {
+                targetTypeCache = (IType) rels.get(0);
+            }
+        }
+        return targetTypeCache;
+    }
+    
+    /**
+     * Shortcut for {@link #createMockDeclaration(IType)} when 
+     * the target type is not known in advance
+     */
+    public IMember createMockDeclaration() {
+        IType target = findTargetType();
+        if (target != null) {
+            return createMockDeclaration(target);
+        } else {
+            return null;
+        }
+    }
+    
 	/**
      * note that we set the accessibility to public because the modifiers 
      * apply to the ITD element, not the target declaration.
@@ -151,7 +183,7 @@ public class IntertypeElement extends AspectJMemberElement {
             } else if (isMethod) {
                 IMethod itd = new SourceMethod(
                         (JavaElement) parent, 
-                        extractName(), 
+                        getTargetName(), 
                         this.getQualifiedParameterTypes()) {
                     protected Object createElementInfo() {
 						/* AJDT 1.7 */
@@ -174,7 +206,7 @@ public class IntertypeElement extends AspectJMemberElement {
 
             } else if (isField) {
                 // field
-                IField itd = new SourceField((JavaElement) parent, extractName()) {
+                IField itd = new SourceField((JavaElement) parent, getTargetName()) {
                     protected Object createElementInfo() {
 						/* AJDT 1.7 */
                         ITDSourceFieldElementInfo newInfo = new ITDSourceFieldElementInfo(IntertypeElement.this, info.getChildren());
@@ -197,7 +229,7 @@ public class IntertypeElement extends AspectJMemberElement {
         return null;
 	}
 
-    private String extractName() {
+    public String getTargetName() {
         String[] split = name.split("\\.");
         return split.length > 1 ? split[split.length-1] : name;
     }
@@ -224,6 +256,30 @@ public class IntertypeElement extends AspectJMemberElement {
             return info.getReturnTypeName();
         }
     }
+    
+    /*
+     * See IField
+     */
+    public Object getConstant() throws JavaModelException {
+        return null;
+    }
+
+    /*
+     * See IField
+     */
+    public String getTypeSignature()
+            throws JavaModelException {
+        return getReturnType();
+    }
+
+    /*
+     * See IField
+     */
+    public boolean isEnumConstant()
+            throws JavaModelException {
+        return false;
+    }
+
 
 
     /**
