@@ -26,8 +26,10 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchMatch;
@@ -53,7 +55,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         }
     }
 
-    IJavaProject javaProject;
+    public IJavaProject javaProject;
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -91,12 +93,15 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     }
 
     protected List findSearchMatches(IJavaElement elt, String name) throws Exception {
+        return findSearchMatches(elt, name, IJavaSearchConstants.REFERENCES);
+    }
+    protected List findSearchMatches(IJavaElement elt, String name, int flags) throws Exception {
         javaProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         waitForManualBuild();
         assertNoProblems(javaProject.getProject());
         
         AspectJCoreTestPlugin.logInfo("About to create Search pattern in " + name);
-        SearchPattern pattern = SearchPattern.createPattern(elt, IJavaSearchConstants.REFERENCES);
+        SearchPattern pattern = SearchPattern.createPattern(elt, flags);
         SearchEngine engine = new SearchEngine();
         JavaSearchScope scope = new JavaSearchScope();
         scope.add(javaProject);
@@ -152,5 +157,34 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         // disabled because we can't get this right right now.
         //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
     }
+    
 
+    protected void assertDeclarationMatches(IMember declaration, List matches) throws JavaModelException {
+        boolean found = false;
+        for (Iterator searchIter = matches.iterator(); searchIter.hasNext();) {
+            SearchMatch match = (SearchMatch) searchIter.next();
+            if (match.getElement().equals(declaration)) {
+                found = true;
+                assertDeclarationMatch(declaration, match);
+                break;
+            }
+        }
+        if (!found) {
+            fail("Expected to find " + declaration + " in matches, but did not.\n" + printMatches(matches));
+        }
+    }
+    protected void assertDeclarationMatch(IMember declaration, SearchMatch match) throws JavaModelException {
+        assertEquals("Should have found the declaration.", declaration, match.getElement());
+        ISourceRange nameRange = declaration.getNameRange();
+        assertEquals("Incorrect match offset", nameRange.getOffset(), match.getOffset());
+        assertEquals("Incorrect match length", nameRange.getLength(), match.getLength());
+    }
+
+    protected void assertExpectedNumberOfMatches(int expected, List matches) {
+        assertEquals("Wrong number of matches found:\n" + printMatches(matches), expected, matches.size());
+    }
+
+    protected void buildProject() throws CoreException {
+        super.buildProject(javaProject);
+    }
 }

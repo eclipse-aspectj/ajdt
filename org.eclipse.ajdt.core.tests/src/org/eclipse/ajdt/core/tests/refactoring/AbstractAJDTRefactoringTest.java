@@ -97,6 +97,9 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     protected IntertypeElement getFirstIntertypeElement(ICompilationUnit unit) throws JavaModelException {
         return (IntertypeElement) unit.getTypes()[0].getChildren()[0];
     }
+    protected IntertypeElement getFirstIntertypeElement(ICompilationUnit[] units) throws JavaModelException {
+        return (IntertypeElement) units[0].getTypes()[0].getChildren()[0];
+    }
     protected IntertypeElement getLastIntertypeElement(ICompilationUnit unit) throws JavaModelException {
         IJavaElement[] children = unit.getTypes()[0].getChildren();
         return (IntertypeElement) children[children.length-1];
@@ -106,6 +109,7 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
+        super.buildProject(project);
         performDummySearch();
         IUndoManager undoManager= getUndoManager();
         final CreateChangeOperation create= new CreateChangeOperation(
@@ -116,9 +120,7 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         IWorkspace workspace= ResourcesPlugin.getWorkspace();
         executePerformOperation(perform, workspace);
         RefactoringStatus status= create.getConditionCheckingStatus();
-        if (!status.hasError() && !performOnFail)
-            return status;
-        assertTrue("Change wasn't executed", perform.changeExecuted());
+        assertTrue("Change wasn't executed", perform.changeExecuted() || ! perform.changeExecutionFailed());
         Change undo= perform.getUndoChange();
         if (providesUndo) {
             assertNotNull("Undo doesn't exist", undo);
@@ -126,25 +128,13 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         } else {
             assertNull("Undo manager contains undo but shouldn't", undo);
         }
-        return null;
+        return status;
     }
 
     protected void performDummySearch() throws Exception {
         performDummySearch(p);
     }
     
-    public static void performDummySearch(IJavaElement element) throws Exception{
-        new SearchEngine().searchAllTypeNames(
-            null,
-            SearchPattern.R_EXACT_MATCH,
-            "XXXXXXXXX".toCharArray(), // make sure we search a concrete name. This is faster according to Kent
-            SearchPattern.R_EXACT_MATCH,
-            IJavaSearchConstants.CLASS,
-            SearchEngine.createJavaSearchScope(new IJavaElement[]{element}),
-            new Requestor(),
-            IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
-            null);
-    }
     
     protected final Refactoring createRefactoring(RefactoringDescriptor descriptor) throws CoreException {
         RefactoringStatus status= new RefactoringStatus();
@@ -162,8 +152,5 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     
     protected void executePerformOperation(final PerformChangeOperation perform, IWorkspace workspace) throws CoreException {
         workspace.run(perform, new NullProgressMonitor());
-    }
-    
-    private static class Requestor extends TypeNameRequestor {
     }
 }

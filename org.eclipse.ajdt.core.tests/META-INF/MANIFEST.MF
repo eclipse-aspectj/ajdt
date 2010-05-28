@@ -15,6 +15,7 @@ Export-Package: org.eclipse.ajdt.core.tests,
  org.eclipse.ajdt.core.tests.model,
  org.eclipse.ajdt.core.tests.newbuildconfig,
  org.eclipse.ajdt.core.tests.refactoring,
+ org.eclipse.ajdt.core.tests.search,
  org.eclipse.ajdt.core.tests.testutils
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ajdt.core,
