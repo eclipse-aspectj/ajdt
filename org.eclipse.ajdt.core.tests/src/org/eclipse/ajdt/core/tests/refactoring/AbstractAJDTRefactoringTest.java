@@ -143,7 +143,11 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         }
 
         if (!result.hasEntries() || result.getEntries().length == 1 && 
-                result.toString().indexOf("Found potential matches") >= 0) {
+                (
+                        result.toString().indexOf("Found potential matches") >= 0 ||
+                        result.toString().indexOf("Method breakpoint participant") >= 0 ||
+                        result.toString().indexOf("Watchpoint participant") >= 0
+                )) {
             return new RefactoringStatus();
         }
 
