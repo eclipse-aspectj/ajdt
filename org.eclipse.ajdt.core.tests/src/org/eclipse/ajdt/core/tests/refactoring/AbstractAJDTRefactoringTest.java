@@ -131,6 +131,25 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         return status;
     }
 
+    
+    /**
+     * remove the Refactoring Status Error that says there are potential 
+     * matches.  This is something that is expected.
+     */
+    protected RefactoringStatus removePotentialMatchesError(
+            RefactoringStatus result) {
+        if (result.getSeverity() != RefactoringStatus.ERROR) {
+            return result;
+        }
+
+        if (!result.hasEntries() || result.getEntries().length == 1 && 
+                result.toString().indexOf("Found potential matches") >= 0) {
+            return new RefactoringStatus();
+        }
+
+        return result;
+    }
+
     protected void performDummySearch() throws Exception {
         performDummySearch(p);
     }

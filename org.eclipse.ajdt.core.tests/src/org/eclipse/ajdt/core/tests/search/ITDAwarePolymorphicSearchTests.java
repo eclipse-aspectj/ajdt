@@ -132,9 +132,9 @@ public class ITDAwarePolymorphicSearchTests extends AbstractITDSearchTest {
     }
     public void testITDSearch10() throws Exception {
         createCU("JavaSub.java", "class JavaSub extends Java {  }");
-        createCU("Java.java", "class Java { int foo; }");
+        createCU("Java.java", "class Java {\n int foo; }");
         
-        String contents = "aspect Aspect { Java.new(int x) { this(); foo = x; }\n int JavaSub.foo; }";
+        String contents = "aspect Aspect {\n Java.new(int x) {\n this(); foo = x; }\n int JavaSub.foo; }";
         ICompilationUnit unit = createCU("Aspect.aj", contents);
         
         IntertypeElement itd = findLastITD(unit);

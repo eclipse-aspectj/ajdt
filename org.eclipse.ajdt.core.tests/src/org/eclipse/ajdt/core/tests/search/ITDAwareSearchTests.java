@@ -175,7 +175,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD() throws Exception {
         String contents = "aspect Aspect { \nvoid Java.foo() { regular++; } }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -185,7 +185,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD2() throws Exception {
         String contents = "aspect Aspect { void Java.foo() { regular++; } int regular; }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -195,7 +195,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD3() throws Exception {
         String contents = "aspect Aspect { int regular;\n void Java.foo(int regular) { regular++; } }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -205,7 +205,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD4() throws Exception {
         String contents = "aspect Aspect { int regular;\n void Java.foo() { int regular = 0; regular++; } }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
