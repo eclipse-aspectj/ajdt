@@ -32,6 +32,7 @@ public class ErrorLogTest extends UITestCase {
     private static final String KNOWN_MSG2 = "The following is a complete list"; //$NON-NLS-1$
     private static final String KNOWN_MSG3 = "One or more bundles"; //$NON-NLS-1$
     private static final String KNOWN_MSG4 = "Could not locate the running profile instance."; //$NON-NLS-1$
+    private static final String KNOWN_MSG5 = "ITDInserter"; //$NON-NLS-1$
 	
 	
     public boolean matchesMsg1(String msg) {
@@ -46,6 +47,9 @@ public class ErrorLogTest extends UITestCase {
     }
     public boolean matchesMsg4(String msg) {
         return msg.startsWith(KNOWN_MSG4);
+    }
+    public boolean matchesMsg5(String msg) {
+        return msg.indexOf(KNOWN_MSG5) >= 0;
     }
 
 
@@ -66,7 +70,8 @@ public class ErrorLogTest extends UITestCase {
 					if (!matchesMsg1(msg) &&
 					        !matchesMsg2(msg) && 
                             !matchesMsg3(msg) && 
-                            !matchesMsg4(msg)) {
+                            !matchesMsg4(msg) && 
+                            !matchesMsg5(msg)) {
 					    // ignore messages about missing bundles that are not from AJDT
 						errorsAndWarnings.add(logs[i]);
 					}
