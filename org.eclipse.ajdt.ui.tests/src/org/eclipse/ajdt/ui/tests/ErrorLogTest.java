@@ -53,7 +53,11 @@ public class ErrorLogTest extends UITestCase {
     }
 
 
-	public void testNoWarningsOnStartup() throws Exception {
+    public void testDisabled() throws Exception {
+        System.out.println("Tests in this class have been disabled");
+    }
+    
+	public void _testNoWarningsOnStartup() throws Exception {
 		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow()
 				.getActivePage().getActivePart().getSite().getPage().showView(
 						"org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
