@@ -548,23 +548,4 @@ AbstractAJDTRefactoringTest {
                 new NullProgressMonitor());
         assertContents(units, finalContents);
     }
-
-    /**
-     * remove the Refactoring Status Error that says there are potential 
-     * matches.  This is something that is expected.
-     */
-    private RefactoringStatus removePotentialMatchesError(
-            RefactoringStatus result) {
-        if (result.getSeverity() != RefactoringStatus.ERROR) {
-            return result;
-        }
-
-        if (!result.hasEntries() || result.getEntries().length == 1 && 
-                result.toString().contains("Found potential matches")) {
-            return new RefactoringStatus();
-        }
-
-        return result;
-    }
-
 }

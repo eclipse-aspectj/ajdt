@@ -53,7 +53,7 @@ public class AdviceMarkersTest7 extends UITestCase {
      * @throws Exception
      */
     // FAILING FOR NOW
-    public void _testChangeOnAspectPath() throws Exception {
+    public void testChangeOnAspectPath() throws Exception {
         checkAllMarkersExist();
         changeAspectOnAspectPath();
         checkOnlyProjectMarkersExist();
