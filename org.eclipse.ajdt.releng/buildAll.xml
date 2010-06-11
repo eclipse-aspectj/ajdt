@@ -154,12 +154,13 @@
 
 		<!-- download if not already there -->
 		<mkdir dir="${download.home}"/>
+		<!--
 		<antcall target="downloadFile">
 			<param name="theURL" value="${build.url.3.6}"/>
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
 		</antcall>
-
+		-->
 		<!-- Unpack a fresh eclipse -->
 		<delete failonerror="false">
 			<fileset dir="${build.dest}/target/eclipse"/>
