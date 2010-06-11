@@ -114,12 +114,14 @@
 
 	<target name="download-eclipse" depends="check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
 		
+<!--
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
 			<param name="theURL" value="${build.url.3.6}"/>
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
 		</antcall>
+		-->
 	</target>
 
 	<!-- for now, only tar files are supported -->
