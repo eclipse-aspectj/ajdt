@@ -135,9 +135,15 @@
 		</antcall>
 
 		<!-- Install AJDT -->
+<!--
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
 			updatesite.url="http://download.eclipse.org/tools/ajdt/36/dev/update" 
+			feature.id="org.eclipse.ajdt" />
+-->
+		<install-bundle 
+			eclipse.loc="${build.dest}/eclipse" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/36/build" 
 			feature.id="org.eclipse.ajdt" />
 
 		<!-- ajdt-pde integration and test framework -->
