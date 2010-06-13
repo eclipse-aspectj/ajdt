@@ -91,6 +91,8 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests9;
 import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
+import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
+import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
@@ -99,6 +101,7 @@ import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.weaving.ITDAwareHierarchyTests;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
+import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -109,59 +112,59 @@ import org.eclipse.ui.intro.IIntroPart;
 
 public class AllAJDTUITests {
 
-	public static Test suite() {
-		TestSuite suite = new TestSuite(AllAJDTUITests.class.getName());
-		//$JUnit-BEGIN$
-		
-		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
-		
-		// internal.ui.actions tests
-		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
-		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
-		
-		// internal.ui.preferences tests
-		suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
-		suite.addTest(new TestSuite(AJCompilerPreferencePageTest2.class));
-		suite.addTest(new TestSuite(AJCompilerPreferencePageWorkbenchTest.class));
-		suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
-		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
-		suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
-		suite.addTest(new TestSuite(Bug162211Test.class));
+    public static Test suite() {
+        TestSuite suite = new TestSuite(AllAJDTUITests.class.getName());
+        //$JUnit-BEGIN$
+        
+        boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
+        
+        // internal.ui.actions tests
+        suite.addTest(new TestSuite(AddAJNatureActionTest.class));
+        suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
+        
+        // internal.ui.preferences tests
+        suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
+        suite.addTest(new TestSuite(AJCompilerPreferencePageTest2.class));
+        suite.addTest(new TestSuite(AJCompilerPreferencePageWorkbenchTest.class));
+        suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
+        suite.addTest(new TestSuite(AspectJPreferencesTest.class));
+        suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
+        suite.addTest(new TestSuite(Bug162211Test.class));
 
-		// internal.ui.editor tests
-		suite.addTest(new TestSuite(AspectJEditorTest.class));
-		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
-		suite.addTest(new TestSuite(AspectJEditorIconTest.class));
-		suite.addTest(new TestSuite(ITDHyperlinkTest.class));
-		suite.addTest(new TestSuite(ITDHyperlinkTest2.class));
-		
-		// code format tests
-		suite.addTest(new TestSuite(CodeFormatTest.class));
-		
-		// internal.ui.ajde tests
-		suite.addTest(new TestSuite(BuildOptionsAdapterTest.class));
-		suite.addTest(new TestSuite(ClasspathOrderTest.class));
-		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
-		suite.addTest(new TestSuite(AJDTErrorHandlerTest.class));
-		suite.addTest(new TestSuite(UIMessageHandlerTest.class));
+        // internal.ui.editor tests
+        suite.addTest(new TestSuite(AspectJEditorTest.class));
+        suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
+        suite.addTest(new TestSuite(AspectJEditorIconTest.class));
+        suite.addTest(new TestSuite(ITDHyperlinkTest.class));
+        suite.addTest(new TestSuite(ITDHyperlinkTest2.class));
+        
+        // code format tests
+        suite.addTest(new TestSuite(CodeFormatTest.class));
+        
+        // internal.ui.ajde tests
+        suite.addTest(new TestSuite(BuildOptionsAdapterTest.class));
+        suite.addTest(new TestSuite(ClasspathOrderTest.class));
+        suite.addTest(new TestSuite(ProjectPropertiesTest.class));
+        suite.addTest(new TestSuite(AJDTErrorHandlerTest.class));
+        suite.addTest(new TestSuite(UIMessageHandlerTest.class));
 
-		// internal.ui.editor.quickfix tests
-		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
-		
-		// launching tests
-		suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
-		suite.addTest(new TestSuite(LTWUtilsTest.class));
-		suite.addTest(new TestSuite(LTWUtilsTest2.class));
-		
-		// test classes in lazystart package
-		suite.addTest(new TestSuite(ImageDecoratorTest.class));
-		
-		// ui model tests
-		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
+        // internal.ui.editor.quickfix tests
+        suite.addTest(new TestSuite(AspectJQuickFixTest.class));
+        
+        // launching tests
+        suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
+        suite.addTest(new TestSuite(LTWUtilsTest.class));
+        suite.addTest(new TestSuite(LTWUtilsTest2.class));
+        
+        // test classes in lazystart package
+        suite.addTest(new TestSuite(ImageDecoratorTest.class));
+        
+        // ui model tests
+        suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 
-		// content assist tests
-		suite.addTest(new TestSuite(CodeTemplatesTest.class));
-		suite.addTest(new TestSuite(ContentAssistTests.class));
+        // content assist tests
+        suite.addTest(new TestSuite(CodeTemplatesTest.class));
+        suite.addTest(new TestSuite(ContentAssistTests.class));
         suite.addTest(new TestSuite(ContentAssistTests2.class));
         suite.addTest(new TestSuite(ContentAssistTests3.class));
         suite.addTest(new TestSuite(ContentAssistTests4.class));
@@ -172,45 +175,43 @@ public class AllAJDTUITests {
         // test the roo petclinic project
         suite.addTest(new TestSuite(PetClinicTests.class));
         
-		// new aspectJ project wizard
-		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
-		
-		// export wizard tests
-//		suite.addTest(new TestSuite(AJCTaskTest.class));
-//		suite.addTest(new TestSuite(ExportPluginTest.class));
-//		suite.addTest(new TestSuite(ExportProductTest.class));
-		
-		// internal.builder tests
-		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
-		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest3.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest4.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
+        // new aspectJ project wizard
+        suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
+        
+        // export wizard tests
+        suite.addTest(new TestSuite(AJCTaskTest.class));
+        
+        // internal.builder tests
+        suite.addTest(new TestSuite(ProjectDependenciesTest.class));        
+        suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest2.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest3.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest4.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest5.class));
         suite.addTest(new TestSuite(AdviceMarkersTest6.class));
         suite.addTest(new TestSuite(AdviceMarkersTest7.class));
         suite.addTest(new TestSuite(Bug285188DecErrorTests.class));
-		suite.addTest(new TestSuite(Bug128803Test.class));
+        suite.addTest(new TestSuite(Bug128803Test.class));
         suite.addTest(new TestSuite(Bug151818Test.class));
         suite.addTest(new TestSuite(Bug243376Test.class));
-		suite.addTest(new TestSuite(BuilderTest.class));
+        suite.addTest(new TestSuite(BuilderTest.class));
         suite.addTest(new TestSuite(BuildPathTests.class));
         suite.addTest(new TestSuite(ChangingMarkersTest.class));
         suite.addTest(new TestSuite(CustomMarkersTest.class));
         suite.addTest(new TestSuite(InpathOutFolderTest.class));
-		suite.addTest(new TestSuite(ITDinSeparateProjects.class));
+        suite.addTest(new TestSuite(ITDinSeparateProjects.class));
         suite.addTest(new TestSuite(ProblemMarkerTest.class));
         suite.addTest(new TestSuite(EnsureAJBuilderTests.class));
-		
-		// javamodel tests
-		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
-		suite.addTest(new TestSuite(Bug154339Test.class));
-		if(is50) {
-			suite.addTest(new TestSuite(Bug117327Test.class));
-		}
-		
-		// reconciling
+        
+        // javamodel tests
+        suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
+        suite.addTest(new TestSuite(Bug154339Test.class));
+        if(is50) {
+            suite.addTest(new TestSuite(Bug117327Test.class));
+        }
+        
+        // reconciling
         suite.addTest(new TestSuite(ProblemFinderTests.class));
         suite.addTest(new TestSuite(ProblemFinderTests2.class));
         suite.addTest(new TestSuite(ProblemFinderTests3.class));
@@ -233,15 +234,17 @@ public class AllAJDTUITests {
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
-		
-		// ras tests
-		suite.addTest(new TestSuite(PluginFFDCTest.class));		
-		
-		// Refactoring
+        
+        // ras tests
+        suite.addTest(new TestSuite(PluginFFDCTest.class));     
+        
+        // Refactoring
         suite.addTest(new TestSuite(RenamePackageTest.class));
         suite.addTest(new TestSuite(OrganizeImportsTest.class));
         suite.addTest(new TestSuite(CopyPasteAJTest.class));
         suite.addTest(new TestSuite(PushinRefactoringTests.class));
+        suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
+        suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
 
         suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
 
@@ -260,61 +263,61 @@ public class AllAJDTUITests {
 
 
         
-		//$JUnit-END$
-		return suite;
-	}
-		
-	/**
-	 * Prevents AJDTPrefWizard from popping up during tests and simulates normal
-	 * usage by closing the welcome page, and opening the java perspective
-	 */
-	public static synchronized void setupAJDTPlugin() {
-		if (setupDone) {
-			return;
-		}
-		
-		IWorkbenchWindow window = PlatformUI.getWorkbench()
-				.getActiveWorkbenchWindow();
+        //$JUnit-END$
+        return suite;
+    }
+        
+    /**
+     * Prevents AJDTPrefWizard from popping up during tests and simulates normal
+     * usage by closing the welcome page, and opening the java perspective
+     */
+    public static synchronized void setupAJDTPlugin() {
+        if (setupDone) {
+            return;
+        }
+        
+        IWorkbenchWindow window = PlatformUI.getWorkbench()
+                .getActiveWorkbenchWindow();
 
-		// close welcome page
-		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
-				.getIntro();
-		if (intro != null) {
-			try {
-				PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
-			} catch (NullPointerException npe) {
-				// don't care about this
-			}
-		}
+        // close welcome page
+        IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
+                .getIntro();
+        if (intro != null) {
+            try {
+                PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
+            } catch (NullPointerException npe) {
+                // don't care about this
+            }
+        }
 
-		// open Java perspective
-		try {
-			PlatformUI.getWorkbench().showPerspective(JavaUI.ID_PERSPECTIVE,
-					window);
-		} catch (WorkbenchException e) {
-		}
+        // open Java perspective
+        try {
+            PlatformUI.getWorkbench().showPerspective(JavaUI.ID_PERSPECTIVE,
+                    window);
+        } catch (WorkbenchException e) {
+        }
 
-		// open Cross Ref view
-		try {
-			window.getActivePage().showView(XReferenceView.ID);
-		} catch (PartInitException e1) {
-		}
-		
+        // open Cross Ref view
+        try {
+            window.getActivePage().showView(XReferenceView.ID);
+        } catch (PartInitException e1) {
+        }
+        
 
 
-		// open Console view
-		try {
-			window.getActivePage().showView("org.eclipse.ui.console.ConsoleView"); //$NON-NLS-1$
-		} catch (PartInitException e1) {
-		}
+        // open Console view
+        try {
+            window.getActivePage().showView("org.eclipse.ui.console.ConsoleView"); //$NON-NLS-1$
+        } catch (PartInitException e1) {
+        }
 
-		waitForJobsToComplete();
-		setupDone = true;
-	}
-	
-	private static void waitForJobsToComplete() {
-		SynchronizationUtils.joinBackgroudActivities();
-	}
+        waitForJobsToComplete();
+        setupDone = true;
+    }
+    
+    private static void waitForJobsToComplete() {
+        SynchronizationUtils.joinBackgroudActivities();
+    }
 
-	private static boolean setupDone = false;
+    private static boolean setupDone = false;
 }
