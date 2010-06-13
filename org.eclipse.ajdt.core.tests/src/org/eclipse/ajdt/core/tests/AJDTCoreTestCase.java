@@ -35,17 +35,23 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.IJavaSearchConstants;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.core.search.TypeNameRequestor;
 
 /**
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
@@ -70,6 +76,7 @@ public class AJDTCoreTestCase extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
         Utils.setAutobuilding(false);
+        getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < allProjects.length; i++) {
 			IProject project = allProjects[i];
@@ -80,6 +87,7 @@ public class AJDTCoreTestCase extends TestCase {
 			IProject project = allProjects[i];
 			deleteProject(project,true);
 		}
+        getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
         Utils.setAutobuilding(true);
 		AJCompilationUnitManager.INSTANCE.clearCache();
 		
@@ -161,14 +169,15 @@ public class AJDTCoreTestCase extends TestCase {
 		
 		// create project
 		final IProject project = getWorkspaceRoot().getProject(projectName);
-		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				project.create(null);
-				project.open(null);
-			}
-		};
-		getWorkspace().run(populate, null);
-		
+		if (! project.exists()) {
+    		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
+    			public void run(IProgressMonitor monitor) throws CoreException {
+    				project.create(null);
+    				project.open(null);
+    			}
+    		};
+    		getWorkspace().run(populate, null);
+		}		
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 		
 		IJavaProject javaProject = JavaCore.create(project);
@@ -197,7 +206,10 @@ public class AJDTCoreTestCase extends TestCase {
 		
 	}
 
-	/**
+	protected static class Requestor extends TypeNameRequestor {
+        }
+
+    /**
 	 * Wait for autobuild notification to occur
 	 */
 	public static void waitForAutoBuild() {
@@ -286,7 +298,24 @@ public class AJDTCoreTestCase extends TestCase {
 		return CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName());
 	}
 	
-	public static String convertToIndependantLineDelimiter(String source) {
+	/**
+     * Force indexes to be populated
+     */
+    public static void performDummySearch(IJavaElement element) throws CoreException {
+        new SearchEngine().searchAllTypeNames(
+            null,
+            SearchPattern.R_EXACT_MATCH,
+            "XXXXXXXXX".toCharArray(), // make sure we search a concrete name. This is faster according to Kent
+            SearchPattern.R_EXACT_MATCH,
+            IJavaSearchConstants.CLASS,
+            SearchEngine.createJavaSearchScope(new IJavaElement[]{element}),
+            new Requestor(),
+            IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
+            null);
+    }
+
+
+    public static String convertToIndependantLineDelimiter(String source) {
 		if (source.indexOf('\n') == -1 && source.indexOf('\r') == -1) return source;
 		StringBuffer buffer = new StringBuffer();
 		for (int i = 0, length = source.length(); i < length; i++) {
@@ -419,6 +448,13 @@ public class AJDTCoreTestCase extends TestCase {
     }
 
 
+    protected void buildProject(IJavaProject javaProject) throws CoreException {
+        javaProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+        assertNoProblems(javaProject.getProject());
+        performDummySearch(javaProject);
+    }
+
+
     public void assertNoProblems(IProject project) throws CoreException {
         String problems = getProblems(project);
         if (problems != null) {
@@ -438,7 +474,7 @@ public class AJDTCoreTestCase extends TestCase {
             if (((Integer) markers[i].getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
                 sb.append("  ");
                 sb.append(markers[i].getResource().getName()).append(" : ");
-                sb.append(markers[i].getAttribute(IMarker.LOCATION)).append(" : ");
+                sb.append(markers[i].getAttribute(IMarker.LINE_NUMBER)).append(" : ");
                 sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
                 errorFound = true;
             }

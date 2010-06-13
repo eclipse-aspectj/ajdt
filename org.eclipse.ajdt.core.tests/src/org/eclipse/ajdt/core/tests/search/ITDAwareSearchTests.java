@@ -175,7 +175,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD() throws Exception {
         String contents = "aspect Aspect { \nvoid Java.foo() { regular++; } }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -183,9 +183,9 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         assertMatch("regular", contents, matches);
     }
     public void testITDSearchRegularFieldInITD2() throws Exception {
-        String contents = "aspect Aspect { void Java.foo() { regular++; } int regular; }";
+        String contents = "aspect Aspect { \n void Java.foo() { regular++; } \n int regular; }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -195,7 +195,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD3() throws Exception {
         String contents = "aspect Aspect { int regular;\n void Java.foo(int regular) { regular++; } }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -205,7 +205,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDSearchRegularFieldInITD4() throws Exception {
         String contents = "aspect Aspect { int regular;\n void Java.foo() { int regular = 0; regular++; } }";
         createCU("Aspect.aj", contents);
-        ICompilationUnit unit = createCU("Java.java", "class Java { int regular; }");
+        ICompilationUnit unit = createCU("Java.java", "class Java {\n int regular; }");
         
         IMember toSearch = findFirstChild(unit);
         
@@ -246,7 +246,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
     public void testITDInOtherPackages() throws Exception {
         String contents = "package com.f; import com.bar.Bar; aspect Aspect {   \n  public int Bar.getFoo() { return foo; }  \n   public void Bar.setFoo(int newval) { this.foo = newval; } }";
         createCU("com.f", "Aspect.aj", contents);
-        ICompilationUnit unit = createCU("com.bar", "Bar.java", "package com.bar; \n public class Bar { public int foo;} ");
+        ICompilationUnit unit = createCU("com.bar", "Bar.java", "package com.bar; \n public class Bar {\n public int foo;} ");
         
         IJavaElement elt = findFirstChild(unit);
         

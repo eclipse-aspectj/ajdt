@@ -90,12 +90,12 @@ public class ITDRenameParticipantRefactoringTest extends
         new String[] {
                 "class F {\n int x; }",
                 "aspect A {\n public int F.getX() { return x; }\n public void F.setX(int x) { this.x = x; } }",
-                "class Other { void foo() { new F().setX(new F().getX()); new F().x++; } }"
+                "class Other { void foo() {\n new F().setX(new F().getX()); new F().x++; } }"
         }, 
         new String[] {
                 "class F {\n int xxx; }",
                 "aspect A {\n public int F.getXxx() { return xxx; }\n public void F.setXxx(int x) { this.xxx = x; } }",
-                "class Other { void foo() { new F().setXxx(new F().getXxx()); new F().xxx++; } }"
+                "class Other { void foo() {\n new F().setXxx(new F().getXxx()); new F().xxx++; } }"
         }, 
         true, true
         );
@@ -110,12 +110,12 @@ public class ITDRenameParticipantRefactoringTest extends
         new String[] {
                 "class F {\n String x; }",
                 "aspect A {\n public String F.getX() { return x; }\n public void F.setX(String x) { this.x = x; } }",
-                "class Other { void foo() { new F().setX(new F().getX()); new F().x = \"\"; } }"
+                "class Other {\n void foo() {\n new F().setX(new F().getX()); new F().x = \"\"; } }"
         }, 
         new String[] {
                 "class F {\n String xxx; }",
                 "aspect A {\n public String F.getXxx() { return xxx; }\n public void F.setXxx(String x) { this.xxx = x; } }",
-                "class Other { void foo() { new F().setXxx(new F().getXxx()); new F().xxx = \"\"; } }"
+                "class Other {\n void foo() {\n new F().setXxx(new F().getXxx()); new F().xxx = \"\"; } }"
         }, 
         true, true
         );
@@ -135,12 +135,12 @@ public class ITDRenameParticipantRefactoringTest extends
         new String[] {
                 "package a;\n\npublic class F {\n public String x; }",
                 "package b;\n\nimport a.F; privileged aspect A {\n public String F.getX() { return x; }\n public void F.setX(String x) { this.x = x; } }",
-                "package c;\n\nimport a.F; class Other { void foo() { new F().setX(new F().getX()); new F().x = \"\"; } }"
+                "package c;\n\nimport a.F; class Other {\n void foo() {\n new F().setX(new F().getX()); new F().x = \"\"; } }"
         }, 
         new String[] {
                 "package a;\n\npublic class F {\n public String xxx; }",
                 "package b;\n\nimport a.F; privileged aspect A {\n public String F.getXxx() { return xxx; }\n public void F.setXxx(String x) { this.xxx = x; } }",
-                "package c;\n\nimport a.F; class Other { void foo() { new F().setXxx(new F().getXxx()); new F().xxx = \"\"; } }"
+                "package c;\n\nimport a.F; class Other {\n void foo() {\n new F().setXxx(new F().getXxx()); new F().xxx = \"\"; } }"
         }, 
         true, true
         );
@@ -160,12 +160,12 @@ public class ITDRenameParticipantRefactoringTest extends
         new String[] {
                 "package a;\n\npublic class F {\n private String x; }",
                 "package b;\n\nimport a.F; privileged aspect A {\n public String F.getX() { return x; }\n public void F.setX(String x) { this.x = x; } }",
-                "package c;\n\nimport a.F; class Other { void foo() { new F().setX(new F().getX()); } }"
+                "package c;\n\nimport a.F; class Other {\n void foo() {\n new F().setX(new F().getX()); } }"
         }, 
         new String[] {
                 "package a;\n\npublic class F {\n private String xxx; }",
                 "package b;\n\nimport a.F; privileged aspect A {\n public String F.getXxx() { return xxx; }\n public void F.setXxx(String x) { this.xxx = x; } }",
-                "package c;\n\nimport a.F; class Other { void foo() { new F().setXxx(new F().getXxx()); } }"
+                "package c;\n\nimport a.F; class Other {\n void foo() {\n new F().setXxx(new F().getXxx()); } }"
         }, 
         true, true
         );
@@ -221,12 +221,12 @@ public class ITDRenameParticipantRefactoringTest extends
         new String[] {
                 "class F {\n int x; }",
                 "aspect A {\n public int F.getX() { return x; }\n public void F.setX(int x) { this.x = x; } }",
-                "class Other { void foo() { new F().setX(new F().getX()); new F().x++; } }"
+                "class Other {\n void foo() {\n new F().setX(new F().getX()); new F().x++; } }"
         }, 
         new String[] {
                 "class F {\n int xxx; }",
                 "aspect A {\n public int F.getXxx() { return xxx; }\n public void F.setX(int x) { this.xxx = x; } }",
-                "class Other { void foo() { new F().setX(new F().getXxx()); new F().xxx++; } }"
+                "class Other {\n void foo() {\n new F().setX(new F().getXxx()); new F().xxx++; } }"
         }, 
         true, false
         );
@@ -258,12 +258,12 @@ public class ITDRenameParticipantRefactoringTest extends
         new String[] {
                 "class F {\n int x; }",
                 "aspect A {\n public int F.getX() { return x; }\n public void F.setX(int x) { this.x = x; } }",
-                "class Other { void foo() { new F().setX(new F().getX()); new F().x++; } }"
+                "class Other {\n void foo() {\n new F().setX(new F().getX()); new F().x++; } }"
         }, 
         new String[] {
                 "class F {\n int xxx; }",
                 "aspect A {\n public int F.getX() { return xxx; }\n public void F.setXxx(int x) { this.xxx = x; } }",
-                "class Other { void foo() { new F().setXxx(new F().getX()); new F().xxx++; } }"
+                "class Other {\n void foo() {\n new F().setXxx(new F().getX()); new F().xxx++; } }"
         }, 
         false, true
         );
@@ -301,7 +301,9 @@ public class ITDRenameParticipantRefactoringTest extends
         }
         RefactoringStatus result = performRefactoring(refactoring, true, true);
         
-        assertNull("Refactoring produced an error", result);
+        result = removePotentialMatchesError(result);
+
+        assertTrue("Refactoring produced an error: " + result, result.isOK());
         
         assertContents(units, finalContents);
         
