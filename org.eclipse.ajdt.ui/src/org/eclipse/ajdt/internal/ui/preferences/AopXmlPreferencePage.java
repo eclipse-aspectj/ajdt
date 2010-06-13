@@ -2,28 +2,30 @@ package org.eclipse.ajdt.internal.ui.preferences;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.weaver.patterns.TypePatternQuestions.Question;
 import org.eclipse.ajdt.core.AopXmlPreferences;
-import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
+import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.internal.ui.viewsupport.FilteredElementTreeSelectionDialog;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.internal.ui.wizards.TypedElementSelectionValidator;
-import org.eclipse.jdt.internal.ui.wizards.buildpaths.ArchiveFileFilter;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IListAdapter;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.ListDialogField;
-import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -34,7 +36,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPropertyPage;
-import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
@@ -44,11 +45,11 @@ public class AopXmlPreferencePage extends PropertyPage implements
         IWorkbenchPropertyPage {
 
     private final int IDX_ADD = 0, IDX_REMOVE = 1, IDX_EDIT = 2;
-    private final String[] buttonLabels = { "Add", "Remove", "Edit" };
+    private final String[] buttonLabels = { "Add...", "Remove", "Edit..." };
     
     protected class AopXmlAdapter implements IDialogFieldListener, IListAdapter {
         public void dialogFieldChanged(DialogField field) {
-            storePreferences();
+            isDirty = true;
         }
 
         public void customButtonPressed(ListDialogField field, int index) {
@@ -105,6 +106,7 @@ public class AopXmlPreferencePage extends PropertyPage implements
     
     private ListDialogField control;
     private AopXmlPreferences preferenceStore;
+    private boolean isDirty = false;
     
     public AopXmlPreferencePage() { }
 
@@ -229,5 +231,33 @@ public class AopXmlPreferencePage extends PropertyPage implements
     private IPath[] getElementsAsArray() {
         List paths = control.getElements();
         return (IPath[]) paths.toArray(new IPath[0]);
+    }
+    
+    public boolean performOk() {
+        if (isDirty) {
+            storePreferences();
+            int res = askToBuild();
+            if (res == 2) {
+                return false;
+            }
+            isDirty = false;
+            if (res == 0) {
+                AJBuildJob job = new AJBuildJob(getProject(), IncrementalProjectBuilder.FULL_BUILD);
+                job.schedule();
+            }
+        }
+        return true;
+    }
+
+    private int askToBuild() {
+        MessageDialog dialog = new MessageDialog(getShell(),
+                UIMessages.CompilerConfigurationBlock_needsbuild_title, null, 
+                UIMessages.CompilerConfigurationBlock_needsfullbuild_message + 
+                "\nAlso, be sure to add the -xmlConfigured option to your project's extra compiler options.",
+                MessageDialog.QUESTION, new String[] {
+                        IDialogConstants.YES_LABEL,
+                        IDialogConstants.NO_LABEL,
+                        IDialogConstants.CANCEL_LABEL }, 0);
+        return dialog.open();
     }
 }

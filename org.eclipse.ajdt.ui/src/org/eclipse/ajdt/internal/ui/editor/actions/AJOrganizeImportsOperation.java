@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.model.AJProjectModelFacade;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -35,6 +38,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -549,12 +553,17 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 	
 	// find type references in a compilation unit
 	private boolean collectReferences(CompilationUnit astRoot, List typeReferences, List staticReferences, Set oldSingleImports, Set oldDemandImports) {
+	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(fCompilationUnit);
 		IProblem[] problems= astRoot.getProblems();
 		for (int i= 0; i < problems.length; i++) {
 			IProblem curr= problems[i];
-			if (curr.isError() && (curr.getID() & IProblem.Syntax) != 0) {
-				fParsingError= problems[i];
-				return false;
+			if (curr instanceof CategorizedProblem) {
+			    CategorizedProblem cat = (CategorizedProblem) curr;
+			    if (AJCompilationUnitProblemFinder.isARealProblem(cat, 
+			            (org.eclipse.jdt.internal.core.CompilationUnit) fCompilationUnit, model, model.hasModel(), false)) {
+			        fParsingError= problems[i];
+			        return false;
+			    }
 			}
 		}
 		List imports= astRoot.imports();

@@ -330,6 +330,7 @@ public class PushInRefactoring extends Refactoring {
                 
                     // make the simplifying assumption that the CU that contains the
                     // ITD does not also contain a target type
+                    // Bug 310020
                     if (isCUnitContainingITD(source, (IAspectJElement) itdsForUnit.get(0))) {
                         rewriteAspectType(itdsForUnit, source, ast, status);
                     } else {
