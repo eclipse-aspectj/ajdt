@@ -403,9 +403,9 @@ public class AJCompilationUnitProblemFinder extends
         return categorizedProblems;
      }
 
-	// be eger about what we discard.  If unsure
+	// be eager about what we discard.  If unsure
 	// it is better to discard.  because the real errors will show up when a compile happens
-    private static boolean isARealProblem(
+    public static boolean isARealProblem(
             CategorizedProblem categorizedProblem, CompilationUnit unit, AJProjectModelFacade model, boolean hasModel, boolean isJavaFileInAJEditor) {
         
         int numArgs = categorizedProblem.getArguments() == null ? 

@@ -22,8 +22,8 @@ import java.util.Map;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.lang.annotation.Aspect;
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AJMementoTokenizer;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
@@ -914,16 +914,17 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	}
 	
 	/*
-	 * @see JavaElement
+	 * @see JavaElement 
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
-		JavaElement type = this;
-		
+		JavaElement type = this; int x = 9;
+		if (! (memento instanceof AJMementoTokenizer)) {
+		    memento = new AJMementoTokenizer(memento);
+		}
 		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
 		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
-		
 		// need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
 		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||

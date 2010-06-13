@@ -92,7 +92,7 @@
    <extension
          point="org.eclipse.contribution.weaving.jdt.sourcetransformer">
       <transformer
-            class="org.eclipse.ajdt.core.AJSourceTransformer"
+            class="org.eclipse.ajdt.core.codeconversion.AJSourceTransformer"
             file_extension="aj">
       </transformer>
    </extension>

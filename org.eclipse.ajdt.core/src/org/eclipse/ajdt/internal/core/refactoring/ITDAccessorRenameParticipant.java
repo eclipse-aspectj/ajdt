@@ -373,6 +373,9 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     private boolean shouldRename(boolean getter) {
         try {
             RefactoringProcessor processor = getProcessor();
+            if (! (processor.getClass().getCanonicalName().equals("org.eclipse.jdt.internal.corext.refactoring.rename.RenameFieldProcessor"))) {
+                return false;
+            }
             Field thisField;
             if (getter) {
                 if (fRenameGetterField == null) {
