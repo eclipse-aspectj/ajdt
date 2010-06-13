@@ -6,6 +6,8 @@
 <aspect name="org.eclipse.contribution.jdt.imagedescriptor.ImageDescriptorSelectorAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.MatchLocationManipulatorAspect"/>
+<aspect name="org.eclipse.contribution.jdt.itdawareness.ExtraGettersSettersAspect"/>
+<aspect name="org.eclipse.contribution.jdt.itdawareness.RenameJavaElementActionAspect"/>
 </aspects>
 </aspectj>
 
