@@ -114,14 +114,12 @@
 
 	<target name="download-eclipse" depends="check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
 		
-<!--
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
 			<param name="theURL" value="${build.url.3.6}"/>
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
 		</antcall>
-		-->
 	</target>
 
 	<!-- for now, only tar files are supported -->
@@ -160,13 +158,11 @@
 
 		<!-- download if not already there -->
 		<mkdir dir="${download.home}"/>
-		<!--
 		<antcall target="downloadFile">
 			<param name="theURL" value="${build.url.3.6}"/>
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
 		</antcall>
-		-->
 		<!-- Unpack a fresh eclipse -->
 		<delete failonerror="false">
 			<fileset dir="${build.dest}/target/eclipse"/>
@@ -236,7 +232,6 @@
 		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
 
 		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true"/>
-
 		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace} -clean" />
 			<property name="plugin-name" value="org.eclipse.ajdt.core.tests" />
