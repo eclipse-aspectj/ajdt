@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
+ *     Kris De Volder - minor changes to visibility modifiers
  *******************************************************************************/
 
 package org.eclipse.ajdt.core.tests.refactoring;
@@ -26,10 +27,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.core.search.TypeNameRequestor;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
@@ -47,8 +44,8 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
  *
  */
 public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
-    IJavaProject project;
-    IPackageFragment p;
+    protected IJavaProject project;
+    protected IPackageFragment p;
     protected void setUp() throws Exception {
         super.setUp();
         project = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
