@@ -1994,7 +1994,7 @@ M4 = Platform-specific fourth key
                   tooltip="Push intertype declaration into its target type">
             </action>
             <visibility>
-            	<or>
+               <or>
                 <objectState
                       name="readOnly"
                       value="false">
@@ -2005,6 +2005,20 @@ M4 = Platform-specific fourth key
                 </objectState>
                </or>
             </visibility>
+         </objectContribution>
+         <objectContribution
+               adaptable="false"
+               id="org.eclipse.ajdt.ui.object.refactorings"
+               objectClass="org.eclipse.jdt.core.IMember">
+            <action
+                  class="org.eclipse.ajdt.internal.ui.refactoring.pullout.PullOutRefactoringAction"
+                  definitionId="org.eclipse.ajdt.ui.pullout"
+                  id="org.eclipse.ajdt.ui.action.pullout"
+                  label="Pull Out ITD..."
+                  menubarPath="org.eclipse.jdt.ui.refactoring.menu/typeGroup"
+                  style="push"
+                  tooltip="Pull out method as intertype declaration">
+            </action>
          </objectContribution>
          <viewerContribution
                id="org.eclipse.ajdt.ui.viewer.refactorings"
@@ -2024,6 +2038,26 @@ M4 = Platform-specific fourth key
             <separator
                name="itd"/>
              </menu>
+         </viewerContribution>
+         <viewerContribution
+               id="org.eclipse.ajdt.ui.viewer.refactorings"
+               targetID="#CompilationUnitEditorContext">
+            <action
+                  class="org.eclipse.ajdt.internal.ui.refactoring.pullout.PullOutRefactoringAction"
+                  definitionId="org.eclipse.ajdt.ui.pullout"
+                  id="org.eclipse.ajdt.ui.action.pullout"
+                  label="Pull Out ITD..."
+                  menubarPath="org.eclipse.ajdt.ui.refactoring/itd"
+                  style="push"
+                  tooltip="Pull out member as intertype declaration">
+            </action>
+            <menu
+                  id="org.eclipse.ajdt.ui.refactoring"
+                  label="AspectJ Refactoring">
+               <separator
+                     name="itd">
+               </separator>
+            </menu>
          </viewerContribution>
       </extension>
      <extension
@@ -2093,6 +2127,12 @@ M4 = Platform-specific fourth key
             description="Pushes an intertypePush In declaration into its target type/"
             id="org.eclipse.ajdt.ui.pushin"
             name="Push In"/>
+      <command
+            categoryId="org.eclipse.ajdt.refactoring.category"
+            description="Pulls out a Java method/field into an Aspect as an intertype declaration"
+            id="org.eclipse.ajdt.ui.pullout"
+            name="Pull Out">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ltk.core.refactoring.refactoringContributions">
