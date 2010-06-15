@@ -81,31 +81,6 @@
             </with>
          </enablement>
       </renameParticipant>
-      
-      <!--
-      <renameParticipant
-            class="org.eclipse.ajdt.internal.core.refactoring.ITDRenameParticipant"
-            id="org.eclipse.ajdt.core.refactoring.itd.rename"
-            name="ITD Rename participant">
-         <enablement>
-            <with
-                  variable="affectedNatures">
-               <iterate
-                     operator="or">
-                  <equals
-                        value="org.eclipse.ajdt.ui.ajnature">
-                  </equals>
-               </iterate>
-            </with>
-            <with
-                  variable="element">
-               <instanceof
-                     value="org.eclipse.ajdt.core.javaelements.IntertypeElement">
-               </instanceof>
-            </with>
-         </enablement>
-      </renameParticipant>
-      -->
    </extension>
    <extension
          point="org.eclipse.contribution.weaving.jdt.cuprovider">
