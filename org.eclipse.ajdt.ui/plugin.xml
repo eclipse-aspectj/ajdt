@@ -479,44 +479,6 @@
    <extension
          point="org.eclipse.ui.exportWizards">
       <wizard
-            name="%ajPluginExportWizard"
-            icon="icons/actions/exp_deployplug.gif"
-            class="org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard"
-            category="org.eclipse.pde.ui.PluginDevelopment"
-            id="org.eclipse.ajdt.ui.ajPluginExportWizard">
-         <description>
-            %ajPluginExportWizard.description
-         </description>
-         <selection
-               name="plugin.xml"
-               class="org.eclipse.core.resources.IFile">
-         </selection>
-         <selection
-               name="fragment.xml"
-               class="org.eclipse.core.resources.IFile">
-         </selection>
-         <selection
-               class="org.eclipse.core.resources.IProject">
-         </selection>
-      </wizard>
-      <wizard
-            name="%ajFeatureExportWizard"
-            icon="icons/actions/exp_deployfeat.gif"
-            class="org.eclipse.ajdt.internal.ui.wizards.exports.AJFeatureExportWizard"
-            category="org.eclipse.pde.ui.PluginDevelopment"
-            id="org.eclipse.ajdt.ui.ajFeatureExportWizard">
-         <description>
-            %ajFeatureExportWizard.description
-         </description>
-         <selection
-               name="feature.xml"
-               class="org.eclipse.core.resources.IFile">
-         </selection>
-         <selection
-               class="org.eclipse.core.resources.IProject">
-         </selection>
-      </wizard>
-      <wizard
             name="%ajJarExportWizard"
             icon="icons/actions/exportjar_wiz.gif"
             class="org.eclipse.ajdt.internal.ui.wizards.exports.AJJarPackageWizard"
@@ -527,23 +489,6 @@
          </description>
          <selection
                class="org.eclipse.core.resources.IResource">
-         </selection>
-      </wizard>
-      <wizard
-            category="org.eclipse.pde.ui.PluginDevelopment"
-            class="org.eclipse.ajdt.internal.ui.wizards.exports.ProductExportWizard"
-            icon="icons/actions/exp_product.gif"
-            id="org.eclipse.ajdt.ui.productExportWizard"
-            name="%ajProductExportWizard.label">
-         <description>
-            %ajProductExportWizard.description
-         </description>
-         <selection
-               name="*.product"
-               class="org.eclipse.core.resources.IFile">
-         </selection>
-         <selection
-               class="org.eclipse.core.resources.IContainer">
          </selection>
       </wizard>
    </extension>
@@ -649,24 +594,12 @@ M4 = Platform-specific fourth key
    </extension>
 
    <extension point="org.eclipse.ui.bindings">
-        <key
-            sequence="M3+M2+A"
-            contextId="org.eclipse.ui.globalScope"
-            commandId="org.eclipse.ajdt.ui.navigate.open.type"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
-            sequence="M3+M2+H"
-            contextId="org.eclipse.ui.globalScope"
-            commandId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             sequence="M3+M2+D C"
-            contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.ajdt.launching.runShortcut.debug"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
        <key
             sequence="M3+M2+X C"
-            contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.ajdt.launching.runShortcut.run"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension> 
