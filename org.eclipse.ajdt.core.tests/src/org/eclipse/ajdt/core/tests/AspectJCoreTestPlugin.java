@@ -87,7 +87,11 @@ public class AspectJCoreTestPlugin extends Plugin {
 	    Exception e = new RuntimeException();
 	    IStatus status = null;
 	            new Status(IStatus.INFO, getPluginId(), IStatus.OK, e.getMessage(), e);
-	    getDefault().getLog().log(status);
+	    try {
+	        getDefault().getLog().log(status);
+	    } catch (NullPointerException npe) {
+	        // can ignore...log isn't initialized yet
+	    }
 	}
 	    
     
