@@ -76,7 +76,7 @@
 
 	<target name="generateP2metadata" description="Generate p2 metadata for the AJDT update site">
 		<java fork="true" failonerror="true"
-			dir="${ajdt.pdebuild.home}/scripts"
+			dir="${pdebuild.home}/scripts"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.equinox.p2.metadata.generator.EclipseGenerator" />
