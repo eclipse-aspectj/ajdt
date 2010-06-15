@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Helen Hawkins - initial version
+ *     Kris De Volder - PullOutRefactoringTests
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
@@ -95,6 +96,7 @@ import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
+import org.eclipse.ajdt.ui.tests.refactoring.PullOutRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
@@ -248,6 +250,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(OrganizeImportsTest.class));
         suite.addTest(new TestSuite(CopyPasteAJTest.class));
         suite.addTest(new TestSuite(PushinRefactoringTests.class));
+        suite.addTest(new TestSuite(PullOutRefactoringTests.class));
         suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
         suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
 
