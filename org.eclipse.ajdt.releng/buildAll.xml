@@ -41,7 +41,7 @@
 
 	<target name="pdebuild" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
-			dir="${eclipse.pdebuild.scripts}"
+			dir="${pdebuild.home}/scripts"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.ant.core.antRunner" />
