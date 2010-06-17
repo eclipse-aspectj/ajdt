@@ -52,6 +52,7 @@ public class AdviceMarkersTest7 extends UITestCase {
      * test that a change in aspect path aspect will affect the markers properly
      * @throws Exception
      */
+    // FAILING FOR NOW
     public void testChangeOnAspectPath() throws Exception {
         checkAllMarkersExist();
         changeAspectOnAspectPath();

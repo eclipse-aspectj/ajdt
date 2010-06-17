@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Helen Hawkins - initial version
+ *     Kris De Volder - PullOutRefactoringTests
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
@@ -81,6 +82,7 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests12;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests13;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests14;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests15;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests16;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests2;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests3;
@@ -94,6 +96,7 @@ import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
+import org.eclipse.ajdt.ui.tests.refactoring.PullOutRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
@@ -226,8 +229,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests12.class));
         suite.addTest(new TestSuite(ProblemFinderTests13.class));
         suite.addTest(new TestSuite(ProblemFinderTests14.class));
-        // mysteriously failing on build server
-//        suite.addTest(new TestSuite(ProblemFinderTests15.class));
+        suite.addTest(new TestSuite(ProblemFinderTests15.class));
         suite.addTest(new TestSuite(ProblemFinderTests16.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
@@ -243,6 +245,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(OrganizeImportsTest.class));
         suite.addTest(new TestSuite(CopyPasteAJTest.class));
         suite.addTest(new TestSuite(PushinRefactoringTests.class));
+        suite.addTest(new TestSuite(PullOutRefactoringTests.class));
         suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
         suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
 
