@@ -5,12 +5,16 @@ import java.util.List;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.ReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
+import org.eclipse.jdt.internal.junit.launcher.JUnit4TestFinder;
+import org.eclipse.core.runtime.CoreException;
 
 /**
  * This aspect maintains match locations for a possible match
@@ -26,7 +30,7 @@ import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
  * @author Andrew Eisenberg
  * @created Apr 7, 2010
  */
-public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLocator)) {
+public privileged aspect MatchLocationManipulatorAspect percflow(within(MatchLocator)) {
 
     ISearchProvider provider = new SearchAdapter().getProvider();
     
@@ -57,6 +61,37 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
             locator.nameEnvironment = locator.lookupEnvironment.nameEnvironment;
             resolver = new HierarchyResolver(locator.lookupEnvironment, null /* not needed for our purposes*/);
         } 
+    }
+    
+    
+    /**
+     * This pointcut targets a SearchRequestor that accepts potential test matches
+     * for the JUnit4 Test finder
+     */
+    pointcut junit4TestMatchFound(SearchMatch potentialMatch) : within(JUnit4TestFinder.AnnotationSearchRequestor) 
+            && execution(public void acceptSearchMatch(SearchMatch) throws CoreException)
+            && args(potentialMatch);
+    
+    before(SearchMatch potentialMatch) : junit4TestMatchFound(potentialMatch) {
+        if (potentialMatch instanceof ReferenceMatch) {
+            ReferenceMatch refMatch = (ReferenceMatch) potentialMatch;
+            Object elt = refMatch.getElement();
+            if (elt instanceof IJavaElement) {
+                IJavaElement javaElt = (IJavaElement) elt;
+                if (isInterestingProject(javaElt.getJavaProject().getProject())) {
+                    try {
+                        javaElt = this.provider.filterJUnit4TestMatch(javaElt);
+                        if (javaElt != null) {
+                            refMatch.setElement(javaElt);
+                        } else {
+                            refMatch.setAccuracy(SearchMatch.A_INACCURATE);
+                        }
+                    } catch (JavaModelException e) {
+                        JDTWeavingPlugin.logException("Exception while search for: " + potentialMatch, e);
+                    }
+                }
+            }
+        }
     }
     
     private boolean isInterestingProject(IProject proj) {

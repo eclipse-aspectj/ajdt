@@ -45,4 +45,13 @@ public interface ISearchProvider {
             ICompilationUnit[] workingCopies, JavaProject project);
     
     public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern, HierarchyResolver resolver) throws JavaModelException;
+    
+    /**
+     * This method will filter or convert posible test matches into real test matches.
+     * Because of AspectJ's ITDs, there may be an @Test annotation on an ITD.
+     * In this case, we should be using the mock target element instead of the original ITD.
+     * @param possibleTest the original possible test
+     * @return the real test method or class, or null if there should not be any
+     */
+    public IJavaElement filterJUnit4TestMatch(IJavaElement possibleTest) throws JavaModelException;
 }
