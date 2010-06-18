@@ -68,6 +68,7 @@ import org.eclipse.ajdt.core.tests.refactoring.AbstractAJDTRefactoringTest;
 import org.eclipse.ajdt.core.tests.refactoring.FindITDGettersAndSettersTest;
 import org.eclipse.ajdt.core.tests.refactoring.ITDRenameParticipantRefactoringTest;
 import org.eclipse.ajdt.core.tests.search.ITDAwareDeclarationSearchTests;
+import org.eclipse.ajdt.core.tests.search.ITDAwareJUnit4TestFinderTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwarePolymorphicSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareSearchTests;
 import org.eclipse.core.runtime.Platform;
@@ -176,6 +177,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ITDAwareSearchTests.class));
 		suite.addTest(new TestSuite(ITDAwarePolymorphicSearchTests.class));
 		suite.addTest(new TestSuite(ITDAwareDeclarationSearchTests.class));
+		suite.addTest(new TestSuite(ITDAwareJUnit4TestFinderTests.class));
 		
 
 		return suite;
