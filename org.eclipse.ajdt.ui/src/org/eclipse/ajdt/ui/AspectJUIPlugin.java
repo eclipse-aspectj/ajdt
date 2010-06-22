@@ -328,21 +328,19 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		checkAspectJVersion();
 
-		if (!AspectJPlugin.USING_CU_PROVIDER) {
-		    Job cuInitJob = new Job("Initialize CompilationUnit Manager") {
-                protected IStatus run(IProgressMonitor monitor) {
-                    // bug 278425 --- see if m2eclipse exists and ensure it is started before continuing
-                    startM2Eclipse();
-                    AJCompilationUnitManager.INSTANCE
-                            .initCompilationUnits(AspectJPlugin.getWorkspace());
-                    AJDTUtils.refreshPackageExplorer();
-                    return Status.OK_STATUS;
-                }
-            };
-            
-            cuInitJob.setPriority(Job.SHORT);
-            cuInitJob.schedule();
-		}
+	    Job cuInitJob = new Job("Initialize CompilationUnit Manager") {
+            protected IStatus run(IProgressMonitor monitor) {
+                // bug 278425 --- see if m2eclipse exists and ensure it is started before continuing
+                startM2Eclipse();
+                AJCompilationUnitManager.INSTANCE
+                        .initCompilationUnits(AspectJPlugin.getWorkspace());
+                AJDTUtils.refreshPackageExplorer();
+                return Status.OK_STATUS;
+            }
+        };
+        
+        cuInitJob.setPriority(Job.SHORT);
+        cuInitJob.schedule();
 	}
 	
 	private void startM2Eclipse() {
