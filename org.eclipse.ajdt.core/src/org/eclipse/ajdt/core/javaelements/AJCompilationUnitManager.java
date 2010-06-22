@@ -239,7 +239,7 @@ public class AJCompilationUnitManager {
 		}		
 	}
 
-	public List /*AJCompilationUnit*/ getCachedCUs(IProject project) {
+	public List<AJCompilationUnit> getCachedCUs(IProject project) {
 		List ajList = new ArrayList();
 		for (Iterator iter = compilationUnitStore.keySet().iterator(); iter.hasNext();) {
 			IFile f = (IFile) iter.next();
@@ -251,11 +251,6 @@ public class AJCompilationUnitManager {
 	}
 	
 	private void addProjectToList(IProject project, List l) {
-		//check if aj project
-		//		ProjectBuildConfigurator pbc =
-		// BuildConfigurator.getBuildConfigurator()
-		//				.getProjectBuildConfigurator(project);
-		//		if (pbc != null) {
 		if (AspectJPlugin.isAJProject(project)) {
 			try {
 				IJavaProject jp = JavaCore.create(project);

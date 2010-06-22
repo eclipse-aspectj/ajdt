@@ -17,7 +17,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -37,220 +39,211 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.core.refactoring.TextEditChangeGroup;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
+import org.eclipse.text.edits.TextEditGroup;
 
 /**
- * When types are renamed this participant updates any references in to
- * that type in aspects (in the same project)
+ * When types are renamed this participant updates any references
+ * AspectJ-specific references in Aspects in the same project. What this means
+ * is that references inside of ITD names, inside of piointcut designators, etc
+ * are renamed, but not the references that would otherwise be found by Java.
  */
 public class AspectRenameParticipant extends RenameParticipant {
 
-	private IType fType;
+    private IType fType;
+    private String qualifiedName;
 
-	public RefactoringStatus checkConditions(IProgressMonitor pm,
-			CheckConditionsContext context) throws OperationCanceledException {
-		return new RefactoringStatus();
-	}
+    public RefactoringStatus checkConditions(IProgressMonitor pm,
+            CheckConditionsContext context) throws OperationCanceledException {
+        return new RefactoringStatus();
+    }
 
-	public Change createChange(IProgressMonitor pm) throws CoreException,
-			OperationCanceledException {
-		CompositeChange changes = new CompositeChange(CoreMessages.renameTypeReferences);
-		final String oldName = fType.getElementName();
-		final String newName = getArguments().getNewName();
-		IProject project = fType.getResource().getProject();
-		AJLog.log("Rename type references in aspects from "+oldName+" to "+newName); //$NON-NLS-1$ //$NON-NLS-2$
-		AJLog.log("qualified name: "+fType.getFullyQualifiedName()); //$NON-NLS-1$
-		List ajs = AJCompilationUnitManager.INSTANCE.getCachedCUs(project);
-		pm.beginTask(CoreMessages.renameTypeReferences, ajs.size());
-		for (Iterator iter = ajs.iterator(); iter.hasNext();) {
-			AJCompilationUnit cu = (AJCompilationUnit) iter.next();
-			// ignore self because that is taken care of by other rename participants
-			if (fType.getParent().equals(cu) && fType.getElementName().equals(new String(cu.getMainTypeName()))) {
-			    continue;
-			}
-			IResource res = cu.getUnderlyingResource();
-			if (res.getType() == IResource.FILE) {
-				IFile file = (IFile)res;
-				AJLog.log("Looking for type references for "+oldName+" in "+file); //$NON-NLS-1$ //$NON-NLS-2$
-				TextFileChange change = new TextFileChange(((IJavaElement)cu).getElementName(),
-						file);
-				TextEdit te = renameJavaSpecificReferences(cu,fType,newName);
-				TextEdit[] te2 = renameAspectSpecificReferences(cu,fType,newName);
-				if ((te2 != null) && (te2.length > 0)) {					
-					if (te==null) {
-						te = new MultiTextEdit();
-					}
-					for (int i = 0; i < te2.length; i++) {
-						te.addChild(te2[i]);
-					}	
-				}
-				if (te!=null) {
-					change.setEdit(te);
-					changes.add(change);
-				}
-			}
-			pm.worked(1);
-		}
-		
-		pm.done();
-		if (changes.getChildren().length == 0) {
-			return null;
-		}
-		return changes;
-	}
+    public Change createChange(IProgressMonitor pm) throws CoreException,
+            OperationCanceledException {
+        CompositeChange finalChange = new CompositeChange(
+                CoreMessages.renameTypeReferences);
+        final String oldName = fType.getElementName();
+        final String newName = getArguments().getNewName();
+        IProject project = fType.getResource().getProject();
+        AJLog.log("Rename type references in aspects from " + oldName + " to " + newName); //$NON-NLS-1$ //$NON-NLS-2$
+        AJLog.log("qualified name: " + fType.getFullyQualifiedName()); //$NON-NLS-1$
+        
+        // use the AJCompilationUnitManager because we need all Aspects in the project
+        List<AJCompilationUnit> ajs = AJCompilationUnitManager.INSTANCE
+                .getCachedCUs(project);
+        pm.beginTask(CoreMessages.renameTypeReferences, ajs.size());
+        for (AJCompilationUnit ajcu : ajs) {
+            if (!targetTypeIsAccessible(ajcu)) {
+                continue;
+            }
+            
+            AJLog.log("Looking for type references for " + oldName + " in " + ajcu.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
+            TextEdit[] edits = renameAspectSpecificReferences(ajcu, newName);
 
-	static class AspectChange {
-		IAspectJElement element;
-		List offsets;
-	}
-	
-	
-	private TextEdit[] renameAspectSpecificReferences(AJCompilationUnit ajcu,
-			IType type, final String newName) throws JavaModelException {
-		List editList = new ArrayList();
-		String name = type.getElementName();
-		IType[] types = ((ICompilationUnit)ajcu).getTypes();
-		for (int i = 0; i < types.length; i++) {
-			if (types[i] instanceof AspectElement) {
-				AspectChange[] aspectChanges = searchForReferenceInPointcut(
-						ajcu, (AspectElement) types[i], name, type.getFullyQualifiedName());
-				if (aspectChanges.length > 0) {
-					for (int j = 0; j < aspectChanges.length; j++) {
-						if (aspectChanges[j].element instanceof ISourceReference) {
-							ISourceRange range = ((ISourceReference) aspectChanges[j].element)
-									.getSourceRange();
-							List offsets = aspectChanges[j].offsets;
-							for (Iterator iterator = offsets.iterator(); iterator
-									.hasNext();) {
-								Integer o = (Integer) iterator.next();
-								int offset = range.getOffset() + o.intValue()
-										- name.length();
-								ReplaceEdit edit = new ReplaceEdit(offset, name
-										.length(), newName);
-								editList.add(edit);
-							}
-						}
-					}
-				}
-			}
-		}
-		return (TextEdit[]) editList.toArray(new TextEdit[editList.size()]);
-	}
-	
-	private static TextEdit renameJavaSpecificReferences(AJCompilationUnit ajcu, IType type, final String newName) throws JavaModelException {
-		final String name = type.getElementName();
-		final String fqn = type.getFullyQualifiedName();
+            if (edits.length > 0) {
+                CompilationUnitChange change = findOrCreateChange(ajcu, finalChange);
+                // ensure that these changes haven't been added by someone else
+                TextEditChangeGroup[] groups = change.getTextEditChangeGroups();
+                middle:
+                for (TextEdit typeRenameEdit : edits) {
+                    
+                    // before adding an edit, must check to see if it already exists
+                    for (TextEditChangeGroup group : groups) {
+                        for (TextEdit existingEdit : group.getTextEdits()) {
+                            if (existingEdit.covers(typeRenameEdit)) {
+                                // don't step on someone else's feet
+                                continue middle;
+                            }
+                        }
+                    }
+                    change.addChangeGroup(new TextEditChangeGroup(change, 
+                            new TextEditGroup("Update type reference in aspect", typeRenameEdit)));
+                    change.addEdit(typeRenameEdit);
+                }
+            }
+            pm.worked(1);
+        }
 
-		ajcu.requestOriginalContentMode();
-		final int origLen = ((ISourceReference)ajcu).getSource().length();
-		ajcu.discardOriginalContentMode();
-		
-		ASTParser parser = ASTParser.newParser(AST.JLS3);
-	    parser.setSource(ajcu);
-		parser.setResolveBindings(true);
-	    //parser.setProject(ajcu.getJavaProject());
-	    //parser.setUnitName(ajcu.getElementName());
-		
-	    final CompilationUnit cu = (CompilationUnit) parser.createAST(null);	    
-	    final ASTRewrite rewrite = ASTRewrite.create(cu.getAST());
-	    cu.accept(new org.eclipse.jdt.core.dom.ASTVisitor() {
-			public boolean visit(SimpleName node) {
-				String id = node.getIdentifier();
-				if (id.equals(name)) {
-					final ITypeBinding binding= node.resolveTypeBinding();
-					if (binding != null) {
-						String qual = binding.getQualifiedName();
-						if (qual.equals(fqn)) {
-							int endPos = node.getStartPosition()+node.getLength();
-							if (endPos < origLen) {
-								SimpleName replacement = cu.getAST().newSimpleName(newName);
-								rewrite.replace(node, replacement, null);
-							}
-						}
-					}
-				}
-				return true;
-			}
-	    });
-	    TextEdit edits = rewrite.rewriteAST();
-	    if (edits.getLength()==0) {
-	    	return null;
-	    }
-	    return edits;
-	}
-		
-	private AspectChange[] searchForReferenceInPointcut(AJCompilationUnit ajcu,
-			AspectElement aspect, String name, String qualifiedName) throws JavaModelException {
-		boolean samePackage = removeTypeName(
-				((IType) aspect).getFullyQualifiedName()).equals(
-				removeTypeName(qualifiedName));
-		List elementsToChange = new ArrayList();
-		List elementsToSearch = new ArrayList();
-		elementsToSearch.addAll(Arrays.asList(aspect.getAdvice()));
-		elementsToSearch.addAll(Arrays.asList(aspect.getPointcuts()));
-		elementsToSearch.addAll(Arrays.asList(aspect.getDeclares()));
-		elementsToSearch.addAll(Arrays.asList(aspect.getITDs()));
-		for (Iterator iter = elementsToSearch.iterator(); iter.hasNext();) {
-			IAspectJElement element = (IAspectJElement) iter.next();
-			if (element instanceof ISourceReference) {
-				ajcu.requestOriginalContentMode();
-				String src = ((ISourceReference) element).getSource();
-				ajcu.discardOriginalContentMode();
-				Map map = PointcutUtilities.findAllIdentifiers(src);
-				if (map != null) {
-					for (Iterator iter2 = map.keySet().iterator(); iter2
-							.hasNext();) {
-						String id = (String) iter2.next();
-						if (id.equals(name)) {
-							IImportDeclaration imp = ((ICompilationUnit) ajcu)
-									.getImport(qualifiedName);
-							if (samePackage || imp.exists()) {
-								AJLog.log("found reference"); //$NON-NLS-1$
-								AspectChange ac = new AspectChange();
-								ac.element = element;
-								ac.offsets = (List) map.get(id);
-								elementsToChange.add(ac);
-							}
-						}
-					}
-				}
-			}
-		}
-		return (AspectChange[]) elementsToChange.toArray(new AspectChange[] {});
-	}
-	
-	private String removeTypeName(String qualifiedName) {
-		int ind = qualifiedName.lastIndexOf('.');
-		if (ind == -1) {
-			return qualifiedName;
-		}
-		return qualifiedName.substring(0,ind);
-	}
-	
-	public String getName() {
-		return ""; //$NON-NLS-1$
-	}
+        pm.done();
+        if (finalChange.getChildren().length == 0) {
+            return null;
+        }
+        return finalChange;
+    }
 
-	protected boolean initialize(Object element) {
-		if (element instanceof IType) {
-			fType = (IType) element;
-			return true;
-		}
-		return false;
-	}
+    /**
+     * Finds or creates a {@link CompilationUnitChange} for the given AJCU.  
+     * This change may already exist if this AJCU has been changed by the JDT
+     * rename refactoring.
+     */
+    private CompilationUnitChange findOrCreateChange(AJCompilationUnit ajcu, CompositeChange finalChange) {
+        CompilationUnitChange existingChange = null;
 
+        TextChange textChange = getTextChange(ajcu);
+        if (textChange instanceof CompilationUnitChange) {
+            // change exists from some other part of the refactoring
+            existingChange = (CompilationUnitChange) textChange;
+        } else {
+            
+            // check to see if we have already touched this file
+            Change[] children = finalChange.getChildren();
+            for (Change change : children) {
+                if (change instanceof CompilationUnitChange) {
+                    if (((CompilationUnitChange) change).getCompilationUnit().equals(ajcu)) {
+                        existingChange = (CompilationUnitChange) change;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (existingChange == null) {
+            // nope...must create a new change
+            existingChange = new CompilationUnitChange("ITD accessor renamings for " + ajcu.getElementName(), ajcu);
+            existingChange.setEdit(new MultiTextEdit());
+            finalChange.add(existingChange);
+        }
+        return existingChange;
+    }
+
+    static class AspectChange {
+        IAspectJElement element;
+        List<Integer> offsets;
+    }
+
+    private TextEdit[] renameAspectSpecificReferences(AJCompilationUnit ajcu, final String newName) throws JavaModelException {
+        List<TextEdit> editList = new ArrayList<TextEdit>();
+        String name = fType.getElementName();
+        IType[] types = ajcu.getTypes();
+
+        for (int i = 0; i < types.length; i++) {
+            if (types[i] instanceof AspectElement) {
+                ReplaceEdit[] aspectChanges = searchForReferenceInPointcut(
+                        ajcu, (AspectElement) types[i], name, newName);
+                if (aspectChanges.length == 0) {
+                    continue;
+                }
+                editList.addAll(Arrays.asList(aspectChanges));
+            }
+        }
+        return (TextEdit[]) editList.toArray(new TextEdit[editList.size()]);
+    }
+
+    private ReplaceEdit[] searchForReferenceInPointcut(AJCompilationUnit ajcu,
+            AspectElement aspect, String name, String newName)
+            throws JavaModelException {
+        List<ReplaceEdit> elementsToChange = new ArrayList<ReplaceEdit>();
+        IAspectJElement[] elementsToSearch = aspect.getAllAspectMemberElements();
+        for (IAspectJElement element : elementsToSearch) {
+            if (element instanceof ISourceReference) {
+                ajcu.requestOriginalContentMode();
+                String src = ((ISourceReference) element).getSource();
+                int elementStart = element.getSourceRange().getOffset();
+                ajcu.discardOriginalContentMode();
+                Map<String, List<Integer>> map = PointcutUtilities.findAllIdentifiers(src);
+                if (map != null) {
+                    for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+                        if (entry.getKey().equals(name)) {
+                            for (Integer offset : entry.getValue()) {
+                                AJLog.log("  found reference at offset " + offset); //$NON-NLS-1$
+                                elementsToChange.add(new ReplaceEdit(elementStart + offset - name.length(), name.length(), newName));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return (ReplaceEdit[]) elementsToChange.toArray(new ReplaceEdit[0]);
+    }
+
+    
+    /**
+     * Determine if the renamed type is accessible in this ajcu
+     */
+    private boolean targetTypeIsAccessible(AJCompilationUnit ajcu) {
+        if (inSamePackage(ajcu)) {
+            return true;
+        }
+        IImportDeclaration imp = ((ICompilationUnit) ajcu).getImport(qualifiedName);
+        return imp.exists();
+    }
+
+    private boolean inSamePackage(AJCompilationUnit ajcu) {
+        String ajPackage = CharOperation.toString(ajcu.getPackageName());
+        return ajPackage.equals(removeTypeName(qualifiedName));
+    }
+
+    private String removeTypeName(String qualifiedName) {
+        int ind = qualifiedName.lastIndexOf('.');
+        if (ind == -1) {
+            return "";
+        }
+        return qualifiedName.substring(0, ind);
+    }
+
+    public String getName() {
+        return "Rename type references in Aspects"; //$NON-NLS-1$
+    }
+
+    protected boolean initialize(Object element) {
+        if (element instanceof IType) {
+            fType = (IType) element;
+            if (AspectJPlugin.isAJProject(fType.getJavaProject().getProject())) {
+                qualifiedName = fType.getFullyQualifiedName();
+                return true;
+            }
+        }
+        return false;
+    }
 }
