@@ -231,7 +231,7 @@
 		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
 
 		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true"/>
-		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace} -clean" />
 			<property name="plugin-name" value="org.eclipse.ajdt.core.tests" />
 			<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
