@@ -277,6 +277,13 @@
 		<copy overwrite="true"
 			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.xml"
 			todir="${test.results}" />
+		<copy overwrite="true"
+			file="${target.eclipse}/results/org.eclipse.ajdt.ui.tests.AllUITests.txt" todir="${test.results}" />
+		<copy overwrite="true"
+			file="${target.eclipse}/results/org.eclipse.ajdt.core.tests.AllCoreTests.tst" todir="${test.results}" />
+		<copy overwrite="true"
+			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.txt"
+			todir="${test.results}" />
 	</target>
 
 	<target name="check-results">
