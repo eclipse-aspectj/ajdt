@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -80,6 +81,8 @@ public class AspectRenameParticipant extends RenameParticipant {
         AJLog.log("qualified name: " + fType.getFullyQualifiedName()); //$NON-NLS-1$
         
         // use the AJCompilationUnitManager because we need all Aspects in the project
+        // this is less than ideal because the CUs from the manager have children
+        // whose parent pointers don't point to the CU Manager.
         List<AJCompilationUnit> ajs = AJCompilationUnitManager.INSTANCE
                 .getCachedCUs(project);
         pm.beginTask(CoreMessages.renameTypeReferences, ajs.size());
@@ -170,7 +173,7 @@ public class AspectRenameParticipant extends RenameParticipant {
         for (int i = 0; i < types.length; i++) {
             if (types[i] instanceof AspectElement) {
                 ReplaceEdit[] aspectChanges = searchForReferenceInPointcut(
-                        ajcu, (AspectElement) types[i], name, newName);
+                        (AspectElement) types[i], name, newName);
                 if (aspectChanges.length == 0) {
                     continue;
                 }
@@ -180,10 +183,12 @@ public class AspectRenameParticipant extends RenameParticipant {
         return (TextEdit[]) editList.toArray(new TextEdit[editList.size()]);
     }
 
-    private ReplaceEdit[] searchForReferenceInPointcut(AJCompilationUnit ajcu,
-            AspectElement aspect, String name, String newName)
+    private ReplaceEdit[] searchForReferenceInPointcut(AspectElement aspect, String name, String newName)
             throws JavaModelException {
-        List<ReplaceEdit> elementsToChange = new ArrayList<ReplaceEdit>();
+        // get the containing CU explicitly because the one from the AJCUManager 
+        // does not have proper children.
+        AJCompilationUnit ajcu = (AJCompilationUnit) aspect.getCompilationUnit();
+        List<ReplaceEdit> replaceEdits = new ArrayList<ReplaceEdit>();
         IAspectJElement[] elementsToSearch = aspect.getAllAspectMemberElements();
         for (IAspectJElement element : elementsToSearch) {
             if (element instanceof ISourceReference) {
@@ -197,14 +202,14 @@ public class AspectRenameParticipant extends RenameParticipant {
                         if (entry.getKey().equals(name)) {
                             for (Integer offset : entry.getValue()) {
                                 AJLog.log("  found reference at offset " + offset); //$NON-NLS-1$
-                                elementsToChange.add(new ReplaceEdit(elementStart + offset - name.length(), name.length(), newName));
+                                replaceEdits.add(new ReplaceEdit(elementStart + offset - name.length(), name.length(), newName));
                             }
                         }
                     }
                 }
             }
         }
-        return (ReplaceEdit[]) elementsToChange.toArray(new ReplaceEdit[0]);
+        return (ReplaceEdit[]) replaceEdits.toArray(new ReplaceEdit[0]);
     }
 
     
