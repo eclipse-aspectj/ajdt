@@ -15,7 +15,7 @@ Require-Bundle:
  org.eclipse.ui.browser,
  org.eclipse.ui.forms;bundle-version="3.3.0",
  org.eclipse.ltk.core.refactoring;bundle-version="3.5.0",
- org.eclipse.jdt.junit;bundle-version="3.5.2"
+ org.eclipse.jdt.junit;bundle-version="3.5.0"
 Bundle-Activator: org.eclipse.contribution.jdt.JDTWeavingPlugin
 Export-Package: 
  org.eclipse.contribution.jdt;version="2.1.0";uses:="org.osgi.framework,org.eclipse.ui.plugin",
