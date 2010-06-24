@@ -1994,7 +1994,7 @@ M4 = Platform-specific fourth key
                   tooltip="Push intertype declaration into its target type">
             </action>
             <visibility>
-               <or>
+            	<or>
                 <objectState
                       name="readOnly"
                       value="false">
