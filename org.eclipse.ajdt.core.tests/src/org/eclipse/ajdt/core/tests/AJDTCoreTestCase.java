@@ -76,6 +76,7 @@ public class AJDTCoreTestCase extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
         Utils.setAutobuilding(false);
+        getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < allProjects.length; i++) {
 			IProject project = allProjects[i];
@@ -86,6 +87,7 @@ public class AJDTCoreTestCase extends TestCase {
 			IProject project = allProjects[i];
 			deleteProject(project,true);
 		}
+        getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
         Utils.setAutobuilding(true);
 		AJCompilationUnitManager.INSTANCE.clearCache();
 		
@@ -167,14 +169,15 @@ public class AJDTCoreTestCase extends TestCase {
 		
 		// create project
 		final IProject project = getWorkspaceRoot().getProject(projectName);
-		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				project.create(null);
-				project.open(null);
-			}
-		};
-		getWorkspace().run(populate, null);
-		
+		if (! project.exists()) {
+    		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
+    			public void run(IProgressMonitor monitor) throws CoreException {
+    				project.create(null);
+    				project.open(null);
+    			}
+    		};
+    		getWorkspace().run(populate, null);
+		}		
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 		
 		IJavaProject javaProject = JavaCore.create(project);

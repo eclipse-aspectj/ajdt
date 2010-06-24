@@ -8,254 +8,170 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Andrew Eisenberg - completely rewritten for 2.1.0
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.refactoring;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.Arrays;
 
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.internal.core.refactoring.AspectRenameParticipant;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.ltk.core.refactoring.Change;
-import org.eclipse.ltk.core.refactoring.CompositeChange;
-import org.eclipse.ltk.core.refactoring.participants.RenameArguments;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
+import org.eclipse.jdt.core.refactoring.descriptors.RenameJavaElementDescriptor;
+import org.eclipse.jdt.internal.core.refactoring.descriptors.RefactoringSignatureDescriptorFactory;
+import org.eclipse.ltk.core.refactoring.RefactoringCore;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
 
-public class AspectRenameParticipantTest extends AJDTCoreTestCase {
+public class AspectRenameParticipantTest extends AbstractAJDTRefactoringTest {
+    
+    public void testSimpleRename1() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { "Class.java" } ,
+                new String[] { "class Class { Class() { } }" }, 
+                new String[] { "class XXX { XXX() { } }" });
+    }
+    
+    public void testSimpleRename2() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                    "Class.java", 
+                    "Aspect.aj", 
+                } ,
+                new String[] { 
+                    "class Class { Class() { } }", 
+                    "aspect Aspect { Class clazz; }", 
+                }, 
+                new String[] { 
+                    "class XXX { XXX() { } }",
+                    "aspect Aspect { XXX clazz; }", 
+                });
+    }
+    
+    public void testRenameITD1() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "class Class {\n Class() { } }", 
+                "aspect Aspect {\n Class Class.clazz; }", 
+        }, 
+        new String[] { 
+                "class XXX {\n XXX() { } }",
+                "aspect Aspect {\n XXX XXX.clazz; }", 
+        });
+    }
+    
+    public void testRenameITD2() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "class Class {\n Class() { } }", 
+                "aspect Aspect {\n Class Class.clazz; }", 
+        }, 
+        new String[] { 
+                "class XXX {\n XXX() { } }",
+                "aspect Aspect {\n XXX XXX.clazz; }", 
+        });
+    }
+    
+    public void testRenameDeclare1() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "class Class {\n Class() { } }", 
+                "aspect Aspect {\n declare parents : Class extends Object; }", 
+        }, 
+        new String[] { 
+                "class XXX {\n XXX() { } }",
+                "aspect Aspect {\n declare parents : XXX extends Object; }", 
+        });
+    }
+    
+    public void testRenamePointcut1() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "class Class {\n Class() { } }", 
+                "aspect Aspect {\n before() : within(Class) { } }", 
+        }, 
+        new String[] { 
+                "class XXX {\n XXX() { } }",
+                "aspect Aspect {\n before() : within(XXX) { } }", 
+        });
+    }
+    
+    
+    // assume we are renaming the first type in the first CU
+    private void performRefactoringAndUndo(String newName, String[] cuNames, String[] initialContents, String[] finalContents) throws Exception {
+        String[] packNames = new String[cuNames.length];
+        Arrays.fill(packNames, "");
+        performRefactoringAndUndo(newName, packNames, cuNames, initialContents, finalContents);
+    }
+    private void performRefactoringAndUndo(String newName, String[] packNames, String[] cuNames, String[] initialContents, String[] finalContents) throws Exception {
+        ICompilationUnit[] units = createUnits(packNames, cuNames, initialContents);
+        
+        IType type = units[0].getAllTypes()[0];
+        
+        RenameJavaElementDescriptor descriptor = RefactoringSignatureDescriptorFactory
+                .createRenameJavaElementDescriptor(IJavaRefactorings.RENAME_TYPE);
+        descriptor.setUpdateReferences(true);
+        descriptor.setJavaElement(type);
+        descriptor.setNewName(newName);
+        
+        RenameRefactoring refactoring = (RenameRefactoring) createRefactoring(descriptor);
+        RefactoringStatus result = performRefactoring(refactoring, true, true);
+        
+        result = removePotentialMatchesError(result);
 
-	public void testTJPTypeRename() throws Exception {
-		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
-		
-		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project.getWorkspace());
-		
-		
-		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
-				"Demo2"); //$NON-NLS-1$
-		IFile file = project.getFile("src/tjp/Demo.java"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
-		ICompilationUnit cu = JavaCore.createCompilationUnitFrom(file);
-		assertNotNull("Couldn't obtain compilation unit for file " + file, //$NON-NLS-1$
-				cu);
-		IType demo = cu.getType("Demo"); //$NON-NLS-1$
-		assertTrue("Compilation unit does not contain Demo type", demo //$NON-NLS-1$
-				.exists());
+        assertTrue("Refactoring produced an error: " + result, result.isOK());
+        
+        ICompilationUnit newUnit = getNewUnit(newName, packNames[0]);
+        ICompilationUnit origUnit = units[0];
+        units[0] = newUnit;
+        assertContents(units, finalContents);
+        
+        // undo
+        assertTrue("anythingToUndo", RefactoringCore.getUndoManager()
+                .anythingToUndo());
+        assertTrue("! anythingToRedo", !RefactoringCore.getUndoManager()
+                .anythingToRedo());
 
-		// set up participant
-		participant.initialize(demo);
+        RefactoringCore.getUndoManager().performUndo(null,
+                new NullProgressMonitor());
+        
+        units[0] = origUnit;
+        assertContents(units, initialContents);
 
-		// ask for changes
-		Change allChanges = participant.createChange(new NullProgressMonitor());
-		assertNotNull("Refactoring participant returned null change", //$NON-NLS-1$
-				allChanges);
-		assertTrue(
-				"Expected refactoring participant to return a CompositeChange", //$NON-NLS-1$
-				allChanges instanceof CompositeChange);
-		CompositeChange composite = (CompositeChange) allChanges;
-		Change[] children = composite.getChildren();
-		assertEquals("Wrong number of children in CompositeChange", 1, //$NON-NLS-1$
-				children.length);
-		Change change = children[0];
-		assertNotNull("name of change should not be null", change.getName()); //$NON-NLS-1$
-		assertNotNull("getModifiedElement should not be null", change //$NON-NLS-1$
-				.getModifiedElement());
-		assertTrue(
-				"Modified element should be GetInfo.aj", //$NON-NLS-1$
-				change.getModifiedElement().toString().indexOf("GetInfo.aj") != -1); //$NON-NLS-1$
+        // redo
+        assertTrue("! anythingToUndo", !RefactoringCore.getUndoManager()
+                .anythingToUndo());
+        assertTrue("anythingToRedo", RefactoringCore.getUndoManager()
+                .anythingToRedo());
+        RefactoringCore.getUndoManager().performRedo(null,
+                new NullProgressMonitor());
+        units[0] = newUnit;
+        assertContents(units, finalContents);
+    }
 
-		// now apply the changes
-		allChanges.perform(new NullProgressMonitor());
+    private ICompilationUnit getNewUnit(String newName, String packName) throws JavaModelException {
+        String qualName = packName.length() > 0 ? packName + "." + newName : newName;
+        return project.findType(qualName).getCompilationUnit();
+    }
 
-		// check the results
-		IFile getInfo = project.getFile("src/tjp/GetInfo.aj"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + getInfo, getInfo.exists()); //$NON-NLS-1$
+    
 
-		String[] expected = new String[] {
-				"pointcut goCut(): cflow(this(Demo2) && execution(void go()));", //$NON-NLS-1$
-				"pointcut demoExecs(): within(Demo2) && execution(* *(..));", //$NON-NLS-1$
-				"Object around(): demoExecs() && !execution(* go()) && goCut() {" }; //$NON-NLS-1$
-		checkForExpected(getInfo, expected);
-	}
-
-	public void testBeanTypeRename() throws Exception {
-		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
-				"Line"); //$NON-NLS-1$
-		IFile file = project.getFile("src/bean/Point.java"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
-		ICompilationUnit cu = JavaCore.createCompilationUnitFrom(file);
-		assertNotNull("Couldn't obtain compilation unit for file " + file, //$NON-NLS-1$
-				cu);
-		IType point = cu.getType("Point"); //$NON-NLS-1$
-		assertTrue("Compilation unit does not contain Point type", point //$NON-NLS-1$
-				.exists());
-
-		// set up participant
-		participant.initialize(point);
-
-		// ask for changes
-		Change allChanges = participant.createChange(new NullProgressMonitor());
-		assertNotNull("Refactoring participant returned null change", //$NON-NLS-1$
-				allChanges);
-		assertTrue(
-				"Expected refactoring participant to return a CompositeChange", //$NON-NLS-1$
-				allChanges instanceof CompositeChange);
-		CompositeChange composite = (CompositeChange) allChanges;
-		Change[] children = composite.getChildren();
-		assertEquals("Wrong number of children in CompositeChange", 1, //$NON-NLS-1$
-				children.length);
-		Change change = children[0];
-		assertNotNull("name of change should not be null", change.getName()); //$NON-NLS-1$
-		assertNotNull("getModifiedElement should not be null", change //$NON-NLS-1$
-				.getModifiedElement());
-		assertTrue(
-				"Modified element should be BoundPoint.aj", //$NON-NLS-1$
-				change.getModifiedElement().toString().indexOf("BoundPoint.aj") != -1); //$NON-NLS-1$
-
-		// now apply the changes
-		allChanges.perform(new NullProgressMonitor());
-
-		// check the results
-		IFile getInfo = project.getFile("src/bean/BoundPoint.aj"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + getInfo, getInfo.exists()); //$NON-NLS-1$
-
-		String[] expected = new String[] {
-				"private PropertyChangeSupport Line.support = new PropertyChangeSupport(this);", //$NON-NLS-1$
-				"public void Line.addPropertyChangeListener(PropertyChangeListener listener){", //$NON-NLS-1$
-				"declare parents: Line implements Serializable;", //$NON-NLS-1$
-				"declare parents: Demo implements Serializable;", //$NON-NLS-1$
-				"pointcut setter(Line p): call(void Line.set*(*)) && target(p);", //$NON-NLS-1$
-				"void around(Line p): setter(p) {", //$NON-NLS-1$
-				"void firePropertyChange(Line p," }; //$NON-NLS-1$
-		checkForExpected(getInfo, expected);
-	}
-
-	public void testTypeRenameWithImports() throws Exception {
-		IProject project = createPredefinedProject("RenameParticipation"); //$NON-NLS-1$
-		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
-				"Lemur"); //$NON-NLS-1$
-		IFile file = project.getFile("src/p1/Test.java"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
-		ICompilationUnit cu = JavaCore.createCompilationUnitFrom(file);
-		assertNotNull("Couldn't obtain compilation unit for file " + file, //$NON-NLS-1$
-				cu);
-		IType test1 = cu.getType("Test"); //$NON-NLS-1$
-		assertTrue("Compilation unit does not contain Test type", test1 //$NON-NLS-1$
-				.exists());
-
-		// set up participant
-		participant.initialize(test1);
-
-		// ask for changes
-		Change allChanges = participant.createChange(new NullProgressMonitor());
-		assertNotNull("Refactoring participant returned null change", //$NON-NLS-1$
-				allChanges);
-		assertTrue(
-				"Expected refactoring participant to return a CompositeChange", //$NON-NLS-1$
-				allChanges instanceof CompositeChange);
-		CompositeChange composite = (CompositeChange) allChanges;
-		Change[] children = composite.getChildren();
-		assertEquals("Wrong number of children in CompositeChange", 1, //$NON-NLS-1$
-				children.length);
-		Change change = children[0];
-		assertNotNull("name of change should not be null", change.getName()); //$NON-NLS-1$
-		assertNotNull("getModifiedElement should not be null", change //$NON-NLS-1$
-				.getModifiedElement());
-		assertTrue(
-				"Modified element should be MyAspect.aj", //$NON-NLS-1$
-				change.getModifiedElement().toString().indexOf("MyAspect.aj") != -1); //$NON-NLS-1$
-
-		// now apply the changes
-		allChanges.perform(new NullProgressMonitor());
-
-		// check the results
-		IFile myaspect = project.getFile("src/test/MyAspect.aj"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + myaspect, myaspect.exists()); //$NON-NLS-1$
-
-		String[] expected = new String[] { "before() : execution(void Lemur.foo(..))", //$NON-NLS-1$
-		};
-		checkForExpected(myaspect, expected);
-	}
-
-	public void testTypeRenameWithImports2() throws Exception {
-		IProject project = createPredefinedProject("RenameParticipation"); //$NON-NLS-1$
-		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
-				"Lemur"); //$NON-NLS-1$
-		IFile file = project.getFile("src/p2/Test.java"); //$NON-NLS-1$
-		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
-		ICompilationUnit cu = JavaCore.createCompilationUnitFrom(file);
-		assertNotNull("Couldn't obtain compilation unit for file " + file, //$NON-NLS-1$
-				cu);
-		IType test2 = cu.getType("Test"); //$NON-NLS-1$
-		assertTrue("Compilation unit does not contain Test type", test2 //$NON-NLS-1$
-				.exists());
-
-		// set up participant
-		participant.initialize(test2);
-
-		// ask for changes
-		Change allChanges = participant.createChange(new NullProgressMonitor());
-		assertNull(
-				"Refactoring participant should have returned null change as " //$NON-NLS-1$
-						+ "aspect references p1.Test not p2.Test", //$NON-NLS-1$
-				allChanges);
-	}
-
-	private void checkForExpected(IFile file, String[] expected)
-			throws Exception {
-		boolean[] got = new boolean[expected.length];
-		InputStream is = file.getContents();
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String line = br.readLine();
-		while (line != null) {
-			// System.out.println("line: " + line);
-			boolean done = false;
-			for (int i = 0; !done && (i < expected.length); i++) {
-				if (line.indexOf(expected[i]) != -1) {
-					// System.out.println("found i=" + i);
-					got[i] = true;
-					done = true;
-				}
-			}
-			line = br.readLine();
-		}
-		br.close();
-		is.close();
-		StringBuffer missed = new StringBuffer();
-		int notGot = 0;
-		for (int i = 0; i < got.length; i++) {
-			if (!got[i]) {
-				notGot++;
-				missed.append(expected[i]);
-				missed.append('\n');
-			}
-		}
-		if (notGot > 0) {
-			fail("Didn't find " + notGot + " expected strings in file " + file //$NON-NLS-1$ //$NON-NLS-2$
-					+ "\nMissed:\n" + missed.toString()); //$NON-NLS-1$
-		}
-	}
-}
-
-class AspectRenameParticipantTester extends AspectRenameParticipant {
-	private String newName;
-
-	public AspectRenameParticipantTester(String newName) {
-		super();
-		this.newName = newName;
-	}
-
-	protected boolean initialize(Object element) {
-		return super.initialize(element);
-	}
-
-	public RenameArguments getArguments() {
-		return new RenameArguments(newName, true);
-	}
 }
