@@ -181,6 +181,27 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		list.toArray(array);
 		return array;
 	}
+	
+	/**
+	 * Returns all aspect member elements declared in this type.  If this is a source
+     * type, the results are listed in the order in which they appear in the
+     * source, otherwise, the results are in no particular order.
+	 * @return the Aspect member elements declared by this type
+	 * @throws JavaModelException  if this element does not exist or if an exception occurs
+     *                while accessing its corresponding resource.
+	 */
+	public IAspectJElement[] getAllAspectMemberElements() throws JavaModelException {
+	    IJavaElement[] allChildren = getChildren();
+	    List list = new ArrayList();
+	    for (int i = 0; i < allChildren.length; i++) {
+            if (allChildren[i] instanceof IAspectJElement) {
+                list.add(allChildren[i]);
+            }
+        }
+	    IAspectJElement[] array = new IAspectJElement[list.size()];
+        list.toArray(array);
+        return array;
+	}
 
 	//TODO: forward call to ElementInfo (only for cosmetical reasons)
 	public Kind getAJKind() throws JavaModelException  {

@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.internal.core.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -31,6 +32,7 @@ import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -41,6 +43,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
@@ -518,6 +521,39 @@ public class AJDTSearchProvider implements ISearchProvider {
             }
         }
         return allItds;
+    }
+
+    /**
+     * convert ITD matches into the target types
+     * Or ignore otherwise
+     * @throws JavaModelException 
+     */
+    public IJavaElement filterJUnit4TestMatch(IJavaElement possibleTest) throws JavaModelException {
+        // the results are returned as ResolvedSourceMethod, not an ITD
+        // so must do a little work to get to the real ITD
+        if (! (possibleTest instanceof IMethod)) {
+            return possibleTest;
+        }
+        IJavaElement parent = possibleTest.getAncestor(IJavaElement.TYPE);
+        if (parent instanceof AspectElement) {
+            String itdName = possibleTest.getElementName().replace('$', '.');
+            IntertypeElement matchingITD = findMatchingITD((AspectElement) parent, (IMethod) possibleTest, itdName);
+            if (matchingITD != null) {
+                return matchingITD.createMockDeclaration();
+            }
+        }
+        return possibleTest;
+    }
+
+    private IntertypeElement findMatchingITD(AspectElement parent,
+            IMethod possibleTest, String itdName) throws JavaModelException {
+        IntertypeElement[] allITDs = parent.getITDs();
+        for (IntertypeElement itd : allITDs) {
+            if (itdName.equals(itd.getElementName()) && Arrays.equals(itd.getParameterTypes(), possibleTest.getParameterTypes())) {
+                return itd;
+            }
+        }
+        return null;
     }
 
 }
