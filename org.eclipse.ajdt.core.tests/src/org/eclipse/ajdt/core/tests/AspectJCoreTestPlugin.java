@@ -84,9 +84,8 @@ public class AspectJCoreTestPlugin extends Plugin {
 	}
 
 	public static void logInfo(String message) {
-	    Exception e = new RuntimeException();
 	    IStatus status = 
-	            new Status(IStatus.INFO, getPluginId(), IStatus.OK, e.getMessage(), e);
+	            new Status(IStatus.INFO, getPluginId(), IStatus.OK, message, null);
 	    getDefault().getLog().log(status);
 	}
 }
