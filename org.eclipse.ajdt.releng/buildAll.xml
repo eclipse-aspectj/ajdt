@@ -110,11 +110,10 @@
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
 	</target>
 	<target name="check-eclipse-already-downloaded" description="Check to see if the target Eclipse is already downloaded">
-		<available file="${download.home}/${build.eclipse.tar.3.5}" property="provision.build.completed"/>
+		<available file="${download.home}/${build.eclipse.tar.3.6}" property="download.completed"/>
 	</target>
 
-	<target name="download-eclipse" unless="check-eclipse-already-downloaded" description="Downloads Eclipse if not already downloaded">
-		<!--<echo message="Would have downloaded eclipse, but functionality is disabled" />-->
+	<target name="download-eclipse" depends="check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
 		
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
@@ -275,6 +274,13 @@
 			file="${target.eclipse}/results/org.eclipse.ajdt.core.tests.AllCoreTests.xml" todir="${test.results}" />
 		<copy overwrite="true"
 			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.xml"
+			todir="${test.results}" />
+		<copy overwrite="true"
+			file="${target.eclipse}/results/org.eclipse.ajdt.ui.tests.AllUITests.txt" todir="${test.results}" />
+		<copy overwrite="true"
+			file="${target.eclipse}/results/org.eclipse.ajdt.core.tests.AllCoreTests.tst" todir="${test.results}" />
+		<copy overwrite="true"
+			file="${target.eclipse}/results/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.txt"
 			todir="${test.results}" />
 	</target>
 
