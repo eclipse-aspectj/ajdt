@@ -12,6 +12,7 @@
 
 package org.eclipse.ajdt.core.tests.refactoring;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
@@ -60,6 +61,8 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
             units[i] = createCompilationUnitAndPackage(packages[i], cuNames[i], cuContents[i], project);
         }
         project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+        waitForManualBuild();
+        waitForAutoBuild();
         assertNoProblems(project.getProject());
         return units;
     }
