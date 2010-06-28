@@ -301,7 +301,7 @@ public class ITDRenameParticipantRefactoringTest extends
         }
         RefactoringStatus result = performRefactoring(refactoring, true, true);
         
-        result = removePotentialMatchesError(result);
+        result = ignoreKnownErrors(result);
 
         assertTrue("Refactoring produced an error: " + result, result.isOK());
         
