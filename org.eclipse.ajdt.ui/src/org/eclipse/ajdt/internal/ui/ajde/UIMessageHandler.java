@@ -538,6 +538,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
     }
     
+    private final static int MAX_MESSAGE_LENGTH = 2 ^ 16;
     /**
      * Sets the given marker to have the appropriate message.
      * 
@@ -555,6 +556,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
      */
     private void setMessage(IMarker marker, String message)
             throws CoreException {
+        if (message == null) {
+            return;
+        }
         // FIXME: Remove this horrid hack.
         // Hack the filename off the front and the line number
         // off the end
@@ -563,6 +567,12 @@ public class UIMessageHandler implements IBuildMessageHandler {
                     .substring(message.indexOf("\":") + 2); //$NON-NLS-1$
             message = hackedMessage.substring(0, hackedMessage
                     .indexOf(", at line")); //$NON-NLS-1$
+        }
+        // bug 318150
+        // https://bugs.eclipse.org/bugs/show_bug.cgi?id=318150
+        // Can't have more than 2^16 chars in a message
+        if (message.length() >= MAX_MESSAGE_LENGTH) {
+            message = message.substring(0, MAX_MESSAGE_LENGTH-1);
         }
         marker.setAttribute(IMarker.MESSAGE, message);
     }

@@ -34,7 +34,6 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.runtime.CoreException;
@@ -305,9 +304,10 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 						| IResourceChangeEvent.POST_CHANGE
 						| IResourceChangeEvent.PRE_BUILD);
 		
-		// set the UI version of core operations
-		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
-		
+		if (!AspectJPlugin.getDefault().isHeadless()) {
+    		// set the UI version of core operations
+    		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
+		}		
 		// set the compiler factory to be the ui one
 		setCompilerFactory(new UICompilerFactory());
 		
