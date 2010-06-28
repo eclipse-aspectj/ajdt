@@ -112,6 +112,11 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	 * The compiler factory
 	 */
 	private ICompilerFactory compilerFactory;
+	
+	/**
+	 * Is true if running with no UI.
+	 */
+	private boolean isHeadless;
 
 	/**
 	 * The constructor.
@@ -212,4 +217,12 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	public IEclipsePreferences getPreferences() {
         return new InstanceScope().getNode(PLUGIN_ID);
 	}
+	
+	public void setHeadless(boolean isHeadless) {
+        this.isHeadless = isHeadless;
+    }
+	
+	public boolean isHeadless() {
+        return isHeadless;
+    }
 }
