@@ -523,7 +523,7 @@ AbstractAJDTRefactoringTest {
         RenameRefactoring refactoring = (RenameRefactoring) createRefactoring(descriptor);
         RefactoringStatus result = performRefactoring(refactoring, true, false);
 
-        result = removePotentialMatchesError(result);
+        result = ignoreKnownErrors(result);
 
         assertTrue("Refactoring produced an error: " + result, result.isOK());
 
