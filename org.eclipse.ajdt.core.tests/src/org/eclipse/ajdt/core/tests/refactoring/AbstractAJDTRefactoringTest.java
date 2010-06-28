@@ -37,6 +37,7 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 
 /**
  * @author Andrew Eisenberg
@@ -58,6 +59,8 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
             units[i] = createCompilationUnitAndPackage(packages[i], cuNames[i], cuContents[i], project);
         }
         project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+        waitForManualBuild();
+        waitForAutoBuild();
         assertNoProblems(project.getProject());
         return units;
     }
@@ -130,26 +133,33 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
 
     
     /**
-     * remove the Refactoring Status Error that says there are potential 
-     * matches.  This is something that is expected.
+     * Can ignore all errors that don't have anything to do with us.
      */
-    protected RefactoringStatus removePotentialMatchesError(
+    protected RefactoringStatus ignoreKnownErrors(
             RefactoringStatus result) {
         if (result.getSeverity() != RefactoringStatus.ERROR) {
             return result;
         }
-
-        if (!result.hasEntries() || result.getEntries().length == 1 && 
-                (
-                        result.toString().indexOf("Found potential matches") >= 0 ||
-                        result.toString().indexOf("Method breakpoint participant") >= 0 ||
-                        result.toString().indexOf("Watchpoint participant") >= 0 || 
-                        result.toString().indexOf("Launch configuration participant") >= 0 
-                )) {
-            return new RefactoringStatus();
+        
+        RefactoringStatusEntry[] entries = result.getEntries();
+        for (int i = 0; i < entries.length; i++) {
+            // if this entries is known or it isn't an error,
+            // then it can be ignored.
+            // otherwise not OK.
+            if (!checkStringForKnownErrors(entries[i].getMessage()) &&
+                    entries[i].isError()) {
+                return result;
+            }
         }
+        return new RefactoringStatus();
+    }
 
-        return result;
+    private boolean checkStringForKnownErrors(String resultString) {
+        return resultString.indexOf("Found potential matches") >= 0 ||
+        resultString.indexOf("Method breakpoint participant") >= 0 ||
+        resultString.indexOf("Watchpoint participant") >= 0 || 
+        resultString.indexOf("Breakpoint participant") >= 0 || 
+        resultString.indexOf("Launch configuration participant") >= 0;
     }
 
     protected void performDummySearch() throws Exception {

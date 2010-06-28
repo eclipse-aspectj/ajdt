@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.ajde.Bug270325Tests;
 import org.eclipse.ajdt.core.tests.ajde.Bug273770Tests;
 import org.eclipse.ajdt.core.tests.ajde.CoreCompilerConfigurationTests;
@@ -82,13 +83,8 @@ import org.osgi.framework.Bundle;
 public class AllCoreTests {
 
 	public static Test suite() throws Exception {
-        // ensure that the UI plugin is not going to start
-        Bundle ajdtui = 
-            Platform.getBundle("org.eclipse.ajdt.ui");
-        if (ajdtui != null) {
-            ajdtui.stop(Bundle.STOP_TRANSIENT);
-        }
-
+	    AspectJPlugin.getDefault().setHeadless(true);
+	    
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 
 		suite.addTest(new TestSuite(AJCoreTest.class));

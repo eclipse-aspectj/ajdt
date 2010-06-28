@@ -135,7 +135,7 @@ public class AspectRenameParticipantTest extends AbstractAJDTRefactoringTest {
         RenameRefactoring refactoring = (RenameRefactoring) createRefactoring(descriptor);
         RefactoringStatus result = performRefactoring(refactoring, true, true);
         
-        result = removePotentialMatchesError(result);
+        result = ignoreKnownErrors(result);
 
         assertTrue("Refactoring produced an error: " + result, result.isOK());
         
