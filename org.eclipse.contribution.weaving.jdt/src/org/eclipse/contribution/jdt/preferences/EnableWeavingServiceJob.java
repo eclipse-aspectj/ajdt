@@ -13,7 +13,7 @@ import org.eclipse.ui.progress.UIJob;
  */
 public final class EnableWeavingServiceJob extends UIJob {
     public EnableWeavingServiceJob() {
-        super("Enable weaving servce?");
+        super("Enable weaving service?");
     }
 
     @Override
