@@ -84,7 +84,14 @@ public class AllCoreTests {
 
 	public static Test suite() throws Exception {
 	    AspectJPlugin.getDefault().setHeadless(true);
-	    
+
+	    // ensure that the UI plugin is not going to start
+        Bundle ajdtui = 
+            Platform.getBundle("org.eclipse.ajdt.ui");
+        if (ajdtui != null) {
+            ajdtui.stop(Bundle.STOP_TRANSIENT);
+        }
+
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 
 		suite.addTest(new TestSuite(AJCoreTest.class));
