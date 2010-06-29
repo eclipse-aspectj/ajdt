@@ -540,7 +540,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
     }
     
     
-    private final static int MAX_MESSAGE_LENGTH = 2 ^ 16;
+    private final static int MAX_MESSAGE_LENGTH = (int) Math.pow(2, 16);
     /**
      * Sets the given marker to have the appropriate message.
      * 
