@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -77,6 +78,9 @@ public class PointcutUtilities {
 	
 	// returns a map of id strings to a list of offsets
 	public static Map findAllIdentifiers(String source) {
+	    if (source ==null) {
+	        return Collections.emptyMap();
+	    }
 		int pos = findNextChar(source, 0, source.length()-1, ':');
 		
 		boolean lookingForStart = true;
