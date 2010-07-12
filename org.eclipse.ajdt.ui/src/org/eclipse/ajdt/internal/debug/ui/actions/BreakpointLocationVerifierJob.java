@@ -13,7 +13,10 @@ package org.eclipse.ajdt.internal.debug.ui.actions;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -111,7 +114,7 @@ public class BreakpointLocationVerifierJob extends Job {
 					|| element instanceof ICompilationUnit 
 					|| element instanceof IType
 					|| element instanceof PointcutElement
-					|| element instanceof IField
+					|| isField(element)
 					|| emptyOrComment(fDocument.get(fOffset, fDocument.getLineInformation(fLineNumber - 1).getLength()))) {
 
 				if (fBreakpoint != null) {
@@ -126,7 +129,7 @@ public class BreakpointLocationVerifierJob extends Job {
 							|| element instanceof ICompilationUnit 
 							|| element instanceof IType
 							|| element instanceof PointcutElement
-							|| element instanceof IField
+							|| isField(element)
 							|| emptyOrComment(fDocument.get(offset, line.getLength())))) {
 						createNewBreakpoint(lineNumber, fTypeName);
 						return new Status(IStatus.OK, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.ERROR, ActionMessages.BreakpointLocationVerifierJob_not_valid_location, null); 
@@ -145,6 +148,28 @@ public class BreakpointLocationVerifierJob extends Job {
 		
 	}
 	
+	private boolean isField(IJavaElement element) {
+		if (element instanceof IField) {
+			//The code below deals with the fact that all IntertypeElements implement IField,
+			// but only some of them actually are fields.
+			if (element instanceof IntertypeElement) {
+				IntertypeElement itd = (IntertypeElement) element;
+				IntertypeElementInfo info;
+				try {
+					info = (IntertypeElementInfo) itd.getElementInfo();
+					return info.getAJKind() == IProgramElement.Kind.INTER_TYPE_FIELD;
+				} catch (JavaModelException e) {
+					return false;
+				}
+			}
+			else 
+				return true;
+		}
+		else { 
+			return false;
+		}
+	}
+
 	/**
 	 * Best approximation for whether a line is empty or commented out
 	 * @param line

@@ -40,9 +40,6 @@ public class AspectSelectionFilter extends TypeSelectionExtension {
 		}
 	};
 	
-	/**
-	 * Constructor is private, this is a singleton class, use "the" instance.
-	 */
 	public AspectSelectionFilter(IJavaProject project) { 
 		this.project = project; 
 	}

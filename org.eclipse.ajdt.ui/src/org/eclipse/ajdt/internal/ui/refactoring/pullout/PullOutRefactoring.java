@@ -45,11 +45,12 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
-import org.eclipse.jdt.core.dom.Javadoc;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Name;
@@ -233,6 +234,16 @@ public class PullOutRefactoring extends Refactoring {
 			this.memberText = new Document(member.getSource());
 		}
 		
+		@Override
+		public String toString() {
+			if (memberText==null)
+				return "ITDCreator(DISPOSED)";
+			else
+				return "ITDCreator(----\n" +
+				memberText.get()+"\n" +
+				"----)";
+		}
+		
 		/**
 		 * Collect imports needed for this ITD, and add them to the aspects compilation unit's 
 		 * importRewriter.
@@ -316,14 +327,17 @@ public class PullOutRefactoring extends Refactoring {
 				}
 			}
 			if (insertMods!=null && !"".equals(insertMods)) {
-				Javadoc jDoc = memberNode.getJavadoc();
 				int insertPos;
-				if (jDoc!=null) {
-					//insert after jDoc if there is one
-					insertPos = jDoc.getStartPosition()+jDoc.getLength() - memberStart();
-					while (insertPos<memberText.getLength() 
-							&& Character.isWhitespace(memberText.getChar(insertPos))) 
-						insertPos++;
+				if (memberNode instanceof MethodDeclaration) {
+					MethodDeclaration methodNode = (MethodDeclaration) memberNode;
+					if (methodNode.isConstructor())
+						insertPos = methodNode.getName().getStartPosition() - memberStart();
+					else
+						insertPos = methodNode.getReturnType2().getStartPosition() - memberStart();
+				}
+				else if (memberNode instanceof FieldDeclaration ) {
+					FieldDeclaration fieldNode = (FieldDeclaration) memberNode;
+					insertPos = fieldNode.getType().getStartPosition() - memberStart();
 				}
 				else {
 					insertPos = 0;
@@ -556,7 +570,7 @@ public class PullOutRefactoring extends Refactoring {
 				parser.setResolveBindings(true);
 				ASTNode cuNode = parser.createAST(pm);
 				for (IMember member : memberMap.get(cu)) {
-					BodyDeclaration memberNode = (BodyDeclaration) NodeFinder.perform(cuNode, member.getSourceRange());
+					BodyDeclaration memberNode = (BodyDeclaration) findASTNode(cuNode, member);
 					ITDCreator itd = new ITDCreator(member, memberNode);
 					if (member.getDeclaringType().isInterface()) {
 						// No need to check "isAllowMakePublic" since technically it was already public.
@@ -586,7 +600,21 @@ public class PullOutRefactoring extends Refactoring {
 		}
 		return status;
 	}
-	
+
+	/**
+	 * Find AST node corresponding to a given IMember.
+	 */
+	private ASTNode findASTNode(ASTNode cuNode, IMember member)
+			throws JavaModelException {
+		ISourceRange range = member.getSourceRange();
+		NodeFinder finder = new NodeFinder(cuNode, range.getOffset(), range.getLength());
+		return finder.getCoveredNode(); 
+		// Note: why we *have* to use getCoveredNode explicitly rather than use the
+		// perform methods defined on NodeFinder.
+		// See BUG 316945: Normally, we have exact positions and covering/covered are the same node.
+		// but in the BUG case we should use the covered node since a JDT bug makes the source range 
+		// be too large.
+	}
 
 	/**
 	 * Check whether references to moved elements become broken. Update status message
@@ -792,7 +820,7 @@ public class PullOutRefactoring extends Refactoring {
 
 				// Apply all operations to the AST rewriter
 				for (IMember member : getMembers(cu)) {
-					ASTNode methodNode = NodeFinder.perform(cuNode, member.getSourceRange());
+					ASTNode methodNode = findASTNode(cuNode, member);
 					astRewriter.remove(methodNode, null);
 				}
 
