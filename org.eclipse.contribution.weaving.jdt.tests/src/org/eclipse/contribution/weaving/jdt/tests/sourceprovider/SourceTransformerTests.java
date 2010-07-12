@@ -11,7 +11,6 @@
 
 package org.eclipse.contribution.weaving.jdt.tests.sourceprovider;
 
-import java.io.StringReader;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -19,11 +18,9 @@ import junit.framework.Assert;
 
 import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
 import org.eclipse.contribution.weaving.jdt.tests.MockSourceTransformer;
-import org.eclipse.contribution.weaving.jdt.tests.StringInputStream;
 import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -40,13 +37,10 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.SourceMapper;
 import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.corext.fix.CleanUpConstants;
-import org.eclipse.jdt.internal.corext.fix.CleanUpRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.RefactoringExecutionStarter;
 import org.eclipse.jdt.internal.ui.fix.CodeFormatCleanUp;
-import org.eclipse.jdt.internal.ui.fix.SortMembersCleanUp;
 import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
 import org.eclipse.jdt.ui.cleanup.ICleanUp;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 /**
