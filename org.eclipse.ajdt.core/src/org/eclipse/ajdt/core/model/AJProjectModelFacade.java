@@ -272,7 +272,7 @@ public class AJProjectModelFacade {
                 if (count > 1) {
                     // there is more than one element
                     // with this name
-                    ajHandle += JavaElement.JEM_COUNT + count;
+                    ajHandle += "" + JavaElement.JEM_COUNT + count;
                 }
             }
             
@@ -395,7 +395,7 @@ public class AJProjectModelFacade {
             }
             jHandle += "!0!0!0!0!I";
             if (count > 1) {
-                jHandle += JavaElement.JEM_COUNT + count;
+                jHandle += "" + JavaElement.JEM_COUNT + count;
             }
         }
         
