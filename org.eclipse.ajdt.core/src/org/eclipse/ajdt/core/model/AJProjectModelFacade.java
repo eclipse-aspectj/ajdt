@@ -272,7 +272,7 @@ public class AJProjectModelFacade {
                 if (count > 1) {
                     // there is more than one element
                     // with this name
-                    ajHandle += "!" + count;
+                    ajHandle += JavaElement.JEM_COUNT + count;
                 }
             }
             
@@ -289,7 +289,7 @@ public class AJProjectModelFacade {
         }
         if (cu != null &&
                 CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cu.getResource().getName())) {
-            ajHandle = ajHandle.replaceFirst("\\" + JavaElement.JEM_COMPILATIONUNIT, 
+            ajHandle = ajHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + JavaElement.JEM_COMPILATIONUNIT, 
                     Character.toString(AspectElement.JEM_ASPECT_CU));
         }
         
@@ -353,7 +353,7 @@ public class AJProjectModelFacade {
         // For ITDs, the aspectj compiler generates program elements before the
         // rest of the program is in place, and they therfore have no parent.
         // They should not exist and we can ignore them.
-        if (ajHandle.length() == 0 || ajHandle.charAt(0) != '=') {
+        if (ajHandle.length() == 0 || ajHandle.charAt(0) != JavaElement.JEM_JAVAPROJECT) {
             return ERROR_JAVA_ELEMENT;
         }
         
@@ -365,7 +365,7 @@ public class AJProjectModelFacade {
         // because we want to convert this into a source reference if possible
         if (isBinaryAspectJHandle(jHandle)) {
             // Bug 274558 ADE HACK...fix aspect handles that are supposed to be binary, but are not.
-            jHandle = jHandle.replace('*', '(');
+            jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_CLASSFILE);
             jHandle = jHandle.replace(".aj}", ".class}");
             return getElementFromClassFile(jHandle);
         }
@@ -373,7 +373,7 @@ public class AJProjectModelFacade {
         // if using cuprovider, then we don not use the '*' for Aspect compilation units,
         // it uses the '{' of Java Compilation Units
         if (AspectJPlugin.USING_CU_PROVIDER) {
-            jHandle = jHandle.replaceFirst("\\" + AspectElement.JEM_ASPECT_CU, 
+            jHandle = jHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + AspectElement.JEM_ASPECT_CU, 
                     Character.toString(JavaElement.JEM_COMPILATIONUNIT));
         }
 
@@ -382,7 +382,7 @@ public class AJProjectModelFacade {
             // because code elements are sub classes of local variables
             // must make the code element's handle look like a local
             // variable's handle
-            int countIndex = jHandle.lastIndexOf('!');
+            int countIndex = jHandle.lastIndexOf(JavaElement.JEM_COUNT);
             int count = 0;
             if (countIndex > codeEltIndex) {
                 try {
@@ -395,7 +395,7 @@ public class AJProjectModelFacade {
             }
             jHandle += "!0!0!0!0!I";
             if (count > 1) {
-                jHandle += "!" + count;
+                jHandle += JavaElement.JEM_COUNT + count;
             }
         }
         
@@ -407,9 +407,6 @@ public class AJProjectModelFacade {
         IJavaElement je = AspectJCore.create(jHandle);
         if (je == null) {
             // occurs when the handles are not working properly
-//            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, AspectJPlugin.PLUGIN_ID, 
-//                    "Could not find the Java program element for handle: " + 
-//                    jHandle, new RuntimeException()));
             return ERROR_JAVA_ELEMENT;
         }
         return je;
