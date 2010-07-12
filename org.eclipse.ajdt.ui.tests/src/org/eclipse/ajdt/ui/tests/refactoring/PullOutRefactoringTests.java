@@ -136,6 +136,107 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     }
 
     /**
+     * Bug 316945: pull out problems when comments near pulled out member
+     */
+    public void testPullWeirdComments() throws Exception {
+    	setupRefactoring(
+    			new CU("", "TestAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"public <***>aspect TestAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"public aspect TestAspect {\n"+
+    					"    // public static void main(String[] args) {\n"+
+    					"//    new Clazz().m();\n"+
+    					"// }\n"+
+    					"    public void C.foo() {\n" +
+    					"\n"+
+    					"    }\n"+
+    					"}"
+    			),
+    			new CU("", "C.java",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"public class C {\n" +
+    					"// public static void main(String[] args) {\n"+
+    					"//    new Clazz().m();\n"+
+    					"// }\n"+
+    					"\n"+
+    					"    public void <***>foo() {\n" +
+    					"\n"+
+    					"    }\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"public class C {\n" +
+    					"}"
+    			)
+    	);
+    	performRefactoringAndCheck();
+    }
+
+    /**
+     * Bug 316945: also test modifier changes for the weird comment case.
+     */
+    public void testAddModifierWeirdComments() throws Exception {
+    	setupRefactoring(
+    			new CU("pack", "TestAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package pack;\n" +
+    					"public <***>aspect TestAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package pack;\n" +
+    					"import claszes.C;\n" +
+    					"public aspect TestAspect {\n"+
+    					"    //Weird\n" +
+    					"    //comment\n" +
+    					"    public void C.foo() {\n" +
+    					"    }\n"+
+    					"    //Weird\n" +
+    					"    //comment\n" +
+    					"    public void C.bar() {\n" +
+    					"    }\n"+
+    					"}"
+    			),
+    			new CU("claszes", "C.java",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package claszes;\n" +
+    					"public class C {\n" +
+    					"    //Weird\n" +
+    					"    //comment\n" +
+    					"    void <***>foo() {\n" +
+    					"    }\n"+
+    					"    //Weird\n" +
+    					"    //comment\n" +
+    					"    private void <***>bar() {\n" +
+    					"    }\n"+
+    					"    //I'm using the weird ones!\n" +
+    					"    void user() {\n" +
+    					"       foo(); bar();\n" +
+    					"    }\n" +
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package claszes;\n" +
+    					"public class C {\n" +
+    					"    //I'm using the weird ones!\n" +
+    					"    void user() {\n" +
+    					"       foo(); bar();\n" +
+    					"    }\n" +
+    					"}"
+    			)
+    	);
+    	refactoring.setAllowMakePublic(true);
+    	performRefactoringAndCheck();
+    }
+    
+    /**
      * Test whether our test scaffolding sets up compilation units and refactoring targets correctly.
      * @throws Exception
      */
@@ -1414,6 +1515,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"import pclass.Klass;\n" +
     					"\n" +
     					"public aspect TestAspect {\n"+
+    					"    //Weird doc\n"+
+    					"    public Klass.new() {}\n"+
     					"    /**\n" +
     				    "     * JavaDoc ok?\n" +
     				    "     */\n" +
@@ -1429,6 +1532,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
+    					"    //Weird doc\n"+
+    					"    <***>Klass() {}\n"+
     					"    /**\n" +
     				    "     * JavaDoc ok?\n" +
     				    "     */\n" +
@@ -1437,7 +1542,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"    protected int <***>getSecret() {return secret;}\n" +
     					"    int <***>getSecretPackage() {return secret;}\n" +
     					"    int secretUser() {\n" +
-    					"        return docked + secret + getSecret() + getSecretPackage();\n" +
+    					"        return new Klass().docked + secret + getSecret() + getSecretPackage();\n" +
     					"    }\n" +
     					"}",
     					//////////////////////////////////////////
@@ -1446,7 +1551,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"\n" +
     					"public class Klass {\n" +
     					"    int secretUser() {\n" +
-    					"        return docked + secret + getSecret() + getSecretPackage();\n" +
+    					"        return new Klass().docked + secret + getSecret() + getSecretPackage();\n" +
     					"    }\n" +
     					"}"
     			)
@@ -1710,12 +1815,12 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
-    
+        
     /**
      * Pull interface methods (this test is currently failing, 
      * feature being tested not yet implemented)
      */
-    public void _testPullInterfaceMethodWarning() throws Exception {
+    public void _testPullVoidInterfaceMethod() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
@@ -1764,7 +1869,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
      * Pull interface methods (this test is currently failing, 
      * feature being tested not yet implemented)
      */
-    public void _testPullVoidInterfaceMethod() throws Exception {
+    public void _testPullInterfaceMethodWarning() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////

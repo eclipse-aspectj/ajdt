@@ -334,8 +334,8 @@ public abstract class UITestCase extends TestCase {
 		}
 		f.delete();
 	}
-
-
+	
+	
 	protected String readFile(IFile file) throws Exception {
 		StringBuffer contents = new StringBuffer();
 		BufferedReader br = new BufferedReader(new InputStreamReader(file
