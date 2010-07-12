@@ -116,11 +116,6 @@ public class DebugBreakpointsTests extends UITestCase {
         doBreakpointTest(9);
     }
 
-    public void testBreakpointInAJFile10() throws Exception {
-        doBreakpointTest(10);
-    }
-
-
     private void doBreakpointTest(int i) throws Exception {
         ITextSelection selection = new TextSelection(new Document(text), text.indexOf("// " + i)-3, 3);
         boolean canToggle = adapter.canToggleLineBreakpoints(editor, selection);
