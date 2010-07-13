@@ -42,6 +42,7 @@ import org.eclipse.ajdt.ui.tests.builder.InpathOutFolderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesWithJarFilesTest;
+import org.eclipse.ajdt.ui.tests.debug.DebugBreakpointsTests;
 import org.eclipse.ajdt.ui.tests.debug.JavaConsoleHyperlinkTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
@@ -240,6 +241,7 @@ public class AllAJDTUITests {
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
+        suite.addTest(new TestSuite(DebugBreakpointsTests.class));
         
         // ras tests
         suite.addTest(new TestSuite(PluginFFDCTest.class));     
