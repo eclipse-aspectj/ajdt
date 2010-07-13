@@ -190,6 +190,10 @@ public class AspectRenameParticipant extends RenameParticipant {
                 String src = ((ISourceReference) element).getSource();
                 int elementStart = element.getSourceRange().getOffset();
                 ajcu.discardOriginalContentMode();
+                if (src == null) {
+                    // this ajcu is likely closed or disposed
+                    continue;
+                }
                 Map<String, List<Integer>> map = PointcutUtilities.findAllIdentifiers(src);
                 if (map != null) {
                     for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {

@@ -106,8 +106,6 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     @Override
     public Change createChange(IProgressMonitor pm) throws CoreException,
             OperationCanceledException {
-        checkCancelled(pm);
-        
         boolean shouldRenameGetter = shouldRename(true);
         boolean shouldRenameSetter = shouldRename(false);
         boolean shouldRenamePrivateField = shouldRenamePrivateField();
@@ -136,8 +134,6 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
                 return null;
             }
             
-            checkCancelled(pm);
-            
             // do a search for the getter
             List<SearchMatch> getterReferences;
             if (getter != null) {
@@ -145,8 +141,6 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             } else {
                 getterReferences = Collections.emptyList();
             }
-            checkCancelled(pm);
-
             // do a search for the setter
             List<SearchMatch> setterReferences;
             if (setter != null) {
@@ -163,8 +157,6 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
                 privateFieldReferences = Collections.emptyList();
             }
 
-            checkCancelled(pm);
-            
             CompositeChange change = new CompositeChange(getName());
             createDeclarationChange(getter, change, getOldGetterName(useIsForBooleanGetter), getNewGetterName(useIsForBooleanGetter));
             createDeclarationChange(setter, change, getOldSetterName(), getNewSetterName());
@@ -273,12 +265,6 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
             finalChange.add(existingChange);
         }
         return existingChange;
-    }
-
-    private void checkCancelled(IProgressMonitor pm) {
-        if (pm.isCanceled()) {
-            throw new OperationCanceledException();
-        }
     }
 
     private List<SearchMatch> findReferences(IMember accessor) {

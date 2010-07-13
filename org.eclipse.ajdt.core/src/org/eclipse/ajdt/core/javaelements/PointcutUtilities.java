@@ -78,7 +78,8 @@ public class PointcutUtilities {
 	
 	// returns a map of id strings to a list of offsets
 	public static Map findAllIdentifiers(String source) {
-	    if (source ==null) {
+	    if (source == null) {
+	        // will occur if the target is non-existent
 	        return Collections.emptyMap();
 	    }
 		int pos = findNextChar(source, 0, source.length()-1, ':');
