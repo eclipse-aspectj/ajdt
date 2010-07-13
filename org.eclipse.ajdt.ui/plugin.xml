@@ -650,23 +650,11 @@ M4 = Platform-specific fourth key
 
    <extension point="org.eclipse.ui.bindings">
         <key
-            sequence="M3+M2+A"
-            contextId="org.eclipse.ui.globalScope"
-            commandId="org.eclipse.ajdt.ui.navigate.open.type"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
-            sequence="M3+M2+H"
-            contextId="org.eclipse.ui.globalScope"
-            commandId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
             sequence="M3+M2+D C"
-            contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.ajdt.launching.runShortcut.debug"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
        <key
             sequence="M3+M2+X C"
-            contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.ajdt.launching.runShortcut.run"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension> 

@@ -49,7 +49,6 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.omg.CORBA.MARSHAL;
 
 /**
  * IBuildMessageHandler implementation which records warnings in the Problems
@@ -538,7 +537,6 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
 
     }
-    
     
     private final static int MAX_MESSAGE_LENGTH = (int) Math.pow(2, 16);
     /**
