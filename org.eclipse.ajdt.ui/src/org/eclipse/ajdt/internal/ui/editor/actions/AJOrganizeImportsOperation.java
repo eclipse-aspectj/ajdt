@@ -55,7 +55,7 @@ import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.TypeNameMatch;
-import org.eclipse.jdt.internal.corext.SourceRange;
+import org.eclipse.ajdt.core.javaelements.SourceRange;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationMessages;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
@@ -559,8 +559,8 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			IProblem curr= problems[i];
 			if (curr instanceof CategorizedProblem) {
 			    CategorizedProblem cat = (CategorizedProblem) curr;
-			    if (AJCompilationUnitProblemFinder.isARealProblem(cat, 
-			            (org.eclipse.jdt.internal.core.CompilationUnit) fCompilationUnit, model, model.hasModel(), false)) {
+			    if (curr.isError() && (curr.getID() & IProblem.Syntax) != 0 &&
+			            isARealProblem(model, cat)) {
 			        fParsingError= problems[i];
 			        return false;
 			    }
@@ -581,7 +581,18 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 		ImportReferencesCollector.collect(astRoot, project, null, typeReferences, staticReferences);
 
 		return true;
-	}	
+	}
+
+    /**
+     * @param model
+     * @param cat
+     * @return
+     */
+    private boolean isARealProblem(AJProjectModelFacade model,
+            CategorizedProblem cat) {
+        return AJCompilationUnitProblemFinder.isARealProblem(cat, 
+        (org.eclipse.jdt.internal.core.CompilationUnit) fCompilationUnit, model, model.hasModel(), false);
+    }	
 	
 	/**
 	 * After executing the operation, returns <code>null</code> if the operation has been executed successfully or
