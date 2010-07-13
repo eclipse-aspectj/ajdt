@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.tests.testutils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -150,6 +151,9 @@ public class TestLogger implements IAJLogger {
      * Returns the last given number of lines of the log
      */
     public List getMostRecentEntries(int numberOfLines) {
+        if (log == null) {
+            return Collections.emptyList();
+        }
         return log.subList(log.size() - numberOfLines,log.size());
     }
     
