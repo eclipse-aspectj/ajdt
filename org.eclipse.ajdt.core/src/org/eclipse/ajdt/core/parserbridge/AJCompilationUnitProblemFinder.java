@@ -587,8 +587,8 @@ public class AJCompilationUnitProblemFinder extends
             
             if (id == IProblem.TypeMismatch &&
                     numArgs == 2 &&
-                    firstArg.equals(getTypeNameAtPosition(categorizedProblem, unit)) &&
-                    getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor).endsWith(secondArg)) {
+                    typeAtPositionIsArg(categorizedProblem, unit, firstArg) &&
+                    findLastSegment(getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor)).equals(findLastSegment(secondArg))) {
                 // bug 284358
                 // this problem occurs when 'this' is returned from an ITD method
                 // the resolver thinks there is a type mismath because it was 
@@ -739,6 +739,30 @@ public class AJCompilationUnitProblemFinder extends
         return true;
     }
 
+    /**
+     * Checks if the type name specified by the current problem is equal to 
+     * the typename passed in.  Note that the type name passed in may be fully qualified, 
+     * but the type name specified by the current problem will not be.  So,
+     * only compare by qualified names.
+     */
+    private static boolean typeAtPositionIsArg(
+            CategorizedProblem categorizedProblem, CompilationUnit unit,
+            String typeName) throws JavaModelException {
+        String typeNameAtPosition = getTypeNameAtPosition(categorizedProblem, unit);
+        String lastSegment = findLastSegment(typeName);
+        return typeNameAtPosition.equals(lastSegment);
+    }
+
+    /**
+     * @param firstArg
+     * @return
+     */
+    private static String findLastSegment(String firstArg) {
+        String[] splits = firstArg.split("\\.");
+        String lastSegment = splits[splits.length-1];
+        return lastSegment;
+    }
+
     private static boolean simpleNamesEquals(String firstArg, String secondArg) {
         if (firstArg.equals(secondArg)) {
             return true;
@@ -851,10 +875,11 @@ public class AJCompilationUnitProblemFinder extends
                 }
                 for (int i = 0; i < ipes.length; i++) {
                     String longName = ipes[i].getName();
-                    String[] split = longName.split("\\.");
-                    String itdName = split[split.length-1];
+                    String[] splits = longName.split("\\.");
+                    String lastSegment = splits[splits.length-1];
+                    String itdName = lastSegment;
                     // ignore constructors
-                    if (split.length > 1 && itdName.equals(split[split.length-2])) {
+                    if (splits.length > 1 && itdName.equals(splits[splits.length-2])) {
                         continue;
                     }
                     names.add(itdName);

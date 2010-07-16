@@ -126,14 +126,14 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     public AspectsConvertingParser(char[] content) {
         this.content = content;
-        this.typeReferences = new HashSet();
+        this.typeReferences = new HashSet<String>();
         this.usedIdentifiers = new HashSet();
-        replacements = new ArrayList(5);
+        replacements = new ArrayList<Replacement>(5);
     }
     
     public char[] content;
 
-    private Set typeReferences;
+    private Set<String> typeReferences;
 
     private Set usedIdentifiers;
 
@@ -146,7 +146,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     //list of replacements
     //by convetion: sorted by posBefore in ascending order
-    private ArrayList replacements;
+    private ArrayList<Replacement> replacements;
 
     protected Scanner scanner;
 
@@ -301,9 +301,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 else if (CharOperation.equals(returning, name))
                     consumeRetOrThrow();
                 else if (inPointcutDesignator
-                        && Character.isUpperCase(name[0])
+                        && Character.isUpperCase(name[0])  // Assume all types start with upercase
                         && (content[scanner.getCurrentTokenStartPosition()-1]!='.')) {
-                    typeReferences.add(new String(name));
+                    typeReferences.add(String.valueOf(name));
                 }
 
                 if (isSimulateContextSwitchNecessary) {
@@ -1099,10 +1099,17 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             nameEnd++;
         }
         
-        // now that we have the entire length of the name, replace everything that is not 
-        // a valid Java identifier part with '$'
         char[] itdName = new char[nameEnd - nameStart];
         System.arraycopy(content, nameStart, itdName, 0, itdName.length);
+
+        // now that we have the name, store the type name (and generics), if not fully qualified
+        char[][] splits = CharOperation.splitOn('.', itdName);
+        if (splits.length == 2) {
+            typeReferences.add(String.valueOf(splits[0]));
+        }
+        
+        // now that we have the entire length of the name, replace everything that is not 
+        // a valid Java identifier part with '$'
         for (int i = 0; i < itdName.length; i++) {
             if (! Character.isJavaIdentifierPart(itdName[i])) {
                 itdName[i] = '$';
@@ -1114,89 +1121,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (options.isAddAjcTagToIntertypesEnabled()) {
             addReplacement(nameStart, 0, "ajc$".toCharArray()); //$NON-NLS-1$
         }
-
         addReplacement(nameStart, itdName.length, itdName);
     }
     
-    
-    //identifies intertype declaration of form 'type qualifier.membername'
-    //and replaces every '.' by '$'.
-    //e.g. "int tracing.Circle.x;" -> "int tracing$Circle$x;"
-    // XXX problem here is that this doesn't account for comments, generics, or whitespace
-//  private void processPotentialIntertypeDeclaration() {
-//
-//      //pos points to the '.'
-//      int pos = scanner.getCurrentTokenStartPosition();
-//
-//      //check if valid identifier char on left side of dot
-//      //(to sort out construct like '(new Object()).' )
-//      int nonspace1 = findPreviousNonSpace(pos - 1);
-//      if (nonspace1 == -1)
-//          return;
-//      if (!Character.isJavaIdentifierPart(content[nonspace1]))
-//          return;
-//
-//      //check if there is another java identifier before qualifier,
-//      //if no, return (to sort out method calls and the like)
-//      int space = findPreviousSpace(nonspace1);
-//      if (space == -1) {
-//          return;
-//      }
-//      int nonspace2 = findPreviousNonSpace(space);
-//      if (nonspace2 == -1) {
-//          return;
-//      }
-//      if (!Character.isJavaIdentifierPart(content[nonspace2]) &&
-//              content[nonspace2] != '>') { // could be a parameterized type
-//          // but still could be part of a "new" ITD
-//          int nextNonSpace = findNextNonSpace(pos+1);
-//          if (!hasWordAtPosition("new", nextNonSpace)) {
-//              return;
-//          }
-//      }
-//      //check if rightmost part of qualifier starts with Capital letter,
-//      //and if yes, assume it is a Class name -> intertype declaration
-//      int spaceordot = findPreviousWhitespaceOr(',', nonspace1);
-//      if (spaceordot == -1)
-//          return;
-//      if (Character.isUpperCase(content[spaceordot + 1])) {
-//
-//          //assume intertype declaration and replace all '.' by '$'
-//          char[] rep = new char[] { '$' };
-//          addReplacement(pos, 1, rep);
-//
-//          if (content[spaceordot] == ' ') {
-//              String type = new String(content, space + 1, pos - space - 1);
-//              boolean validIdentifier = true;
-//              for (int i = 0; validIdentifier && (i < type.length()); i++) {
-//                  char c = type.charAt(i);
-//                  if (i==0) {
-//                      if (!Character.isJavaIdentifierStart(c)) {
-//                          validIdentifier = false;
-//                      }
-//                  } else if (!Character.isJavaIdentifierPart(c)) {
-//                      validIdentifier = false;
-//                  }
-//              }
-//              if (validIdentifier) {
-//                  typeReferences.add(type);
-//              }
-//          } else {
-//              do {
-//                  addReplacement(spaceordot, 1, rep);
-//                  spaceordot = findPreviousWhitespaceOr(',', --spaceordot);
-//              } while (content[spaceordot] == '.');
-//          }
-//
-//          //if requested, add ajc$ in front of intertype declaration
-//          //e.g. "public int Circle$x;" -> "public int ajc$Circle$x;"
-//          if (options.isAddAjcTagToIntertypesEnabled()) {
-//              addReplacement(spaceordot + 1, 0, "ajc$".toCharArray()); //$NON-NLS-1$
-//          }
-//
-//      }
-//  }
-
     private boolean hasWordAtPosition(String string, int pos) {
         char[] word = string.toCharArray();
         for (int i = 0; i < word.length; i++) {
