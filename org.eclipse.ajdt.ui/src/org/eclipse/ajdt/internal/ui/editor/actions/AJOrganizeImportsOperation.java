@@ -552,7 +552,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 
 	
 	// find type references in a compilation unit
-	private boolean collectReferences(CompilationUnit astRoot, List typeReferences, List staticReferences, Set oldSingleImports, Set oldDemandImports) {
+	protected boolean collectReferences(CompilationUnit astRoot, List typeReferences, List staticReferences, Set oldSingleImports, Set oldDemandImports) {
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(fCompilationUnit);
 		IProblem[] problems= astRoot.getProblems();
 		for (int i= 0; i < problems.length; i++) {
