@@ -19,9 +19,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -68,7 +67,7 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 /**
  * Superclass for all the UI tests, with several utility methods
  */
-public abstract class UITestCase extends TestCase {
+public abstract class UITestCase extends AJDTCoreTestCase {
 
 	public static final String TEST_PROJECTS_FOLDER = "/workspace"; //$NON-NLS-1$
     protected Display display = Display.getCurrent();
@@ -84,121 +83,20 @@ public abstract class UITestCase extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
-        System.out.println("------------------------\nStarting " + this.getName());
 	}
 	
 	protected void tearDown() throws Exception {
+	    closeAllEditors();
+	    waitForJobsToComplete();
+	    ILaunchConfiguration[] launchConfigurations = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
+	    for (int i = 0; i < launchConfigurations.length; i++) {
+	        ILaunchConfiguration configuration = launchConfigurations[i];
+	        configuration.delete();
+	    }
 		super.tearDown();
-		waitForJobsToComplete();
-		closeAllEditors();
-		ILaunchConfiguration[] launchConfigurations = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
-		for (int i = 0; i < launchConfigurations.length; i++) {
-			ILaunchConfiguration configuration = launchConfigurations[i];
-			configuration.delete();
-		}
-		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
-			deleteProject(project);
-		}
 	}
 	
-	/**
-	 * Imports a specified project from the "test projects" folder.
-	 * 
-	 * @param projectName, The name of the project to import from the "test projects" directory
-	 * @param overwrite, If a project with the name already exists, should its files be overwritten?
-	 * @return The requested project if successfully imported, null otherwise
-	 * @throws CoreException
-	 */
-	protected IProject createPredefinedProject(String projectName) throws CoreException{
-		waitForJobsToComplete();
-		
-		File sourceDir;
-		sourceDir = new File(AspectJTestPlugin.getPluginDir() + TEST_PROJECTS_FOLDER + "/" + projectName); //$NON-NLS-1$
-		if ((sourceDir == null) || (!sourceDir.exists()) || (sourceDir.isFile()))
-			return null;
-		
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IProject destFolder = root.getProject(projectName);
-		
-		IOverwriteQuery oq = new IOverwriteQuery(){
-			public String queryOverwrite(String input){
-				return YES;
-			}
-		};
-		ImportOperation impop = new ImportOperation(destFolder.getFullPath(), sourceDir, FileSystemStructureProvider.INSTANCE, oq);
-		impop.setCreateContainerStructure(false);
-		try {
-			impop.run(null);
-		} catch (InvocationTargetException e1) {
-			e1.printStackTrace();
-			return null;
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-			return null;
-		}
-		IProject project = root.getProject(destFolder.getName());
-		// if project isn't open, then open it
-		if (project != null && !(project.isOpen())) {
-			project.open(null);
-		}
-		
-		waitForJobsToComplete();
-		return project;
-	}
 
-	/**
-	 * Delete a project.
-	 */	
-	protected void deleteProject(final IProject project) {
-		// make sure nothing is still using the project
-		waitForJobsToComplete();
-		
-		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
-			protected void execute(IProgressMonitor monitor)
-					throws CoreException {
-				try {
-					// force opening so that project can be deleted without logging (see bug 23629)
-					if (project.exists() && !project.isOpen()) {
-						project.open(null);
-					}
-				} catch (CoreException e) {
-				}
-
-				int retryCount = 0; // wait 1 minute at most
-				while (project.isAccessible() && ++retryCount <= 60) {
-					System.out.println("Running GC and waiting 1s..."); //$NON-NLS-1$
-					try {
-						System.gc();
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
-					try {
-						// perform the delete
-						project.delete(true, false, null);
-						project.delete(true, true, null);
-					} catch (CoreException e) {
-						// just print for info
-						System.out
-								.println("Retry " + retryCount + ": " + e.getMessage() + " [" + project.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-					} catch (IllegalArgumentException iae) {
-						// just print for info
-						System.out
-								.println("Retry " + retryCount + ": " + iae.getMessage() + " [" + project.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-					}
-				}
-			}
-		};
-		try {
-			op.run(null);
-		} catch (InvocationTargetException ex) {
-		} catch (InterruptedException e) {
-		}
-
-		// make sure delete has finished
-		waitForJobsToComplete();
-	}
 
 	/**
 	 * Opens a file in its associated editor.
@@ -253,17 +151,6 @@ public abstract class UITestCase extends TestCase {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Returns the IWorkspace this test suite is running on.
-	 */
-	public IWorkspace getWorkspace() {
-		return ResourcesPlugin.getWorkspace();
-	}
-	
-	public IWorkspaceRoot getWorkspaceRoot() {
-		return getWorkspace().getRoot();
 	}
 
 	
