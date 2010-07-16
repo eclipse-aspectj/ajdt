@@ -67,6 +67,15 @@ public class AJDTCoreTestCase extends TestCase {
         }
     }
     
+    public AJDTCoreTestCase(String name) {
+        super(name);
+    }
+    
+    public AJDTCoreTestCase() {
+        super();
+    }
+
+    
     protected void setUp() throws Exception {
         super.setUp();
         System.out.println("------------------------\nStarting " + this.getName());
@@ -132,8 +141,13 @@ public class AJDTCoreTestCase extends TestCase {
 		return jp.getProject();
 	}
 	
-	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
-		IJavaProject jp = setUpJavaProject(projectName);
+	protected IProject createPredefinedProject(final String projectName) throws CoreException, RuntimeException {
+	    IJavaProject jp;
+        try {
+            jp = setUpJavaProject(projectName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 		try {
     		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (NullPointerException npe) {
@@ -336,11 +350,14 @@ public class AJDTCoreTestCase extends TestCase {
 		return getWorkspaceRoot().getProject(project);
 	}
 
+	protected void deleteProject(IProject project) throws CoreException {
+		deleteProject(project,true);
+	}
 	protected void deleteProject(IProject project, boolean force) throws CoreException {
-		if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
-			project.open(null);
-		}
-		deleteResource(project,force);
+	    if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
+	        project.open(null);
+	    }
+	    deleteResource(project,force);
 	}
 	
 	protected void deleteProject(String projectName) throws CoreException {
