@@ -396,7 +396,7 @@ public class ExampleProjectsTest extends VisualTestCase {
 	 * @param projectName
 	 * @return
 	 */
-	private IProject getProject(final String projectName) {
+	protected IProject getProject(final String projectName) {
 		final IWorkspace workspace= AspectJPlugin.getWorkspace();		
 		
 		new DisplayHelper() {
