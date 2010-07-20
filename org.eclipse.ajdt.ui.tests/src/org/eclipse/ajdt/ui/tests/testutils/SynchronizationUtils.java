@@ -11,8 +11,7 @@
 
 package org.eclipse.ajdt.ui.tests.testutils;
 
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWTException;
@@ -25,31 +24,14 @@ public class SynchronizationUtils {
 
 		
 	public static void joinBackgroudActivities()  {
-		// Join Building
-		boolean interrupted= true;
-		while (interrupted) {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-				interrupted= false;
-			} catch (InterruptedException e) {
-				interrupted= true;
-			}
-		}
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);	
-		// Join jobs
+	    AJDTCoreTestCase.waitForAutoBuild();
+	    AJDTCoreTestCase.waitForManualBuild();
+	    AJDTCoreTestCase.waitForAutoRefresh();
+	    AJDTCoreTestCase.waitForManualRefresh();
+	    
+		// Join other jobs
 		joinJobs(100, 0, 500);
 	}
-
 
 	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
 		long startTime= System.currentTimeMillis() + minTime;
