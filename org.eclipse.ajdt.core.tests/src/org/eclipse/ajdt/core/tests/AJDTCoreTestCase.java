@@ -109,13 +109,17 @@ public class AJDTCoreTestCase extends TestCase {
 	 */
 	protected String getPluginDirectoryPath() {
 		try {
-			URL platformURL = Platform.getBundle("org.eclipse.ajdt.core.tests").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
+			URL platformURL = Platform.getBundle(getTestBundleName()).getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
 			return new File(FileLocator.toFileURL(platformURL).getFile()).getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
+
+    protected String getTestBundleName() {
+        return "org.eclipse.ajdt.core.tests";
+    }
 	
 	public String getSourceWorkspacePath() {
 		return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
