@@ -212,61 +212,36 @@ public class AJDTCoreTestCase extends TestCase {
 		return javaProject;
 	}
 	
-	
-	// A dumb progressmonitor we can use - if we dont pass one it may create a UI one...
-	static class DumbProgressMonitor implements IProgressMonitor {
+	protected static class Requestor extends TypeNameRequestor { }
 
-		public void beginTask(String name, int totalWork) {/*dontcare*/}
-
-		public void done() {/*dontcare*/}
-
-		public void internalWorked(double work) {/*dontcare*/}
-
-		public boolean isCanceled() {/*dontcare*/return false;}
-
-		public void setCanceled(boolean value) {/*dontcare*/}
-
-		public void setTaskName(String name) {/*dontcare*/}
-
-		public void subTask(String name) {/*dontcare*/}
-
-		public void worked(int work) {/*dontcare*/}
-		
-	}
-
-	protected static class Requestor extends TypeNameRequestor {
-        }
-
-    /**
-	 * Wait for autobuild notification to occur
-	 */
 	public static void waitForAutoBuild() {
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, new DumbProgressMonitor());
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);
+	    waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
+	}
+    public static void waitForManualBuild() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_BUILD);
+    }
+    public static void waitForAutoRefresh() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_REFRESH);
+    }
+    public static void waitForManualRefresh() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
+    }
+	
+	public static void waitForJobFamily(Object family) {
+        boolean wasInterrupted = false;
+        do {
+            try {
+                Job.getJobManager().join(family, new NullProgressMonitor());
+                wasInterrupted = false;
+            } catch (OperationCanceledException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                wasInterrupted = true;
+            }
+        } while (wasInterrupted);       
+	    
 	}
 	
-	public static void waitForManualBuild() {
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new DumbProgressMonitor());
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);		
-	}
 	
 	/**
 	 * Copy the given source directory (and all its contents) to the given target directory.
