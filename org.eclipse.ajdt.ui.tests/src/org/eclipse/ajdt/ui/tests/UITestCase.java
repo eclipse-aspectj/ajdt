@@ -181,6 +181,11 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT);
 	}
 
+	
+    protected String getTestBundleName() {
+        return "org.eclipse.ajdt.ui.tests";
+    }
+
 	/**
 	 * Closes all open editors without saving
 	 */
