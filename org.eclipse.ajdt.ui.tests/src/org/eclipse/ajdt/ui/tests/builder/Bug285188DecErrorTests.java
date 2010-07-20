@@ -32,6 +32,7 @@ public class Bug285188DecErrorTests extends UITestCase {
         /* IProject aspectProj = */createPredefinedProject("Bug285188");
         IProject javaProjB = createPredefinedProject("Bug285188b");
         IProject javaProjC = createPredefinedProject("Bug285188c");
+        waitForJobsToComplete();
         
         IFile class1 = javaProjB.getFile("src/Class.java");
         testMarker(class1);

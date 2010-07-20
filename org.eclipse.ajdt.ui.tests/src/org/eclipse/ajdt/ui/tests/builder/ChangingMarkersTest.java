@@ -37,7 +37,8 @@ public class ChangingMarkersTest extends UITestCase {
     public void testMarkersUpdatedAfterChangedProject() throws Exception {
         // create project
         IProject project = createPredefinedProject("Changing Markers Test"); //$NON-NLS-1$
-        
+        waitForJobsToComplete();
+
         // advice, itd, and declare error markers are in appropriate place
         // in both class and aspect
         IFile javaFile = (IFile) project.findMember("src/pkg/ClassWithChangingMarkers.java"); //$NON-NLS-1$
