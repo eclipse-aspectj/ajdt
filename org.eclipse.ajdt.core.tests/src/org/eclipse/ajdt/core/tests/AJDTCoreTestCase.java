@@ -152,6 +152,11 @@ public class AJDTCoreTestCase extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        if (jp == null) {
+            // project was not found
+            return null;
+        }
+        
 		try {
     		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (NullPointerException npe) {
@@ -183,7 +188,11 @@ public class AJDTCoreTestCase extends TestCase {
 		// copy files in project from source workspace to target workspace
 		String sourceWorkspacePath = getSourceWorkspacePath();
 		String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
-		copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName));
+		
+		// return null if source directory does not exist
+		if (! copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName))) {
+		    return null;
+		}
 		
 		// create project
 		final IProject project = getWorkspaceRoot().getProject(projectName);
@@ -191,11 +200,12 @@ public class AJDTCoreTestCase extends TestCase {
     		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
     			public void run(IProgressMonitor monitor) throws CoreException {
     				project.create(null);
-    				project.open(null);
     			}
     		};
     		getWorkspace().run(populate, null);
 		}		
+		// ensure open
+		project.open(null);
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 		
 		IJavaProject javaProject = JavaCore.create(project);
@@ -261,12 +271,15 @@ public class AJDTCoreTestCase extends TestCase {
 	/**
 	 * Copy the given source directory (and all its contents) to the given target directory.
 	 */
-	protected void copyDirectory(File source, File target) throws IOException {
+	protected boolean copyDirectory(File source, File target) throws IOException {
+	    if (! source.exists()) {
+	        return false;
+	    }
 		if (!target.exists()) {
 			target.mkdirs();
 		}
 		File[] files = source.listFiles();
-		if (files == null) return;
+		if (files == null) return true;
 		for (int i = 0; i < files.length; i++) {
 			File sourceChild = files[i];
 			String name =  sourceChild.getName();
@@ -278,6 +291,7 @@ public class AJDTCoreTestCase extends TestCase {
 				copy(sourceChild, targetChild);
 			}
 		}
+		return true;
 	}
 	
 	/**
