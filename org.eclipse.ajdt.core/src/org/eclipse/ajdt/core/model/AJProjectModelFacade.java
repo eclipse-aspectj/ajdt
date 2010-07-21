@@ -291,9 +291,6 @@ public class AJProjectModelFacade {
                     Character.toString(AspectElement.JEM_ASPECT_CU));
         }
         
-        // ajc now takes care of this.
-//        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
-
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
             if (isBinary) {
@@ -364,7 +361,7 @@ public class AJProjectModelFacade {
         if (isBinaryAspectJHandle(jHandle)) {
             // Bug 274558 ADE HACK...fix aspect handles that are supposed to be binary, but are not.
             jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_CLASSFILE);
-            jHandle = jHandle.replace(".aj}", ".class}");
+            jHandle = jHandle.replace(".aj" + AspectElement.JEM_ASPECT_TYPE, ".class" + AspectElement.JEM_ASPECT_TYPE);
             return getElementFromClassFile(jHandle);
         }
 
@@ -436,6 +433,10 @@ public class AJProjectModelFacade {
         return doIt;
     }
     
+    /**
+     * Inner type for passing around a bunch of useful information for constructing 
+     * binary handles
+     */
     private class HandleInfo {
         public HandleInfo(String origAJHandle, String simpleName, String packageName, String qualName, String restHandle, boolean isFile, boolean isType, boolean isInAspect) {
             this.origAJHandle = origAJHandle;
@@ -455,17 +456,6 @@ public class AJProjectModelFacade {
         final boolean isFile;
         final boolean isType;
         final boolean isInAspect;
-        
-//        String extractInnerTypeName() {
-//            String typeNameNoParent;
-//            int dollarIndex = this.simpleName.lastIndexOf('$');
-//            if (dollarIndex > -1) {
-//                typeNameNoParent = this.simpleName.substring(dollarIndex+1);
-//            } else {
-//                typeNameNoParent = this.simpleName;
-//            }
-//            return typeNameNoParent;
-//        }
         
         String sourceTypeQualName() {
             return qualName.replaceAll("\\$", "\\.");
