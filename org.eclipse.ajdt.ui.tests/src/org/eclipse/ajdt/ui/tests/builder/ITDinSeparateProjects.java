@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.JavaCore;
 
 public class ITDinSeparateProjects extends UITestCase {
     
@@ -32,6 +33,12 @@ public class ITDinSeparateProjects extends UITestCase {
             IProject project = createPredefinedProject("ProjectWithITD_Bug121810"); //$NON-NLS-1$
             IProject otherProject = createPredefinedProject("DependentProjectWithITD_Bug121810"); //$NON-NLS-1$
             
+            // force the enabling of this warning, which has been disabled earlier
+            try {
+                JavaCore.create(project).setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "warning"); //$NON-NLS-1$ //$NON-NLS-2$
+            } catch (NullPointerException npe) {
+            }
+
             project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
             otherProject.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
             waitForJobsToComplete();

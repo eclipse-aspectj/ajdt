@@ -38,6 +38,7 @@ public class ChangingMarkersTest extends UITestCase {
         // create project
         IProject project = createPredefinedProject("Changing Markers Test"); //$NON-NLS-1$
         waitForJobsToComplete();
+        waitForJobsToComplete();
 
         // advice, itd, and declare error markers are in appropriate place
         // in both class and aspect

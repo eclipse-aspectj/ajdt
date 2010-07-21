@@ -37,8 +37,8 @@ public class InpathOutFolderTest extends UITestCase {
 	public void testJarOnInpath() throws CoreException {
 	    // test that the built version properly uses the inpath out location
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
-        jarOnInpath.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
         jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        waitForJobsToComplete();
         waitForJobsToComplete();
         
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
@@ -61,8 +61,8 @@ public class InpathOutFolderTest extends UITestCase {
 	    jarOnInpath.getProject().getFolder("newOutFolder").create(true, true, null); //$NON-NLS-1$
 	    AspectJCorePreferences.setProjectInpathOutFolder(jarOnInpath.getProject(), "JarOnInpath/newOutFolder"); //$NON-NLS-1$
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
-        jarOnInpath.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
         jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        waitForJobsToComplete();
         waitForJobsToComplete();
            
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
