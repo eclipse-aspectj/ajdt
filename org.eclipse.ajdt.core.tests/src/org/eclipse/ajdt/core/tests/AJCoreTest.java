@@ -247,7 +247,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jProject.getProject());
 
 		List allRels = model.getRelationshipsForProject(rels);
-		if (allRels.size() == 0) {
+		if (!model.hasModel() || allRels.size() == 0) {
 			// if the project or model didn't build properly we'd get no
 			// relationships
 			// and the test would blindly pass without this check
