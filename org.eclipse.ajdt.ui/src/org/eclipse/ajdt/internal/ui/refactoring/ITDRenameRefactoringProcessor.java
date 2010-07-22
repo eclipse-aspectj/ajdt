@@ -586,7 +586,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
 
     public Object getNewElement() throws CoreException {
         return new Object[] { 
-                new IntertypeElement((JavaElement) itd.getParent(), getNewElementName(), itd.getParameterTypes())       
+                IntertypeElement.create(itd.getJemDelimeter(), (JavaElement) itd.getParent(), getNewElementName(), itd.getParameterTypes())       
         };
     }
     
