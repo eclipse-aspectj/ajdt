@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.HandleTestUtils;
 import org.eclipse.ajdt.core.tests.model.AJModelTest4;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 
@@ -201,9 +202,9 @@ public class BuildConfigurationTest extends AJDTCoreTestCase {
 
 	    if (model.hasProgramElement(unit)) {
 	        List accumulatedErrors = Collections.emptyList();
-	        AJModelTest4.checkJavaHandle(unit.getHandleIdentifier(), model);
+	        HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
 	        IProgramElement ipe = model.javaElementToProgramElement(unit);
-	        accumulatedErrors.addAll(AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model));
+	        AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model);
 	        if (accumulatedErrors.size() > 0) {
 	            StringBuffer sb = new StringBuffer();
 	            sb.append("Found errors in comparing elements:\n");
