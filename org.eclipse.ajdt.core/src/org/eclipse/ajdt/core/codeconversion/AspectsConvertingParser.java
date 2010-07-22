@@ -448,6 +448,19 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 currentTypeName = null;
                 
                 break;
+                
+            case TokenNameafter:
+                // Bug 318132: ensure that the debugger does not raise exceptions when stepping through aspects with advice
+                if (! inTypeBodyStack.isEmpty() && inTypeBodyStack.peek()) {
+                    addReplacement(scanner.getCurrentTokenStartPosition(), "after".length(), "int a".toCharArray());
+                }
+                break;
+            case TokenNamebefore:
+                // Bug 318132: ensure that the debugger does not raise exceptions when stepping through aspects with advice
+                if (! inTypeBodyStack.isEmpty() && inTypeBodyStack.peek()) {
+                    addReplacement(scanner.getCurrentTokenStartPosition(), "before".length(), "void b".toCharArray());
+                }
+                break;
             case TokenNameRBRACE:
                 if (inPointcutDesignator && parenLevel == 0) {  // Bug 296044: make sure that lbrace is not inside of a declare declaration
                     // bug 129367: if we've hit a } here, we must be
@@ -566,6 +579,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
         applyReplacements();
 
+        // uncomment to see the transformed source code
+//        System.out.println(String.valueOf(content));
+        
         return replacements;
     }
     

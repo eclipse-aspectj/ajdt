@@ -449,7 +449,17 @@ public class AJCompilationUnitProblemFinder extends
                 (aspectMemberNames.contains(firstArg) ||
                  aspectMemberNames.contains(secondArg))) {
             // declare statement if more than one exist in a file
-            // or advice if more than one of the same kind exists in the aspect
+            // or around advice if more than one of the same kind exists in the aspect
+            return false;
+        }
+        
+        if (numArgs > 1 &&
+                id == IProblem.DuplicateMethod &&
+                isTranslatedAdviceName(firstArg, secondArg)) {
+            // more than one before or after advice exists
+            // in same file with same number and types of arguments
+            // as per bug 318132, before and after names are translated
+            // to 'b' and 'a' respectively
             return false;
         }
         
@@ -716,7 +726,14 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
 
-
+            if (numArgs == 1 && id == IProblem.ShouldReturnValue &&
+                    firstArg.equals("int") && 
+                    insideAdvice(categorizedProblem, unit)) {
+                // Bug 318132: after keyword is changed to 'int a' to avoid throwing exceptions while 
+                // evaluating variables during debug
+                return false;
+            }
+            
         } catch (JavaModelException e) {
         }
         
@@ -737,6 +754,18 @@ public class AJCompilationUnitProblemFinder extends
         
         
         return true;
+    }
+
+    /**
+     * Check to see if the name is a translated advice name
+     * In bug 318132, before and after advice names have 
+     * been translated to 'b' and 'a' respectively
+     * @param firstArg
+     * @param secondArg
+     * @return
+     */
+    private static boolean isTranslatedAdviceName(String firstArg, String secondArg) {
+        return firstArg.equals("a") || firstArg.equals("b") || secondArg.equals("a") || secondArg.equals("b");
     }
 
     /**

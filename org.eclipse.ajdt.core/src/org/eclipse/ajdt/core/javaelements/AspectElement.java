@@ -19,6 +19,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.internal.HandleProviderDelimiter;
 import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -38,13 +39,16 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 public class AspectElement extends SourceType implements IAspectJElement {
 	
 	// characters to use for handle identifiers, alongside the ones in JavaElement
-	public static final char JEM_ASPECT_CU = '*';
-	public static final char JEM_ADVICE = '&';
-	public static final char JEM_ASPECT_TYPE = '}';
-	public static final char JEM_CODEELEMENT = '?';
-	public static final char JEM_ITD = ')';
-	public static final char JEM_DECLARE = '`';
-	public static final char JEM_POINTCUT = '+';
+	public static final char JEM_ASPECT_CU = '*'; // HandleProviderDelimiter.ASPECT_CU '+'
+	public static final char JEM_ADVICE = '&'; // HandleProviderDelimiter.ADVICE
+	public static final char JEM_ASPECT_TYPE = '}'; // HandleProviderDelimiter.ASPECT_TYPE '-'
+	public static final char JEM_CODEELEMENT = '?'; // HandleProviderDelimiter.CODEELEMENT
+	public static final char JEM_ITD = ')'; // HandleProviderDelimiter.ITD
+	public static final char JEM_DECLARE = '`'; // HandleProviderDelimiter.DECLARE
+	public static final char JEM_POINTCUT = '+'; // HandleProviderDelimiter.POINTCUT ':'
+	
+	// JEM_ITD_METHOD ')'
+	// JEM_ITD_FIELD  '*'
 	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {

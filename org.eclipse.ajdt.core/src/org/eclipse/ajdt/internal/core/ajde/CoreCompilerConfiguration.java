@@ -101,7 +101,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
 	public String getNonStandardOptions() {
 		// ajdt.ui supplies impl
-		return " -Xset:minimalModel=true"; //$NON-NLS-1$
+		return ""; //$NON-NLS-1$
 	}
 
 	public Set getAspectPath() {
