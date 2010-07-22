@@ -340,7 +340,7 @@ public class AJCompilationUnitStructureRequestor extends
 		String nameString = concat(decl.getOnType().getTypeName()) + "." + new String(decl.getDeclaredSelector()); //$NON-NLS-1$
 		
 		String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
-		handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
+		handle = IntertypeElement.create(IntertypeElement.getJemDelimter(decl), parentHandle, nameString, parameterTypeSigs);
 		
 		resolveDuplicates(handle);
 		

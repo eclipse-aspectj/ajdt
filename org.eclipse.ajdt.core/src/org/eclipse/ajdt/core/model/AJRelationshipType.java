@@ -38,4 +38,10 @@ public class AJRelationshipType {
 	public String getMenuName() {
 		return menuName;
 	}
+	
+	@Override
+	public String toString() {
+		return "AJRelationshipType("+getDisplayName()+")";
+	}
+	
 }

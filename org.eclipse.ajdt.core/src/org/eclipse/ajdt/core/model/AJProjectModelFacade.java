@@ -26,6 +26,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.RelationshipMap;
@@ -40,10 +41,13 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
+import org.eclipse.ajdt.core.javaelements.FieldIntertypeElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -68,6 +72,8 @@ import org.eclipse.jdt.internal.core.ImportContainer;
 import org.eclipse.jdt.internal.core.ImportDeclaration;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+
+import static org.eclipse.ajdt.core.javaelements.AspectElement.*;
 
 /**
  * 
@@ -242,6 +248,22 @@ public class AJProjectModelFacade {
         }
         String ajHandle = je.getHandleIdentifier();
         
+    	//FIXKDV: See https://bugs.eclipse.org/bugs/show_bug.cgi?id=320425
+    	//when Andy has applied a similar change to AspectJ compiler, the code
+    	//will be obsolete.
+        ajHandle = ajHandle.replace(AspectElement.JEM_ASPECT_TYPE, AspectElement.JEM_ASPECT_TYPE_OLD);
+        ajHandle = ajHandle.replace(AspectElement.JEM_POINTCUT, AspectElement.JEM_POINTCUT_OLD);
+        
+        if (je instanceof FieldIntertypeElement) {
+        	//FIXKDV: See https://bugs.eclipse.org/bugs/show_bug.cgi?id=320425
+        	//when Andy has applied a similar change to AspectJ compiler, this code
+        	//will be obsolete.
+        	int index = ajHandle.indexOf(AspectElement.JEM_ITD_FIELD);
+        	Assert.isTrue(index>=0);
+        	ajHandle = ajHandle.substring(0, index) + AspectElement.JEM_ITD_METHOD + ajHandle.substring(index+1);
+        }
+        
+        
         boolean isBinary = false;
         if (isBinaryHandle(ajHandle)) {
             ajHandle = convertToAspectJBinaryHandle(ajHandle);
@@ -354,6 +376,11 @@ public class AJProjectModelFacade {
         
         String jHandle = ajHandle;
         
+    	//FIXKDV: See https://bugs.eclipse.org/bugs/show_bug.cgi?id=320425
+    	//when Andy has applied a similar change to AspectJ compiler, this code
+    	//will be obsolete.
+        jHandle = jHandle.replace(AspectElement.JEM_ASPECT_TYPE_OLD, AspectElement.JEM_ASPECT_TYPE);
+        jHandle = jHandle.replace(AspectElement.JEM_POINTCUT_OLD, AspectElement.JEM_POINTCUT);
         
         // are we dealing with something inside of a classfile?
         // if so, then we have to handle it specially
@@ -361,7 +388,7 @@ public class AJProjectModelFacade {
         if (isBinaryAspectJHandle(jHandle)) {
             // Bug 274558 ADE HACK...fix aspect handles that are supposed to be binary, but are not.
             jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_CLASSFILE);
-            jHandle = jHandle.replace(".aj" + AspectElement.JEM_ASPECT_TYPE, ".class" + AspectElement.JEM_ASPECT_TYPE);
+            jHandle = jHandle.replace(".aj"+JEM_ASPECT_TYPE, ".class"+JEM_ASPECT_TYPE);
             return getElementFromClassFile(jHandle);
         }
 
@@ -403,6 +430,21 @@ public class AJProjectModelFacade {
         if (je == null) {
             // occurs when the handles are not working properly
             return ERROR_JAVA_ELEMENT;
+        }
+        
+        if (je instanceof IntertypeElement) {
+        	//FIXKDV: See https://bugs.eclipse.org/bugs/show_bug.cgi?id=320425
+        	//when Andy has applied a similar change to AspectJ compiler, this code
+        	//will be obsolete.
+        	IntertypeElement ite = (IntertypeElement) je;
+        	try {
+				if (ite.getAJKind() == Kind.INTER_TYPE_FIELD) {
+					return new FieldIntertypeElement((JavaElement) ite.getParent(), ite.getElementName());
+				}
+			} catch (JavaModelException e) {
+				// Presumably the element doesn't exist, there is no way of knowing whether it is a Field, so
+				// we assume it is a method (and leave it as is).
+			}
         }
         return je;
     }

@@ -83,7 +83,7 @@ public class AJModel {
                         // Java handles.
                         // This is avoiding problems when Type is in a .aj file
                         IJavaElement elt = model.programElementToJavaElement(target);
-                        elt = JavaCore.create(AspectJCore.convertToJavaCUHandle(target, elt));
+                        elt = JavaCore.create(AspectJCore.convertToJavaCUHandle(elt.getHandleIdentifier(), elt));
                         if (elt != null) {
                             // will be null if type is an aspect type or contained in an aspect type
                             AJRelationship ajRel = new AJRelationship(

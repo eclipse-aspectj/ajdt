@@ -47,7 +47,8 @@ public class AJMementoTokenizer extends MementoTokenizer {
     private static final String CODEELEMENT = Character
             .toString(AspectElement.JEM_CODEELEMENT);
 
-    private static final String ITD = Character.toString(AspectElement.JEM_ITD);
+    private static final String ITD_METHOD = Character.toString(AspectElement.JEM_ITD_METHOD);
+    private static final String ITD_FIELD = Character.toString(AspectElement.JEM_ITD_FIELD);
 
     private static final String DECLARE = Character
             .toString(AspectElement.JEM_DECLARE);
@@ -118,10 +119,9 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 return LOCALVARIABLE;
             case JavaElement.JEM_TYPE_PARAMETER:
                 return TYPE_PARAMETER;
+            case JavaElement.JEM_ANNOTATION:
+                return ANNOTATION;
                 // begin AspectJ change
-                // comment out annotation, because it is the same as aspect
-//            case JavaElement.JEM_ANNOTATION:
-//                return ANNOTATION;
             case AspectElement.JEM_ASPECT_CU:
                 return ASPECT_CU;
             case AspectElement.JEM_ADVICE:
@@ -130,8 +130,10 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 return ASPECT_TYPE;
             case AspectElement.JEM_CODEELEMENT:
                 return CODEELEMENT;
-            case AspectElement.JEM_ITD:
-                return ITD;
+            case AspectElement.JEM_ITD_METHOD:
+                return ITD_METHOD;
+            case AspectElement.JEM_ITD_FIELD:
+                return ITD_FIELD;
             case AspectElement.JEM_DECLARE:
                 return DECLARE;
             case AspectElement.JEM_POINTCUT:
@@ -160,13 +162,14 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 case JavaElement.JEM_IMPORTDECLARATION:
                 case JavaElement.JEM_LOCALVARIABLE:
                 case JavaElement.JEM_TYPE_PARAMETER:
+                case JavaElement.JEM_ANNOTATION:
                     // begin AspectJ change
-//                case JavaElement.JEM_ANNOTATION:
                 case AspectElement.JEM_ASPECT_CU:
                 case AspectElement.JEM_ADVICE:
                 case AspectElement.JEM_ASPECT_TYPE:
                 case AspectElement.JEM_CODEELEMENT:
-                case AspectElement.JEM_ITD:
+                case AspectElement.JEM_ITD_METHOD:
+                case AspectElement.JEM_ITD_FIELD:
                 case AspectElement.JEM_DECLARE:
                 case AspectElement.JEM_POINTCUT:
                     // end AspectJ change

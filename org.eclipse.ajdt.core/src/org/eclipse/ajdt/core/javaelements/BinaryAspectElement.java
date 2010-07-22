@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -53,7 +54,7 @@ public class BinaryAspectElement extends BinaryType {
             if (!memento.hasMoreTokens()) return this;
             String name = memento.nextToken();
             
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<String>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
@@ -87,16 +88,16 @@ public class BinaryAspectElement extends BinaryType {
             } else {
                 return advice;
             }
-        } else if (token.charAt(0) == AspectElement.JEM_ITD) {
+        } else if (token.charAt(0) == AspectElement.JEM_ITD_METHOD) {
             String name = memento.nextToken();
-            ArrayList params = new ArrayList();
+            ArrayList<String> params = new ArrayList<String>();
             nextParam: while (memento.hasMoreTokens()) {
                 token = memento.nextToken();
                 switch (token.charAt(0)) {
                     case JEM_TYPE:
                     case JEM_TYPE_PARAMETER:
                         break nextParam;
-                    case AspectElement.JEM_ITD:
+                    case AspectElement.JEM_ITD_METHOD:
                         if (!memento.hasMoreTokens()) return this;
                         String param = memento.nextToken();
                         StringBuffer buffer = new StringBuffer();
@@ -113,12 +114,20 @@ public class BinaryAspectElement extends BinaryType {
             }
             String[] parameters = new String[params.size()];
             params.toArray(parameters);
-            JavaElement itd = new IntertypeElement(this, name, parameters);
+            JavaElement itd = new MethodIntertypeElement(this, name, parameters);
             if (memento.hasMoreTokens()) {
                 return itd.getHandleFromMemento(token, memento, workingCopyOwner);
             } else {
                 return itd;
             }
+		} else if (token.charAt(0) == AspectElement.JEM_ITD_FIELD) {
+			String name = memento.nextToken();
+			JavaElement itd = new FieldIntertypeElement(this, name);
+			if (memento.hasMoreTokens()) {
+			    return itd.getHandleFromMemento(token, memento, workingCopyOwner);
+			} else {
+			    return itd;
+			}
         } else if (token.charAt(0) == AspectElement.JEM_DECLARE) {
             String name = memento.nextToken();
             ArrayList params = new ArrayList();
