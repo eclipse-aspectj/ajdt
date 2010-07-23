@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.SourceRange;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -1086,6 +1087,10 @@ public class PullOutRefactoring extends Refactoring {
 	 */
 	public boolean willBePrivileged() {
 		return isPrivileged() || isMakePrivileged();
+	}
+
+	public IProject getProject() {
+		return getJavaProject().getProject();
 	}
 
 }
