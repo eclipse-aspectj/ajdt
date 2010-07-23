@@ -22,7 +22,6 @@ import java.util.Set;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.SourceRange;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -69,12 +68,16 @@ import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jdt.internal.corext.refactoring.base.JavaStatusContext;
+import org.eclipse.jdt.internal.corext.template.java.JavaContext;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.corext.util.JdtFlags;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.text.templates.TemplateException;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.Refactoring;
@@ -239,10 +242,11 @@ public class PullOutRefactoring extends Refactoring {
 		public String toString() {
 			if (memberText==null)
 				return "ITDCreator(DISPOSED)";
-			else
+			else {
 				return "ITDCreator(----\n" +
 				memberText.get()+"\n" +
 				"----)";
+			}
 		}
 		
 		/**
@@ -315,7 +319,7 @@ public class PullOutRefactoring extends Refactoring {
 				//String replaceText = makePublic?"public ":"";
 				String replaceText = "";
 				for (Modifier modifier : mods) {
-					if ( (modifier.getKeyword().toFlagValue() | deleteMods) != 0) {
+					if ( (modifier.getKeyword().toFlagValue() & deleteMods) != 0) {
 						int modStart = modifier.getStartPosition() - memberStart();
 						int modEnd = modStart + modifier.getLength();
 						if (Character.isWhitespace(memberText.getChar(modEnd))) {
@@ -343,7 +347,7 @@ public class PullOutRefactoring extends Refactoring {
 				else {
 					insertPos = 0;
 				}
-				edits.addChild(new InsertEdit(insertPos, "public "));
+				edits.addChild(new InsertEdit(insertPos, insertMods));
 			}
 		}
 		
@@ -453,6 +457,13 @@ public class PullOutRefactoring extends Refactoring {
 		}
 		
 		/**
+		 * Was the original member abstract.
+		 */
+		public boolean wasAbstract() throws JavaModelException {
+			return JdtFlags.isAbstract(member);
+		}
+		
+		/**
 		 * Was the original member "package visible" (i.e. it has no visibility
 		 * modifiers at all. 
 		 */
@@ -495,6 +506,18 @@ public class PullOutRefactoring extends Refactoring {
 		private boolean isVisibilityModifier(int modFlag) {
 			return (modFlag & VISIBILITY_MODIFIERS)!=0;
 		}
+
+		/**
+		 * Replace the body of the method with given text. This is really only
+		 * supposed to be used to add method stubs for methods that where abstract
+		 * before.
+		 */
+		public void setBody(String bodyText) {
+			Object bodyNode = memberNode.getStructuralProperty(MethodDeclaration.BODY_PROPERTY);
+			Assert.isTrue(bodyNode==null, "There already is a method body for this member: "+getMember());
+			int startPos = memberText.get().lastIndexOf(';');
+			edits.addChild(new ReplaceEdit(startPos, 1, bodyText));
+		}
 	}
 
 	private static final String MAKE_PRIVILEGED = "makePrivileged";
@@ -523,7 +546,7 @@ public class PullOutRefactoring extends Refactoring {
 	 * Allow pulling abstract methods. This deletes abstract keyword and generates
 	 * method stubs for "abstract" ITDs.
 	 */
-	private boolean allowPullAbstract = false;
+	private boolean generateAbstractMethodStubs = false;
 
 	/**
 	 * Allow the deletion of the protected keyword from ITDs (because this keyword
@@ -585,6 +608,22 @@ public class PullOutRefactoring extends Refactoring {
 							status.addWarning("moved member '"+member.getElementName()+"' is protected\n" +
 									"protected ITDs are not allowed by AspectJ.\n" ,
 									makeContext(member));
+						}
+					}
+					if (itd.wasAbstract()) {
+						if (isGenerateAbstractMethodStubs()) {
+							itd.removeModifier(Modifier.ABSTRACT);
+							itd.setBody(getAbstractMethodStubBody(member));
+						}
+						else {
+							status.addWarning("moved member '"+member.getElementName()+"' is abstract.\n" +
+									"abstract ITDs are not allowed by AspectJ.\n" +
+									"You can enable the 'convert abstract methods' option to avoid this error.", 
+									makeContext(member));
+							//If you choose to ignore this error and perform refactoring anyway...
+							// We make sure the abstract keyword is added to the itd, so you will get a compile error
+							// and be forced to deal with that error.
+							itd.addModifier(Modifier.ABSTRACT);
 						}
 					}
 					checkOutgoingReferences(itd, status);
@@ -860,7 +899,6 @@ public class PullOutRefactoring extends Refactoring {
 	 */
 	private int getInsertLocation() {
 		try {
-			Assert.isTrue(targetAspect.getSource().endsWith("}"));
 			return  targetAspect.getSourceRange().getOffset()
 			      + targetAspect.getSourceRange().getLength()-1;
 		} catch (JavaModelException e) {
@@ -952,16 +990,16 @@ public class PullOutRefactoring extends Refactoring {
 	 * Are we allowed to delete the abstract modifier and fabricate
 	 * dummy method bodies?
 	 */
-	public boolean isAllowPullAbstract() {
-		return allowPullAbstract;
+	public boolean isGenerateAbstractMethodStubs() {
+		return generateAbstractMethodStubs;
 	}
 	
 	/**
 	 * Allow pulling out of abstract methods. The abstract keyword will
 	 * be removed and a dummy method body added.
 	 */
-	public void setAllowPullAbstract(boolean allow) {
-		this.allowPullAbstract = allow;
+	public void setGenerateAbstractMethodStubs(boolean allow) {
+		this.generateAbstractMethodStubs = allow;
 	}
 
 	/**
@@ -1089,8 +1127,9 @@ public class PullOutRefactoring extends Refactoring {
 		return isPrivileged() || isMakePrivileged();
 	}
 
-	public IProject getProject() {
-		return getJavaProject().getProject();
+	protected String getAbstractMethodStubBody(IMember originalMember) {
+		//FIXKDV: Stupid implementation for now... maybe we can use the Eclipse Java Code templates somehow
+		// or have the user specify their own abstract method stub template in the wizard.
+		return " { throw new Error(\"abstract method stub\"); }";
 	}
-
 }
