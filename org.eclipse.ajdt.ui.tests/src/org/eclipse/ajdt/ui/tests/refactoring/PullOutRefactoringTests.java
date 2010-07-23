@@ -1861,15 +1861,15 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"}"
     			)
     	);
-    	refactoring.setAllowPullAbstract(true);
+    	refactoring.setGenerateAbstractMethodStubs(true);
     	performRefactoringAndCheck();
     }
     
     /**
-     * Pull interface methods (this test is currently failing, 
-     * feature being tested not yet implemented)
+     * Pull interface methods, without the option to allow/convert abstract
+     * methods should result in warning messages.
      */
-    public void _testPullInterfaceMethodWarning() throws Exception {
+    public void testPullInterfaceMethodWarning() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
@@ -1882,13 +1882,13 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					// Expected
     					"package paspect;\n" +
     					"\n" +
-    					"import pclass.Klass;\n" +
+    					"import pclass.Intervace;\n" +
     					"\n" +
     					"public aspect TestAspect {\n"+
-    					"    public void Intervace.pullMe1() {}\n"+
-    					"    public void Intervace.pullMe2() {}\n"+
-    					"    public void Intervace.pullMe3() {}\n"+
-    					"    public void Intervace.pullMe4() {}\n"+
+    					"    public abstract void Intervace.pullMe1();\n"+
+    					"    public abstract void Intervace.pullMe2();\n"+
+    					"    public abstract void Intervace.pullMe3();\n"+
+    					"    public abstract void Intervace.pullMe4();\n"+
     					"}"
     			),
     			new CU("pclass", "Intervace.java",
@@ -1906,7 +1906,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					// Expected
     					"package pclass;\n" +
     					"\n" +
-    					"public class Intervace {\n" +
+    					"public interface Intervace {\n" +
     					"}"
     			)
     	);
@@ -1914,14 +1914,175 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			"member 'pullMe1' is abstract",
     			"member 'pullMe2' is abstract",
     			"member 'pullMe3' is abstract",
-    			"member 'pullMe3' is abstract"
+    			"member 'pullMe4' is abstract"
+    	);
+    }
+    
+    /**
+     * Pull interface methods, *with* the option to allow/convert abstract
+     * methods set should *not* result in warning messages and should create
+     * stub methods.
+     */
+    public void testPullInterfaceVoidStubMethods() throws Exception {
+    	setupRefactoring(
+    			new CU("paspect", "TestAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package paspect;\n" +
+    					"\n" +
+    					"public <***>aspect TestAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package paspect;\n" +
+    					"\n" +
+    					"import pclass.Intervace;\n" +
+    					"\n" +
+    					"public aspect TestAspect {\n"+
+    					"    public void Intervace.pullMe1() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    public void Intervace.pullMe2() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    public void Intervace.pullMe3() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    public void Intervace.pullMe4() { throw new Error(\"abstract method stub\"); }\n"+
+    					"}"
+    			),
+    			new CU("pclass", "Intervace.java",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package pclass;\n" +
+    					"\n" +
+    					"public interface Intervace {\n" +
+    					"    public abstract void <***>pullMe1();\n"+
+    					"    abstract void <***>pullMe2();\n"+
+    					"    public void <***>pullMe3();\n"+
+    					"    void <***>pullMe4();\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package pclass;\n" +
+    					"\n" +
+    					"public interface Intervace {\n" +
+    					"}"
+    			)
+    	);
+    	refactoring.setGenerateAbstractMethodStubs(true);
+    	performRefactoringAndCheck();
+    }
+    
+    /**
+     * Pull abstract methods from an abstract class, *with* the option to allow/convert abstract
+     * methods set should *not* result in warning messages and should create
+     * stub methods.
+     */
+    public void testPullAbstractStubMethods() throws Exception {
+    	setupRefactoring(
+    			new CU("paspect", "TestAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package paspect;\n" +
+    					"\n" +
+    					"public privileged <***>aspect TestAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package paspect;\n" +
+    					"\n" +
+    					"import pclass.MyClass;\n" +
+    					"\n" +
+    					"public privileged aspect TestAspect {\n"+
+    					"    public void MyClass.pullMe1() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    public void MyClass.pullMe2() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    void MyClass.pullMe3() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    void MyClass.pullMe4() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    void MyClass.pullMe5() { throw new Error(\"abstract method stub\"); }\n"+
+    					"}"
+    			),
+    			new CU("pclass", "MyClass.java",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package pclass;\n" +
+    					"\n" +
+    					"public abstract class MyClass {\n" +
+    					"    public abstract void <***>pullMe1();\n"+
+    					"    abstract public void <***>pullMe2();\n"+
+    					"    abstract void <***>pullMe3();\n"+
+    					"    protected abstract void <***>pullMe4();\n"+
+    					"    abstract protected void <***>pullMe5();\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package pclass;\n" +
+    					"\n" +
+    					"public abstract class MyClass {\n" +
+    					"}"
+    			)
+    	);
+    	refactoring.setGenerateAbstractMethodStubs(true);
+    	refactoring.setAllowDeleteProtected(true);
+    	performRefactoringAndCheck();
+    }
+    
+    /**
+     * Pull abstract methods from an abstract class, *with* the option to allow/convert abstract
+     * methods set should *not* result in warning messages and should create
+     * stub methods.
+     */
+    public void testPullAbstractMethodWarnings() throws Exception {
+    	setupRefactoring(
+    			new CU("paspect", "TestAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package paspect;\n" +
+    					"\n" +
+    					"public privileged <***>aspect TestAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package paspect;\n" +
+    					"\n" +
+    					"import pclass.MyClass;\n" +
+    					"\n" +
+    					"public privileged aspect TestAspect {\n"+
+    					"    public void MyClass.pullMe1() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    public void MyClass.pullMe2() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    void MyClass.pullMe3() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    void MyClass.pullMe4() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    void MyClass.pullMe5() { throw new Error(\"abstract method stub\"); }\n"+
+    					"}"
+    			),
+    			new CU("pclass", "MyClass.java",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package pclass;\n" +
+    					"\n" +
+    					"public abstract class MyClass {\n" +
+    					"    public abstract void <***>pullMe1();\n"+
+    					"    abstract public void <***>pullMe2();\n"+
+    					"    abstract void <***>pullMe3();\n"+
+    					"    protected abstract void <***>pullMe4();\n"+
+    					"    abstract protected void <***>pullMe5();\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package pclass;\n" +
+    					"\n" +
+    					"public class MyClass {\n" +
+    					"}"
+    			)
+    	);
+    	refactoring.setGenerateAbstractMethodStubs(true);
+    	performRefactoringAndCheck(
+    			"member 'pullMe1' is abstract",
+    			"member 'pullMe2' is abstract",
+    			"member 'pullMe3' is abstract",
+    			"member 'pullMe4' is abstract",
+    			"member 'pullMe5' is abstract"
     	);
     }
     
     /**
      * Note: not using the assert method from superclass, because I prefer to use 
-     * assertEquals with Strings, which gives a nice comparison view in JUnit Eclipse
-     * plugin (easier to see diffs than in printed output).
+     * assertEquals with Strings, which gives a nice comparison view in the
+     * JUnit Eclipse View (easier to see diffs than in printed output).
      */
 	private void assertExpectedResults() {
 		for (int i = 0; i < units.length; i++) {
