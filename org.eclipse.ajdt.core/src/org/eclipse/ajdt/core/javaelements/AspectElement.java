@@ -86,14 +86,6 @@ public class AspectElement extends SourceType implements IAspectJElement {
 
     public static final char JEM_POINTCUT = '"';
 
-    // FIXKDV: See https://bugs.eclipse.org/bugs/show_bug.cgi?id=320425
-    // when this is adressed also in the AspectJ compiler, then these variables,
-    // and anything
-    // using them should be obsolete.
-    public static final char JEM_ASPECT_TYPE_OLD = '}';
-
-    public static final char JEM_POINTCUT_OLD = '+';
-
     public IMethod createMethod(String contents, IJavaElement sibling,
             boolean force, IProgressMonitor monitor) throws JavaModelException {
         IMethod result = super.createMethod(contents, sibling, force, monitor);
