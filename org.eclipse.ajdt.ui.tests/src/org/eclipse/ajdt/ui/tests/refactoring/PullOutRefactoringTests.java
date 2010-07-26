@@ -2022,8 +2022,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     }
     
     /**
-     * Pull abstract methods from an abstract class, *with* the option to allow/convert abstract
-     * methods set should *not* result in warning messages and should create
+     * Pull abstract methods from an abstract class, *without* the option to allow/convert abstract
+     * methods set *should* result in warning messages and should *not* create
      * stub methods.
      */
     public void testPullAbstractMethodWarnings() throws Exception {
@@ -2042,11 +2042,11 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"import pclass.MyClass;\n" +
     					"\n" +
     					"public privileged aspect TestAspect {\n"+
-    					"    public void MyClass.pullMe1() { throw new Error(\"abstract method stub\"); }\n"+
-    					"    public void MyClass.pullMe2() { throw new Error(\"abstract method stub\"); }\n"+
-    					"    void MyClass.pullMe3() { throw new Error(\"abstract method stub\"); }\n"+
-    					"    void MyClass.pullMe4() { throw new Error(\"abstract method stub\"); }\n"+
-    					"    void MyClass.pullMe5() { throw new Error(\"abstract method stub\"); }\n"+
+    					"    public abstract void MyClass.pullMe1();\n"+
+    					"    public abstract void MyClass.pullMe2();\n"+
+    					"    abstract void MyClass.pullMe3();\n"+
+    					"    abstract void MyClass.pullMe4();\n"+
+    					"    abstract void MyClass.pullMe5();\n"+
     					"}"
     			),
     			new CU("pclass", "MyClass.java",
@@ -2065,11 +2065,11 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					// Expected
     					"package pclass;\n" +
     					"\n" +
-    					"public class MyClass {\n" +
+    					"public abstract class MyClass {\n" +
     					"}"
     			)
     	);
-    	refactoring.setGenerateAbstractMethodStubs(true);
+    	refactoring.setAllowDeleteProtected(true);
     	performRefactoringAndCheck(
     			"member 'pullMe1' is abstract",
     			"member 'pullMe2' is abstract",
