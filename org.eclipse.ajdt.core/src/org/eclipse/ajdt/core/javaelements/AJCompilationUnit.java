@@ -917,7 +917,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	 * @see JavaElement 
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
-		JavaElement type = this; int x = 9;
+		JavaElement type = this;
 		if (! (memento instanceof AJMementoTokenizer)) {
 		    memento = new AJMementoTokenizer(memento);
 		}
@@ -972,7 +972,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
 		}
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
-		}
+	}
 	
 	/**
 	 * @see JavaElement#getHandleMementoDelimiter()
