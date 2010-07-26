@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ui.refactoring.pullout;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.refactoring.SelectionUtil;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
@@ -79,14 +80,11 @@ public class PullOutRefactoringAction implements IWorkbenchWindowActionDelegate,
 				editor.getDocumentProvider();
 				ICompilationUnit unit = provider.getWorkingCopy(editor.getEditorInput());
 				if (unit != null) {
-					try {
-						//FIXKDV: what if selection of text contains multiple elements?
-						//Right now we only consider the element at the start of the selection.
-						IJavaElement candidate = unit.getElementAt(textSel.getOffset());
-						if (candidate != null && candidate instanceof IMember) {
+					List<IJavaElement> candidates = SelectionUtil.findSelectedElements(unit, textSel);
+					for (IJavaElement candidate : candidates) {
+						if (candidate != null && (candidate instanceof IMethod || candidate instanceof IField)) {
 							currSelection.addMember((IMember) candidate, currStatus);
 						}
-					} catch (JavaModelException e) {
 					}
 				}
 			}
