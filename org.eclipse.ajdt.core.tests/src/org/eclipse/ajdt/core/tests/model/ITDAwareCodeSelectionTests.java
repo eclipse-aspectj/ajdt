@@ -38,7 +38,7 @@ import org.eclipse.jface.text.Region;
  * @created Jun 6, 2009
  * Tests code selection for ITDs
  */
-public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
+public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTests {
     IProject project;
     IFile targetFile;
     IFile otherFile;
@@ -152,14 +152,5 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
         IJavaElement elt = result[0];
         assertTrue("Java element " + elt.getHandleIdentifier() + " should exist", elt.exists());
         assertEquals(expected, elt.getElementName());
-    }
-
-    private IRegion findRegion(ICompilationUnit unit, String string, int occurrence) {
-        String contents = new String(((CompilationUnit) unit).getContents());
-        int start = 0;
-        while (occurrence-- > 0) {
-            start = contents.indexOf(string, start);
-        }
-        return new Region(start, string.length());
     }
 }
