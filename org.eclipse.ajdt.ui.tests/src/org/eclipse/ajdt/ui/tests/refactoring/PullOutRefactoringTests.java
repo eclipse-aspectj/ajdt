@@ -1769,6 +1769,55 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	);
     	performRefactoringAndCheck();
     }
+    
+    /**
+     * We should also be able to pull a method from an aspect into itself (or at least
+     * this should not crash the refactoring.
+     */
+    public void testPullSameAspect() throws Exception {
+    	setupRefactoring(
+    			new CU("myspects", "MyAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package myspects;\n" + 
+    					"\n" + 
+    					"import classzes.MyClass;\n" + 
+    					"\n" + 
+    					"public <***>aspect MyAspect {\n" + 
+    					"\n" + 
+    					"    public void <***>test() {}\n" + 
+    					"\n" + 
+    					"    public void MyClass.pullMe() {\n" + 
+    					"        System.out.println(\"Hi\");\n" + 
+    					"    }\n" + 
+    					"\n" + 
+    					"}\n",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package myspects;\n" + 
+    					"\n" + 
+    					"import classzes.MyClass;\n" + 
+    					"\n" + 
+    					"public aspect MyAspect {\n" + 
+    					"\n" + 
+    					"    public void MyClass.pullMe() {\n" + 
+    					"        System.out.println(\"Hi\");\n" + 
+    					"    }\n" + 
+    					"\n" + 
+    					"    public void MyAspect.test() {}\n" + 
+    					"}\n"
+    			),
+    			new CU("classzes", "MyClass.java",
+    					///////////////////////////////////////////
+    					// Initial == Expected (no changes)
+    					"package classzes;\n" +
+    					"\n" +
+    					"public class MyClass {}"
+    			)
+    	);
+    	performRefactoringAndCheck();
+    }
+    
         
     /**
      * Pulling static stuff should work also
