@@ -68,16 +68,12 @@ import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jdt.internal.corext.refactoring.base.JavaStatusContext;
-import org.eclipse.jdt.internal.corext.template.java.JavaContext;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.corext.util.JdtFlags;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.templates.Template;
-import org.eclipse.jface.text.templates.TemplateException;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.Refactoring;
@@ -106,6 +102,15 @@ public class PullOutRefactoring extends Refactoring {
 		 * Collects info for and handles rewriting of imports for the target aspect.
 		 */
 		private ImportRewrite importRewrite;
+
+		/**
+		 * This field may be set while creating the "deletion" edits to pull out ITDs.
+		 * This will only happen if the compilation unit from which we are pulling out 
+		 * is the same as the target aspect's compilation unit. If set to a non-null
+		 * value this cuChange object should be used for recording the "insertion"
+		 * edits.
+		 */
+		private CompilationUnitChange cuChange = null;
 		
 		public AspectRewrite() throws JavaModelException {
 			importRewrite = ImportRewrite.create(targetAspect.getCompilationUnit(), true);
@@ -118,11 +123,12 @@ public class PullOutRefactoring extends Refactoring {
 
 
 		/**
-		 * Create initial changes to the aspect. (Everything except for the ITDs themselves)
+		 * Create an ICompiltationUnitChange with all changes to the aspect's CU, related to the insertion 
+		 * of ITDs. Ensure these changes are added to the allChanges object.
 		 */
-		private CompilationUnitChange rewriteAspect(IProgressMonitor submonitor) {
+		private void rewriteAspect(IProgressMonitor submonitor, CompositeChange allChanges) {
 			try {
-				MultiTextEdit edits = new MultiTextEdit();
+				CompilationUnitChange edits = getCUChange();
 				
 				// Create edit to add "privileged"
 				if (isMakePrivileged() && !isPrivileged()) {
@@ -135,29 +141,47 @@ public class PullOutRefactoring extends Refactoring {
 					Assert.isTrue(aspectKeywordStart>=0, "The aspect keyword was not found in the aspect source");
 					aspectKeywordStart += start; // Adjust because the start of our string may not be the
 					                             // start of the compilation unit.
-					edits.addChild(new InsertEdit(aspectKeywordStart, "privileged "));
+					edits.addEdit(new InsertEdit(aspectKeywordStart, "privileged "));
 				}
 				
 				// Create edit to the imports section of compilation unit
 				if (importRewrite.hasRecordedChanges()) {
 					try {
-						edits.addChild(importRewrite.rewriteImports(submonitor));
+						edits.addEdit(importRewrite.rewriteImports(submonitor));
 					} catch (Exception e) {
 						//An aspect handles this
 					}
 				}
 				
 				// Add the itds to the aspect
-				edits.addChild(new InsertEdit(getInsertLocation(), itds.toString()));
+				edits.addEdit(new InsertEdit(getInsertLocation(), itds.toString()));
 
-				// Wrap up the edits and return them
-				CompilationUnitChange change = new CompilationUnitChange("Add ITD to Aspect "+targetAspect.getElementName(), 
-						targetAspect.getCompilationUnit());
-				change.setEdit(edits);
-				return change;
+				if (edits.getParent()==null) {
+					allChanges.add(edits);
+				}
+				else {
+					//If not null, it means we already added it, because the aspect is
+					//in the same CU as some pulled out members.
+				}
 			} catch (JavaModelException e) {
-				return null;
 			}
+		}
+
+		/**
+		 * Get the CompilationUnitChange object that should be used to record the changes related to
+		 * inserting ITDs into the aspect. The object is created if necessary, or reused if it
+		 * already exists.
+		 */
+		private CompilationUnitChange getCUChange() {
+			if (cuChange==null) {
+				cuChange = newCompilationUnitChange(getAspect().getCompilationUnit());
+				cuChange.setEdit(new MultiTextEdit()); // root element must be set, or we can't add edits!
+			}
+			return cuChange;
+		}
+
+		public void setCUChange(CompilationUnitChange cuChange) {
+			this.cuChange = cuChange;
 		}
 
 	}
@@ -865,7 +889,7 @@ public class PullOutRefactoring extends Refactoring {
 				}
 
 				// Ask ast rewriter for changes and create CUChange object with it.
-				CompilationUnitChange cuChanges = new CompilationUnitChange("PullOut ITDs", cu);
+				CompilationUnitChange cuChanges = newCompilationUnitChange(cu);
 				cuChanges.setEdit(astRewriter.rewriteAST());
 				
 				// Add changes for this compilation unit.
@@ -873,12 +897,21 @@ public class PullOutRefactoring extends Refactoring {
 				
 				pm.worked(1);
 			}
-			allChanges.add(aspectChanges.rewriteAspect(pm));
+			aspectChanges.rewriteAspect(pm, allChanges);
 			return allChanges;
 		}
 		finally {
 			pm.done();
 		}
+	}
+
+	private CompilationUnitChange newCompilationUnitChange(ICompilationUnit cu) {
+		CompilationUnitChange cuChange = new CompilationUnitChange("PullOut ITDs", cu);
+		if (targetAspect.getCompilationUnit()==cu) {
+			//Also use this cuChange object for the aspect changes
+			aspectChanges.setCUChange(cuChange);
+		}
+		return cuChange;
 	}
 
 	/**
