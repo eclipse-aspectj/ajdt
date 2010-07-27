@@ -33,21 +33,20 @@ public class AllUITests {
 	    // ensure that jdt core is already started before we try
 	    // loading the jdt weaving bundle
 	    // AJDT UI Tests
-//	    waitForIt("org.eclipse.contribution.weaving.jdt");
-//        waitForIt("org.eclipse.jdt.core");
+	    waitForIt("org.eclipse.contribution.weaving.jdt");
+        waitForIt("org.eclipse.jdt.core");
         
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
-		// FIXADE disable tests to see if we can get the  suite running on build server again.
-//		suite.addTest(AllAJDTUITests.suite());
+		// AJDT tests
+		suite.addTest(AllAJDTUITests.suite());
 		
 		// visualiser tests
-//		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
 
 		// AJDT visualiser content provider tests
-//		suite.addTest(new TestSuite(AJDTContentProviderTest.class));
-		
+		suite.addTest(new TestSuite(AJDTContentProviderTest.class));
 		
 		//$JUnit-END$
 		return suite;
