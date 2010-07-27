@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.SourceRange;
 import org.eclipse.core.runtime.Assert;
@@ -47,7 +48,9 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
@@ -55,11 +58,11 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -585,6 +588,32 @@ public class PullOutRefactoring extends Refactoring {
 			int startPos = memberText.get().lastIndexOf(';');
 			edits.addChild(new ReplaceEdit(startPos, 1, bodyText));
 		}
+
+		/**
+		 * Is the original member a constructor (does not include the case where the original member is
+		 * already an ITD, even if that ITD introduces a constructor).
+		 */
+		public boolean wasConstructorMethod() throws JavaModelException {
+			return (member instanceof IMethod) && !wasIntertype() && ((IMethod)member).isConstructor();
+		}
+
+		/**
+		 * Determine whether this ITD's original member (which is assumed to be a constructor) has a
+		 * call to 'this()'
+		 */
+		public boolean hasThisCall() throws JavaModelException {
+			Assert.isNotNull(memberNode);
+			Assert.isLegal(wasConstructorMethod());
+			Block body = ((MethodDeclaration)memberNode).getBody();
+			if (body==null) return false;
+			@SuppressWarnings("unchecked") List<Statement> stms = body.statements();
+			if (stms==null || stms.size()==0) return false;
+			Statement firstStm = stms.get(0); 
+			if (!(firstStm instanceof ConstructorInvocation)) return false;
+			ConstructorInvocation call = (ConstructorInvocation) firstStm;
+			// The class ConstructorInvocation only represents "this(...)" calls 
+			return call.arguments().isEmpty();
+		}
 	}
 	
 	private static final String MAKE_PRIVILEGED = "makePrivileged";
@@ -695,6 +724,7 @@ public class PullOutRefactoring extends Refactoring {
 					}
 					checkOutgoingReferences(itd, status);
 					checkIncomingReferences(itd, status);
+					checkConctructorThisCall(itd, status);
 					aspectChanges.addITD(itd, status);
 				}
 				submonitor.worked(1);
@@ -706,6 +736,19 @@ public class PullOutRefactoring extends Refactoring {
 			submonitor.done();
 		}
 		return status;
+	}
+
+	/**
+	 * Check whether the constructor is "safe" to pull out, or whether it might change
+	 * the meaning of the program (no longer executing initialiser code in target class).
+	 * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=318936
+	 */
+	private void checkConctructorThisCall(ITDCreator itd,
+			RefactoringStatus status) throws JavaModelException {
+		if (itd.wasConstructorMethod() && !itd.hasThisCall()) {
+			status.addWarning("Program semantics changed: moved '"+itd.getElementName()+"' constructor has no this() call. Initializers in the target class will not be executed " +
+					"by the intertype constructor", makeContext(itd.getMember()));
+		}
 	}
 
 	/**
