@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -27,13 +26,8 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -48,11 +42,7 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.actions.WorkspaceModifyOperation;
-import org.eclipse.ui.dialogs.IOverwriteQuery;
-import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.internal.browser.IBrowserViewerContainer;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.internal.console.IOConsolePage;
 import org.eclipse.ui.internal.views.markers.ExtendedMarkersView;
@@ -60,8 +50,6 @@ import org.eclipse.ui.internal.views.markers.ProblemsView;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
-import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
-import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 
 
 /**
@@ -193,13 +181,7 @@ public abstract class UITestCase extends AJDTCoreTestCase {
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		for (int i = 0; i < editors.length; i++) {
 			IEditorPart editor = editors[i].getEditor(false);
-			if(editor instanceof ITextEditor) {
-				((ITextEditor)editor).close(false);
-			} else if (editor instanceof FormEditor) {
-				((FormEditor)editor).close(false);
-			} else if (editor instanceof IBrowserViewerContainer) {
-				((IBrowserViewerContainer)editor).close();
-			}
+			editor.getEditorSite().getPage().closeEditor(editor, false);
 		}
 	}
 
