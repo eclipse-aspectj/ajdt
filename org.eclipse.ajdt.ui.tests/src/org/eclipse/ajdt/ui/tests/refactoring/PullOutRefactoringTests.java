@@ -335,10 +335,35 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	}
     	else {
     		assertNiceMessagesIncluded(status, message);
+    		assertNoExcessMessages(status, message);
     	}
     	assertExpectedResults();
 	}
 	
+	private void assertNoExcessMessages(RefactoringStatus status,
+			String[] expectedMsgs) {
+		String unexpectedMsg = null;
+    	for (RefactoringStatusEntry entry : status.getEntries()) {
+    		if (!messageIsExpected(entry.getMessage(), expectedMsgs))
+    			unexpectedMsg = entry.getMessage();
+		}
+    	if (unexpectedMsg!=null) {
+    		String allMessages = "";
+    		for (RefactoringStatusEntry entry : status.getEntries()) {
+				allMessages += entry.getMessage()+"\n";
+			}
+    		fail("Unexpected message: "+unexpectedMsg+"\n"+ 
+    			 "All messages: "+allMessages);
+    	}
+	}
+
+	private boolean messageIsExpected(String message, String[] expectedMsgs) {
+		for (String expected : expectedMsgs) {
+			if (message.contains(expected)) return true;
+		}
+		return false;
+	}
+
 	private void assertNiceMessagesIncluded(RefactoringStatus status, String... messages) {
 		for (String message : messages) {
 			assertNiceMessageIncluded(status, message);
@@ -1444,7 +1469,9 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"}"
     			)
     	);
-    	performRefactoringAndCheck("moved member 'secret' is protected");
+    	performRefactoringAndCheck(
+    			"moved member 'secret' is protected",
+    			"moved member 'secret' may not be accessible");
     }
 
     /**
@@ -1467,7 +1494,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"import pclass.Klass;\n" +
     					"\n" +
     					"public aspect TestAspect {\n"+
-    					"    Klass.new() {}\n" +
+    					"    Klass.new(int x) {this();}\n" +
     					"    int Klass.prot = 0;\n" +
     					"    int Klass.pullProtected() { return 0; }\n" +
     					"}"
@@ -1478,7 +1505,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
-    					"    protected <***>Klass() {}\n" +
+    					"    public Klass() {}\n"+
+    					"    protected <***>Klass(int x) {this();}\n" +
     					"    protected int <***>prot = 0;\n" +
     					"    protected int <***>pullProtected() { return 0; }\n" +
     					"}",
@@ -1487,6 +1515,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"package pclass;\n" +
     					"\n" +
     					"public class Klass {\n" +
+    					"    public Klass() {}\n"+
     					"}"
     			)
     	);
@@ -1556,15 +1585,61 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     			)
     	);
     	refactoring.setAllowMakePublic(true);
-    	performRefactoringAndCheck();
+    	performRefactoringAndCheck("moved 'Klass' constructor has no this() call");
     }
+    
+    /**
+     * When pulling out constructors, in some cases the semantics of the
+     * program might change, because the initialisers in the target class
+     * will not be executed.
+     * 
+     * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=318936
+     */
+    public void testPullConstructorWithThisWarning() throws Exception {
+    	setupRefactoring(
+    			new CU("", "MyClass.java",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"public class MyClass {\n" +
+    					"    private int countdown = 10;\n" +
+    					"    private int step;\n" +
+    					"    public <***>MyClass(int step) {\n" +
+    					"        this.step = step;\n" +
+    					"    }\n" +
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"public class MyClass {\n" +
+    					"    private int countdown = 10;\n" +
+    					"    private int step;\n" +
+    					"}"
+    			),
+    			new CU("","TestAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"public privileged <***>aspect TestAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"public privileged aspect TestAspect {\n"+
+    					"    public MyClass.new(int step) {\n" +
+    					"        this.step = step;\n" +
+    					"    }\n" +
+    					"}"
+    			)
+    	);
+    	refactoring.setAllowDeleteProtected(true);
+    	performRefactoringAndCheck(
+    			"moved 'MyClass' constructor has no this() call"
+    	);
+	}
     
     
     /**
      * Pulling a private member out of its original context may break code that refers to it (if it
      * remains private in the aspect.
      */
-    public void testPullConstructorWithWarnings() throws Exception {
+    public void testPullConstructorWithPrivateWarnings() throws Exception {
     	setupRefactoring(
     			new CU("paspect", "TestAspect.aj",
     					//////////////////////////////////////////
@@ -1580,7 +1655,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"import pclass.Klass;\n" +
     					"\n" +
     					"public aspect TestAspect {\n"+
-    					"    public Klass.new(int hideIt) { secret = hideIt; }\n" +
+    					"    public Klass.new(int hideIt) { this(); secret = hideIt; }\n" +
     					"}"
     			),
     			new CU("pclass", "Klass.java",
@@ -1590,7 +1665,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"\n" +
     					"public class Klass {\n" +
     					"    private int secret;\n" +
-    					"    public <***>Klass(int hideIt) { secret = hideIt; }\n" +
+    					"    public Klass() {}\n" +
+    					"    public <***>Klass(int hideIt) { this(); secret = hideIt; }\n" +
     					"}",
     					//////////////////////////////////////////
     					// Expected
@@ -1598,6 +1674,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"\n" +
     					"public class Klass {\n" +
     					"    private int secret;\n" +
+    					"    public Klass() {}\n" +
     					"}"
     			)
     	);
@@ -1624,7 +1701,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"import pclass.Klass;\n" +
     					"\n" +
     					"public privileged aspect TestAspect {\n"+
-    					"    public Klass.new(int hideIt) { secret = hideIt; }\n" +
+    					"    public Klass.new(int hideIt) { this(); secret = hideIt; }\n" +
     					"}"
     			),
     			new CU("pclass", "Klass.java",
@@ -1634,7 +1711,8 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"\n" +
     					"public class Klass {\n" +
     					"    private int secret;\n" +
-    					"    public <***>Klass(int hideIt) { secret = hideIt; }\n" +
+    					"    private Klass() {}\n" +
+    					"    public <***>Klass(int hideIt) { this(); secret = hideIt; }\n" +
     					"}",
     					//////////////////////////////////////////
     					// Expected
@@ -1642,6 +1720,7 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"\n" +
     					"public class Klass {\n" +
     					"    private int secret;\n" +
+    					"    private Klass() {}\n" +
     					"}"
     			)
     	);
