@@ -229,7 +229,7 @@
 
 	
 	
-	<target name="run-test-eclipse" depends="run-ui-tests,run-core-tests,run-weaving-tests"/>
+	<target name="run-test-eclipse" depends="run-weaving-tests,run-core-tests,run-ui-tests"/>
 
 	<target name="run-core-tests" depends="set-test-properties">
 		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
@@ -248,8 +248,7 @@
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.ajdt.ui.tests" />
-			<!--<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" /> -->
-			<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
+			<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
@@ -273,7 +272,8 @@
 	
 	
 	<target name="set-test-properties">
-		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M -DMOZILLA_FIVE_HOME=/usr/lib/firefox3.6 -DLD_LIBRARY_PATH=/usr/lib/firefox3.6:$LD_LIBRARY_PATH"/>
+<!--		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M -DMOZILLA_FIVE_HOME=/usr/lib/firefox3.6 -DLD_LIBRARY_PATH=/usr/lib/firefox3.6:$LD_LIBRARY_PATH"/> -->
+		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
 		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true"/>
 	</target>
 
