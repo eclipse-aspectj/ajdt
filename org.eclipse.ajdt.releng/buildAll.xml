@@ -248,7 +248,8 @@
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.ajdt.ui.tests" />
-			<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
+			<!--<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" /> -->
+			<property name="classname" value="org.eclipse.ajdt.ui.tests.TemporaryEmptyTestClass" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
