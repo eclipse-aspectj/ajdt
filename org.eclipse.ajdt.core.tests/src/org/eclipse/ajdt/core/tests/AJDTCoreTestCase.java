@@ -448,8 +448,11 @@ public class AJDTCoreTestCase extends TestCase {
             String source) throws JavaModelException {
         StringBuffer buf = new StringBuffer();
         buf.append(source);
-        return pack.createCompilationUnit(cuName,
+        ICompilationUnit unit = pack.createCompilationUnit(cuName,
                 buf.toString(), false, null);
+        waitForManualBuild();
+        waitForAutoBuild();
+        return unit;
     }
     
     public ICompilationUnit createCompilationUnitAndPackage(String packageName, String fileName,
