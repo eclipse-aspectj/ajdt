@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.refactoring.pullout;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.ui.refactoring.SelectionUtil;
@@ -19,11 +18,9 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;

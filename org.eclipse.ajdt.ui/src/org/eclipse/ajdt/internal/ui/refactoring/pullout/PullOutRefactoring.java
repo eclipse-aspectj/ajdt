@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.SourceRange;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -28,6 +30,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -52,10 +55,10 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
@@ -79,6 +82,7 @@ import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
+import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -166,7 +170,7 @@ public class PullOutRefactoring extends Refactoring {
 			} catch (JavaModelException e) {
 			}
 		}
-
+		
 		/**
 		 * Get the CompilationUnitChange object that should be used to record the changes related to
 		 * inserting ITDs into the aspect. The object is created if necessary, or reused if it
@@ -185,7 +189,7 @@ public class PullOutRefactoring extends Refactoring {
 		}
 
 	}
-	
+
 	/**
 	 * Helper class to create ITD text from a member. An instance of this class is created
 	 * to provide a working area in which to build the ITD text.
@@ -200,7 +204,7 @@ public class PullOutRefactoring extends Refactoring {
 	 * 
 	 * @author kdvolder
 	 */
-	class ITDCreator {
+	static class ITDCreator {
 		
 		private static final int VISIBILITY_MODIFIERS = Modifier.PRIVATE | Modifier.PUBLIC | Modifier.PROTECTED;
 
@@ -259,9 +263,29 @@ public class PullOutRefactoring extends Refactoring {
 		public ITDCreator(IMember member, BodyDeclaration memberNode) throws JavaModelException {
 			this.member = member;
 			this.memberNode = memberNode;
-			this.memberText = new Document(member.getSource());
+			this.memberText = new Document(getAJSource(member));
 		}
 		
+		/**
+		 * Aspect aware method for getting source code. For elements inside an .aj file, it fetches the 
+		 * "original" source code, not the rewritten source code. For elements in regular .java file
+		 * it is identical to the getSource method.
+		 */
+		private String getAJSource(IMember member) throws JavaModelException {
+			ICompilationUnit cu = member.getCompilationUnit();
+			if (cu instanceof AJCompilationUnit) {
+				AJCompilationUnit ajcu = (AJCompilationUnit) cu;
+				ajcu.requestOriginalContentMode();
+				try {
+					return member.getSource();
+				}
+				finally {
+					ajcu.discardOriginalContentMode();
+				}
+			}
+			return member.getSource();
+		}
+
 		@Override
 		public String toString() {
 			if (memberText==null)
@@ -293,7 +317,7 @@ public class PullOutRefactoring extends Refactoring {
 			for (Name name : extraStatic) {
 				IBinding binding = name.resolveBinding();
 				if (binding==null) {
-					status.addWarning("Couldn't resolve binding, imports may be incorrect", makeContext(member, name));
+					status.addWarning("Couldn't resolve binding, imports may be incorrect", PullOutRefactoring.makeContext(member, name));
 				}
 				else {
 					replaceNameRef(name, importRewrite.addStaticImport(binding));
@@ -303,7 +327,7 @@ public class PullOutRefactoring extends Refactoring {
 			for (Name name : extraType) {
 				ITypeBinding binding = (ITypeBinding)name.resolveBinding();
 				if (binding==null) {
-					status.addWarning("Couldn't resolve binding, imports may be incorrect", makeContext(member, name));
+					status.addWarning("Couldn't resolve binding, imports may be incorrect", PullOutRefactoring.makeContext(member, name));
 				}
 				else {
 					if (binding.isParameterizedType()) {
@@ -314,7 +338,23 @@ public class PullOutRefactoring extends Refactoring {
 				}
 			}
 			
-			declaringTypeRef = importRewrite.addImport(member.getDeclaringType().getFullyQualifiedName());
+			if (wasIntertype()) {
+				IntertypeElement ite = (IntertypeElement) member;
+				AJCompilationUnit cu = (AJCompilationUnit) ite.getCompilationUnit();
+				IType targetType = ite.findTargetType();
+				String typeQName = targetType!=null?targetType.getFullyQualifiedName():ite.getTargetName();
+				declaringTypeRef = importRewrite.addImport(typeQName);
+			}
+			else {
+				declaringTypeRef = importRewrite.addImport(member.getDeclaringType().getFullyQualifiedName());
+			}
+		}
+
+		/**
+		 * @return true if the original pulled out member was *already* an ITD.
+		 */
+		private boolean wasIntertype() {
+			return member instanceof IntertypeElement;
 		}
 
 		/**
@@ -405,30 +445,33 @@ public class PullOutRefactoring extends Refactoring {
 
 				// Add some indentation correction to the front
 				edits.addChild(
-						new InsertEdit(0, CodeFormatterUtil.createIndentString(1, targetAspect.getJavaProject())));
+						new InsertEdit(0, CodeFormatterUtil.createIndentString(1, member.getJavaProject())));
 
 				// Rewrite modifiers
 				rewriteModifiers();
 
-				// Insert declaring type reference in front of name
-				IType declaringType = member.getDeclaringType();
-				Assert.isNotNull(declaringTypeRef, "The declaring type name is computed by collectImports. Forgot to call it?");
-				StringBuffer typeName = new StringBuffer(declaringTypeRef);
-				ITypeParameter[] typeParameters = declaringType.getTypeParameters();
-				if (typeParameters !=null && typeParameters.length>0) {
-					typeName.append("<");
-					for (int i = 0; i < typeParameters.length; i++) {
-						if (i>0) typeName.append(", ");
-						typeName.append(typeParameters[i].getElementName());
+				//Rewrite stuff in and around the name... only when original is *not* an intertype element!
+				if (!wasIntertype()) {
+					// Insert declaring type reference in front of name
+					IType declaringType = member.getDeclaringType();
+					Assert.isNotNull(declaringTypeRef, "The declaring type name is computed by collectImports. Forgot to call it?");
+					StringBuffer typeName = new StringBuffer(declaringTypeRef);
+					ITypeParameter[] typeParameters = declaringType.getTypeParameters();
+					if (typeParameters !=null && typeParameters.length>0) {
+						typeName.append("<");
+						for (int i = 0; i < typeParameters.length; i++) {
+							if (i>0) typeName.append(", ");
+							typeName.append(typeParameters[i].getElementName());
+						}
+						typeName.append(">");
 					}
-					typeName.append(">");
-				}
-				typeName.append( "." );
-				edits.addChild(new InsertEdit(nameStart, typeName.toString()));
-
-				// For constructors, must change name to "new"
-				if (member instanceof IMethod && ((IMethod)member).isConstructor()) {
-					edits.addChild(new ReplaceEdit(nameStart, member.getNameRange().getLength(), "new"));
+					typeName.append( "." );
+					edits.addChild(new InsertEdit(nameStart, typeName.toString()));
+					
+					// For constructors, must change name to "new"
+					if (member instanceof IMethod && ((IMethod)member).isConstructor()) {
+						edits.addChild(new ReplaceEdit(nameStart, member.getNameRange().getLength(), "new"));
+					}
 				}
 
 				// Add some newlines to the end for nicer spacing
@@ -543,7 +586,7 @@ public class PullOutRefactoring extends Refactoring {
 			edits.addChild(new ReplaceEdit(startPos, 1, bodyText));
 		}
 	}
-
+	
 	private static final String MAKE_PRIVILEGED = "makePrivileged";
 	private static final String MEMBER = "member";
 
@@ -880,17 +923,18 @@ public class PullOutRefactoring extends Refactoring {
 				ASTParser parser= ASTParser.newParser(AST.JLS3);
 				parser.setSource(cu);
 				ASTNode cuNode = parser.createAST(pm);
-				ASTRewrite astRewriter = ASTRewrite.create(cuNode.getAST());
+				MultiTextEdit cuEdits = new MultiTextEdit();
 
 				// Apply all operations to the AST rewriter
 				for (IMember member : getMembers(cu)) {
-					ASTNode methodNode = findASTNode(cuNode, member);
-					astRewriter.remove(methodNode, null);
+					ISourceRange range = member.getSourceRange();
+					range = grabSpaceBefore(cu, range);
+					cuEdits.addChild(new DeleteEdit(range.getOffset(), range.getLength()));
 				}
 
-				// Ask ast rewriter for changes and create CUChange object with it.
+				// Create CUChange object with the accumulated deletion edits.
 				CompilationUnitChange cuChanges = newCompilationUnitChange(cu);
-				cuChanges.setEdit(astRewriter.rewriteAST());
+				cuChanges.setEdit(cuEdits);
 				
 				// Add changes for this compilation unit.
 				allChanges.add(cuChanges);
@@ -903,6 +947,32 @@ public class PullOutRefactoring extends Refactoring {
 		finally {
 			pm.done();
 		}
+	}
+
+	/**
+	 * For cosmetic reasons (nicer indentation of resulting text after deletion of membernode
+	 * we force the nodes sourcerange to include any spaces in front of the node, upto the 
+	 * beginning of the line.
+	 * @param cu 
+	 * @return 
+	 */
+	private ISourceRange grabSpaceBefore(ICompilationUnit cu, ISourceRange range) {
+		try {
+			IBuffer sourceText = cu.getBuffer();
+			int start = range.getOffset();
+			int len = range.getLength();
+			while (start>0 && isSpace(sourceText.getChar(start-1))) {
+				start--; len++;
+			}
+			return new SourceRange(start, len);
+		} catch (JavaModelException e) {
+			//This operation is not essential, so it is fine if it silently fails.
+			return range;
+		}
+	}
+
+	private boolean isSpace(char c) {
+		return c==' '||c=='\t';
 	}
 
 	private CompilationUnitChange newCompilationUnitChange(ICompilationUnit cu) {
@@ -1072,12 +1142,12 @@ public class PullOutRefactoring extends Refactoring {
 		return memberSet.contains(javaElement);
 	}
 
-	private RefactoringStatusContext makeContext(ICompilationUnit cu, ASTNode node) {
+	private static RefactoringStatusContext makeContext(ICompilationUnit cu, ASTNode node) {
 		return JavaStatusContext.create(cu,
 					new SourceRange(node.getStartPosition(), node.getLength()));
 	}
 
-	private RefactoringStatusContext makeContext(IMember member) {
+	private static RefactoringStatusContext makeContext(IMember member) {
 		try {
 			return JavaStatusContext.create(member.getCompilationUnit(), member.getSourceRange());
 		} catch (JavaModelException e) {
@@ -1085,11 +1155,11 @@ public class PullOutRefactoring extends Refactoring {
 		}
 	}
 
-	private RefactoringStatusContext makeContext(IMember member, ASTNode node) {
+	static RefactoringStatusContext makeContext(IMember member, ASTNode node) {
 		return makeContext(member.getCompilationUnit(), node);
 	}
 
-	private RefactoringStatusContext makeContext(SearchMatch match) {
+	private static RefactoringStatusContext makeContext(SearchMatch match) {
 		try {
 			IJavaElement element = (IJavaElement) match.getElement();
 			ITypeRoot typeRoot = (ITypeRoot) element.getAncestor(IJavaElement.COMPILATION_UNIT);
