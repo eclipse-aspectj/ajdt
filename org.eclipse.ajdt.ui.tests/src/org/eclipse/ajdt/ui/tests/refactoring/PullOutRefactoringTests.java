@@ -147,13 +147,12 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     					"}",
     					//////////////////////////////////////////
     					// Expected
-    					"public aspect TestAspect {\n"+
-    					"    // public static void main(String[] args) {\n"+
-    					"//    new Clazz().m();\n"+
-    					"// }\n"+
-    					"    public void C.foo() {\n" +
-    					"\n"+
-    					"    }\n"+
+    					"public aspect TestAspect {\n" + 
+    					"    // public static void main(String[] args) {\n" + 
+    					"//    new Clazz().m();\n" + 
+    					"// }\n" + 
+    					"    public void C.foo() {\n" + 
+    					"    }\n" + 
     					"}"
     			),
     			new CU("", "C.java",
@@ -1818,7 +1817,178 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
     	performRefactoringAndCheck();
     }
     
+    /**
+     * What if a member for pulling was actually an ITD in another aspect?
+     * We should detect this case and simply move the ITD to the other aspect.
+     * We should not add another "AspectName." in front.
+     * We should rewrite imports for the target aspect just as if we pulled 
+     * out the ITD.
+     */
+    public void testPullITDMethod() throws Exception {
+    	setupRefactoring(
+    			new CU("fromaspect", "FromAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package fromaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n"+
+    					"public aspect FromAspect {\n" +
+    					"\n" +
+    					"    public boolean <***>MyClass.check(File file) {\n" +
+    					"        return file.exists();\n" +
+    					"    }\n" +
+    					"\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package fromaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n"+
+    					"public aspect FromAspect {\n"+
+    					"}"
+    			),
+    			new CU("classes", "MyClass.java",
+    					"package classes;\n" +
+    					"\n" +
+    					"public class MyClass {\n" +
+    					"}"
+    			),
+    			new CU("toaspect", "ToAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package toaspect;\n" +
+    					"\n" +
+    					"public <***>aspect ToAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package toaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n" +
+    					"public aspect ToAspect {\n"+
+    					"    public boolean MyClass.check(File file) {\n" +
+    					"        return file.exists();\n" +
+    					"    }\n"+
+    					"}"
+    			)
+    	);
+    	performRefactoringAndCheck();
+    }
         
+    /**
+     * If pulling ITDs works for ITDMethods it should also work for fields...
+     */
+    public void testPullITDField() throws Exception {
+    	setupRefactoring(
+    			new CU("fromaspect", "FromAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package fromaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n"+
+    					"public aspect FromAspect {\n" +
+    					"    public File <***>MyClass.file;\n" +
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package fromaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n"+
+    					"public aspect FromAspect {\n"+
+    					"}"
+    			),
+    			new CU("classes", "MyClass.java",
+    					"package classes;\n" +
+    					"\n" +
+    					"public class MyClass {\n" +
+    					"}"
+    			),
+    			new CU("toaspect", "ToAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package toaspect;\n" +
+    					"\n" +
+    					"public <***>aspect ToAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package toaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n" +
+    					"public aspect ToAspect {\n"+
+    					"    public File MyClass.file;\n" +
+    					"}"
+    			)
+    	);
+    	performRefactoringAndCheck();
+    }
+    
+    /**
+     * If pulling ITDs works for ITDMethods it should also work for constructors...
+     */
+    public void testPullITDConstructor() throws Exception {
+    	setupRefactoring(
+    			new CU("fromaspect", "FromAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package fromaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n"+
+    					"public aspect FromAspect {\n" +
+    					"    public <***>MyClass.new(File file) {}\n" +
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package fromaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n"+
+    					"public aspect FromAspect {\n"+
+    					"}"
+    			),
+    			new CU("classes", "MyClass.java",
+    					"package classes;\n" +
+    					"\n" +
+    					"public class MyClass {\n" +
+    					"}"
+    			),
+    			new CU("toaspect", "ToAspect.aj",
+    					//////////////////////////////////////////
+    					// Initial 
+    					"package toaspect;\n" +
+    					"\n" +
+    					"public <***>aspect ToAspect {\n"+
+    					"}",
+    					//////////////////////////////////////////
+    					// Expected
+    					"package toaspect;\n" +
+    					"\n" +
+    					"import classes.MyClass;\n" +
+    					"import java.io.File;\n" +
+    					"\n" +
+    					"public aspect ToAspect {\n"+
+    					"    public MyClass.new(File file) {}\n" +
+    					"}"
+    			)
+    	);
+    	performRefactoringAndCheck();
+    }
+    
     /**
      * Pulling static stuff should work also
      */
