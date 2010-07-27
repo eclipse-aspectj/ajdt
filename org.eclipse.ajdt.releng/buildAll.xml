@@ -228,9 +228,43 @@
 	</target>
 
 	
-	
+	<!-- FIXADE: see note below...weaving tests must be run first -->
 	<target name="run-test-eclipse" depends="run-weaving-tests,run-core-tests,run-ui-tests"/>
 
+	<target name="run-weaving-tests" depends="set-test-properties">
+		<!--
+		FIXADE:
+		
+		Note that we are purposely running the weaving tests twice.  The reason
+		is that the first time a UI test is run, it is failing on the build server.
+		But subsequent UI test runs pass.  
+		
+		Here, the first run of the Weaving tests will fail, but the second one passes.
+		Since the weaving tests are much quicker to run than the AJDT UI tests, run these
+		twice so we don't have to run the AJDT UI tests twice.
+		-->
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+			<property name="data-dir" value="${test.workspace}" />
+			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
+			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
+			<property name="eclipse-home" value="${target.eclipse}" />
+			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="arch" value="${build.arch}"/>
+			<property name="os" value="${build.os}"/>
+			<property name="ws" value="${build.ws}"/>
+		</ant>
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+			<property name="data-dir" value="${test.workspace}" />
+			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
+			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
+			<property name="eclipse-home" value="${target.eclipse}" />
+			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="arch" value="${build.arch}"/>
+			<property name="os" value="${build.os}"/>
+			<property name="ws" value="${build.ws}"/>
+		</ant>
+	</target>
+	
 	<target name="run-core-tests" depends="set-test-properties">
 		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace}" />
@@ -249,19 +283,6 @@
 			<property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.ajdt.ui.tests" />
 			<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
-			<property name="eclipse-home" value="${target.eclipse}" />
-			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
-			<property name="arch" value="${build.arch}"/>
-			<property name="os" value="${build.os}"/>
-			<property name="ws" value="${build.ws}"/>
-		</ant>
-	</target>
-	
-	<target name="run-weaving-tests" depends="set-test-properties">
-		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
-			<property name="data-dir" value="${test.workspace}" />
-			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
-			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
