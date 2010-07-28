@@ -13,6 +13,7 @@ package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -41,8 +42,22 @@ public class InpathOutFolderTest extends UITestCase {
         waitForJobsToComplete();
         waitForJobsToComplete();
         
+        
+        // failing occasionally on build server.  check results in loop
+        boolean found = false;
+        int count = 0;
+        while (count < 5) {
+            found |= jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
+            if (found) {
+                break;
+            }
+            SynchronizationUtils.sleep(1000);
+            waitForJobsToComplete();
+            count++;
+        }
+        
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-                jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
+                found); //$NON-NLS-1$
 	}
 	
 	public void testClean() throws CoreException {
@@ -64,9 +79,22 @@ public class InpathOutFolderTest extends UITestCase {
         jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         waitForJobsToComplete();
         waitForJobsToComplete();
-           
+
+        // failing occasionally on build server.  check results in loop
+        boolean found = false;
+        int count = 0;
+        while (count < 5) {
+            found |= jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
+            if (found) {
+                break;
+            }
+            SynchronizationUtils.sleep(1000);
+            waitForJobsToComplete();
+            count++;
+        }
+        
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-                jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
+                found); //$NON-NLS-1$
 	}
 
 }

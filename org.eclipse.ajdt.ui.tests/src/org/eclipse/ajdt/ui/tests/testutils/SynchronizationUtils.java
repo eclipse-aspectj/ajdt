@@ -48,7 +48,7 @@ public class SynchronizationUtils {
 		return calm;
 	}
 	
-	private static void sleep(int intervalTime) {
+	public static void sleep(int intervalTime) {
 		try {
 			Thread.sleep(intervalTime);
 		} catch (InterruptedException e) {

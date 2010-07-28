@@ -20,6 +20,7 @@ import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -80,7 +81,10 @@ public class ChangingMarkersTest extends UITestCase {
                 true, false, null);
         javaFile.refreshLocal(IResource.DEPTH_INFINITE, null);
         waitForJobsToComplete();
-        
+        // periodically failing on build server only add extra waiting here
+        SynchronizationUtils.sleep(1000);
+        waitForJobsToComplete();
+
         // check that no markers are there
         // advice markers
         adviceMarkers = javaFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
@@ -105,7 +109,10 @@ public class ChangingMarkersTest extends UITestCase {
         javaFile.setContents(new ReaderInputStream(new StringReader(
                 origContents)), true, false, null);
         waitForJobsToComplete();
-        
+        // periodically failing on build server only add extra waiting here
+        SynchronizationUtils.sleep(1000);
+        waitForJobsToComplete();
+
         // check that markers have returned
         // advice markers
         adviceMarkers = javaFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, IResource.DEPTH_INFINITE);
