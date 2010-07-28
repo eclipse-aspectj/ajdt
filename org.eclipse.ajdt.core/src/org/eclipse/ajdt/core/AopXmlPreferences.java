@@ -37,10 +37,8 @@ public class AopXmlPreferences {
     public final static String AOP_XML_FILES_FOR_PROJECT = "org.eclipse.ajdt.aopxml";
     
 
-    private final IProject project;
     private final IEclipsePreferences projectNode;
     public AopXmlPreferences(IProject project) {
-        this.project = project;
         IScopeContext projectScope = new ProjectScope(project);
         projectNode = projectScope.getNode(AspectJPlugin.UI_PLUGIN_ID);
     }
@@ -93,14 +91,14 @@ public class AopXmlPreferences {
         }
         return sb.toString();
     }
-    public List getAopXmlFilesAsListOfStrings() {
+    public List<String> getAopXmlFilesAsListOfStrings() {
         IPath[] paths = getAopXmlFiles();
         IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        List strings = new ArrayList(paths.length);
+        List<String> strings = new ArrayList<String>(paths.length);
         for (int i = 0; i < paths.length; i++) {
             try {
                 IFile file = root.getFile(paths[i]);
-                if (file != null) {
+                if (file != null && file.getLocation() != null) {
                     strings.add(file.getLocation().toOSString());
                 }
             } catch (Exception e) {

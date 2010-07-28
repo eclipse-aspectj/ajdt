@@ -913,13 +913,24 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		return null;
 	}
 	
+	
+	public IJavaElement getHandleFromMemento(MementoTokenizer memento, WorkingCopyOwner owner) {
+	    // if not an AJMementoTokenizer, the tokenizer may have read too far
+	    // create an AJMementoTokenizer and ensure to backtrack to the end of the compilation unit name
+	    if (! (memento instanceof AJMementoTokenizer)) {
+	        memento = new AJMementoTokenizer(memento, name);
+	    }
+	    return super.getHandleFromMemento(memento, owner);
+	}
+
+	
 	/*
 	 * @see JavaElement 
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
 		JavaElement type = this;
 		if (! (memento instanceof AJMementoTokenizer)) {
-		    memento = new AJMementoTokenizer(memento);
+		    memento = new AJMementoTokenizer(memento, name);
 		}
 		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {

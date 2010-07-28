@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core;
 import java.lang.reflect.Field;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
@@ -77,6 +78,26 @@ public class AJMementoTokenizer extends MementoTokenizer {
         index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
         ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
     }
+    
+    /**
+     * create a memento tokenizer that is reset to the token after the given name
+     */
+    public AJMementoTokenizer(MementoTokenizer tokenizer, String resetToName) {
+        super(String.valueOf((char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer)));
+        memento = (char[]) ReflectionUtils.getPrivateField(MementoTokenizer.class, "memento", tokenizer);
+        length = memento.length;
+        
+        // only reset to the given name if it is found
+        int nameIndex = CharOperation.indexOf(resetToName.toCharArray(), memento, true);
+        if (index >= 0) {
+            index = nameIndex + resetToName.length();
+        } else {
+            index = (Integer) ReflectionUtils.getPrivateField(MementoTokenizer.class, "index", tokenizer);
+        }
+        ReflectionUtils.setPrivateField(MementoTokenizer.class, "index", this, index);
+    }
+    
+    
 
     public boolean hasMoreTokens() {
         return this.index < this.length;
