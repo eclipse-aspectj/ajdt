@@ -242,6 +242,13 @@ public class AJDTCoreTestCase extends TestCase {
 	    
 	}
 	
+	   public static void joinBackgroudActivities()  {
+	        waitForAutoBuild();
+	        waitForManualBuild();
+	        waitForAutoRefresh();
+	        waitForManualRefresh();
+	    }
+
 	
 	/**
 	 * Copy the given source directory (and all its contents) to the given target directory.

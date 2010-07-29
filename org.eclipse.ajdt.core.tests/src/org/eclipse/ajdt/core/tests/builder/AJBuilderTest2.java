@@ -33,6 +33,11 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 public class AJBuilderTest2 extends AJDTCoreTestCase {
+    @Override
+    protected void setUp() throws Exception {
+        AspectJPlugin.getDefault().setHeadless(true);
+        super.setUp();
+    }
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
@@ -44,8 +49,6 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 	 * build
 	 */
 	public void testChangeInOutputDirCausesReBuild() throws Exception {
-		TestLogger testLog = new TestLogger();
-		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug91420"); //$NON-NLS-1$
 		IJavaProject javaProject = JavaCore.create(project);
 		IPath origOutput = javaProject.getOutputLocation();
@@ -54,8 +57,12 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		assertFalse("should be setting output dir to new place", //$NON-NLS-1$
 				origOutput.toString().equals(newOutput.toString()));
 
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
 		javaProject.setOutputLocation(newOutput, null);
-		waitForAutoBuild();
+		
+		joinBackgroudActivities();
+		
 		assertNotSame(
 				"should have set output directory to new place", origOutput, newOutput); //$NON-NLS-1$
 
@@ -64,9 +71,9 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		testLog.printLog();
 
 		assertTrue(
-				"output dir has changed so should have spent time in AJDE", ((String) log.get(0)).indexOf("Total time spent in AJDE") != -1); //$NON-NLS-1$ //$NON-NLS-2$  
+				"output dir has changed so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$  
 		assertTrue(
-				"output dir has changed so should have spent time in AJBuilder.build()", ((String) log.get(2)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$
+				"output dir has changed so should have spent time in AJBuilder.build()", testLog.containsMessage("Total time spent in AJBuilder.build()")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// reset the output dir back to its original setting
 		javaProject.setOutputLocation(origOutput, null);
@@ -80,15 +87,17 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 	 * need to do a rebuild.
 	 */
 	public void testChangeInRequiredLibsCausesReBuild() throws Exception {
-		TestLogger testLog = new TestLogger();
-		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug91420"); //$NON-NLS-1$
 		IJavaProject javaProject = JavaCore.create(project);
 		IClasspathEntry[] origClasspath = javaProject.getRawClasspath();
 
+		
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
 		// add a library to the classpath
 		addLibraryToClasspath(project, "testJar.jar"); //$NON-NLS-1$
-		waitForAutoBuild();
+		joinBackgroudActivities();
+
 		// check it's been added to the classpath
 		assertTrue(
 				"library should have been added to classpath", projectHasLibraryOnClasspath(javaProject, "testJar.jar")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -99,13 +108,14 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		testLog.printLog();
 
 		assertTrue(
-				"classpath has changed (new required library) so should have spent time in AJDE", ((String) log.get(0)).indexOf("Total time spent in AJDE") != -1); //$NON-NLS-1$ //$NON-NLS-2$
+				"classpath has changed (new required library) so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$
 		assertTrue(
-				"classpath has changed (new required library) so should have spent time in AJBuilder.build()", ((String) log.get(2)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$
+				"classpath has changed (new required library) so should have spent time in AJBuilder.build()", testLog.containsMessage("Total time spent in AJBuilder.build()")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// reset the changes
 		javaProject.setRawClasspath(origClasspath, null);
-		waitForAutoBuild();
+		joinBackgroudActivities();
+
 		assertFalse(
 				"library should no longer be on the classpath", projectHasLibraryOnClasspath(javaProject, "testJar.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
@@ -115,15 +125,16 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 	 * need to to a rebuild
 	 */
 	public void testChangeInRequiredProjectsCausesReBuild() throws Exception {
-		TestLogger testLog = new TestLogger();
-		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug91420"); //$NON-NLS-1$
 		IProject project2 = createPredefinedProject("bug101481"); //$NON-NLS-1$
 		IJavaProject javaProject = JavaCore.create(project);
 		IClasspathEntry[] origClasspath = javaProject.getRawClasspath();
 
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
 		addProjectDependency(project, project2);
-		waitForAutoBuild();
+		joinBackgroudActivities();
+
 		// check the dependency is there
 		assertTrue(
 				"project bug91420 should have a project dependency on project bug101481", //$NON-NLS-1$
@@ -134,13 +145,13 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
 		testLog.printLog();
 
 		assertTrue(
-				"classpath has changed (new project dependency) so should have spent time in AJDE", ((String) log.get(0)).indexOf("Total time spent in AJDE") != -1); //$NON-NLS-1$ //$NON-NLS-2$  
+				"classpath has changed (new project dependency) so should have spent time in AJDE", testLog.containsMessage("Total time spent in AJDE")); //$NON-NLS-1$ //$NON-NLS-2$  
 		assertTrue(
-				"classpath has changed (new project dependency) so should have spent time in AJBuilder.build()", ((String) log.get(2)).indexOf("Total time spent in AJBuilder.build()") != -1); //$NON-NLS-1$ //$NON-NLS-2$ 
+				"classpath has changed (new project dependency) so should have spent time in AJBuilder.build()", testLog.containsMessage("Total time spent in AJBuilder.build()")); //$NON-NLS-1$ //$NON-NLS-2$ 
 
 		// reset the changes
 		javaProject.setRawClasspath(origClasspath, null);
-		waitForAutoBuild();
+        joinBackgroudActivities();
 		assertFalse("project dependencies should have been removed", //$NON-NLS-1$
 				projectHasProjectDependency(javaProject, project2));
 	}
@@ -176,7 +187,7 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
             textFile = pack.getFile("newFile.txt"); //$NON-NLS-1$
             project.refreshLocal(IResource.DEPTH_INFINITE,null);
             project.refreshLocal(IResource.DEPTH_INFINITE,null);
-            waitForAutoBuild();
+            joinBackgroudActivities();
             
             assertNotNull("src folder should not be null", src); //$NON-NLS-1$
             assertNotNull("package pack should not be null", pack); //$NON-NLS-1$
@@ -226,7 +237,8 @@ public class AJBuilderTest2 extends AJDTCoreTestCase {
             StringReader sr = new StringReader(sb.toString());
             c.setContents(new ReaderInputStream(sr), IResource.FORCE, null);
             sr.close();
-
+            waitForAutoRefresh();
+            
             // force a clean build (which should clear the output
             // directory)
             project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);

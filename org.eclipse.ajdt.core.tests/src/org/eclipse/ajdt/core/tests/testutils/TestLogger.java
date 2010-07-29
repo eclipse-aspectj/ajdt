@@ -180,9 +180,11 @@ public class TestLogger implements IAJLogger {
     public void printLog() {
         System.out.println(""); //$NON-NLS-1$
         System.out.println("Printing log begin ------------------------------------"); //$NON-NLS-1$
-        for (Iterator iter = log.iterator(); iter.hasNext();) {
-            String element = (String) iter.next();
-            System.out.println("LOG: " + element); //$NON-NLS-1$
+        if (log != null) {
+            for (Iterator iter = log.iterator(); iter.hasNext();) {
+                String element = (String) iter.next();
+                System.out.println("LOG: " + element); //$NON-NLS-1$
+            }
         }
         System.out.println("-------------------------------------- Printing log end"); //$NON-NLS-1$
     }
