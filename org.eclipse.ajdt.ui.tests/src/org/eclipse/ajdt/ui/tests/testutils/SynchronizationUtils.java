@@ -19,10 +19,17 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * This class should be moved to core tests
+ */
 // Adapted from org.eclipse.jdt.ui.tests.performance.JdtPerformanceTestCase
 public class SynchronizationUtils {
 
 		
+    /**
+     * This method should be removed and the
+     * version in AJDTCoreTestCase used instead
+     */
 	public static void joinBackgroudActivities()  {
 	    AJDTCoreTestCase.waitForAutoBuild();
 	    AJDTCoreTestCase.waitForManualBuild();
