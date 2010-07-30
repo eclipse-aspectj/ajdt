@@ -36,11 +36,23 @@ public class SynchronizationUtils {
 	    AJDTCoreTestCase.waitForAutoRefresh();
 	    AJDTCoreTestCase.waitForManualRefresh();
 	    
+//	    printJobs();
 		// Join other jobs
 		joinJobs(100, 0, 500);
 	}
 
-	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
+    public static void printJobs() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        System.out.println("------------------------");
+        System.out.println("Printing jobs");
+        for (int i= 0; i < jobs.length; i++) {
+            System.out.println(jobs[i]);
+        }
+        System.out.println("------------------------");
+    }
+
+    private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
 		long startTime= System.currentTimeMillis() + minTime;
 		runEventQueue();
 		while (System.currentTimeMillis() < startTime)

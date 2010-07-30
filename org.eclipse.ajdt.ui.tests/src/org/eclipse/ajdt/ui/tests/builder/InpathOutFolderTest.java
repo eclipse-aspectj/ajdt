@@ -15,6 +15,7 @@ import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
@@ -39,25 +40,30 @@ public class InpathOutFolderTest extends UITestCase {
 	    // test that the built version properly uses the inpath out location
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
         jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        waitForJobsToComplete();
-        waitForJobsToComplete();
-        
-        
-        // failing occasionally on build server.  check results in loop
-        boolean found = false;
-        int count = 0;
-        while (count < 5) {
-            found |= jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
-            if (found) {
-                break;
-            }
-            SynchronizationUtils.sleep(1000);
-            waitForJobsToComplete();
-            count++;
-        }
-        
+        jarOnInpath.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-                found); //$NON-NLS-1$
+                jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
+        
+        // If this test is passing and you see the commented code below, then it can safely be deleted
+//        waitForJobsToComplete();
+//        waitForJobsToComplete();
+//        
+//        
+//        // failing occasionally on build server.  check results in loop
+//        boolean found = false;
+//        int count = 0;
+//        while (count < 5) {
+//            found = jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
+//            if (found) {
+//                break;
+//            }
+//            SynchronizationUtils.sleep(1000);
+//            waitForJobsToComplete();
+//            count++;
+//        }
+//        
+//        assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
+//                found); //$NON-NLS-1$
 	}
 	
 	public void testClean() throws CoreException {
@@ -77,24 +83,29 @@ public class InpathOutFolderTest extends UITestCase {
 	    AspectJCorePreferences.setProjectInpathOutFolder(jarOnInpath.getProject(), "JarOnInpath/newOutFolder"); //$NON-NLS-1$
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
         jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-        waitForJobsToComplete();
-        waitForJobsToComplete();
-
-        // failing occasionally on build server.  check results in loop
-        boolean found = false;
-        int count = 0;
-        while (count < 5) {
-            found |= jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
-            if (found) {
-                break;
-            }
-            SynchronizationUtils.sleep(1000);
-            waitForJobsToComplete();
-            count++;
-        }
-        
+        jarOnInpath.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-                found); //$NON-NLS-1$
+                jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
+
+        
+        // If this test is passing and you see the commented code below, then it can safely be deleted
+//        waitForJobsToComplete();
+//        waitForJobsToComplete();
+//        // failing occasionally on build server.  check results in loop
+//        boolean found = false;
+//        int count = 0;
+//        while (count < 5) {
+//            found = jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
+//            if (found) {
+//                break;
+//            }
+//            SynchronizationUtils.sleep(1000);
+//            waitForJobsToComplete();
+//            count++;
+//        }
+//        
+//        assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
+//                found); //$NON-NLS-1$
 	}
 
 }

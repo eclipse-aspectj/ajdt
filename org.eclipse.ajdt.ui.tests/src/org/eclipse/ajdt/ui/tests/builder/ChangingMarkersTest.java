@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 
 
@@ -67,19 +68,15 @@ public class ChangingMarkersTest extends UITestCase {
         assertEquals("Didn't find correct number of warning markers in " + javaFile, 1, warningMarkers.length); //$NON-NLS-1$
         warningMarkers = ajFile.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
         assertEquals("Didn't find correct number of warning markers in " + ajFile, 0, warningMarkers.length); //$NON-NLS-1$
-//      for (int i = 0; i < warningMarkers.length; i++) {
-//      System.out.println(warningMarkers[i].getAttribute(IMarker.LINE_NUMBER) + " : " + warningMarkers[i].getAttribute(IMarker.MESSAGE) + 
-//              " : " + warningMarkers[i].getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX+"0"));
-//              System.out.println(warningMarkers[i].getAttributes().keySet());
-//              System.out.println(warningMarkers[i].getAttributes().values());
-//  }
         
         // change class so that none of them apply
         String origContents = getContents(javaFile);
         javaFile.setContents(new ReaderInputStream(new StringReader(
                 "package pkg;\n\npublic class ClassWithChangingMarkers {\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n}")),  //$NON-NLS-1$
                 true, false, null);
-        javaFile.refreshLocal(IResource.DEPTH_INFINITE, null);
+        project.refreshLocal(IResource.DEPTH_INFINITE, null);
+        project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+
         waitForJobsToComplete();
         // periodically failing on build server only add extra waiting here
         SynchronizationUtils.sleep(1000);
@@ -108,6 +105,9 @@ public class ChangingMarkersTest extends UITestCase {
         // change back
         javaFile.setContents(new ReaderInputStream(new StringReader(
                 origContents)), true, false, null);
+        project.refreshLocal(IResource.DEPTH_INFINITE, null);
+        project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+
         waitForJobsToComplete();
         // periodically failing on build server only add extra waiting here
         SynchronizationUtils.sleep(1000);
