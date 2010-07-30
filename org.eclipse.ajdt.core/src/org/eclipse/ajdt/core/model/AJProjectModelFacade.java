@@ -507,7 +507,11 @@ public class AJProjectModelFacade {
                     candidate = findElementInJar(handleInfo, classFile);
                 }
             }
-            return candidate;
+            if (candidate != null) {
+                return candidate;
+            } else {
+                return ERROR_JAVA_ELEMENT;
+            }
         } catch (JavaModelException e) {
             AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
                     AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
