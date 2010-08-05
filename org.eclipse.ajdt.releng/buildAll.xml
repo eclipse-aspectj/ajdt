@@ -210,9 +210,9 @@
 
 		<!-- Ensure that weaving bundle is auto-started, but ensure that we don't add the line twice -->
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
-			token="osgi.bundles=org.eclipse.equinox.weaving.aspectj@1\:start," value="osgi.bundles="/>
+			token="osgi.bundles=org.eclipse.equinox.weaving.aspectj@3\:start," value="osgi.bundles="/>
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
-			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@1\:start,"/>
+			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@3\:start,"/>
 
 		<!-- org.eclipse.test needs to be in the target AND the build eclipses -->
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target" overwrite="true" />
@@ -224,13 +224,27 @@
 
 	</target>
 
-	<target name="run-test-eclipse">
-		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
 
-		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true"/>
+	<target name="run-test-eclipse" depends="run-weaving-tests,run-core-tests,run-ui-tests"/>
 
+	<target name="run-weaving-tests" depends="refresh-test-workspace">
+		<antcall target="refresh-test-workspace" />
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+			<property name="data-dir" value="${test.workspace}" />
+			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
+			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
+			<property name="eclipse-home" value="${target.eclipse}" />
+			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="arch" value="${build.arch}"/>
+			<property name="os" value="${build.os}"/>
+			<property name="ws" value="${build.ws}"/>
+		</ant>
+	</target>
+
+	<target name="run-core-tests" depends="refresh-test-workspace">
+		<antcall target="refresh-test-workspace" />
 		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
-			<property name="data-dir" value="${test.workspace} -clean" />
+			<property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.ajdt.core.tests" />
 			<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
@@ -239,8 +253,12 @@
 			<property name="os" value="${build.os}"/>
 			<property name="ws" value="${build.ws}"/>
 		</ant>
+	</target>
+
+	<target name="run-ui-tests" depends="refresh-test-workspace">
+		<antcall target="refresh-test-workspace" />
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
-			<property name="data-dir" value="${test.workspace} -clean" />
+			<property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.ajdt.ui.tests" />
 			<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
@@ -249,10 +267,28 @@
 			<property name="os" value="${build.os}"/>
 			<property name="ws" value="${build.ws}"/>
 		</ant>
+	</target>
+	
+	
+	<target name="set-test-properties">
+		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
+		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true -Dosgi.clean=true"/>
+	</target>
+	
+	<!--
+	FIXADE:
+	
+	Note that we have to run an empty test before we can run the real test.
+	The first run of a ui test case in a clean workspace is failing
+	on the build server.  So, we run this empty test first in order to get things
+	going.
+	-->
+	<target name="refresh-test-workspace" depends="set-test-properties">
+		<delete dir="${test.workspace}"/>
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
-			<property name="data-dir" value="${test.workspace} -clean" />
+             <property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.contribution.weaving.jdt.tests" />
-			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
+             <property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.EmptyTest" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
 			<property name="arch" value="${build.arch}"/>
