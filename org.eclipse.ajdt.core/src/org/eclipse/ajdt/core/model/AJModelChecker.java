@@ -16,12 +16,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.ajdt.internal.core.builder.AjState;
-import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
-import org.aspectj.asm.internal.RelationshipMap;
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.jdt.core.IJavaElement;
@@ -102,13 +99,6 @@ public class AJModelChecker {
         
         return problems;
     }
-    
-//    private static List/*String*/ roundTripTest(IRelationship rel, AJProjectModelFacade model) {
-//        List/*String*/ problems = new ArrayList();
-//        
-//    }
-//    
-//    private static List/*String*/ roundTripTest(IProgramElement, AJProjectModelFacade model) {
     
     private static List/*String*/ invalidAdviceRelationsip(IRelationship rel, AJProjectModelFacade model) {
         List/*String*/ problems = new ArrayList();

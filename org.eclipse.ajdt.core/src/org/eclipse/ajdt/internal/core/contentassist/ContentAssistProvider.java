@@ -139,9 +139,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             return prevResults;
         }
         if (prevResults.length == 1) {
-            if (! (prevResults[0] instanceof IType)) {
-                return prevResults;
-            } else {
+        	if (prevResults[0] instanceof IType) {
                 // get the expanded text region and see if it matches the type name
                 String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents());
                 if (expandedRegion.equals(prevResults[0].getElementName())) {

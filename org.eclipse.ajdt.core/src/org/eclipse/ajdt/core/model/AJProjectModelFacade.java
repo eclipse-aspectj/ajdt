@@ -26,12 +26,11 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.HierarchyWalker;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
-import org.aspectj.asm.internal.Relationship;
 import org.aspectj.asm.internal.RelationshipMap;
 import org.aspectj.bridge.ISourceLocation;
-import org.eclipse.jdt.internal.core.ImportContainer;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -42,10 +41,13 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
+import org.eclipse.ajdt.core.javaelements.FieldIntertypeElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -60,16 +62,18 @@ import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.ImportDeclaration;
 import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.ImportContainer;
+import org.eclipse.jdt.internal.core.ImportDeclaration;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+
+import static org.eclipse.ajdt.core.javaelements.AspectElement.*;
 
 /**
  * 
@@ -90,8 +94,8 @@ public class AJProjectModelFacade {
     public final static IJavaElement ERROR_JAVA_ELEMENT = new CompilationUnit(null, "ERROR_JAVA_ELEMENT", null);
     
     private static class ProjectModelBuildListener implements IAJBuildListener {
-        private Set/*IProject*/ beingBuilt = new HashSet();
-        private Set/*IProject*/ beingCleaned = new HashSet();
+        private Set<IProject> beingBuilt = new HashSet<IProject>();
+        private Set<IProject> beingCleaned = new HashSet<IProject>();
         
         public synchronized void postAJBuild(int kind, IProject project,
                 boolean noSourceChanges) {
@@ -293,9 +297,6 @@ public class AJProjectModelFacade {
                     Character.toString(AspectElement.JEM_ASPECT_CU));
         }
         
-        // ajc now takes care of this.
-//        ajHandle = ajHandle.replaceFirst("declare \\\\@", "declare @");
-
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
         if (ipe == null) {
             if (isBinary) {
@@ -359,14 +360,13 @@ public class AJProjectModelFacade {
         
         String jHandle = ajHandle;
         
-        
         // are we dealing with something inside of a classfile?
         // if so, then we have to handle it specially
         // because we want to convert this into a source reference if possible
         if (isBinaryAspectJHandle(jHandle)) {
             // Bug 274558 ADE HACK...fix aspect handles that are supposed to be binary, but are not.
             jHandle = jHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_CLASSFILE);
-            jHandle = jHandle.replace(".aj}", ".class}");
+            jHandle = jHandle.replace(".aj"+JEM_ASPECT_TYPE, ".class"+JEM_ASPECT_TYPE);
             return getElementFromClassFile(jHandle);
         }
 
@@ -438,6 +438,10 @@ public class AJProjectModelFacade {
         return doIt;
     }
     
+    /**
+     * Inner type for passing around a bunch of useful information for constructing 
+     * binary handles
+     */
     private class HandleInfo {
         public HandleInfo(String origAJHandle, String simpleName, String packageName, String qualName, String restHandle, boolean isFile, boolean isType, boolean isInAspect) {
             this.origAJHandle = origAJHandle;
@@ -457,17 +461,6 @@ public class AJProjectModelFacade {
         final boolean isFile;
         final boolean isType;
         final boolean isInAspect;
-        
-        String extractInnerTypeName() {
-            String typeNameNoParent;
-            int dollarIndex = this.simpleName.lastIndexOf('$');
-            if (dollarIndex > -1) {
-                typeNameNoParent = this.simpleName.substring(dollarIndex+1);
-            } else {
-                typeNameNoParent = this.simpleName;
-            }
-            return typeNameNoParent;
-        }
         
         String sourceTypeQualName() {
             return qualName.replaceAll("\\$", "\\.");
@@ -514,7 +507,11 @@ public class AJProjectModelFacade {
                     candidate = findElementInJar(handleInfo, classFile);
                 }
             }
-            return candidate;
+            if (candidate != null) {
+                return candidate;
+            } else {
+                return ERROR_JAVA_ELEMENT;
+            }
         } catch (JavaModelException e) {
             AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
                     AspectJPlugin.PLUGIN_ID, "Could not find type root for " + jHandle, e));
@@ -714,7 +711,7 @@ public class AJProjectModelFacade {
     }
     
     
-    Map/* ISourceLocation -> Integer */ slocCache;
+    private Map<ISourceLocation, Integer> slocCache;
     /**
      * Open up the buffer to to convert from line number to offset
      * this is slow
@@ -729,7 +726,7 @@ public class AJProjectModelFacade {
         }
         
         if (slocCache != null && slocCache.containsKey(sloc)) {
-            return ((Integer) slocCache.get(sloc)).intValue();
+            return slocCache.get(sloc).intValue();
         }
         
         if (unit instanceof AJCompilationUnit) {
@@ -756,7 +753,7 @@ public class AJProjectModelFacade {
             
             // cache
             if (slocCache == null) {
-                slocCache = new HashMap();
+                slocCache = new HashMap<ISourceLocation, Integer>();
             }
             slocCache.put(sloc, new Integer(offset));
             return offset;
@@ -771,11 +768,9 @@ public class AJProjectModelFacade {
             return false;
         }
         IProgramElement ipe = javaElementToProgramElement(je);
-        List relationships = relationshipMap.get(ipe);
+        List<IRelationship> relationships = relationshipMap.get(ipe);
         if (relationships != null) {
-            for (Iterator relIter = relationships.iterator(); relIter
-                    .hasNext();) {
-                IRelationship rel = (IRelationship) relIter.next();
+            for (IRelationship rel : relationships) {
                 if (rel.hasRuntimeTest()) {
                     return true;
                 }
@@ -811,9 +806,9 @@ public class AJProjectModelFacade {
     /**
      * find out what java elements are on a particular line
      */
-    public List/*IJavaElement*/ getJavaElementsForLine(ICompilationUnit icu, final int line) {
+    public List/*IJavaElement*/<IJavaElement> getJavaElementsForLine(ICompilationUnit icu, final int line) {
         IProgramElement ipe = javaElementToProgramElement(icu);
-        final List/*IProgramElement*/ elementsOnLine = new LinkedList();
+        final List/*IProgramElement*/<IProgramElement> elementsOnLine = new LinkedList<IProgramElement>();
         
         // walk the program element to get all ipes on the source line
         ipe.walk(new CancellableHierarchyWalker() {
@@ -830,9 +825,9 @@ public class AJProjectModelFacade {
             }
         });
         // now convert to IJavaElements
-        List /*IJavaElement*/ javaElements = new ArrayList(elementsOnLine.size());
-        for (Iterator ipeIter = elementsOnLine.iterator(); ipeIter.hasNext();) {
-            IProgramElement ipeOnLine = (IProgramElement) ipeIter.next();
+        List /*IJavaElement*/<IJavaElement> javaElements = new ArrayList<IJavaElement>(elementsOnLine.size());
+        for (Iterator<IProgramElement> ipeIter = elementsOnLine.iterator(); ipeIter.hasNext();) {
+            IProgramElement ipeOnLine = ipeIter.next();
             javaElements.add(programElementToJavaElement(ipeOnLine));
         }
         return javaElements;
@@ -841,25 +836,22 @@ public class AJProjectModelFacade {
     /**
      * find the relationships of a particular kind for a java element
      */
-    public List/*IJavaElement*/ getRelationshipsForElement(IJavaElement je, AJRelationshipType relType) {
+    public List<IJavaElement> getRelationshipsForElement(IJavaElement je, AJRelationshipType relType) {
         return getRelationshipsForElement(je, relType, false);
     }
     
-    public List/*IJavaElement*/ getRelationshipsForElement(IJavaElement je, AJRelationshipType relType, boolean includeChildren) {
+    public List<IJavaElement> getRelationshipsForElement(IJavaElement je, AJRelationshipType relType, boolean includeChildren) {
         if (!isInitialized) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         IProgramElement ipe = javaElementToProgramElement(je);
-        List/*Relationship*/ relationships = relationshipMap.get(ipe);
-        List/*IJavaElement*/ relatedJavaElements = new ArrayList(relationships != null ? relationships.size() : 0);
+        List<IRelationship> relationships = relationshipMap.get(ipe);
+        List<IJavaElement> relatedJavaElements = new ArrayList<IJavaElement>(relationships != null ? relationships.size() : 0);
         if (relationships != null) {
             if (relationships != null) {
-                for (Iterator iterator = relationships.iterator(); iterator.hasNext();) {
-                    Relationship rel = (Relationship) iterator.next();
+                for (IRelationship rel : relationships) {
                     if (relType.getDisplayName().equals(rel.getName())) {
-                        for (Iterator targetIter = rel.getTargets().iterator(); targetIter
-                                .hasNext();) {
-                            String handle = (String) targetIter.next();
+                        for (String handle : rel.getTargets()) {
                             IJavaElement targetJe = programElementToJavaElement(handle);
                             if (targetJe != null && targetJe != ERROR_JAVA_ELEMENT) {
                                 relatedJavaElements.add(targetJe);
@@ -879,8 +871,7 @@ public class AJProjectModelFacade {
         }
 
         if (includeChildren) {
-            for (Iterator children = ipe.getChildren().iterator(); children.hasNext(); ){
-                IProgramElement child = (IProgramElement) children.next();
+            for (IProgramElement child : ipe.getChildren()) {
                 relatedJavaElements.addAll(getRelationshipsForElement(programElementToJavaElement(child), relType, true));
             }
         }
@@ -891,7 +882,7 @@ public class AJProjectModelFacade {
      * walks the file and grabs all relationships for it
      * could cache this to go faster
      */
-    public Map/*Integer,List<IRelationship>*/ getRelationshipsForFile(ICompilationUnit icu) {
+    public Map<Integer, List<IRelationship>> getRelationshipsForFile(ICompilationUnit icu) {
         return getRelationshipsForFile(icu, null);
     }
     
@@ -900,10 +891,10 @@ public class AJProjectModelFacade {
      * walks the file and grabs all relationships for it.  filter by relationship type
      * pass in null filter for all relationships
      */
-    public Map/*Integer,List<IRelationship>*/ getRelationshipsForFile(ICompilationUnit icu, AJRelationshipType[] relType) {
-        final Set interesting;
+    public Map<Integer, List<IRelationship>> getRelationshipsForFile(ICompilationUnit icu, AJRelationshipType[] relType) {
+        final Set<String> interesting;
         if (relType != null) {
-            interesting = new HashSet();
+            interesting = new HashSet<String>();
             for (int i = 0; i < relType.length; i++) {
                 interesting.add(relType[i].getDisplayName());
             }
@@ -912,18 +903,18 @@ public class AJProjectModelFacade {
         }
         
         // walk the hierarchy and get relationships for each node
-        final Map/*Integer, List<IRelationship>*/ allRelationshipsMap = new HashMap();
+        final Map<Integer, List<IRelationship>> allRelationshipsMap = new HashMap<Integer, List<IRelationship>>();
         IProgramElement ipe = javaElementToProgramElement(icu);
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
-                List/*IRelationship*/ orig = relationshipMap.get(node);
+                List<IRelationship> orig = relationshipMap.get(node);
                 
                 if (orig == null) {
                     return;
                 }
-                List/*IRelationship*/ nodeRels = new ArrayList(orig);
+                List<IRelationship> nodeRels = new ArrayList<IRelationship>(orig);
                 if (interesting != null) {
-                    for (Iterator relIter = nodeRels.iterator(); relIter
+                    for (Iterator<IRelationship> relIter = nodeRels.iterator(); relIter
                             .hasNext();) {
                         IRelationship rel = (IRelationship) relIter.next();
                         if (!interesting.contains(rel.getName())) {
@@ -933,12 +924,12 @@ public class AJProjectModelFacade {
                 }
                 
                 if (nodeRels.size() > 0) {
-                    List/*IRelationship*/ allRelsForLine;
+                    List<IRelationship> allRelsForLine;
                     Integer line = new Integer(node.getSourceLocation().getLine());
                     if (allRelationshipsMap.containsKey(line)) {
-                        allRelsForLine = (List) allRelationshipsMap.get(line);
+                        allRelsForLine = allRelationshipsMap.get(line);
                     } else {
-                        allRelsForLine = new LinkedList();
+                        allRelsForLine = new LinkedList<IRelationship>();
                         allRelationshipsMap.put(line, allRelsForLine);
                     }
                     allRelsForLine.addAll(nodeRels);
@@ -955,19 +946,17 @@ public class AJProjectModelFacade {
      * I am trying to be efficient and not do too much processing on my end, but this leads
      * to having different return types.  Maybe return each as an iterator.  That would be nice.
      */
-    public List/*IRelationship*/ getRelationshipsForProject(AJRelationshipType[] relType) {
-        Set interesting = new HashSet();
+    public List<IRelationship> getRelationshipsForProject(AJRelationshipType[] relType) {
+        Set<String> interesting = new HashSet<String>();
         for (int i = 0; i < relType.length; i++) {
             interesting.add(relType[i].getDisplayName());
         }
         if (relationshipMap instanceof RelationshipMap) {
             RelationshipMap map = (RelationshipMap) relationshipMap;
             // flatten and filter the map
-            List allRels = new LinkedList();
-            for (Iterator relListIter = map.values().iterator(); relListIter.hasNext();) {
-                List/*IRelationship*/ relList = (List) relListIter.next();
-                for (Iterator relIter = relList.iterator(); relIter.hasNext();) {
-                    IRelationship rel = (IRelationship) relIter.next();
+            List<IRelationship> allRels = new LinkedList<IRelationship>();
+            for (List<IRelationship> relList : map.values()) {
+                for (IRelationship rel : relList) {
                     if (interesting.contains(rel.getName())) {
                         allRels.add(rel);
                     }
@@ -976,10 +965,10 @@ public class AJProjectModelFacade {
             return allRels;
         } else {
             // shouldn't happen
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
-    
+
     public boolean isAdvised(IJavaElement elt) {
         if (!isInitialized) {
             return false;
@@ -987,10 +976,9 @@ public class AJProjectModelFacade {
         
         IProgramElement ipe = javaElementToProgramElement(elt);
         if (ipe != IHierarchy.NO_STRUCTURE) {
-            List/*IRelationship*/ rels = relationshipMap.get(ipe);
+            List<IRelationship> rels = relationshipMap.get(ipe);
             if (rels != null && rels.size() > 0) {
-                for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                    IRelationship rel = (IRelationship) relIter.next();
+                for (IRelationship rel : rels) {
                     if (!rel.isAffects()) {
                         return true;
                     }
@@ -999,15 +987,12 @@ public class AJProjectModelFacade {
             // check children if the children would not otherwise be in 
             // outline view (ie- code elements)
             if (ipe.getKind() != IProgramElement.Kind.CLASS && ipe.getKind() != IProgramElement.Kind.ASPECT) {
-                List /*IProgramElement*/ ipeChildren = ipe.getChildren();
+                List<IProgramElement> ipeChildren = ipe.getChildren();
                 if (ipeChildren != null) {
-                    for (Iterator childIter = ipeChildren.iterator(); childIter
-                            .hasNext();) {
-                        IProgramElement child = (IProgramElement) childIter.next();
+                    for (IProgramElement child : ipeChildren) {
                         if (child.getKind() == IProgramElement.Kind.CODE) {
                             rels = relationshipMap.get(child);
-                            for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                                IRelationship rel = (IRelationship) relIter.next();
+                            for (IRelationship rel : rels) {
                                 if (!rel.isAffects()) {
                                     return true;
                                 }
@@ -1020,11 +1005,11 @@ public class AJProjectModelFacade {
         return false;
     }
     
-    public Set /* IJavaElement */ aspectsForFile(ICompilationUnit cu) {
+    public Set /* IJavaElement */<IJavaElement> aspectsForFile(ICompilationUnit cu) {
         IProgramElement ipe = javaElementToProgramElement(cu);
         // compiler should be able to do this for us, but functionality is
         // not exposed. so let's do it ourselves
-        final Set /* IJavaElement */ aspects = new HashSet();
+        final Set /* IJavaElement */<IJavaElement> aspects = new HashSet<IJavaElement>();
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 if (node.getKind() == IProgramElement.Kind.ASPECT) {
@@ -1086,12 +1071,10 @@ public class AJProjectModelFacade {
     public static String printRelationships(IRelationshipMap map) {
         StringBuffer sb = new StringBuffer();
         RelationshipMap rmap = (RelationshipMap) map;
-        for (Iterator relIter = rmap.entrySet().iterator(); relIter.hasNext();) {
-            Map.Entry entry = (Map.Entry) relIter.next();
-            String handle = (String) entry.getKey();
+        for (Map.Entry<String, List<IRelationship>> entry : rmap.entrySet()) {
+            String handle = entry.getKey();
             sb.append(handle + " ::\n");
-            for (Iterator targIter = ((List) entry.getValue()).iterator(); targIter.hasNext();) {
-                IRelationship rel = (IRelationship) targIter.next();
+            for (IRelationship rel : entry.getValue()) {
                 String str = printRelationship(rel);
                 sb.append("\t" + str + "\n");
             }

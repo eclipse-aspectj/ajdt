@@ -382,10 +382,10 @@ public String retrieveSignatureFromSource() throws JavaModelException {
     }
 
     public ISourceRange getNameRange() throws JavaModelException {
+        AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
         if (isInSource()) {
             return super.getNameRange(); 
         } else {
-            AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
             int start = startLocation;
             return new SourceRange(start, info.getNameSourceEnd());
         }

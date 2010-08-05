@@ -144,7 +144,11 @@ public class AspectJCore {
 						if (ind2 != -1) {
 							cuName = cuName.substring(0, ind2);
 						}
-						int ind3 = cuName.indexOf(AspectElement.JEM_ITD);
+						int ind3 = cuName.indexOf(AspectElement.JEM_ITD_METHOD);
+						if (ind3 != -1) {
+							cuName = cuName.substring(0, ind3);
+						}
+						ind3 = cuName.indexOf(AspectElement.JEM_ITD_FIELD);
 						if (ind3 != -1) {
 							cuName = cuName.substring(0, ind3);
 						}
@@ -209,7 +213,12 @@ public class AspectJCore {
 									aspectName = aspectName.substring(0, ind8);
 									identifierIsAspect = false;
 								}
-								int ind9 = aspectName.indexOf(AspectElement.JEM_ITD);
+								int ind9 = aspectName.indexOf(AspectElement.JEM_ITD_METHOD);
+								if (ind9 != -1) {
+									aspectName = aspectName.substring(0, ind9);
+									identifierIsAspect = false;
+								}
+								ind9 = aspectName.indexOf(AspectElement.JEM_ITD_FIELD);
 								if (ind9 != -1) {
 									aspectName = aspectName.substring(0, ind9);
 									identifierIsAspect = false;

@@ -448,7 +448,17 @@ public class AJCompilationUnitProblemFinder extends
                 (aspectMemberNames.contains(firstArg) ||
                  aspectMemberNames.contains(secondArg))) {
             // declare statement if more than one exist in a file
-            // or advice if more than one of the same kind exists in the aspect
+            // or around advice if more than one of the same kind exists in the aspect
+            return false;
+        }
+        
+        if (numArgs > 1 &&
+                id == IProblem.DuplicateMethod &&
+                isTranslatedAdviceName(firstArg, secondArg)) {
+            // more than one before or after advice exists
+            // in same file with same number and types of arguments
+            // as per bug 318132, before and after names are translated
+            // to 'b' and 'a' respectively
             return false;
         }
         
@@ -585,8 +595,8 @@ public class AJCompilationUnitProblemFinder extends
             
             if (id == IProblem.TypeMismatch &&
                     numArgs == 2 &&
-                    firstArg.equals(getTypeNameAtPosition(categorizedProblem, unit)) &&
-                    getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor).endsWith(secondArg)) {
+                    typeAtPositionIsArg(categorizedProblem, unit, firstArg) &&
+                    findLastSegment(getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor)).equals(findLastSegment(secondArg))) {
                 // bug 284358
                 // this problem occurs when 'this' is returned from an ITD method
                 // the resolver thinks there is a type mismath because it was 
@@ -712,6 +722,13 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
 
+            if (numArgs == 1 && id == IProblem.ShouldReturnValue &&
+                    firstArg.equals("int") && 
+                    insideAdvice(categorizedProblem, unit)) {
+                // Bug 318132: after keyword is changed to 'int a' to avoid throwing exceptions while 
+                // evaluating variables during debug
+                return false;
+            }
 
         } catch (JavaModelException e) {
         }
@@ -733,6 +750,42 @@ public class AJCompilationUnitProblemFinder extends
         
         
         return true;
+    }
+
+    /**
+     * Check to see if the name is a translated advice name
+     * In bug 318132, before and after advice names have 
+     * been translated to 'b' and 'a' respectively
+     * @param firstArg
+     * @param secondArg
+     * @return
+     */
+    private static boolean isTranslatedAdviceName(String firstArg, String secondArg) {
+        return firstArg.equals("a") || firstArg.equals("b") || secondArg.equals("a") || secondArg.equals("b");
+    }
+
+    /**
+     * Checks if the type name specified by the current problem is equal to 
+     * the typename passed in.  Note that the type name passed in may be fully qualified, 
+     * but the type name specified by the current problem will not be.  So,
+     * only compare by qualified names.
+     */
+    private static boolean typeAtPositionIsArg(
+            CategorizedProblem categorizedProblem, CompilationUnit unit,
+            String typeName) throws JavaModelException {
+        String typeNameAtPosition = getTypeNameAtPosition(categorizedProblem, unit);
+        String lastSegment = findLastSegment(typeName);
+        return typeNameAtPosition.equals(lastSegment);
+    }
+
+    /**
+     * @param firstArg
+     * @return
+     */
+    private static String findLastSegment(String firstArg) {
+        String[] splits = firstArg.split("\\.");
+        String lastSegment = splits[splits.length-1];
+        return lastSegment;
     }
 
     private static boolean simpleNamesEquals(String firstArg, String secondArg) {
@@ -847,10 +900,11 @@ public class AJCompilationUnitProblemFinder extends
                 }
                 for (int i = 0; i < ipes.length; i++) {
                     String longName = ipes[i].getName();
-                    String[] split = longName.split("\\.");
-                    String itdName = split[split.length-1];
+                    String[] splits = longName.split("\\.");
+                    String lastSegment = splits[splits.length-1];
+                    String itdName = lastSegment;
                     // ignore constructors
-                    if (split.length > 1 && itdName.equals(split[split.length-2])) {
+                    if (splits.length > 1 && itdName.equals(splits[splits.length-2])) {
                         continue;
                     }
                     names.add(itdName);

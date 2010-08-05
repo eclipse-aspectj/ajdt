@@ -61,6 +61,7 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -912,13 +913,24 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		return null;
 	}
 	
+	
+	public IJavaElement getHandleFromMemento(MementoTokenizer memento, WorkingCopyOwner owner) {
+	    // if not an AJMementoTokenizer, the tokenizer may have read too far
+	    // create an AJMementoTokenizer and ensure to backtrack to the end of the compilation unit name
+	    if (! (memento instanceof AJMementoTokenizer)) {
+	        memento = new AJMementoTokenizer(memento, name);
+	    }
+	    return super.getHandleFromMemento(memento, owner);
+	}
+
+	
 	/*
 	 * @see JavaElement 
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
-		JavaElement type = this; int x = 9;
+		JavaElement type = this;
 		if (! (memento instanceof AJMementoTokenizer)) {
-		    memento = new AJMementoTokenizer(memento);
+		    memento = new AJMementoTokenizer(memento, name);
 		}
 		if ((token.charAt(0) == JavaElement.JEM_IMPORTDECLARATION) ||
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
@@ -971,7 +983,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
 		}
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
-		}
+	}
 	
 	/**
 	 * @see JavaElement#getHandleMementoDelimiter()

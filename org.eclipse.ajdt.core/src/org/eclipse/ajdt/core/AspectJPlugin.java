@@ -112,7 +112,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	 * The compiler factory
 	 */
 	private ICompilerFactory compilerFactory;
-
+	
 	/**
 	 * Is true if running with no UI.
 	 */
