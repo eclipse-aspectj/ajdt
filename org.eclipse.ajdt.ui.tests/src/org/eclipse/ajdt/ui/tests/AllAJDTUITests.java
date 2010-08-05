@@ -44,6 +44,7 @@ import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesWithJarFilesTest;
 import org.eclipse.ajdt.ui.tests.debug.DebugBreakpointsTests;
 import org.eclipse.ajdt.ui.tests.debug.JavaConsoleHyperlinkTest;
+import org.eclipse.ajdt.ui.tests.editor.AJOrganizeImportsTests;
 import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
