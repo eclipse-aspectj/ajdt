@@ -89,7 +89,7 @@ public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTes
      */
     protected void setUp() throws Exception {
         origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentProvider;
-        NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
+        ITDAwarenessAspect.aspectOf().nameEnvironmentProvider = mockProvider;
         super.setUp();
         project = createPredefinedProject("Bug273334"); //$NON-NLS-1$
         targetFile = project.getFile("src/a/HasAnITD.java");
@@ -105,7 +105,7 @@ public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTes
         try {
             super.tearDown();
         } finally {
-            NameEnvironmentAdapter.getInstance().setProvider(origProvider);
+            ITDAwarenessAspect.aspectOf().nameEnvironmentProvider = origProvider;
         }
     }
     /**
