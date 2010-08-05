@@ -9,6 +9,7 @@
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
 package org.eclipse.ajdt.internal.javamodel;
+
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

@@ -14,8 +14,10 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.internal.ui.refactoring.contentassist.ControlContentAssistHelper;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.internal.ui.util.TableLayoutComposite;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaUILabelProvider;
@@ -39,6 +41,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -50,7 +53,7 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 	private Text targetAspectInput;
 	
 	private TableViewerColumn typeColumn;
-	private TableViewerColumn methodColumn;
+	private TableViewerColumn memberColumn;
 	
 	private JavaUILabelProvider labelProvider = new JavaUILabelProvider();
 	private TableViewerColumn packageColumn;
@@ -79,29 +82,48 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 		label.setText("The following element will be pulled out:");
 		createTable(parent);
 
-		//Line: Target aspect
+		createAspectGroup(parent);
+		createITDGroup(parent);
+				
+		handleInputChanged();
+	}
+	
+	private void createAspectGroup(Composite parent) {
+		final PullOutRefactoring refactoring = getRefactoring();
 		
-		createTargetAspectLine(parent);
+		Group group = new Group(parent, SWT.DEFAULT);
+		group.setText("Target Aspect");
+		group.setLayout(new GridLayout());
+		GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
 		
-		//Line: make privileged checkbox
+		createTargetAspectLine(group);
 		
-		final Button makePrivilegeCheckBox = new Button(parent, SWT.CHECK);
+		final Button makePrivilegeCheckBox = new Button(group, SWT.CHECK);
 		makePrivilegeCheckBox.setSelection(refactoring.isMakePrivileged());
 		makePrivilegeCheckBox.setText("&Make the Aspect Privileged");
 		makePrivilegeCheckBox.setToolTipText(
 				"The aspect will be made privileged\n" +
 				"ITDs in privileged aspects can access private and protected members in the" +
 				"woven context without errors.");
-		
 		makePrivilegeCheckBox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				refactoring.setMakePrivileged(makePrivilegeCheckBox.getSelection());
 			}
 		});
+	}
+
+
+	private void createITDGroup(Composite _parent) {
+		final PullOutRefactoring refactoring = getRefactoring();
 		
-		//Line: allow dropping 'protected' from ITDs
-		final Button allowDropProtected = new Button(parent, SWT.CHECK);
+		Group group = new Group(_parent, SWT.DEFAULT);
+		group.setText("Intertype Declaration Options");
+		group.setLayout(new GridLayout(2, true));
+		GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+		
+		final Button allowDropProtected = new Button(group, SWT.CHECK);
+		GridDataFactory.fillDefaults().grab(true, false).applyTo(allowDropProtected);
 		allowDropProtected.setSelection(refactoring.isAllowDeleteProtected());
 		allowDropProtected.setText("&Remove 'protected' keyword from ITDs ");
 		allowDropProtected.setToolTipText(
@@ -114,14 +136,13 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 			}
 		});
 		
-		//Line: allow ITDs to be made public
-		final Button allowMakePublicCheckbox = new Button(parent, SWT.CHECK);
+		final Button allowMakePublicCheckbox = new Button(group, SWT.CHECK);
 		allowMakePublicCheckbox.setSelection(refactoring.isAllowMakePublic());
 		allowMakePublicCheckbox.setText("&Make ITDs public as needed");
 		allowMakePublicCheckbox.setToolTipText(
-				"If an ITD is private, it will be private to the aspect.\n " +
-				"Pulled private members will no longer be accessible from the woven class.\n" +
-				"Check this option to allow the refactoring to fix broken references to\n" +
+				"If an ITD is private, it will be private to the aspect.\n" +
+				"Pulled private members will no longer be accessible from the woven class." +
+				"Check this option to allow the refactoring to fix broken references to" +
 				"ITDs by making them public.");
 		allowMakePublicCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -129,36 +150,37 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 				refactoring.setAllowMakePublic(allowMakePublicCheckbox.getSelection());
 			}
 		});
-				
-		handleInputChanged();
+		
+		final Button generateAbstractMethodStubs = new Button(group, SWT.CHECK);
+		generateAbstractMethodStubs.setSelection(refactoring.isGenerateAbstractMethodStubs());
+		generateAbstractMethodStubs.setText("&Generate stubs for abstract methods");
+		generateAbstractMethodStubs.setToolTipText("Abstract ITDs are not supported by AspectJ.\n" +
+				"Enable this option to remove the abstract keyword and add stub method bodies for " +
+				"pulled out abstract methods.");
+		generateAbstractMethodStubs.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refactoring.setGenerateAbstractMethodStubs(generateAbstractMethodStubs.getSelection());
+			}
+		});
 	}
 
 	private void createTargetAspectLine(Composite parent) {
 		PullOutRefactoring refactoring = getRefactoring();
 		
 		parent = new Composite(parent, SWT.NONE);
-		GridData layoutData = new GridData(SWT.NONE);
 		GridDataFactory.fillDefaults().grab(true, false).applyTo(parent);
 		GridLayout layout = new GridLayout(3,false);
-		
 		parent.setLayout(layout);
 		
 		Label label;
 		label = new Label(parent, SWT.NONE);
 		label.setText("&Target Aspect");
 
-//		GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.NONE).grab(false, false).applyTo(label);
-		
 		targetAspectInput = createAspectInput(parent);
-
 		final Button browseButton= new Button(parent, SWT.PUSH);
 		browseButton.setText("&Browse...");
-//		browseButton.setLayoutData(new GridData(SWT.NONE));
-		
-//		GridDataFactory.swtDefaults().align(SWT.END, SWT.NONE).grab(false, false).applyTo(browseButton);
-		
 		targetAspectInput.setText(refactoring.getAspectName());
-		
 		targetAspectInput.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				handleInputChanged();
@@ -175,6 +197,13 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
 				targetAspectInput.setText(type.getFullyQualifiedName());
 			}
 		});
+		
+		try {
+			AspectInputContentAssistProcessor processor = new AspectInputContentAssistProcessor(getRefactoring().getJavaProject());
+			ControlContentAssistHelper.createTextContentAssistant(targetAspectInput, 
+					processor);
+		} catch (JavaModelException e) {
+		}
 	}
 	
 	void handleInputChanged() {
@@ -268,14 +297,14 @@ public class PullOutRefactoringInputPage extends UserInputWizardPage {
         column= typeColumn.getColumn();
         column.setText("Type");
         
-        methodColumn = new TableViewerColumn(tv, SWT.LEAD);
-        methodColumn.setLabelProvider(new JavaCellLabelProvider(labelProvider) {
+        memberColumn = new TableViewerColumn(tv, SWT.LEAD);
+        memberColumn.setLabelProvider(new JavaCellLabelProvider(labelProvider) {
 			public Object getColumnData(Object elt) {
 				return elt;
 			}
         });
-        column = methodColumn.getColumn();
-        column.setText("Method Name");
+        column = memberColumn.getColumn();
+        column.setText("Member Name");
         
     }
     
