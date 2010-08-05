@@ -39,8 +39,12 @@ public class InpathOutFolderTest extends UITestCase {
 	public void testJarOnInpath() throws CoreException {
 	    // test that the built version properly uses the inpath out location
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
-        jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         jarOnInpath.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+        SynchronizationUtils.joinBackgroudActivities();
+        jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        SynchronizationUtils.joinBackgroudActivities();
+        jarOnInpath.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+        SynchronizationUtils.joinBackgroudActivities();
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
         
@@ -81,9 +85,13 @@ public class InpathOutFolderTest extends UITestCase {
 	    // test that when the out location changes, the new one is used instead
 	    jarOnInpath.getProject().getFolder("newOutFolder").create(true, true, null); //$NON-NLS-1$
 	    AspectJCorePreferences.setProjectInpathOutFolder(jarOnInpath.getProject(), "JarOnInpath/newOutFolder"); //$NON-NLS-1$
+	    jarOnInpath.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+        SynchronizationUtils.joinBackgroudActivities();
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
         jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        SynchronizationUtils.joinBackgroudActivities();
         jarOnInpath.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+        SynchronizationUtils.joinBackgroudActivities();
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
 
