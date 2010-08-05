@@ -41,13 +41,13 @@ public aspect CompilationUnitProviderAspect {
     
     CompilationUnit around(PackageFragment parent, String name, WorkingCopyOwner owner) : 
         compilationUnitCreations(parent, name, owner) {
-        
-        String extension = findExtension(name);
+        String newName = trimName(name);
+        String extension = findExtension(newName);
         ICompilationUnitProvider provider = 
             CompilationUnitProviderRegistry.getInstance().getProvider(extension);
         if (provider != null) {
             try {
-                return provider.create(parent, name, owner);
+                return provider.create(parent, newName, owner);
             } catch (Throwable t) {
                 JDTWeavingPlugin.logException(t);
             }
@@ -55,16 +55,31 @@ public aspect CompilationUnitProviderAspect {
         return proceed(parent, name, owner);
     }
 
-    private String findExtension(String name) {
-        int mementoIndex = name.indexOf('}');
-        int extensionIndex = name.lastIndexOf('.');
-        String extension;
+    /**
+     * hacks of any excess parts of the compilation unit name that indicate
+     * extra characters were included in the name
+     * 
+     * @param original the original name of the compilation unit
+     * @return new name trimmed to ensure that all trailing memento parts are removed
+     */
+    private String trimName(String original) {
+        String noo = original;
+        int extensionIndex = original.indexOf('.') + 1;
         if (extensionIndex >= 0) {
-            if (mementoIndex >= extensionIndex) {
-                extension = name.substring(extensionIndex+1, mementoIndex);
-            } else {
-                extension = name.substring(extensionIndex+1);
+            int mementoIndex = extensionIndex;
+            while (mementoIndex < original.length() && Character.isJavaIdentifierPart(original.charAt(mementoIndex))) {
+                mementoIndex++;
             }
+            noo = original.substring(0, mementoIndex);
+        }
+        return noo;
+    }
+    
+    private String findExtension(String name) {
+        int extensionIndex = name.indexOf('.') + 1;
+        String extension;
+        if (extensionIndex > 0) {
+            extension = name.substring(extensionIndex);
         } else {
             extension = ""; //$NON-NLS-1$
         }

@@ -27,7 +27,10 @@ import org.eclipse.core.runtime.CoreException;
  */
 public privileged aspect JUnit4TestFinderAspect {
     
-    private ISearchProvider provider = new SearchAdapter().getProvider();
+    /**
+     * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     */
+    private ISearchProvider provider = SearchAdapter.getInstance().getProvider();
 
     /**
      * This pointcut targets a SearchRequestor that accepts potential test matches
@@ -43,9 +46,9 @@ public privileged aspect JUnit4TestFinderAspect {
             Object elt = refMatch.getElement();
             if (elt instanceof IJavaElement) {
                 IJavaElement javaElt = (IJavaElement) elt;
-                if (isInterestingProject(javaElt.getJavaProject().getProject())) {
+                if (provider != null && isInterestingProject(javaElt.getJavaProject().getProject())) {
                     try {
-                        javaElt = this.provider.filterJUnit4TestMatch(javaElt);
+                        javaElt = provider.filterJUnit4TestMatch(javaElt);
                         if (javaElt != null) {
                             refMatch.setElement(javaElt);
                         } else {

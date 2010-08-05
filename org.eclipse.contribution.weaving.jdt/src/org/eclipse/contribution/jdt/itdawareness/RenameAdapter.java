@@ -21,6 +21,14 @@ import org.eclipse.core.runtime.PlatformObject;
  */
 public class RenameAdapter extends PlatformObject implements IAdaptable {
 
+    private static final RenameAdapter INSTANCE = new RenameAdapter();
+    
+    public static RenameAdapter getInstance() {
+        return INSTANCE;
+    }
+    
+    private RenameAdapter() { }
+
     private IRenameRefactoringProvider provider = null;
     
     public IRenameRefactoringProvider getProvider() {

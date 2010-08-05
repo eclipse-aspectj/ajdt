@@ -20,8 +20,17 @@ import org.eclipse.core.runtime.PlatformObject;
  *
  */
 public class ContentAssistAdapter extends PlatformObject implements IAdaptable {
+    
+    private static final ContentAssistAdapter INSTANCE = new ContentAssistAdapter();
+    
+    public static ContentAssistAdapter getInstance() {
+        return INSTANCE;
+    }
+    
+    private ContentAssistAdapter() { }
 
     private IJavaContentAssistProvider provider = null;
+
     
     public IJavaContentAssistProvider getProvider() {
         if (provider == null) {

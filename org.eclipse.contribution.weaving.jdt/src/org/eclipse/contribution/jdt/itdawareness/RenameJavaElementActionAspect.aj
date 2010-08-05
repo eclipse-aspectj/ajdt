@@ -22,7 +22,10 @@ import org.eclipse.jdt.internal.ui.refactoring.actions.RenameJavaElementAction;
  */
 public aspect RenameJavaElementActionAspect {
     
-    IRenameRefactoringProvider adapter = new RenameAdapter().getProvider();
+    /**
+     * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     */
+    IRenameRefactoringProvider provider = RenameAdapter.getInstance().getProvider();
     
     pointcut renameInvoked(IJavaElement element, boolean lightweight) : 
             execution(private void RenameJavaElementAction.run(
@@ -32,8 +35,8 @@ public aspect RenameJavaElementActionAspect {
     
     void around(IJavaElement element, boolean lightweight) throws CoreException : 
             renameInvoked(element, lightweight) {
-        if (adapter.isInterestingElement(element)) {
-            adapter.performRefactoring(element, lightweight);
+        if (provider != null && provider.isInterestingElement(element)) {
+            provider.performRefactoring(element, lightweight);
         } else {
             proceed(element, lightweight);
         }
