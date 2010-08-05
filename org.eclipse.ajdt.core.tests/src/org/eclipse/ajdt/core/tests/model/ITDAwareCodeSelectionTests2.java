@@ -87,7 +87,7 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
      */
     protected void setUp() throws Exception {
         origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentProvider;
-        NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
+        ITDAwarenessAspect.aspectOf().nameEnvironmentProvider = mockProvider;
         super.setUp();
         base = createPredefinedProject("Bug273334base"); //$NON-NLS-1$
         depending = createPredefinedProject("Bug273334depending"); //$NON-NLS-1$
@@ -100,7 +100,7 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
         try {
             super.tearDown();
         } finally {
-            NameEnvironmentAdapter.getInstance().setProvider(origProvider);
+            ITDAwarenessAspect.aspectOf().nameEnvironmentProvider = origProvider;
         }
     }
 
