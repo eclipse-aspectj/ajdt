@@ -51,6 +51,7 @@ public aspect ITDAwarenessAspect {
     
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     * Made public for testing purposes only.
      */
     public INameEnvironmentProvider nameEnvironmentProvider = NameEnvironmentAdapter.getInstance().getProvider();
     
@@ -254,9 +255,10 @@ public aspect ITDAwarenessAspect {
             
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     * Made public for testing purposes only.
      */
     public IJavaContentAssistProvider contentAssistProvider = ContentAssistAdapter.getInstance().getProvider();
-            
+
     pointcut codeCompleteInJavaFile(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
             int position, CompletionRequestor requestor,
