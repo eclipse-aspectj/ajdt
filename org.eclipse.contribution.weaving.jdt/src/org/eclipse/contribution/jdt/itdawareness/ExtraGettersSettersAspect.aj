@@ -41,12 +41,15 @@ public aspect ExtraGettersSettersAspect {
         try {
             IField element = processor.getField();
             if (result != null && result.equals("") && isInterestingProject(element)) {
-                SearchAdapter searchAdapter = new SearchAdapter();
-                IJavaElement maybe = getter ?
-                            searchAdapter.getProvider().findITDGetter(element) : 
-                            searchAdapter.getProvider().findITDSetter(element);
-                if (maybe != null) {
-                    result = null;
+                 // This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+                ISearchProvider searchProvider = SearchAdapter.getInstance().getProvider();
+                if (searchProvider != null) {
+                    IJavaElement maybe = getter ?
+                            searchProvider.findITDGetter(element) : 
+                                searchProvider.findITDSetter(element);
+                    if (maybe != null) {
+                        result = null;
+                    }
                 }
             }
         } catch (Exception e) {

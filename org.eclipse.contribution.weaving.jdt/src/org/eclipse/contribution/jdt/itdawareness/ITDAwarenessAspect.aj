@@ -49,7 +49,10 @@ import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
  */
 public aspect ITDAwarenessAspect {
     
-    public NameEnvironmentAdapter nameEnvironmentAdapter = new NameEnvironmentAdapter();
+    /**
+     * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     */
+    public INameEnvironmentProvider nameEnvironmentProvider = NameEnvironmentAdapter.getInstance().getProvider();
     
     
     /********************************************
@@ -76,8 +79,8 @@ public aspect ITDAwarenessAspect {
         Object info = proceed(element);
         if (WeavableProjectListener.getInstance().isInWeavableProject(element)) {
             if (info instanceof ISourceType &&
-                    nameEnvironmentAdapter.getProvider() != null) {
-                info = nameEnvironmentAdapter.getProvider().transformSourceTypeInfo((ISourceType) info);
+                    nameEnvironmentProvider != null) {
+                info = nameEnvironmentProvider.transformSourceTypeInfo((ISourceType) info);
             }
         }
         return info;
@@ -102,9 +105,9 @@ public aspect ITDAwarenessAspect {
     SearchableEnvironment around(JavaProject project,
             ICompilationUnit[] workingCopies) : 
                 interestingSearchableEnvironmentCreation(project, workingCopies) {
-        if (nameEnvironmentAdapter.getProvider() != null && isInWeavable(workingCopies)) {
+        if (nameEnvironmentProvider != null && isInWeavable(workingCopies)) {
             try {
-                SearchableEnvironment newEnvironment = nameEnvironmentAdapter.getProvider().getNameEnvironment(project, workingCopies);
+                SearchableEnvironment newEnvironment = nameEnvironmentProvider.getNameEnvironment(project, workingCopies);
                 if (newEnvironment != null) {
                     return newEnvironment;
                 }
@@ -116,10 +119,10 @@ public aspect ITDAwarenessAspect {
     }
     
     private boolean isInWeavable(ICompilationUnit[] workingCopies) {
-        if (workingCopies != null) {
+        if (workingCopies != null && nameEnvironmentProvider != null) {
             for (int i = 0; i < workingCopies.length; i++) {
                 if (workingCopies[i] instanceof CompilationUnit &&
-                        nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) workingCopies[i])) {
+                        nameEnvironmentProvider.shouldFindProblems((CompilationUnit) workingCopies[i])) {
                     return true;
                 }
             }
@@ -160,9 +163,9 @@ public aspect ITDAwarenessAspect {
     
     SearchableEnvironment around(JavaProject project,
             WorkingCopyOwner owner) : interestingSearchableEnvironmentCreation2(project, owner) {
-        if (nameEnvironmentAdapter.getProvider() != null && WeavableProjectListener.getInstance().isWeavableProject(project.getProject())) {
+        if (nameEnvironmentProvider != null && WeavableProjectListener.getInstance().isWeavableProject(project.getProject())) {
             try {
-                SearchableEnvironment newEnvironment = nameEnvironmentAdapter.getProvider().getNameEnvironment(project, 
+                SearchableEnvironment newEnvironment = nameEnvironmentProvider.getNameEnvironment(project, 
                         owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
                 if (newEnvironment != null) {
                     return newEnvironment;
@@ -226,9 +229,9 @@ public aspect ITDAwarenessAspect {
             boolean creatingAST,
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException : findProblemsInJava(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor) {
-        if (nameEnvironmentAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider().shouldFindProblems(unitElement)) {
+        if (nameEnvironmentProvider != null && nameEnvironmentProvider.shouldFindProblems(unitElement)) {
             try {
-                return nameEnvironmentAdapter.getProvider().problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+                return nameEnvironmentProvider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
             } catch (Exception e) {
                 if (! (e instanceof OperationCanceledException)) {
                     JDTWeavingPlugin.logException(e);
@@ -248,7 +251,11 @@ public aspect ITDAwarenessAspect {
      * Hmmmm...maybe want to promote this one to its own package because other plugins may
      * want to add their own way of doing completions for Java files
      */
-    public ContentAssistAdapter contentAssistAdapter = new ContentAssistAdapter();
+            
+    /**
+     * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     */
+    public IJavaContentAssistProvider contentAssistProvider = ContentAssistAdapter.getInstance().getProvider();
             
     pointcut codeCompleteInJavaFile(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
@@ -272,10 +279,9 @@ public aspect ITDAwarenessAspect {
                 codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor) {
         
         boolean result = false;
-        IJavaContentAssistProvider contentAssistProvider = contentAssistAdapter.getProvider();
-        if (contentAssistProvider != null && nameEnvironmentAdapter.getProvider() != null && 
+        if (contentAssistProvider != null && nameEnvironmentProvider != null && 
                 (cu instanceof CompilationUnit) && 
-                nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) cu)) {
+                nameEnvironmentProvider.shouldFindProblems((CompilationUnit) cu)) {
             try {
                 result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor); /* AJDT 1.7 */
             } catch (Exception e) {
@@ -303,9 +309,8 @@ public aspect ITDAwarenessAspect {
     IJavaElement[] around(CompilationUnit unit, int offset, int length) : 
             codeSelectWithArgs(unit, offset, length) {
         IJavaElement[] result = proceed(unit, offset, length);
-        IJavaContentAssistProvider contentAssistProvider = contentAssistAdapter.getProvider();
-        if (contentAssistProvider != null && nameEnvironmentAdapter.getProvider() != null &&
-                nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) unit)) {
+        if (contentAssistProvider != null && nameEnvironmentProvider != null &&
+                nameEnvironmentProvider.shouldFindProblems((CompilationUnit) unit)) {
             // look for ITDs at the current location if required
             try {
                 result = contentAssistProvider.doCodeSelect(unit, offset, length, result);
@@ -322,7 +327,7 @@ public aspect ITDAwarenessAspect {
      * inserted Java element instead of the ITD itself.
      */
     
-    SearchAdapter searchAdapter = new SearchAdapter();
+    SearchAdapter searchAdapter = SearchAdapter.getInstance();
     
     /**
      * Capture all creations of SearchPatterns from JavaElements
@@ -334,10 +339,13 @@ public aspect ITDAwarenessAspect {
     SearchPattern around(IJavaElement element, int limitTo, int matchRule) :
         searchPatternCreation(element, limitTo, matchRule) {
     
-            if (searchAdapter != null) {
-                element = searchAdapter.getProvider().convertJavaElement(element);
-            }
-            return proceed(element, limitTo, matchRule);
+        ISearchProvider searchProvider = searchAdapter.getProvider();
+        if (searchProvider != null) {
+            // here, the provider can convert the JavaElement to something that it really should be searching 
+            // for.  Eg, convert an ITD field into a field
+            element = searchProvider.convertJavaElement(element);
+        }
+        return proceed(element, limitTo, matchRule);
     }
     
 }

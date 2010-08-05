@@ -42,7 +42,10 @@ import org.eclipse.jdt.internal.junit.launcher.JUnit4TestFinder;
  */
 public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLocator)) {
 
-    private ISearchProvider provider = new SearchAdapter().getProvider();
+    /**
+     * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
+     */
+    private ISearchProvider provider = SearchAdapter.getInstance().getProvider();
     
     private HierarchyResolver resolver;
     
@@ -97,7 +100,7 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
             Object elt = refMatch.getElement();
             if (elt instanceof IJavaElement) {
                 IJavaElement javaElt = (IJavaElement) elt;
-                if (isInterestingProject(javaElt.getJavaProject().getProject())) {
+                if (provider != null && isInterestingProject(javaElt.getJavaProject().getProject())) {
                     try {
                         javaElt = this.provider.filterJUnit4TestMatch(javaElt);
                         if (javaElt != null) {

@@ -23,6 +23,14 @@ public class SearchAdapter extends PlatformObject implements IAdaptable {
 
     private ISearchProvider provider = null;
     
+    private static final SearchAdapter INSTANCE = new SearchAdapter();
+    
+    public static SearchAdapter getInstance() {
+        return INSTANCE;
+    }
+    
+    private SearchAdapter() { }
+    
     public ISearchProvider getProvider() {
         if (provider == null) {
             provider = (ISearchProvider) getAdapter(ISearchProvider.class);

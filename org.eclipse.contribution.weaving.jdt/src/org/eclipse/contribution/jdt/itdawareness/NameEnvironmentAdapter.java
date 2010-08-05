@@ -21,6 +21,14 @@ import org.eclipse.core.runtime.PlatformObject;
  */
 public class NameEnvironmentAdapter extends PlatformObject implements IAdaptable {
 
+    private static final NameEnvironmentAdapter INSTANCE = new NameEnvironmentAdapter();
+    
+    public static NameEnvironmentAdapter getInstance() {
+        return INSTANCE;
+    }
+    
+    private NameEnvironmentAdapter() { }
+
     private INameEnvironmentProvider provider = null;
     
     public INameEnvironmentProvider getProvider() {
