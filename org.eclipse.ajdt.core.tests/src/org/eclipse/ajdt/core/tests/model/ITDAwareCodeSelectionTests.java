@@ -16,6 +16,7 @@ import java.util.HashMap;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -50,7 +51,6 @@ public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTes
     
     // need to set a NameEnviromentProvider, since this is typically
     // set by AJDT.UI
-    // BAD!!!
     INameEnvironmentProvider origProvider;
     INameEnvironmentProvider mockProvider = new INameEnvironmentProvider() {
     
@@ -88,8 +88,8 @@ public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTes
      * @see TestCase#setUp()
      */
     protected void setUp() throws Exception {
-        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(mockProvider);
+        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentProvider;
+        NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
         super.setUp();
         project = createPredefinedProject("Bug273334"); //$NON-NLS-1$
         targetFile = project.getFile("src/a/HasAnITD.java");
@@ -102,8 +102,11 @@ public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTes
     }
 
     protected void tearDown() throws Exception {
-        super.tearDown();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
+        try {
+            super.tearDown();
+        } finally {
+            NameEnvironmentAdapter.getInstance().setProvider(origProvider);
+        }
     }
     /**
      * Test that ITD hyperlinks work when inside the CU that

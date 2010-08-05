@@ -36,43 +36,49 @@ public class Bug273770Tests extends AJDTCoreTestCase {
     public void testExtraAspectpathEntry() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectAspectPath(project);
         // note that the trailing ':' is actually a path separator character
-        assertEquals("Should have found junit.jar on the resolved aspectpath", "junit.jar", entries[0].substring(entries[0].length()-"junit.jar:".length(), entries[0].length()-1));
-        assertTrue("Should have only one element on the aspectpath", entries[0].indexOf(File.pathSeparator) == entries[0].length()-1);
-
+        int firstJUnitLocation = entries[0].indexOf("junit.jar");
+        int secondJUnitLocation = entries[0].indexOf("junit.jar", firstJUnitLocation+1); 
+        assertTrue("Should have found junit.jar on the resolved aspectpath", firstJUnitLocation != -1);
+        assertTrue("Should have found junit.jar ONLY ONCE on the resolved aspectpath", secondJUnitLocation == -1);
+        
         entries = AspectJCorePreferences.getRawProjectAspectPath(project);
-        assertEquals("Should have JUnit 3 on the raw aspectpath: " + entries[0], "org.eclipse.jdt.junit.JUNIT_CONTAINER/3:", entries[0]);
+        assertTrue("Should have JUnit 3 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
+        assertTrue("Should have JUnit 4 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
     }
     
     public void testExtraInpathEntry() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectInpath(project);
         // note that the trailing ':' is actually a path separator character
-        assertEquals("Should have found junit.jar on the resolved inpath", "junit.jar", entries[0].substring(entries[0].length()-"junit.jar:".length(), entries[0].length()-1));
-        assertTrue("Should have only one element on the resolved inpath", entries[0].indexOf(File.pathSeparator) == entries[0].length()-1);
+        int firstJUnitLocation = entries[0].indexOf("junit.jar");
+        int secondJUnitLocation = entries[0].indexOf("junit.jar", firstJUnitLocation+1); 
+        assertTrue("Should have found junit.jar on the resolved inpath", firstJUnitLocation != -1);
+        assertTrue("Should have found junit.jar ONLY ONCE on the resolved inpath", secondJUnitLocation == -1);
 
         entries = AspectJCorePreferences.getRawProjectInpath(project);
-        assertEquals("Should have JUnit 3 on the raw inpath: " + entries[0], "org.eclipse.jdt.junit.JUNIT_CONTAINER/3:", entries[0]);
+        assertTrue("Should have JUnit 3 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
+        assertTrue("Should have JUnit 4 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
     }
     
     // first test the original project
     public void testExtraAspectpathEntry2() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectAspectPath(project2);
         assertTrue("Should not have found org.eclipse.jdt on the resolved aspectpath", valueNotFound(entries[0], "org.eclipse.jdt_"));
-        assertEquals("Should have found org.eclipse.jdt.apt.core on the resolved aspectpath", "org.eclipse.jdt.apt.core", findValue(entries[0], "org.eclipse.jdt.apt.core_"));
-        assertEquals("Should have found org.eclipse.jdt.apt.ui on the resolved aspectpath", "org.eclipse.jdt.apt.ui", findValue(entries[0], "org.eclipse.jdt.apt.ui_"));
-        assertEquals("Should have found org.eclipse.jdt.core on the resolved aspectpath", "org.eclipse.jdt.core", findValue(entries[0], "org.eclipse.jdt.core_"));
+        assertEquals("Should have found org.eclipse.jdt.apt.core on the resolved aspectpath", "org.eclipse.jdt.apt.core", findValue(entries[0], "org.eclipse.jdt.apt.core"));
+        assertEquals("Should have found org.eclipse.jdt.apt.ui on the resolved aspectpath", "org.eclipse.jdt.apt.ui", findValue(entries[0], "org.eclipse.jdt.apt.ui"));
+        assertEquals("Should have found org.eclipse.jdt.core on the resolved aspectpath", "org.eclipse.jdt.core", findValue(entries[0], "org.eclipse.jdt.core"));
 
     }
 
     public void testExtraInpathEntry2() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectInpath(project2);
-        assertEquals("Should have found org.eclipse.jdt on the resolved inpath", "org.eclipse.jdt", findValue(entries[0], "org.eclipse.jdt_"));
-        assertEquals("Should have found org.eclipse.jdt.apt.core on the resolved inpath", "org.eclipse.jdt.apt.core", findValue(entries[0], "org.eclipse.jdt.apt.core_"));
-        assertEquals("Should have found org.eclipse.jdt.apt.ui on the resolved inpath", "org.eclipse.jdt.apt.ui", findValue(entries[0], "org.eclipse.jdt.apt.ui_"));
-        assertEquals("Should have found org.eclipse.jdt.core on the resolved inpath", "org.eclipse.jdt.core", findValue(entries[0], "org.eclipse.jdt.core_"));
+        assertEquals("Should have found org.eclipse.jdt on the resolved inpath", "org.eclipse.jdt_", findValue(entries[0], "org.eclipse.jdt_"));
+        assertEquals("Should have found org.eclipse.jdt.apt.core on the resolved inpath", "org.eclipse.jdt.apt.core", findValue(entries[0], "org.eclipse.jdt.apt.core"));
+        assertEquals("Should have found org.eclipse.jdt.apt.ui on the resolved inpath", "org.eclipse.jdt.apt.ui", findValue(entries[0], "org.eclipse.jdt.apt.ui"));
+        assertEquals("Should have found org.eclipse.jdt.core on the resolved inpath", "org.eclipse.jdt.core", findValue(entries[0], "org.eclipse.jdt.core"));
     }
 
     private String findValue(String string, String toFind) {
-        return string.substring(string.indexOf(toFind), string.indexOf(toFind)+toFind.length()-1);
+        return string.substring(string.indexOf(toFind), string.indexOf(toFind)+toFind.length());
     }
     
     private boolean valueNotFound(String string, String toFind) {

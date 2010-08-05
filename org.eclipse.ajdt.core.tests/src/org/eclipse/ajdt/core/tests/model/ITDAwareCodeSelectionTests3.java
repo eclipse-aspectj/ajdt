@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -84,14 +85,17 @@ public class ITDAwareCodeSelectionTests3 extends AbstractITDAwareCodeSelectionTe
      * @see TestCase#setUp()
      */
     protected void setUp() throws Exception {
-        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(mockProvider);
+        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentProvider;
+        NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
         super.setUp();
     }
 
     protected void tearDown() throws Exception {
-        super.tearDown();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
+        try {
+            super.tearDown();
+        } finally {
+            NameEnvironmentAdapter.getInstance().setProvider(origProvider);
+        }
     }
 
     public void testBug318509MethodAndITDWithSameNumberOfArgs() throws Exception {
