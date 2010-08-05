@@ -26,6 +26,8 @@ import org.eclipse.jdt.core.IJavaElement;
 public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
 
     
+    private ISearchProvider searchProvider = SearchAdapter.getInstance().getProvider();
+
     public void testFindGetter1() throws Exception {
         ICompilationUnit[] units = createUnits(
                 new String[] {"foo", "bar"}, 
@@ -35,7 +37,6 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -48,7 +49,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDSetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -62,7 +63,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         );
         
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -76,7 +77,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         );
         
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDSetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -89,7 +90,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -102,7 +103,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDSetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -115,7 +116,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -128,7 +129,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDSetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -142,7 +143,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
         
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -156,7 +157,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
         
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement setter = searchProvider.findITDSetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), setter);
     }
@@ -170,7 +171,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
         
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), getter);
     }
@@ -184,7 +185,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         IntertypeElement itd = getLastIntertypeElement(units[1]);
         IField field = (IField) itd.createMockDeclaration(units[0].getTypes()[0]);
         
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement setter = searchProvider.findITDSetter(field);
         assertEquals("Should have found an ITD", getFirstIntertypeElement(units[1]), setter);
     }
@@ -200,7 +201,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         );
         
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertNull("Should have found an ITD", getter);
     }
@@ -213,7 +214,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
                 );
 
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement setter = searchProvider.findITDSetter(field);
         assertNull("Should have found an ITD", setter);
     }
@@ -226,7 +227,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         );
         
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+
         IJavaElement getter = searchProvider.findITDGetter(field);
         assertNull("Should have found an ITD", getter);
     }
@@ -239,7 +240,7 @@ public class FindITDGettersAndSettersTest extends AbstractAJDTRefactoringTest {
         );
         
         IField field = getFirstField(units);
-        ISearchProvider searchProvider = new SearchAdapter().getProvider();
+        
         IJavaElement setter = searchProvider.findITDSetter(field);
         assertNull("Should have found an ITD", setter);
     }

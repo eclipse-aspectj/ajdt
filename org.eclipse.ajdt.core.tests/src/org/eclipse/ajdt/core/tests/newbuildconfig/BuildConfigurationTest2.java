@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.HandleTestUtils;
 
 public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 
@@ -114,20 +115,21 @@ public class BuildConfigurationTest2 extends AJDTCoreTestCase {
     private void checkModel(IFile file) throws Exception {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(file.getProject());
         IJavaElement unit = JavaCore.create(file);
-        List accumulatedErrors = AJModelTest4.checkJavaHandle(unit.getHandleIdentifier(), model);
-        
-        IProgramElement ipe = model.javaElementToProgramElement(unit);
-        accumulatedErrors.addAll(AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model));
-        
-        if (accumulatedErrors.size() > 0) {
-            StringBuffer sb = new StringBuffer();
-            sb.append("Found errors in comparing elements:\n");
-            for (Iterator iterator = accumulatedErrors.iterator(); iterator
-                    .hasNext();) {
-                String msg = (String) iterator.next();
-                sb.append(msg + "\n");
+        if (model.hasProgramElement(unit)) {
+            List accumulatedErrors = HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
+            IProgramElement ipe = model.javaElementToProgramElement(unit);
+            AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model);
+            
+            if (accumulatedErrors.size() > 0) {
+                StringBuffer sb = new StringBuffer();
+                sb.append("Found errors in comparing elements:\n");
+                for (Iterator iterator = accumulatedErrors.iterator(); iterator
+                .hasNext();) {
+                    String msg = (String) iterator.next();
+                    sb.append(msg + "\n");
+                }
+                fail(sb.toString());
             }
-            fail(sb.toString());
         }
     }
 

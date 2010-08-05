@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Andrew Eisenberg - initial API and implementation
+ *     Kris De Volder - Bug 318509 related
  *******************************************************************************/
 
 package org.eclipse.ajdt.core.tests.model;
@@ -16,13 +17,16 @@ import java.util.HashMap;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
@@ -39,10 +43,11 @@ import org.eclipse.jface.text.IRegion;
  * Further testing of ITD hyperlinks.
  * Ensure that hyperlinking works when target aspect is in separate project
  */
-public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTests {
+public class ITDAwareCodeSelectionTests3 extends AbstractITDAwareCodeSelectionTests {
     
     // need to set a NameEnviromentProvider, since this is typically
     // set by AJDT.UI
+    // BAD!!!
     INameEnvironmentProvider origProvider;
     INameEnvironmentProvider mockProvider = new INameEnvironmentProvider() {
     
@@ -76,12 +81,6 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
         }
     };
 
-    IProject base;
-    IProject depending;
-    IFile baseFile;
-
-    ICompilationUnit baseUnit;
-    
     /*
      * @see TestCase#setUp()
      */
@@ -89,11 +88,6 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
         origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentProvider;
         NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
         super.setUp();
-        base = createPredefinedProject("Bug273334base"); //$NON-NLS-1$
-        depending = createPredefinedProject("Bug273334depending"); //$NON-NLS-1$
-        baseFile = base.getFile("src/q/UsesITDs1.java");
-        baseUnit = JavaCore.createCompilationUnitFrom(baseFile);
-        waitForAutoBuild();
     }
 
     protected void tearDown() throws Exception {
@@ -104,30 +98,71 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
         }
     }
 
+    public void testBug318509MethodAndITDWithSameNumberOfArgs() throws Exception {
+    	IProject project = createPredefinedProject("Bug318509MethodAndITDWithSameNumberOfArgs");
+    	ICompilationUnit main = getCompilationUnit(project);
+    	project.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    	
+    	//Tests for methods:
+    	validateCodeSelect(main, findRegion(main, "method", 1), "src/MyClass.java", "MyClass.method(int)");
+    	validateCodeSelect(main, findRegion(main, "method", 2), "src/MyAspect.aj", "MyAspect.MyClass.method(String)");
+    	//Tests for constructors:
+    	validateCodeSelect(main, findRegion(main, "MyClass", 2), "src/MyClass.java", "MyClass.MyClass(int)");
+    	validateCodeSelect(main, findRegion(main, "MyClass", 3), "src/MyAspect.aj", "MyAspect.MyClass.MyClass_new(String)");
+    }
+
+	private ICompilationUnit getCompilationUnit(IProject project) {
+		ICompilationUnit main = JavaCore.createCompilationUnitFrom(project.getFile("src/Main.java"));
+		return main;
+	}
     
-    /**
-     * Test that ITD hyperlinks work when the aspect is in
-     * other project and ITDs are declared in this project
-     */
-    public void testITDTargetFileHyperlink() throws Exception {
-        validateCodeSelect(baseUnit, findRegion(baseUnit, "aField", 1), "InterfaceForITD.aField");
-        validateCodeSelect(baseUnit, findRegion(baseUnit, "nothing", 1), "InterfaceForITD.nothing");
-    }
-    /**
-     * Test that ITD hyperlinks work when the aspect is in
-     * other project and ITDs are declared in other project
-     */
-    public void testITDTargetFileHyperlinkOtherProject() throws Exception {
-        validateCodeSelect(baseUnit, findRegion(baseUnit, "aField", 2), "InterfaceForITD.aField");
-        validateCodeSelect(baseUnit, findRegion(baseUnit, "nothing", 2), "InterfaceForITD.nothing");
-    }
-   private void validateCodeSelect(ICompilationUnit unit,
-            IRegion region, String expected) throws Exception {
+	private void validateCodeSelect(ICompilationUnit unit,
+            IRegion region, String expectedSrcFile, String expectedSignature) throws Exception {
         IJavaElement[] result = unit.codeSelect(region.getOffset(), region.getLength());
         assertEquals("Should have found exactly one hyperlink", 1, result.length);
         IJavaElement elt = result[0];
         assertTrue("Java element " + elt.getHandleIdentifier() + " should exist", elt.exists());
-        assertEquals(expected, elt.getElementName());
+        String actualSrcFile = elt.getResource().getFullPath().toString();
+		assertTrue("Element found is in the wrong source file:\n" +
+        		   "   expected: "+expectedSrcFile+"\n" +
+        		   "   found:    "+actualSrcFile,
+        		actualSrcFile.endsWith(expectedSrcFile));
+        assertEquals("Element found has wrong signature",
+        		expectedSignature, getSignature(elt));
+    }
+
+   	/**
+   	 * Convenience method to get a String that can be used to test whether you found what you
+   	 * expected to find. It returns a method signature in following format:
+   	 * 
+   	 *   <DeclaringType>.<methodName>(<ParamType>, ...)
+   	 *   
+   	 * For ITDs the declaring type will be the Aspect, and the method name will include the
+   	 * target type:
+   	 * 
+   	 *   <AspectType>.<TargetType>.<methodName>(<ParamType>, ...)
+   	 * 
+   	 * Type names are "simple" (i.e. don't include package name)
+   	 * <p>
+   	 * The method name for a constructor is the name of the class, for a regular constructor.
+   	 * It is <ClassName>.<ClassName_new> for an intertype constructor..
+   	 */
+    private String getSignature(IJavaElement elt) {
+    	if (elt instanceof IMethod) {
+    		IMethod method = (IMethod) elt;
+    		String sig = method.getDeclaringType().getFullyQualifiedName();
+    		sig += "." + method.getElementName() + "(";
+    		String[] paramTypeSigs = method.getParameterTypes();
+    		for (int i = 0; i < paramTypeSigs.length; i++) {
+    			if (i>0) sig+= ", ";
+				sig += Signature.getSignatureSimpleName(paramTypeSigs[i]);
+			}
+    		sig += ")";
+    		return sig;
+    	}
+    	else {
+    		throw new Error("Not implemented, if you have tests with fields... implement this :-)");
+    	}
     }
 
 }

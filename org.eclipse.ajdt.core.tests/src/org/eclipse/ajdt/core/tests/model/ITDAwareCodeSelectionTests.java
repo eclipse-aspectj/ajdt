@@ -16,6 +16,7 @@ import java.util.HashMap;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -38,7 +39,7 @@ import org.eclipse.jface.text.Region;
  * @created Jun 6, 2009
  * Tests code selection for ITDs
  */
-public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
+public class ITDAwareCodeSelectionTests extends AbstractITDAwareCodeSelectionTests {
     IProject project;
     IFile targetFile;
     IFile otherFile;
@@ -50,7 +51,6 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
     
     // need to set a NameEnviromentProvider, since this is typically
     // set by AJDT.UI
-    // BAD!!!
     INameEnvironmentProvider origProvider;
     INameEnvironmentProvider mockProvider = new INameEnvironmentProvider() {
     
@@ -88,8 +88,8 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
      * @see TestCase#setUp()
      */
     protected void setUp() throws Exception {
-        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(mockProvider);
+        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentProvider;
+        NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
         super.setUp();
         project = createPredefinedProject("Bug273334"); //$NON-NLS-1$
         targetFile = project.getFile("src/a/HasAnITD.java");
@@ -102,8 +102,11 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
     }
 
     protected void tearDown() throws Exception {
-        super.tearDown();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
+        try {
+            super.tearDown();
+        } finally {
+            NameEnvironmentAdapter.getInstance().setProvider(origProvider);
+        }
     }
     /**
      * Test that ITD hyperlinks work when inside the CU that
@@ -152,14 +155,5 @@ public class ITDAwareCodeSelectionTests extends AJDTCoreTestCase {
         IJavaElement elt = result[0];
         assertTrue("Java element " + elt.getHandleIdentifier() + " should exist", elt.exists());
         assertEquals(expected, elt.getElementName());
-    }
-
-    private IRegion findRegion(ICompilationUnit unit, String string, int occurrence) {
-        String contents = new String(((CompilationUnit) unit).getContents());
-        int start = 0;
-        while (occurrence-- > 0) {
-            start = contents.indexOf(string, start);
-        }
-        return new Region(start, string.length());
     }
 }

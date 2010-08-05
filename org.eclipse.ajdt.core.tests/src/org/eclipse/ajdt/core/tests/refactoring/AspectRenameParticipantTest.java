@@ -50,8 +50,7 @@ public class AspectRenameParticipantTest extends AbstractAJDTRefactoringTest {
                 });
     }
     
-    // disabled because failing on build server only
-    public void _testRenameITD1() throws Exception {
+    public void testRenameITD1() throws Exception {
         performRefactoringAndUndo("XXX", 
                 new String[] { 
                 "Class.java", 
@@ -67,8 +66,7 @@ public class AspectRenameParticipantTest extends AbstractAJDTRefactoringTest {
         });
     }
     
-    // disabled because failing on build server only
-    public void _testRenameITD2() throws Exception {
+    public void testRenameITD2() throws Exception {
         performRefactoringAndUndo("XXX", 
                 new String[] { 
                 "Class.java", 

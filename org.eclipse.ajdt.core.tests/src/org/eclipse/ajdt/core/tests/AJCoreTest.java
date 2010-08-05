@@ -14,9 +14,18 @@ package org.eclipse.ajdt.core.tests;
 import java.util.Iterator;
 import java.util.List;
 
-import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.asm.IRelationship;
+import org.aspectj.org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.ajdt.core.AspectJCore;
+import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.AspectJMemberElementInfo;
+import org.eclipse.ajdt.core.javaelements.DeclareElement;
+import org.eclipse.ajdt.core.javaelements.FieldIntertypeElement;
+import org.eclipse.ajdt.core.javaelements.IAspectJElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.javaelements.MethodIntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -26,6 +35,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaElement;
+
+import static org.aspectj.asm.IProgramElement.Kind.*;
 
 /**
  * Tests for AspectJCore.create()
@@ -57,11 +70,11 @@ public class AJCoreTest extends AJDTCoreTestCase {
 						"Demo.java", "SourceMethod" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "=TJP Example/src<tjp{GetInfo.aj", "GetInfo.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"GetInfo.aj", "AJCompilationUnit" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo", "GetInfo", //$NON-NLS-1$ //$NON-NLS-2$
+				{ "=TJP Example/src<tjp{GetInfo.aj'GetInfo", "GetInfo", //$NON-NLS-1$ //$NON-NLS-2$
 						"GetInfo.aj", "AspectElement" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo~println", //$NON-NLS-1$
+				{ "=TJP Example/src<tjp{GetInfo.aj'GetInfo~println", //$NON-NLS-1$
 						"println", "GetInfo.aj", "SourceMethod" }, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo&around", //$NON-NLS-1$
+				{ "=TJP Example/src<tjp{GetInfo.aj'GetInfo&around", //$NON-NLS-1$
 						"around", "GetInfo.aj", "AdviceElement" } }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		compareWithHandles(testHandles);
 	}
@@ -89,18 +102,22 @@ public class AJCoreTest extends AJDTCoreTestCase {
 				{ methodHandle, "method-call(void bean.Point.setX(int))", //$NON-NLS-1$
 						"Demo.java", "AJCodeElement" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj'BoundPoint&around&QPoint;", //$NON-NLS-1$
 						"around", "BoundPoint.aj", "AdviceElement" }, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint)Point.hasListeners)QString;", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj'BoundPoint)Point.hasListeners)QString;", //$NON-NLS-1$
 						"Point.hasListeners", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
-						"IntertypeElement" }, //$NON-NLS-1$
+						"MethodIntertypeElement" }, //$NON-NLS-1$
 				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj'BoundPoint,Point.support", //$NON-NLS-1$
+						"Point.support", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
+						"FieldIntertypeElement" }, //$NON-NLS-1$
+				{
+						"=Bean Example/src<bean{BoundPoint.aj'BoundPoint`declare parents", //$NON-NLS-1$
 						"declare parents", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"DeclareElement" }, //$NON-NLS-1$
 				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents!2", //$NON-NLS-1$
+						"=Bean Example/src<bean{BoundPoint.aj'BoundPoint`declare parents!2", //$NON-NLS-1$
 						"declare parents", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
 						"DeclareElement" } //$NON-NLS-1$
 
@@ -126,7 +143,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		// note that the elements referred to by the handles need to exist
 		// in the workspace
 		String[][] testHandles = { {
-				"=Spacewar Example/src<spacewar{Ship.aj[Ship+helmCommandsCut+QShip;", "helmCommandsCut", //$NON-NLS-1$ //$NON-NLS-2$
+				"=Spacewar Example/src<spacewar{Ship.aj[Ship\"helmCommandsCut\"QShip;", "helmCommandsCut", //$NON-NLS-1$ //$NON-NLS-2$
 				"Ship.aj", "PointcutElement" }, //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		compareWithHandles(testHandles);
@@ -242,12 +259,12 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	}
 
 	static void compareElementsFromRelationships(AJRelationshipType[] rels,
-			IProject project) {
+			IProject project) throws JavaModelException {
 	    IJavaProject jProject = JavaCore.create(project);
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jProject.getProject());
 
 		List allRels = model.getRelationshipsForProject(rels);
-		if (allRels.size() == 0) {
+		if (!model.hasModel() || allRels.size() == 0) {
 			// if the project or model didn't build properly we'd get no
 			// relationships
 			// and the test would blindly pass without this check
@@ -255,59 +272,11 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			IRelationship rel = (IRelationship) iter.next();
-			checkHandle(rel.getSourceHandle(), model);
+			HandleTestUtils.checkAJHandle(rel.getSourceHandle(), model);
 			for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
                 String handle = (String) targetIter.next();
-                checkHandle(handle, model);
+                HandleTestUtils.checkAJHandle(handle, model);
             }
-		}
-	}
-
-	public static void checkHandle(String origAjHandle, AJProjectModelFacade model) {
-	    
-	    IJavaElement origJavaElement = model.programElementToJavaElement(origAjHandle);
-		String origJavaHandle = origJavaElement.getHandleIdentifier();
-		
-		if (origJavaElement.getJavaProject().getProject().equals(model.getProject())) {
-		
-    		IProgramElement recreatedAjElement = model.javaElementToProgramElement(origJavaElement);
-    		String recreatedAjHandle = recreatedAjElement.getHandleIdentifier();
-    		
-    		IJavaElement recreatedJavaElement = model.programElementToJavaElement(recreatedAjHandle);
-    		String recreatedJavaHandle = recreatedJavaElement.getHandleIdentifier();
-            
-            assertEquals("Handle identifier of JavaElements should be equal",  //$NON-NLS-1$
-                    origJavaHandle, recreatedJavaHandle);
-            
-            assertEquals("Handle identifier of ProgramElements should be equal",  //$NON-NLS-1$
-                    origAjHandle, recreatedAjHandle);
-            
-            assertEquals("JavaElements should be equal",  //$NON-NLS-1$
-                    origJavaElement, recreatedJavaElement);
-            
-            assertEquals("JavaElement names should be equal",  //$NON-NLS-1$
-                    origJavaElement.getElementName(), recreatedJavaElement.getElementName());
-            
-            assertEquals("JavaElement types should be equal",  //$NON-NLS-1$
-                    origJavaElement.getElementType(), recreatedJavaElement.getElementType());
-            
-            assertEquals("JavaElement parents should be equal",  //$NON-NLS-1$
-                    origJavaElement.getParent(), recreatedJavaElement.getParent());
-            
-            assertEquals("JavaElement parents should be equal",  //$NON-NLS-1$
-                    origJavaElement.getJavaProject(), recreatedJavaElement.getJavaProject());
-            
-            assertEquals("JavaElement resources should be the same",  //$NON-NLS-1$
-                    origJavaElement.getResource(), recreatedJavaElement.getResource());
-		} else {
-		    // reference to another project
-		    assertTrue("Program Element in other project should exist, but doesn't: " + origJavaHandle, //$NON-NLS-1$
-		            origJavaElement.exists());
-		    
-		    // check to make sure that this element is in the other model
-		    AJProjectModelFacade otherModel = AJProjectModelFactory.getInstance().getModelForProject(origJavaElement.getJavaProject().getProject());
-		    IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
-		    checkHandle(ipe.getHandleIdentifier(), otherModel);
 		}
 	}
 

@@ -67,6 +67,15 @@ public class AJDTCoreTestCase extends TestCase {
         }
     }
     
+    public AJDTCoreTestCase(String name) {
+        super(name);
+    }
+    
+    public AJDTCoreTestCase() {
+        super();
+    }
+
+    
     protected void setUp() throws Exception {
         super.setUp();
         System.out.println("------------------------\nStarting " + this.getName());
@@ -100,13 +109,17 @@ public class AJDTCoreTestCase extends TestCase {
 	 */
 	protected String getPluginDirectoryPath() {
 		try {
-			URL platformURL = Platform.getBundle("org.eclipse.ajdt.core.tests").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
+			URL platformURL = Platform.getBundle(getTestBundleName()).getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
 			return new File(FileLocator.toFileURL(platformURL).getFile()).getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
+
+    protected String getTestBundleName() {
+        return "org.eclipse.ajdt.core.tests";
+    }
 	
 	public String getSourceWorkspacePath() {
 		return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
@@ -132,8 +145,18 @@ public class AJDTCoreTestCase extends TestCase {
 		return jp.getProject();
 	}
 	
-	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
-		IJavaProject jp = setUpJavaProject(projectName);
+	protected IProject createPredefinedProject(final String projectName) throws CoreException, RuntimeException {
+	    IJavaProject jp;
+        try {
+            jp = setUpJavaProject(projectName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (jp == null) {
+            // project was not found
+            return null;
+        }
+        
 		try {
     		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (NullPointerException npe) {
@@ -165,7 +188,11 @@ public class AJDTCoreTestCase extends TestCase {
 		// copy files in project from source workspace to target workspace
 		String sourceWorkspacePath = getSourceWorkspacePath();
 		String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
-		copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName));
+		
+		// return null if source directory does not exist
+		if (! copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName))) {
+		    return null;
+		}
 		
 		// create project
 		final IProject project = getWorkspaceRoot().getProject(projectName);
@@ -173,82 +200,68 @@ public class AJDTCoreTestCase extends TestCase {
     		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
     			public void run(IProgressMonitor monitor) throws CoreException {
     				project.create(null);
-    				project.open(null);
     			}
     		};
     		getWorkspace().run(populate, null);
 		}		
+		// ensure open
+		project.open(null);
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 		
 		IJavaProject javaProject = JavaCore.create(project);
 		return javaProject;
 	}
 	
-	
-	// A dumb progressmonitor we can use - if we dont pass one it may create a UI one...
-	static class DumbProgressMonitor implements IProgressMonitor {
+	protected static class Requestor extends TypeNameRequestor { }
 
-		public void beginTask(String name, int totalWork) {/*dontcare*/}
-
-		public void done() {/*dontcare*/}
-
-		public void internalWorked(double work) {/*dontcare*/}
-
-		public boolean isCanceled() {/*dontcare*/return false;}
-
-		public void setCanceled(boolean value) {/*dontcare*/}
-
-		public void setTaskName(String name) {/*dontcare*/}
-
-		public void subTask(String name) {/*dontcare*/}
-
-		public void worked(int work) {/*dontcare*/}
-		
-	}
-
-	protected static class Requestor extends TypeNameRequestor {
-        }
-
-    /**
-	 * Wait for autobuild notification to occur
-	 */
 	public static void waitForAutoBuild() {
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, new DumbProgressMonitor());
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);
+	    waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
+	}
+    public static void waitForManualBuild() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_BUILD);
+    }
+    public static void waitForAutoRefresh() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_REFRESH);
+    }
+    public static void waitForManualRefresh() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
+    }
+	
+	public static void waitForJobFamily(Object family) {
+        boolean wasInterrupted = false;
+        do {
+            try {
+                Job.getJobManager().join(family, new NullProgressMonitor());
+                wasInterrupted = false;
+            } catch (OperationCanceledException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                wasInterrupted = true;
+            }
+        } while (wasInterrupted);       
+	    
 	}
 	
-	public static void waitForManualBuild() {
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new DumbProgressMonitor());
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);		
-	}
+	   public static void joinBackgroudActivities()  {
+	        waitForAutoBuild();
+	        waitForManualBuild();
+	        waitForAutoRefresh();
+	        waitForManualRefresh();
+	    }
+
 	
 	/**
 	 * Copy the given source directory (and all its contents) to the given target directory.
 	 */
-	protected void copyDirectory(File source, File target) throws IOException {
+	protected boolean copyDirectory(File source, File target) throws IOException {
+	    if (! source.exists()) {
+	        return false;
+	    }
 		if (!target.exists()) {
 			target.mkdirs();
 		}
 		File[] files = source.listFiles();
-		if (files == null) return;
+		if (files == null) return true;
 		for (int i = 0; i < files.length; i++) {
 			File sourceChild = files[i];
 			String name =  sourceChild.getName();
@@ -260,6 +273,7 @@ public class AJDTCoreTestCase extends TestCase {
 				copy(sourceChild, targetChild);
 			}
 		}
+		return true;
 	}
 	
 	/**
@@ -336,11 +350,14 @@ public class AJDTCoreTestCase extends TestCase {
 		return getWorkspaceRoot().getProject(project);
 	}
 
+	protected void deleteProject(IProject project) throws CoreException {
+		deleteProject(project,true);
+	}
 	protected void deleteProject(IProject project, boolean force) throws CoreException {
-		if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
-			project.open(null);
-		}
-		deleteResource(project,force);
+	    if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
+	        project.open(null);
+	    }
+	    deleteResource(project,force);
 	}
 	
 	protected void deleteProject(String projectName) throws CoreException {
@@ -438,8 +455,11 @@ public class AJDTCoreTestCase extends TestCase {
             String source) throws JavaModelException {
         StringBuffer buf = new StringBuffer();
         buf.append(source);
-        return pack.createCompilationUnit(cuName,
+        ICompilationUnit unit = pack.createCompilationUnit(cuName,
                 buf.toString(), false, null);
+        waitForManualBuild();
+        waitForAutoBuild();
+        return unit;
     }
     
     public ICompilationUnit createCompilationUnitAndPackage(String packageName, String fileName,

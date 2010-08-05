@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.HandleTestUtils;
 import org.eclipse.ajdt.core.tests.model.AJModelTest4;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 
@@ -197,21 +199,23 @@ public class BuildConfigurationTest extends AJDTCoreTestCase {
 	private void checkModel(IFile file) throws Exception {
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
 	    IJavaElement unit = JavaCore.create(file);
-	    List accumulatedErrors = AJModelTest4.checkJavaHandle(unit.getHandleIdentifier(), model);
-	    
-	    IProgramElement ipe = model.javaElementToProgramElement(unit);
-	    accumulatedErrors.addAll(AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model));
-        if (accumulatedErrors.size() > 0) {
-            StringBuffer sb = new StringBuffer();
-            sb.append("Found errors in comparing elements:\n");
-            for (Iterator iterator = accumulatedErrors.iterator(); iterator
-                    .hasNext();) {
-                String msg = (String) iterator.next();
-                sb.append(msg + "\n");
-            }
-            fail(sb.toString());
-        }
 
+	    if (model.hasProgramElement(unit)) {
+	        List accumulatedErrors = Collections.emptyList();
+	        HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
+	        IProgramElement ipe = model.javaElementToProgramElement(unit);
+	        AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model);
+	        if (accumulatedErrors.size() > 0) {
+	            StringBuffer sb = new StringBuffer();
+	            sb.append("Found errors in comparing elements:\n");
+	            for (Iterator iterator = accumulatedErrors.iterator(); iterator
+	            .hasNext();) {
+	                String msg = (String) iterator.next();
+	                sb.append(msg + "\n");
+	            }
+	            fail(sb.toString());
+	        }
+	    }
 	}
 }
 
