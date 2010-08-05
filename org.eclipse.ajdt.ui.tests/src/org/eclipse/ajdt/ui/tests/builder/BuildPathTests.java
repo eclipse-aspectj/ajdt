@@ -42,11 +42,17 @@ public class BuildPathTests extends UITestCase {
         //ensure that projects are not build before the variable and container are set up.
         setAutobuilding(false);
         containerProj = createPredefinedProject("PathTesting-ContainerOnAspectPath"); //$NON-NLS-1$
+        waitForJobsToComplete();
         IProject varProj = createPredefinedProject("PathTesting-VariableOnAspectPath"); //$NON-NLS-1$
+        waitForJobsToComplete();
         IProject projProj = createPredefinedProject("PathTesting-ProjectOnAspectPath"); //$NON-NLS-1$
+        waitForJobsToComplete();
         IProject jarProj = createPredefinedProject("PathTesting-JarOnAspectPath"); //$NON-NLS-1$
+        waitForJobsToComplete();
         hasInpath = createPredefinedProject("PathTesting-HasInpath"); //$NON-NLS-1$
+        waitForJobsToComplete();
         hasAspectpath = createPredefinedProject("PathTesting-HasAspectPath"); //$NON-NLS-1$
+        waitForJobsToComplete();
         
         // create variable
         JavaCore.setClasspathVariable("Aspect_Path_Var", varProj.getLocation().append(new Path("variable.jar")), null); //$NON-NLS-1$ //$NON-NLS-2$

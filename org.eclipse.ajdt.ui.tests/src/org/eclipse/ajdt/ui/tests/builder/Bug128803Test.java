@@ -23,6 +23,8 @@ public class Bug128803Test extends UITestCase {
 
 	public void testBug128803() throws Exception {
 		IProject project = createPredefinedProject("bug128803"); //$NON-NLS-1$
+		waitForJobsToComplete();
+
 		String filename = "src/pkg/C.java"; //$NON-NLS-1$
 		IResource fileC = project.findMember(filename);
 		if (fileC == null)

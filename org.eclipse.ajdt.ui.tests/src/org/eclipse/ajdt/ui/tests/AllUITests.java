@@ -32,13 +32,14 @@ public class AllUITests {
 	    // avoid deadlock when starting tests.
 	    // ensure that jdt core is already started before we try
 	    // loading the jdt weaving bundle
+	    // AJDT UI Tests
 	    waitForIt("org.eclipse.contribution.weaving.jdt");
         waitForIt("org.eclipse.jdt.core");
         
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
-		// AJDT UI Tests
+		// AJDT tests
 		suite.addTest(AllAJDTUITests.suite());
 		
 		// visualiser tests
@@ -46,7 +47,6 @@ public class AllUITests {
 
 		// AJDT visualiser content provider tests
 		suite.addTest(new TestSuite(AJDTContentProviderTest.class));
-		
 		
 		//$JUnit-END$
 		return suite;

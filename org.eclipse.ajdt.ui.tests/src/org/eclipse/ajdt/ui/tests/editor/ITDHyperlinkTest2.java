@@ -47,6 +47,7 @@ public class ITDHyperlinkTest2 extends UITestCase {
 		base = createPredefinedProject("Bug273334base"); //$NON-NLS-1$
 		depending = createPredefinedProject("Bug273334depending"); //$NON-NLS-1$
 		baseFile = base.getFile("src/q/UsesITDs1.java");
+		waitForJobsToComplete();
 	}
 	
     /**

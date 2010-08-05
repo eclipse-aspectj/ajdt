@@ -11,8 +11,7 @@
 
 package org.eclipse.ajdt.ui.tests.testutils;
 
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWTException;
@@ -20,38 +19,40 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * This class should be moved to core tests
+ */
 // Adapted from org.eclipse.jdt.ui.tests.performance.JdtPerformanceTestCase
 public class SynchronizationUtils {
 
 		
+    /**
+     * This method should be removed and the
+     * version in AJDTCoreTestCase used instead
+     */
 	public static void joinBackgroudActivities()  {
-		// Join Building
-		boolean interrupted= true;
-		while (interrupted) {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-				interrupted= false;
-			} catch (InterruptedException e) {
-				interrupted= true;
-			}
-		}
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);	
-		// Join jobs
+	    AJDTCoreTestCase.waitForAutoBuild();
+	    AJDTCoreTestCase.waitForManualBuild();
+	    AJDTCoreTestCase.waitForAutoRefresh();
+	    AJDTCoreTestCase.waitForManualRefresh();
+	    
+//	    printJobs();
+		// Join other jobs
 		joinJobs(100, 0, 500);
 	}
 
+    public static void printJobs() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        System.out.println("------------------------");
+        System.out.println("Printing jobs");
+        for (int i= 0; i < jobs.length; i++) {
+            System.out.println(jobs[i]);
+        }
+        System.out.println("------------------------");
+    }
 
-	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
+    private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
 		long startTime= System.currentTimeMillis() + minTime;
 		runEventQueue();
 		while (System.currentTimeMillis() < startTime)
@@ -66,7 +67,7 @@ public class SynchronizationUtils {
 		return calm;
 	}
 	
-	private static void sleep(int intervalTime) {
+	public static void sleep(int intervalTime) {
 		try {
 			Thread.sleep(intervalTime);
 		} catch (InterruptedException e) {

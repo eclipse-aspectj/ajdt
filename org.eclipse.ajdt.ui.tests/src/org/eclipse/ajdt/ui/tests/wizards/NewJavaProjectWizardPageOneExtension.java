@@ -147,14 +147,14 @@ public class NewJavaProjectWizardPageOneExtension extends NewJavaProjectWizardPa
 			final Group group= new Group(composite, SWT.NONE);
 			group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			group.setLayout(initGridLayout(new GridLayout(numColumns, false), true));
-			group.setText(NewWizardMessages.NewJavaProjectWizardPageOne_LocationGroup_title); 
+//			group.setText(NewWizardMessages.NewJavaProjectWizardPageOne_LocationGroup_title); // AJDT 3.6
 
 			fWorkspaceRadio= new SelectionButtonDialogField(SWT.RADIO);
 			fWorkspaceRadio.setDialogFieldListener(this);
-			fWorkspaceRadio.setLabelText(NewWizardMessages.NewJavaProjectWizardPageOne_LocationGroup_workspace_desc); 
+//			fWorkspaceRadio.setLabelText(NewWizardMessages.NewJavaProjectWizardPageOne_LocationGroup_workspace_desc); // AJDT 3.6
 
 			fExternalRadio= new SelectionButtonDialogField(SWT.RADIO);
-			fExternalRadio.setLabelText(NewWizardMessages.NewJavaProjectWizardPageOne_LocationGroup_external_desc); 
+//			fExternalRadio.setLabelText(NewWizardMessages.NewJavaProjectWizardPageOne_LocationGroup_external_desc); // AJDT 3.6
 
 			fLocation= new StringButtonDialogField(this);
 			fLocation.setDialogFieldListener(this);

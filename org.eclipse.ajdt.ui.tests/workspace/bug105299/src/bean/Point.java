@@ -12,6 +12,8 @@ about the software, its performance or its conformity to any specification.
 
 package bean;
 
+import java.util.List;
+
 class Point {
 
     protected int x = 0;

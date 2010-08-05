@@ -142,6 +142,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(AspectJEditorIconTest.class));
         suite.addTest(new TestSuite(ITDHyperlinkTest.class));
         suite.addTest(new TestSuite(ITDHyperlinkTest2.class));
+        suite.addTest(new TestSuite(AJOrganizeImportsTests.class));
         
         // code format tests
         suite.addTest(new TestSuite(CodeFormatTest.class));
