@@ -14,9 +14,11 @@ package org.eclipse.contribution.weaving.jdt.tests.itdawareness;
 
 import java.util.HashMap;
 
+import org.eclipse.contribution.jdt.itdawareness.ContentAssistAdapter;
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
+import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
 import org.eclipse.core.internal.registry.osgi.OSGIUtils;
 import org.eclipse.core.resources.IFile;
@@ -51,10 +53,10 @@ import org.eclipse.jface.text.contentassist.IContentAssistant;
  *
  */
 public class ITDAwarenessTests extends WeavingTestCase {
-    MockNameEnvironmentProvider provider;
+    MockNameEnvironmentProvider nameEnvironmentProvider;
     MockContentAssistProvider contentAssistProvider;
     
-    INameEnvironmentProvider origProvider;
+    INameEnvironmentProvider origNameEnvironmentProvider;
     IJavaContentAssistProvider origContentAssistProvider;
     
     IJavaProject mockNatureProject;
@@ -79,13 +81,13 @@ public class ITDAwarenessTests extends WeavingTestCase {
             // ignore, bundle doesn't exist
         }
 
-        origProvider = ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.getProvider();
-        origContentAssistProvider = ITDAwarenessAspect.aspectOf().contentAssistAdapter.getProvider();
+        origNameEnvironmentProvider = NameEnvironmentAdapter.getInstance().getProvider();
+        origContentAssistProvider = ContentAssistAdapter.getInstance().getProvider();
 
-        provider = new MockNameEnvironmentProvider();
+        nameEnvironmentProvider = new MockNameEnvironmentProvider();
         contentAssistProvider = new MockContentAssistProvider();
-        ITDAwarenessAspect.aspectOf().contentAssistAdapter.setProvider(contentAssistProvider);
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(provider);
+        NameEnvironmentAdapter.getInstance().setProvider(nameEnvironmentProvider);
+        ContentAssistAdapter.getInstance().setProvider(contentAssistProvider);
         
         mock = this.createPredefinedProject("MockCUProject");
         java = this.createPredefinedProject("RealJavaProject");
@@ -93,9 +95,12 @@ public class ITDAwarenessTests extends WeavingTestCase {
     
     @Override
     public void tearDown() throws Exception {
-        super.tearDown();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentAdapter.setProvider(origProvider);
-        ITDAwarenessAspect.aspectOf().contentAssistAdapter.setProvider(origContentAssistProvider);
+        try {
+            super.tearDown();
+        } finally {
+            NameEnvironmentAdapter.getInstance().setProvider(origNameEnvironmentProvider);
+            ContentAssistAdapter.getInstance().setProvider(origContentAssistProvider);
+        }
     }
     
     
@@ -107,7 +112,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
                 DefaultWorkingCopyOwner.PRIMARY, new HashMap(), true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertFalse("Should not have triggered problem finding through the aspects", provider.problemFindingDone);
+        assertFalse("Should not have triggered problem finding through the aspects", nameEnvironmentProvider.problemFindingDone);
     }
     
     @SuppressWarnings("unchecked")
@@ -118,7 +123,7 @@ public class ITDAwarenessTests extends WeavingTestCase {
                 DefaultWorkingCopyOwner.PRIMARY, new HashMap(), true, 
                 ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
         
-        assertTrue("Should have triggered problem finding through the aspects", provider.problemFindingDone);
+        assertTrue("Should have triggered problem finding through the aspects", nameEnvironmentProvider.problemFindingDone);
     }
     
     /**
