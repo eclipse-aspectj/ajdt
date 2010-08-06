@@ -9,8 +9,6 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.ajde;
 
-import java.io.File;
-
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
