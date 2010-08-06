@@ -9,8 +9,6 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.ajde;
 
-import java.io.File;
-
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
@@ -38,12 +36,12 @@ public class Bug273770Tests extends AJDTCoreTestCase {
         // note that the trailing ':' is actually a path separator character
         int firstJUnitLocation = entries[0].indexOf("junit.jar");
         int secondJUnitLocation = entries[0].indexOf("junit.jar", firstJUnitLocation+1); 
-        assertTrue("Should have found junit.jar on the resolved aspectpath", firstJUnitLocation != -1);
-        assertTrue("Should have found junit.jar ONLY ONCE on the resolved aspectpath", secondJUnitLocation == -1);
+        assertTrue("Should have found junit.jar on the resolved aspectpath:\n" + entries[0], firstJUnitLocation != -1);
+        assertTrue("Should have found junit.jar ONLY ONCE on the resolved aspectpath:\n" + entries[0], secondJUnitLocation == -1);
         
         entries = AspectJCorePreferences.getRawProjectAspectPath(project);
-        assertTrue("Should have JUnit 3 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
-        assertTrue("Should have JUnit 4 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
+        assertTrue("Should have JUnit 3 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
+        assertTrue("Should have JUnit 4 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
     }
     
     public void testExtraInpathEntry() throws Exception {
@@ -51,12 +49,12 @@ public class Bug273770Tests extends AJDTCoreTestCase {
         // note that the trailing ':' is actually a path separator character
         int firstJUnitLocation = entries[0].indexOf("junit.jar");
         int secondJUnitLocation = entries[0].indexOf("junit.jar", firstJUnitLocation+1); 
-        assertTrue("Should have found junit.jar on the resolved inpath", firstJUnitLocation != -1);
-        assertTrue("Should have found junit.jar ONLY ONCE on the resolved inpath", secondJUnitLocation == -1);
+        assertTrue("Should have found junit.jar on the resolved inpath:\n" + entries[0], firstJUnitLocation != -1);
+        assertTrue("Should have found junit.jar ONLY ONCE on the resolved inpath:\n" + entries[0], secondJUnitLocation == -1);
 
         entries = AspectJCorePreferences.getRawProjectInpath(project);
-        assertTrue("Should have JUnit 3 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
-        assertTrue("Should have JUnit 4 on the raw inpath: " + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
+        assertTrue("Should have JUnit 3 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
+        assertTrue("Should have JUnit 4 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
     }
     
     // first test the original project
