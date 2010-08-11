@@ -14,7 +14,6 @@ package org.eclipse.ajdt.core.javaelements;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +76,7 @@ public class PointcutUtilities {
 	}
 	
 	// returns a map of id strings to a list of offsets
-	public static Map findAllIdentifiers(String source) {
+	public static Map<String, List<Integer>> findAllIdentifiers(String source) {
 	    if (source == null) {
 	        // will occur if the target is non-existent
 	        return Collections.emptyMap();
@@ -87,7 +86,7 @@ public class PointcutUtilities {
 		boolean lookingForStart = true;
 		boolean done = false;
 		int start = 0;
-		Map idMap = new HashMap();
+		Map<String, List<Integer>> idMap = new HashMap<String, List<Integer>>();
 		for (int i = pos+1; !done && i < source.length(); i++) {
 			char c = source.charAt(i);
 			if (c == '{') {
@@ -101,9 +100,9 @@ public class PointcutUtilities {
 				if (!Character.isJavaIdentifierPart(c)) {
 					String id = source.substring(start,i);
 					if (!isAjPointcutKeyword(id)) {
-						List offsetList = (List)idMap.get(id);
+						List<Integer> offsetList = idMap.get(id);
 						if (offsetList==null) {
-							offsetList = new ArrayList();
+							offsetList = new ArrayList<Integer>();
 							idMap.put(id, offsetList);
 						}
 						offsetList.add(new Integer(i));
@@ -233,9 +232,8 @@ public class PointcutUtilities {
 			// next, see if the pointcut is inherited from an abstract aspect
 			String superName = aspect.getSuperclassName();
 			if ((superName != null) && (superName.length() > 0)) {
-				List cus = AJCompilationUnitManager.INSTANCE.getCachedCUs(aspect.getJavaProject().getProject());
-				for (Iterator iter = cus.iterator(); iter.hasNext();) {
-					AJCompilationUnit ajcu = (AJCompilationUnit) iter.next();
+				List<AJCompilationUnit> cus = AJCompilationUnitManager.INSTANCE.getCachedCUs(aspect.getJavaProject().getProject());
+				for (AJCompilationUnit ajcu : cus) {
 					IType[] types = ajcu.getTypes();
 					for (int i = 0; i < types.length; i++) {
 						if (types[i].getElementName().equals(superName)) {

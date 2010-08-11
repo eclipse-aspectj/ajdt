@@ -68,17 +68,30 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                 }
                 
                 // now index the type
-                if (last > 1) { 
-                    int prev = Math.max(CharOperation.lastIndexOf('$', methodName, 0, last - 2), 0);
-                    char[] targetTypeSimpleName = CharOperation.subarray(methodName, prev, last-1);
-                    super.acceptTypeReference(targetTypeSimpleName, methodInfo.nameSourceStart);
-                    if (isConstructor) {
-                        int argCount = methodInfo.parameterTypes == null ? 0 : methodInfo.parameterTypes.length;
-                        this.indexer.addConstructorDeclaration(targetTypeSimpleName, 
-                                argCount, null, methodInfo.parameterTypes, methodInfo.parameterNames, 
-                                methodInfo.modifiers, methodInfo.declaringPackageName, methodInfo.declaringTypeModifiers,
-                                methodInfo.exceptionTypes, methodInfo.extraFlags);
+                if (last > 1) {
+                    char[][] splits = CharOperation.splitAndTrimOn('$', methodName);
+                    
+                    // should be array of length 2 at least.  Last element is the realMethodName
+                    // one before that is the simple name of the type
+                    // if more than length 2, then the rest are package names
+                    int length = splits.length;
+                    
+                    if (length > 1) {
+                        // remove the last segment
+                        char[][] newSplits = new char[splits.length-1][];
+                        System.arraycopy(splits, 0, newSplits, 0, splits.length-1);
+                        
+                        super.acceptUnknownReference(newSplits, methodInfo.nameSourceStart, methodInfo.nameSourceEnd - splits[length-1].length -1);
+                        if (isConstructor) {
+                            int argCount = methodInfo.parameterTypes == null ? 0 : methodInfo.parameterTypes.length;
+                            this.indexer.addConstructorDeclaration(splits[length-2], 
+                                    argCount, null, methodInfo.parameterTypes, methodInfo.parameterNames, 
+                                    methodInfo.modifiers, methodInfo.declaringPackageName, methodInfo.declaringTypeModifiers,
+                                    methodInfo.exceptionTypes, methodInfo.extraFlags);
+                        }
                     }
+                    
+                    
                 }
             }
         } catch (Exception e) {
