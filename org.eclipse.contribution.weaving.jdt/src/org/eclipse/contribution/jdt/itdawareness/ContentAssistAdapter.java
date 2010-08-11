@@ -46,4 +46,11 @@ public class ContentAssistAdapter extends PlatformObject implements IAdaptable {
         }
         return null;
     }
+    
+    /*
+     * Not API!  For testing.
+     */
+    public void setProvider(IJavaContentAssistProvider provider) {
+        this.provider = provider;
+    }
 }
