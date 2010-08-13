@@ -18,6 +18,8 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -28,12 +30,24 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.IJavaSearchConstants;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.core.search.TypeNameRequestor;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -158,37 +172,6 @@ public class WeavingTestCase extends TestCase {
 	}
 
 	/**
-	 * Wait for autobuild notification to occur
-	 */
-	public static void waitForAutoBuild() {
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, new DumbProgressMonitor());
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);
-	}
-	
-	public static void waitForManualBuild() {
-		boolean wasInterrupted = false;
-		do {
-			try {
-				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, new DumbProgressMonitor());
-				wasInterrupted = false;
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				wasInterrupted = true;
-			}
-		} while (wasInterrupted);		
-	}
-	
-	/**
 	 * Copy the given source directory (and all its contents) to the given target directory.
 	 */
 	protected void copyDirectory(File source, File target) throws IOException {
@@ -302,6 +285,149 @@ public class WeavingTestCase extends TestCase {
    protected void waitForJobsToComplete(){
         SynchronizationUtils.joinBackgroudActivities();
     }
+   
+   private void ensureExists(IFolder folder) throws CoreException {
+       if (folder.getParent().getType() == IResource.FOLDER && !folder.getParent().exists()) {
+           ensureExists((IFolder) folder.getParent());
+       }
+       folder.create(false, true, null);
+   }
+   
+   private IPackageFragmentRoot createDefaultSourceFolder(IJavaProject javaProject) throws CoreException {
+       IProject project = javaProject.getProject();
+       IFolder folder = project.getFolder("src");
+       if (!folder.exists())
+           ensureExists(folder);
+       final IClasspathEntry[] entries = javaProject
+               .getResolvedClasspath(false);
+       final IPackageFragmentRoot root = javaProject
+               .getPackageFragmentRoot(folder);
+       for (int i = 0; i < entries.length; i++) {
+           final IClasspathEntry entry = entries[i];
+           if (entry.getPath().equals(folder.getFullPath()))
+               return root;
+       }
+       IClasspathEntry[] oldEntries = javaProject.getRawClasspath();
+       IClasspathEntry[] newEntries = new IClasspathEntry[oldEntries.length + 1];
+       System.arraycopy(oldEntries, 0, newEntries, 0, oldEntries.length);
+       newEntries[oldEntries.length] = JavaCore.newSourceEntry(root.getPath());
+       javaProject.setRawClasspath(newEntries, null);
+       return root;
+   }
+
+   public IPackageFragment createPackage(String name, IJavaProject javaProject) throws CoreException {
+       return createPackage(name, null, javaProject);
+   }
+   public IPackageFragment createPackage(String name, IPackageFragmentRoot sourceFolder, IJavaProject javaProject) throws CoreException {
+       if (sourceFolder == null)
+           sourceFolder = createDefaultSourceFolder(javaProject);
+       return sourceFolder.createPackageFragment(name, false, null);
+   }
+
+   public ICompilationUnit createCompilationUnit(IPackageFragment pack, String cuName,
+           String source) throws JavaModelException {
+       StringBuffer buf = new StringBuffer();
+       buf.append(source);
+       ICompilationUnit unit = pack.createCompilationUnit(cuName,
+               buf.toString(), false, null);
+       waitForManualBuild();
+       waitForAutoBuild();
+       return unit;
+   }
+   
+   public ICompilationUnit createCompilationUnitAndPackage(String packageName, String fileName,
+           String source, IJavaProject javaProject) throws CoreException {
+       return createCompilationUnit(createPackage(packageName, javaProject), fileName, source);
+   }
+
+
+   protected void buildProject(IJavaProject javaProject) throws CoreException {
+       javaProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+       assertNoProblems(javaProject.getProject());
+       performDummySearch(javaProject);
+   }
+
+   /**
+    * Force indexes to be populated
+    */
+   public static void performDummySearch(IJavaElement element) throws CoreException {
+       new SearchEngine().searchAllTypeNames(
+           null,
+           SearchPattern.R_EXACT_MATCH,
+           "XXXXXXXXX".toCharArray(), // make sure we search a concrete name. This is faster according to Kent
+           SearchPattern.R_EXACT_MATCH,
+           IJavaSearchConstants.CLASS,
+           SearchEngine.createJavaSearchScope(new IJavaElement[]{element}),
+           new Requestor(),
+           IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
+           null);
+   }
+
+   protected static class Requestor extends TypeNameRequestor { }
+
+   public void assertNoProblems(IProject project) throws CoreException {
+       String problems = getProblems(project);
+       if (problems != null) {
+           fail("Expecting no problems for project " + project.getName() + ", but found:\n\n" + problems);
+       }
+   }
+   
+   public String getProblems(IProject project) throws CoreException {
+       IMarker[] markers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+       StringBuffer sb = new StringBuffer();
+       if (markers == null || markers.length == 0) {
+           return null;
+       }
+       boolean errorFound = false;
+       sb.append("Problems:\n");
+       for (int i = 0; i < markers.length; i++) {
+           if (((Integer) markers[i].getAttribute(IMarker.SEVERITY)).intValue() == IMarker.SEVERITY_ERROR) {
+               sb.append("  ");
+               sb.append(markers[i].getResource().getName()).append(" : ");
+               sb.append(markers[i].getAttribute(IMarker.LINE_NUMBER)).append(" : ");
+               sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
+               errorFound = true;
+           }
+       }
+       return errorFound ? sb.toString() : null;
+   }
+   
+   public static void waitForAutoBuild() {
+       waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
+   }
+   public static void waitForManualBuild() {
+       waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_BUILD);
+   }
+   public static void waitForAutoRefresh() {
+       waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_REFRESH);
+   }
+   public static void waitForManualRefresh() {
+       waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
+   }
+   
+   public static void waitForJobFamily(Object family) {
+       boolean wasInterrupted = false;
+       do {
+           try {
+               Job.getJobManager().join(family, new NullProgressMonitor());
+               wasInterrupted = false;
+           } catch (OperationCanceledException e) {
+               e.printStackTrace();
+           } catch (InterruptedException e) {
+               wasInterrupted = true;
+           }
+       } while (wasInterrupted);       
+       
+   }
+   
+   public static void joinBackgroudActivities()  {
+       waitForAutoBuild();
+       waitForManualBuild();
+       waitForAutoRefresh();
+       waitForManualRefresh();
+   }
+
+
 
 }
 

@@ -18,6 +18,7 @@ import org.eclipse.contribution.weaving.jdt.tests.imagedescriptor.ImageDescripto
 import org.eclipse.contribution.weaving.jdt.tests.itdawareness.ITDAwarenessTests;
 import org.eclipse.contribution.weaving.jdt.tests.preferences.WeavingServiceEnablementTests;
 import org.eclipse.contribution.weaving.jdt.tests.preferences.WeavingStateTests;
+import org.eclipse.contribution.weaving.jdt.tests.refactoring.RefactoringHooksTests;
 import org.eclipse.contribution.weaving.jdt.tests.sourceprovider.SourceTransformerTests;
 
 /**
@@ -34,6 +35,7 @@ public class AllWeavingTests {
         suite.addTestSuite(WeavingStateTests.class);
         suite.addTestSuite(WeavingServiceEnablementTests.class);
         suite.addTestSuite(ITDAwarenessTests.class);
+        suite.addTestSuite(RefactoringHooksTests.class);
         return suite;
     }
     
