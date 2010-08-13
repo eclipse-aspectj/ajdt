@@ -9,45 +9,45 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.contribution.jdt.itdawareness;
+package org.eclipse.contribution.jdt.refactoring;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.PlatformObject;
 
 /**
+ * Adaptable object that provides general refactoring support
  * @author Andrew Eisenberg
  * @created Dec 15, 2009
- *
  */
-public class RenameAdapter extends PlatformObject implements IAdaptable {
+public class RefactoringAdapter extends PlatformObject implements IAdaptable {
 
-    private static final RenameAdapter INSTANCE = new RenameAdapter();
+    private static final RefactoringAdapter INSTANCE = new RefactoringAdapter();
     
-    public static RenameAdapter getInstance() {
+    public static RefactoringAdapter getInstance() {
         return INSTANCE;
     }
     
-    private RenameAdapter() { }
+    private RefactoringAdapter() { }
 
-    private IRenameRefactoringProvider provider = null;
+    private IRefactoringProvider provider = null;
     
-    public IRenameRefactoringProvider getProvider() {
+    public IRefactoringProvider getProvider() {
         if (provider == null) {
-            provider = (IRenameRefactoringProvider) getAdapter(IRenameRefactoringProvider.class);
+            provider = (IRefactoringProvider) getAdapter(IRefactoringProvider.class);
         }
         return provider;
     }
     
     @SuppressWarnings("unchecked")
     public Object getAdapter(Class adapter) {
-        if (adapter == IRenameRefactoringProvider.class) {
+        if (adapter == IRefactoringProvider.class) {
             return super.getAdapter(adapter);
         }
         return null;
     }
 
     // Not API, for testing only
-    public void setProvider(IRenameRefactoringProvider provider) {
+    public void setProvider(IRefactoringProvider provider) {
         this.provider = provider;
     }
 }

@@ -9,19 +9,22 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.contribution.jdt.itdawareness;
+package org.eclipse.contribution.jdt.refactoring;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author Andrew Eisenberg
  * @created May 21, 2010
- *
+ * Provides hooks for refactoring support 
  */
-public interface IRenameRefactoringProvider {
+public interface IRefactoringProvider {
 
     boolean isInterestingElement(IJavaElement element);
     
     void performRefactoring(IJavaElement element, boolean lightweight) throws CoreException;
+    
+    boolean shouldCheckResultForCompileProblems(ICompilationUnit unit);
 }

@@ -9,7 +9,7 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.contribution.jdt.itdawareness;
+package org.eclipse.contribution.jdt.refactoring;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
@@ -25,7 +25,7 @@ public aspect RenameJavaElementActionAspect {
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      */
-    IRenameRefactoringProvider provider = RenameAdapter.getInstance().getProvider();
+    IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
     
     pointcut renameInvoked(IJavaElement element, boolean lightweight) : 
             execution(private void RenameJavaElementAction.run(

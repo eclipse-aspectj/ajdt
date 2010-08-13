@@ -7,7 +7,8 @@
 <aspect name="org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.MatchLocationManipulatorAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.ExtraGettersSettersAspect"/>
-<aspect name="org.eclipse.contribution.jdt.itdawareness.RenameJavaElementActionAspect"/>
+<aspect name="org.eclipse.contribution.jdt.refactoring.RenameJavaElementActionAspect"/>
+<aspect name="org.eclipse.contribution.jdt.refactoring.RefactoringHooksAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.JUnit4TestFinderAspect"/>
 </aspects>
 </aspectj>

@@ -230,7 +230,6 @@ public aspect ITDAwarenessAspect {
             boolean creatingAST,
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException : findProblemsInJava(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor) {
-                System.out.println("nameEnvironmentAdapter.getProvider() : " + nameEnvironmentAdapter.getProvider());
         if (nameEnvironmentAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider().shouldFindProblems(unitElement)) {
             try {
                 return nameEnvironmentAdapter.getProvider().problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
