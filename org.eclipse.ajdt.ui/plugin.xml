@@ -2106,10 +2106,10 @@ M4 = Platform-specific fourth key
          </adapter>
       </factory>
       <factory
-            adaptableType="org.eclipse.contribution.jdt.itdawareness.RenameAdapter"
+            adaptableType="org.eclipse.contribution.jdt.refactoring.RefactoringAdapter"
             class="org.eclipse.ajdt.internal.ui.refactoring.RenameProviderAdapterFactory">
          <adapter
-               type="org.eclipse.contribution.jdt.itdawareness.IRenameRefactoringProvider">
+               type="org.eclipse.contribution.jdt.refactoring.IRefactoringProvider">
          </adapter>
       </factory>
    </extension>

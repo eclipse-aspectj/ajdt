@@ -12,9 +12,11 @@
 package org.eclipse.ajdt.internal.ui.refactoring;
 
 import org.eclipse.ajdt.core.ReflectionUtils;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
-import org.eclipse.contribution.jdt.itdawareness.IRenameRefactoringProvider;
+import org.eclipse.contribution.jdt.refactoring.IRefactoringProvider;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.corext.refactoring.rename.JavaRenameProcessor;
 import org.eclipse.jdt.internal.ui.refactoring.UserInterfaceManager;
@@ -33,7 +35,7 @@ import org.eclipse.ui.internal.Workbench;
  * @author Andrew Eisenberg
  * @created May 21, 2010
  */
-public class ITDRenameRefactoringProvider implements IRenameRefactoringProvider {
+public class ITDRenameRefactoringProvider implements IRefactoringProvider {
 
     static {
         // ensure the user interface manager is properly initialized
@@ -81,5 +83,14 @@ public class ITDRenameRefactoringProvider implements IRenameRefactoringProvider 
             // null for some reason, maybe workbench not fully initialized
             return null;
         }
+    }
+
+    /**
+     * Do not check results for problems if this is an {@link AJCompilationUnit}
+     * since the result checking uses the actual file contents and will always
+     * produce errors.
+     */
+    public boolean shouldCheckResultForCompileProblems(ICompilationUnit unit) {
+        return ! (unit instanceof AJCompilationUnit);
     }
 }
