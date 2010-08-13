@@ -20,6 +20,7 @@ import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 
 /**
@@ -52,7 +53,6 @@ public class AdviceMarkersTest7 extends UITestCase {
      * test that a change in aspect path aspect will affect the markers properly
      * @throws Exception
      */
-    // FAILING FOR NOW
     public void testChangeOnAspectPath() throws Exception {
         checkAllMarkersExist();
         changeAspectOnAspectPath();
@@ -166,6 +166,8 @@ public class AdviceMarkersTest7 extends UITestCase {
         StringReader reader = new StringReader(newContents);
         ajFile.setContents(new ReaderInputStream(reader), true, true, null);
         waitForJobsToComplete();
+        ajFile.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        waitForJobsToComplete();
     }
 
     // back to original contents
@@ -177,6 +179,8 @@ public class AdviceMarkersTest7 extends UITestCase {
         "}";
         StringReader reader = new StringReader(newContents);
         ajFile.setContents(new ReaderInputStream(reader), true, true, null);
+        waitForJobsToComplete();
+        ajFile.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
         waitForJobsToComplete();
     }
 }
