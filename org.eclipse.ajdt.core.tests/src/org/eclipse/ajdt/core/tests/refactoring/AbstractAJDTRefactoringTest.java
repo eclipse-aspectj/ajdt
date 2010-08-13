@@ -109,6 +109,7 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
+        waitForAutoRefresh();
         super.buildProject(project);
         performDummySearch();
         IUndoManager undoManager= getUndoManager();

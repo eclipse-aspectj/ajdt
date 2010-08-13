@@ -34,26 +34,22 @@ public class Bug273770Tests extends AJDTCoreTestCase {
     public void testExtraAspectpathEntry() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectAspectPath(project);
         // note that the trailing ':' is actually a path separator character
-        int firstJUnitLocation = entries[0].indexOf("junit.jar");
-        int secondJUnitLocation = entries[0].indexOf("junit.jar", firstJUnitLocation+1); 
-        assertTrue("Should have found junit.jar on the resolved aspectpath:\n" + entries[0], firstJUnitLocation != -1);
-        assertTrue("Should have found junit.jar ONLY ONCE on the resolved aspectpath:\n" + entries[0], secondJUnitLocation == -1);
+        // should filter out the hamcrest jar, but keep the junit jar
+        assertTrue("Should have found junit.jar on the resolved aspectpath:\n" + entries[0], entries[0].indexOf("junit.jar") != -1);
+        assertTrue("Should have found the hamcrest jar on the resolved aspectpath:\n" + entries[0], entries[0].indexOf("hamcrest") == -1);
         
         entries = AspectJCorePreferences.getRawProjectAspectPath(project);
-        assertTrue("Should have JUnit 3 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
         assertTrue("Should have JUnit 4 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
     }
     
     public void testExtraInpathEntry() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectInpath(project);
         // note that the trailing ':' is actually a path separator character
-        int firstJUnitLocation = entries[0].indexOf("junit.jar");
-        int secondJUnitLocation = entries[0].indexOf("junit.jar", firstJUnitLocation+1); 
-        assertTrue("Should have found junit.jar on the resolved inpath:\n" + entries[0], firstJUnitLocation != -1);
-        assertTrue("Should have found junit.jar ONLY ONCE on the resolved inpath:\n" + entries[0], secondJUnitLocation == -1);
+        // should filter out the hamcrest jar, but keep the junit jar
+        assertTrue("Should have found junit.jar on the resolved inpath:\n" + entries[0], entries[0].indexOf("junit.jar") != -1);
+        assertTrue("Should have found the hamcrest jar on the resolved inpath:\n" + entries[0], entries[0].indexOf("hamcrest") == -1);
 
         entries = AspectJCorePreferences.getRawProjectInpath(project);
-        assertTrue("Should have JUnit 3 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/3:") >= 0);
         assertTrue("Should have JUnit 4 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
     }
     
