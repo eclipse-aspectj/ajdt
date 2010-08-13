@@ -440,6 +440,28 @@ public class AJDTCoreTestCase extends TestCase {
         javaProject.setRawClasspath(newEntries, null);
         return root;
     }
+    
+    protected ICompilationUnit[] createUnits(String[] packages, String[] cuNames, String[] cuContents, IJavaProject project) throws CoreException {
+        ICompilationUnit[] units = new ICompilationUnit[cuNames.length];
+        for (int i = 0; i < units.length; i++) {
+            units[i] = createCompilationUnitAndPackage(packages[i], cuNames[i], cuContents[i], project);
+        }
+        project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+        waitForManualBuild();
+        waitForAutoBuild();
+        assertNoProblems(project.getProject());
+        return units;
+    }
+    
+    protected ICompilationUnit createUnit(String pkg, String cuName, String cuContents, IJavaProject project) throws CoreException {
+        ICompilationUnit unit = createCompilationUnitAndPackage(pkg, cuName, cuContents, project);
+        project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+        waitForManualBuild();
+        waitForAutoBuild();
+        assertNoProblems(project.getProject());
+        return unit;
+    }
+    
 
     
     public IPackageFragment createPackage(String name, IJavaProject javaProject) throws CoreException {
@@ -501,6 +523,4 @@ public class AJDTCoreTestCase extends TestCase {
         }
         return errorFound ? sb.toString() : null;
     }
-    
-    
 }
