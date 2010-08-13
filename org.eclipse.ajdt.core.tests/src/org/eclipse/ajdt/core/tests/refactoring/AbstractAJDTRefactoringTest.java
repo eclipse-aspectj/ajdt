@@ -109,9 +109,16 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
-        waitForAutoRefresh();
         super.buildProject(project);
-        performDummySearch();
+
+        // failing on build server...why?
+        waitForAutoRefresh();
+        waitForAutoRefresh();
+        waitForAutoRefresh();
+        waitForManualBuild();
+        waitForManualBuild();
+        waitForManualBuild();
+        
         IUndoManager undoManager= getUndoManager();
         final CreateChangeOperation create= new CreateChangeOperation(
             new CheckConditionsOperation(ref, CheckConditionsOperation.ALL_CONDITIONS),
