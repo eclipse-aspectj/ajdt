@@ -53,12 +53,10 @@ public class DeclareElement extends AspectJMemberElement{
                     elementInfo.setImplements(details.startsWith("implements"));
         	    }
                 if (elementInfo.isImplements() || elementInfo.isExtends()) {
-                    List/*String*/ types = ipe.getParentTypes();
+                    List<String> types = ipe.getParentTypes();
                     if (types != null) {
                         int index = 0;
-                        for (Iterator typeIter = types.iterator(); typeIter
-                                .hasNext();) {
-                            String type = (String) typeIter.next();
+                        for (String type : types) {
                             type = type.replaceAll("\\$", "\\.");
                             types.set(index++, type);
                         }

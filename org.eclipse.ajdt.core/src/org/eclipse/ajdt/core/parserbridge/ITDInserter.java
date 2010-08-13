@@ -12,7 +12,6 @@ package org.eclipse.ajdt.core.parserbridge;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,12 +23,14 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJWorldFacade;
 import org.eclipse.ajdt.core.model.AJWorldFacade.ErasedTypeSignature;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
@@ -87,7 +88,7 @@ public class ITDInserter extends ASTVisitor {
 
     private final ICompilationUnit unit;
 
-    private Map /*TypeDeclaration -> OrigContents*/ origMap = new HashMap();
+    private Map<TypeDeclaration, OrigContents> origMap = new HashMap<TypeDeclaration, OrigContents>();
 
     private final ITDTypeConverter typeConverter;
 
@@ -124,14 +125,13 @@ public class ITDInserter extends ASTVisitor {
         orig.superInterfaces = type.superInterfaces;
         
         try {
-            List/*FieldDeclaration*/ itdFields = new LinkedList();
-            List/*MethodDeclaration*/ itdMethods = new LinkedList();
+            List<FieldDeclaration> itdFields = new LinkedList<FieldDeclaration>();
+            List<AbstractMethodDeclaration> itdMethods = new LinkedList<AbstractMethodDeclaration>();
             IType handle = getHandle(type);
             
 
-            List/*IProgramElement*/ ipes = getITDs(handle);
-            for (Iterator iterator = ipes.iterator(); iterator.hasNext();) {
-                IProgramElement elt = (IProgramElement) iterator.next();
+            List<IProgramElement> ipes = getITDs(handle);
+            for (IProgramElement elt : ipes) {
                 if (elt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
                     // ignore if type is an interface.
                     // assumption is that this ITD is an implementation of an interface method
@@ -154,6 +154,7 @@ public class ITDInserter extends ASTVisitor {
                         itdFields.add(createField(elt, type));
                     }
                 } else if (elt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
+                    // XXX this is wrong.  Can't tell by looking at the text, must determine if it is class or interface through the model 
                     String details = elt.getDetails();
                     boolean isExtends = details != null && details.startsWith("extends");
                     if (elt.getParentTypes() != null && elt.getParentTypes().size() > 0) {
@@ -163,27 +164,28 @@ public class ITDInserter extends ASTVisitor {
                             addSuperInterfaces(elt, type);
                         }
                     }
+                } else if (elt.getKind() == IProgramElement.Kind.ASPECT) {
+                    // probably an instantiation of a declare parents relationship from an abstact aspect
+                    Map<String, List<String>> parentsMap = elt.getDeclareParentsMap();
+                    if (parentsMap != null && type.binding != null && type.binding.compoundName != null) {
+                        List<String> parents = parentsMap.get(String.valueOf(CharOperation.concatWith(type.binding.compoundName, '.')));
+                        List<String> interfacesToAdd = new LinkedList<String>();
+                        for (String parent : parents) {
+                            try {
+                                IType parentElt = unit.getJavaProject().findType(parent, (IProgressMonitor) null);
+                                if (parentElt != null && parentElt.isClass()) {
+                                    addSuperClass(parent, type);
+                                } else if (parentElt != null && parentElt.isInterface()) {
+                                    interfacesToAdd.add(parent);
+                                }
+                            } catch (JavaModelException e) { }
+                        }
+                        addSuperInterfaces(interfacesToAdd, type);
+                    }
                 }
             }
             
-            // if we are dealing with a class, must also add all 
-            // ITD methods from interfaces
-            boolean interfaceImplInserted = false;
-//            if (TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
-//                List/*IProgramElement*/ suppliedImplementations = 
-//                    addAllITDInterfaceMethods(handle);
-//                for (Iterator implIter = suppliedImplementations.iterator(); implIter
-//                        .hasNext();) {
-//                    IProgramElement elt = (IProgramElement) implIter.next();
-//                    MethodDeclaration interfaceMethod = createMethod(elt, type);
-//                    if (!isDuplicateAll(interfaceMethod, type.methods, itdMethods)) {
-//                        itdMethods.add(interfaceMethod);
-//                        interfaceImplInserted = true;
-//                    }
-//                }
-//            }
-            
-            if (ipes.size() > 0 || interfaceImplInserted) {
+            if (ipes.size() > 0) {
                 origMap.put(type, orig);
                 
                 // now add the ITDs into the declaration
@@ -253,11 +255,11 @@ public class ITDInserter extends ASTVisitor {
                 sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
             }
             
-            List/*String*/ pNames = method.getParameterNames();
+            List<String> pNames = method.getParameterNames();
             // bug 270123... no parameter names if coming in from a jar and
             // not build with debug info...mock it up.
             if (pNames == null || pNames.size() != args.length) {
-                pNames = new ArrayList(args.length);
+                pNames = new ArrayList<String>(args.length);
                 for (int i = 0; i < args.length; i++) {
                     pNames.add("args" + i);
                 }
@@ -271,11 +273,11 @@ public class ITDInserter extends ASTVisitor {
         } catch (Exception e) {
             AJLog.log("Exception occurred in ITDInserter.createMethod().  (Ignoring)");
             AJLog.log("Relevant method: " + method.getParent().getName() + "." + method.getName());
-            List/*String*/ pNames = method.getParameterNames();
+            List<String> pNames = method.getParameterNames();
             // bug 270123... no parameter names if coming in from a jar and
             // not build with debug info...mock it up.
             if (pNames == null || pNames.size() != args.length) {
-                pNames = new ArrayList(args.length);
+                pNames = new ArrayList<String>(args.length);
                 for (int i = 0; i < args.length; i++) {
                     pNames.add("args" + i);
                 }
@@ -310,31 +312,37 @@ public class ITDInserter extends ASTVisitor {
     }
     
     private void addSuperClass(IProgramElement ipe, TypeDeclaration decl) {
-        List/*String*/ types = ipe.getParentTypes();
-        if (types == null) return;
+        List<String> types = ipe.getParentTypes();
+        if (types == null || types.size() < 1) return;
         
-        String typeName = (String) types.get(0);
-        typeName = typeName.replaceAll("\\$", "\\.");
-        decl.superclass = createTypeReference(typeName); 
+        String typeName = types.get(0);
+        addSuperClass(typeName, decl); 
+    }
+
+    private void addSuperClass(String newSuper, TypeDeclaration decl) {
+        newSuper = newSuper.replaceAll("\\$", "\\.");
+        decl.superclass = createTypeReference(newSuper);
     }
     
     private void addSuperInterfaces(IProgramElement ipe, TypeDeclaration decl) {
-        List/*String*/ types = ipe.getParentTypes();
-        if (types != null) {
-            int index = 0;
-            for (Iterator typeIter = types.iterator(); typeIter
-                    .hasNext();) {
-                String type = (String) typeIter.next();
-                type = type.replaceAll("\\$", "\\.");
-                types.set(index++, type);
-            }
+        List<String> newInterfaces = ipe.getParentTypes();
+        addSuperInterfaces(newInterfaces, decl);
+    }
+
+    /**
+     * @param newInterfaces
+     * @param decl
+     */
+    private void addSuperInterfaces(List<String> newInterfaces,
+            TypeDeclaration decl) {
+        if (newInterfaces != null) {
             int superInterfacesNum = decl.superInterfaces == null ? 0 : decl.superInterfaces.length;
-            TypeReference[] refs = new TypeReference[superInterfacesNum + types.size()];
+            TypeReference[] refs = new TypeReference[superInterfacesNum + newInterfaces.size()];
             if (superInterfacesNum > 0) {
                 System.arraycopy(decl.superInterfaces, 0, refs, 0, decl.superInterfaces.length);
             }
             for (int i = 0; i < refs.length-superInterfacesNum; i++) {
-                refs[i + superInterfacesNum] = createTypeReference((String) types.get(i));
+                refs[i + superInterfacesNum] = createTypeReference(newInterfaces.get(i).replaceAll("\\$", "\\."));
             }
             decl.superInterfaces = refs;
         }
@@ -384,16 +392,14 @@ public class ITDInserter extends ASTVisitor {
         return null;
     }
     
-    private List/*IProgramElement*/ getITDs(IType handle) {
+    private List<IProgramElement> getITDs(IType handle) {
         if (model.hasModel()) {
             if (model.hasProgramElement(handle)) {
-                List/*IRelationship*/ rels = model
+                List<IJavaElement> rels = model
                         .getRelationshipsForElement(handle,
                                 AJRelationshipManager.ASPECT_DECLARATIONS);
-                List elts = new ArrayList();
-                for (Iterator relIter = rels.iterator(); relIter
-                        .hasNext();) {
-                    IJavaElement je = (IJavaElement) relIter.next();
+                List<IProgramElement> elts = new ArrayList<IProgramElement>();
+                for (IJavaElement je : rels) {
                     IProgramElement declareElt = model
                             .javaElementToProgramElement(je);
                     elts.add(declareElt);
@@ -401,7 +407,7 @@ public class ITDInserter extends ASTVisitor {
                 return elts;
             }
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
     
     private TypeReference createTypeReference(String origTypeName) {
@@ -421,11 +427,8 @@ public class ITDInserter extends ASTVisitor {
      * complete
      */
     public void revert() {
-        for (Iterator origIter = origMap.entrySet().iterator(); origIter.hasNext();) {
-            Map.Entry entry = (Map.Entry) origIter.next();
-            TypeDeclaration type = (TypeDeclaration) entry.getKey();
-            OrigContents orig = (OrigContents) entry.getValue();
-            revertType(type, orig);
+        for (Map.Entry<TypeDeclaration, OrigContents> entry : origMap.entrySet()) {
+            revertType(entry.getKey(), entry.getValue());
         }
     }
 

@@ -49,14 +49,14 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     
     private AJProjectModelFacade model;
     private ICompilationUnit currentUnit;
-    private Set /* IJavaElement */ accepted;
+    private Set<IJavaElement> accepted;
     
     private ArrayList<Replacement> replacements;
     
     public ITDAwareSelectionRequestor(AJProjectModelFacade model, ICompilationUnit currentUnit) {
         this.model = model;
         this.currentUnit = currentUnit;
-        this.accepted = new HashSet();
+        this.accepted = new HashSet<IJavaElement>();
     }
 
     public void setReplacements(ArrayList<Replacement> replacements) {
@@ -72,9 +72,8 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             char[] uniqueKey, int start, int end) {
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
-            for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
-                IJavaElement elt = (IJavaElement) iterator.next();
+            List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+            for (IJavaElement elt : itds) {
                 if (matchedField(elt, name)) {
                     accepted.add(elt);
                     return;
@@ -121,20 +120,21 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
-            for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
-                IJavaElement elt = (IJavaElement) iterator.next();
-                if (matchedMethod(elt, selector, simpleParameterSigs)) {
-                    accepted.add(elt);
-                    return;
+            if (targetType != null) {
+                List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+                for (IJavaElement elt : itds) {
+                    if (matchedMethod(elt, selector, simpleParameterSigs)) {
+                        accepted.add(elt);
+                        return;
+                    }
                 }
-            }
-            
-            // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
-            if (isInsideITD(start)) {
-                IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
-                if (method.exists()) {
-                    accepted.add(method);
+                
+                // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
+                if (isInsideITD(start)) {
+                    IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
+                    if (method.exists()) {
+                        accepted.add(method);
+                    }
                 }
             }
         } catch (JavaModelException e) {
@@ -328,9 +328,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         return split[splitLength-1];
     }
 
-
     public IJavaElement[] getElements() {
         return (IJavaElement[]) accepted.toArray(new IJavaElement[accepted.size()]);
     }
-    
 }
