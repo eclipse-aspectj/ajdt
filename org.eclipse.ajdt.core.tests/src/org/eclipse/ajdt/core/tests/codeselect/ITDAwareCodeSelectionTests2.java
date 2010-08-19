@@ -9,28 +9,14 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.ajdt.core.tests.model;
-
-import java.util.HashMap;
+package org.eclipse.ajdt.core.tests.codeselect;
 
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
-import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.WorkingCopyOwner;
-import org.eclipse.jdt.internal.compiler.SourceElementParser;
-import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.eclipse.jdt.internal.compiler.env.ISourceType;
-import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.core.SearchableEnvironment;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * @author Andrew Eisenberg
@@ -44,37 +30,7 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
     // need to set a NameEnviromentProvider, since this is typically
     // set by AJDT.UI
     INameEnvironmentProvider origProvider;
-    INameEnvironmentProvider mockProvider = new INameEnvironmentProvider() {
-    
-        public ISourceType transformSourceTypeInfo(ISourceType info) {
-            // don't need
-            return null;
-        }
-    
-        public boolean shouldFindProblems(CompilationUnit unitElement) {
-            return true;
-        }
-    
-        public CompilationUnitDeclaration problemFind(CompilationUnit unitElement,
-                SourceElementParser parer, WorkingCopyOwner workingCopyOwner,
-                HashMap problems, boolean creatingAST, int reconcileFlags,
-                IProgressMonitor monitor) throws JavaModelException {
-            // don't need
-            return null;
-        }
-    
-        public SearchableEnvironment getNameEnvironment(JavaProject project,
-                ICompilationUnit[] workingCopies) {
-            // don't need
-            return null;
-        }
-    
-        public SearchableEnvironment getNameEnvironment(JavaProject project,
-                WorkingCopyOwner owner) {
-            // don't need
-            return null;
-        }
-    };
+    INameEnvironmentProvider mockProvider = new MockNameEnvironmentProvider();
 
     IProject base;
     IProject depending;
@@ -120,14 +76,6 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
     public void testITDTargetFileHyperlinkOtherProject() throws Exception {
         validateCodeSelect(baseUnit, findRegion(baseUnit, "aField", 2), "InterfaceForITD.aField");
         validateCodeSelect(baseUnit, findRegion(baseUnit, "nothing", 2), "InterfaceForITD.nothing");
-    }
-   private void validateCodeSelect(ICompilationUnit unit,
-            IRegion region, String expected) throws Exception {
-        IJavaElement[] result = unit.codeSelect(region.getOffset(), region.getLength());
-        assertEquals("Should have found exactly one hyperlink", 1, result.length);
-        IJavaElement elt = result[0];
-        assertTrue("Java element " + elt.getHandleIdentifier() + " should exist", elt.exists());
-        assertEquals(expected, elt.getElementName());
     }
 
 }

@@ -16,6 +16,7 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.search.SearchMatch;
 
 
 /**
@@ -24,7 +25,6 @@ import org.eclipse.jdt.core.IMember;
  */
 public class ITDAwareSearchTests extends AbstractITDSearchTest {
 
-    // cannot find matches inside of the target type
     public void testITDSearchFieldInTargetType() throws Exception {
         ICompilationUnit unit = createCU("Aspect.aj", "aspect Aspect { int Java.xxx = 0; }");
         String contents = "class Java { \nvoid foo() { xxx++; } }";
@@ -32,11 +32,20 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
+        assertMatch("xxx", contents, matches);
+    }
+    public void testQualifiedITDSearchFieldInTargetType() throws Exception {
+        ICompilationUnit unit = createCU("p", "Aspect.aj", "package p;\naspect Aspect { public int q.Java.xxx = 0; }");
+        String contents = "package q;\npublic class Java { \npublic void foo() { xxx++; } }";
+        createCU("q", "Java.java", contents);
+        
+        IntertypeElement itd = findFirstITD(unit);
+        
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx", contents, matches);
     }
 
-    // cannot find matches inside of the target type
     public void testITDSearchMethodInTargetType() throws Exception {
         ICompilationUnit unit = createCU("Aspect.aj", "aspect Aspect { int Java.xxx() { return 0; } }");
         String contents = "class Java { \nvoid foo() { xxx(); } }";
@@ -44,7 +53,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx()", contents, matches);
     }
     // cannot find matches inside of the target type
@@ -55,7 +64,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("new Java(7)", contents, matches);
     }
     
@@ -70,7 +79,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx", contents, matches);
     }
     public void testITDSearchMethodInOtherType() throws Exception {
@@ -83,7 +92,20 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
+        assertMatch("xxx()", contents, matches);
+    }
+    public void testQualifiedITDSearchMethodInOtherType() throws Exception {
+        ICompilationUnit unit = createCU("p", "Aspect.aj", "package p;\naspect Aspect { public int q.Java.xxx() { return  0; } }");
+        String contents = "package q;\npublic class Java {  }";
+        createCU("q", "Java.java", contents);
+        
+        contents = "package q;\npublic class Other { \nvoid foo() { new Java().xxx(); } }";
+        createCU("q", "Other.java", contents);
+        
+        IntertypeElement itd = findFirstITD(unit);
+        
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx()", contents, matches);
     }
     public void testITDSearchConstructorInOtherType() throws Exception {
@@ -96,7 +118,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("new Java(7)", contents, matches);
     }
     
@@ -107,7 +129,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx", contents, matches);
     }
     public void testITDSearchMethodInDeclaringAspect() throws Exception {
@@ -117,7 +139,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx()", contents, matches);
     }
     public void testITDSearchConstructorInDeclaringAspect() throws Exception {
@@ -127,7 +149,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("new Java(7)", contents, matches);
     }
 
@@ -138,7 +160,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx", contents, matches);
     }
     
@@ -149,7 +171,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findLastITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("xxx()", contents, matches);
     }
     public void testITDSearchRegularMethodInITD() throws Exception {
@@ -159,7 +181,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertMatch("regular()", contents, matches);
     }
     public void testITDSearchRegularMethodInITD2() throws Exception {
@@ -169,7 +191,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertMatch("regular()", contents, matches);
     }
     public void testITDSearchRegularFieldInITD() throws Exception {
@@ -179,7 +201,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertMatch("regular", contents, matches);
     }
     public void testITDSearchRegularFieldInITD2() throws Exception {
@@ -189,7 +211,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertMatch("regular", contents, matches);
     }
     public void testITDSearchRegularFieldInITD3() throws Exception {
@@ -199,7 +221,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertNoMatch(contents, matches);
     }
     public void testITDSearchRegularFieldInITD4() throws Exception {
@@ -209,7 +231,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertNoMatch(contents, matches);
     }
     public void testITDSearchRegularFieldInITD5() throws Exception {
@@ -219,7 +241,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertNoMatch(contents, matches);
     }
     public void testITDSearchRegularFieldInITD6() throws Exception {
@@ -229,7 +251,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IMember toSearch = findFirstChild(unit);
         
-        List matches = findSearchMatches(toSearch, this.getName());
+        List<SearchMatch> matches = findSearchMatches(toSearch, this.getName());
         assertNoMatch(contents, matches);
     }
     public void testITDSearchConstructorInITD() throws Exception {
@@ -239,7 +261,7 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IntertypeElement itd = findFirstITD(unit);
         
-        List matches = findSearchMatches(itd, this.getName());
+        List<SearchMatch> matches = findSearchMatches(itd, this.getName());
         assertMatch("new Java(7)", contents, matches);
     }
     
@@ -250,7 +272,17 @@ public class ITDAwareSearchTests extends AbstractITDSearchTest {
         
         IJavaElement elt = findFirstChild(unit);
         
-        List matches = findSearchMatches(elt, this.getName());
+        List<SearchMatch> matches = findSearchMatches(elt, this.getName());
+        assertTwoMatches("foo", contents, matches);
+    }
+    public void testQualifiedITDInOtherPackages() throws Exception {
+        String contents = "package com.f; aspect Aspect {   \n  public int com.bar.Bar.getFoo() { return foo; }  \n   public void com.bar.Bar.setFoo(int newval) { this.foo = newval; } }";
+        createCU("com.f", "Aspect.aj", contents);
+        ICompilationUnit unit = createCU("com.bar", "Bar.java", "package com.bar; \n public class Bar {\n public int foo;} ");
+        
+        IJavaElement elt = findFirstChild(unit);
+        
+        List<SearchMatch> matches = findSearchMatches(elt, this.getName());
         assertTwoMatches("foo", contents, matches);
     }
 }
