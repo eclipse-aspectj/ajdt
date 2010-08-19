@@ -51,10 +51,10 @@ public privileged aspect RefactoringHooksAspect {
         }
     }
     
-//    private boolean isInterestingProject(ICompilationUnit unit) {
-//        return unit != null &&  
-//                WeavableProjectListener.getInstance().isWeavableProject(unit.getJavaProject().getProject());
-//    }
+    private boolean isInterestingProject(ICompilationUnit unit) {
+        return unit != null &&  
+                WeavableProjectListener.getInstance().isWeavableProject(unit.getJavaProject().getProject());
+    }
     
     
     // Not used yet.  Can't get this to work
