@@ -598,23 +598,45 @@ public class PushInRefactoring extends Refactoring {
             }
         }
 
-        String targetSource = "\n\t" + itd.getSource() + "\n";
+        String targetSource = getTargetSource(newName, itd);
+        targetSource = "\n\t" + targetSource + "\n";
+        // also replace other pplaces where the itdName may exist
         targetSource = targetSource.replaceAll(itdName, newName);
+        
         return targetSource;
     }
+
     private String getTargetTextForInterface(IntertypeElement itd) throws JavaModelException {
         String itdName = itd.getElementName();
         String[] splits = itdName.split("\\.");
         String newName = splits[splits.length-1];
         itdName = itdName.replaceAll("\\.", "\\\\\\$");
-        String targetSource = "\t" + itd.getSource() + "\n";
-        int nameStart = targetSource.indexOf(itdName);
-        int closeParen = targetSource.indexOf(")", nameStart);  // big assumption here...that closing paren doesn't exist in comments 
-        targetSource = "\n" + targetSource.substring(0, closeParen) + ";\n";
+        String targetSource = getTargetSource(newName, itd);
+        int closeParen = targetSource.indexOf(")");  // assumption here...closing paren doesn't exist in comments
+        if (closeParen >= 0) {
+            targetSource = targetSource.substring(0, closeParen+1) + ';';
+        }
+        targetSource = "\n\t" + targetSource + "\n\n";
+        // also replace any other occurrences of the itdName
         targetSource = targetSource.replaceAll(itdName, newName);
         return targetSource;
     }
 
+    /**
+     * get the target source and replace the ITD name with the new name
+     * @param newName
+     * @param itd
+     * @return
+     * @throws JavaModelException 
+     */
+    private String getTargetSource(String newName, IntertypeElement itd) throws JavaModelException {
+        int itdStart = itd.getSourceRange().getOffset();
+        int itdNameStart = itd.getTargetTypeSourceRange().getOffset() - itdStart;
+        int itdNameEnd = itd.getNameRange().getOffset() + itd.getNameRange().getLength() - itdStart;
+        String targetSource = itd.getSource();
+        targetSource = targetSource.substring(0, itdNameStart) + newName + targetSource.substring(itdNameEnd);
+        return targetSource;
+    }
 
     private int getITDInsertLocation(IType type) throws JavaModelException {
         return type.getSourceRange().getOffset()+type.getSourceRange().getLength()-1;
