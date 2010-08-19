@@ -364,6 +364,12 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setName(nameString.toCharArray());
 		info.setNameSourceStart(nameSourceStart);
 		info.setNameSourceEnd(nameSourceEnd);
+		
+		if (decl.getOnType() != null) {
+		    info.setTargetTypeStart(decl.getOnType().sourceStart);
+		    info.setTargetTypeEnd(decl.getOnType().sourceEnd);
+		}
+		
 		info.setTargetType(concat(decl.getOnType().getTypeName()).toCharArray());
 		info.setFlags(flags);
 		info.setDeclaredModifiers(decl.declaredModifiers);

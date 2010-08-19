@@ -85,6 +85,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
+            // this way of creating the element info does not contain proper source locations for the name and target type
             info.setAJExtraInfo(ipe.getExtraInfo());
             info.setName(name.toCharArray());
             info.setAJKind(ipe.getKind());
@@ -94,8 +95,9 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setAJAccessibility(ipe.getAccessibility());
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             info.setSourceRangeStart(sourceLocation.getOffset());
-            info.setNameSourceStart(sourceLocation.getOffset());
-            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+            info.setNameSourceStart(sourceLocation.getOffset());  // This is wrong
+            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());  // also wrong
+            
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
             info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
             info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
@@ -192,18 +194,9 @@ public abstract class IntertypeElement extends AspectJMemberElement {
      */
     public abstract IMember createMockDeclaration(IType parent);
     
-    /**
-     * Estimate the source range corresponding to the target type
-     * Assumes that there are no spaces or other non-word chars
-     * (other than '.') in the target type name 
-     * @return
-     * @throws JavaModelException 
-     */
     public ISourceRange getTargetTypeSourceRange() throws JavaModelException {
-        ISourceRange nameRange = getNameRange();
-        int targetTypeEnd = nameRange.getOffset() -1;
-        int targetTypeStart = nameRange.getOffset() + nameRange.getLength() - name.length();
-        return new SourceRange(targetTypeStart, targetTypeEnd - targetTypeStart);
+        IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
+        return info.getTargetTypeSourceRange();
     }
 
     public String getTargetName() {
