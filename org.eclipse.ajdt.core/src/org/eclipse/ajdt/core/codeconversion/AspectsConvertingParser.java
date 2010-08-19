@@ -571,7 +571,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 // part of a declare annotation.  If so,
                 // remove the '@'
                 if (isDeclareAnnotationStart(pos = scanner.getCurrentTokenStartPosition())) {
-                    addReplacement(pos, 1, " ".toCharArray());
+                    addReplacement(pos, 1, "$".toCharArray());
                 }
                 break;
             }

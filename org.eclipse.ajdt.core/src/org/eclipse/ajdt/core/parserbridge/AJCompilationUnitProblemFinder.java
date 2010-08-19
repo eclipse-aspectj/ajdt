@@ -447,7 +447,9 @@ public class AJCompilationUnitProblemFinder extends
                 (id == IProblem.DuplicateField ||
                  id == IProblem.DuplicateMethod) &&
                 (aspectMemberNames.contains(firstArg) ||
-                 aspectMemberNames.contains(secondArg))) {
+                 aspectMemberNames.contains(secondArg)) || 
+                 declareAnnotationKinds.contains(firstArg) ||
+                 declareAnnotationKinds.contains(secondArg)) {
             // declare statement if more than one exist in a file
             // or around advice if more than one of the same kind exists in the aspect
             return false;
@@ -498,17 +500,18 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
         }
-
-        if (numArgs == 1 && 
-                id == IProblem.ParsingErrorDeleteToken &&
-                firstArg.equals("@")) {
-            // likely to be declare annotation declaration
-            // declare @type, declare @constructor, declare @method, declare @field
-            String problemRegion = extractNextJavaIdentifier(unit, categorizedProblem.getSourceEnd());
-            if (declareAnnotationKinds.contains(problemRegion)) {
-                return false;
-            }
-        }
+        
+        // this one is not used any more since the '@' is being removed from the text
+//        if (numArgs == 1 && 
+//                id == IProblem.ParsingErrorDeleteToken &&
+//                firstArg.equals("@")) {
+//            // likely to be declare annotation declaration
+//            // declare @type, declare @constructor, declare @method, declare @field
+//            String problemRegion = extractNextJavaIdentifier(unit, categorizedProblem.getSourceEnd());
+//            if (declareAnnotationKinds.contains(problemRegion)) {
+//                return false;
+//            }
+//        }
         
         if (numArgs == 1 && id == IProblem.UndefinedType && declareAnnotationKinds.contains(firstArg)) {
             // alternate error of declare annotations
@@ -1090,10 +1093,10 @@ public class AJCompilationUnitProblemFinder extends
 
     static final Set<String> declareAnnotationKinds = new HashSet<String>();
     static {
-        declareAnnotationKinds.add("constructor");
-        declareAnnotationKinds.add("field");
-        declareAnnotationKinds.add("method");
-        declareAnnotationKinds.add("type");
+        declareAnnotationKinds.add("$constructor");
+        declareAnnotationKinds.add("$field");
+        declareAnnotationKinds.add("$method");
+        declareAnnotationKinds.add("$type");
     }
 }
 
