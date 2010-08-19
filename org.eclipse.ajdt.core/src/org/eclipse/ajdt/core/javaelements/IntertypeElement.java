@@ -28,7 +28,9 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -134,15 +136,32 @@ public abstract class IntertypeElement extends AspectJMemberElement {
     protected Integer getParamNum() {
         return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
     }
-    
+    /** 
+     * may return null if target type is not found
+     * @return
+     */
     public IType findTargetType() {
         if (targetTypeCache == null) {
             AJProjectModelFacade model = AJProjectModelFactory
-            .getInstance().getModelForJavaElement(this);
-            List rels = model.getRelationshipsForElement(this,
+                .getInstance().getModelForJavaElement(this);
+            
+            // either the relationships are a single class declaration
+            // or this is an interface with one or more class declarations
+            List<IJavaElement> rels = model.getRelationshipsForElement(this,
                     AJRelationshipManager.DECLARED_ON);
-            if (rels.size() > 0 && rels.get(0) instanceof IType) {
+            if (rels.size() == 1 && rels.get(0) instanceof IType) {
                 targetTypeCache = (IType) rels.get(0);
+            } else if (rels.size() > 1) {
+                // we have an interface and several concreate types
+                // we want to return the interface type
+                for (IJavaElement rel : rels) {
+                    try {
+                        if (rel instanceof IType && ((IType) rel).isInterface()) {
+                            targetTypeCache = (IType) rel;
+                            break;
+                        }
+                    } catch (JavaModelException e) { }
+                }
             }
         }
         return targetTypeCache;
@@ -172,6 +191,20 @@ public abstract class IntertypeElement extends AspectJMemberElement {
      * @return a mock element representing the element that was introduced
      */
     public abstract IMember createMockDeclaration(IType parent);
+    
+    /**
+     * Estimate the source range corresponding to the target type
+     * Assumes that there are no spaces or other non-word chars
+     * (other than '.') in the target type name 
+     * @return
+     * @throws JavaModelException 
+     */
+    public ISourceRange getTargetTypeSourceRange() throws JavaModelException {
+        ISourceRange nameRange = getNameRange();
+        int targetTypeEnd = nameRange.getOffset() -1;
+        int targetTypeStart = nameRange.getOffset() + nameRange.getLength() - name.length();
+        return new SourceRange(targetTypeStart, targetTypeEnd - targetTypeStart);
+    }
 
     public String getTargetName() {
         String[] split = name.split("\\.");
@@ -199,28 +232,5 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         } else {
             return info.getReturnTypeName();
         }
-    }
-    
-    /*
-     * See IField
-     */
-    public Object getConstant() throws JavaModelException {
-        return null;
-    }
-
-    /*
-     * See IField
-     */
-    public String getTypeSignature()
-            throws JavaModelException {
-        return getReturnType();
-    }
-
-    /*
-     * See IField
-     */
-    public boolean isEnumConstant()
-            throws JavaModelException {
-        return false;
     }
 }

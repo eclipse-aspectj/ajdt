@@ -212,12 +212,12 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
             }
         } else if (pattern instanceof FieldPattern) {
             FieldPattern fieldPatt = (FieldPattern) pattern;
-            // must match the exact type
             char[] targetTypeName = TargetTypeUtils.getName(TargetTypeUtils.getQualName(fieldPatt), TargetTypeUtils.getSimpleName(fieldPatt));
             char[] fieldName = fieldPatt.getIndexKey();
             for (IntertypeElement itd : allRelevantItds) {
                 if (itd.getAJKind() == Kind.INTER_TYPE_FIELD && CharOperation.equals(fieldName, itd.getTargetName().toCharArray()) &&
-                        targetTypeName != null && CharOperation.equals(targetTypeName, fullyQualifiedTargetTypeName(itd))) {
+                        // must match the exact type, but only if a type exists
+                        (targetTypeName == null || CharOperation.equals(targetTypeName, fullyQualifiedTargetTypeName(itd)))) {
                     ISourceRange sourceRange = itd.getNameRange();
                     extraDeclarationMatches.add(new FieldDeclarationMatch(itd, SearchMatch.A_ACCURATE, sourceRange.getOffset(), sourceRange.getLength(), 
                             match.document.getParticipant(), itd.getCompilationUnit().getResource()));

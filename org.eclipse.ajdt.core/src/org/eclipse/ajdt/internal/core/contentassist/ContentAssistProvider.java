@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009 SpringSource and others.
+ * Copyright (c) 2009, 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.text.ITDCodeSelection;
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.CompletionRequestor;
@@ -141,8 +142,9 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         if (prevResults.length == 1) {
         	if (prevResults[0] instanceof IType) {
                 // get the expanded text region and see if it matches the type name
-                String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents());
-                if (expandedRegion.equals(prevResults[0].getElementName())) {
+                String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents()).replace('$', '.');
+                if (expandedRegion.equals(prevResults[0].getElementName()) || 
+                        expandedRegion.equals(((IType) prevResults[0]).getFullyQualifiedName())) {
                     // we really are looking for the type
                     return prevResults;
                 }

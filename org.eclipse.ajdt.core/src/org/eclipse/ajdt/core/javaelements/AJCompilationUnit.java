@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2006 IBM Corporation and others.
+ * Copyright (c) 2004, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
  * Contributors:
  *     Luzius Meisser - initial implementation
  *     Sian January - added eager parsing support
+ *     Andrew Eisenberg - changes for AJDT 2.0
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
@@ -1037,6 +1038,16 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	            if (this.cachedContents == null)
 	                this.cachedContents = AJCompilationUnit.this.getContents();
 	            return this.cachedContents;
+	        }
+	        public CompilationUnit originalFromClone() {
+	            return AJCompilationUnit.this;
+	        }
+	    };
+	}
+	public AJCompilationUnit ajCloneCachingContents(final char[] contents) {
+	    return new AJCompilationUnit((PackageFragment) this.parent, this.name, this.owner) {
+	        public char[] getContents() {
+	            return contents;
 	        }
 	        public CompilationUnit originalFromClone() {
 	            return AJCompilationUnit.this;

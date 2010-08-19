@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 SpringSource and others.
+ * Copyright (c) 2008, 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -212,7 +213,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     // use createElementInfo, not getElementInfo because 
                     // we don't want it cached
                     DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
-                    if (info == null) {
+                    if (info == null || info.getAJKind() != Kind.DECLARE_PARENTS) {
                         continue;
                     }
                     

@@ -15,8 +15,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.ajdt.core.ReflectionUtils;
+import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
+import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
@@ -25,10 +27,12 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.contribution.jdt.itdawareness.ISearchProvider;
+import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -228,7 +232,7 @@ public class AJDTSearchProvider implements ISearchProvider {
      * @param pattern
      * @return
      */
-    private IExtraMatchFinder getExtraMatchFinder(PossibleMatch match, SearchPattern pattern) {
+    private IExtraMatchFinder<? extends SearchPattern> getExtraMatchFinder(PossibleMatch match, SearchPattern pattern) {
         if ((match.openable instanceof AJCompilationUnit)) {
             if (pattern instanceof MethodPattern || pattern instanceof ConstructorPattern || pattern instanceof FieldPattern) {
                 return new ExtraITDFinder();
@@ -237,6 +241,34 @@ public class AJDTSearchProvider implements ISearchProvider {
             }
         }
         return new NullMatchFinder();
+    }
+
+    public boolean isInteresting(IOpenable elt) {
+        return elt instanceof AJCompilationUnit;
+    }
+
+    public char[] findSource(IOpenable elt) {
+        if (elt instanceof AJCompilationUnit) {
+            try {
+                IBuffer buf = elt.getBuffer();
+                if (buf instanceof JavaCompatibleBuffer) {
+                    JavaCompatibleBuffer convertingBuf = (JavaCompatibleBuffer) buf;
+                    ConversionOptions orig = convertingBuf.getConversionOptions();
+                    convertingBuf.setConversionOptions(ConversionOptions.CONSTANT_SIZE);
+                    char[] contents = convertingBuf.getCharacters();
+                    convertingBuf.setConversionOptions(orig);
+                    return contents;
+                }
+            } catch (JavaModelException e) {
+            }
+            
+            // couldn't get the buffer for some reason, but we should still 
+            // return the converted contents as this is better than returning the original contents
+            return ((AJCompilationUnit) elt).getContents();
+        } else {
+            // should return null here, so contents will be gotten in the normal way.
+            return null;
+        }
     }
 
 }

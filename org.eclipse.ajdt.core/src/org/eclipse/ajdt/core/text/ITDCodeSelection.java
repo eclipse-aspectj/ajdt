@@ -9,20 +9,22 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.ajdt.internal.core.contentassist;
+package org.eclipse.ajdt.core.text;
 
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.ajdt.core.text.ITDAwareSelectionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.codeassist.SelectionEngine;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -54,7 +56,7 @@ public class ITDCodeSelection {
         
         final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
         converter.setUnit(unit);
-        ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
+        ArrayList<Replacement> replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
         
         org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
                 new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
@@ -79,7 +81,7 @@ public class ITDCodeSelection {
             
             final AspectsConvertingParser converter2 = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
             converter2.setUnit(unit);
-            ArrayList replacements2 = converter2.convert(ConversionOptions.getCodeCompletionOptionWithContextSwitch(wordRegion.getOffset(), targetType));
+            ArrayList<Replacement> replacements2 = converter2.convert(ConversionOptions.getCodeCompletionOptionWithContextSwitch(wordRegion.getOffset(), targetType));
             wrappedUnit = 
                 new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
                 public char[] getContents() {
@@ -97,9 +99,20 @@ public class ITDCodeSelection {
         IJavaElement[] elements = requestor.getElements();
         if (itd != null && elements.length == 0) {
             // maybe we are selecting on the name of the itd itself
-            if (itd.getNameRange().getOffset() <= wordRegion.getOffset() && 
-                    itd.getNameRange().getLength() >= wordRegion.getLength()) {
+            ISourceRange nameRange = itd.getNameRange();
+            if (nameRange.getOffset() <= wordRegion.getOffset() && 
+                    (nameRange.getOffset() + nameRange.getLength()) >= (wordRegion.getOffset() + wordRegion.getLength())) {
                 elements = new IJavaElement[] { itd };
+            }
+            
+            // maybe we are selecting the target type of the itd
+            ISourceRange targetNameRange = itd.getTargetTypeSourceRange();
+            if (targetNameRange.getOffset() <= wordRegion.getOffset() && 
+                    (targetNameRange.getOffset() + targetNameRange.getLength()) >= (wordRegion.getOffset() + wordRegion.getLength())) {
+                IType targetType = itd.findTargetType();
+                if (targetType != null) { // will be null if model not initialized
+                    elements = new IJavaElement[] { targetType };
+                }
             }
         }
         return elements;

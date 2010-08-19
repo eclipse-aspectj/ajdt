@@ -101,4 +101,16 @@ public class FieldIntertypeElement extends IntertypeElement implements IField {
             super.setSourceRangeStart(start);
         }
     }
+
+    public Object getConstant() throws JavaModelException {
+        return null;
+    }
+
+    public String getTypeSignature() throws JavaModelException {
+        return super.getReturnType();
+    }
+
+    public boolean isEnumConstant() throws JavaModelException {
+        return false;
+    }
 }

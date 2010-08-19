@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2008, 2009 IBM Corporation SpringSource and others.
+ * Copyright (c) 2004, 2010 IBM Corporation SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -565,6 +565,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     typeParamDepth-=3;
                 }
                 break;
+                
+            case TokenNameAT:
+                // peek at the next token and see if it is
+                // part of a declare annotation.  If so,
+                // remove the '@'
+                if (isDeclareAnnotationStart(pos = scanner.getCurrentTokenStartPosition())) {
+                    addReplacement(pos, 1, " ".toCharArray());
+                }
+                break;
             }
             
             if (tok != TokenNameDOT) {
@@ -595,6 +604,30 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         return replacements;
     }
     
+    /**
+     * @param i
+     * @return true if this is the start of @type, @field, @method, or @constructor
+     */
+    private boolean isDeclareAnnotationStart(int i) {
+        if (content[i] != '@') {
+            return false;
+        }
+        i++;
+        switch (content[i]) {
+            case 't':
+                return content[++i] == 'y' && content[++i] == 'p' && content[++i] == 'e';
+            case 'f':
+                return content[++i] == 'i' && content[++i] == 'e' && content[++i] == 'l' && content[++i] == 'd';
+            case 'm':
+                return content[++i] == 'e' && content[++i] == 't' && content[++i] == 'h' && content[++i] == 'o' && content[++i] == 'd';
+            case 'c':
+                return content[++i] == 'o' && content[++i] == 'n' && content[++i] == 's' && content[++i] == 't' && content[++i] == 'r' && content[++i] == 'u' && content[++i] == 'c' && content[++i] == 't' && content[++i] == 'o' && content[++i] == 'r';
+        }
+        
+        return false;
+    }
+
+
     /**
      * @param currentTypeName
      */

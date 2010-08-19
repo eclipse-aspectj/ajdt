@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman  - initial version
+ *     Andrew Eisenberg - reworked for AJDT 2.1.1
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
@@ -17,13 +18,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.dom.AST;
+import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
+import org.aspectj.org.eclipse.jdt.core.dom.ASTParser;
+import org.aspectj.org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CharOperation;
 
 public class PointcutUtilities {
 
@@ -87,7 +95,8 @@ public class PointcutUtilities {
 		boolean done = false;
 		int start = 0;
 		Map<String, List<Integer>> idMap = new HashMap<String, List<Integer>>();
-		for (int i = pos+1; !done && i < source.length(); i++) {
+		int i = pos+1;
+		while (!done && i < source.length()) {
 			char c = source.charAt(i);
 			if (c == '{') {
 				done = true;
@@ -105,12 +114,27 @@ public class PointcutUtilities {
 							offsetList = new ArrayList<Integer>();
 							idMap.put(id, offsetList);
 						}
-						offsetList.add(new Integer(i));
+						offsetList.add(new Integer(start));
 					}
 					lookingForStart = true;
 				}
 			}
+			i++;
 		}
+		
+		if (!lookingForStart) {
+		    // still have one more piece to do
+            String id = source.substring(start,i);
+            if (!isAjPointcutKeyword(id)) {
+                List<Integer> offsetList = idMap.get(id);
+                if (offsetList==null) {
+                    offsetList = new ArrayList<Integer>();
+                    idMap.put(id, offsetList);
+                }
+                offsetList.add(new Integer(start));
+            }
+		}
+		
 		return idMap;
 	}
 	
@@ -285,4 +309,33 @@ public class PointcutUtilities {
 		return false;
 	}
 
+    /**
+     * @param declarationStart start of the declaration (does this include JavaDoc???)
+     * @param sourceEnd end of the declaration
+     * @param contents entire contents of compilation unit
+     * @return the ASTNode specified by the fieldInfo, or null if something's wrong
+     */
+    public static BodyDeclaration createSingleBodyDeclarationNode(int declarationStart, int sourceEnd, char[] contents) {
+        ASTParser ajParser = ASTParser.newParser(AST.JLS3);
+        if (contents.length < sourceEnd+1) {
+            // something's wrong here...don't continue indexing the declare
+            return null;
+        }
+        // sometimes the source end is too far past the ';' and sometimes it is way before, 
+        // but we need to find the entire declaration, so use the below to ensure that
+        // we know where the ';' is.
+        char[] declareBody = CharOperation.subarray(contents, declarationStart, CharOperation.indexOf(';', contents, sourceEnd-1)+1);
+        declareBody[declareBody.length-1] = ';';  // ensure ends with semi-colon
+        ajParser.setSource(declareBody); 
+        ajParser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
+        ajParser.setCompilerOptions(JavaCore.getOptions());
+        ASTNode node = ajParser.createAST(null);
+        if (node instanceof TypeDeclaration && ((TypeDeclaration) node).bodyDeclarations().size() == 1 && 
+                ((TypeDeclaration) node).bodyDeclarations().get(0) instanceof BodyDeclaration) {
+            return (BodyDeclaration) ((TypeDeclaration) node).bodyDeclarations().get(0);
+        } else {
+            // didn't find what we expected
+            return null;
+        }
+    }
 }

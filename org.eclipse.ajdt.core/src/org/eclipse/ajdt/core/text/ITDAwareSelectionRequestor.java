@@ -30,6 +30,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -81,7 +82,8 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             }
             
             // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
-            if (isInsideITD(start)) {
+            IntertypeElement itd = maybeGetITD(start);
+            if (itd != null) {
                 IField field = targetType.getField(String.valueOf(name));
                 if (field.exists()) {
                     accepted.add(field);
@@ -91,14 +93,14 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         }
     }
 
-    /**
-     * @param pos
-     * @return
-     * @throws JavaModelException
-     */
-    private boolean isInsideITD(int pos) throws JavaModelException {
-        return replacements != null && currentUnit instanceof AJCompilationUnit && 
-        currentUnit.getElementAt(AspectsConvertingParser.translatePositionToBeforeChanges(pos, replacements)) instanceof IntertypeElement;
+    private IntertypeElement maybeGetITD(int pos) throws JavaModelException {
+        if (replacements != null && currentUnit instanceof AJCompilationUnit) {
+            IJavaElement elt = currentUnit.getElementAt(AspectsConvertingParser.translatePositionToBeforeChanges(pos, replacements));
+            if (elt instanceof IntertypeElement) {
+                return (IntertypeElement) elt;
+            }
+        }
+        return null;
     }
 
     public void acceptMethod(char[] declaringTypePackageName,
@@ -129,12 +131,15 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                     }
                 }
                 
-                // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
-                if (isInsideITD(start)) {
+                IntertypeElement itd = maybeGetITD(start);
+                if (itd != null) {
+                    // if we are selecting inside of an ITD and the method being matched is a regular method, we find it here.
                     IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
                     if (method.exists()) {
                         accepted.add(method);
                     }
+                    
+                    // still need to determine if the ITD declaration itself is being selected
                 }
             }
         } catch (JavaModelException e) {
@@ -161,9 +166,44 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     public void acceptType(char[] packageName, char[] annotationName,
             int modifiers, boolean isDeclaration, char[] genericTypeSignature,
             int start, int end) {
-        // can ignore
+        try {
+            int origStart = AspectsConvertingParser.translatePositionToBeforeChanges(start, replacements);
+            int origEnd = AspectsConvertingParser.translatePositionToBeforeChanges(end, replacements);
+            IntertypeElement itd = maybeGetITD(origStart);
+            if (itd != null) {
+                // find out if we are selecting the target type name part of an itd
+                // itd.getNameRange() returns the range of the name, but excludes the target type.  Must subtract from there.  
+                // Make assumption that there are no spaces
+                // or comments between '.' and the rest of the name
+                ISourceRange nameRange = itd.getNameRange();
+                
+                String itdName = itd.getElementName();
+                int typeNameLength = Math.max(itdName.lastIndexOf('.'), 0);
+                String typeName = itdName.substring(0, typeNameLength);
+                
+                int typeNameStart;
+                if (itd.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR) {
+                    typeNameStart = nameRange.getOffset();
+                } else {
+                    typeNameStart = nameRange.getOffset() - 1 - typeName.length();
+                }
+                // now determine if the selected section is completely contained within the type name
+                if (contained(origStart, origEnd, typeNameStart, typeNameStart + typeNameLength)) {
+                    IType targetType = itd.findTargetType();
+                    if (targetType != null) {
+                        accepted.add(targetType);
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+        }
     }
     
+    private boolean contained(int selStart, int selEnd, int typeNameStart,
+            int typeNameEnd) {
+        return selStart >= typeNameStart && selEnd <= typeNameEnd;
+    }
+
     private AJProjectModelFacade ensureModel(IJavaElement elt) {
         try {
             if (model.getProject().equals(elt.getJavaProject().getProject())) {
@@ -246,6 +286,39 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     
 
 
+    private String toQualifiedName(char[] declaringTypePackageName,
+            char[] declaringTypeName) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(declaringTypePackageName);
+        if (sb.length() > 0) {
+            sb.append(".");
+        }
+        sb.append(declaringTypeName);
+        return sb.toString();
+    }
+
+    private String extractName(String name) {
+        
+        String[] split = name.split("\\.");
+        if (split.length <= 1) {
+            return name;
+        }
+        int splitLength = split.length;
+        // maybe this is a constructor ITD
+        if (name.endsWith("_new")) {
+            if ((split[splitLength-2] + "_new").equals(split[splitLength-1])) {
+                return split[splitLength-2];
+            }
+        } else if (name.endsWith("$new")) {
+            return name.substring(0, name.length()-"$new".length());
+        }
+        return split[splitLength-1];
+    }
+
+    public IJavaElement[] getElements() {
+        return (IJavaElement[]) accepted.toArray(new IJavaElement[accepted.size()]);
+    }
+
     /**
      * Converts from a 'Q' kind of signature to an 'L' kind of signature.
      * This is actually quite tricky.
@@ -297,38 +370,5 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             typeStart++;
         }
         return signature.charAt(typeStart) == 'Q';
-    }
-
-    private String toQualifiedName(char[] declaringTypePackageName,
-            char[] declaringTypeName) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(declaringTypePackageName);
-        if (sb.length() > 0) {
-            sb.append(".");
-        }
-        sb.append(declaringTypeName);
-        return sb.toString();
-    }
-
-    private String extractName(String name) {
-        
-        String[] split = name.split("\\.");
-        if (split.length <= 1) {
-            return name;
-        }
-        int splitLength = split.length;
-        // maybe this is a constructor ITD
-        if (name.endsWith("_new")) {
-            if ((split[splitLength-2] + "_new").equals(split[splitLength-1])) {
-                return split[splitLength-2];
-            }
-        } else if (name.endsWith("$new")) {
-            return name.substring(0, name.length()-"$new".length());
-        }
-        return split[splitLength-1];
-    }
-
-    public IJavaElement[] getElements() {
-        return (IJavaElement[]) accepted.toArray(new IJavaElement[accepted.size()]);
     }
 }
