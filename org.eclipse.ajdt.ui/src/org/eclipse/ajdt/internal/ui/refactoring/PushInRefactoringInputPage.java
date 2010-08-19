@@ -294,7 +294,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                         String[] split = details.split(":");
                         if (split.length == 2) {
                             int secondPart = Math.max(split[1].lastIndexOf('.')+1, 1);
-                            split[1] = "@" + split[1].substring(secondPart).trim();
+                            split[1] = split[1].substring(secondPart).trim();
                             annotationName = split[1];
                         }
                         cell.setText(de.getElementName() + " " + annotationName);

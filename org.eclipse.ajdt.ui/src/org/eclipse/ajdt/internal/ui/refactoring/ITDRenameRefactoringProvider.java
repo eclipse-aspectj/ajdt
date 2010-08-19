@@ -66,6 +66,16 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
             }
         }
     }
+    
+    /**
+     * Lightweight rename refactoring is often broken inside of {@link AJCompilationUnit}s, 
+     * so just disable it.
+     * @param elt
+     * @return true if the element is inside an {@link AJCompilationUnit}
+     */
+    public boolean belongsToInterestingCompilationUnit(IJavaElement elt) {
+        return elt.getAncestor(IJavaElement.COMPILATION_UNIT) instanceof AJCompilationUnit;
+    }
 
     private IStatusLineManager getStatusLineManager() {
         try {
@@ -93,4 +103,18 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
     public boolean shouldCheckResultForCompileProblems(ICompilationUnit unit) {
         return ! (unit instanceof AJCompilationUnit);
     }
+
+    // can't get this to work, so not used
+//    public ITypeRoot convertRoot(ITypeRoot root) {
+//        if (root instanceof AJCompilationUnit) {
+//            AJCompilationUnit unit = (AJCompilationUnit) root;
+//            char[] contents = unit.getContents();
+//            AspectsConvertingParser acp = new AspectsConvertingParser(contents);
+//            acp.convert(ConversionOptions.CONSTANT_SIZE);
+//            AJCompilationUnit cachedUnit = unit.ajCloneCachingContents(acp.content);
+//            return cachedUnit;
+//        } else {
+//            return root;
+//        }
+//    }
 }
