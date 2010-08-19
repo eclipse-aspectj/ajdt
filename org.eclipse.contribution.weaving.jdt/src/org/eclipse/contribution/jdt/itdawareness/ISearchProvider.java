@@ -15,6 +15,7 @@ import java.util.List;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
@@ -54,4 +55,8 @@ public interface ISearchProvider {
      * @return the real test method or class, or null if there should not be any
      */
     public IJavaElement filterJUnit4TestMatch(IJavaElement possibleTest) throws JavaModelException;
+    
+    public boolean isInteresting(IOpenable elt);
+    
+    public char[] findSource(IOpenable elt);
 }

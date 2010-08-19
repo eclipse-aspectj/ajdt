@@ -36,6 +36,7 @@ import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
+import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE
@@ -322,32 +323,4 @@ public aspect ITDAwarenessAspect {
         }
         return result;
     }
-    
-    /****************************
-     * This section handles searching for ITDs
-     * All searches that involve ITDs should use the 
-     * inserted Java element instead of the ITD itself.
-     */
-    
-    SearchAdapter searchAdapter = SearchAdapter.getInstance();
-    
-    /**
-     * Capture all creations of SearchPatterns from JavaElements
-     */
-    pointcut searchPatternCreation(IJavaElement element, int limitTo, int matchRule) : 
-        execution(public static SearchPattern SearchPattern.createPattern(IJavaElement, int, int)) &&
-                  args(element, limitTo, matchRule);
-    
-    SearchPattern around(IJavaElement element, int limitTo, int matchRule) :
-        searchPatternCreation(element, limitTo, matchRule) {
-    
-        ISearchProvider searchProvider = searchAdapter.getProvider();
-        if (searchProvider != null) {
-            // here, the provider can convert the JavaElement to something that it really should be searching 
-            // for.  Eg, convert an ITD field into a field
-            element = searchProvider.convertJavaElement(element);
-        }
-        return proceed(element, limitTo, matchRule);
-    }
-    
 }

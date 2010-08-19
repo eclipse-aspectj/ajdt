@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009 SpringSource and others.
+ * Copyright (c) 2009, 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,4 +27,15 @@ public interface IRefactoringProvider {
     void performRefactoring(IJavaElement element, boolean lightweight) throws CoreException;
     
     boolean shouldCheckResultForCompileProblems(ICompilationUnit unit);
+    
+    
+    boolean belongsToInterestingCompilationUnit(IJavaElement elt);
+    
+    // can't get this to work, so not used yet
+//    /**
+//     * Convert the type root into something that is parseable by JDT
+//     * @param root
+//     * @return
+//     */
+//    ITypeRoot convertRoot(ITypeRoot root);
 }

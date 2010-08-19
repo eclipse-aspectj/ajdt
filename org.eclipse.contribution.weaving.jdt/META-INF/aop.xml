@@ -10,6 +10,7 @@
 <aspect name="org.eclipse.contribution.jdt.refactoring.RenameJavaElementActionAspect"/>
 <aspect name="org.eclipse.contribution.jdt.refactoring.RefactoringHooksAspect"/>
 <aspect name="org.eclipse.contribution.jdt.itdawareness.JUnit4TestFinderAspect"/>
+<aspect name="org.eclipse.contribution.jdt.itdawareness.SearchHooksAspect"/>
 </aspects>
 </aspectj>
 
