@@ -171,11 +171,11 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
 
     private boolean maybeDeclare(char[] fieldName, char[] fieldType) {
         return CharOperation.equals("declare".toCharArray(), fieldType) &&
-               (CharOperation.equals("parents".toCharArray(), fieldName) ||
-            		   CharOperation.equals("type".toCharArray(), fieldName) ||
-            		   CharOperation.equals("method".toCharArray(), fieldName) ||
-            		   CharOperation.equals("constructor".toCharArray(), fieldName) ||
-            		   CharOperation.equals("field".toCharArray(), fieldName)
+               (CharOperation.equals("$parents".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$type".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$method".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$constructor".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$field".toCharArray(), fieldName)
             		   );
     }
 
@@ -186,7 +186,9 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
      * @return
      */
     private boolean maybeITD(char[] fieldName, int lastDollar) {
-        return lastDollar > 0 && lastDollar < fieldName.length;
+        // use > 1 because $ at the beginning will probably mean declare annotation
+        // @type --> $type, @field --> $field, etc
+        return lastDollar > 1 && lastDollar < fieldName.length;
     }
     
     @Override

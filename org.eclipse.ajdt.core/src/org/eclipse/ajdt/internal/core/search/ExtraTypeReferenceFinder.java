@@ -29,7 +29,6 @@ import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
-import org.eclipse.ajdt.core.javaelements.DeclareElementInfo;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
