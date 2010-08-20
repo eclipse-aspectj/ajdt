@@ -95,14 +95,16 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
             if (start < 0)
                 fail("Too few occurrences of '" + string + "' where found");
         }
-        System.out.println("Found '" + string + "' at " + start);
         return new Region(start, string.length());
     }
 
     protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
             String expected) throws Exception {
+        performDummySearch(unit.getJavaProject());
+        unit.becomeWorkingCopy(null);
         IJavaElement[] result = unit.codeSelect(region.getOffset(),
                 region.getLength());
+        unit.discardWorkingCopy();
         assertEquals("Should have found exactly one hyperlink", 1,
                 result.length);
         IJavaElement elt = result[0];
