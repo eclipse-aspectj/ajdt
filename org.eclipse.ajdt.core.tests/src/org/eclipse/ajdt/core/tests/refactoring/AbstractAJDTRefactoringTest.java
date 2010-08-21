@@ -60,7 +60,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         return super.createUnit(pkg, cuName, cuContents, project);
     }
     
-    protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) {
+    protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) throws JavaModelException {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < existingUnits.length; i++) {
             char[] contents;
@@ -84,7 +84,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         }
     }
 
-    protected void assertContents(ICompilationUnit existingUnits, String expectedContents) {
+    protected void assertContents(ICompilationUnit existingUnits, String expectedContents) throws JavaModelException {
         StringBuffer sb = new StringBuffer();
         char[] contents;
         if (existingUnits instanceof AJCompilationUnit) {
