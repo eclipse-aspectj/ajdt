@@ -32,6 +32,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.PackageFragment;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 /**
  * @author Andrew Eisenberg
@@ -127,6 +128,34 @@ public class ITDCodeSelection {
                 return itd;
             }
         }
+        return null;
+    }
+
+    /**
+     * This might perform a quick code selection if the selected region is in 
+     * an aspectj-only location.  
+     * 
+     * The only location currently supported is target type names of ITDs, but this
+     * may be expanded in the future.
+     * @param wordRegion the selected region
+     * @return the target type or null if not in a target type name region
+     */
+    public IJavaElement[] shortCutCodeSelection(Region wordRegion) {
+    	try {
+        	IJavaElement elt = unit.getElementAt(wordRegion.getOffset());
+            if (elt instanceof IntertypeElement) {
+                IntertypeElement itd = (IntertypeElement) elt;
+                ISourceRange range = itd.getTargetTypeSourceRange();
+                if (range != null && range.getOffset() <= wordRegion.getOffset() &&
+                		range.getOffset() + range.getLength() >= wordRegion.getOffset() + wordRegion.getLength()) {
+                	IType type = itd.findTargetType();
+                	if (type != null) {
+                		return new IJavaElement[] { type };
+                	}
+                }
+        	}
+    	} catch (JavaModelException e) {
+    	}
         return null;
     }
 

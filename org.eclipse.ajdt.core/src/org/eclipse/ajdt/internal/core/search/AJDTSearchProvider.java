@@ -215,6 +215,10 @@ public class AJDTSearchProvider implements ISearchProvider {
      */
     public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern, HierarchyResolver resolver) throws JavaModelException {
         List<SearchMatch> extraMatches;
+        if (match.openable instanceof AJCompilationUnit) {
+            // original content mode is discarded after the matches have been processed
+            ((AJCompilationUnit) match.openable).requestOriginalContentMode();
+        }
         if (pattern instanceof OrPattern) {
             extraMatches = new ArrayList<SearchMatch>();
             SearchPattern[] patterns = (SearchPattern[]) ReflectionUtils.getPrivateField(OrPattern.class, "patterns", (OrPattern) pattern);
@@ -226,6 +230,17 @@ public class AJDTSearchProvider implements ISearchProvider {
             extraMatches = finder.findExtraMatches(match, pattern, resolver);
         }
         return extraMatches;
+    }
+    
+    public void matchProcessed(PossibleMatch match) {
+        if (match.openable instanceof AJCompilationUnit) {
+            // in this callback, we know that the matches have been processed.
+            // so original contents can be discarded
+            try {
+                ((AJCompilationUnit) match.openable).discardOriginalContentMode();
+            } catch (JavaModelException e) {
+            }
+        }
     }
     
     /**

@@ -190,7 +190,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                 // now determine if the selected section is completely contained within the type name
                 if (contained(origStart, origEnd, typeNameStart, typeNameStart + typeNameLength)) {
                     IType targetType = itd.findTargetType();
-                    if (targetType != null) {
+                    if (targetType != null && targetType.getFullyQualifiedName('.').equals(toQualifiedName(packageName, annotationName))) {
                         accepted.add(targetType);
                     }
                 }

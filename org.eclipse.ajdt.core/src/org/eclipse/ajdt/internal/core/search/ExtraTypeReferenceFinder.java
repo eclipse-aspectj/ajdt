@@ -91,6 +91,7 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
 
     private List<SearchMatch> findMatches(DeclareElement decl, SearchParticipant participant, TypeReferencePattern pattern) throws JavaModelException {
         AJCompilationUnit unit = ((AJCompilationUnit) decl.getCompilationUnit());
+        // should already be in original content mode, but do this any way just in case.
         char[] contents = null;
         try { 
             unit.requestOriginalContentMode();
@@ -110,81 +111,10 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
         }
         return Collections.emptyList();
     }
-
-    /**
-     * @param decl
-     * @param pattern
-     * @throws JavaModelException
-     */
-    private boolean maybeHasTypeMatches(DeclareElement decl,
-            TypeReferencePattern pattern) throws JavaModelException {
-        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(decl);
-        if (! model.hasModel()) {
-            return false;
-        }
-        String searchType = String.valueOf(TargetTypeUtils.getName(pattern));
-        boolean doIt = false;
-        IProgramElement ipe = model.javaElementToProgramElement(decl);
-        if (ipe != IHierarchy.NO_STRUCTURE) {
-            List<String> typeNames = ipe.getParentTypes();
-            if (typeNames != null) {
-                for (String typeName : typeNames) {
-                    if (searchType.equals(typeName)) {
-                        doIt = true;
-                        break;
-                    }
-                }
-            }
-            if (! doIt) {
-                doIt = searchType.equals(ipe.getAnnotationType());
-            }
-        }
-        if (!doIt) {
-            // now look at the target type
-            // not exactly right since the actual pointcut may not be an explicit type, but rather an annotation
-            doIt = seearchRelationships(decl, searchType, model, AJRelationshipManager.DECLARED_ON);
-            if (!doIt) {
-                doIt = seearchRelationships(decl, searchType, model, AJRelationshipManager.ANNOTATES);
-            }
-        }
-        return doIt;
-    }
     
-    private boolean seearchRelationships(DeclareElement decl,
-            String searchTypeStr, AJProjectModelFacade model,
-            AJRelationshipType relType) {
-        boolean doIt = false;
-        List<IJavaElement> rels = model.getRelationshipsForElement(decl, relType);
-        for (IJavaElement rel : rels) {
-            IType type;
-            if (rel.getElementType() == IJavaElement.TYPE) {
-                type = (IType) rel;
-            } else {
-                type = (IType) rel.getAncestor(IJavaElement.TYPE);
-            }
-            if (type != null && type.getFullyQualifiedName('.').equals(searchTypeStr)) {
-                doIt = true;
-                break;
-            }
-        }
-        return doIt;
-    }
-
     private SearchMatch createMatch(IntertypeElement itd, SearchParticipant participant) throws JavaModelException {
-        String itdName = itd.getElementName();
-        // might find a fully qualified name
-        int typeNameEnd = Math.max(itdName.lastIndexOf('.'), 0);
-        String typeName = itdName.substring(0, typeNameEnd);
-        
-        // itd.getNameRange() returns the range of the name, but excludes the target type.  Must subtract from there.  Make assumption that there are no spaces
-        // or comments between '.' and the rest of the name
-        int sourceStart;
-        if (itd.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR) {
-            sourceStart = itd.getNameRange().getOffset();
-        } else {
-            sourceStart = itd.getNameRange().getOffset() - 1 - typeName.length();
-        }
-        return new TypeReferenceMatch(itd, SearchMatch.A_ACCURATE, sourceStart, typeName.length(), false, participant, itd.getResource());
+        ISourceRange range = itd.getTargetTypeSourceRange();
+        return new TypeReferenceMatch(itd, SearchMatch.A_ACCURATE, range.getOffset(), range.getLength(), false, participant, itd.getResource());
     }
 
     private boolean isMatch(IntertypeElement itd, TypeReferencePattern pattern) throws JavaModelException {
@@ -244,12 +174,9 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
             if (detail != null) {
                 if (searchTypeSimpleName.equals(detail) || 
                         detail.endsWith(dotSearchTypeSimpleName)) {
-                    // need to match only the simple part of the name
-                    int end = node.getStartPosition() + node.getLength();
-                    int start = end - searchTypeSimpleName.length();
-                    int actualStart = start + offset;
+                    int actualStart = node.getStartPosition() + offset;
                     accumulatedMatches.add(new TypeReferenceMatch(decl, SearchMatch.A_ACCURATE, 
-                            actualStart, searchTypeSimpleName.length(), false, participant, decl.getResource()));
+                            actualStart, node.getLength(), false, participant, decl.getResource()));
                 } else if (isComplexTypePattern(detail)) {
                     // must do something more complex
                     findMatchesInComplexPattern(node);

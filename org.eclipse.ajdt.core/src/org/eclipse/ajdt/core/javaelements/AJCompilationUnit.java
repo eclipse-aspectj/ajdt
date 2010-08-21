@@ -101,10 +101,14 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 
 	private Object contentModeLock = new Object();
 	
-	public boolean isInOriginalContentMode() {
+	public boolean isInOriginalContentMode() throws JavaModelException {
 	    synchronized (contentModeLock) {
-	        return originalContentMode > 0;
+            Object info = getElementInfo();
+            if (info instanceof AJCompilationUnitInfo) {
+                return ((AJCompilationUnitInfo) info).originalContentMode > 0;
+            }
         }
+	    return false;
 	}
 	
 	/**
@@ -112,18 +116,24 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 	 * the actual AJ contents are returned (not the 
 	 * converted contents)
 	 */
-	public void requestOriginalContentMode() {
+	public void requestOriginalContentMode() throws JavaModelException {
         synchronized (contentModeLock) {
-            originalContentMode++;
+            Object info = getElementInfo();
+            if (info instanceof AJCompilationUnitInfo) {
+                ((AJCompilationUnitInfo) info).originalContentMode++;
+            }
         }
 	}
 	
 	/**
 	 * discard this request for original contents
 	 */
-	public void discardOriginalContentMode() {
+	public void discardOriginalContentMode() throws JavaModelException {
         synchronized (contentModeLock) {
-            originalContentMode--;
+            Object info = getElementInfo();
+            if (info instanceof AJCompilationUnitInfo) {
+                ((AJCompilationUnitInfo) info).originalContentMode--;
+            }
         }
 	}
 
@@ -465,8 +475,12 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 
 
 	public IBuffer convertBuffer(IBuffer buf) {
-		if (isInOriginalContentMode() || (buf == null))
-			return buf;
+		try {
+            if (isInOriginalContentMode() || (buf == null)) {
+            	return buf;
+            }
+        } catch (JavaModelException e) {
+        }
 		
 		if (javaCompBuffer == null){
 			IBuffer myBuffer = BufferManager.createBuffer(this);

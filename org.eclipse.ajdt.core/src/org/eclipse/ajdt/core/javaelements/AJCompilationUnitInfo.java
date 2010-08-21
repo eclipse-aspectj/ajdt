@@ -68,6 +68,13 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
         }
     }
 
+    
+    /**
+     * This field should be set only from within a synchronized block in 
+     * AJCompilationUnit.  If > 0, then original content mode, if <= 0 then
+     * only show the transformed source
+     */
+    int originalContentMode = 0;
 
     
     public void setTimestamp(long stamp){

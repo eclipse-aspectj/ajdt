@@ -367,7 +367,7 @@ public class AJCompilationUnitStructureRequestor extends
 		
 		if (decl.getOnType() != null) {
 		    info.setTargetTypeStart(decl.getOnType().sourceStart);
-		    info.setTargetTypeEnd(decl.getOnType().sourceEnd);
+		    info.setTargetTypeEnd(decl.getOnType().sourceEnd+1);
 		}
 		
 		info.setTargetType(concat(decl.getOnType().getTypeName()).toCharArray());

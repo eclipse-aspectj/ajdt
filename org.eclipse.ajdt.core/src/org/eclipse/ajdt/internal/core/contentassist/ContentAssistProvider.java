@@ -135,23 +135,31 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             org.eclipse.jdt.core.ICompilationUnit unit,
             int offset, int length, IJavaElement[] prevResults)
             throws JavaModelException {
+
+        // see if we should shortcut other processing and we can
+        // quickly find a selection that we know is only valid inside of
+        // AspectJ
+        Region wordRegion = new Region(offset, length);
+        ITDCodeSelection itdCodeSelection = new ITDCodeSelection(unit);
+        IJavaElement[] maybeResult = itdCodeSelection.shortCutCodeSelection(wordRegion);
+        if (maybeResult != null && maybeResult.length > 0) {
+            return maybeResult;
+        }
         
         if (prevResults != null && prevResults.length > 1) {
             return prevResults;
         }
-        if (prevResults.length == 1) {
-        	if (prevResults[0] instanceof IType) {
-                // get the expanded text region and see if it matches the type name
-                String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents()).replace('$', '.');
-                if (expandedRegion.equals(prevResults[0].getElementName()) || 
-                        expandedRegion.equals(((IType) prevResults[0]).getFullyQualifiedName())) {
-                    // we really are looking for the type
-                    return prevResults;
-                }
+        if (prevResults.length == 1 && prevResults[0] instanceof IType) {
+            // get the expanded text region and see if it matches the type name
+            String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents()).replace('$', '.');
+            if (expandedRegion.equals(prevResults[0].getElementName()) || 
+                    expandedRegion.equals(((IType) prevResults[0]).getFullyQualifiedName())) {
+                // we really are looking for the type
+                return prevResults;
             }
         }
         // we want to do ITD Aware code select
-        IJavaElement[] newResults = new ITDCodeSelection(unit).findJavaElement(new Region(offset, length));
+        IJavaElement[] newResults = itdCodeSelection.findJavaElement(wordRegion);
         return newResults != null && newResults.length > 0 ?
                 newResults : prevResults;
     }
