@@ -45,7 +45,16 @@ public interface ISearchProvider {
             LookupEnvironment lookupEnvironment,
             ICompilationUnit[] workingCopies, JavaProject project);
     
+    /**
+     * Finds any extra matches inside of this possible match not already found by jdt
+     */
     public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern, HierarchyResolver resolver) throws JavaModelException;
+    
+    /**
+     * Callback for after the match has been added to the requestor
+     * @param match
+     */
+    public void matchProcessed(PossibleMatch match);
     
     /**
      * This method will filter or convert posible test matches into real test matches.

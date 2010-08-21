@@ -59,9 +59,15 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
     after(MatchLocator locator, PossibleMatch match, boolean bindingsWereCreated) : matchProcessing(locator, match, bindingsWereCreated) {
         try {
             if (adapter.getProvider() != null && locator.requestor != null && match.openable != null && isInterestingProject(match.openable.getJavaProject().getProject())) {
-                List<SearchMatch> extraMatches = adapter.getProvider().findExtraMatches(match, locator.pattern, resolver);
-                for (SearchMatch extraMatch : extraMatches) {
-                    locator.requestor.acceptSearchMatch(extraMatch);
+                try {
+                    List<SearchMatch> extraMatches = adapter.getProvider().findExtraMatches(match, locator.pattern, resolver);
+                    for (SearchMatch extraMatch : extraMatches) {
+                        locator.requestor.acceptSearchMatch(extraMatch);
+                    }
+                } catch (Exception e) {
+                    JDTWeavingPlugin.logException("Exception while search for: " + match, e);
+                } finally {
+                    adapter.getProvider().matchProcessed(match);
                 }
             }
         } catch (Exception e) {
