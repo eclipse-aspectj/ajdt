@@ -108,9 +108,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType superType = otherUnit.getType("Other");
         
         List<SearchMatch> matches = findSearchMatches(subType, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("q.Java", contents, matches);
         matches = findSearchMatches(superType, this.getName());
-        assertMatch("Other", contents, matches);
+        assertMatch("r.Other", contents, matches);
     }
     
     public void testQualifiedDeclareParentsImplementsInDifferentCU() throws Exception {
@@ -122,9 +122,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType superType = otherUnit.getType("Other");
         
         List<SearchMatch> matches = findSearchMatches(subType, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("q.Java", contents, matches);
         matches = findSearchMatches(superType, this.getName());
-        assertMatch("Other", contents, matches);
+        assertMatch("r.Other", contents, matches);
     }
     
     public void testDeclareParentsExtendsMultiple() throws Exception {
@@ -175,7 +175,7 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         matches = findSearchMatches(subType2, this.getName());
         assertMatch("Second", contents, matches);
         matches = findSearchMatches(superType, this.getName());
-        assertMatch("Other", contents, matches);
+        assertMatch("q.Other", contents, matches);
     }
     public void testQualifiedDeclareParentsExtendsPattern() throws Exception {
         String contents = "package p;\naspect Aspect {\n declare parents : q.Java+ extends q.Other;}";
@@ -186,7 +186,7 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         List<SearchMatch> matches = findSearchMatches(subType, this.getName());
         assertMatch("Java", contents, matches);
         matches = findSearchMatches(superType, this.getName());
-        assertMatch("Other", contents, matches);
+        assertMatch("q.Other", contents, matches);
     }
     public void _testQualifiedDeclareParentsExtendsAnnotationPattern() throws Exception {
         String contents = "package p;\naspect Aspect {\n declare parents : (@q.Ann *) extends q.Other;}";
@@ -257,7 +257,7 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         List<SearchMatch> matches = findSearchMatches(ann, this.getName());
         assertMatch("Ann", contents, matches);
         matches = findSearchMatches(type, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("p.Java", contents, matches);
     }
     public void testQualifiedDeclareAtMethod() throws Exception {
         String contents = "package p;\naspect Aspect {\n declare @method : void p.Java.xxx() : @p.Ann; }\nclass Java {\n void xxx()  { } } \n @interface Ann { }";
