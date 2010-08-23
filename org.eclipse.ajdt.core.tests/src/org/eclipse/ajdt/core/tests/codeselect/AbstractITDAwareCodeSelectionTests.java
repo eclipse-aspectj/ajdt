@@ -97,9 +97,15 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
         }
         return new Region(start, string.length());
     }
-
     protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
             String expected) throws Exception {
+        validateCodeSelect(unit, region, expected, false);
+    }
+    protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
+            String expected, boolean expectingProblems) throws Exception {
+        if (!expectingProblems) {
+            this.assertNoProblems(unit.getJavaProject().getProject());
+        }
         performDummySearch(unit.getJavaProject());
         unit.becomeWorkingCopy(null);
         IJavaElement[] result = unit.codeSelect(region.getOffset(),
