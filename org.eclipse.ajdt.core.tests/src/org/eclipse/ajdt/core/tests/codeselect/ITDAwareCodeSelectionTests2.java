@@ -45,8 +45,8 @@ public class ITDAwareCodeSelectionTests2 extends AbstractITDAwareCodeSelectionTe
         origProvider = NameEnvironmentAdapter.getInstance().getProvider();
         NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
         super.setUp();
-        base = createPredefinedProject("Bug273334base"); //$NON-NLS-1$
         depending = createPredefinedProject("Bug273334depending"); //$NON-NLS-1$
+        base = createPredefinedProject("Bug273334base"); //$NON-NLS-1$
         baseFile = base.getFile("src/q/UsesITDs1.java");
         baseUnit = JavaCore.createCompilationUnitFrom(baseFile);
         waitForAutoBuild();

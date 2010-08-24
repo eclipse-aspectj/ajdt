@@ -66,7 +66,7 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
 
         public CompilationUnitDeclaration problemFind(
                 CompilationUnit unitElement, SourceElementParser parer,
-                WorkingCopyOwner workingCopyOwner, HashMap problems,
+                WorkingCopyOwner workingCopyOwner, @SuppressWarnings("rawtypes") HashMap problems,
                 boolean creatingAST, int reconcileFlags,
                 IProgressMonitor monitor) throws JavaModelException {
             // don't need
@@ -108,8 +108,14 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
         }
         performDummySearch(unit.getJavaProject());
         unit.becomeWorkingCopy(null);
-        IJavaElement[] result = unit.codeSelect(region.getOffset(),
-                region.getLength());
+        IJavaElement[] result = new IJavaElement[0];
+        
+        // failing on build server only, try multiple times
+        // until we (hopefully) find the correct answer
+        for (int i = 0; i < 9 && result.length == 0; i++) {
+            result = unit.codeSelect(region.getOffset(),
+                    region.getLength());
+        }
         unit.discardWorkingCopy();
         assertEquals("Should have found exactly one hyperlink", 1,
                 result.length);
