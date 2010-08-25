@@ -66,10 +66,11 @@ import org.eclipse.ajdt.core.tests.model.InpathRelationshipsTests;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
-import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.ajdt.core.tests.refactoring.AspectRenameRefactoringTests;
 import org.eclipse.ajdt.core.tests.refactoring.AbstractAJDTRefactoringTest;
 import org.eclipse.ajdt.core.tests.refactoring.FindITDGettersAndSettersTest;
 import org.eclipse.ajdt.core.tests.refactoring.ITDRenameParticipantRefactoringTest;
+import org.eclipse.ajdt.core.tests.refactoring.MoveCURefactoringTests;
 import org.eclipse.ajdt.core.tests.search.DeclareAwareSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareDeclarationSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareJUnit4TestFinderTests;
@@ -175,9 +176,10 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
 		
 		// refactoring tests
-		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
+		suite.addTest(new TestSuite(AspectRenameRefactoringTests.class));
 		suite.addTest(new TestSuite(ITDRenameParticipantRefactoringTest.class));
 		suite.addTest(new TestSuite(FindITDGettersAndSettersTest.class));
+		suite.addTest(new TestSuite(MoveCURefactoringTests.class));
 		
 		// search tests
 		suite.addTest(new TestSuite(ITDAwareSearchTests.class));

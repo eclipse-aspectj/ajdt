@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
@@ -23,6 +25,7 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.tests.testutils.DefaultLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -84,24 +87,41 @@ public class AJDTCoreTestCase extends TestCase {
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
-        Utils.setAutobuilding(false);
-        getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
-		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
-			deleteProject(project,false);
+		try {
+            Utils.setAutobuilding(false);
+            getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+    		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    		for (int i = 0; i < allProjects.length; i++) {
+    			IProject project = allProjects[i];
+    			
+    			// don't delete the default project
+    			// to speed up processing of subsequent tests
+    			if (! project.getName().equals("DefaultEmptyProject")) {
+    			    deleteProject(project,false);
+    			}
+    		}
+    		allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    		for (int i = 0; i < allProjects.length; i++) {
+    			IProject project = allProjects[i];
+                // don't delete the default project
+                // to speed up processing of subsequent tests
+                if (! project.getName().equals("DefaultEmptyProject")) {
+                    deleteProject(project,true);
+                } else {
+                    // empty the project out
+                    deleteChildResources(project, true);
+                    // ensure that all files are reset
+                    setUpJavaProject(project.getName());
+                }
+    		}
+		} finally {
+            getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+            Utils.setAutobuilding(true);
+    		AJCompilationUnitManager.INSTANCE.clearCache();
+    		
+    		// ensure we use default logger for next test
+    		AspectJPlugin.getDefault().setAJLogger(defaultLogger);
 		}
-		allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
-			deleteProject(project,true);
-		}
-        getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
-        Utils.setAutobuilding(true);
-		AJCompilationUnitManager.INSTANCE.clearCache();
-		
-		// ensure we use default logger for next test
-		AspectJPlugin.getDefault().setAJLogger(defaultLogger);
 	}
 
 	/**
@@ -362,6 +382,26 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected void deleteProject(String projectName) throws CoreException {
 		deleteProject(this.getProject(projectName),true);
+	}
+	
+	private static Set<String> DONT_DELETE = new HashSet<String>();
+	static {
+	    DONT_DELETE.add(".project");
+	    DONT_DELETE.add(".classpath");
+	}
+	protected void deleteChildResources(IContainer container, boolean force) throws CoreException {
+	    if (container.getType() == IResource.PROJECT) {
+	        IProject project = (IProject) container;
+	        if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
+	            project.open(null);
+	        }
+	    }
+	    
+	    for (IResource member : container.members()) {
+	        if (!DONT_DELETE.contains(member.getName())) {
+	            deleteResource(member, force);
+	        }
+	    }
 	}
 	
 	/**

@@ -107,16 +107,8 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
             this.assertNoProblems(unit.getJavaProject().getProject());
         }
         performDummySearch(unit.getJavaProject());
-        unit.becomeWorkingCopy(null);
-        IJavaElement[] result = new IJavaElement[0];
-        
-        // failing on build server only, try multiple times
-        // until we (hopefully) find the correct answer
-        for (int i = 0; i < 9 && result.length == 0; i++) {
-            result = unit.codeSelect(region.getOffset(),
+        IJavaElement[] result = unit.codeSelect(region.getOffset(),
                     region.getLength());
-        }
-        unit.discardWorkingCopy();
         assertEquals("Should have found exactly one hyperlink", 1,
                 result.length);
         IJavaElement elt = result[0];

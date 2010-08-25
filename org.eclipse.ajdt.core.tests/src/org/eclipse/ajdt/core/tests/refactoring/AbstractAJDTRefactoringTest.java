@@ -188,7 +188,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         RefactoringStatus status= new RefactoringStatus();
         Refactoring refactoring= descriptor.createRefactoring(status);
         assertNotNull("refactoring should not be null", refactoring);
-        assertTrue("status should be ok", status.isOK());
+        assertTrue("status should be ok, but was: " + status, status.isOK());
         return refactoring;
     }
 
