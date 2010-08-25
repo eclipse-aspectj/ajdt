@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.text;
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
@@ -146,6 +147,8 @@ public class ITDCodeSelection {
             if (elt instanceof IntertypeElement) {
                 IntertypeElement itd = (IntertypeElement) elt;
                 ISourceRange range = itd.getTargetTypeSourceRange();
+                AJLog.log("===Code Select.  ITD found at selection: " + itd.getElementName());
+                AJLog.log("===Code Select.  ITD target type source range: " + " [ " + range.getOffset() + ", " + range.getLength() + " ]");
                 if (range != null && range.getOffset() <= wordRegion.getOffset() &&
                 		range.getOffset() + range.getLength() >= wordRegion.getOffset() + wordRegion.getLength()) {
                 	IType type = itd.findTargetType();

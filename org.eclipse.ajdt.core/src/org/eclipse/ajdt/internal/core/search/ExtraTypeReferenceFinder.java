@@ -104,7 +104,10 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
             BodyDeclaration bdecl = PointcutUtilities.createSingleBodyDeclarationNode(sourceRange.getOffset(), sourceRange.getOffset() + sourceRange.getLength(), contents);
             // found it!
             if (bdecl != null) {
-                DeclareVisitor visitor = new DeclareVisitor(participant, String.valueOf(TargetTypeUtils.getSimpleName(pattern)), sourceRange.getOffset(), decl, contents);
+                DeclareVisitor visitor = new DeclareVisitor(participant, 
+                        String.valueOf(TargetTypeUtils.getSimpleName(pattern)), 
+                        String.valueOf(TargetTypeUtils.getQualName(pattern)), 
+                        sourceRange.getOffset(), decl, contents);
                 bdecl.accept(visitor);
                 return visitor.getAccumulatedMatches();
             }
@@ -143,19 +146,23 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
     
     class DeclareVisitor extends AjASTVisitor {
         private final String searchTypeSimpleName;
+        private final String searchQualifier;
         private final String dotSearchTypeSimpleName;
         private final String atSearchTypeSimpleName;
+        private final String atSearchTypeQualName;
         private final SearchParticipant participant;
         private final int offset;
         private final DeclareElement decl;
         private final List<SearchMatch> accumulatedMatches;
         private final char[] fileContents;
         public DeclareVisitor(SearchParticipant participant, String searchTypeSimpleName,
-                int offset, DeclareElement decl, char[] fileContents) {
+                String searchQualifier, int offset, DeclareElement decl, char[] fileContents) {
             this.participant = participant;
             this.searchTypeSimpleName = searchTypeSimpleName;
+            this.searchQualifier = searchQualifier == null ? "" : searchQualifier;
             this.dotSearchTypeSimpleName = "." + searchTypeSimpleName;
             this.atSearchTypeSimpleName = "@" + searchTypeSimpleName;
+            this.atSearchTypeQualName = "@" + (searchQualifier.length() > 0 ? searchQualifier + "." : "") + searchTypeSimpleName;
             this.offset = offset;
             this.accumulatedMatches = new ArrayList<SearchMatch>();
             this.decl = decl;
@@ -207,11 +214,30 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
          * @param node
          */
         private void findMatchesInComplexPattern(PatternNode node) {
-            Map<String, List<Integer>> matches = PointcutUtilities.findAllIdentifiers(getActualText(node));
+            String actualPatternText = getActualText(node);
+            Map<String, List<Integer>> matches = PointcutUtilities.findAllIdentifiers(actualPatternText);
             List<Integer> matchLocs = matches.get(searchTypeSimpleName);
             if (matchLocs != null) {
                 for (Integer matchLoc : matchLocs) {
-                    // need to match only the simple part of the name
+                    
+                    // make the assumption that if the match is at a simple name, then
+                    // this is a type match, but if there is a qual name, then match 
+                    // on the qualified name
+                    if (matchLoc > 0 && actualPatternText.charAt(matchLoc - 1) == '.') {
+                        // we have a qual name.  Assume no spaces or special chars in there
+                        String foundQualifier = findQualifier(actualPatternText, matchLoc);
+                        
+                        if (! foundQualifier.equals(searchQualifier)) {
+                            // qualifiers do not match
+                            continue;
+                        }
+                        
+                        // adjust the matchLoc appropriately
+                        // since we have assumed no spaces, then we can use the qualifier 
+                        // as a way to adjust the match location
+                        matchLoc -= foundQualifier.length() + 1;
+                    }
+
                     int start = matchLoc + // end of the name relative to the SignaturePattern's detail
                             node.getStartPosition() + // start of SignaturePattern relative to the declareDeclaration's start 
                             offset; // the offset of the declareDeclaration from the start of the file
@@ -219,6 +245,27 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
                             start, searchTypeSimpleName.length(), false, participant, decl.getResource()));
                 }
             }
+        }
+
+        /**
+         * @param actualPatternText
+         * @param matchLoc
+         * @return
+         */
+        private String findQualifier(String actualPatternText, int matchLoc) {
+            int patternEnd = matchLoc - 1;
+            int patternStart = patternEnd;
+            while (patternStart > 1) {
+                patternStart--;
+                if (Character.isJavaIdentifierPart(actualPatternText.charAt(patternStart))
+                        || actualPatternText.charAt(patternStart) == '.') {
+                    // do nothing
+                } else {
+                    patternStart++;
+                    break;
+                }
+            }
+            return actualPatternText.substring(patternStart, patternEnd);
         }
 
         /**
@@ -234,14 +281,13 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
         public boolean visit(SimpleName node) {
             if (node.getParent() instanceof DeclareAnnotationDeclaration) {
                 String name = node.toString();
-                if (name.equals(atSearchTypeSimpleName) || name.endsWith(dotSearchTypeSimpleName)) {
+                if (name.equals(atSearchTypeSimpleName) || name.equals(atSearchTypeQualName)) {
                     // match found, now search for location
                     // +1 because the length is off by one...missing the '@'
-                    int end = node.getStartPosition() + node.getLength() + 1;
-                    int start = end - searchTypeSimpleName.length();
-                    int actualStart = start + offset;
+                    int actualStart = node.getStartPosition() + 1 + offset;
+                    int actualLength = node.getLength() - 1;
                     accumulatedMatches.add(new TypeReferenceMatch(decl, SearchMatch.A_ACCURATE, 
-                            actualStart, searchTypeSimpleName.length(), false, participant, decl.getResource()));
+                            actualStart, actualLength, false, participant, decl.getResource()));
                 }
             }
             return super.visit(node);

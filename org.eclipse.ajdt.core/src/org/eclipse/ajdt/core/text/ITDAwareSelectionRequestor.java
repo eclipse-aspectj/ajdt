@@ -13,7 +13,6 @@ package org.eclipse.ajdt.core.text;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -325,50 +324,51 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
      * @param signature
      * @return
      */
-    private String resolveSignture(IType type, String signature) {
-        String simple = Signature.getSignatureSimpleName(signature);
-        String qual = Signature.getSignatureQualifier(signature);
-        String[] typeParams = Signature.getTypeArguments(signature);
-        int arrayCount = Signature.getArrayCount(signature);
-        
-        String fullyQual = qual != null && qual.length() > 0 ? qual + '.' + simple : simple;
-        try {
-            String[][] resolvedArr = type.resolveType(fullyQual);
-            if (resolvedArr != null && resolvedArr.length > 0) {
-                String resolved = (resolvedArr[0][0].length() > 0) ? 
-                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1]; 
-                String newSig = Signature.createTypeSignature(resolved, true);
-                if (arrayCount > 0) {
-                    newSig = Signature.createArraySignature(newSig, arrayCount);
-                }
-                
-                // uggh...don't know if this will work
-                if (typeParams != null && typeParams.length > 0) {
-                    newSig = newSig.substring(0, newSig.length()-1) + "<";
-                    for (int i = 0; i < typeParams.length; i++) {
-                        typeParams[i] = resolveSignture(type, typeParams[i]);
-                        newSig = newSig.substring(0, newSig.length()-1) + typeParams[i];
-                    }
-                    newSig += ">;";
-                }
-                return newSig;
-            }
-        } catch (JavaModelException e) {
-        }
-        
-        // couldn't resolve
-        return signature;
-    }
-
-    /**
-     * @param signature
-     * @return true if this is an unresolved signature
-     */
-    private boolean isUnresolvedSignature(String signature) {
-        int typeStart = 0;
-        while (signature.length() < typeStart && signature.charAt(typeStart) == '[') {
-            typeStart++;
-        }
-        return signature.charAt(typeStart) == 'Q';
-    }
+    // not used any more.  can likely delete
+//    private String resolveSignture(IType type, String signature) {
+//        String simple = Signature.getSignatureSimpleName(signature);
+//        String qual = Signature.getSignatureQualifier(signature);
+//        String[] typeParams = Signature.getTypeArguments(signature);
+//        int arrayCount = Signature.getArrayCount(signature);
+//        
+//        String fullyQual = qual != null && qual.length() > 0 ? qual + '.' + simple : simple;
+//        try {
+//            String[][] resolvedArr = type.resolveType(fullyQual);
+//            if (resolvedArr != null && resolvedArr.length > 0) {
+//                String resolved = (resolvedArr[0][0].length() > 0) ? 
+//                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1]; 
+//                String newSig = Signature.createTypeSignature(resolved, true);
+//                if (arrayCount > 0) {
+//                    newSig = Signature.createArraySignature(newSig, arrayCount);
+//                }
+//                
+//                // uggh...don't know if this will work
+//                if (typeParams != null && typeParams.length > 0) {
+//                    newSig = newSig.substring(0, newSig.length()-1) + "<";
+//                    for (int i = 0; i < typeParams.length; i++) {
+//                        typeParams[i] = resolveSignture(type, typeParams[i]);
+//                        newSig = newSig.substring(0, newSig.length()-1) + typeParams[i];
+//                    }
+//                    newSig += ">;";
+//                }
+//                return newSig;
+//            }
+//        } catch (JavaModelException e) {
+//        }
+//        
+//        // couldn't resolve
+//        return signature;
+//    }
+//
+//    /**
+//     * @param signature
+//     * @return true if this is an unresolved signature
+//     */
+//    private boolean isUnresolvedSignature(String signature) {
+//        int typeStart = 0;
+//        while (signature.length() < typeStart && signature.charAt(typeStart) == '[') {
+//            typeStart++;
+//        }
+//        return signature.charAt(typeStart) == 'Q';
+//    }
 }

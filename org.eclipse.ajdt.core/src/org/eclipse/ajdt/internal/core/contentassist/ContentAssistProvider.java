@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.core.contentassist;
 
 import java.util.ArrayList;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
@@ -136,6 +137,8 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             int offset, int length, IJavaElement[] prevResults)
             throws JavaModelException {
 
+        AJLog.log("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
+        
         // see if we should shortcut other processing and we can
         // quickly find a selection that we know is only valid inside of
         // AspectJ

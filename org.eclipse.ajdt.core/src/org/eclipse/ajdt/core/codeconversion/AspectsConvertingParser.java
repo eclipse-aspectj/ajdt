@@ -789,15 +789,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 List<IJavaElement> rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
                 for (IJavaElement je : rels) {
                     IProgramElement pe = model.javaElementToProgramElement(je);
-                    List<String> parentTypes;
+                    List<String> parentTypes = null;
                     if (pe.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
                         parentTypes = pe.getParentTypes();
                     } else if (pe.getKind() == IProgramElement.Kind.ASPECT) {
                         // could be a concrete aspect that instantiates a declare parents relationship from an abstact aspect
                         Map<String, List<String>> parents = pe.getDeclareParentsMap();
-                        parentTypes = parents.get(type.getFullyQualifiedName());
-                    } else {
-                        parentTypes = null;
+                        if (parents != null) {
+                            parentTypes = parents.get(type.getFullyQualifiedName());
+                        }
                     }
                     
                     if (parentTypes != null) {
