@@ -152,8 +152,8 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         matches = findSearchMatches(superType, this.getName());
         assertMatch("Other", contents, matches);
     }
-    public void _testDeclareParentsExtendsAnnotationPattern() throws Exception {
-        String contents = "package p;\naspect Aspect {\n declare parents : (@Ann *) extends Other;}\n@Ann class Java { } \nclass Other{ }\n @interface Ann { }";
+    public void testDeclareParentsExtendsAnnotationPattern() throws Exception {
+        String contents = "package p;\naspect Aspect {\n declare parents : (@Ann *) extends Other;}\n @interface Ann { }\n@Ann class Java { } \nclass Other{ }";
         ICompilationUnit unit = createCU("p", "Aspect.aj", contents);
         IType subType = unit.getType("Ann");
         IType superType = unit.getType("Other");
@@ -171,9 +171,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType superType = createCU("q", "Other.java", "package q;\npublic class Other { }").getType("Other");
         
         List<SearchMatch> matches = findSearchMatches(subType, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("q.Java", contents, matches);
         matches = findSearchMatches(subType2, this.getName());
-        assertMatch("Second", contents, matches);
+        assertMatch("q.Second", contents, matches);
         matches = findSearchMatches(superType, this.getName());
         assertMatch("q.Other", contents, matches);
     }
@@ -184,11 +184,11 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType superType = createCU("q", "Other.java", "package q;\npublic class Other { }").getType("Other");
         
         List<SearchMatch> matches = findSearchMatches(subType, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("q.Java", contents, matches);
         matches = findSearchMatches(superType, this.getName());
         assertMatch("q.Other", contents, matches);
     }
-    public void _testQualifiedDeclareParentsExtendsAnnotationPattern() throws Exception {
+    public void testQualifiedDeclareParentsExtendsAnnotationPattern() throws Exception {
         String contents = "package p;\naspect Aspect {\n declare parents : (@q.Ann *) extends q.Other;}";
         createCU("p", "Aspect.aj", contents);
         createCU("q", "Java.java", "package q;\npublic class Java { }").getType("Java");
@@ -196,9 +196,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType superType = createCU("q", "Other.java", "package q;\npublic class Other { }").getType("Other");
         
         List<SearchMatch> matches = findSearchMatches(subType, this.getName());
-        assertMatch("Ann", contents, matches);
+        assertMatch("q.Ann", contents, matches);
         matches = findSearchMatches(superType, this.getName());
-        assertMatch("Other", contents, matches);
+        assertMatch("q.Other", contents, matches);
     }
     
     
@@ -255,7 +255,7 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType type = unit.getType("Java");
         
         List<SearchMatch> matches = findSearchMatches(ann, this.getName());
-        assertMatch("Ann", contents, matches);
+        assertMatch("p.Ann", contents, matches);
         matches = findSearchMatches(type, this.getName());
         assertMatch("p.Java", contents, matches);
     }
@@ -266,9 +266,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType type = unit.getType("Java");
         
         List<SearchMatch> matches = findSearchMatches(ann, this.getName());
-        assertMatch("Ann", contents, matches);
+        assertMatch("p.Ann", contents, matches);
         matches = findSearchMatches(type, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("p.Java", contents, matches);
     }
     public void testQualifiedDeclareAtConstructor() throws Exception {
         String contents = "package p;\naspect Aspect {\n declare @constructor : p.Java.new() : @p.Ann; }\nclass Java {\n Java()  { } } \n @interface Ann { }";
@@ -277,9 +277,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType type = unit.getType("Java");
         
         List<SearchMatch> matches = findSearchMatches(ann, this.getName());
-        assertMatch("Ann", contents, matches);
+        assertMatch("p.Ann", contents, matches);
         matches = findSearchMatches(type, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("p.Java", contents, matches);
     }
     public void testQualifiedDeclareAtField() throws Exception {
         String contents = "package p;\naspect Aspect {\n declare @field : int p.Java.xxx : @p.Ann; }\nclass Java {\n int xxx;  { } } \n @interface Ann { }";
@@ -288,9 +288,9 @@ public class DeclareAwareSearchTests extends AbstractITDSearchTest {
         IType type = unit.getType("Java");
         
         List<SearchMatch> matches = findSearchMatches(ann, this.getName());
-        assertMatch("Ann", contents, matches);
+        assertMatch("p.Ann", contents, matches);
         matches = findSearchMatches(type, this.getName());
-        assertMatch("Java", contents, matches);
+        assertMatch("p.Java", contents, matches);
     }
 
     // Can't do patterns

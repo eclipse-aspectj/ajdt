@@ -48,6 +48,13 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     class ITDAwareSearchRequestor extends SearchRequestor {
         List<SearchMatch> matches = new ArrayList<SearchMatch>();
         public void acceptSearchMatch(SearchMatch match) throws CoreException {
+            // order matches by offset
+            for (int i = 0; i < matches.size(); i++) {
+                if (matches.get(i).getOffset() > match.getOffset()) {
+                    matches.add(i, match);
+                    return;
+                }
+            }
             matches.add(match);
         }
         

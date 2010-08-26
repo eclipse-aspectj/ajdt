@@ -15,8 +15,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 
 import junit.framework.TestCase;
 
@@ -25,7 +23,6 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.tests.testutils.DefaultLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -85,88 +82,80 @@ public class AJDTCoreTestCase extends TestCase {
     }
     
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		try {
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        
+        try {
+            // don't autobuild while we are deleting the projects
             Utils.setAutobuilding(false);
             getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
-    		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-    		for (int i = 0; i < allProjects.length; i++) {
-    			IProject project = allProjects[i];
-    			
-    			// don't delete the default project
-    			// to speed up processing of subsequent tests
-    			if (! project.getName().equals("DefaultEmptyProject")) {
-    			    deleteProject(project,false);
-    			}
-    		}
-    		allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-    		for (int i = 0; i < allProjects.length; i++) {
-    			IProject project = allProjects[i];
-                // don't delete the default project
-                // to speed up processing of subsequent tests
-                if (! project.getName().equals("DefaultEmptyProject")) {
-                    deleteProject(project,true);
-                } else {
-                    // empty the project out
-                    deleteChildResources(project, true);
-                    // ensure that all files are reset
-                    setUpJavaProject(project.getName());
-                }
-    		}
-		} finally {
-            getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+            IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+            for (int i = 0; i < allProjects.length; i++) {
+                IProject project = allProjects[i];
+                deleteProject(project,false);
+            }
+            allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+            for (int i = 0; i < allProjects.length; i++) {
+                IProject project = allProjects[i];
+                deleteProject(project,true);
+            }
+        } finally {
+            // ensure we use default logger for next test
+            AspectJPlugin.getDefault().setAJLogger(defaultLogger);
+        
             Utils.setAutobuilding(true);
-    		AJCompilationUnitManager.INSTANCE.clearCache();
-    		
-    		// ensure we use default logger for next test
-    		AspectJPlugin.getDefault().setAJLogger(defaultLogger);
-		}
-	}
+            try {
+                getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+            } catch (CoreException e) {
+                AspectJCoreTestPlugin.log(e);
+            }
+            AJCompilationUnitManager.INSTANCE.clearCache();
+        }
+    }
 
-	/**
-	 * Returns the OS path to the directory that contains this plugin.
-	 */
-	protected String getPluginDirectoryPath() {
-		try {
-			URL platformURL = Platform.getBundle(getTestBundleName()).getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
-			return new File(FileLocator.toFileURL(platformURL).getFile()).getAbsolutePath();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    /**
+     * Returns the OS path to the directory that contains this plugin.
+     */
+    protected String getPluginDirectoryPath() {
+        try {
+            URL platformURL = Platform.getBundle(getTestBundleName()).getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
+            return new File(FileLocator.toFileURL(platformURL).getFile()).getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     protected String getTestBundleName() {
         return "org.eclipse.ajdt.core.tests";
     }
-	
-	public String getSourceWorkspacePath() {
-		return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
-	}
+    
+    public String getSourceWorkspacePath() {
+        return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
+    }
 
-	/**
-	 * Returns the IWorkspace this test suite is running on.
-	 */
-	public IWorkspace getWorkspace() {
-		return ResourcesPlugin.getWorkspace();
-	}
-	
-	public IWorkspaceRoot getWorkspaceRoot() {
-		return getWorkspace().getRoot();
-	}
-	
-	protected IProject createPredefinedProject14(final String projectName) throws CoreException,IOException {
-		IJavaProject jp = setUpJavaProject(projectName);
-		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
-		jp.setOption("org.eclipse.jdt.core.compiler.source", "1.4");  //$NON-NLS-1$//$NON-NLS-2$
-		jp.setOption("org.eclipse.jdt.core.compiler.target", "1.4"); //$NON-NLS-1$ //$NON-NLS-2$
-		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-		return jp.getProject();
-	}
-	
-	protected IProject createPredefinedProject(final String projectName) throws CoreException, RuntimeException {
-	    IJavaProject jp;
+    /**
+     * Returns the IWorkspace this test suite is running on.
+     */
+    public IWorkspace getWorkspace() {
+        return ResourcesPlugin.getWorkspace();
+    }
+    
+    public IWorkspaceRoot getWorkspaceRoot() {
+        return getWorkspace().getRoot();
+    }
+    
+    protected IProject createPredefinedProject14(final String projectName) throws CoreException,IOException {
+        IJavaProject jp = setUpJavaProject(projectName);
+        jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
+        jp.setOption("org.eclipse.jdt.core.compiler.source", "1.4");  //$NON-NLS-1$//$NON-NLS-2$
+        jp.setOption("org.eclipse.jdt.core.compiler.target", "1.4"); //$NON-NLS-1$ //$NON-NLS-2$
+        jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        return jp.getProject();
+    }
+    
+    protected IProject createPredefinedProject(final String projectName) throws CoreException, RuntimeException {
+        IJavaProject jp;
         try {
             jp = setUpJavaProject(projectName);
         } catch (IOException e) {
@@ -177,66 +166,66 @@ public class AJDTCoreTestCase extends TestCase {
             return null;
         }
         
-		try {
-    		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
-		} catch (NullPointerException npe) {
-		}
-		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-		return jp.getProject();
-	}
-	
-	/**
-	 * Create a named project, optionally turn of some irritating options that can clog up the output and then build it
-	 */
-	protected IProject createPredefinedProject(final String projectName,boolean turnOffIrritatingOptions) throws CoreException, IOException {
-		IJavaProject jp = setUpJavaProject(projectName);
-		if (turnOffIrritatingOptions) {
-			jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
-			jp.setOption("org.eclipse.jdt.core.compiler.problem.rawTypeReference","ignore");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
-			jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
-		}
-		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-		return jp.getProject();		
-	}
-	
-	
-	protected IJavaProject setUpJavaProject(final String projectName) throws CoreException, IOException {
-		return setUpJavaProject(projectName, "1.4"); //$NON-NLS-1$
-	}
-	
-	protected IJavaProject setUpJavaProject(final String projectName, String compliance) throws CoreException, IOException {
-		// copy files in project from source workspace to target workspace
-		String sourceWorkspacePath = getSourceWorkspacePath();
-		String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
-		
-		// return null if source directory does not exist
-		if (! copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName))) {
-		    return null;
-		}
-		
-		// create project
-		final IProject project = getWorkspaceRoot().getProject(projectName);
-		if (! project.exists()) {
-    		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
-    			public void run(IProgressMonitor monitor) throws CoreException {
-    				project.create(null);
-    			}
-    		};
-    		getWorkspace().run(populate, null);
-		}		
-		// ensure open
-		project.open(null);
-		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
-		
-		IJavaProject javaProject = JavaCore.create(project);
-		return javaProject;
-	}
-	
-	protected static class Requestor extends TypeNameRequestor { }
+        try {
+            jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
+        } catch (NullPointerException npe) {
+        }
+        jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        return jp.getProject();
+    }
+    
+    /**
+     * Create a named project, optionally turn of some irritating options that can clog up the output and then build it
+     */
+    protected IProject createPredefinedProject(final String projectName,boolean turnOffIrritatingOptions) throws CoreException, IOException {
+        IJavaProject jp = setUpJavaProject(projectName);
+        if (turnOffIrritatingOptions) {
+            jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
+            jp.setOption("org.eclipse.jdt.core.compiler.problem.rawTypeReference","ignore");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
+            jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
+        }
+        jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        return jp.getProject();     
+    }
+    
+    
+    protected IJavaProject setUpJavaProject(final String projectName) throws CoreException, IOException {
+        return setUpJavaProject(projectName, "1.4"); //$NON-NLS-1$
+    }
+    
+    protected IJavaProject setUpJavaProject(final String projectName, String compliance) throws CoreException, IOException {
+        // copy files in project from source workspace to target workspace
+        String sourceWorkspacePath = getSourceWorkspacePath();
+        String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
+        
+        // return null if source directory does not exist
+        if (! copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName))) {
+            return null;
+        }
+        
+        // create project
+        final IProject project = getWorkspaceRoot().getProject(projectName);
+        if (! project.exists()) {
+            IWorkspaceRunnable populate = new IWorkspaceRunnable() {
+                public void run(IProgressMonitor monitor) throws CoreException {
+                    project.create(null);
+                }
+            };
+            getWorkspace().run(populate, null);
+        }       
+        // ensure open
+        project.open(null);
+        AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
+        
+        IJavaProject javaProject = JavaCore.create(project);
+        return javaProject;
+    }
+    
+    protected static class Requestor extends TypeNameRequestor { }
 
-	public static void waitForAutoBuild() {
-	    waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
-	}
+    public static void waitForAutoBuild() {
+        waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
+    }
     public static void waitForManualBuild() {
         waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_BUILD);
     }
@@ -246,8 +235,8 @@ public class AJDTCoreTestCase extends TestCase {
     public static void waitForManualRefresh() {
         waitForJobFamily(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
     }
-	
-	public static void waitForJobFamily(Object family) {
+    
+    public static void waitForJobFamily(Object family) {
         boolean wasInterrupted = false;
         do {
             try {
@@ -259,80 +248,80 @@ public class AJDTCoreTestCase extends TestCase {
                 wasInterrupted = true;
             }
         } while (wasInterrupted);       
-	    
-	}
-	
-	   public static void joinBackgroudActivities()  {
-	        waitForAutoBuild();
-	        waitForManualBuild();
-	        waitForAutoRefresh();
-	        waitForManualRefresh();
-	    }
+        
+    }
+    
+       public static void joinBackgroudActivities()  {
+            waitForAutoBuild();
+            waitForManualBuild();
+            waitForAutoRefresh();
+            waitForManualRefresh();
+        }
 
-	
-	/**
-	 * Copy the given source directory (and all its contents) to the given target directory.
-	 */
-	protected boolean copyDirectory(File source, File target) throws IOException {
-	    if (! source.exists()) {
-	        return false;
-	    }
-		if (!target.exists()) {
-			target.mkdirs();
-		}
-		File[] files = source.listFiles();
-		if (files == null) return true;
-		for (int i = 0; i < files.length; i++) {
-			File sourceChild = files[i];
-			String name =  sourceChild.getName();
-			if (name.equals("CVS")) continue; //$NON-NLS-1$
-			File targetChild = new File(target, name);
-			if (sourceChild.isDirectory()) {
-				copyDirectory(sourceChild, targetChild);
-			} else {
-				copy(sourceChild, targetChild);
-			}
-		}
-		return true;
-	}
-	
-	/**
-	 * Copy file from src (path to the original file) to dest (path to the destination file).
-	 */
-	public void copy(File src, File dest) throws IOException {
-		// read source bytes
-		byte[] srcBytes = this.read(src);
-		
-		if (convertToIndependantLineDelimiter(src)) {
-			String contents = new String(srcBytes);
-			contents = convertToIndependantLineDelimiter(contents);
-			srcBytes = contents.getBytes();
-		}
-	
-		// write bytes to dest
-		FileOutputStream out = new FileOutputStream(dest);
-		out.write(srcBytes);
-		out.close();
-	}
-	
-	public byte[] read(java.io.File file) throws java.io.IOException {
-		int fileLength;
-		byte[] fileBytes = new byte[fileLength = (int) file.length()];
-		java.io.FileInputStream stream = new java.io.FileInputStream(file);
-		int bytesRead = 0;
-		int lastReadSize = 0;
-		while ((lastReadSize != -1) && (bytesRead != fileLength)) {
-			lastReadSize = stream.read(fileBytes, bytesRead, fileLength - bytesRead);
-			bytesRead += lastReadSize;
-		}
-		stream.close();
-		return fileBytes;
-	}
-	public boolean convertToIndependantLineDelimiter(File file) {
-		return CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName());
-	}
-	
-	/**
+    
+    /**
+     * Copy the given source directory (and all its contents) to the given target directory.
+     */
+    protected boolean copyDirectory(File source, File target) throws IOException {
+        if (! source.exists()) {
+            return false;
+        }
+        if (!target.exists()) {
+            target.mkdirs();
+        }
+        File[] files = source.listFiles();
+        if (files == null) return true;
+        for (int i = 0; i < files.length; i++) {
+            File sourceChild = files[i];
+            String name =  sourceChild.getName();
+            if (name.equals("CVS")) continue; //$NON-NLS-1$
+            File targetChild = new File(target, name);
+            if (sourceChild.isDirectory()) {
+                copyDirectory(sourceChild, targetChild);
+            } else {
+                copy(sourceChild, targetChild);
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Copy file from src (path to the original file) to dest (path to the destination file).
+     */
+    public void copy(File src, File dest) throws IOException {
+        // read source bytes
+        byte[] srcBytes = this.read(src);
+        
+        if (convertToIndependantLineDelimiter(src)) {
+            String contents = new String(srcBytes);
+            contents = convertToIndependantLineDelimiter(contents);
+            srcBytes = contents.getBytes();
+        }
+    
+        // write bytes to dest
+        FileOutputStream out = new FileOutputStream(dest);
+        out.write(srcBytes);
+        out.close();
+    }
+    
+    public byte[] read(java.io.File file) throws java.io.IOException {
+        int fileLength;
+        byte[] fileBytes = new byte[fileLength = (int) file.length()];
+        java.io.FileInputStream stream = new java.io.FileInputStream(file);
+        int bytesRead = 0;
+        int lastReadSize = 0;
+        while ((lastReadSize != -1) && (bytesRead != fileLength)) {
+            lastReadSize = stream.read(fileBytes, bytesRead, fileLength - bytesRead);
+            bytesRead += lastReadSize;
+        }
+        stream.close();
+        return fileBytes;
+    }
+    public boolean convertToIndependantLineDelimiter(File file) {
+        return CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName());
+    }
+    
+    /**
      * Force indexes to be populated
      */
     public static void performDummySearch(IJavaElement element) throws CoreException {
@@ -350,107 +339,87 @@ public class AJDTCoreTestCase extends TestCase {
 
 
     public static String convertToIndependantLineDelimiter(String source) {
-		if (source.indexOf('\n') == -1 && source.indexOf('\r') == -1) return source;
-		StringBuffer buffer = new StringBuffer();
-		for (int i = 0, length = source.length(); i < length; i++) {
-			char car = source.charAt(i);
-			if (car == '\r') {
-				buffer.append('\n');
-				if (i < length-1 && source.charAt(i+1) == '\n') {
-					i++; // skip \n after \r
-				}
-			} else {
-				buffer.append(car);
-			}
-		}
-		return buffer.toString();
-	}
-	
-	protected IProject getProject(String project) {
-		return getWorkspaceRoot().getProject(project);
-	}
+        if (source.indexOf('\n') == -1 && source.indexOf('\r') == -1) return source;
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0, length = source.length(); i < length; i++) {
+            char car = source.charAt(i);
+            if (car == '\r') {
+                buffer.append('\n');
+                if (i < length-1 && source.charAt(i+1) == '\n') {
+                    i++; // skip \n after \r
+                }
+            } else {
+                buffer.append(car);
+            }
+        }
+        return buffer.toString();
+    }
+    
+    protected IProject getProject(String project) {
+        return getWorkspaceRoot().getProject(project);
+    }
 
-	protected void deleteProject(IProject project) throws CoreException {
-		deleteProject(project,true);
-	}
-	protected void deleteProject(IProject project, boolean force) throws CoreException {
-	    if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
-	        project.open(null);
-	    }
-	    deleteResource(project,force);
-	}
-	
-	protected void deleteProject(String projectName) throws CoreException {
-		deleteProject(this.getProject(projectName),true);
-	}
-	
-	private static Set<String> DONT_DELETE = new HashSet<String>();
-	static {
-	    DONT_DELETE.add(".project");
-	    DONT_DELETE.add(".classpath");
-	}
-	protected void deleteChildResources(IContainer container, boolean force) throws CoreException {
-	    if (container.getType() == IResource.PROJECT) {
-	        IProject project = (IProject) container;
-	        if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
-	            project.open(null);
-	        }
-	    }
-	    
-	    for (IResource member : container.members()) {
-	        if (!DONT_DELETE.contains(member.getName())) {
-	            deleteResource(member, force);
-	        }
-	    }
-	}
-	
-	/**
-	 * Delete this resource.
-	 */
-	public void deleteResource(IResource resource, boolean force) throws CoreException {
-		waitForManualBuild();
-		waitForAutoBuild();
-		CoreException lastException = null;
-		try {
-//		    resource.refreshLocal(IResource.DEPTH_INFINITE, null);
-			resource.delete(false, null);
-		} catch (CoreException e) {
-			lastException = e;
-			// just print for info
-			System.out.println("(CoreException): " + e.getMessage() + " Resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
-			e.printStackTrace();
-		} catch (IllegalArgumentException iae) {
-			// just print for info
-			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		if (!force) {
-			return;
-		}
-		int retryCount = 10; // wait 1 minute at most
-		while (resource.isAccessible() && --retryCount >= 0) {
-			waitForAutoBuild();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			try {
-				resource.delete(true, null);
-			} catch (CoreException e) {
-				lastException = e;
-				// just print for info
-				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			} catch (IllegalArgumentException iae) {
-				// just print for info
-				System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			}
-		}
-		if (!resource.isAccessible()) return;
-		System.err.println("Failed to delete " + resource.getFullPath()); //$NON-NLS-1$
-		if (lastException != null) {
-			throw lastException;
-		}
-	}
-	
+    protected void deleteProject(IProject project) throws CoreException {
+        deleteProject(project,true);
+    }
+    protected void deleteProject(IProject project, boolean force) throws CoreException {
+        if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
+            project.open(null);
+        }
+        deleteResource(project,force);
+    }
+    
+    protected void deleteProject(String projectName) throws CoreException {
+        deleteProject(this.getProject(projectName),true);
+    }
+    
+    /**
+     * Delete this resource.
+     */
+    public void deleteResource(IResource resource, boolean force) throws CoreException {
+        waitForManualBuild();
+        waitForAutoBuild();
+        CoreException lastException = null;
+        try {
+//          resource.refreshLocal(IResource.DEPTH_INFINITE, null);
+            resource.delete(false, null);
+        } catch (CoreException e) {
+            lastException = e;
+            // just print for info
+            System.out.println("(CoreException): " + e.getMessage() + " Resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+            e.printStackTrace();
+        } catch (IllegalArgumentException iae) {
+            // just print for info
+            System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        if (!force) {
+            return;
+        }
+        int retryCount = 10; // wait 1 minute at most
+        while (resource.isAccessible() && --retryCount >= 0) {
+            waitForAutoBuild();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+            try {
+                resource.delete(true, null);
+            } catch (CoreException e) {
+                lastException = e;
+                // just print for info
+                System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            } catch (IllegalArgumentException iae) {
+                // just print for info
+                System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            }
+        }
+        if (!resource.isAccessible()) return;
+        System.err.println("Failed to delete " + resource.getFullPath()); //$NON-NLS-1$
+        if (lastException != null) {
+            throw lastException;
+        }
+    }
+    
     private void ensureExists(IFolder folder) throws CoreException {
         if (folder.getParent().getType() == IResource.FOLDER && !folder.getParent().exists()) {
             ensureExists((IFolder) folder.getParent());
@@ -458,7 +427,7 @@ public class AJDTCoreTestCase extends TestCase {
         folder.create(false, true, null);
     }
 
-	
+    
     private IPackageFragmentRoot createDefaultSourceFolder(IJavaProject javaProject) throws CoreException {
         IProject project = javaProject.getProject();
         IFolder folder = project.getFolder("src");
