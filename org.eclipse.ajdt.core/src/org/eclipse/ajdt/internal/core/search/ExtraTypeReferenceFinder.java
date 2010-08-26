@@ -223,6 +223,7 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
                     // make the assumption that if the match is at a simple name, then
                     // this is a type match, but if there is a qual name, then match 
                     // on the qualified name
+                	boolean isQualified;
                     if (matchLoc > 0 && actualPatternText.charAt(matchLoc - 1) == '.') {
                         // we have a qual name.  Assume no spaces or special chars in there
                         String foundQualifier = findQualifier(actualPatternText, matchLoc);
@@ -236,13 +237,18 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
                         // since we have assumed no spaces, then we can use the qualifier 
                         // as a way to adjust the match location
                         matchLoc -= foundQualifier.length() + 1;
+                        isQualified = true;
+                    } else {
+                    	isQualified = false;
                     }
+                    int length = isQualified ? (searchQualifier.length() + ".".length() + searchTypeSimpleName.length()) :
+                    	searchTypeSimpleName.length();
 
                     int start = matchLoc + // end of the name relative to the SignaturePattern's detail
                             node.getStartPosition() + // start of SignaturePattern relative to the declareDeclaration's start 
                             offset; // the offset of the declareDeclaration from the start of the file
                     accumulatedMatches.add(new TypeReferenceMatch(decl, SearchMatch.A_INACCURATE, 
-                            start, searchTypeSimpleName.length(), false, participant, decl.getResource()));
+                            start, length, false, participant, decl.getResource()));
                 }
             }
         }
@@ -255,7 +261,7 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
         private String findQualifier(String actualPatternText, int matchLoc) {
             int patternEnd = matchLoc - 1;
             int patternStart = patternEnd;
-            while (patternStart > 1) {
+            while (patternStart > 0) {
                 patternStart--;
                 if (Character.isJavaIdentifierPart(actualPatternText.charAt(patternStart))
                         || actualPatternText.charAt(patternStart) == '.') {
@@ -285,7 +291,7 @@ public class ExtraTypeReferenceFinder implements IExtraMatchFinder<TypeReference
                     // match found, now search for location
                     // +1 because the length is off by one...missing the '@'
                     int actualStart = node.getStartPosition() + 1 + offset;
-                    int actualLength = node.getLength() - 1;
+                    int actualLength = name.length() - 1;
                     accumulatedMatches.add(new TypeReferenceMatch(decl, SearchMatch.A_ACCURATE, 
                             actualStart, actualLength, false, participant, decl.getResource()));
                 }
