@@ -14,7 +14,6 @@ package org.eclipse.ajdt.core.text;
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
