@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeselect;
 
+import org.eclipse.ajdt.core.tests.codeselect.AbstractITDAwareCodeSelectionTests.MockNameEnvironmentProvider;
+import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
+import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -25,10 +28,28 @@ public class ITDAwareCodeSelectionTests4 extends
     
     IJavaProject project;
     
-    @Override
+    // need to set a NameEnviromentProvider, since this is typically
+    // set by AJDT.UI
+    INameEnvironmentProvider origProvider;
+    INameEnvironmentProvider mockProvider = new MockNameEnvironmentProvider();
+    
+    /*
+     * @see TestCase#setUp()
+     */
     protected void setUp() throws Exception {
+        origProvider = NameEnvironmentAdapter.getInstance().getProvider();
+        NameEnvironmentAdapter.getInstance().setProvider(mockProvider);
         super.setUp();
         project = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        try {
+            super.tearDown();
+        } finally {
+            NameEnvironmentAdapter.getInstance().setProvider(origProvider);
+        }
     }
     
     public void testSelectTargetTypeNameField1() throws Exception {

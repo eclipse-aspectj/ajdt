@@ -45,10 +45,10 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
     
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(ITDAwareCodeSelectionTests4.class);
         suite.addTestSuite(ITDAwareCodeSelectionTests.class);
         suite.addTestSuite(ITDAwareCodeSelectionTests2.class);
         suite.addTestSuite(ITDAwareCodeSelectionTests3.class);
-        suite.addTestSuite(ITDAwareCodeSelectionTests4.class);
         return suite;
     }
 
