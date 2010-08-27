@@ -137,7 +137,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             int offset, int length, IJavaElement[] prevResults)
             throws JavaModelException {
 
-        AJLog.log("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
+        System.out.println("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
         
         // see if we should shortcut other processing and we can
         // quickly find a selection that we know is only valid inside of
