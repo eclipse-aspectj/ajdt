@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 
 /**
  * 
@@ -25,6 +26,8 @@ import org.eclipse.jdt.core.ITypeRoot;
 public class MockRefactoringProvider implements IRefactoringProvider {
     
     Boolean checkResults = null;
+    
+    Boolean createASTForRefactoring = null;
 
     public boolean isInterestingElement(IJavaElement element) {
         return element.getAncestor(IJavaElement.COMPILATION_UNIT) instanceof MockCompilationUnit;
@@ -48,7 +51,8 @@ public class MockRefactoringProvider implements IRefactoringProvider {
         return false;
     }
 
-    public ITypeRoot convertRoot(ITypeRoot root) {
-        return root;
+    public CompilationUnit createASTForRefactoring(ITypeRoot root) {
+        createASTForRefactoring = Boolean.valueOf(!(root instanceof MockCompilationUnit));
+        return null;
     }
 }
