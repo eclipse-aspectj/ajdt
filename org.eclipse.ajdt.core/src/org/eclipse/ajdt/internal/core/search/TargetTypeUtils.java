@@ -13,10 +13,10 @@ package org.eclipse.ajdt.internal.core.search;
 import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.core.search.matching.FieldPattern;
+import org.eclipse.jdt.internal.core.search.matching.PackageReferencePattern;
 import org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 
 /**
- * 
  * @author Andrew Eisenberg
  * @created Aug 6, 2010
  */
@@ -64,4 +64,7 @@ public class TargetTypeUtils {
         return targetTypeName;
     }
 
+    static char[] getPackage(PackageReferencePattern pattern) {
+        return (char[]) ReflectionUtils.getPrivateField(PackageReferencePattern.class, "pkgName", pattern);
+    }
 }

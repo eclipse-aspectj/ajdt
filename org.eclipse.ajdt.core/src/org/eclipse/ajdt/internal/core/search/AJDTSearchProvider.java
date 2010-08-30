@@ -45,8 +45,8 @@ import org.eclipse.jdt.internal.core.search.matching.ConstructorPattern;
 import org.eclipse.jdt.internal.core.search.matching.FieldPattern;
 import org.eclipse.jdt.internal.core.search.matching.MethodPattern;
 import org.eclipse.jdt.internal.core.search.matching.OrPattern;
+import org.eclipse.jdt.internal.core.search.matching.PackageReferencePattern;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
-import org.eclipse.jdt.internal.core.search.matching.TypeDeclarationPattern;
 import org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 
 /**
@@ -253,6 +253,8 @@ public class AJDTSearchProvider implements ISearchProvider {
                 return new ExtraITDFinder();
             } else if (pattern instanceof TypeReferencePattern) {
                 return new ExtraTypeReferenceFinder();
+            } else if (pattern instanceof PackageReferencePattern) {
+                return new ExtraPackageReferenceFinder();
             }
         }
         return new NullMatchFinder();

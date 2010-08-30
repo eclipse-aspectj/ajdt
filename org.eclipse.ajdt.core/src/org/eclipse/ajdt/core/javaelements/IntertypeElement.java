@@ -203,6 +203,14 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         String[] split = name.split("\\.");
         return split.length > 1 ? split[split.length-1] : name;
     }
+
+    /**
+     * @return the target type name as it appears in the source (either qualified or simple)
+     */
+    public String getTargetTypeName() {
+        int dotIndex = name.lastIndexOf('.');
+        return dotIndex > 0 ? name.substring(0, dotIndex) : name;
+    }
     
     public String[] getQualifiedParameterTypes() {
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
