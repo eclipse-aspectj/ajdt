@@ -15,10 +15,13 @@ import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractConstantRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractTempRefactoring;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
 
 /**
  * Provides some general hooks into refactoring support
@@ -83,20 +86,27 @@ public privileged aspect RefactoringHooksAspect {
     }
     
     
-    // Not used yet.  Can't get this to work
-//    /**
-//     * Ensure that the {@link RefactoringASTParser} is based on the constant size transformed source.
-//     * We need this because the {@link RefactoringASTParser} is used to base source locations.  So,
-//     * we cannot mess with them.
-//     */
-//    pointcut refactoringASTParserParse(ITypeRoot root) : execution(public CompilationUnit RefactoringASTParser.parse(ITypeRoot, WorkingCopyOwner, boolean, boolean, boolean, IProgressMonitor)) 
-//            && args(root, ..);
-//    
-//    CompilationUnit around(ITypeRoot root) : refactoringASTParserParse(root) {
-//        IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
-//        if (provider != null && provider.belongsToInterestingCompilationUnit(root)) {
-//            root = provider.convertRoot(root);
-//        }
-//        return proceed(root);
-//    }
+    /**
+     * Ensure that the {@link RefactoringASTParser} is based on the constant size transformed source.
+     * We need this because the {@link RefactoringASTParser} is used to base source locations.  So,
+     * we cannot mess with them.
+     */
+    pointcut refactoringASTParserParse(ITypeRoot root) : execution(public static CompilationUnit 
+            RefactoringASTParser.parseWithASTProvider(ITypeRoot, boolean, IProgressMonitor)) 
+            && args(root, ..);
+    
+    CompilationUnit around(ITypeRoot root) : refactoringASTParserParse(root) {
+        IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
+        if (provider != null && provider.belongsToInterestingCompilationUnit(root)) {
+            try {
+                CompilationUnit maybeUnit = provider.createASTForRefactoring(root);
+                if (maybeUnit != null) {
+                    return maybeUnit;
+                }
+            } catch (Exception e) {
+                JDTWeavingPlugin.logException(e);
+            }
+        } 
+        return proceed(root);
+    }
 }

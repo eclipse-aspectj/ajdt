@@ -14,6 +14,8 @@ package org.eclipse.contribution.jdt.refactoring;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 
 /**
  * @author Andrew Eisenberg
@@ -31,11 +33,10 @@ public interface IRefactoringProvider {
     
     boolean belongsToInterestingCompilationUnit(IJavaElement elt);
     
-    // can't get this to work, so not used yet
-//    /**
-//     * Convert the type root into something that is parseable by JDT
-//     * @param root
-//     * @return
-//     */
-//    ITypeRoot convertRoot(ITypeRoot root);
+    /**
+     * Convert the type root into something that is parseable by JDT
+     * @param root
+     * @return
+     */
+    CompilationUnit createASTForRefactoring(ITypeRoot root);
 }
