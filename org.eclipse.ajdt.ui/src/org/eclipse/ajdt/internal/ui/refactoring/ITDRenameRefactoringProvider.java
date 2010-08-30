@@ -11,13 +11,21 @@
 
 package org.eclipse.ajdt.internal.ui.refactoring;
 
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.ajdt.core.ReflectionUtils;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.contribution.jdt.refactoring.IRefactoringProvider;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.corext.refactoring.rename.JavaRenameProcessor;
 import org.eclipse.jdt.internal.ui.refactoring.UserInterfaceManager;
 import org.eclipse.jdt.internal.ui.refactoring.reorg.RenameUserInterfaceManager;
@@ -104,17 +112,29 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
         return ! (unit instanceof AJCompilationUnit);
     }
 
-    // can't get this to work, so not used
-//    public ITypeRoot convertRoot(ITypeRoot root) {
-//        if (root instanceof AJCompilationUnit) {
-//            AJCompilationUnit unit = (AJCompilationUnit) root;
-//            char[] contents = unit.getContents();
-//            AspectsConvertingParser acp = new AspectsConvertingParser(contents);
-//            acp.convert(ConversionOptions.CONSTANT_SIZE);
-//            AJCompilationUnit cachedUnit = unit.ajCloneCachingContents(acp.content);
-//            return cachedUnit;
-//        } else {
-//            return root;
-//        }
-//    }
+    public CompilationUnit createASTForRefactoring(ITypeRoot root) {
+        if (root instanceof AJCompilationUnit) {
+            AJCompilationUnit ajUnit = (AJCompilationUnit) root;
+            
+            // create a clone of the original ajUnit so that 
+            // an ast and its bindings can be created on the constant sized source 
+            // code
+            try {
+                ajUnit.requestOriginalContentMode();
+                char[] contents = ((AJCompilationUnit) root).getContents();
+                ajUnit.discardOriginalContentMode();
+                AspectsConvertingParser acp = new AspectsConvertingParser(contents);
+                acp.convert(ConversionOptions.CONSTANT_SIZE);
+                AJCompilationUnit clone = ajUnit.ajCloneCachingContents(acp.content);
+                ASTParser parser = ASTParser.newParser(AST.JLS3);
+                parser.setBindingsRecovery(true);
+                parser.setResolveBindings(true);
+                parser.setSource(clone);
+                ASTNode result = parser.createAST(null);
+                return result instanceof CompilationUnit ? (CompilationUnit) result : null;
+            } catch (JavaModelException e) {
+            } 
+        }
+        return null;
+    }
 }
