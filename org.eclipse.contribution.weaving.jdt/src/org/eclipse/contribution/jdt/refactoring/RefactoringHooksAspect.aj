@@ -15,7 +15,9 @@ import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.internal.corext.refactoring.code.ExtractConstantRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractTempRefactoring;
+import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
@@ -35,20 +37,44 @@ public privileged aspect RefactoringHooksAspect {
     pointcut extractTempFinalConditions(ExtractTempRefactoring refactoring) : execution(public RefactoringStatus ExtractTempRefactoring.checkFinalConditions(IProgressMonitor) throws CoreException)
             && this(refactoring);
     
-    
     /**
      * Allow clients to disable the errors check.
      */
     before(ExtractTempRefactoring refactoring) : extractTempFinalConditions(refactoring) {
+        boolean result = maybeDisableChecking(refactoring, refactoring.fCu);
+        refactoring.setCheckResultForCompileProblems(result);
+    }
+
+    /**
+     * Hook into the checking of final conditions for extract constant.
+     * This refactoring performs a check to see if any errors were introduced 
+     * by the refactoring, but grabs the contents from the underlying IFile, 
+     * not from the compilation unit, and so the contents are not translated.
+     */
+    pointcut extractConstantFinalConditions(ExtractConstantRefactoring refactoring) : execution(public RefactoringStatus ExtractConstantRefactoring.checkFinalConditions(IProgressMonitor) throws CoreException)
+    && this(refactoring);
+    
+    /**
+     * Allow clients to disable the errors check.
+     */
+    before(ExtractConstantRefactoring refactoring) : extractConstantFinalConditions(refactoring) {
+        boolean result = maybeDisableChecking(refactoring, refactoring.fCu);
+        refactoring.setCheckResultForCompileProblems(result);
+    }
+
+    /**
+     * @param refactoring
+     */
+    private boolean  maybeDisableChecking(Refactoring refactoring, ICompilationUnit cu) {
         try {
             IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
-            if (provider != null && isInterestingProject(refactoring.fCu)) {
-                boolean result = provider.shouldCheckResultForCompileProblems(refactoring.fCu);
-                refactoring.setCheckResultForCompileProblems(result);
+            if (provider != null && isInterestingProject(cu)) {
+                return provider.shouldCheckResultForCompileProblems(cu);
             }
         } catch (Exception e) {
             JDTWeavingPlugin.logException(e);
         }
+        return true;
     }
     
     private boolean isInterestingProject(ICompilationUnit unit) {
