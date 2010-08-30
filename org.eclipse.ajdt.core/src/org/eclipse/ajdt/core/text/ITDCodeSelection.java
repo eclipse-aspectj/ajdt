@@ -146,8 +146,6 @@ public class ITDCodeSelection {
             if (elt instanceof IntertypeElement) {
                 IntertypeElement itd = (IntertypeElement) elt;
                 ISourceRange range = itd.getTargetTypeSourceRange();
-                System.out.println("===Code Select.  ITD found at selection: " + itd.getElementName());
-                System.out.println("===Code Select.  ITD target type source range: " + " [ " + range.getOffset() + ", " + range.getLength() + " ]");
                 if (range != null && range.getOffset() <= wordRegion.getOffset() &&
                 		range.getOffset() + range.getLength() >= wordRegion.getOffset() + wordRegion.getLength()) {
                 	IType type = itd.findTargetType();
