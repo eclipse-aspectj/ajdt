@@ -97,6 +97,7 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests6;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests9;
+import org.eclipse.ajdt.ui.tests.refactoring.ConvertLocalToFieldTests;
 import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
 import org.eclipse.ajdt.ui.tests.refactoring.ExtractConstantTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ExtractLocalTests;
@@ -260,6 +261,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
         suite.addTest(new TestSuite(ExtractLocalTests.class));
         suite.addTest(new TestSuite(ExtractConstantTests.class));
+        suite.addTest(new TestSuite(ConvertLocalToFieldTests.class));
 
         // Hierarchies
         suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
