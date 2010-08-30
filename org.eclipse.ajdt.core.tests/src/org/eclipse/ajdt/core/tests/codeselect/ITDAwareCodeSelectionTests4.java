@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.codeselect;
 
-import org.eclipse.ajdt.core.tests.codeselect.AbstractITDAwareCodeSelectionTests.MockNameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
 import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.jdt.core.ICompilationUnit;
