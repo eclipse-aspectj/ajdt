@@ -12,6 +12,7 @@ package org.eclipse.contribution.weaving.jdt.tests.refactoring;
 
 import org.eclipse.contribution.jdt.refactoring.IRefactoringProvider;
 import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
+import org.eclipse.contribution.weaving.jdt.tests.MockNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -48,7 +49,11 @@ public class MockRefactoringProvider implements IRefactoringProvider {
     }
 
     public boolean belongsToInterestingCompilationUnit(IJavaElement elt) {
-        return false;
+        try {
+            return elt.getJavaProject().getProject().hasNature(MockNature.ID_NATURE);
+        } catch (CoreException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public CompilationUnit createASTForRefactoring(ITypeRoot root) {
