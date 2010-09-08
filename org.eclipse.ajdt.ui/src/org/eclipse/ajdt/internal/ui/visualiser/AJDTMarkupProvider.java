@@ -40,6 +40,7 @@ import org.eclipse.contribution.visualiser.simpleImpl.StealthMarkupKind;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
@@ -137,6 +138,16 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         							}
         						}
 						
+        						if (sourceIpe.getSourceLocation() == null) {
+        						    // Bug 324706  I don't know why the sloc is null.  Log the bug and
+        						    // continue on.
+        						    VisualiserPlugin.log(IStatus.WARNING, 
+        						            "Bug 324706: Warning, null source location found in " + sourceIpe.getName() + 
+        						            "\nHandle identifier is: " + sourceIpe.getHandleIdentifier());
+        						    // avoid an npe
+        						    continue;
+        						}
+        						
     						    int lineNum = sourceIpe.getSourceLocation().getLine();
     						    IJavaElement sourceJe = model.programElementToJavaElement(relationship.getSourceHandle());
     						    if (sourceJe != null) {
