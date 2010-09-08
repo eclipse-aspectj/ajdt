@@ -71,7 +71,6 @@ import org.eclipse.ajdt.core.tests.refactoring.AbstractAJDTRefactoringTest;
 import org.eclipse.ajdt.core.tests.refactoring.FindITDGettersAndSettersTest;
 import org.eclipse.ajdt.core.tests.refactoring.ITDRenameParticipantRefactoringTest;
 import org.eclipse.ajdt.core.tests.refactoring.MoveCURefactoringTests;
-import org.eclipse.ajdt.core.tests.refactoring.MoveTypeIntoAspectRefactoringTests;
 import org.eclipse.ajdt.core.tests.refactoring.RenamePackageRefactoringTests;
 import org.eclipse.ajdt.core.tests.search.DeclareAwareSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareDeclarationSearchTests;
@@ -183,7 +182,6 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(FindITDGettersAndSettersTest.class));
 		suite.addTest(new TestSuite(MoveCURefactoringTests.class));
 		suite.addTest(new TestSuite(RenamePackageRefactoringTests.class));
-		suite.addTest(new TestSuite(MoveTypeIntoAspectRefactoringTests.class));
 		
 		// search tests
 		suite.addTest(new TestSuite(ITDAwareSearchTests.class));
