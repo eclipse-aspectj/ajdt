@@ -103,6 +103,7 @@ import org.eclipse.ajdt.ui.tests.refactoring.ExtractConstantTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ExtractLocalTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
+import org.eclipse.ajdt.ui.tests.refactoring.MoveTypeIntoAspectRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.PullOutRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
@@ -262,6 +263,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ExtractLocalTests.class));
         suite.addTest(new TestSuite(ExtractConstantTests.class));
         suite.addTest(new TestSuite(ConvertLocalToFieldTests.class));
+        suite.addTest(new TestSuite(MoveTypeIntoAspectRefactoringTests.class));
 
         // Hierarchies
         suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
