@@ -109,32 +109,32 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
                             List/*String*/ targets = relationship.getTargets();
     						for (Iterator targetIter = targets.iterator(); targetIter.hasNext(); ) {
     						    IJavaElement target = model.programElementToJavaElement((String) targetIter.next());
-        						String aspectFullName;
-        						String aspectName;
+    						    String simpleName;
+        						String qualifiedName;
         						
-        						if(!(target instanceof IAJCodeElement)) {
-        							IJavaElement enclosingAspect = target.getAncestor(IJavaElement.TYPE);
-        							
-        							// Get fully qualified name if aspect is an inner aspect
-        							aspectName = enclosingAspect.getElementName();
-        							IJavaElement loopElement = enclosingAspect;
-        							while(loopElement.getParent() instanceof IType) {
-        								loopElement = loopElement.getParent();
-        								aspectName = loopElement.getElementName() + "." + aspectName; //$NON-NLS-1$
-        							}
-        							aspectFullName = aspectName;
-        							String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-        							if(!(aspectPackageName.equals(""))) { //$NON-NLS-1$
-        								aspectFullName = aspectPackageName + "." + aspectFullName; //$NON-NLS-1$
-        							}
+                                if(!(target instanceof IAJCodeElement)) {
+        							IJavaElement enclosingType = target.getAncestor(IJavaElement.TYPE);
+                                    if (enclosingType == null) {
+                                        // Bug 324706  I don't know why the sloc is null.  Log the bug and
+                                        // continue on.
+                                        VisualiserPlugin.log(IStatus.WARNING, 
+                                                "Bug 324706: null containing type found for " + target.getElementName() + 
+                                                "\nHandle identifier is: " + target.getHandleIdentifier());
+                                        // avoid an npe
+                                        continue;
+                                    }
+
+                                    simpleName = enclosingType.getElementName();
+                                    qualifiedName = ((IType) enclosingType).getFullyQualifiedName('.');
+                                    
         						} else { // It's an injar aspect so we wno't be able to find the parents
-        							aspectFullName = target.getElementName();
-        							String[] parts = aspectFullName.split(" "); //$NON-NLS-1$
+        							qualifiedName = target.getElementName();
+        							String[] parts = qualifiedName.split(" "); //$NON-NLS-1$
         							String aNameWithExtension = parts[parts.length - 1];
         							if(aNameWithExtension.indexOf('.') != -1) { // $NON-NLS-1$
-        								aspectName = aNameWithExtension.substring(0, aNameWithExtension.lastIndexOf('.')); // $NON-NLS-1$
+        								simpleName = aNameWithExtension.substring(0, aNameWithExtension.lastIndexOf('.')); // $NON-NLS-1$
         							} else {
-        								aspectName = aNameWithExtension;
+        								simpleName = aNameWithExtension;
         							}
         						}
 						
@@ -166,18 +166,18 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         								if(relationship.getName().equals(AJRelationshipManager.MATCHES_DECLARE.getDisplayName())) {
         									String sourceName = target.getElementName();					
         									boolean errorKind = sourceName.startsWith(aspectJErrorKind);
-        									if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) { //$NON-NLS-1$
-        										markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); //$NON-NLS-1$
+        									if(kindMap.get(sourceName + ":::" + qualifiedName) instanceof IMarkupKind) { //$NON-NLS-1$
+        										markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + qualifiedName); //$NON-NLS-1$
         									} else {
-        										markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); //$NON-NLS-1$
-        										kindMap.put(sourceName + ":::" + aspectFullName, markupKind); //$NON-NLS-1$
+        										markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + simpleName, errorKind); //$NON-NLS-1$
+        										kindMap.put(sourceName + ":::" + qualifiedName, markupKind); //$NON-NLS-1$
         									}
         								} else {
-        									if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
-        										markupKind = (IMarkupKind)kindMap.get(aspectFullName);
+        									if(kindMap.get(qualifiedName) instanceof IMarkupKind) {
+        										markupKind = (IMarkupKind)kindMap.get(qualifiedName);
         									} else {
-        										markupKind = new SimpleMarkupKind(aspectName, aspectFullName);
-        										kindMap.put(aspectFullName, markupKind);
+        										markupKind = new SimpleMarkupKind(simpleName, qualifiedName);
+        										kindMap.put(qualifiedName, markupKind);
         									}
         								} 
         								kinds.add(markupKind);
