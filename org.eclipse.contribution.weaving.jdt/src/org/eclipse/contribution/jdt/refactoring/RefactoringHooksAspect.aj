@@ -91,11 +91,20 @@ public privileged aspect RefactoringHooksAspect {
      * We need this because the {@link RefactoringASTParser} is used to base source locations.  So,
      * we cannot mess with them.
      */
-    pointcut refactoringASTParserParse(ITypeRoot root) : execution(public static CompilationUnit 
+    pointcut refactoringASTParserParseWithASTProvider(ITypeRoot root) : execution(public static CompilationUnit 
             RefactoringASTParser.parseWithASTProvider(ITypeRoot, boolean, IProgressMonitor)) 
             && args(root, ..);
     
-    CompilationUnit around(ITypeRoot root) : refactoringASTParserParse(root) {
+    /**
+     * Another common entrance into the {@link RefactoringASTParser}.
+     */
+    pointcut refactoringASTParserParse(ITypeRoot root) : execution(public CompilationUnit 
+            RefactoringASTParser.parse(ITypeRoot, boolean, IProgressMonitor)) 
+            && args(root, ..);
+    
+    CompilationUnit around(ITypeRoot root) : 
+        refactoringASTParserParseWithASTProvider(root) ||
+        refactoringASTParserParse(root) {
         IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
         if (provider != null && provider.belongsToInterestingCompilationUnit(root)) {
             try {
