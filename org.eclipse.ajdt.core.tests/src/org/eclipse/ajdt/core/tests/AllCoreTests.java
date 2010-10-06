@@ -64,6 +64,7 @@ import org.eclipse.ajdt.core.tests.model.Bug268522;
 import org.eclipse.ajdt.core.tests.model.GetExpandedRegionTests;
 import org.eclipse.ajdt.core.tests.model.InpathRelationshipsTests;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
+import org.eclipse.ajdt.core.tests.model.MultipleProjectModelTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameRefactoringTests;
@@ -137,6 +138,7 @@ public class AllCoreTests {
         suite.addTest(AbstractITDAwareCodeSelectionTests.suite());
         suite.addTest(new TestSuite(GetExpandedRegionTests.class));
         suite.addTest(new TestSuite(Bug283468Test.class));
+        suite.addTest(new TestSuite(MultipleProjectModelTests.class));
         
         
 		
