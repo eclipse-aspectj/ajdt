@@ -42,7 +42,6 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
-import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -247,7 +246,10 @@ public class AJProjectModelFacade {
         
         boolean isBinary = false;
         if (isBinaryHandle(ajHandle)) {
-            ajHandle = convertToAspectJBinaryHandle(ajHandle);
+            ajHandle = convertToAspectJBinaryHandle(ajHandle, false);
+            isBinary = true;
+        } else if (isFromExternalProject(je)) {
+            ajHandle = convertToAspectJBinaryHandle(ajHandle, true);
             isBinary = true;
         }
         
@@ -279,7 +281,7 @@ public class AJProjectModelFacade {
             
         } else if (je instanceof ILocalVariable) {
             IOpenable openable = ((ILocalVariable) je).getOpenable();
-            cu = openable != null && openable instanceof ICompilationUnit ?
+            cu = openable instanceof ICompilationUnit ?
                     (ICompilationUnit) openable : null;
         } else if (je instanceof ImportDeclaration) {
             cu = ((ImportDeclaration) je).getCompilationUnit();
@@ -312,6 +314,14 @@ public class AJProjectModelFacade {
     }
 
     /**
+     * @param je
+     * @return
+     */
+    private boolean isFromExternalProject(IJavaElement je) {
+        return ! je.getJavaProject().getProject().equals(project);
+    }
+
+    /**
      * This will return false in the cases where a java elt exists, but
      * a program elt does not.  This may happen when there are some kinds
      * of errors in the file that prevent the aspectj compiler from running, but
@@ -324,10 +334,20 @@ public class AJProjectModelFacade {
     }
     
     
-    private String convertToAspectJBinaryHandle(String ajHandle) {
-        int packageRootIndex = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENTROOT);
-        int packageIndex = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENT, packageRootIndex);
-        String newHandle = ajHandle.substring(0, packageRootIndex+1) + "binaries" + ajHandle.substring(packageIndex);
+    private String convertToAspectJBinaryHandle(String ajHandle, boolean isSourceFromDependingProject) {
+        int packageIndex = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENT);
+        String newHandle = "" + JavaElement.JEM_JAVAPROJECT + project.getName() + JavaElement.JEM_PACKAGEFRAGMENTROOT + "binaries" + ajHandle.substring(packageIndex);
+        
+        if (isSourceFromDependingProject) {
+            // also must convert from a source unit to a binary unit
+            newHandle = newHandle.replace(".aj'", ".class'");
+            if (AspectJPlugin.USING_CU_PROVIDER) {
+                newHandle = newHandle.replace(JavaElement.JEM_COMPILATIONUNIT, JavaElement.JEM_CLASSFILE);
+            } else {
+                newHandle = newHandle.replace(AspectElement.JEM_ASPECT_CU, JavaElement.JEM_CLASSFILE);
+            }
+        }
+        
         return newHandle;
     }
 
