@@ -8,6 +8,7 @@
  * Contributors:
  *     Helen Hawkins - initial version
  *     Kris De Volder - PullOutRefactoringTests
+ *     Andrew Eisenberg
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
@@ -60,6 +61,8 @@ import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests4;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests5;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.PetClinicTests;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
+import org.eclipse.ajdt.ui.tests.hierarchy.ITDAwareHierarchyTests;
+import org.eclipse.ajdt.ui.tests.hierarchy.ITDAwareHierarchyTests2;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug117327Test;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
@@ -78,6 +81,7 @@ import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug273691Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug279439Reconciling;
+import org.eclipse.ajdt.ui.tests.reconciling.GenericProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
@@ -93,9 +97,13 @@ import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests6;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests9;
+import org.eclipse.ajdt.ui.tests.refactoring.ConvertLocalToFieldTests;
 import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
+import org.eclipse.ajdt.ui.tests.refactoring.ExtractConstantTests;
+import org.eclipse.ajdt.ui.tests.refactoring.ExtractLocalTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDAwareRippleSearchTests;
 import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
+import org.eclipse.ajdt.ui.tests.refactoring.MoveTypeIntoAspectRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.PullOutRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
@@ -103,7 +111,6 @@ import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
-import org.eclipse.ajdt.ui.tests.weaving.ITDAwareHierarchyTests;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
@@ -240,6 +247,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ProblemFinderTests16.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
+        suite.addTest(new TestSuite(GenericProblemFinderTests.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
@@ -256,8 +264,14 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(PullOutRefactoringTests.class));
         suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
         suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
+        suite.addTest(new TestSuite(ExtractLocalTests.class));
+        suite.addTest(new TestSuite(ExtractConstantTests.class));
+        suite.addTest(new TestSuite(ConvertLocalToFieldTests.class));
+        suite.addTest(new TestSuite(MoveTypeIntoAspectRefactoringTests.class));
 
+        // Hierarchies
         suite.addTest(new TestSuite(ITDAwareHierarchyTests.class));
+        suite.addTest(new TestSuite(ITDAwareHierarchyTests2.class));
 
         
         suite.addTest(new TestSuite(ErrorLogTest.class));

@@ -26,6 +26,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -216,6 +217,26 @@ public class PushinRefactoringTests extends UITestCase {
         assertTrue("Should have found field 'foo'", type.getField("foo").exists());
     }
     
+    // Test that generic types can have ITDs pushed in.
+    public void testBug321065() throws Exception {
+        IJavaProject refactoringProj = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
+        ICompilationUnit aspectUnit = createCompilationUnitAndPackage("p", "A.aj", "package p;\n aspect A {\nint C<T>.x;\npublic void I<T>.x() { } }", refactoringProj);
+        ICompilationUnit classUnit = createCompilationUnitAndPackage("p", "C.java", "package p;\n class C<T> { }", refactoringProj);
+        ICompilationUnit interfaceUnit = createCompilationUnitAndPackage("p", "I.java", "package p;\n interface I<T> { }", refactoringProj);
+        ICompilationUnit subUnit = createCompilationUnitAndPackage("p", "S.java", "package p;\n class S<P> implements I<P> { }", refactoringProj);
+
+        assertNoProblems(refactoringProj.getProject());
+        List itds = action.findAllITDs(new IJavaElement[] { refactoringProj });
+        assertEquals("Should have found 2 ITDs in project", 2, itds.size());
+        doRefactoringAndInitialCheck(refactoringProj, itds);
+        assertNoProblems(refactoringProj.getProject());
+     
+        assertFalse(aspectUnit.getElementName() + " should have been deleted", aspectUnit.exists());
+        checkFileForContents(classUnit, "int x;");
+        checkFileForContents(interfaceUnit, "public void x();");
+        checkFileForContents(subUnit, "public void x() { }");
+    }
+    
     
     private void lookForAJFiles(IResource resource) throws CoreException {
         if (resource.getType() == IResource.FILE) {
@@ -282,6 +303,10 @@ public class PushinRefactoringTests extends UITestCase {
                 fail("Should not have any compile errors after pushin refactoring:\n" + sb.toString());
             }
         }
+    }
+
+    private void checkFileForContents(ICompilationUnit unit, String toCheck) throws Exception {
+        checkFileForContents((IFile) unit.getResource(), toCheck);
     }
     
     private void checkFileForContents(IFile file, String toCheck) throws Exception {

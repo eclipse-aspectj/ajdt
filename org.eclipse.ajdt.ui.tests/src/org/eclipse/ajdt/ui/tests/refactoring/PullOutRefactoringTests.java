@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -2381,8 +2382,9 @@ public class PullOutRefactoringTests extends AbstractAJDTRefactoringTest {
      * Note: not using the assert method from superclass, because I prefer to use 
      * assertEquals with Strings, which gives a nice comparison view in the
      * JUnit Eclipse View (easier to see diffs than in printed output).
+     * @throws JavaModelException 
      */
-	private void assertExpectedResults() {
+	private void assertExpectedResults() throws JavaModelException {
 		for (int i = 0; i < units.length; i++) {
 			char[] contents;
 			if (units[i] instanceof AJCompilationUnit) {

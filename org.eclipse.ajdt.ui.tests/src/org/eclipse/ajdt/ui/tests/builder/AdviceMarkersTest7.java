@@ -20,7 +20,6 @@ import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 
 /**
@@ -80,6 +79,7 @@ public class AdviceMarkersTest7 extends UITestCase {
     
     
     private void checkAllMarkersExist() throws Exception {
+        waitForJobsToComplete();
         IMarker[] javaMarkers = javaFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 0);
         assertEquals("markers on java file in project should be 2", 2, javaMarkers.length);
         int first = ((Integer) javaMarkers[0].getAttribute(IMarker.LINE_NUMBER)).intValue();
@@ -98,6 +98,7 @@ public class AdviceMarkersTest7 extends UITestCase {
     }
     
     private void checkOnlyAspectPathMarkersExist() throws Exception {
+        waitForJobsToComplete();
         IMarker[] javaMarkers = javaFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 0);
         assertEquals("markers on java file in project should be 1", 1, javaMarkers.length);
         assertEquals("marker in aspect should be on line 4", new Integer(4), javaMarkers[0].getAttribute(IMarker.LINE_NUMBER));
@@ -110,6 +111,7 @@ public class AdviceMarkersTest7 extends UITestCase {
     }
 
     private void checkOnlyProjectMarkersExist() throws Exception {
+        waitForJobsToComplete();
         IMarker[] javaMarkers = javaFile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 0);
         assertEquals("markers on java file in project should be 1", 1, javaMarkers.length);
         assertEquals("marker in aspect should be on line 7", new Integer(7), javaMarkers[0].getAttribute(IMarker.LINE_NUMBER));
@@ -166,8 +168,6 @@ public class AdviceMarkersTest7 extends UITestCase {
         StringReader reader = new StringReader(newContents);
         ajFile.setContents(new ReaderInputStream(reader), true, true, null);
         waitForJobsToComplete();
-        ajFile.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        waitForJobsToComplete();
     }
 
     // back to original contents
@@ -179,8 +179,6 @@ public class AdviceMarkersTest7 extends UITestCase {
         "}";
         StringReader reader = new StringReader(newContents);
         ajFile.setContents(new ReaderInputStream(reader), true, true, null);
-        waitForJobsToComplete();
-        ajFile.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
         waitForJobsToComplete();
     }
 }
