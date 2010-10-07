@@ -30,7 +30,7 @@ public privileged aspect JUnit4TestFinderAspect {
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      */
-    private ISearchProvider provider = SearchAdapter.getInstance().getProvider();
+    private SearchAdapter adapter = SearchAdapter.getInstance();
 
     /**
      * This pointcut targets a SearchRequestor that accepts potential test matches
@@ -46,9 +46,9 @@ public privileged aspect JUnit4TestFinderAspect {
             Object elt = refMatch.getElement();
             if (elt instanceof IJavaElement) {
                 IJavaElement javaElt = (IJavaElement) elt;
-                if (provider != null && isInterestingProject(javaElt.getJavaProject().getProject())) {
+                if (adapter.getProvider() != null && isInterestingProject(javaElt.getJavaProject().getProject())) {
                     try {
-                        javaElt = provider.filterJUnit4TestMatch(javaElt);
+                        javaElt = adapter.getProvider().filterJUnit4TestMatch(javaElt);
                         if (javaElt != null) {
                             refMatch.setElement(javaElt);
                         } else {

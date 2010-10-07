@@ -15,6 +15,7 @@ import java.util.List;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchPattern;
@@ -44,7 +45,16 @@ public interface ISearchProvider {
             LookupEnvironment lookupEnvironment,
             ICompilationUnit[] workingCopies, JavaProject project);
     
+    /**
+     * Finds any extra matches inside of this possible match not already found by jdt
+     */
     public List<SearchMatch> findExtraMatches(PossibleMatch match, SearchPattern pattern, HierarchyResolver resolver) throws JavaModelException;
+    
+    /**
+     * Callback for after the match has been added to the requestor
+     * @param match
+     */
+    public void matchProcessed(PossibleMatch match);
     
     /**
      * This method will filter or convert posible test matches into real test matches.
@@ -54,4 +64,8 @@ public interface ISearchProvider {
      * @return the real test method or class, or null if there should not be any
      */
     public IJavaElement filterJUnit4TestMatch(IJavaElement possibleTest) throws JavaModelException;
+    
+    public boolean isInteresting(IOpenable elt);
+    
+    public char[] findSource(IOpenable elt);
 }

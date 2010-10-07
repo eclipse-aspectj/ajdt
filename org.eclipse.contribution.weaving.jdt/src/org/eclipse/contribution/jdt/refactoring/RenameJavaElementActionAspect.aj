@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009 SpringSource and others.
+ * Copyright (c) 2009, 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,7 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.contribution.jdt.itdawareness;
+package org.eclipse.contribution.jdt.refactoring;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
@@ -25,7 +25,7 @@ public aspect RenameJavaElementActionAspect {
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      */
-    IRenameRefactoringProvider provider = RenameAdapter.getInstance().getProvider();
+    IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
     
     pointcut renameInvoked(IJavaElement element, boolean lightweight) : 
             execution(private void RenameJavaElementAction.run(
@@ -38,6 +38,9 @@ public aspect RenameJavaElementActionAspect {
         if (provider != null && provider.isInterestingElement(element)) {
             provider.performRefactoring(element, lightweight);
         } else {
+            if (provider.belongsToInterestingCompilationUnit(element)) {
+                lightweight = false;
+            }
             proceed(element, lightweight);
         }
     }

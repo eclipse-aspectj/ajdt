@@ -36,6 +36,7 @@ import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyBuilder;
 import org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
+import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
 /**
  * Aspect to add ITD awareness to various kinds of searches in the IDE
@@ -53,7 +54,7 @@ public aspect ITDAwarenessAspect {
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      * Made public for testing purposes only.
      */
-    public INameEnvironmentProvider nameEnvironmentProvider = NameEnvironmentAdapter.getInstance().getProvider();
+    public NameEnvironmentAdapter nameEnvironmentAdapter = NameEnvironmentAdapter.getInstance();
     
     
     /********************************************
@@ -80,8 +81,8 @@ public aspect ITDAwarenessAspect {
         Object info = proceed(element);
         if (WeavableProjectListener.getInstance().isInWeavableProject(element)) {
             if (info instanceof ISourceType &&
-                    nameEnvironmentProvider != null) {
-                info = nameEnvironmentProvider.transformSourceTypeInfo((ISourceType) info);
+                    nameEnvironmentAdapter.getProvider() != null) {
+                info = nameEnvironmentAdapter.getProvider().transformSourceTypeInfo((ISourceType) info);
             }
         }
         return info;
@@ -106,9 +107,9 @@ public aspect ITDAwarenessAspect {
     SearchableEnvironment around(JavaProject project,
             ICompilationUnit[] workingCopies) : 
                 interestingSearchableEnvironmentCreation(project, workingCopies) {
-        if (nameEnvironmentProvider != null && isInWeavable(workingCopies)) {
+        if (nameEnvironmentAdapter.getProvider() != null && isInWeavable(workingCopies)) {
             try {
-                SearchableEnvironment newEnvironment = nameEnvironmentProvider.getNameEnvironment(project, workingCopies);
+                SearchableEnvironment newEnvironment = nameEnvironmentAdapter.getProvider().getNameEnvironment(project, workingCopies);
                 if (newEnvironment != null) {
                     return newEnvironment;
                 }
@@ -120,10 +121,10 @@ public aspect ITDAwarenessAspect {
     }
     
     private boolean isInWeavable(ICompilationUnit[] workingCopies) {
-        if (workingCopies != null && nameEnvironmentProvider != null) {
+        if (workingCopies != null && nameEnvironmentAdapter.getProvider() != null) {
             for (int i = 0; i < workingCopies.length; i++) {
                 if (workingCopies[i] instanceof CompilationUnit &&
-                        nameEnvironmentProvider.shouldFindProblems((CompilationUnit) workingCopies[i])) {
+                        nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) workingCopies[i])) {
                     return true;
                 }
             }
@@ -164,9 +165,9 @@ public aspect ITDAwarenessAspect {
     
     SearchableEnvironment around(JavaProject project,
             WorkingCopyOwner owner) : interestingSearchableEnvironmentCreation2(project, owner) {
-        if (nameEnvironmentProvider != null && WeavableProjectListener.getInstance().isWeavableProject(project.getProject())) {
+        if (nameEnvironmentAdapter.getProvider() != null && WeavableProjectListener.getInstance().isWeavableProject(project.getProject())) {
             try {
-                SearchableEnvironment newEnvironment = nameEnvironmentProvider.getNameEnvironment(project, 
+                SearchableEnvironment newEnvironment = nameEnvironmentAdapter.getProvider().getNameEnvironment(project, 
                         owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
                 if (newEnvironment != null) {
                     return newEnvironment;
@@ -230,9 +231,9 @@ public aspect ITDAwarenessAspect {
             boolean creatingAST,
             int reconcileFlags,
             IProgressMonitor monitor) throws JavaModelException : findProblemsInJava(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor) {
-        if (nameEnvironmentProvider != null && nameEnvironmentProvider.shouldFindProblems(unitElement)) {
+        if (nameEnvironmentAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider().shouldFindProblems(unitElement)) {
             try {
-                return nameEnvironmentProvider.problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
+                return nameEnvironmentAdapter.getProvider().problemFind(unitElement, parser, workingCopyOwner, problems, creatingAST, reconcileFlags, monitor);
             } catch (Exception e) {
                 if (! (e instanceof OperationCanceledException)) {
                     JDTWeavingPlugin.logException(e);
@@ -257,7 +258,7 @@ public aspect ITDAwarenessAspect {
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      * Made public for testing purposes only.
      */
-    public IJavaContentAssistProvider contentAssistProvider = ContentAssistAdapter.getInstance().getProvider();
+    public ContentAssistAdapter contentAssistAdapter = ContentAssistAdapter.getInstance();
 
     pointcut codeCompleteInJavaFile(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
             org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
@@ -281,11 +282,11 @@ public aspect ITDAwarenessAspect {
                 codeCompleteInJavaFile(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor) {
         
         boolean result = false;
-        if (contentAssistProvider != null && nameEnvironmentProvider != null && 
+        if (contentAssistAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider() != null && 
                 (cu instanceof CompilationUnit) && 
-                nameEnvironmentProvider.shouldFindProblems((CompilationUnit) cu)) {
+                nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) cu)) {
             try {
-                result = contentAssistProvider.doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor); /* AJDT 1.7 */
+                result = contentAssistAdapter.getProvider().doContentAssist(cu, unitToSkip, position, requestor, owner, typeRoot, target, monitor); /* AJDT 1.7 */
             } catch (Exception e) {
                 JDTWeavingPlugin.logException(e);
                 result = false;
@@ -311,43 +312,15 @@ public aspect ITDAwarenessAspect {
     IJavaElement[] around(CompilationUnit unit, int offset, int length) : 
             codeSelectWithArgs(unit, offset, length) {
         IJavaElement[] result = proceed(unit, offset, length);
-        if (contentAssistProvider != null && nameEnvironmentProvider != null &&
-                nameEnvironmentProvider.shouldFindProblems((CompilationUnit) unit)) {
+        if (contentAssistAdapter.getProvider() != null && nameEnvironmentAdapter.getProvider() != null &&
+                nameEnvironmentAdapter.getProvider().shouldFindProblems((CompilationUnit) unit)) {
             // look for ITDs at the current location if required
             try {
-                result = contentAssistProvider.doCodeSelect(unit, offset, length, result);
+                result = contentAssistAdapter.getProvider().doCodeSelect(unit, offset, length, result);
             } catch (Exception e) {
                 JDTWeavingPlugin.logException(e);
             }
         }
         return result;
     }
-    
-    /****************************
-     * This section handles searching for ITDs
-     * All searches that involve ITDs should use the 
-     * inserted Java element instead of the ITD itself.
-     */
-    
-    SearchAdapter searchAdapter = SearchAdapter.getInstance();
-    
-    /**
-     * Capture all creations of SearchPatterns from JavaElements
-     */
-    pointcut searchPatternCreation(IJavaElement element, int limitTo, int matchRule) : 
-        execution(public static SearchPattern SearchPattern.createPattern(IJavaElement, int, int)) &&
-                  args(element, limitTo, matchRule);
-    
-    SearchPattern around(IJavaElement element, int limitTo, int matchRule) :
-        searchPatternCreation(element, limitTo, matchRule) {
-    
-        ISearchProvider searchProvider = searchAdapter.getProvider();
-        if (searchProvider != null) {
-            // here, the provider can convert the JavaElement to something that it really should be searching 
-            // for.  Eg, convert an ITD field into a field
-            element = searchProvider.convertJavaElement(element);
-        }
-        return proceed(element, limitTo, matchRule);
-    }
-    
 }

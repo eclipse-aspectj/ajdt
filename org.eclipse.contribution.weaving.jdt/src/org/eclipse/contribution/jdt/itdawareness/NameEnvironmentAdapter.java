@@ -45,4 +45,11 @@ public class NameEnvironmentAdapter extends PlatformObject implements IAdaptable
         }
         return null;
     }
+    
+    /*
+     * Not API!  for testing only
+     */
+    public void setProvider(INameEnvironmentProvider provider) {
+        this.provider = provider;
+    }
 }

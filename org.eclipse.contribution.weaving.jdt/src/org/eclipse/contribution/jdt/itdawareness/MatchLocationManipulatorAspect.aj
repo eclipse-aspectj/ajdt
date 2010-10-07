@@ -45,7 +45,7 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      */
-    private ISearchProvider provider = SearchAdapter.getInstance().getProvider();
+    private SearchAdapter adapter = SearchAdapter.getInstance();
     
     private HierarchyResolver resolver;
     
@@ -58,10 +58,16 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
     
     after(MatchLocator locator, PossibleMatch match, boolean bindingsWereCreated) : matchProcessing(locator, match, bindingsWereCreated) {
         try {
-            if (provider != null && locator.requestor != null && match.openable != null && isInterestingProject(match.openable.getJavaProject().getProject())) {
-                List<SearchMatch> extraMatches = provider.findExtraMatches(match, locator.pattern, resolver);
-                for (SearchMatch extraMatch : extraMatches) {
-                    locator.requestor.acceptSearchMatch(extraMatch);
+            if (adapter.getProvider() != null && locator.requestor != null && match.openable != null && isInterestingProject(match.openable.getJavaProject().getProject())) {
+                try {
+                    List<SearchMatch> extraMatches = adapter.getProvider().findExtraMatches(match, locator.pattern, resolver);
+                    for (SearchMatch extraMatch : extraMatches) {
+                        locator.requestor.acceptSearchMatch(extraMatch);
+                    }
+                } catch (Exception e) {
+                    JDTWeavingPlugin.logException("Exception while search for: " + match, e);
+                } finally {
+                    adapter.getProvider().matchProcessed(match);
                 }
             }
         } catch (Exception e) {
@@ -78,8 +84,8 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
             && this(locator) && args(project,..);
     
     after(MatchLocator locator, JavaProject project) : matchLocatorInitialization(locator, project) {
-        if (provider != null && isInterestingProject(project.getProject())) {
-            locator.lookupEnvironment = provider.createLookupEnvironment(locator.lookupEnvironment, locator.workingCopies, project);
+        if (adapter.getProvider() != null && isInterestingProject(project.getProject())) {
+            locator.lookupEnvironment = adapter.getProvider().createLookupEnvironment(locator.lookupEnvironment, locator.workingCopies, project);
             locator.nameEnvironment = locator.lookupEnvironment.nameEnvironment;
             resolver = new HierarchyResolver(locator.lookupEnvironment, null /* not needed for our purposes*/);
         } 
@@ -100,9 +106,9 @@ public privileged aspect MatchLocationManipulatorAspect perthis(within(MatchLoca
             Object elt = refMatch.getElement();
             if (elt instanceof IJavaElement) {
                 IJavaElement javaElt = (IJavaElement) elt;
-                if (provider != null && isInterestingProject(javaElt.getJavaProject().getProject())) {
+                if (adapter.getProvider() != null && isInterestingProject(javaElt.getJavaProject().getProject())) {
                     try {
-                        javaElt = this.provider.filterJUnit4TestMatch(javaElt);
+                        javaElt = this.adapter.getProvider().filterJUnit4TestMatch(javaElt);
                         if (javaElt != null) {
                             refMatch.setElement(javaElt);
                         } else {
