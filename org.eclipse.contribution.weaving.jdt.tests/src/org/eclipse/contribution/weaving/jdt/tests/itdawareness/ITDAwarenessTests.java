@@ -17,7 +17,6 @@ import java.util.HashMap;
 import org.eclipse.contribution.jdt.itdawareness.ContentAssistAdapter;
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.contribution.jdt.itdawareness.INameEnvironmentProvider;
-import org.eclipse.contribution.jdt.itdawareness.ITDAwarenessAspect;
 import org.eclipse.contribution.jdt.itdawareness.NameEnvironmentAdapter;
 import org.eclipse.contribution.weaving.jdt.tests.WeavingTestCase;
 import org.eclipse.core.internal.registry.osgi.OSGIUtils;
@@ -37,8 +36,6 @@ import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jdt.internal.ui.text.javadoc.JavadocCompletionProcessor;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -86,8 +83,8 @@ public class ITDAwarenessTests extends WeavingTestCase {
 
         nameEnvironmentProvider = new MockNameEnvironmentProvider();
         contentAssistProvider = new MockContentAssistProvider();
-        ITDAwarenessAspect.aspectOf().nameEnvironmentProvider = nameEnvironmentProvider;
-        ITDAwarenessAspect.aspectOf().contentAssistProvider = contentAssistProvider;
+        NameEnvironmentAdapter.getInstance().setProvider(nameEnvironmentProvider);
+        ContentAssistAdapter.getInstance().setProvider(contentAssistProvider);
         
         mock = this.createPredefinedProject("MockCUProject");
         java = this.createPredefinedProject("RealJavaProject");
@@ -98,8 +95,8 @@ public class ITDAwarenessTests extends WeavingTestCase {
         try {
             super.tearDown();
         } finally {
-            ITDAwarenessAspect.aspectOf().nameEnvironmentProvider = origNameEnvironmentProvider;
-            ITDAwarenessAspect.aspectOf().contentAssistProvider = origContentAssistProvider;
+            NameEnvironmentAdapter.getInstance().setProvider(origNameEnvironmentProvider);
+            ContentAssistAdapter.getInstance().setProvider(origContentAssistProvider);
         }
     }
     
