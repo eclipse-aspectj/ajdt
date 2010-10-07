@@ -21,15 +21,15 @@ import org.eclipse.jdt.internal.core.SourceFieldWithChildrenInfo;
 
 public class FieldIntertypeElement extends IntertypeElement implements IField {
 
-	/**
-	 * A 'safe' dummy to provide as the parameters object for the superclass. Fields don't
-	 * really have parameters.
-	 */
-	private static final String[] dummyParameters = new String[0];
+    /**
+     * A 'safe' dummy to provide as the parameters object for the superclass. Fields don't
+     * really have parameters.
+     */
+    private static final String[] dummyParameters = new String[0];
 
-	public FieldIntertypeElement(JavaElement parent, String name) {
-		super(parent, name, dummyParameters);
-	}
+    public FieldIntertypeElement(JavaElement parent, String name) {
+        super(parent, name, dummyParameters);
+    }
 
     /**
      * @see JavaElement#getHandleMemento()
@@ -100,5 +100,17 @@ public class FieldIntertypeElement extends IntertypeElement implements IField {
         protected void setSourceRangeStart(int start) {
             super.setSourceRangeStart(start);
         }
+    }
+
+    public Object getConstant() throws JavaModelException {
+        return null;
+    }
+
+    public String getTypeSignature() throws JavaModelException {
+        return super.getReturnType();
+    }
+
+    public boolean isEnumConstant() throws JavaModelException {
+        return false;
     }
 }

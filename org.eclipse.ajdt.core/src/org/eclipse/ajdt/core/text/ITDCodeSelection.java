@@ -9,20 +9,22 @@
  *     Andrew Eisenberg - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.ajdt.internal.core.contentassist;
+package org.eclipse.ajdt.core.text;
 
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.ajdt.core.text.ITDAwareSelectionRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.codeassist.SelectionEngine;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -30,6 +32,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.PackageFragment;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 /**
  * @author Andrew Eisenberg
@@ -54,7 +57,7 @@ public class ITDCodeSelection {
         
         final AspectsConvertingParser converter = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
         converter.setUnit(unit);
-        ArrayList replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
+        ArrayList<Replacement> replacements = converter.convert(ConversionOptions.CODE_COMPLETION);
         
         org.eclipse.jdt.internal.compiler.env.ICompilationUnit wrappedUnit = 
                 new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
@@ -79,7 +82,7 @@ public class ITDCodeSelection {
             
             final AspectsConvertingParser converter2 = new AspectsConvertingParser(((CompilationUnit) unit).getContents());
             converter2.setUnit(unit);
-            ArrayList replacements2 = converter2.convert(ConversionOptions.getCodeCompletionOptionWithContextSwitch(wordRegion.getOffset(), targetType));
+            ArrayList<Replacement> replacements2 = converter2.convert(ConversionOptions.getCodeCompletionOptionWithContextSwitch(wordRegion.getOffset(), targetType));
             wrappedUnit = 
                 new CompilationUnit((PackageFragment) unit.getParent(), unit.getElementName(), unit.getOwner()) {
                 public char[] getContents() {
@@ -97,9 +100,20 @@ public class ITDCodeSelection {
         IJavaElement[] elements = requestor.getElements();
         if (itd != null && elements.length == 0) {
             // maybe we are selecting on the name of the itd itself
-            if (itd.getNameRange().getOffset() <= wordRegion.getOffset() && 
-                    itd.getNameRange().getLength() >= wordRegion.getLength()) {
+            ISourceRange nameRange = itd.getNameRange();
+            if (nameRange.getOffset() <= wordRegion.getOffset() && 
+                    (nameRange.getOffset() + nameRange.getLength()) >= (wordRegion.getOffset() + wordRegion.getLength())) {
                 elements = new IJavaElement[] { itd };
+            }
+            
+            // maybe we are selecting the target type of the itd
+            ISourceRange targetNameRange = itd.getTargetTypeSourceRange();
+            if (targetNameRange.getOffset() <= wordRegion.getOffset() && 
+                    (targetNameRange.getOffset() + targetNameRange.getLength()) >= (wordRegion.getOffset() + wordRegion.getLength())) {
+                IType targetType = itd.findTargetType();
+                if (targetType != null) { // will be null if model not initialized
+                    elements = new IJavaElement[] { targetType };
+                }
             }
         }
         return elements;
@@ -114,6 +128,34 @@ public class ITDCodeSelection {
                 return itd;
             }
         }
+        return null;
+    }
+
+    /**
+     * This might perform a quick code selection if the selected region is in 
+     * an aspectj-only location.  
+     * 
+     * The only location currently supported is target type names of ITDs, but this
+     * may be expanded in the future.
+     * @param wordRegion the selected region
+     * @return the target type or null if not in a target type name region
+     */
+    public IJavaElement[] shortCutCodeSelection(Region wordRegion) {
+    	try {
+        	IJavaElement elt = unit.getElementAt(wordRegion.getOffset());
+            if (elt instanceof IntertypeElement) {
+                IntertypeElement itd = (IntertypeElement) elt;
+                ISourceRange range = itd.getTargetTypeSourceRange();
+                if (range != null && range.getOffset() <= wordRegion.getOffset() &&
+                		range.getOffset() + range.getLength() >= wordRegion.getOffset() + wordRegion.getLength()) {
+                	IType type = itd.findTargetType();
+                	if (type != null) {
+                		return new IJavaElement[] { type };
+                	}
+                }
+        	}
+    	} catch (JavaModelException e) {
+    	}
         return null;
     }
 

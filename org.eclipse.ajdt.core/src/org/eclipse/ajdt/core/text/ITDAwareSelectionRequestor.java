@@ -13,7 +13,6 @@ package org.eclipse.ajdt.core.text;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +29,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -49,14 +49,14 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     
     private AJProjectModelFacade model;
     private ICompilationUnit currentUnit;
-    private Set /* IJavaElement */ accepted;
+    private Set<IJavaElement> accepted;
     
     private ArrayList<Replacement> replacements;
     
     public ITDAwareSelectionRequestor(AJProjectModelFacade model, ICompilationUnit currentUnit) {
         this.model = model;
         this.currentUnit = currentUnit;
-        this.accepted = new HashSet();
+        this.accepted = new HashSet<IJavaElement>();
     }
 
     public void setReplacements(ArrayList<Replacement> replacements) {
@@ -72,9 +72,8 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             char[] uniqueKey, int start, int end) {
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
-            for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
-                IJavaElement elt = (IJavaElement) iterator.next();
+            List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+            for (IJavaElement elt : itds) {
                 if (matchedField(elt, name)) {
                     accepted.add(elt);
                     return;
@@ -82,7 +81,8 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             }
             
             // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
-            if (isInsideITD(start)) {
+            IntertypeElement itd = maybeGetITD(start);
+            if (itd != null) {
                 IField field = targetType.getField(String.valueOf(name));
                 if (field.exists()) {
                     accepted.add(field);
@@ -92,14 +92,14 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         }
     }
 
-    /**
-     * @param pos
-     * @return
-     * @throws JavaModelException
-     */
-    private boolean isInsideITD(int pos) throws JavaModelException {
-        return replacements != null && currentUnit instanceof AJCompilationUnit && 
-        currentUnit.getElementAt(AspectsConvertingParser.translatePositionToBeforeChanges(pos, replacements)) instanceof IntertypeElement;
+    private IntertypeElement maybeGetITD(int pos) throws JavaModelException {
+        if (replacements != null && currentUnit instanceof AJCompilationUnit) {
+            IJavaElement elt = currentUnit.getElementAt(AspectsConvertingParser.translatePositionToBeforeChanges(pos, replacements));
+            if (elt instanceof IntertypeElement) {
+                return (IntertypeElement) elt;
+            }
+        }
+        return null;
     }
 
     public void acceptMethod(char[] declaringTypePackageName,
@@ -121,20 +121,24 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            List /*IJavaElement*/ itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
-            for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
-                IJavaElement elt = (IJavaElement) iterator.next();
-                if (matchedMethod(elt, selector, simpleParameterSigs)) {
-                    accepted.add(elt);
-                    return;
+            if (targetType != null) {
+                List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+                for (IJavaElement elt : itds) {
+                    if (matchedMethod(elt, selector, simpleParameterSigs)) {
+                        accepted.add(elt);
+                        return;
+                    }
                 }
-            }
-            
-            // if we are selecting inside of an ITD and the field being matched is a regular field, we find it here.
-            if (isInsideITD(start)) {
-                IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
-                if (method.exists()) {
-                    accepted.add(method);
+                
+                IntertypeElement itd = maybeGetITD(start);
+                if (itd != null) {
+                    // if we are selecting inside of an ITD and the method being matched is a regular method, we find it here.
+                    IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
+                    if (method.exists()) {
+                        accepted.add(method);
+                    }
+                    
+                    // still need to determine if the ITD declaration itself is being selected
                 }
             }
         } catch (JavaModelException e) {
@@ -161,9 +165,44 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     public void acceptType(char[] packageName, char[] annotationName,
             int modifiers, boolean isDeclaration, char[] genericTypeSignature,
             int start, int end) {
-        // can ignore
+        try {
+            int origStart = AspectsConvertingParser.translatePositionToBeforeChanges(start, replacements);
+            int origEnd = AspectsConvertingParser.translatePositionToBeforeChanges(end, replacements);
+            IntertypeElement itd = maybeGetITD(origStart);
+            if (itd != null) {
+                // find out if we are selecting the target type name part of an itd
+                // itd.getNameRange() returns the range of the name, but excludes the target type.  Must subtract from there.  
+                // Make assumption that there are no spaces
+                // or comments between '.' and the rest of the name
+                ISourceRange nameRange = itd.getNameRange();
+                
+                String itdName = itd.getElementName();
+                int typeNameLength = Math.max(itdName.lastIndexOf('.'), 0);
+                String typeName = itdName.substring(0, typeNameLength);
+                
+                int typeNameStart;
+                if (itd.getAJKind() == Kind.INTER_TYPE_CONSTRUCTOR) {
+                    typeNameStart = nameRange.getOffset();
+                } else {
+                    typeNameStart = nameRange.getOffset() - 1 - typeName.length();
+                }
+                // now determine if the selected section is completely contained within the type name
+                if (contained(origStart, origEnd, typeNameStart, typeNameStart + typeNameLength)) {
+                    IType targetType = itd.findTargetType();
+                    if (targetType != null && targetType.getFullyQualifiedName('.').equals(toQualifiedName(packageName, annotationName))) {
+                        accepted.add(targetType);
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+        }
     }
     
+    private boolean contained(int selStart, int selEnd, int typeNameStart,
+            int typeNameEnd) {
+        return selStart >= typeNameStart && selEnd <= typeNameEnd;
+    }
+
     private AJProjectModelFacade ensureModel(IJavaElement elt) {
         try {
             if (model.getProject().equals(elt.getJavaProject().getProject())) {
@@ -246,59 +285,6 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     
 
 
-    /**
-     * Converts from a 'Q' kind of signature to an 'L' kind of signature.
-     * This is actually quite tricky.
-     * @param signature
-     * @return
-     */
-    private String resolveSignture(IType type, String signature) {
-        String simple = Signature.getSignatureSimpleName(signature);
-        String qual = Signature.getSignatureQualifier(signature);
-        String[] typeParams = Signature.getTypeArguments(signature);
-        int arrayCount = Signature.getArrayCount(signature);
-        
-        String fullyQual = qual != null && qual.length() > 0 ? qual + '.' + simple : simple;
-        try {
-            String[][] resolvedArr = type.resolveType(fullyQual);
-            if (resolvedArr != null && resolvedArr.length > 0) {
-                String resolved = (resolvedArr[0][0].length() > 0) ? 
-                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1]; 
-                String newSig = Signature.createTypeSignature(resolved, true);
-                if (arrayCount > 0) {
-                    newSig = Signature.createArraySignature(newSig, arrayCount);
-                }
-                
-                // uggh...don't know if this will work
-                if (typeParams != null && typeParams.length > 0) {
-                    newSig = newSig.substring(0, newSig.length()-1) + "<";
-                    for (int i = 0; i < typeParams.length; i++) {
-                        typeParams[i] = resolveSignture(type, typeParams[i]);
-                        newSig = newSig.substring(0, newSig.length()-1) + typeParams[i];
-                    }
-                    newSig += ">;";
-                }
-                return newSig;
-            }
-        } catch (JavaModelException e) {
-        }
-        
-        // couldn't resolve
-        return signature;
-    }
-
-    /**
-     * @param signature
-     * @return true if this is an unresolved signature
-     */
-    private boolean isUnresolvedSignature(String signature) {
-        int typeStart = 0;
-        while (signature.length() < typeStart && signature.charAt(typeStart) == '[') {
-            typeStart++;
-        }
-        return signature.charAt(typeStart) == 'Q';
-    }
-
     private String toQualifiedName(char[] declaringTypePackageName,
             char[] declaringTypeName) {
         StringBuffer sb = new StringBuffer();
@@ -328,9 +314,61 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         return split[splitLength-1];
     }
 
-
     public IJavaElement[] getElements() {
         return (IJavaElement[]) accepted.toArray(new IJavaElement[accepted.size()]);
     }
-    
+
+    /**
+     * Converts from a 'Q' kind of signature to an 'L' kind of signature.
+     * This is actually quite tricky.
+     * @param signature
+     * @return
+     */
+    // not used any more.  can likely delete
+//    private String resolveSignture(IType type, String signature) {
+//        String simple = Signature.getSignatureSimpleName(signature);
+//        String qual = Signature.getSignatureQualifier(signature);
+//        String[] typeParams = Signature.getTypeArguments(signature);
+//        int arrayCount = Signature.getArrayCount(signature);
+//        
+//        String fullyQual = qual != null && qual.length() > 0 ? qual + '.' + simple : simple;
+//        try {
+//            String[][] resolvedArr = type.resolveType(fullyQual);
+//            if (resolvedArr != null && resolvedArr.length > 0) {
+//                String resolved = (resolvedArr[0][0].length() > 0) ? 
+//                        resolvedArr[0][0] + "." + resolvedArr[0][1] : resolvedArr[0][1]; 
+//                String newSig = Signature.createTypeSignature(resolved, true);
+//                if (arrayCount > 0) {
+//                    newSig = Signature.createArraySignature(newSig, arrayCount);
+//                }
+//                
+//                // uggh...don't know if this will work
+//                if (typeParams != null && typeParams.length > 0) {
+//                    newSig = newSig.substring(0, newSig.length()-1) + "<";
+//                    for (int i = 0; i < typeParams.length; i++) {
+//                        typeParams[i] = resolveSignture(type, typeParams[i]);
+//                        newSig = newSig.substring(0, newSig.length()-1) + typeParams[i];
+//                    }
+//                    newSig += ">;";
+//                }
+//                return newSig;
+//            }
+//        } catch (JavaModelException e) {
+//        }
+//        
+//        // couldn't resolve
+//        return signature;
+//    }
+//
+//    /**
+//     * @param signature
+//     * @return true if this is an unresolved signature
+//     */
+//    private boolean isUnresolvedSignature(String signature) {
+//        int typeStart = 0;
+//        while (signature.length() < typeStart && signature.charAt(typeStart) == '[') {
+//            typeStart++;
+//        }
+//        return signature.charAt(typeStart) == 'Q';
+//    }
 }

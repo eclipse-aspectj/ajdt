@@ -28,7 +28,9 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -48,26 +50,26 @@ public abstract class IntertypeElement extends AspectJMemberElement {
      * @param jemDelimter Should be one of the JEM_ITD_FIELD or JEM_ITD_METHOD (see {@link AspectElement}) 
      */
     public static IntertypeElement create(char jemDelimeter, JavaElement parent,
- 		   String name, String[] parameters) {
-    	if (jemDelimeter == JEM_ITD_FIELD) {
-    		Assert.isTrue(parameters==null || parameters.length==0, "Fields shouldn't have parameters!");
-    		return new FieldIntertypeElement(parent, name);
-    	}
-    	else if (jemDelimeter == JEM_ITD_METHOD) {
-    		return new MethodIntertypeElement(parent, name, parameters);
-    	}
-    	else throw new IllegalArgumentException("jemDelimeter should be one of JEM_ITD_FIELD or JEM_ITD_METHOD");
+           String name, String[] parameters) {
+        if (jemDelimeter == JEM_ITD_FIELD) {
+            Assert.isTrue(parameters==null || parameters.length==0, "Fields shouldn't have parameters!");
+            return new FieldIntertypeElement(parent, name);
+        }
+        else if (jemDelimeter == JEM_ITD_METHOD) {
+            return new MethodIntertypeElement(parent, name, parameters);
+        }
+        else throw new IllegalArgumentException("jemDelimeter should be one of JEM_ITD_FIELD or JEM_ITD_METHOD");
     }
     
     public char getJemDelimeter() {
-    	return getHandleMementoDelimiter();
+        return getHandleMementoDelimiter();
     }
     
     public static char getJemDelimter(InterTypeDeclaration decl) {
-    	if (decl instanceof InterTypeFieldDeclaration) 
-    		return JEM_ITD_FIELD;
-    	else /* constructor or method */
-    		return JEM_ITD_METHOD;
+        if (decl instanceof InterTypeFieldDeclaration) 
+            return JEM_ITD_FIELD;
+        else /* constructor or method */
+            return JEM_ITD_METHOD;
     }
     
     protected IntertypeElement(JavaElement parent, String name, String[] parameterTypes) {
@@ -83,6 +85,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         
         IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
+            // this way of creating the element info does not contain proper source locations for the name and target type
             info.setAJExtraInfo(ipe.getExtraInfo());
             info.setName(name.toCharArray());
             info.setAJKind(ipe.getKind());
@@ -92,8 +95,9 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setAJAccessibility(ipe.getAccessibility());
             ISourceLocation sourceLocation = ipe.getSourceLocation();
             info.setSourceRangeStart(sourceLocation.getOffset());
-            info.setNameSourceStart(sourceLocation.getOffset());
-            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());
+            info.setNameSourceStart(sourceLocation.getOffset());  // This is wrong
+            info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());  // also wrong
+            
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
             info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
             info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
@@ -134,15 +138,32 @@ public abstract class IntertypeElement extends AspectJMemberElement {
     protected Integer getParamNum() {
         return new Integer(IntertypeElement.this.getQualifiedParameterTypes().length);
     }
-    
+    /** 
+     * may return null if target type is not found
+     * @return
+     */
     public IType findTargetType() {
         if (targetTypeCache == null) {
             AJProjectModelFacade model = AJProjectModelFactory
-            .getInstance().getModelForJavaElement(this);
-            List rels = model.getRelationshipsForElement(this,
+                .getInstance().getModelForJavaElement(this);
+            
+            // either the relationships are a single class declaration
+            // or this is an interface with one or more class declarations
+            List<IJavaElement> rels = model.getRelationshipsForElement(this,
                     AJRelationshipManager.DECLARED_ON);
-            if (rels.size() > 0 && rels.get(0) instanceof IType) {
+            if (rels.size() == 1 && rels.get(0) instanceof IType) {
                 targetTypeCache = (IType) rels.get(0);
+            } else if (rels.size() > 1) {
+                // we have an interface and several concreate types
+                // we want to return the interface type
+                for (IJavaElement rel : rels) {
+                    try {
+                        if (rel instanceof IType && ((IType) rel).isInterface()) {
+                            targetTypeCache = (IType) rel;
+                            break;
+                        }
+                    } catch (JavaModelException e) { }
+                }
             }
         }
         return targetTypeCache;
@@ -172,10 +193,23 @@ public abstract class IntertypeElement extends AspectJMemberElement {
      * @return a mock element representing the element that was introduced
      */
     public abstract IMember createMockDeclaration(IType parent);
+    
+    public ISourceRange getTargetTypeSourceRange() throws JavaModelException {
+        IntertypeElementInfo info = (IntertypeElementInfo) getElementInfo();
+        return info.getTargetTypeSourceRange();
+    }
 
     public String getTargetName() {
         String[] split = name.split("\\.");
         return split.length > 1 ? split[split.length-1] : name;
+    }
+
+    /**
+     * @return the target type name as it appears in the source (either qualified or simple)
+     */
+    public String getTargetTypeName() {
+        int dotIndex = name.lastIndexOf('.');
+        return dotIndex > 0 ? name.substring(0, dotIndex) : name;
     }
     
     public String[] getQualifiedParameterTypes() {
@@ -199,28 +233,5 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         } else {
             return info.getReturnTypeName();
         }
-    }
-    
-    /*
-     * See IField
-     */
-    public Object getConstant() throws JavaModelException {
-        return null;
-    }
-
-    /*
-     * See IField
-     */
-    public String getTypeSignature()
-            throws JavaModelException {
-        return getReturnType();
-    }
-
-    /*
-     * See IField
-     */
-    public boolean isEnumConstant()
-            throws JavaModelException {
-        return false;
     }
 }

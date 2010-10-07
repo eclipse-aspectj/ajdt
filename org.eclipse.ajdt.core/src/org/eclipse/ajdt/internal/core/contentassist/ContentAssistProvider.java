@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009 SpringSource and others.
+ * Copyright (c) 2009, 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,11 +13,13 @@ package org.eclipse.ajdt.internal.core.contentassist;
 
 import java.util.ArrayList;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.text.ITDCodeSelection;
 import org.eclipse.contribution.jdt.itdawareness.IJavaContentAssistProvider;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.CompletionRequestor;
@@ -110,7 +112,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INDEX_OUT_OF_BOUNDS));
         }
 
-		/* AJDT 1.7 */
+        /* AJDT 1.7 */
         ITDAwareNameEnvironment environment = new ITDAwareNameEnvironment(project, owner, monitor);
         environment.setUnitToSkip(unitToSkip);
 
@@ -134,22 +136,33 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             org.eclipse.jdt.core.ICompilationUnit unit,
             int offset, int length, IJavaElement[] prevResults)
             throws JavaModelException {
+
+        System.out.println("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
+        
+        // see if we should shortcut other processing and we can
+        // quickly find a selection that we know is only valid inside of
+        // AspectJ
+        Region wordRegion = new Region(offset, length);
+        ITDCodeSelection itdCodeSelection = new ITDCodeSelection(unit);
+        IJavaElement[] maybeResult = itdCodeSelection.shortCutCodeSelection(wordRegion);
+        if (maybeResult != null && maybeResult.length > 0) {
+            return maybeResult;
+        }
         
         if (prevResults != null && prevResults.length > 1) {
             return prevResults;
         }
-        if (prevResults.length == 1) {
-        	if (prevResults[0] instanceof IType) {
-                // get the expanded text region and see if it matches the type name
-                String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents());
-                if (expandedRegion.equals(prevResults[0].getElementName())) {
-                    // we really are looking for the type
-                    return prevResults;
-                }
+        if (prevResults.length == 1 && prevResults[0] instanceof IType) {
+            // get the expanded text region and see if it matches the type name
+            String expandedRegion = getExpandedRegion(offset, length, ((CompilationUnit) unit).getContents()).replace('$', '.');
+            if (expandedRegion.equals(prevResults[0].getElementName()) || 
+                    expandedRegion.equals(((IType) prevResults[0]).getFullyQualifiedName())) {
+                // we really are looking for the type
+                return prevResults;
             }
         }
         // we want to do ITD Aware code select
-        IJavaElement[] newResults = new ITDCodeSelection(unit).findJavaElement(new Region(offset, length));
+        IJavaElement[] newResults = itdCodeSelection.findJavaElement(wordRegion);
         return newResults != null && newResults.length > 0 ?
                 newResults : prevResults;
     }

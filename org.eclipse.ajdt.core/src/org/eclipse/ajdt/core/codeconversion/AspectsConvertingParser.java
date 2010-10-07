@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2008, 2009 IBM Corporation SpringSource and others.
+ * Copyright (c) 2004, 2010 IBM Corporation SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -25,6 +26,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -171,6 +173,8 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
     private boolean inInterfaceDeclaration;
     
     private boolean inEnumDeclaration;
+    
+    private Set<String> knownTypeParameters;
     
     /**
      * keeps track of being in the right hand side of a declaration
@@ -427,6 +431,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     }
                 }
                 
+                if (addReferencesForOrganizeImports) {
+                    // must determine what the type parameters are so that we don't add those references
+                    storeTypeParameters(currentTypeName);
+                }
+                
                 if (inTypeDeclaration()) {
                     inTypeBodyStack.push(Boolean.TRUE);
                 } else {
@@ -556,6 +565,15 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     typeParamDepth-=3;
                 }
                 break;
+                
+            case TokenNameAT:
+                // peek at the next token and see if it is
+                // part of a declare annotation.  If so,
+                // remove the '@'
+                if (isDeclareAnnotationStart(pos = scanner.getCurrentTokenStartPosition())) {
+                    addReplacement(pos, 1, "$".toCharArray());
+                }
+                break;
             }
             
             if (tok != TokenNameDOT) {
@@ -569,8 +587,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             endPointcutDesignator();
         }
 
-        if (addReferencesForOrganizeImports)
+        if (addReferencesForOrganizeImports) {
             addReferences();
+        }
 
         if (isSimulateContextSwitchNecessary) {
             simulateContextSwitch(options.getCodeCompletePosition(), options
@@ -585,6 +604,54 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         return replacements;
     }
     
+    /**
+     * @param i
+     * @return true if this is the start of @type, @field, @method, or @constructor
+     */
+    private boolean isDeclareAnnotationStart(int i) {
+        if (content[i] != '@') {
+            return false;
+        }
+        i++;
+        switch (content[i]) {
+            case 't':
+                return content[++i] == 'y' && content[++i] == 'p' && content[++i] == 'e';
+            case 'f':
+                return content[++i] == 'i' && content[++i] == 'e' && content[++i] == 'l' && content[++i] == 'd';
+            case 'm':
+                return content[++i] == 'e' && content[++i] == 't' && content[++i] == 'h' && content[++i] == 'o' && content[++i] == 'd';
+            case 'c':
+                return content[++i] == 'o' && content[++i] == 'n' && content[++i] == 's' && content[++i] == 't' && content[++i] == 'r' && content[++i] == 'u' && content[++i] == 'c' && content[++i] == 't' && content[++i] == 'o' && content[++i] == 'r';
+        }
+        
+        return false;
+    }
+
+
+    /**
+     * @param currentTypeName
+     */
+    private void storeTypeParameters(char[] typeName) {
+        if (unit != null && typeName != null && typeName.length > 0) {
+            IType type = getHandle(String.valueOf(typeName));
+            if (type.exists() && type instanceof AspectElement) {
+                try {
+                    ITypeParameter[] typeParameters = type.getTypeParameters();
+                    if (typeParameters != null && typeParameters.length > 0) {
+                        if (knownTypeParameters == null) {
+                            knownTypeParameters = new HashSet<String>();
+                        }
+                        for (ITypeParameter parameter : typeParameters) {
+                            knownTypeParameters.add(parameter.getElementName());
+                        }
+                    }
+                } catch (JavaModelException e) {
+                }
+            }
+        }
+    }
+
+
     private boolean tokenLooksLikeTypeName(int token, char[] text) {
         return token == TokenNameIdentifier && text != null && text.length > 0 && Character.isUpperCase(text[0]);
     }
@@ -722,39 +789,46 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                 List<IJavaElement> rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
                 for (IJavaElement je : rels) {
                     IProgramElement pe = model.javaElementToProgramElement(je);
+                    List<String> parentTypes = null;
                     if (pe.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
-                        List<String> parentTypes = pe.getParentTypes();
-                        String details = pe.getDetails();
-                        if (details != null) { // might be null if previous build had a compiler error
-                            IJavaProject project = type.getJavaProject();
-                            
-                            // bug 273914---must determine if these are interfaces or classes
-                            for (String parentType : parentTypes) {
-                                IType parentTypeElt;
-                                try {
-                                    parentTypeElt = project.findType(parentType);
-                                } catch (JavaModelException e) {
-                                    parentTypeElt = null;
-                                }
-                                boolean parentIsClass;
-                                boolean typeIsClass;
-                                try {
-                                    parentIsClass = parentTypeElt == null || parentTypeElt.isClass();
-                                    typeIsClass = type.isClass();
-                                } catch (JavaModelException e) {
-                                    parentIsClass = true;
-                                    typeIsClass = true;
-                                }
-                                if (parentIsClass && typeIsClass) {
-                                    declareExtends.add(parentType);
-                                } else if (!parentIsClass && typeIsClass) {
-                                    declareImplements.add(parentType);
-                                } else if (!parentIsClass && !typeIsClass) {
-                                    declareExtends.add(parentType);
-                                } else if (parentIsClass && !typeIsClass) {
-                                    // error, but handle gracefully
-                                    declareExtends.add(parentType);
-                                }
+                        parentTypes = pe.getParentTypes();
+                    } else if (pe.getKind() == IProgramElement.Kind.ASPECT) {
+                        // could be a concrete aspect that instantiates a declare parents relationship from an abstact aspect
+                        Map<String, List<String>> parents = pe.getDeclareParentsMap();
+                        if (parents != null) {
+                            parentTypes = parents.get(type.getFullyQualifiedName());
+                        }
+                    }
+                    
+                    if (parentTypes != null) {
+                        IJavaProject project = type.getJavaProject();
+                        
+                        // bug 273914---must determine if these are interfaces or classes
+                        for (String parentType : parentTypes) {
+                            IType parentTypeElt;
+                            try {
+                                parentTypeElt = project.findType(parentType);
+                            } catch (JavaModelException e) {
+                                parentTypeElt = null;
+                            }
+                            boolean parentIsClass;
+                            boolean typeIsClass;
+                            try {
+                                parentIsClass = parentTypeElt == null || parentTypeElt.isClass();
+                                typeIsClass = type.isClass();
+                            } catch (JavaModelException e) {
+                                parentIsClass = true;
+                                typeIsClass = true;
+                            }
+                            if (parentIsClass && typeIsClass) {
+                                declareExtends.add(parentType);
+                            } else if (!parentIsClass && typeIsClass) {
+                                declareImplements.add(parentType);
+                            } else if (!parentIsClass && !typeIsClass) {
+                                declareExtends.add(parentType);
+                            } else if (parentIsClass && !typeIsClass) {
+                                // error, but handle gracefully
+                                declareExtends.add(parentType);
                             }
                         }
                     }
@@ -1272,10 +1346,10 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
 
     //adds references to all used type -> organize imports will work
     private void addReferences() {
-        if (typeReferences == null)
+        if (typeReferences == null) {
             return;
+        }
 
-        //char[] decl = new char[] { ' ', 'x', ';' };
         int pos = findLast('}');
         if (pos < 0)
             return;
@@ -1283,8 +1357,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         Iterator<String> iter = typeReferences.iterator();
         while (iter.hasNext()) {
             String ref = (String) iter.next();
+            if (knownTypeParameters != null && knownTypeParameters.contains(ref)) {
+                // don't add type parameters since they do not need to be imported
+                continue;
+            }
             temp.append(ref).append(" ").append(findFreeIdentifier()); //$NON-NLS-1$
-            temp.append(';');
+            temp.append(";\n");
         }
         char[] decls = new char[temp.length()];
         temp.getChars(0, decls.length, decls, 0);

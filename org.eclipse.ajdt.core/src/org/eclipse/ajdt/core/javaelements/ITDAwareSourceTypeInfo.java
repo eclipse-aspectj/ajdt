@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 SpringSource and others.
+ * Copyright (c) 2008, 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,18 +11,22 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
@@ -103,7 +107,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             // still works when there are large numbers ofannotations
             Object info = ((JavaElement) handle.getCompilationUnit()).getElementInfo();
             if (info != null && info instanceof CompilationUnitElementInfo) {
-            	((CompilationUnitElementInfo) info).annotationNumber = 0;
+                ((CompilationUnitElementInfo) info).annotationNumber = 0;
             }
         } catch (JavaModelException e) {
         }
@@ -131,7 +135,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             
             
             
-            List augmentedChildren = getITDs(type);
+            List<IJavaElement> augmentedChildren = getITDs(type);
             if (type instanceof AspectElement) {
                 augmentedChildren.add(createAspectOf((AspectElement) this.handle));
             }
@@ -139,8 +143,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 IJavaElement[] allChildren = new IJavaElement[origChildren.length + augmentedChildren.size()];
                 System.arraycopy(newChildren, 0, allChildren, 0, newChildren.length);
                 int i = origChildren.length;
-                for (Iterator childIter = augmentedChildren.iterator(); childIter.hasNext();) {
-                    IJavaElement elt = (IJavaElement) childIter.next();
+                for (IJavaElement elt : augmentedChildren) {
                     allChildren[i++] = elt;
                 }
                 return allChildren;
@@ -152,16 +155,15 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         }
     }
     
-    private List/*IJavaElement*/ getITDs(SourceType type) throws JavaModelException {
+    private List<IJavaElement> getITDs(SourceType type) throws JavaModelException {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(type);
         if (model.hasModel()) {
-            List/*IJavaElement*/ itds = new ArrayList();
-            List/*IJavaElement*/ rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
+            List<IJavaElement> itds = new ArrayList<IJavaElement>();
+            List<IJavaElement> rels = model.getRelationshipsForElement(type, AJRelationshipManager.ASPECT_DECLARATIONS);
             
-            ArrayList childMethods = null;
+            List<IMethod> childMethods = null;
 
-            for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-                IJavaElement ije = (IJavaElement) relIter.next();
+            for (IJavaElement ije : rels) {
                 if (ije instanceof IntertypeElement) {
                     IntertypeElement elt = (IntertypeElement) ije;
                     IMember member = elt.createMockDeclaration(type);
@@ -194,11 +196,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                                 // a default implementation for an interface method
                                 // use IMethod.isSimilar
                                 if (childMethods == null) {
-                                    childMethods = type.getChildrenOfType(IJavaElement.METHOD);
+                                    childMethods = (List<IMethod>) type.getChildrenOfType(IJavaElement.METHOD);
                                 }
-                                for (Iterator childIter = childMethods.iterator(); childIter
-                                        .hasNext();) {
-                                    IMethod method = (IMethod) childIter.next();
+                                for (IMethod method : childMethods) {
                                     if (method.isSimilar((IMethod) member)) {
                                         itds.remove(member);
                                         break;
@@ -213,40 +213,67 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     // use createElementInfo, not getElementInfo because 
                     // we don't want it cached
                     DeclareElementInfo info = (DeclareElementInfo) elt.createElementInfo();
-                    if (info == null) {
+                    if (info == null || info.getAJKind() != Kind.DECLARE_PARENTS) {
                         continue;
                     }
-                    if (info.isExtends()) {
-                        this.setSuperclassName(info.getType());
-                    } else if (info.isImplements()) {
-                        char[][] origInterfaces = this.getInterfaceNames();
-                        char[][] itdInterfaces = info.getTypes();
-                        char[][] newInterfaces;
-                        if (origInterfaces == null) {
-                            newInterfaces = itdInterfaces;
-                        } else if (itdInterfaces == null) {
-                            newInterfaces = origInterfaces;
-                        } else {
-                            newInterfaces = new char[origInterfaces.length + info.getTypes().length][];
-                            System.arraycopy(origInterfaces, 0, newInterfaces, 0, origInterfaces.length);
-                            System.arraycopy(itdInterfaces, 0, newInterfaces, origInterfaces.length, itdInterfaces.length);
-                        }
-                        setSuperInterfaceNames(newInterfaces);
+                    
+                    char[][] newSupers = info.getTypes();
+                    augmentHierarchy(newSupers);
+                } else if (ije instanceof AspectElement) {
+                    // likely a declare parents instantiated in a concrete aspect, but declared in a super aspect
+                    IProgramElement ipe = model.javaElementToProgramElement(ije);
+                    Map<String, List<String>> declareParentsMap = ipe.getDeclareParentsMap();
+                    if (declareParentsMap != null) {
+                        augmentHierarchy(declareParentsMap.get(type.getFullyQualifiedName()));
                     }
                 }
             }
             return itds;
         } 
-        return new LinkedList();
+        return new LinkedList<IJavaElement>();
     }
 
-    private boolean isAlreadyAnITD(List itds, IMember member) {
+    private void augmentHierarchy(List<String> newSupers) {
+        if (newSupers != null) {
+            char[][] newSupersArr = new char[newSupers.size()][];
+            int i = 0;
+            for (String newSuper : newSupers) {
+                newSupersArr[i++] = newSuper.toCharArray();
+            }
+            augmentHierarchy(newSupersArr);
+        }
+    }
+
+    /**
+     * @param newSupers
+     */
+    private void augmentHierarchy(char[][] newSupers) {
+        if (newSupers != null) {
+            for (char[] newSuper : newSupers) {
+                if (isClass(newSuper)) {
+                    this.setSuperclassName(newSuper);
+                } else {
+                    // assume an interface
+                    char[][] origInterfaces = this.getInterfaceNames();
+                    char[][] newInterfaces;
+                    if (origInterfaces == null) {
+                        newInterfaces = new char[][] { newSuper };
+                    } else {
+                        newInterfaces = new char[origInterfaces.length + 1][];
+                        System.arraycopy(origInterfaces, 0, newInterfaces, 0, origInterfaces.length);
+                        newInterfaces[origInterfaces.length] = newSuper;
+                    }
+                    setSuperInterfaceNames(newInterfaces);
+                }
+            }
+        }
+    }
+
+    private boolean isAlreadyAnITD(List<IJavaElement> itds, IMember member) {
         boolean shouldAdd = true;
         
         if (member.getElementType() == IJavaElement.FIELD) {
-            for (Iterator itdIter = itds.iterator(); itdIter
-                    .hasNext();) {
-                IJavaElement itdElt = (IJavaElement) itdIter.next();
+            for (IJavaElement itdElt : itds) {
                 if (itdElt instanceof IField) {
                     IField itdField = (IField) itdElt;
                     if (member.getElementName().equals(itdField.getElementName())) {
@@ -257,9 +284,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 }
             }
         } else if (member.getElementType() == IJavaElement.METHOD) {
-            for (Iterator itdIter = itds.iterator(); itdIter
-                    .hasNext();) {
-                IJavaElement itdElt = (IJavaElement) itdIter.next();
+            for (IJavaElement itdElt : itds) {
                 if (itdElt instanceof IMethod) {
                     IMethod itdMethod = (IMethod) itdElt;
                     if (itdMethod.isSimilar((IMethod) member)) {
@@ -301,6 +326,20 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
 
     }
     
+    /**
+     * True if a class false if an interface or doesn't exist
+     * @param qualifiedName
+     * @return
+     */
+    private boolean isClass(char[] qualifiedName) {
+        try {
+            IType type = this.handle.getJavaProject().findType(String.valueOf(qualifiedName), (IProgressMonitor) null);
+            return type != null && type.isClass();
+        } catch (JavaModelException e) {
+            return false;
+        }
+    }
+    
     private SourceType createITDAwareType(SourceType type, ITDAwareSourceTypeInfo info) {
         if (type instanceof AspectElement) {
             return new ITDAwareAspectType((JavaElement) type.getParent(), type.getElementName(), info);
@@ -313,7 +352,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         return super.getChildren();
     }
     
-						/* AJDT 1.7 */
+                        /* AJDT 1.7 */
     public void setChildren(IJavaElement[] children) {
         this.children = children;
     }

@@ -193,14 +193,14 @@ public class AspectRenameParticipant extends RenameParticipant {
                 if (src == null) {
                     // this ajcu is likely closed or disposed
                     continue;
-                }
+                } 
                 Map<String, List<Integer>> map = PointcutUtilities.findAllIdentifiers(src);
                 if (map != null) {
                     for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
                         if (entry.getKey().equals(name)) {
                             for (Integer offset : entry.getValue()) {
                                 AJLog.log("  found reference at offset " + offset); //$NON-NLS-1$
-                                replaceEdits.add(new ReplaceEdit(elementStart + offset - name.length(), name.length(), newName));
+                                replaceEdits.add(new ReplaceEdit(elementStart + offset, name.length(), newName));
                             }
                         }
                     }
