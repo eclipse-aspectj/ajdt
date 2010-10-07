@@ -23,6 +23,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
@@ -45,12 +46,19 @@ import org.eclipse.jdt.internal.core.search.JavaSearchScope;
  */
 public class AbstractITDSearchTest extends AJDTCoreTestCase {
     class ITDAwareSearchRequestor extends SearchRequestor {
-        List matches = new ArrayList();
+        List<SearchMatch> matches = new ArrayList<SearchMatch>();
         public void acceptSearchMatch(SearchMatch match) throws CoreException {
+            // order matches by offset
+            for (int i = 0; i < matches.size(); i++) {
+                if (matches.get(i).getOffset() > match.getOffset()) {
+                    matches.add(i, match);
+                    return;
+                }
+            }
             matches.add(match);
         }
         
-        public List getMatches() {
+        public List<SearchMatch> getMatches() {
             return matches;
         }
     }
@@ -92,10 +100,10 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         return (IMember) children[0];
     }
 
-    protected List findSearchMatches(IJavaElement elt, String name) throws Exception {
+    protected List<SearchMatch> findSearchMatches(IJavaElement elt, String name) throws Exception {
         return findSearchMatches(elt, name, IJavaSearchConstants.REFERENCES);
     }
-    protected List findSearchMatches(IJavaElement elt, String name, int flags) throws Exception {
+    protected List<SearchMatch> findSearchMatches(IJavaElement elt, String name, int flags) throws Exception {
         javaProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         waitForManualBuild();
         assertNoProblems(javaProject.getProject());
@@ -121,13 +129,13 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         return createCompilationUnitAndPackage(pack, name, contents, javaProject);
     }
     
-    protected void assertNoMatch(String contents, List matches) {
+    protected void assertNoMatch(String contents, List<SearchMatch> matches) {
         assertEquals("Should not have found any matches, but instead found matches in:\n" + contents + "\n\nMatches were:" + printMatches(matches), 0, matches.size());
     }
 
-    private String printMatches(List matches) {
+    private String printMatches(List<SearchMatch> matches) {
         StringBuffer sb = new StringBuffer();
-        for (Iterator matchIter = matches.iterator(); matchIter.hasNext();) {
+        for (Iterator<SearchMatch> matchIter = matches.iterator(); matchIter.hasNext();) {
             SearchMatch match = (SearchMatch) matchIter.next();
             sb.append("\n\n" + match);
             
@@ -135,18 +143,30 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         return sb.toString();
     }
 
-    protected void assertMatch(String matchName, String contents, List matches) {
-            assertEquals("Should have found exactly 1 match, but instead found " + printMatches(matches), 1, matches.size());
-            SearchMatch match = (SearchMatch) matches.get(0);
-            assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
-            assertEquals("Wrong match length", matchName.length(), match.getLength());
+    protected void assertMatch(String matchName, String contents, List<SearchMatch> matches) {
+        
+        // remove matches from inside import statements
+        int matchStart = 0;
+        if (matches.size() > 1) {
+            SearchMatch match = matches.get(0);
+            if (match.getElement() instanceof IImportDeclaration) {
+                matches.remove(match);
+                matchStart = match.getOffset() + match.getLength();
+            }
+        }
+
+
+        assertEquals("Should have found exactly 1 match, but instead found " + printMatches(matches), 1, matches.size());
+        SearchMatch match = matches.get(0);
+        assertEquals("Wrong match location", contents.indexOf(matchName, matchStart), match.getOffset());
+        assertEquals("Wrong match length", matchName.length(), match.getLength());
             
             // disabled because we can't get this right right now.
     //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());
     }
-    protected void assertTwoMatches(String matchName, String contents, List matches) {
+    protected void assertTwoMatches(String matchName, String contents, List<SearchMatch> matches) {
         assertEquals("Should have found exactly 2 matches, but instead found " + printMatches(matches), 2, matches.size());
-        SearchMatch match = (SearchMatch) matches.get(0);
+        SearchMatch match = matches.get(0);
         assertEquals("Wrong match location", contents.indexOf(matchName), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
         
@@ -159,9 +179,9 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
     }
     
 
-    protected void assertDeclarationMatches(IMember declaration, List matches) throws JavaModelException {
+    protected void assertDeclarationMatches(IMember declaration, List<SearchMatch> matches) throws JavaModelException {
         boolean found = false;
-        for (Iterator searchIter = matches.iterator(); searchIter.hasNext();) {
+        for (Iterator<SearchMatch> searchIter = matches.iterator(); searchIter.hasNext();) {
             SearchMatch match = (SearchMatch) searchIter.next();
             if (match.getElement().equals(declaration)) {
                 found = true;
@@ -180,7 +200,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         assertEquals("Incorrect match length", nameRange.getLength(), match.getLength());
     }
 
-    protected void assertExpectedNumberOfMatches(int expected, List matches) {
+    protected void assertExpectedNumberOfMatches(int expected, List<SearchMatch> matches) {
         assertEquals("Wrong number of matches found:\n" + printMatches(matches), expected, matches.size());
     }
 

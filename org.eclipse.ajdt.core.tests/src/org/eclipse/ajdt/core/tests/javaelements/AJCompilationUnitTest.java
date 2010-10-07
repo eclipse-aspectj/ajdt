@@ -66,7 +66,7 @@ public class AJCompilationUnitTest extends AbstractTestCase {
 		
 	}
 
-	public void testOriginalContentMode() {
+	public void testOriginalContentMode() throws JavaModelException {
 		if (unit.isInOriginalContentMode())
 			fail("AJCompilationUnit should not be in original mode at startup."); //$NON-NLS-1$
 		

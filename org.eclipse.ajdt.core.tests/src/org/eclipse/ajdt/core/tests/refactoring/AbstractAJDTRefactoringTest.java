@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009 SpringSource and others.
+ * Copyright (c) 2010 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,7 +16,6 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -44,7 +43,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
  * @created Apr 23, 2010
  *
  */
-public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
+public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     protected IJavaProject project;
     protected IPackageFragment p;
     protected void setUp() throws Exception {
@@ -54,18 +53,14 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     }
     
     protected ICompilationUnit[] createUnits(String[] packages, String[] cuNames, String[] cuContents) throws CoreException {
-        ICompilationUnit[] units = new ICompilationUnit[cuNames.length];
-        for (int i = 0; i < units.length; i++) {
-            units[i] = createCompilationUnitAndPackage(packages[i], cuNames[i], cuContents[i], project);
-        }
-        project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-        waitForManualBuild();
-        waitForAutoBuild();
-        assertNoProblems(project.getProject());
-        return units;
+        return super.createUnits(packages, cuNames, cuContents, project);
     }
     
-    protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) {
+    protected ICompilationUnit createUnit(String pkg, String cuName, String cuContents) throws CoreException {
+        return super.createUnit(pkg, cuName, cuContents, project);
+    }
+    
+    protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) throws JavaModelException {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < existingUnits.length; i++) {
             char[] contents;
@@ -83,6 +78,28 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
                 sb.append("\n--------WAS--------\n");
                 sb.append(actualContents);
             }
+        }
+        if (sb.length() > 0) {
+            fail("Refactoring produced unexpected results:" + sb.toString());
+        }
+    }
+
+    protected void assertContents(ICompilationUnit existingUnits, String expectedContents) throws JavaModelException {
+        StringBuffer sb = new StringBuffer();
+        char[] contents;
+        if (existingUnits instanceof AJCompilationUnit) {
+            ((AJCompilationUnit) existingUnits).requestOriginalContentMode();
+        }
+        contents = ((CompilationUnit) existingUnits).getContents();
+        if (existingUnits instanceof AJCompilationUnit) {
+            ((AJCompilationUnit) existingUnits).discardOriginalContentMode();
+        }
+        String actualContents = String.valueOf(contents);
+        if (!actualContents.equals(expectedContents)) {
+            sb.append("\n-----EXPECTING-----\n");
+            sb.append(expectedContents);
+            sb.append("\n--------WAS--------\n");
+            sb.append(actualContents);
         }
         if (sb.length() > 0) {
             fail("Refactoring produced unexpected results:" + sb.toString());
@@ -110,15 +127,7 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
         super.buildProject(project);
-
-        // failing on build server...why?
-        waitForAutoRefresh();
-        waitForAutoRefresh();
-        waitForAutoRefresh();
-        waitForManualBuild();
-        waitForManualBuild();
-        waitForManualBuild();
-        
+        performDummySearch();
         IUndoManager undoManager= getUndoManager();
         final CreateChangeOperation create= new CreateChangeOperation(
             new CheckConditionsOperation(ref, CheckConditionsOperation.ALL_CONDITIONS),
@@ -179,7 +188,7 @@ public class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         RefactoringStatus status= new RefactoringStatus();
         Refactoring refactoring= descriptor.createRefactoring(status);
         assertNotNull("refactoring should not be null", refactoring);
-        assertTrue("status should be ok", status.isOK());
+        assertTrue("status should be ok, but was: " + status, status.isOK());
         return refactoring;
     }
 

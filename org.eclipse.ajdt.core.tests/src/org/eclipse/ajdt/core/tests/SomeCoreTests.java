@@ -15,7 +15,6 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
-import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -77,10 +76,10 @@ public class SomeCoreTests {
 //        suite.addTest(new TestSuite(Bug43711Test.class));
 
 		// AST tests
-		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
-		
-		// refactoring tests
-		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
+//		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
+//		
+//		// refactoring tests
+//		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
 		
 		return suite;
 	}

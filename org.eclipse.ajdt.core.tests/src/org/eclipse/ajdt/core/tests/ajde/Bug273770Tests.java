@@ -36,7 +36,7 @@ public class Bug273770Tests extends AJDTCoreTestCase {
         // note that the trailing ':' is actually a path separator character
         // should filter out the hamcrest jar, but keep the junit jar
         assertTrue("Should have found junit.jar on the resolved aspectpath:\n" + entries[0], entries[0].indexOf("junit.jar") != -1);
-        assertTrue("Should not have found the hamcrest jar on the resolved aspectpath:\n" + entries[0], entries[0].indexOf("hamcrest") == -1);
+        assertTrue("Should have found the hamcrest jar on the resolved aspectpath:\n" + entries[0], entries[0].indexOf("hamcrest") == -1);
         
         entries = AspectJCorePreferences.getRawProjectAspectPath(project);
         assertTrue("Should have JUnit 4 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);
@@ -47,7 +47,7 @@ public class Bug273770Tests extends AJDTCoreTestCase {
         // note that the trailing ':' is actually a path separator character
         // should filter out the hamcrest jar, but keep the junit jar
         assertTrue("Should have found junit.jar on the resolved inpath:\n" + entries[0], entries[0].indexOf("junit.jar") != -1);
-        assertTrue("Should not have found the hamcrest jar on the resolved inpath:\n" + entries[0], entries[0].indexOf("hamcrest") == -1);
+        assertTrue("Should have found the hamcrest jar on the resolved inpath:\n" + entries[0], entries[0].indexOf("hamcrest") == -1);
 
         entries = AspectJCorePreferences.getRawProjectInpath(project);
         assertTrue("Should have JUnit 4 on the raw inpath:\n" + entries[0], entries[0].indexOf("org.eclipse.jdt.junit.JUNIT_CONTAINER/4:") >= 0);

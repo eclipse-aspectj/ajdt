@@ -37,6 +37,10 @@ import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.Bug279974Tests;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
+import org.eclipse.ajdt.core.tests.codeselect.AbstractITDAwareCodeSelectionTests;
+import org.eclipse.ajdt.core.tests.codeselect.ITDAwareCodeSelectionTests;
+import org.eclipse.ajdt.core.tests.codeselect.ITDAwareCodeSelectionTests2;
+import org.eclipse.ajdt.core.tests.codeselect.ITDAwareCodeSelectionTests3;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.core.tests.javaelements.AJCompilationUnitTest;
@@ -54,26 +58,27 @@ import org.eclipse.ajdt.core.tests.model.AJModelTest5;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
-import org.eclipse.ajdt.core.tests.model.AbstractITDAwareCodeSelectionTests;
 import org.eclipse.ajdt.core.tests.model.AspectJMemberElementTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.Bug268522;
 import org.eclipse.ajdt.core.tests.model.GetExpandedRegionTests;
-import org.eclipse.ajdt.core.tests.model.ITDAwareCodeSelectionTests;
-import org.eclipse.ajdt.core.tests.model.ITDAwareCodeSelectionTests2;
-import org.eclipse.ajdt.core.tests.model.ITDAwareCodeSelectionTests3;
 import org.eclipse.ajdt.core.tests.model.InpathRelationshipsTests;
 import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
+import org.eclipse.ajdt.core.tests.model.MultipleProjectModelTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
-import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
+import org.eclipse.ajdt.core.tests.refactoring.AspectRenameRefactoringTests;
 import org.eclipse.ajdt.core.tests.refactoring.AbstractAJDTRefactoringTest;
 import org.eclipse.ajdt.core.tests.refactoring.FindITDGettersAndSettersTest;
 import org.eclipse.ajdt.core.tests.refactoring.ITDRenameParticipantRefactoringTest;
+import org.eclipse.ajdt.core.tests.refactoring.MoveCURefactoringTests;
+import org.eclipse.ajdt.core.tests.refactoring.RenamePackageRefactoringTests;
+import org.eclipse.ajdt.core.tests.search.DeclareAwareSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareDeclarationSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareJUnit4TestFinderTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwarePolymorphicSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareSearchTests;
+import org.eclipse.ajdt.core.tests.search.ITDAwareTypeSearchTests;
 import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
 
@@ -133,6 +138,7 @@ public class AllCoreTests {
         suite.addTest(AbstractITDAwareCodeSelectionTests.suite());
         suite.addTest(new TestSuite(GetExpandedRegionTests.class));
         suite.addTest(new TestSuite(Bug283468Test.class));
+        suite.addTest(new TestSuite(MultipleProjectModelTests.class));
         
         
 		
@@ -173,15 +179,19 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
 		
 		// refactoring tests
-		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
+		suite.addTest(new TestSuite(AspectRenameRefactoringTests.class));
 		suite.addTest(new TestSuite(ITDRenameParticipantRefactoringTest.class));
 		suite.addTest(new TestSuite(FindITDGettersAndSettersTest.class));
+		suite.addTest(new TestSuite(MoveCURefactoringTests.class));
+		suite.addTest(new TestSuite(RenamePackageRefactoringTests.class));
 		
 		// search tests
 		suite.addTest(new TestSuite(ITDAwareSearchTests.class));
 		suite.addTest(new TestSuite(ITDAwarePolymorphicSearchTests.class));
 		suite.addTest(new TestSuite(ITDAwareDeclarationSearchTests.class));
 		suite.addTest(new TestSuite(ITDAwareJUnit4TestFinderTests.class));
+		suite.addTest(new TestSuite(ITDAwareTypeSearchTests.class));
+		suite.addTest(new TestSuite(DeclareAwareSearchTests.class));
 		
 
 		return suite;
