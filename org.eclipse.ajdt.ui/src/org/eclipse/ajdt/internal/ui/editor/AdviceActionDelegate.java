@@ -18,11 +18,13 @@ Contributors:
 package org.eclipse.ajdt.internal.ui.editor;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -151,7 +153,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			
 			boolean addedMenu = false;
 			if (model.hasModel()) {
-	            List javaElementsForLine = model
+	            List<IJavaElement> javaElementsForLine = model
                     .getJavaElementsForLine(cu, clickedLine.intValue());
 
 	            addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISES, model);
@@ -274,18 +276,15 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	 * @param relationshipType
 	 * @return
 	 */
-	private boolean createMenuForRelationshipType(List javaElements, IMenuManager manager, boolean addedMenu, AJRelationshipType relationshipType, AJProjectModelFacade model) {
+	private boolean createMenuForRelationshipType(List<IJavaElement> javaElements, IMenuManager manager, boolean addedMenu, AJRelationshipType relationshipType, AJProjectModelFacade model) {
 		boolean menuInitialized = false;
 		MenuManager menu = null;
-		for (Iterator iter = javaElements.iterator(); iter.hasNext();) {
-			IJavaElement element = (IJavaElement) iter.next();
-			List relationships = model
+		for (IJavaElement element : javaElements) {
+			List<IJavaElement> relationships = model
                     .getRelationshipsForElement(element, relationshipType);
 			if(relationships != null) {
 				addedMenu = true;
-				for (Iterator iterator = relationships.iterator(); iterator
-						.hasNext();) {
-					IJavaElement el = (IJavaElement) iterator.next();
+				for (IJavaElement el : relationships) {
 					if(!menuInitialized) {
 						menu = new MenuManager(relationshipType.getMenuName());
 						manager.add(menu);			
@@ -293,6 +292,26 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 					}
 					// link might be in a different project
 					String linkName = model.getJavaElementLinkName(el);
+					String extra = "";
+					// might be a declare parents instantiated in a concrete aspect
+					if (relationshipType == AJRelationshipManager.ASPECT_DECLARATIONS && 
+					        el instanceof AspectElement && element instanceof IType) {
+					    IProgramElement ipe = model.javaElementToProgramElement(el);
+					    Map<String, List<String>> parentsMap = ipe.getDeclareParentsMap();
+					    if (parentsMap != null) {
+					        List<String> parents = parentsMap.get(((IType) element).getFullyQualifiedName());
+					        if (parents != null && parents.size() > 0) {
+					            extra = "declare parents: ";
+					            for (String parent : parents) {
+                                    extra += parent;
+                                    extra += ", ";
+                                }
+					            extra += "instantiated in ";
+					        }
+					    }
+					}
+					linkName = extra + linkName;
+					
 					menu.add(new MenuAction(el, linkName));
 				}
 			}

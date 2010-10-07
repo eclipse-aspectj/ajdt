@@ -649,7 +649,7 @@ M4 = Platform-specific fourth key
    </extension>
 
    <extension point="org.eclipse.ui.bindings">
-        <key
+      <key
             sequence="M3+M2+D C"
             commandId="org.eclipse.ajdt.launching.runShortcut.debug"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
