@@ -38,7 +38,9 @@ public aspect RenameJavaElementActionAspect {
         if (provider != null && provider.isInterestingElement(element)) {
             provider.performRefactoring(element, lightweight);
         } else {
-            if (provider.belongsToInterestingCompilationUnit(element)) {
+            if (provider != null && provider.belongsToInterestingCompilationUnit(element)) {
+                // must disable inline renaming for AJCompilationUnits.  They are not good with 
+                // inline renaming due to differences in source locations.
                 lightweight = false;
             }
             proceed(element, lightweight);
