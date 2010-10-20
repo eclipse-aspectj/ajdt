@@ -172,11 +172,11 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
     private boolean maybeDeclare(char[] fieldName, char[] fieldType) {
         return CharOperation.equals("declare".toCharArray(), fieldType) &&
                (CharOperation.equals("parents".toCharArray(), fieldName) ||
-                       CharOperation.equals("$type".toCharArray(), fieldName) ||
-                       CharOperation.equals("$method".toCharArray(), fieldName) ||
-                       CharOperation.equals("$constructor".toCharArray(), fieldName) ||
-                       CharOperation.equals("$field".toCharArray(), fieldName)
-                       );
+            		   CharOperation.equals("$type".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$method".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$constructor".toCharArray(), fieldName) ||
+            		   CharOperation.equals("$field".toCharArray(), fieldName)
+            		   );
     }
 
 

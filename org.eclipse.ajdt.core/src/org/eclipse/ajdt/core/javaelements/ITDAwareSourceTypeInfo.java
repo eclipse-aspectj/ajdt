@@ -219,7 +219,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     
                     char[][] newSupers = info.getTypes();
                     augmentHierarchy(newSupers);
-                } else if (ije instanceof AspectElement) {
+                } else if (ije instanceof AspectElement || ije instanceof BinaryAspectElement) {
                     // likely a declare parents instantiated in a concrete aspect, but declared in a super aspect
                     IProgramElement ipe = model.javaElementToProgramElement(ije);
                     Map<String, List<String>> declareParentsMap = ipe.getDeclareParentsMap();
