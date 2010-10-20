@@ -532,4 +532,6 @@ public class AJDTCoreTestCase extends TestCase {
         }
         return errorFound ? sb.toString() : null;
     }
+    
+    
 }
