@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
@@ -26,11 +27,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.equinox.frameworkadmin.BundleInfo;
+import org.eclipse.equinox.internal.simpleconfigurator.manipulator.SimpleConfiguratorManipulatorImpl;
+import org.eclipse.equinox.simpleconfigurator.manipulator.SimpleConfiguratorManipulator;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.DisabledInfo;
 import org.eclipse.osgi.service.resolver.State;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 
 /**
@@ -85,14 +90,16 @@ public class WeavingStateConfigurer {
         
         
         IStatus success2 = changeAutoStartupAspectsBundle(becomeEnabled);
-        if (success.getSeverity() >= IStatus.ERROR || success2.getSeverity() >= IStatus.ERROR) {
+        
+        IStatus success3 = changeSimpleConfiguratorManipulator(becomeEnabled);
+        if (success.getSeverity() >= IStatus.ERROR || success2.getSeverity() >= IStatus.ERROR || success3.getSeverity() >= IStatus.ERROR) {
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.ERROR, 
-                    new IStatus[] { success, success2, getInstalledBundleInformation() }, "Could not "
+                    new IStatus[] { success, success2, success3, getInstalledBundleInformation() }, "Could not "
                     + (becomeEnabled ? "ENABLED" : "DISABLED") + " weaving service",
                     null);
-        } else if (success.getSeverity() >= IStatus.WARNING || success2.getSeverity() >= IStatus.WARNING) {
+        } else if (success.getSeverity() >= IStatus.WARNING || success2.getSeverity() >= IStatus.WARNING || success3.getSeverity() >= IStatus.WARNING) {
             return new MultiStatus(JDTWeavingPlugin.ID, IStatus.WARNING, 
-                    new IStatus[] { success, success2, getInstalledBundleInformation() }, "Weaving service "
+                    new IStatus[] { success, success2, success3, getInstalledBundleInformation() }, "Weaving service "
                     + (becomeEnabled ? "ENABLED" : "DISABLED") + " with warnings",
                     null);
         } else {
@@ -105,6 +112,50 @@ public class WeavingStateConfigurer {
                     "Weaving service successfully "
                     + (becomeEnabled ? "ENABLED" : "DISABLED"), null);
         } 
+    }
+
+    /**
+     * Change the default startup state of the aspectj weaving bundle using the 
+     * {@link SimpleConfiguratorManipulator}
+     * @param becomeEnabled if true, then ensure that the bundle is set to autostarted 
+     * if false, the bundle should not be autostarted
+     * @return {@link Status#OK_STATUS} if all goes well, otherwise returns the exception
+     */
+    private IStatus changeSimpleConfiguratorManipulator(boolean becomeEnabled) {
+        SimpleConfiguratorManipulator manipulator = new SimpleConfiguratorManipulatorImpl();
+        BundleContext bundleContext = null;
+        try {
+            bundleContext = Platform.getBundle(JDTWeavingPlugin.ID).getBundleContext();
+        } catch (Exception e) {
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Cannot get bundleContext", e);
+        }
+        if (bundleContext == null) {
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Cannot get bundleContext", new Exception());
+        }
+        
+        try {
+            BundleInfo[] infos = manipulator.loadConfiguration(bundleContext, null);
+            BundleInfo weavingInfo = null;
+            for (BundleInfo info : infos) {
+                if (info.getSymbolicName().equals("org.eclipse.equinox.weaving.aspectj")) {
+                    weavingInfo = info;
+                    break;
+                }
+            }
+            if (weavingInfo == null) {
+                return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Could not find equinox aspects bundle", new Exception());
+            }
+            
+            weavingInfo.setMarkedAsStarted(becomeEnabled);
+            
+            manipulator.saveConfiguration(infos, new File(Platform.getConfigurationLocation().getURL().getFile() + SimpleConfiguratorManipulator.BUNDLES_INFO_PATH), Platform.getInstallLocation().getURL().toURI());
+            
+            return Status.OK_STATUS;
+        } catch (IOException e) {
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Cannot load configuration", e);
+        } catch (URISyntaxException e) {
+            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Problem saving configuration", e);
+        }
     }
 
     private IStatus getInstalledBundleInformation() {
