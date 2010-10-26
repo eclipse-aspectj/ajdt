@@ -188,6 +188,7 @@
 
     	<!-- include proper aspectj version -->
     	<antcall target="replace-aspectj-qualifier" />
+    	<antcall target="create-p2-inf-for-equinox-aspects" />
     </target>
 
 	<target name="replace-aspectj-qualifier">
@@ -207,6 +208,12 @@
 			-->
 		<replace file="${buildDirectory}/plugins/org.eclipse.aspectj/about.mappings"
 			token="@AJVERSION@" value="${ajde.version}"/>
+	</target>
+	
+	<target name="create-p2-inf-for-equinox-aspects" description="Creates the p2.inf file for equinox aspects to that it is auto-started">
+		<copy file="${buildDirectory}/plugins/org.eclipse.ajdt.releng/provisioning_support/p2.inf" 
+			toDir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj" 
+		  failonerror="true" />
 	</target>
 	
 	<target name="checkLocalMaps">
