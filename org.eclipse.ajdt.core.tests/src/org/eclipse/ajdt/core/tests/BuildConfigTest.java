@@ -11,9 +11,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.core.resources.IFile;
@@ -35,13 +38,14 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		String expected1 = "Demo.java"; //$NON-NLS-1$
 		String expected2 = "GetInfo.aj"; //$NON-NLS-1$
-		List files = BuildConfig.getIncludedSourceFiles(project);
+		Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
 		assertNotNull("getIncludedSourceFiles return null", files); //$NON-NLS-1$
 		assertEquals(
 				"getIncludedSourceFiles returned incorrect number of files", //$NON-NLS-1$
 				2, files.size());
-		String name1 = ((IFile) files.get(0)).getName();
-		String name2 = ((IFile) files.get(1)).getName();
+		Iterator<IFile> iter = files.iterator();
+		String name1 = iter.next().getName();
+		String name2 = iter.next().getName();
 		if (!(name1.equals(expected1) || name2.equals(expected1))) {
 			fail("Didn't find " + expected1 + " in list of source files"); //$NON-NLS-1$//$NON-NLS-2$
 		}
@@ -58,32 +62,30 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 	 */
 	public void testGetIncludedSourceFilesBug153597() throws Exception {
 		IProject project = createPredefinedProject("bug153597"); //$NON-NLS-1$
-		List files = BuildConfig.getIncludedSourceFiles(project);
+		Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
 		assertNotNull(
 				"BuildConfig.getIncludedSourceFiles should not return null", files); //$NON-NLS-1$
-		Collections.sort(files, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				if ((o1 instanceof IFile) && (o2 instanceof IFile)) {
-					String s1 = ((IFile) o1).getProjectRelativePath()
-							.toPortableString();
-					String s2 = ((IFile) o2).getProjectRelativePath()
-							.toPortableString();
-					return s1.compareTo(s2);
-				}
-				return 0;
+		List<IFile> asList = new ArrayList<IFile>(files);
+		Collections.sort(asList, new Comparator<IFile>() {
+			public int compare(IFile o1, IFile o2) {
+				String s1 = o1.getProjectRelativePath()
+						.toPortableString();
+				String s2 = o2.getProjectRelativePath()
+						.toPortableString();
+				return s1.compareTo(s2);
 			}
 		});
 
 		assertTrue(
 				"BuildConfig.getIncludedSourceFiles should have returned at least one item", files.size() >= 1); //$NON-NLS-1$
-		IFile f1 = (IFile) files.get(0);
+		IFile f1 = asList.get(0);
 		String s1 = f1.getProjectRelativePath().toPortableString();
 		assertEquals(
 				"BuildConfig.getIncludedSourceFiles should have returned s2/B.java", "s2/B.java", s1); //$NON-NLS-1$ //$NON-NLS-2$
 
 		assertTrue(
 				"BuildConfig.getIncludedSourceFiles should have returned two or more items", files.size() >= 2); //$NON-NLS-1$
-		IFile f2 = (IFile) files.get(1);
+		IFile f2 = asList.get(1);
 		String s2 = f2.getProjectRelativePath().toPortableString();
 		assertEquals(
 				"BuildConfig.getIncludedSourceFiles should have returned src/A.java", "src/A.java", s2); //$NON-NLS-1$ //$NON-NLS-2$

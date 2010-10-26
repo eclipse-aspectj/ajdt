@@ -17,12 +17,15 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.buildpath.BuildConfigurationUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.core.tests.HandleTestUtils;
 import org.eclipse.ajdt.core.tests.model.AJModelTest4;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.core.resources.IFile;
@@ -30,8 +33,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.HandleTestUtils;
 
 public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 
@@ -103,7 +104,7 @@ public class BuildConfigurationTest2 extends AJDTCoreTestCase {
 	}
 
 	private void checkIncluded(IProject project, int numFiles) throws Exception {
-		List included = BuildConfig.getIncludedSourceFiles(project);
+		Set<IFile> included = BuildConfig.getIncludedSourceFiles(project);
 		assertEquals(numFiles, included.size());
 		
 		for (Iterator includedIter = included.iterator(); includedIter.hasNext();) {

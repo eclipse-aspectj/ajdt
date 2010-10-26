@@ -30,6 +30,8 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 	public void testOutputLocationManager() throws Exception {
 		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
 		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
+		om.buildStarting();
+
 		IFile class1 = (IFile) project.findMember("src/p1/Class1.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
 		File out1 = om.getOutputLocationForClass(file1);
@@ -50,11 +52,13 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 		assertTrue("Output location for " + class3 //$NON-NLS-1$
 				+ " should end in bin2. Got: " + out3, out3.toString() //$NON-NLS-1$
 				.endsWith("bin2")); //$NON-NLS-1$
+		om.buildComplete();
 	}
 
 	public void testOutputLocationManagerBug153682() throws Exception {
 		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
 		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
+		om.buildStarting();
 		IFile class1 = (IFile) project.findMember("foo/Test.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
 		File out1 = om.getOutputLocationForClass(file1);
@@ -68,11 +72,13 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 		assertTrue("Output location for " + class2 //$NON-NLS-1$
 				+ " should end in bin. Got: " + out2, out2.toString() //$NON-NLS-1$
 				.endsWith("bin")); //$NON-NLS-1$
+		om.buildComplete();
 	}
 	
 	public void testOutputLocationManagerBug160846() throws Exception {
 		IProject project = createPredefinedProject("bug160846"); //$NON-NLS-1$
 		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
+		om.buildStarting();
 		IFile class1 = (IFile) project.findMember("src/java/org/noco/aj/MainClass.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
 		File out1 = om.getOutputLocationForClass(file1);
@@ -86,18 +92,21 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 		assertTrue("Output location for " + class2 //$NON-NLS-1$
 				+ " should end in test-classes. Got: " + out2, out2.toString() //$NON-NLS-1$
 				.endsWith("test-classes")); //$NON-NLS-1$
+		om.buildComplete();
 	}
 	
 	public void testInpathOutLocation() throws Exception {
 	    IProject project1 = createPredefinedProject("ExportAsJar"); //$NON-NLS-1$
 	    IProject project2 = createPredefinedProject("JarOnInpath"); //$NON-NLS-1$
 	    CoreOutputLocationManager om = new CoreOutputLocationManager(project2);
+	    om.buildStarting();
 	    IFile class1 = (IFile) project1.findMember("export.jar"); //$NON-NLS-1$
 	    File file1 = class1.getLocation().toFile();
 	    File out1 = om.getOutputLocationForClass(file1);
         assertTrue("Output location for " + class1 //$NON-NLS-1$
                 + " should end in InpathOut. Got: " + out1, out1.toString() //$NON-NLS-1$
                 .endsWith("InpathOut")); //$NON-NLS-1$
+        om.buildComplete();
 	}
 	
 	
