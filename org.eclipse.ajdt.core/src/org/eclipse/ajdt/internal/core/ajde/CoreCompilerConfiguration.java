@@ -12,7 +12,6 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,6 +22,7 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
+import org.aspectj.ajde.core.internal.OutputLocationAdapter;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AopXmlPreferences;
@@ -66,7 +66,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     // set to null originally since we don't know anything 
     // about build state when first created.  Assume everything 
     // has changed.
-    private List/* File */ modifiedFiles = null;
+    private List<File> modifiedFiles = null;
     // set of flags describing what has changed since last
     // build
     // initially set to EVERYTHING since we don't know
@@ -74,16 +74,27 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     private int configurationChanges;
     
     // list of classpath entries that have been rebuilt since last build
-    private List /*String*/ classpathElementsWithModifiedContents = null;
+    private List<String> classpathElementsWithModifiedContents = null;
 
     public CoreCompilerConfiguration(IProject project) {
 		this.project = project;
 		AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " doesn't know previous state, so assuming EVERYTHING has changed.");
 		configurationChanges = EVERYTHING;
 	}
+    
+    public void buildStarting() {
+        ((CoreOutputLocationManager) getOutputLocationManager()).buildStarting();
+    }
+    
+    public void buildComplete() {
+        ((CoreOutputLocationManager) getOutputLocationManager()).buildComplete();
+    }
+    
+    
 
-	public Map getJavaOptionsMap() {
-		Map optionsMap = null;
+	@SuppressWarnings("unchecked")
+    public Map<String, String> getJavaOptionsMap() {
+		Map<String, String> optionsMap = null;
 
 		JavaProject javaProject;
 		try {
@@ -104,7 +115,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return ""; //$NON-NLS-1$
 	}
 
-	public Set getAspectPath() {
+	public Set<File> getAspectPath() {
 		String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
 
 		// need to expand any variables on the path
@@ -130,7 +141,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return cachedClasspath;
 	}
 
-	public Set getInpath() {
+	public Set<File> getInpath() {
 		String[] v = AspectJCorePreferences.getResolvedProjectInpath(project);
 
 		// need to expand any variables on the path
@@ -207,19 +218,18 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	    return locationManager == null;
 	}
 	
-	public List getProjectSourceFiles() {
-		List files = BuildConfig.getIncludedSourceFiles(project);
-		List iofiles = new ArrayList(files.size());
-		for (Iterator iter = files.iterator(); iter.hasNext();) {
-			IFile f = (IFile) iter.next();
+	public List<String> getProjectSourceFiles() {
+		Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
+		List<String> iofiles = new ArrayList<String>(files.size());
+		for (IFile f : files) {
 			iofiles.add(f.getLocation().toOSString());
 		}
 		return iofiles;
 	}
 
-	public Map getSourcePathResources() {
+	public Map<String, File> getSourcePathResources() {
 		IJavaProject jProject = JavaCore.create(project);
-		Map map = new HashMap();
+		Map<String, File> map = new HashMap<String, File>();
 		try {
 			IClasspathEntry[] classpathEntries = jProject.getResolvedClasspath(false);
 
@@ -237,16 +247,16 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 				if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IClasspathEntry sourceEntry = classpathEntries[i];
 					IPath sourcePath = sourceEntry.getPath();
-					List files = new ArrayList();
+					List<String> files = new ArrayList<String>();
 					sourcePath = sourcePath.removeFirstSegments(1);
 					IResource[] srcContainer = new IResource[] { project.findMember(sourcePath) };
 					if (srcContainer[0] != null) {
 						getProjectRelativePaths(srcContainer, files, CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
 								.segmentCount() - 1, sourceEntry);
 
-						ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
+						ArrayList<IResource> linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
 
-						for (Iterator it = files.iterator(); it.hasNext();) {
+						for (Iterator<String> it = files.iterator(); it.hasNext();) {
 							String relPath = (String) it.next();
 							String fullPath = getResourceFullPath(srcContainer[0], relPath, linkedSrcFolders);
 
@@ -362,10 +372,10 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	/**
-	 * Utility method for converting a semicolon separated list of files stored in a string into a Set of java.io.File objects.
+	 * Utility method for converting a semicolon separated list of files stored in a string into a Set of {@link File} objects.
 	 * 
 	 */
-	private Set mapStringToSet(String input, boolean validateFiles) {
+	private Set<File> mapStringToSet(String input, boolean validateFiles) {
 		if (input.length() == 0)
 			return null;
 		String inputCopy = input;
@@ -376,31 +386,26 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		// or a drive letter on windows) - we prepend the projectBaseDirectory
 		String projectBaseDirectory = project.getLocation().toOSString();
 
-		Set fileSet = new HashSet();
-		while (inputCopy.indexOf(java.io.File.pathSeparator) != -1) { // ASCFIXME
-			// - Bit
-			// too
-			// platform
-			// specific!
-			int idx = inputCopy.indexOf(java.io.File.pathSeparator);
+		Set<File> fileSet = new HashSet<File>();
+		while (inputCopy.indexOf(File.pathSeparator) != -1) {
+			int idx = inputCopy.indexOf(File.pathSeparator);
 			String path = inputCopy.substring(0, idx);
 
-			java.io.File f = new java.io.File(path);
+			File f = new File(path);
 			if (!f.isAbsolute())
-				f = new File(projectBaseDirectory + java.io.File.separator + path);
+				f = new File(projectBaseDirectory + File.separator + path);
 			if (validateFiles && !f.exists()) {
 				invalidEntries.append(f + "\n"); //$NON-NLS-1$
 			} else {
 				fileSet.add(f);
 			}
 			inputCopy = inputCopy.substring(idx + 1);
-
 		}
 		// Process the final element
 		if (inputCopy.length() != 0) {
-			java.io.File f = new java.io.File(inputCopy);
+			File f = new File(inputCopy);
 			if (!f.isAbsolute())
-				f = new File(projectBaseDirectory + java.io.File.separator + inputCopy);
+				f = new File(projectBaseDirectory + File.separator + inputCopy);
 			if (validateFiles && !f.exists()) {
 				invalidEntries.append(f + "\n"); //$NON-NLS-1$
 			} else {
@@ -415,7 +420,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return fileSet;
 	}
 
-	private void getProjectRelativePaths(IResource[] resource_list, List allProjectFiles, CoreUtils.FilenameFilter filter,
+	private void getProjectRelativePaths(IResource[] resource_list, List<String> allProjectFiles, CoreUtils.FilenameFilter filter,
 			int trimSegments, IClasspathEntry sourceEntry) {
 		try {
 			for (int i = 0; i < resource_list.length; i++) {
@@ -443,8 +448,8 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		}
 	}
 
-	private ArrayList getLinkedChildFolders(IResource resource) {
-		ArrayList resultList = new ArrayList();
+	private ArrayList<IResource> getLinkedChildFolders(IResource resource) {
+		ArrayList<IResource> resultList = new ArrayList<IResource>();
 
 		if (resource instanceof IContainer) {
 			try {
@@ -460,12 +465,12 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		return resultList;
 	}
 
-	private String getResourceFullPath(IResource srcContainer, String relPath, ArrayList linkedFolders) {
+	private String getResourceFullPath(IResource srcContainer, String relPath, ArrayList<IResource> linkedFolders) {
 		String result = null;
 		if (relPath.lastIndexOf('/') != -1) {
 			// Check to see if the relPath under scrutiny is
 			// under a linked folder in this project.
-			Iterator it = linkedFolders.iterator();
+			Iterator<IResource> it = linkedFolders.iterator();
 			while (it.hasNext()) {
 				IFolder folder = (IFolder) it.next();
 				String linkedFolderName = folder.getName();
@@ -505,7 +510,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	private void logConfigurationChange(int changeFlag) {
-	    List changeKind = new ArrayList();
+	    List<String> changeKind = new ArrayList<String>();
         if ((changeFlag & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
             changeKind.add("PROJECTSOURCEFILES_CHANGED");
         }
@@ -547,7 +552,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	 * changes since last read.
 	 */
 	private String toConfigurationString() {
-        List changeKind = new ArrayList();
+        List<String> changeKind = new ArrayList<String>();
         if ((configurationChanges & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
             changeKind.add("PROJECTSOURCEFILES_CHANGED");
         }
@@ -620,7 +625,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	 * If we know, tell AspectJ a List<File> that have changed since the last build. We should be able to work this out from
 	 * analysing delta changes. Returning null means we have no idea and will cause AspectJ to do the analysis to work it out.
 	 */
-	public List getProjectSourceFilesChanged() {
+	public List<File> getProjectSourceFilesChanged() {
 	    if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
             AJLog.log(AJLog.BUILDER, "Optimizations turned off, so assuming all source files have changed");
             return null;
@@ -637,13 +642,13 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	public void resetModifiedList() {
 	    AJLog.log(AJLog.BUILDER, "Resetting list of modified source files.  Was " + 
 	            (modifiedFiles == null ? "null" : modifiedFiles.toString()));
-	    modifiedFiles = new ArrayList();
+	    modifiedFiles = new ArrayList<File>();
 	}
 	
     public void resetClasspathElementsWithModifiedContents() {
         classpathElementsWithModifiedContents = null;
     }
-    public void setClasspathElementsWithModifiedContents(List /*String*/ modifiedContents) {
+    public void setClasspathElementsWithModifiedContents(List<String> modifiedContents) {
         AJLog.log(AJLog.BUILDER, "Setting list of classpath elements with modified contents:");
         AJLog.log(AJLog.BUILDER, "      " + (modifiedContents == null ? "NULL" : modifiedContents.toString()));
         classpathElementsWithModifiedContents = modifiedContents;
@@ -651,7 +656,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	
 	// must go through the classpath and look at projects we depend on that have been built before our
 	// most recent last build
-	public List getClasspathElementsWithModifiedContents() {
+	public List<String> getClasspathElementsWithModifiedContents() {
 	    return classpathElementsWithModifiedContents;
 	}
 
@@ -666,20 +671,15 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	    return (CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
 	}
 	
-	public File[] getChangedFiles() {
-//	    Set changedFiles = AsmManager.getDefault().getAspectsWeavingFilesOnLastBuild();
-//	    changedFiles.addAll(AsmManager.getDefault().getModelChangesOnLastBuild());
-//
-//	    return (File[]) changedFiles.toArray(new File[changedFiles.size()]);
+	public File[] getCompiledSourceFiles() {
 	    CoreOutputLocationManager coreOutputLocationManager = (CoreOutputLocationManager) getOutputLocationManager();
-        File[] touchedFiles = 
-	        coreOutputLocationManager.getTouchedClassFiles();
-        coreOutputLocationManager.resetTouchedClassFiles();
-        return touchedFiles;
+	    File[] compiledSourceFiles = 
+	        coreOutputLocationManager.getCompiledSourceFiles();
+	    return compiledSourceFiles;
 	    
 	}
-
-	public List getProjectXmlConfigFiles() {
+	
+	public List<String> getProjectXmlConfigFiles() {
 		return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
 	}
 }

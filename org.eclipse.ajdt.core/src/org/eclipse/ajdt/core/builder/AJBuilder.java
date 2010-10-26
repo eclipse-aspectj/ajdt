@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2002, 2006 IBM Corporation and others.
+ * Copyright (c) 2002, 2010 IBM Corporation, SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *     Adrian Colyer, Andy Clement, Tracy Gardner - initial version
  *     Matt Chapman - moved and refactored from ui plugin to core
  *     Helen Hawkins - updated for new ajde interface (bug 148190)
+ *     Andrew Eisenberg - changes for AJDT 2.0
  *******************************************************************************/
 package org.eclipse.ajdt.core.builder;
 
@@ -17,6 +18,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -59,9 +62,12 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -70,9 +76,15 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.BuildContext;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.eclipse.jdt.core.compiler.CompilationParticipant;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.builder.CompilationParticipantResult;
+import org.eclipse.jdt.internal.core.builder.NameEnvironment;
+import org.eclipse.jdt.internal.core.builder.SourceFile;
 import org.eclipse.jdt.internal.core.builder.State;
 import org.eclipse.jdt.internal.core.util.Messages;
 import org.eclipse.jdt.internal.core.util.Util;
@@ -86,7 +98,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
     private static IStateListener isl = null;
      
-    private static List buildListeners = new ArrayList();
+    private static List<IAJBuildListener> buildListeners = new ArrayList<IAJBuildListener>();
 
     /**
      * keeps track of the last workbench preference 
@@ -103,6 +115,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
     protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
         IProject project = getProject();
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
+        
+        CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
+        compiler.getCompilerConfiguration();
+
+
         // 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
         progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
         
@@ -113,11 +130,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 
         IProject[] requiredProjects = getRequiredProjects(project,true);
 
-        // must call this after checking whether a full build has been requested,
-        // otherwise the listeners are called with a different build kind than
-        // is actually carried out. In the case of the ui, then this means that 
-        // the markers may not be cleared properly.
-        preCallListeners(kind, project, requiredProjects);      
+        // perform all pre-build actions
+        CompilationParticipant[] participants = prebuild(kind, project, requiredProjects, compilerConfig);      
         progressMonitor.worked(1);
 
         String mode = "";  //$NON-NLS-1$
@@ -133,7 +147,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         augmentAspectPath(project, args);
 
         if (!isWorthBuilding(project)) {
-            postCallListeners(kind, true);
+            postBuild(kind, true, participants, compiler);
             AJLog.log(AJLog.BUILDER,
                     "build: Abort due to missing classpath/inpath/aspectpath entries"); //$NON-NLS-1$
             AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
@@ -153,10 +167,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // Flush the list of included source files stored for this project
         BuildConfig.flushIncludedSourceFileCache(project);
         AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
-        
-        CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
-                compiler.getCompilerConfiguration();
-
         
         AJLog.logStart("Check delta");
         // Check the delta - we only want to proceed if something relevant
@@ -191,7 +201,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     // bug 107027
                     compilerConfig.flushClasspathCache();
                     compilerConfig.configurationRead();  // reset config
-                    postCallListeners(kind, true);
+                    postBuild(kind, true, participants, compiler);
                     AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
                     AJLog.log(AJLog.BUILDER, "No source/resource changes found, exiting build");
                     AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
@@ -230,6 +240,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // bug 270335 -- if output locations have changed, then 
         // need a new output location manager.
         compilerConfig.flushOutputLocationManagerIfNecessary(kind);
+        compilerConfig.buildStarting();
         
         compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
@@ -255,12 +266,192 @@ public class AJBuilder extends IncrementalProjectBuilder {
         compilerConfig.flushClasspathCache();
         
         
-        postCallListeners(kind, false);
+        postBuild(kind, false, participants, compiler);
         progressMonitor.worked(1);
         progressMonitor.done();
         
         AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
         return requiredProjects;
+    }
+
+    /**
+     * Performs post build actions including calling listeners and handling compilation participants
+     * 
+     * returns any extra problems to be applied for this build
+     */
+    private void postBuild(int kind, boolean noSourceChanges, CompilationParticipant[] participants, AjCompiler compiler) {
+        
+        final IJavaProject javaProject = JavaCore.create(getProject());
+        List<CategorizedProblem> newProblems = Collections.emptyList();
+
+        // now handle particpants
+        if (participants != null) {
+            if (noSourceChanges) {
+                for (final CompilationParticipant participant : participants) {
+                    // from ReconcileWorkingCopyOperation
+                    SafeRunner.run(new ISafeRunnable() {
+                        public void handleException(Throwable exception) {
+                            if (exception instanceof Error) {
+                                throw (Error) exception; // errors are not supposed to be caught
+                            } else if (exception instanceof OperationCanceledException)
+                                throw (OperationCanceledException) exception;
+                            else if (exception instanceof UnsupportedOperationException) {
+                                // might want to disable participant as it tried to modify the buffer of the working copy being reconciled
+                                Util.log(exception, "Reconcile participant attempted to modify the buffer of the working copy being reconciled"); //$NON-NLS-1$
+                            } else
+                                Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
+                        }
+                        public void run() throws Exception {
+                            participant.buildStarting(new CompilationParticipantResult[0], false);
+                            participant.buildFinished(javaProject);
+                        }
+                    });
+                }
+            } else {
+                // first calculate the CompilationParticipantResults
+                final BuildContext[] results = calculateCompilationParticipantResults((CoreCompilerConfiguration) compiler.getCompilerConfiguration());
+                for (final CompilationParticipant participant : participants) {
+                    SafeRunner.run(new ISafeRunnable() {
+                        public void handleException(Throwable exception) {
+                            if (exception instanceof Error) {
+                                throw (Error) exception; // errors are not supposed to be caught
+                            } else if (exception instanceof OperationCanceledException)
+                                throw (OperationCanceledException) exception;
+                            else if (exception instanceof UnsupportedOperationException) {
+                                // might want to disable participant as it tried to modify the buffer of the working copy being reconciled
+                                Util.log(exception, "Reconcile participant attempted to modify the buffer of the working copy being reconciled"); //$NON-NLS-1$
+                            } else
+                                Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
+                        }
+                        public void run() throws Exception {
+                            participant.buildStarting(results, false);
+                            participant.buildFinished(javaProject);
+                        }
+                    });
+                }
+
+                // extra problems and new dependencies
+                newProblems = new ArrayList<CategorizedProblem>();
+                for (int i = 0; i < results.length; i++) {
+                    AJCompilationParticipantResult result = (AJCompilationParticipantResult) results[i];
+                    List<CategorizedProblem> problems = result.getProblems();
+                    if (problems != null) {
+                        newProblems.addAll(problems);
+                    }
+                    
+                    String[] dependencies = result.getDependencies();
+                    if (dependencies != null && dependencies.length > 0) {
+                        compiler.addDependencies(result.getFile().getLocation().toFile(), dependencies);
+                    }
+                }
+            }
+        }
+        postCallListeners(kind, noSourceChanges, newProblems.toArray(new CategorizedProblem[newProblems.size()]));
+        ((CoreCompilerConfiguration) compiler.getCompilerConfiguration()).buildComplete();
+    }
+
+    /**
+     * @param project
+     * @return
+     */
+    private BuildContext[] calculateCompilationParticipantResults(
+            CoreCompilerConfiguration compilerConfig) {
+        File[] allCompiled = compilerConfig.getCompiledSourceFiles();
+        BuildContext[] results = new BuildContext[allCompiled.length];
+        boolean errorFound = false;
+        
+        // create the name environment only so that we can get the ClasspathMultiDirectories
+        for (int i = 0; i < results.length; i++) {
+            IFile ifile = findWorkspaceFile(allCompiled[i]);
+            
+            if (ifile != null) {
+                results[i] = new AJCompilationParticipantResult(ifile);
+            } else {
+                errorFound = true;
+            }
+        }
+        
+        if (errorFound) {
+            // there is a null value in the array. must squash the array
+            List<BuildContext> resultsList = Arrays.asList(results);
+            for (Iterator<BuildContext> iterator = resultsList.iterator(); iterator.hasNext();) {
+                BuildContext buildContext = iterator.next();
+                if (buildContext == null) {
+                    iterator.remove();
+                }
+            }
+            results = resultsList.toArray(new BuildContext[resultsList.size()]);
+        }
+        return results;
+    }
+
+    private IFile findWorkspaceFile(File file) {
+        IFile ifile = null;
+        try {
+            IFile[] maybeFiles = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
+            if (maybeFiles.length == 0) {
+                // uh oh....shouldn't happen
+                throw new CoreException(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, "File outside of project is being compiled: " + file.getName()));
+            } else if (maybeFiles.length == 1) {
+                ifile = maybeFiles[0];
+            } else {
+                for (IFile maybeFile : maybeFiles) {
+                    if (maybeFile.getProject().equals(getProject())) {
+                        ifile = maybeFile;
+                        break;
+                    }
+                }
+            }
+        } catch (CoreException e) {
+        }
+        return ifile;
+    }
+
+    private CompilationParticipant[] prebuild(int kind, IProject project,
+            IProject[] requiredProjects, CoreCompilerConfiguration compilerConfig) {
+        // must call this after checking whether a full build has been requested,
+        // otherwise the listeners are called with a different build kind than
+        // is actually carried out. In the case of the ui, then this means that 
+        // the markers may not be cleared properly.
+        preCallListeners(kind, project, requiredProjects);
+        
+        // now calculate compilation participants
+        return calculateParticipants(project);
+    }
+    
+    /**
+     * Calculates the {@link CompilationParticipant}s for project.  Returns null
+     * if none are registered
+     * @param project project to calculate for
+     * @return participants or null if none
+     */
+    private CompilationParticipant[] calculateParticipants(IProject project) {
+        final IJavaProject javaProject = JavaCore.create(project);
+        CompilationParticipant[] participants = JavaModelManager.getJavaModelManager().compilationParticipants.getCompilationParticipants(javaProject);
+        if (participants != null && participants.length > 0) {
+            for (final CompilationParticipant participant : participants) {
+                // from ReconcileWorkingCopyOperation
+                SafeRunner.run(new ISafeRunnable() {
+                    public void handleException(Throwable exception) {
+                        if (exception instanceof Error) {
+                            throw (Error) exception; // errors are not supposed to be caught
+                        } else if (exception instanceof OperationCanceledException)
+                            throw (OperationCanceledException) exception;
+                        else if (exception instanceof UnsupportedOperationException) {
+                            // might want to disable participant as it tried to modify the buffer of the working copy being reconciled
+                            Util.log(exception, "Reconcile participant attempted to modify the buffer of the working copy being reconciled"); //$NON-NLS-1$
+                        } else
+                            Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
+                    }
+                    public void run() throws Exception {
+                        participant.aboutToBuild(javaProject);
+                    }
+                });
+            }
+        } else {
+            participants = null;
+        }
+        return participants;
     }
 
     private void augmentAspectPath(IProject project, Map args) {
@@ -1283,18 +1474,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
      * different compiler options.
      */
     private boolean usingProjectBuildingOptions(String[] keys) {
-        List listOfKeys = Arrays.asList(keys);
-        if (listOfKeys.contains(JavaCore.COMPILER_PB_MAX_PER_UNIT)
+        List<String> listOfKeys = Arrays.asList(keys);
+        return (listOfKeys.contains(JavaCore.COMPILER_PB_MAX_PER_UNIT)
                 || listOfKeys.contains(JavaCore.CORE_JAVA_BUILD_DUPLICATE_RESOURCE)
                 || listOfKeys.contains(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH)
                 || listOfKeys.contains(JavaCore.CORE_JAVA_BUILD_RESOURCE_COPY_FILTER)
                 || listOfKeys.contains(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS)
                 || listOfKeys.contains(JavaCore.CORE_CIRCULAR_CLASSPATH)
                 || listOfKeys.contains(JavaCore.CORE_INCOMPLETE_CLASSPATH)
-                || listOfKeys.contains(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL)) {
-            return true;
-        }       
-        return false;
+                || listOfKeys.contains(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL));
     }
     
     
@@ -1317,8 +1505,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     public static void addAdviceListener(IAdviceChangedListener adviceListener) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
-            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-                IAJBuildListener listener = (IAJBuildListener) iter.next();
+            for (IAJBuildListener listener : buildListeners) {
                 listener.addAdviceListener(adviceListener);
             }
         }
@@ -1327,8 +1514,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     public static void removeAdviceListener(IAdviceChangedListener adviceListener) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
-            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-                IAJBuildListener listener = (IAJBuildListener) iter.next();
+            for (IAJBuildListener listener : buildListeners) {
                 listener.removeAdviceListener(adviceListener);
             }
         }
@@ -1337,19 +1523,17 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private void preCallListeners(int kind, IProject project, IProject[] requiredProjects) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
-            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-                IAJBuildListener listener = (IAJBuildListener) iter.next();
+            for (IAJBuildListener listener : buildListeners) {
                 listener.preAJBuild(kind, project, requiredProjects);
             }
         }
     }
     
-    private void postCallListeners(int kind, boolean noSourceChanges) {
+    private void postCallListeners(int kind, boolean noSourceChanges, CategorizedProblem[] newProblems) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
-            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-                IAJBuildListener listener = (IAJBuildListener) iter.next();
-                listener.postAJBuild(kind, getProject(), noSourceChanges);
+            for (IAJBuildListener listener : buildListeners) {
+                listener.postAJBuild(kind, getProject(), noSourceChanges, newProblems);
             }
         }
     }
@@ -1357,8 +1541,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private void postCleanCallListeners() {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
-            for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-                IAJBuildListener listener = (IAJBuildListener) iter.next();
+            for (IAJBuildListener listener : buildListeners) {
                 listener.postAJClean(getProject());
             }
         }
@@ -1374,6 +1557,33 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // from the factory
         AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
         AJProjectModelFactory.getInstance().removeModelForProject(project);
+        
+        
+        // handle participants
+        final IJavaProject javaProject = JavaCore.create(project);
+        CompilationParticipant[] participants = JavaModelManager.getJavaModelManager().compilationParticipants.getCompilationParticipants(javaProject);
+        if (participants != null) {
+            for (final CompilationParticipant participant : participants) {
+                // from ReconcileWorkingCopyOperation
+                SafeRunner.run(new ISafeRunnable() {
+                    public void handleException(Throwable exception) {
+                        if (exception instanceof Error) {
+                            throw (Error) exception; // errors are not supposed to be caught
+                        } else if (exception instanceof OperationCanceledException)
+                            throw (OperationCanceledException) exception;
+                        else if (exception instanceof UnsupportedOperationException) {
+                            // might want to disable participant as it tried to modify the buffer of the working copy being reconciled
+                            Util.log(exception, "Reconcile participant attempted to modify the buffer of the working copy being reconciled"); //$NON-NLS-1$
+                        } else
+                            Util.log(exception, "Exception occurred in reconcile participant"); //$NON-NLS-1$
+                    }
+                    public void run() throws Exception {
+                        participant.cleanStarting(javaProject);
+                    }
+                });
+            }
+        }
+
         
         removeProblemsAndTasksFor(project);
         // clean the output folders and do a refresh if not
@@ -1391,6 +1601,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
             if (resource != null && resource.exists()) {
                 resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
                 resource.deleteMarkers(IJavaModelMarker.TASK_MARKER, false, IResource.DEPTH_INFINITE);
+                
+                // now removed markers from compilation participants
+                HashSet<String> managedMarkers = JavaModelManager.getJavaModelManager().compilationParticipants.managedMarkerTypes();
+                for (String managedMarker : managedMarkers) {
+                    resource.deleteMarkers(managedMarker, true, IResource.DEPTH_INFINITE);
+                }
             }
         } catch (CoreException e) {
         }
@@ -1467,10 +1683,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private boolean sourceFilesChanged(IResourceDelta delta, IProject project, CoreCompilerConfiguration compilerConfiguration) {
         if (delta != null && delta.getAffectedChildren().length != 0) {
             
-            // XXX might be better if this were a Set.
-            // look into this
-            List /*IFile*/ includedFileNames = BuildConfig.getIncludedSourceFiles(project);
-//            Set /*IFile*/ includedFileNames = BuildConfig.getIncludedSourceFilesSet(project);
+            Set<IFile> includedFileNames = BuildConfig.getIncludedSourceFilesSet(project);
 
             IJavaProject javaProject = JavaCore.create(project);        
             if (javaProject == null) {
@@ -1499,14 +1712,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
     }
     
     private static class SourceFilesChangedVisitor implements IResourceDeltaVisitor {
-        private final List includedFileNames;
+        private final Set<IFile> includedFileNames;
         private final CoreCompilerConfiguration compilerConfiguration;
         private int numberChanged;
         private int numberAdded;
         private int numberRemoved;
         
         private SourceFilesChangedVisitor(IProject affectedProject,
-                List includedFileNames) {
+                Set<IFile> includedFileNames) {
             this.includedFileNames = includedFileNames;
             compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(affectedProject);
             numberChanged = 0;

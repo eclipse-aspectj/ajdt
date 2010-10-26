@@ -13,7 +13,6 @@ package org.eclipse.ajdt.core;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +34,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 public class BuildConfig {
 	
-	private static Map /*IProject, List<IFile>*/ projectsToIncludedSourceFiles = new WeakHashMap();
+	private static Map<IProject, Set<IFile>> projectsToIncludedSourceFiles = new WeakHashMap<IProject, Set<IFile>>();
 	
 	/**
 	 * Returns all of the currently included source files in a project
@@ -43,11 +42,11 @@ public class BuildConfig {
 	 * @param project
 	 * @return a list of IFiles
 	 */
-	public static List /*IFile*/ getIncludedSourceFiles(IProject project) {
+	public static Set<IFile> getIncludedSourceFiles(IProject project) {
 		if(projectsToIncludedSourceFiles.get(project) instanceof List) {
-			return (List) projectsToIncludedSourceFiles.get(project);
+			return projectsToIncludedSourceFiles.get(project);
 		}
-		List sourceFiles = new ArrayList();
+		Set<IFile> sourceFiles = new HashSet<IFile>();
 		try {
 			IJavaProject jp = JavaCore.create(project);
 			IClasspathEntry[] cpes = jp.getRawClasspath();
@@ -61,9 +60,8 @@ public class BuildConfig {
 					IResource res = project.findMember(path
 							.removeFirstSegments(1));
 					if ((res != null) && (res instanceof IContainer)) {
-						List l = allFiles((IContainer) res);
-						for (Iterator iter = l.iterator(); iter.hasNext();) {
-							IFile file = (IFile) iter.next();
+						List<IFile> l = allFiles((IContainer) res);
+						for (IFile file : l) {
 							if (!Util.isExcluded(file,incl,excl)) {
 								sourceFiles.add(file);
 							}
@@ -84,11 +82,11 @@ public class BuildConfig {
 	 * @param project
 	 * @return
 	 */
-	public static Set /* IFile */getIncludedSourceFilesSet(IProject project) {
+	public static Set<IFile> getIncludedSourceFilesSet(IProject project) {
         if (projectsToIncludedSourceFiles.get(project) instanceof List) {
-            return (Set) projectsToIncludedSourceFiles.get(project);
+            return projectsToIncludedSourceFiles.get(project);
         }
-        Set sourceFiles = new HashSet();
+        Set<IFile> sourceFiles = new HashSet<IFile>();
         try {
             IJavaProject jp = JavaCore.create(project);
             IClasspathEntry[] cpes = jp.getRawClasspath();
@@ -102,9 +100,8 @@ public class BuildConfig {
                     IResource res = project.findMember(path
                             .removeFirstSegments(1));
                     if ((res != null) && (res instanceof IContainer)) {
-                        List l = allFiles((IContainer) res);
-                        for (Iterator iter = l.iterator(); iter.hasNext();) {
-                            IFile file = (IFile) iter.next();
+                        List<IFile> l = allFiles((IContainer) res);
+                        for (IFile file : l) {
                             if (!Util.isExcluded(file, incl, excl)) {
                                 sourceFiles.add(file);
                             }
@@ -141,15 +138,15 @@ public class BuildConfig {
 	
 	//return a list of all IFiles in the given folder, including all
 	// sub-folders
-	private static List allFiles(IContainer folder) {
-		final List contents = new ArrayList();
+	private static List<IFile> allFiles(IContainer folder) {
+		final List<IFile> contents = new ArrayList<IFile>();
 		try {
 			folder.accept(new IResourceVisitor() {
 				public boolean visit(IResource res) {
 					if (res.getType() == IResource.FILE
 							&& JavaCore.isJavaLikeFileName((res
 									.getName()))) {
-						contents.add(res);
+						contents.add((IFile) res);
 					}
 					return true;
 				}

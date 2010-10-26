@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
  
@@ -43,6 +44,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.compiler.util.Util;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.builder.State;
 import org.eclipse.jdt.internal.core.builder.StringSet;
@@ -67,24 +69,24 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
      * so, if src and src2 are both source folders, src2 will be
      * examined first
      */
-    static class StringLengthComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            if (o1 == null) {
-                if (o2 == null) {
+    static class StringLengthComparator implements Comparator<String> {
+        public int compare(String s1, String s2) {
+            if (s1 == null) {
+                if (s2 == null) {
                     return 0;
                 }
                 return -1;
             }
-            if (o2 == null) {
+            if (s2 == null) {
                 return 1;
             }
-            int len1 = o1.toString().length();
-            int len2 = o2.toString().length();
+            int len1 = s1.length();
+            int len2 = s2.length();
             if (len1 > len2) {  // a larger string should come first
                 return -1;
             } else if (len1 == len2) {
                 // then compare by text:
-                return o1.toString().compareTo(o2.toString());
+                return s1.compareTo(s2);
             } else {
                 return 1;
             }
@@ -94,7 +96,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     
     private static final StringLengthComparator comparator = new StringLengthComparator();
     
-	private String projectName;
 	private final IProject project;
 	private final IJavaProject jProject;
 
@@ -102,36 +103,31 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	// location to use is recorded in the 'defaultOutput' field
 	private File defaultOutput;
 	
-	private Map /*String,File*/ srcFolderToOutput = new TreeMap(comparator);
+	private Map<String, File> srcFolderToOutput = new TreeMap<String, File>(comparator);
 	
-	private Map /*File, IProject*/ binFolderToProject;
+	private Map<File, IProject> binFolderToProject;
 	
 	// maps files in the file system to IFolders in the workspace
 	// this keeps track of output locations
-    private final Map /* String,IFolder */ fileSystemPathToIContainer = new TreeMap(comparator);
+    private final Map<String, IContainer> fileSystemPathToIContainer = new TreeMap<String, IContainer>(comparator);
 
-	private List /*File*/ allOutputFolders = new ArrayList();
+	private List<File> allOutputFolders = new ArrayList<File>();
 	
 	// maps file system location to a path within the eclipse workspace
 	// needs to take into account linked sources, where the actual
 	// file system location may be different from the workspace location
-	private Map /*String, String*/ allSourceFolders;
-	
-	// Bug 243376 
-	// Gather all of the files that are touched by this compilation
-	// and use it to determine which files need to have their 
-	// Relationship maps updated.
-	// XXX Really, this logic should not be in this class
-	// This class is about output locations.
-	// I am waiting for an extension to the compiler so
-	// that I can grab this information directly.
-	private Set /*String*/ touchedCUs = new HashSet();
+	private Map<String, String> allSourceFolders;
 	
 	private boolean outputIsRoot;
 	// if there is only one output directory then this is recorded in the
 	// 'commonOutputDir' field.
 	private File commonOutputDir;
     private IWorkspaceRoot workspaceRoot;
+    
+    // Gather all of the files that are touched by this compilation
+    // and use it to determine which files need to have their 
+    // Relationship maps updated.
+    private Set<File> compiledSourceFiles;
 
 	public CoreOutputLocationManager(IProject project) {
 		this.project = project;
@@ -162,11 +158,19 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		
 	}
 	
+	public void buildStarting() {
+	    compiledSourceFiles = new HashSet<File>();
+	}
+	
+	public void buildComplete() {
+	    compiledSourceFiles = null;
+	}
+	
 	/**
 	 * initialize the source folder locations only
 	 */
 	private void initSourceFolders() {
-	    allSourceFolders = new TreeMap(comparator);
+	    allSourceFolders = new TreeMap<String, String>(comparator);
 	    try {
             IClasspathEntry[] cpe = jProject.getRawClasspath();
             for (int i = 0; i < cpe.length; i++) {
@@ -192,7 +196,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 */
 	private void init() {
 		outputIsRoot = false;
-		projectName = jProject.getProject().getName();
 		String inpathOutFolder = getInpathOutputFolder();
 		boolean isUsingNonDefaultInpathOutfolder = inpathOutFolder != null;
 
@@ -267,8 +270,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public File getOutputLocationForClass(File compilationUnit) {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
-	    if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(compilationUnit.getName())) {     
-	        touchedCUs.add(compilationUnit);
+	    if (Util.isJavaFileName(compilationUnit.getName())) {     
+	        compiledSourceFiles.add(compilationUnit);
 	    }
 	    
 		return getOutputLocationForResource(compilationUnit);
@@ -323,7 +326,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 		
 		if (pathStr != null) {
-		    for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
+		    for (Iterator<String> iter = srcFolderToOutput.keySet().iterator(); iter.hasNext();) {
 		        String src = (String) iter.next();
                 if (pathStr.startsWith(src)) {
                     File out = (File) srcFolderToOutput.get(src);
@@ -331,7 +334,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 }
 		    }
 		}
-		
 		
 		// couldn't find anything
 		return defaultOutput;
@@ -403,7 +405,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	/**
 	 * return all output directories used by this project
 	 */
-	public List getAllOutputLocations() {
+	public List<File> getAllOutputLocations() {
 		return allOutputFolders;
 	}
 
@@ -414,13 +416,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		return inpathOutFolder;
 	}
 
-	public File[] getTouchedClassFiles() {
-		return (File[]) touchedCUs.toArray(new File[touchedCUs.size()]);
-	}
+	
+	/**
+     * Called when build is completed.  Respond with all source files compiled
+     * for this build
+     * @return all source files compiled for this build
+     */
+    public File[] getCompiledSourceFiles() {
+        return compiledSourceFiles.toArray(new File[compiledSourceFiles.size()]);
+    }
 
-	public void resetTouchedClassFiles() {
-		touchedCUs.clear();
-	}
 
 	/**
 	 * If there's only one output directory return this one, otherwise return
@@ -436,21 +441,19 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 
 	public String getSourceFolderForFile(File sourceFile) {
 		String sourceFilePath = sourceFile.getAbsolutePath();
-		for (Iterator pathIter = allSourceFolders.entrySet().iterator(); pathIter.hasNext();) {
-		    Map.Entry sourceFolderMapping = (Map.Entry) pathIter.next();
-			if (sourceFilePath.startsWith((String) sourceFolderMapping.getKey())) {
-				return (String) sourceFolderMapping.getValue();
+		for (Entry<String, String> sourceFolderMapping : allSourceFolders.entrySet()) {
+			if (sourceFilePath.startsWith(sourceFolderMapping.getKey())) {
+				return sourceFolderMapping.getValue();
 			}
 		}
 		return null;
 	}
 
 	public void reportFileRemove(String outFileStr, int fileType) {
-        for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-            Map.Entry entry = (Map.Entry) pathIter.next();
-            String outFolderStr = (String)entry.getKey();
+	    for (Entry<String, IContainer> entry : fileSystemPathToIContainer.entrySet()) {
+            String outFolderStr = entry.getKey();
             if (outFileStr.startsWith(outFolderStr)) {
-                IContainer outFolder = (IContainer) entry.getValue();
+                IContainer outFolder = entry.getValue();
                 IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
                 try {
                     outFile.refreshLocal(IResource.DEPTH_ZERO, null);
@@ -463,8 +466,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	}
 
 
-	public Map getInpathMap() {
-		return Collections.EMPTY_MAP;
+	public Map<File,String> getInpathMap() {
+		return Collections.emptyMap();
 	}
 
 
@@ -478,11 +481,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public void reportFileWrite(String outFileStr, int fileType) {
 	    try {
 	        outer:
-	        for (Iterator pathIter = fileSystemPathToIContainer.entrySet().iterator(); pathIter.hasNext();) {
-	            Map.Entry entry = (Map.Entry) pathIter.next();
-	            String outFolderStr = (String)entry.getKey();
+	        for (Entry<String, IContainer> entry : fileSystemPathToIContainer.entrySet()) {
+	            String outFolderStr = entry.getKey();
 	            if (outFileStr.startsWith(outFolderStr)) {
-	                IContainer outFolder = (IContainer) entry.getValue();
+	                IContainer outFolder = entry.getValue();
 	                IFile outFile = outFolder.getFile(new Path(outFileStr.substring(outFolderStr.length())));
 	                
 	                outFile.refreshLocal(IResource.DEPTH_ZERO, null);
@@ -493,7 +495,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	                    // do not mark as derived
 	                    boolean outputIsSourceFolder = isOutFolderASourceFolder(outFolder);
 	                    if (! isResourceInSourceFolder(outFile, outputIsSourceFolder)) {
-	                        outFile.setDerived(true);
+	                        outFile.setDerived(true, null);
 	                    }
 	                    
 	                    // only do this if output is not a source folder
@@ -502,7 +504,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	                        inner:
 	                        while (!parent.equals(outFolder) ) {
 	                            if (!parent.isDerived()) {
-    	                            parent.setDerived(true);
+    	                            parent.setDerived(true, null);
 	                            } else {
 	                                // no need to continnue
 	                                // assume that all folders are derived all the way up
@@ -546,7 +548,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	    if (binFolderToProject == null) {
 	        initDeclaringProjectsMap();
 	    }
-	    return (IProject) binFolderToProject.get(outputFolder);
+	    return binFolderToProject.get(outputFolder);
 	}
 
 	
@@ -569,7 +571,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	private void initDeclaringProjectsMap() {
 	    
 	    AJLog.logStart("OutputLocationManager: binary folder to declaring project map creation: " + project);
-	    binFolderToProject = new HashMap();
+	    binFolderToProject = new HashMap<File, IProject>();
 	    IJavaProject jp = jProject;
         try {
             mapProject(jp);
@@ -648,9 +650,9 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                 ResourcesPlugin.getWorkspace().getRoot().getProject(path.makeRelative().toOSString()).getLocation();
         File f;
         if (locPath != null) {
-            f = new File(locPath.toOSString());
+            f = locPath.toFile();
         } else {
-            f = new File(path.toOSString());
+            f = path.toFile();
         }
         return f;
     }
@@ -669,22 +671,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 */
 	public int discoverChangesSince(File dir, long buildtime) {
 		IProject project = findDeclaringProject(dir);
-		// Andys hack to find the project
-//		if (project == null) {
-//			IProject[] ps;
-//			try {
-//				ps = this.project.getReferencedProjects();
-//			if (ps!=null) {
-//			for (int i=0;i<ps.length;i++) {
-//				if (ps[i].getName().equals("org.aspectj.ajdt.core")) {
-//					project = ps[i];
-//				}
-//			}
-//			}
-//			} catch (CoreException e) {
-//				e.printStackTrace();
-//			}
-//		}
 		try {
 			if (project!=null) {
 	            Object s = JavaModelManager.getJavaModelManager().getLastBuiltState(project, null);

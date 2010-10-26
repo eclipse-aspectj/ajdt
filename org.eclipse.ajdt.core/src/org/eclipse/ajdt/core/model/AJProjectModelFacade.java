@@ -65,6 +65,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.ImportContainer;
 import org.eclipse.jdt.internal.core.ImportDeclaration;
@@ -94,7 +95,7 @@ public class AJProjectModelFacade {
         private Set<IProject> beingCleaned = new HashSet<IProject>();
         
         public synchronized void postAJBuild(int kind, IProject project,
-                boolean noSourceChanges) {
+                boolean noSourceChanges, CategorizedProblem[] newProblems) {
             beingBuilt.remove(project);
         }
 
@@ -1022,15 +1023,15 @@ public class AJProjectModelFacade {
         return false;
     }
     
-    public Set /* IJavaElement */<IJavaElement> aspectsForFile(ICompilationUnit cu) {
+    public Set<IType> aspectsForFile(ICompilationUnit cu) {
         IProgramElement ipe = javaElementToProgramElement(cu);
         // compiler should be able to do this for us, but functionality is
         // not exposed. so let's do it ourselves
-        final Set /* IJavaElement */<IJavaElement> aspects = new HashSet<IJavaElement>();
+        final Set<IType> aspects = new HashSet<IType>();
         ipe.walk(new HierarchyWalker() {
             protected void preProcess(IProgramElement node) {
                 if (node.getKind() == IProgramElement.Kind.ASPECT) {
-                    aspects.add(programElementToJavaElement(node));
+                    aspects.add((IType) programElementToJavaElement(node));
                 }
             }
         });

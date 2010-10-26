@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.builder;
 
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 
 /**
  * A listener for receiving notifications relating to the building of AspectJ
@@ -32,11 +33,11 @@ public interface IAJBuildListener {
 
 	/**
 	 * The given project has just been built
-	 * 
 	 * @param project
 	 * @param noSourceChanges
+	 * @param newProblems TODO
 	 */
-	public void postAJBuild(int kind, IProject project, boolean noSourceChanges);
+	public void postAJBuild(int kind, IProject project, boolean noSourceChanges, CategorizedProblem[] newProblems);
 
 	/**
 	 * Add a listener to be notified when there is a change in the set of
