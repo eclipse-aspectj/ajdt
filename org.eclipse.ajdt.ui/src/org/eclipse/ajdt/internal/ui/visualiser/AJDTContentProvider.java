@@ -11,6 +11,7 @@ package org.eclipse.ajdt.internal.ui.visualiser;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.BuildConfig;
@@ -24,6 +25,7 @@ import org.eclipse.contribution.visualiser.jdtImpl.JDTGroup;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -44,7 +46,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 	List currentMembers;
 
 	// Access this variable via its getter method, which handles initialisation
-	private List includedFiles;
+	private Set<IFile> includedFiles;
 
 	/**
 	 * Get all the groups to display.
@@ -321,7 +323,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * 
 	 * -spyoung
 	 */
-	private List getIncludedFiles(IProject project) {
+	private Set<IFile> getIncludedFiles(IProject project) {
 
 		if (includedFiles == null) {
 			includedFiles = BuildConfig.getIncludedSourceFiles(project);

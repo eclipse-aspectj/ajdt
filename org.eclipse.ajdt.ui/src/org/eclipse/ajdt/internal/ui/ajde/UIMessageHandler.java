@@ -24,8 +24,8 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.aspectj.bridge.IMessage;
-import org.aspectj.bridge.ISourceLocation;
 import org.aspectj.bridge.IMessage.Kind;
+import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
@@ -49,6 +49,7 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 
 /**
  * IBuildMessageHandler implementation which records warnings in the Problems
@@ -63,21 +64,21 @@ public class UIMessageHandler implements IBuildMessageHandler {
     /**
      * resources that were affected by the compilation.
      */
-    private static Set affectedResources = new HashSet();
+    private static Set<IResource> affectedResources = new HashSet<IResource>();
     /**
      * Markers created in projects other than the one under compilation, which
      * should be cleared next time the compiled project is rebuilt
      */
-    private static Map otherProjectMarkers = new HashMap();
+    private static Map<String, List<?>> otherProjectMarkers = new HashMap<String, List<?>>();
     /**
      * Indicates whether the most recent build was full or incremental
      */
     private static boolean lastBuildWasFull;
-    private List ignoring;
-	private List problems = new ArrayList();
+    private List<Kind> ignoring;
+	private List<ProblemTracker> problems = new ArrayList<ProblemTracker>();
 
 	public UIMessageHandler(IProject project) {
-        ignoring = new ArrayList();
+        ignoring = new ArrayList<Kind>();
         
         if (!AspectJPreferences.getBooleanPrefValue(project, AspectJPreferences.OPTION_verbose)) {
             ignore(IMessage.INFO);
@@ -157,7 +158,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         public String message;
         public IMessage.Kind kind;
         public boolean declaredErrorOrWarning = false;
-        public List/* ISourceLocation */extraLocs;
+        public List<ISourceLocation> extraLocs;
         public Throwable thrown;
 
         public int id;
@@ -169,7 +170,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
 
         public ProblemTracker(String m, ISourceLocation l, IMessage.Kind k,
-                boolean deow, List/* ISourceLocation */extraLocs, int id,
+                boolean deow, List<ISourceLocation> extraLocs, int id,
 				int start, int end, Throwable thrown) {
             location = l;
             message = m;
@@ -183,9 +184,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
         }
     }
     
-    public List /*ProblemTracker*/ getErrors() {
-    	List errors = new ArrayList();
-    	for (Iterator iter = problems.iterator(); iter.hasNext();) {
+    public List<ProblemTracker> getErrors() {
+    	List<ProblemTracker> errors = new ArrayList<ProblemTracker>();
+    	for (Iterator<ProblemTracker> iter = problems.iterator(); iter.hasNext();) {
 			ProblemTracker prob = (ProblemTracker) iter.next();
 			if (prob.kind.equals(IMessage.ERROR)) {
 				errors.add(prob);
@@ -218,7 +219,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 
                 try {
                 	
-                    Iterator affectedResourceIterator = affectedResources
+                    Iterator<IResource> affectedResourceIterator = affectedResources
                             .iterator();
                     AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
                     IResource ir = null;
@@ -232,6 +233,11 @@ public class UIMessageHandler implements IBuildMessageHandler {
                                         IResource.DEPTH_INFINITE);
                                 ir.deleteMarkers(IMarker.TASK, true,
                                         IResource.DEPTH_INFINITE);
+                                // now removed markers from compilation participants
+                                HashSet<String> managedMarkers = JavaModelManager.getJavaModelManager().compilationParticipants.managedMarkerTypes();
+                                for (String managedMarker : managedMarkers) {
+                                    ir.deleteMarkers(managedMarker, true, IResource.DEPTH_INFINITE);
+                                }
                             }
                         } catch (CoreException re) {
                         	AJLog.log("Failed marker deletion: resource=" //$NON-NLS-1$
@@ -240,7 +246,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
                         }
                     }
 
-                    Iterator problemIterator = problems.iterator();
+                    Iterator<ProblemTracker> problemIterator = problems.iterator();
                     ProblemTracker p = null;
                     while (problemIterator.hasNext()) {
                         p = (ProblemTracker) problemIterator.next();
@@ -298,7 +304,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
 																							// part
 																							// message
 	                                int relCount=0;
-	                                for (Iterator iter = p.extraLocs.iterator(); iter
+	                                for (Iterator<?> iter = p.extraLocs.iterator(); iter
 	                                		.hasNext();) {
 	                                    ISourceLocation sLoc = (ISourceLocation) iter
 	                                    .next();
@@ -342,10 +348,10 @@ public class UIMessageHandler implements IBuildMessageHandler {
                     UIMessages.CompilerTaskListManager_Error_adding_problem_markers, cEx);
         }
  		 // Part of the fix for bug 89793 - editor image is not updated
-        Collection activeEditorList = AspectJEditor.getActiveEditorList();
+        Collection<AspectJEditor> activeEditorList = AspectJEditor.getActiveEditorList();
         synchronized(activeEditorList) {
-	        for(Iterator iter = activeEditorList.iterator(); iter.hasNext();) {
-	        	((AspectJEditor)iter.next()).resetTitleImage();
+	        for(AspectJEditor editor : activeEditorList) {
+	        	editor.resetTitleImage();
 	        }
 	    }
     }
@@ -507,9 +513,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
     
     private void addOtherProjectMarker(IProject p, IMarker m) {
         if (!otherProjectMarkers.containsKey(p.getName())) {
-            otherProjectMarkers.put(p.getName(), new ArrayList());
+            otherProjectMarkers.put(p.getName(), new ArrayList<Object>());
         }
-        List l = (List) otherProjectMarkers.get(p.getName());
+        List<IMarker> l = (List<IMarker>) otherProjectMarkers.get(p.getName());
         l.add(m);
     }
 
@@ -589,7 +595,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
      * keep any project markers.
      */
     void clearProblems() {
-        for (Iterator probIter = problems.iterator(); probIter.hasNext();) {
+        for (Iterator<ProblemTracker> probIter = problems.iterator(); probIter.hasNext();) {
             ProblemTracker problem = (ProblemTracker) probIter.next();
             if (problem.location != null) {
                 probIter.remove();
@@ -598,9 +604,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
     }
     
     public static void clearOtherProjectMarkers(IProject p) {
-		List l = (List) otherProjectMarkers.get(p.getName());
+		List<?> l = (List<?>) otherProjectMarkers.get(p.getName());
 		if (l != null) {
-			ListIterator li = l.listIterator();
+			ListIterator<?> li = l.listIterator();
 			while (li.hasNext()) {
 				IMarker m = (IMarker) li.next();
 				try {

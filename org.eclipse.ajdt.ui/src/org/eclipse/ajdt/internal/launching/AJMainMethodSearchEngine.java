@@ -12,9 +12,8 @@
 package org.eclipse.ajdt.internal.launching;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJCore;
@@ -56,7 +55,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 				.getProjects();
 		
-		Set mainSet = new HashSet();
+		Set<IType> mainSet = new HashSet<IType>();
 		for (int i = 0; i < mainTypes.length; i++) {
             mainSet.add(mainTypes[i]);
         }
@@ -70,7 +69,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 			ticksPerProject = 1;
 		}
 		IPath[] paths = scope.enclosingProjectsAndJars();
-		Set pathsSet = new HashSet(paths.length*2);
+		Set<IPath> pathsSet = new HashSet<IPath>(paths.length*2);
 		for (int i = 0; i < paths.length; i++) {
             pathsSet.add(paths[i]);
         }
@@ -82,8 +81,8 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 					IJavaProject jp = JavaCore.create(projects[i]);
 					if (jp != null) {
 						if (pathsSet.contains(jp.getResource().getFullPath())) {
-						    List/*IFile*/ includedFiles = BuildConfig.getIncludedSourceFiles(projects[i]);
-							Set mains = getAllAspectsWithMain(scope, includedFiles);
+						    Set<IFile> includedFiles = BuildConfig.getIncludedSourceFiles(projects[i]);
+							Set<IType> mains = getAllAspectsWithMain(scope, includedFiles);
 							mainSet.addAll(mains);
 						}
 					}
@@ -94,10 +93,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
     		ajSearchMonitor.done();
 		}
 		pm.done();
-		Object[] objects = mainSet.toArray();
-		IType[] types = new IType[objects.length];
-		System.arraycopy(objects,0, types, 0, types.length);
-		return types;
+		return mainSet.toArray(new IType[mainSet.size()]);
 	}
 
 
@@ -130,14 +126,12 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 
 	// only care about aspects in java files
 	// and even here, we cannot get all main methods
-	private Set getAllAspectsWithMain(IJavaSearchScope scope, List includedFiles) throws JavaModelException {
-        Set mainTypes = new HashSet();
-        for (Iterator fileIter = includedFiles.iterator(); fileIter.hasNext();) {
-            IFile file = (IFile) fileIter.next();
+	private Set<IType> getAllAspectsWithMain(IJavaSearchScope scope, Collection<IFile> includedFiles) throws JavaModelException {
+        Set<IType> mainTypes = new HashSet<IType>();
+        for (IFile file : includedFiles) {
             if (file.getFileExtension().equals("java")) {
                 ICompilationUnit unit = (ICompilationUnit) AspectJCore.create(file);
                 if (unit != null && unit.exists() && scope.encloses(unit)) {
-//                    unit = CompilationUnitTools.convertToAJCompilationUnit(unit);
                     IType[] types = unit.getAllTypes();
                     for (int i = 0; i < types.length; i++) {
                         IType type = types[i];

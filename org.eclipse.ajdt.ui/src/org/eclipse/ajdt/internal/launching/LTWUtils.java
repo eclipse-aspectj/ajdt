@@ -283,10 +283,10 @@ public class LTWUtils {
 	 * @return List of AspectElements
 	 * @throws CoreException
 	 */
-	public static List /* IType */getAspects(
+	public static List<IType> getAspects(
 			final IPackageFragmentRoot root) throws CoreException {
-		final List aspects = new ArrayList();
-		final List includedFiles = BuildConfig.getIncludedSourceFiles(root.getJavaProject().getProject());
+		final List<IType> aspects = new ArrayList();
+		final Set<IFile> includedFiles = BuildConfig.getIncludedSourceFiles(root.getJavaProject().getProject());
 		root.getResource().accept(new IResourceVisitor() {
 
 			public boolean visit(IResource resource) {
@@ -304,13 +304,10 @@ public class LTWUtils {
                         ICompilationUnit cu = JavaCore
                                 .createCompilationUnitFrom((IFile) resource);
                         if (cu != null) {
-                            Set /*IJavaElement*/ types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu)
+                            Set<IType> types = AJProjectModelFactory.getInstance().getModelForJavaElement(cu)
                                     .aspectsForFile(cu);
 
-                            for (Iterator iter = types.iterator(); iter
-                                    .hasNext();) {
-                                IType element = (IType) iter
-                                        .next();
+                            for (IType element : types) {
                                 aspects.add(element);
                             }
                         }

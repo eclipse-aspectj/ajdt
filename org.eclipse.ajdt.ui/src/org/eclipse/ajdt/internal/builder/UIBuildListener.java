@@ -54,6 +54,10 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.eclipse.jdt.internal.core.builder.AbstractImageBuilder;
+import org.eclipse.jdt.internal.core.builder.JavaBuilder;
+import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.Bundle;
 
@@ -172,7 +176,7 @@ public class UIBuildListener implements IAJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(int kind, final IProject project, /*boolean buildCancelled,*/ boolean noSourceChanges) {
+	public void postAJBuild(int kind, final IProject project, boolean noSourceChanges, CategorizedProblem[] newProblems) {
 		if (noSourceChanges) {
 			return;
 		}
@@ -188,7 +192,7 @@ public class UIBuildListener implements IAJBuildListener {
 		} else {
 			removeMarkerOnReferencingProjects(project, buildPrereqsMessage);
 		}
-
+		
 		// Bug22258: Get the compiler monitor to display any issues with
 		// that compile.
 		IBuildMessageHandler messageHandler = AspectJPlugin.getDefault().getCompilerFactory()
@@ -221,7 +225,7 @@ public class UIBuildListener implements IAJBuildListener {
 		        
             case IncrementalProjectBuilder.AUTO_BUILD:
             case IncrementalProjectBuilder.INCREMENTAL_BUILD:
-                File[] touchedFiles = compilerConfig.getChangedFiles();
+                File[] touchedFiles = compilerConfig.getCompiledSourceFiles();
                 if (touchedFiles == null /* recreate all markers */ || 
                         touchedFiles.length > 0) {
                     
@@ -274,6 +278,49 @@ public class UIBuildListener implements IAJBuildListener {
     				}
     			});
 		}
+		
+		// finally, create markers for extra problems coming from compilation participants
+		for (CategorizedProblem problem : newProblems) {
+		    try {
+                String markerType = problem.getMarkerType();
+                IResource resource = null;
+                IMarker marker = resource.createMarker(markerType);
+    
+                String[] attributeNames = AbstractImageBuilder.JAVA_PROBLEM_MARKER_ATTRIBUTE_NAMES;
+                int standardLength = attributeNames.length + 1;
+                String[] allNames = attributeNames;
+                String[] extraAttributeNames = problem.getExtraMarkerAttributeNames();
+                int extraLength = extraAttributeNames == null ? 0 : extraAttributeNames.length;
+                allNames[standardLength] = IMarker.SOURCE_ID;
+                if (extraLength > 0) {
+                    allNames = new String[standardLength + extraLength];
+                    System.arraycopy(extraAttributeNames, 0, allNames, standardLength + 1, extraLength);
+                }
+    
+                Object[] allValues = new Object[allNames.length];
+                // standard attributes
+                int index = 0;
+                allValues[index++] = problem.getMessage(); // message
+                allValues[index++] = problem.isError() ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING; // severity
+                allValues[index++] = new Integer(problem.getID()); // ID
+                allValues[index++] = new Integer(problem.getSourceStart()); // start
+                int end = problem.getSourceEnd();
+                allValues[index++] = new Integer(end > 0 ? end + 1 : end); // end
+                allValues[index++] = new Integer(problem.getSourceLineNumber()); // line
+                allValues[index++] = Util.getProblemArgumentsForMarker(problem.getArguments()); // arguments
+                allValues[index++] = new Integer(problem.getCategoryID()); // category ID
+                // SOURCE_ID attribute for JDT problems
+                allValues[index++] = JavaBuilder.SOURCE_ID;
+                
+                // optional extra attributes
+                if (extraLength > 0)
+                    System.arraycopy(problem.getExtraMarkerAttributeValues(), 0, allValues, index, extraLength);
+
+                marker.setAttributes(allNames, allValues);
+            } catch (CoreException e) {
+            }
+
+        }
 	}
 
 

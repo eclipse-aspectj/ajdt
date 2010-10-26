@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -784,9 +785,8 @@ public class AJdocOptionsManager {
 			// AspectJ Extension - we need to get the included files from the build configuration
 			if (curr instanceof IJavaProject) {
 				IJavaProject jp = (IJavaProject)curr;
-				List files = BuildConfig.getIncludedSourceFiles(jp.getProject());
-				for (Iterator iter = files.iterator(); iter.hasNext();) {
-					IFile f = (IFile) iter.next();
+				Set<IFile> files = BuildConfig.getIncludedSourceFiles(jp.getProject());
+				for (IFile f : files) {
 					toolArgs.add(f.getLocation().toOSString());
 				}
 			}
