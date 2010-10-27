@@ -16,6 +16,7 @@
 		<attribute name="feature.id" />
 
 		<sequential>
+			<echo message="Installing @{feature.id} into @{eclipse.loc} from @{updatesite.url}" />
 			<java fork="true" failonerror="true"
 			  classname="org.eclipse.core.launcher.Main">
 
@@ -43,7 +44,7 @@
 
 	<target name="downloadFile" depends="checkExists" unless="theZipExists" 
          	description="Downloads a file if it doesn't already exist">
-		<get src="${theURL}" dest="${downloadsDir}/${theFile}" usetimestamp="true" />
+		<get verbose="true" src="${theURL}" dest="${downloadsDir}/${theFile}" usetimestamp="true" />
 		<touch file="${downloadsDir}/${theFile}" />
 	</target>
 
