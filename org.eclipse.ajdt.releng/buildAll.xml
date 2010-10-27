@@ -133,16 +133,17 @@
 		</antcall>
 
 		<!-- Install AJDT -->
-<!-- This is the old location
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/36/dev/update" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/36/update" 
 			feature.id="org.eclipse.ajdt" />
--->
+
+		<!-- This is the old location
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
 			updatesite.url="http://download.eclipse.org/tools/ajdt/36/build" 
 			feature.id="org.eclipse.ajdt" />
+-->
 
 		<!-- ajdt-pde integration and test framework -->
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
