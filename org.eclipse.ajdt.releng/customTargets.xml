@@ -212,7 +212,7 @@
 	
 	<target name="create-p2-inf-for-equinox-aspects" description="Creates the p2.inf file for equinox aspects to that it is auto-started">
 		<copy file="${workdir}/org.eclipse.ajdt.releng/provisioning_support/p2.inf" 
-			toDir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj" 
+			toDir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/META-INF" 
 		  failonerror="true" />
 	</target>
 	
