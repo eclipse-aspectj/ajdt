@@ -27,7 +27,6 @@ import java.util.TreeMap;
 import org.aspectj.ajde.core.IOutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
-import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -44,10 +43,11 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.compiler.util.Util;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.builder.State;
 import org.eclipse.jdt.internal.core.builder.StringSet;
+import org.eclipse.jdt.internal.core.util.Util;
+
 import java.util.Comparator;
 
 /**
@@ -270,7 +270,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public File getOutputLocationForClass(File compilationUnit) {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
-	    if (Util.isJavaFileName(compilationUnit.getName())) {     
+	    if (Util.isJavaLikeFileName(compilationUnit.getName())) {     
 	        compiledSourceFiles.add(compilationUnit);
 	    }
 	    
