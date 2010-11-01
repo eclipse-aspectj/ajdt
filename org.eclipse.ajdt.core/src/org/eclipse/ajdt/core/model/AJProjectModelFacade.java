@@ -246,7 +246,7 @@ public class AJProjectModelFacade {
         String ajHandle = je.getHandleIdentifier();
         
         boolean isBinary = false;
-        if (isBinaryHandle(ajHandle)) {
+        if (isBinaryHandle(ajHandle) || je.isReadOnly()) {
             ajHandle = convertToAspectJBinaryHandle(ajHandle, false);
             isBinary = true;
         } else if (isFromExternalProject(je)) {
@@ -480,6 +480,9 @@ public class AJProjectModelFacade {
         final boolean isType;
         final boolean isInAspect;
         
+        boolean isPackageFragment() {
+            return !(isFile || isType || isInAspect);
+        }
         String sourceTypeQualName() {
             return qualName.replaceAll("\\$", "\\.");
         }
@@ -501,6 +504,15 @@ public class AJProjectModelFacade {
         }
         
         try {
+            if (handleInfo.isPackageFragment()) {
+                IPackageFragment[] frags = findFragment(JavaCore.create(project), handleInfo);
+                if (frags != null && frags.length > 0) {
+                    // there may be multiple package fragments with the same name
+                    // in different roots.  If so, always (arbitrarily) return the first
+                    return frags[0];
+                }
+            }
+            
             // this gives us the type in the current project.
             // However, the type may actually be source coming from another project
             ITypeRoot typeRoot = getCUFromQualifiedName(handleInfo);
@@ -659,7 +671,9 @@ public class AJProjectModelFacade {
         int packageStart = ajHandle.indexOf(JavaElement.JEM_PACKAGEFRAGMENT);
         int packageEnd = ajHandle.indexOf(JavaElement.JEM_CLASSFILE, packageStart+1);
         if (packageEnd < 0) {
-            return null;
+            // this is a package fragment
+            String packageName = ajHandle.substring(packageStart+1);
+            return new HandleInfo(ajHandle, "", packageName, "", "", false, false, false);
         }
         int typeNameEnd = ajHandle.indexOf(".class", packageEnd+1);
         if (typeNameEnd < 0) {
@@ -704,11 +718,10 @@ public class AJProjectModelFacade {
         // will not work for inner types
         // but that's ok, because we are only working
         // top-level types
-        IPackageFragmentRoot[] pkgRoots = jproj.getAllPackageFragmentRoots();
-        for (int i = 0; i < pkgRoots.length; i++) {
-            IPackageFragment candidate = pkgRoots[i].getPackageFragment(handleInfo.packageName);
-            if (candidate.exists()) {
-                ICompilationUnit[] cus = candidate.getCompilationUnits();
+        IPackageFragment[] fragments = findFragment(jproj, handleInfo);
+        if (fragments.length > 0) {
+            for (IPackageFragment fragment : fragments) {
+                ICompilationUnit[] cus = fragment.getCompilationUnits();
                 
                 for (int j = 0; j < cus.length; j++) {
                     IType maybeType = CompilationUnitTools.findType(cus[j], handleInfo.simpleName, true);
@@ -716,7 +729,7 @@ public class AJProjectModelFacade {
                         return cus[j];
                     }
                 }
-                IClassFile[] cfs = candidate.getClassFiles();
+                IClassFile[] cfs = fragment.getClassFiles();
                 for (int j = 0; j < cfs.length; j++) {
                     IType cType = cfs[j].getType();
                     if (cType.getElementName().equals(handleInfo.simpleName)) {
@@ -726,6 +739,18 @@ public class AJProjectModelFacade {
             }
         }
         return (ICompilationUnit) ERROR_JAVA_ELEMENT;
+    }
+    
+    private IPackageFragment[] findFragment(IJavaProject jproj, HandleInfo handleInfo) throws JavaModelException {
+        IPackageFragmentRoot[] pkgRoots = jproj.getAllPackageFragmentRoots();
+        List<IPackageFragment> frags = new ArrayList<IPackageFragment>();
+        for (int i = 0; i < pkgRoots.length; i++) {
+            IPackageFragment candidate = pkgRoots[i].getPackageFragment(handleInfo.packageName);
+            if (candidate.exists()) {
+                frags.add(candidate);
+            }
+        }
+        return frags.toArray(new  IPackageFragment[frags.size()]);
     }
     
     

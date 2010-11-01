@@ -143,8 +143,6 @@ public class AJMementoTokenizer extends MementoTokenizer {
             case JavaElement.JEM_ANNOTATION:
                 return ANNOTATION;
                 // begin AspectJ change
-            case AspectElement.JEM_ASPECT_CU:
-                return ASPECT_CU;
             case AspectElement.JEM_ADVICE:
                 return ADVICE;
             case AspectElement.JEM_ASPECT_TYPE:
@@ -159,6 +157,15 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 return DECLARE;
             case AspectElement.JEM_POINTCUT:
                 return POINTCUT;
+                
+                
+            case AspectElement.JEM_ASPECT_CU:
+                // only return here if JDT weaving is off
+                // if JDT weaving is on, then a * here
+                // means that we are in an on demand import declaration
+                if (!AspectJPlugin.USING_CU_PROVIDER) {
+                    return ASPECT_CU;
+                }
                 // end AspectJ change
         }
         loop: while (this.index < this.length) {
@@ -185,7 +192,6 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 case JavaElement.JEM_TYPE_PARAMETER:
                 case JavaElement.JEM_ANNOTATION:
                     // begin AspectJ change
-                case AspectElement.JEM_ASPECT_CU:
                 case AspectElement.JEM_ADVICE:
                 case AspectElement.JEM_ASPECT_TYPE:
                 case AspectElement.JEM_CODEELEMENT:
@@ -193,8 +199,18 @@ public class AJMementoTokenizer extends MementoTokenizer {
                 case AspectElement.JEM_ITD_FIELD:
                 case AspectElement.JEM_DECLARE:
                 case AspectElement.JEM_POINTCUT:
-                    // end AspectJ change
                     break loop;
+                    // end AspectJ change
+
+                    // begin AspectJ change
+                case AspectElement.JEM_ASPECT_CU:
+                    // only break here if JDT weaving is off
+                    // if JDT weaving is on, then a * here
+                    // means that we are in an on demand import declaration
+                    if (!AspectJPlugin.USING_CU_PROVIDER) {
+                        break loop;
+                    }
+                    // end AspectJ change
             }
             this.index++;
         }

@@ -394,6 +394,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             params.toArray(parameters);
             JavaElement itd = new MethodIntertypeElement(this, name, parameters);
             if (memento.hasMoreTokens()) {
+//                token = memento.nextToken();
                 return itd.getHandleFromMemento(token, memento,
                         workingCopyOwner);
             } else {
@@ -403,6 +404,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
             String name = memento.nextToken();
             JavaElement itd = new FieldIntertypeElement(this, name);
             if (memento.hasMoreTokens()) {
+                token = memento.nextToken();
                 return itd.getHandleFromMemento(token, memento,
                         workingCopyOwner);
             } else {

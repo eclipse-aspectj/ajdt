@@ -45,12 +45,6 @@ import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
  */
 public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
     
-    // if this type is an interface and there are ITD methods or 
-    // fields on it, then remove the interface flag on it
-    // since compiler will think these declarations are static
-    boolean shouldRemoveInterfaceFlag = false;
-    
-    
     private final static class ITDAwareSourceType extends SourceType {
         final ITDAwareSourceTypeInfo info;
         private ITDAwareSourceType(JavaElement parent, String name, ITDAwareSourceTypeInfo info) {
@@ -182,7 +176,6 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
 
                         // additional processing for interfaces
                         if (handle.isInterface()) {
-                            shouldRemoveInterfaceFlag = true;
                             
                             if (member.getElementType() == IJavaElement.FIELD) {
                                 // Bug 262969
