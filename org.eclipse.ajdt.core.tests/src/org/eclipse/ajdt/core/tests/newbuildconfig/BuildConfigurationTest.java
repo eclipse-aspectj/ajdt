@@ -205,7 +205,7 @@ public class BuildConfigurationTest extends AJDTCoreTestCase {
 	        List accumulatedErrors = Collections.emptyList();
 	        HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
 	        IProgramElement ipe = model.javaElementToProgramElement(unit);
-	        AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model);
+	        HandleTestUtils.checkAJHandle(ipe.getHandleIdentifier(), model);
 	        if (accumulatedErrors.size() > 0) {
 	            StringBuffer sb = new StringBuffer();
 	            sb.append("Found errors in comparing elements:\n");

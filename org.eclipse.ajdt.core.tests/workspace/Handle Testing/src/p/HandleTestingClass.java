@@ -28,6 +28,5 @@ public class HandleTestingClass {
 	class MyClass { }
 	
 	{ }
-	{ }
 	static { }
 }

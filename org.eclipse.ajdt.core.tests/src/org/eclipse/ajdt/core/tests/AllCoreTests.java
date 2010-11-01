@@ -55,6 +55,7 @@ import org.eclipse.ajdt.core.tests.model.AJModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJModelTest3;
 import org.eclipse.ajdt.core.tests.model.AJModelTest4;
 import org.eclipse.ajdt.core.tests.model.AJModelTest5;
+import org.eclipse.ajdt.core.tests.model.AJModelTest6;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
@@ -126,6 +127,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJModelTest3.class));
         suite.addTest(new TestSuite(AJModelTest4.class));
         suite.addTest(new TestSuite(AJModelTest5.class));
+        suite.addTest(new TestSuite(AJModelTest6.class));
 		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
         suite.addTest(new TestSuite(AJProjectModelTest2.class));

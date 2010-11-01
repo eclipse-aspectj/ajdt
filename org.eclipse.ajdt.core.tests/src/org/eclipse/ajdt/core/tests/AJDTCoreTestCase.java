@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -433,6 +435,8 @@ public class AJDTCoreTestCase extends TestCase {
         IFolder folder = project.getFolder("src");
         if (!folder.exists())
             ensureExists(folder);
+        
+        // if already exists, do nothing
         final IClasspathEntry[] entries = javaProject
                 .getResolvedClasspath(false);
         final IPackageFragmentRoot root = javaProject
@@ -442,10 +446,19 @@ public class AJDTCoreTestCase extends TestCase {
             if (entry.getPath().equals(folder.getFullPath()))
                 return root;
         }
+        
+        
+        // else, remove old suorce folders and add this new one
         IClasspathEntry[] oldEntries = javaProject.getRawClasspath();
-        IClasspathEntry[] newEntries = new IClasspathEntry[oldEntries.length + 1];
-        System.arraycopy(oldEntries, 0, newEntries, 0, oldEntries.length);
-        newEntries[oldEntries.length] = JavaCore.newSourceEntry(root.getPath());
+        List<IClasspathEntry> oldEntriesList = new ArrayList<IClasspathEntry>();
+        oldEntriesList.add(JavaCore.newSourceEntry(root.getPath()));
+        for (IClasspathEntry entry : oldEntries) {
+            if (entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
+                oldEntriesList.add(entry);
+            }
+        }
+        
+        IClasspathEntry[] newEntries = oldEntriesList.toArray(new IClasspathEntry[0]);
         javaProject.setRawClasspath(newEntries, null);
         return root;
     }

@@ -26,7 +26,6 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.HandleTestUtils;
-import org.eclipse.ajdt.core.tests.model.AJModelTest4;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -119,7 +118,7 @@ public class BuildConfigurationTest2 extends AJDTCoreTestCase {
         if (model.hasProgramElement(unit)) {
             List accumulatedErrors = HandleTestUtils.checkJavaHandle(unit.getHandleIdentifier(), model);
             IProgramElement ipe = model.javaElementToProgramElement(unit);
-            AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), model);
+            HandleTestUtils.checkAJHandle(ipe.getHandleIdentifier(), model);
             
             if (accumulatedErrors.size() > 0) {
                 StringBuffer sb = new StringBuffer();

@@ -32,21 +32,30 @@ public class HandleTestUtils {
 
 	public static void checkAJHandle(String origAjHandle, AJProjectModelFacade model) throws JavaModelException {
 	    
+	    if (origAjHandle.endsWith("binaries")) {
+	        return;
+	    }
+	    
 	    IJavaElement origJavaElement = model.programElementToJavaElement(origAjHandle);
 	    boolean checkExistence = !(origJavaElement instanceof ImportContainer || 
 	    		                   origJavaElement instanceof IInitializer);
-	    if (checkExistence) assertTrue("Element for AJHandle doesn't exist: "+origAjHandle, 
-	    		origJavaElement.exists());
-	    checkType(origJavaElement);
-		String origJavaHandle = origJavaElement.getHandleIdentifier();
+	    String origJavaHandle = origJavaElement.getHandleIdentifier();
 		
 		if (origJavaElement.getJavaProject().getProject().equals(model.getProject())) {
+
+		    if (checkExistence) {
+		        assertTrue("Element for AJHandle doesn't exist: "+origAjHandle, 
+		                origJavaElement.exists());
+		    }
+		    checkType(origJavaElement);
 		
 			IProgramElement recreatedAjElement = model.javaElementToProgramElement(origJavaElement);
 			String recreatedAjHandle = recreatedAjElement.getHandleIdentifier();
 			
 			IJavaElement recreatedJavaElement = model.programElementToJavaElement(recreatedAjHandle);
-		    if (checkExistence) assertTrue(recreatedJavaElement.exists() );
+		    if (checkExistence) {
+		        assertTrue("Doesn't exist: " + recreatedJavaElement.getHandleIdentifier(), recreatedJavaElement.exists());
+		    }
 		    checkType(recreatedJavaElement);
 		    
 			String recreatedJavaHandle = recreatedJavaElement.getHandleIdentifier();
@@ -213,7 +222,7 @@ public class HandleTestUtils {
 	            // check to make sure that this element is in the other model
 	            AJProjectModelFacade otherModel = AJProjectModelFactory.getInstance().getModelForProject(origJavaElement.getJavaProject().getProject());
 	            IProgramElement ipe = otherModel.javaElementToProgramElement(origJavaElement);
-	            AJModelTest4.checkAJHandle(ipe.getHandleIdentifier(), otherModel);
+	            HandleTestUtils.checkAJHandle(ipe.getHandleIdentifier(), otherModel);
 	        }
 	    } catch (Exception e) {
 	        accumulatedErrors.add("Error thrown on: " + origJavaHandle);
