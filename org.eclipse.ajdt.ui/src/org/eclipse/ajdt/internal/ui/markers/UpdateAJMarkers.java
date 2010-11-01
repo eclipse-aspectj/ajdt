@@ -134,7 +134,7 @@ public class UpdateAJMarkers {
                 if (fragRoots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
                     IJavaElement[] frags = fragRoots[i].getChildren();
                     for (int j = 0; j < frags.length; j++) {
-                        Set completedCUNames = new HashSet(frags.length, 1.0f);
+                        Set<String> completedCUNames = new HashSet<String>(frags.length, 1.0f);
                         IJavaElement[] cus = ((IPackageFragment) frags[j]).getChildren();
                         for (int k = 0; k < cus.length; k++) {
                             // ignore any class files in the source folder (Bug 258698)
@@ -163,7 +163,6 @@ public class UpdateAJMarkers {
 	
 	
 	private void addMarkersForFiles(IProgressMonitor monitor) {
-	    IWorkspace workspace= ResourcesPlugin.getWorkspace();
 	    SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, sourceFiles.length);
         for (int i = 0; i < sourceFiles.length; i++) {
             IJavaElement unit = JavaCore.create(sourceFiles[i]);
@@ -182,20 +181,18 @@ public class UpdateAJMarkers {
 	
 	
     private void addMarkersForFile(ICompilationUnit cu, IResource resource) {
-	    Map/*Integer,List<IRelationship>*/ annotationMap = 
+	    Map<Integer,List<IRelationship>> annotationMap = 
 	        model.getRelationshipsForFile(cu);
-	    for (Iterator annotationIter = annotationMap.entrySet().iterator(); annotationIter.hasNext();) {
-            Entry entry = (Entry) annotationIter.next();
-            createMarker(resource, ((Integer) entry.getKey()).intValue(), (List) entry.getValue());
+	    for (Entry<Integer,List<IRelationship>> entry : annotationMap.entrySet()) {
+            createMarker(resource, entry.getKey().intValue(), entry.getValue());
             markerCount++;
         }
     }
 
-	private void createMarker(IResource resource, int lineNumber, List/*IRelationship*/ relationships) {
+	private void createMarker(IResource resource, int lineNumber, List<IRelationship> relationships) {
 	    String markerType = null;
 	    boolean hasRuntime = false;
-        for (Iterator iter = relationships.iterator(); iter.hasNext();) {
-            IRelationship relationship = (IRelationship) iter.next();
+        for (IRelationship relationship : relationships) {
             hasRuntime |= relationship.hasRuntimeTest();
             String customMarkerType = getCustomMarker(relationship);
             if (customMarkerType != null) {
@@ -206,9 +203,8 @@ public class UpdateAJMarkers {
             } else {
                 // must repeat for each target since
                 // each target may be of a different type
-                List/*String*/ targets = relationship.getTargets();
-                for (Iterator targetIter = targets.iterator(); targetIter.hasNext();) {
-                    String target = (String) targetIter.next();
+                List<String> targets = relationship.getTargets();
+                for (String target : targets) {
                     String markerTypeForRelationship = 
                         getMarkerTypeForRelationship(relationship, target);
                     if (markerTypeForRelationship != null) {
@@ -243,12 +239,10 @@ public class UpdateAJMarkers {
 
 	}
 
-    private int getNumTargets(List relationships) {
+    private int getNumTargets(List<IRelationship> relationships) {
         int numTargets = 0;
-        for (Iterator relIter = relationships.iterator(); relIter.hasNext();) {
-            IRelationship rel = (IRelationship) relIter.next();
-            for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                targetIter.next();
+        for (IRelationship rel : relationships) {
+            for (String target : rel.getTargets()) {
                 if (!rel.getName().equals(AsmRelationshipProvider.MATCHES_DECLARE)) {
                     numTargets++;
                 }
@@ -395,10 +389,9 @@ public class UpdateAJMarkers {
 		return number + " " + UIMessages.AspectJMarkersAtLine; //$NON-NLS-1$	
 	}
 
-    private String getMarkerLabel(List/*IRelationship*/ relationships) {
+    private String getMarkerLabel(List<IRelationship> relationships) {
         // find first non-matches declare relationship
-        for (Iterator relIter = relationships.iterator(); relIter.hasNext();) {
-            IRelationship rel = (IRelationship) relIter.next();
+        for (IRelationship rel : relationships) {
             if (!rel.getName().equals(AsmRelationshipProvider.MATCHES_DECLARE)) {
                 return getMarkerLabel(rel);
             }
@@ -430,19 +423,17 @@ public class UpdateAJMarkers {
 	private String getCustomMarker(IRelationship relationship) {
 	    // get the element in the aspect, it is source or target depending
 	    // on the kind of relationship
-        List/*IJavaElement*/ aspectEntities = new ArrayList();
+        List<IJavaElement> aspectEntities = new ArrayList<IJavaElement>();
         if (relationship.isAffects()) {
             aspectEntities.add(model.programElementToJavaElement(relationship.getSourceHandle()));
         } else {
             // all targets are from the same
-            for (Iterator ipeIter = relationship.getTargets().iterator(); ipeIter.hasNext();) {
-                String target = (String) ipeIter.next();
+            for (String target : relationship.getTargets()) {
                 aspectEntities.add(model.programElementToJavaElement(target));
             }
         }
 
-        for (Iterator aspectIter = aspectEntities.iterator(); aspectIter.hasNext();) {
-            IJavaElement elt = (IJavaElement) aspectIter.next();
+        for (IJavaElement elt : aspectEntities) {
             if (elt != null) {  // will be null if the referent is not found.  Should only be in error cases
                 IType typeElement = (IType) elt.getAncestor(IJavaElement.TYPE);
                 if (typeElement != null) {
