@@ -613,7 +613,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             if (changedProject.getFullPath().equals(classpathEntry.getPath())) {
                                 // resolve project and add all entries
                                 List toAdd = listOfClassPathEntriesToListOfString(AspectJCorePreferences.resolveDependentProjectClasspath(
-                                        changedProject, classpathEntry));
+                                        classpathEntry, changedProject));
                                 for (Iterator pathIter = toAdd.iterator(); pathIter
                                         .hasNext();) {
                                     String pathStr = (String) pathIter.next();
