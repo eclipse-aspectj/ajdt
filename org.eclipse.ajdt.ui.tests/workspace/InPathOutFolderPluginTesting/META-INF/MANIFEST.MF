@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: AJ_Plugin_Project
+Bundle-SymbolicName: InPathOutFolderPluginTesting
+Bundle-Version: 1.0.0.qualifier
+Require-Bundle: org.aspectj.runtime
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

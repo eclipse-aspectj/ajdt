@@ -47,27 +47,6 @@ public class InpathOutFolderTest extends UITestCase {
         SynchronizationUtils.joinBackgroudActivities();
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
-        
-        // If this test is passing and you see the commented code below, then it can safely be deleted
-//        waitForJobsToComplete();
-//        waitForJobsToComplete();
-//        
-//        
-//        // failing occasionally on build server.  check results in loop
-//        boolean found = false;
-//        int count = 0;
-//        while (count < 5) {
-//            found = jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
-//            if (found) {
-//                break;
-//            }
-//            SynchronizationUtils.sleep(1000);
-//            waitForJobsToComplete();
-//            count++;
-//        }
-//        
-//        assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-//                found); //$NON-NLS-1$
 	}
 	
 	public void testClean() throws CoreException {
@@ -94,26 +73,6 @@ public class InpathOutFolderTest extends UITestCase {
         SynchronizationUtils.joinBackgroudActivities();
         assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
-
-        
-        // If this test is passing and you see the commented code below, then it can safely be deleted
-//        waitForJobsToComplete();
-//        waitForJobsToComplete();
-//        // failing occasionally on build server.  check results in loop
-//        boolean found = false;
-//        int count = 0;
-//        while (count < 5) {
-//            found = jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists();
-//            if (found) {
-//                break;
-//            }
-//            SynchronizationUtils.sleep(1000);
-//            waitForJobsToComplete();
-//            count++;
-//        }
-//        
-//        assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-//                found); //$NON-NLS-1$
 	}
 
 }
