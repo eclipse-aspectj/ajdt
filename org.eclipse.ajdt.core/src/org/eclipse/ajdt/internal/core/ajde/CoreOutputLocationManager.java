@@ -403,11 +403,19 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 		
 		IPath outPath;
-		if (path.isAbsolute()) {
-		    outPath = path;
+		IResource out;
+		String fileExtension = path.getFileExtension();
+        if (fileExtension != null) {
+            // assume a file
+		    out = workspaceRoot.getFile(path);
 		} else {
-    		IFolder out = workspaceRoot.getFolder(path);
-    		outPath = out.getLocation();
+		    out = workspaceRoot.getFolder(path);
+		}
+		if (out.exists()) {
+		    outPath = out.getLocation();
+		} else {
+		    // maybe this is a fully qualified path
+		    outPath = path;
 		}
 		
 		if (outPath != null) {
