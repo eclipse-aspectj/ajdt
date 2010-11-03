@@ -76,10 +76,6 @@ public class ReindexingJob extends WorkspaceJob {
         return ReindexingJob.class == family;
     }
     
-    private boolean isAlreadyScheduled() {
-        return Job.getJobManager().find(ReindexingJob.class).length > 1;
-    }
-
     public static void waitForJobFamily(Object jobFamily, IProgressMonitor monitor) {
         boolean wasInterrupted = false;
         do {

@@ -33,12 +33,13 @@ public class AskToReindexJob extends UIJob {
     @Override
     public IStatus runInUIThread(IProgressMonitor monitor) {
         boolean res = MessageDialog.openQuestion(getShell(), "Reindex projects?", 
-                "The JDT Weaving service had been enabled.\n" +
+                "The JDT Weaving service has been enabled.\n" +
         		"Do you want to reindex affected projects now\n" +
         		"so that JDT can more effectively search your projects?");
         if (res) {
             new ReindexingJob().schedule();
         }
+        // only ask once
         JDTWeavingPreferences.setAskToReindex(false);
 
         return Status.OK_STATUS;

@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.jdt;
 
+import java.net.URL;
+
 import org.eclipse.contribution.jdt.preferences.AskToReindexJob;
 import org.eclipse.contribution.jdt.preferences.EnableWeavingServiceJob;
 import org.eclipse.contribution.jdt.preferences.JDTWeavingPreferences;
@@ -20,6 +22,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -37,6 +40,8 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
     @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
+        initImages();
+        
         Workspace workspace = (Workspace) ResourcesPlugin.getWorkspace();
         workspace.addLifecycleListener(WeavableProjectListener.getInstance());
         
@@ -60,6 +65,13 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
         }
     }
 
+    /**
+     * maybe more images later
+     */
+    protected void initImages() {
+        DESC_ASPECTJ_32 = createDescriptor(IMG_ASPECTJ_32);
+    }
+
     
     public static void logException(Throwable t) {
         INSTANCE.getLog().log(new Status(IStatus.ERROR, ID, t.getMessage(), t));
@@ -74,4 +86,14 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
         return INSTANCE;
     }
     
+    public static final String IMG_ASPECTJ_32 = "icons/aspectj32.png";
+    public static ImageDescriptor DESC_ASPECTJ_32;
+
+    public static ImageDescriptor createDescriptor(String path) {
+        URL url = getInstance().getBundle().getEntry(path);
+        ImageDescriptor descriptor = url == null ?
+                ImageDescriptor.getMissingImageDescriptor() :
+                    ImageDescriptor.createFromURL(url);
+        return descriptor;
+    }
 }

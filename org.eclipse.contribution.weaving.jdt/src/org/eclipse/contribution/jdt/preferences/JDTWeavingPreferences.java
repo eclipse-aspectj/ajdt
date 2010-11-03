@@ -67,13 +67,15 @@ public class JDTWeavingPreferences {
      */
     public static boolean shouldAskToReindex() {
         return getAskToReindex() &&
-          IsWovenTester.isWeavingActive(); 
+          IsWovenTester.isWeavingActive() &&
+          WeavableProjectListener.getInstance().workspaceHasReindexableProjects(); 
     }
 
     public static boolean getAskToReindex() {
         IPreferenceStore store = getPreferences();
         String value = store.getString(ASK_TO_REINDEX_PROJECTS);
-        return value.equals("true");
+        // if the value is true or unset, then we should ask
+        return value.equals("true") || value.equals("");
     }
 
     public static void setAskToReindex(boolean value) {

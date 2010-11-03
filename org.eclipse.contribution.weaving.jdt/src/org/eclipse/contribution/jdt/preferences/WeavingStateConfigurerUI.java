@@ -44,7 +44,8 @@ public class WeavingStateConfigurerUI {
         // problem here is that this message is AJDT specific, even though this plugin
         // should have no mention of AJDT
         private final static String MESSAGE = "Should AJDT's weaving service be enabled?  (Requires restart)<br/><br/>" + 
-                "The weaving service enables the more advanced AJDT and AspectJ, but may require more resources to run Eclipse.";
+                "The weaving service enables AJDT and AspectJ to fully function, but may require more resources to run Eclipse." +
+                "<br/><br/>More information: http://wiki.eclipse.org/JDT_weaving_features";
         
         private final static String EXPANDED_MESSAGE = 
                 "The weaving service enables advanced AJDT features such as content assist " +
@@ -57,8 +58,8 @@ public class WeavingStateConfigurerUI {
                 "<br/><br/>More information: http://wiki.eclipse.org/JDT_weaving_features";
 
         public EnableWeavingDialog() {
-            super(WeavingStateConfigurerUI.getShell(), "Turn Weaving Service on?", null, 
-                    "<form>" + MESSAGE + "\n\n" + EXPANDED_MESSAGE + "</form>", QUESTION, new String[] { IDialogConstants.YES_LABEL,
+            super(WeavingStateConfigurerUI.getShell(), "Turn Weaving Service on?", JDTWeavingPlugin.DESC_ASPECTJ_32.createImage(), 
+                    "<form>" + MESSAGE + "</form>", QUESTION, new String[] { IDialogConstants.YES_LABEL,
                 IDialogConstants.NO_LABEL }, 0,
                 "Don't ask again until next upgrade", false);
         }
@@ -76,8 +77,6 @@ public class WeavingStateConfigurerUI {
             }
             // create message
             if (message != null) {
-//                messageLabel = new Label(composite, getMessageLabelStyle());
-//                messageLabel.setText(message);
                 FormText text = new FormText(composite, getMessageLabelStyle());
                 text.setText(message, true, true);
                 GridDataFactory
@@ -141,6 +140,12 @@ public class WeavingStateConfigurerUI {
                 boolean doRestart = MessageDialog.openQuestion(shell, "Restart", "Weaving will be " + 
                         (configurer.isWeaving() ? "DISABLED" : "ENABLED") + " after restarting the workbench.\n\n" +
                                 "Do you want to restart now?" + note);
+                
+                if (configurer.isWeaving()) {
+                    // when explicitly disabled, do not ask again 
+                    JDTWeavingPreferences.setAskToEnableWeaving(false);
+                }
+
                 if (doRestart) {
                     PlatformUI.getWorkbench().restart();
                 }
@@ -159,8 +164,8 @@ public class WeavingStateConfigurerUI {
     public boolean ask() {
         EnableWeavingDialog dialog = new EnableWeavingDialog();
         dialog.open();
-        JDTWeavingPreferences.setAskToEnableWeaving(! dialog.getToggleState());
         
+        JDTWeavingPreferences.setAskToEnableWeaving(! dialog.getToggleState());
         
         if (IDialogConstants.YES_ID == dialog.getReturnCode()) {
             changeWeavingState();

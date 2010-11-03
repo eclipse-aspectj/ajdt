@@ -12,16 +12,20 @@ Require-Bundle:
  org.eclipse.jface;bundle-version="3.6.0",
  org.eclipse.ui;bundle-version="3.6.0",
  org.eclipse.debug.ui;bundle-version="3.6.0";resolution:=optional,
+ org.eclipse.debug.core;bundle-version="3.6.0";resolution:=optional,
  org.eclipse.ui.browser;bundle-version="3.3.0",
  org.eclipse.ui.forms;bundle-version="3.5.0",
  org.eclipse.ltk.core.refactoring;bundle-version="3.5.0",
  org.eclipse.jdt.junit.core;bundle-version="3.6.0",
  org.eclipse.equinox.simpleconfigurator.manipulator;bundle-version="2.0.0",
- org.eclipse.equinox.frameworkadmin;bundle-version="2.0.0"
+ org.eclipse.equinox.frameworkadmin;bundle-version="2.0.0",
+ org.eclipse.jdt.debug;bundle-version="3.6.0",
+ org.eclipse.jdt.launching;bundle-version="3.5.100"
 Bundle-Activator: org.eclipse.contribution.jdt.JDTWeavingPlugin
 Export-Package: 
  org.eclipse.contribution.jdt;version="2.1.2";uses:="org.osgi.framework,org.eclipse.ui.plugin",
  org.eclipse.contribution.jdt.cuprovider;version="2.1.2";uses:="org.eclipse.jdt.core,org.eclipse.jdt.internal.core",
+ org.eclipse.contribution.jdt.debug,
  org.eclipse.contribution.jdt.imagedescriptor;version="2.1.2";uses:="org.eclipse.jdt.internal.ui.text.java,org.eclipse.jface.resource",
  org.eclipse.contribution.jdt.itdawareness;version="2.1.2";
   uses:="org.eclipse.jdt.internal.compiler.env,
@@ -44,6 +48,7 @@ Eclipse-SupplementBundle: org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.jdt.junit.core,
  org.eclipse.jdt.debug.ui,
+ org.eclipse.jdt.debug,
  org.eclipse.jdt.groovy.core
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Vendor: Eclipse AspectJ Development Tools

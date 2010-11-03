@@ -19,6 +19,7 @@ import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.internal.events.ILifecycleListener;
 import org.eclipse.core.internal.events.LifecycleEvent;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -40,6 +41,7 @@ public class WeavableProjectListener implements ILifecycleListener {
     
     public static String WEAVABLE_NATURE_EXTENSION_POINT = "org.eclipse.contribution.weaving.jdt.weavablenature"; //$NON-NLS-1$
     private Set<String> weavableNatures = null;
+    private Set<String> indexRequiredNatures = null;
     static WeavableProjectListener INSTANCE = new WeavableProjectListener();
     protected WeavableProjectListener() {
         // singleton
@@ -56,9 +58,38 @@ public class WeavableProjectListener implements ILifecycleListener {
         INSTANCE = mock;
     }
     
+    /**
+     * @return true iff there is at least one project open in the 
+     * workspace that requires reindexing
+     */
+    public boolean workspaceHasReindexableProjects() {
+        if (weavableNatures == null) {
+            initWeavableNatures();
+        }
+        for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            if (indexingRequiredProject(project)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private boolean indexingRequiredProject(IProject project) {
+        for (String natureid : indexRequiredNatures) {
+            try {
+                if (project.hasNature(natureid)) {
+                    return true;
+                }
+            } catch (CoreException e) {
+                JDTWeavingPlugin.logException(e);
+            }
+        }
+        return false;
+    }
     
     private void initWeavableNatures() {
         weavableNatures = new HashSet<String>();
+        indexRequiredNatures = new HashSet<String>();
         
         IExtensionPoint exP = null;
         try {
@@ -77,6 +108,10 @@ public class WeavableProjectListener implements ILifecycleListener {
                             String natureid = (String) config.getAttribute("natureid");
                             if (natureid != null) {
                                 weavableNatures.add(natureid);
+                                String requiresReindexing = config.getAttribute("requiresReindexing");
+                                if (requiresReindexing != null && Boolean.parseBoolean(requiresReindexing)) {
+                                    indexRequiredNatures.add(natureid);
+                                }
                             }
                         }
                     } catch (Exception e) {
