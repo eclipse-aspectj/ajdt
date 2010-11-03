@@ -16,6 +16,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.eclipse.ajdt.core.AJLog;
@@ -38,6 +40,7 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -176,7 +179,7 @@ public class UIBuildListener implements IAJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(int kind, final IProject project, boolean noSourceChanges, CategorizedProblem[] newProblems) {
+	public void postAJBuild(int kind, final IProject project, boolean noSourceChanges,  Map<IFile, List<CategorizedProblem>> newProblems) {
 		if (noSourceChanges) {
 			return;
 		}
@@ -280,46 +283,49 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 		
 		// finally, create markers for extra problems coming from compilation participants
-		for (CategorizedProblem problem : newProblems) {
+		for (Entry<IFile, List<CategorizedProblem>> problemsForFile : newProblems.entrySet()) {
 		    try {
-                String markerType = problem.getMarkerType();
-                IResource resource = null;
-                IMarker marker = resource.createMarker(markerType);
-    
-                String[] attributeNames = AbstractImageBuilder.JAVA_PROBLEM_MARKER_ATTRIBUTE_NAMES;
-                int standardLength = attributeNames.length + 1;
-                String[] allNames = attributeNames;
-                String[] extraAttributeNames = problem.getExtraMarkerAttributeNames();
-                int extraLength = extraAttributeNames == null ? 0 : extraAttributeNames.length;
-                allNames[standardLength] = IMarker.SOURCE_ID;
-                if (extraLength > 0) {
-                    allNames = new String[standardLength + extraLength];
-                    System.arraycopy(extraAttributeNames, 0, allNames, standardLength + 1, extraLength);
-                }
-    
-                Object[] allValues = new Object[allNames.length];
-                // standard attributes
-                int index = 0;
-                allValues[index++] = problem.getMessage(); // message
-                allValues[index++] = problem.isError() ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING; // severity
-                allValues[index++] = new Integer(problem.getID()); // ID
-                allValues[index++] = new Integer(problem.getSourceStart()); // start
-                int end = problem.getSourceEnd();
-                allValues[index++] = new Integer(end > 0 ? end + 1 : end); // end
-                allValues[index++] = new Integer(problem.getSourceLineNumber()); // line
-                allValues[index++] = Util.getProblemArgumentsForMarker(problem.getArguments()); // arguments
-                allValues[index++] = new Integer(problem.getCategoryID()); // category ID
-                // SOURCE_ID attribute for JDT problems
-                allValues[index++] = JavaBuilder.SOURCE_ID;
-                
-                // optional extra attributes
-                if (extraLength > 0)
-                    System.arraycopy(problem.getExtraMarkerAttributeValues(), 0, allValues, index, extraLength);
+		        IFile file = problemsForFile.getKey();
+		        for(CategorizedProblem problem : problemsForFile.getValue()) {
+                    String markerType = problem.getMarkerType();
+                    IMarker marker = file.createMarker(markerType);
+        
+                    String[] attributeNames = AbstractImageBuilder.JAVA_PROBLEM_MARKER_ATTRIBUTE_NAMES;
+                    String[] extraAttributeNames = problem.getExtraMarkerAttributeNames();
+                    int extraLength = extraAttributeNames == null ? 0 : extraAttributeNames.length;
 
-                marker.setAttributes(allNames, allValues);
+                    int standardLength = attributeNames.length + 1;
+                    String[] allNames = new String[standardLength];
+                    System.arraycopy(attributeNames, 0, allNames, 0,standardLength-1);
+                    allNames[standardLength-1] = IMarker.SOURCE_ID;
+                    if (extraLength > 0) {
+                        allNames = new String[standardLength + extraLength];
+                        System.arraycopy(extraAttributeNames, 0, allNames, standardLength + 1, extraLength);
+                    }
+        
+                    Object[] allValues = new Object[allNames.length];
+                    // standard attributes
+                    int index = 0;
+                    allValues[index++] = problem.getMessage(); // message
+                    allValues[index++] = problem.isError() ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING; // severity
+                    allValues[index++] = new Integer(problem.getID()); // ID
+                    allValues[index++] = new Integer(problem.getSourceStart()); // start
+                    int end = problem.getSourceEnd();
+                    allValues[index++] = new Integer(end > 0 ? end + 1 : end); // end
+                    allValues[index++] = new Integer(problem.getSourceLineNumber()); // line
+                    allValues[index++] = Util.getProblemArgumentsForMarker(problem.getArguments()); // arguments
+                    allValues[index++] = new Integer(problem.getCategoryID()); // category ID
+                    // SOURCE_ID attribute for JDT problems
+                    allValues[index++] = JavaBuilder.SOURCE_ID;
+                    
+                    // optional extra attributes
+                    if (extraLength > 0)
+                        System.arraycopy(problem.getExtraMarkerAttributeValues(), 0, allValues, index, extraLength);
+    
+                    marker.setAttributes(allNames, allValues);
+		        }
             } catch (CoreException e) {
             }
-
         }
 	}
 
