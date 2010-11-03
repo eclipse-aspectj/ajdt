@@ -12,7 +12,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.builder;
 
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 
@@ -37,7 +41,7 @@ public interface IAJBuildListener {
 	 * @param noSourceChanges
 	 * @param newProblems TODO
 	 */
-	public void postAJBuild(int kind, IProject project, boolean noSourceChanges, CategorizedProblem[] newProblems);
+	public void postAJBuild(int kind, IProject project, boolean noSourceChanges, Map<IFile, List<CategorizedProblem>> newProblems);
 
 	/**
 	 * Add a listener to be notified when there is a change in the set of

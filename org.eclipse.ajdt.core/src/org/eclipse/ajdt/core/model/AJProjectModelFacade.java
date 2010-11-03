@@ -43,6 +43,7 @@ import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.javaelements.CompilationUnitTools;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -95,7 +96,7 @@ public class AJProjectModelFacade {
         private Set<IProject> beingCleaned = new HashSet<IProject>();
         
         public synchronized void postAJBuild(int kind, IProject project,
-                boolean noSourceChanges, CategorizedProblem[] newProblems) {
+                boolean noSourceChanges,  Map<IFile, List<CategorizedProblem>> newProblems) {
             beingBuilt.remove(project);
         }
 

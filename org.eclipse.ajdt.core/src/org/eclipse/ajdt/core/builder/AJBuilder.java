@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -282,7 +283,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     private void postBuild(int kind, boolean noSourceChanges, CompilationParticipant[] participants, AjCompiler compiler) {
         
         final IJavaProject javaProject = JavaCore.create(getProject());
-        List<CategorizedProblem> newProblems = Collections.emptyList();
+        Map<IFile, List<CategorizedProblem>> newProblems = Collections.emptyMap();
 
         // now handle particpants
         if (participants != null) {
@@ -331,12 +332,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
 
                 // extra problems and new dependencies
-                newProblems = new ArrayList<CategorizedProblem>();
+                newProblems = new HashMap<IFile, List<CategorizedProblem>>();
                 for (int i = 0; i < results.length; i++) {
                     AJCompilationParticipantResult result = (AJCompilationParticipantResult) results[i];
                     List<CategorizedProblem> problems = result.getProblems();
                     if (problems != null) {
-                        newProblems.addAll(problems);
+                        newProblems.put(result.getFile(), problems);
                     }
                     
                     String[] dependencies = result.getDependencies();
@@ -346,7 +347,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
             }
         }
-        postCallListeners(kind, noSourceChanges, newProblems.toArray(new CategorizedProblem[newProblems.size()]));
+        postCallListeners(kind, noSourceChanges, newProblems);
         ((CoreCompilerConfiguration) compiler.getCompilerConfiguration()).buildComplete();
     }
 
@@ -1529,7 +1530,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
     }
     
-    private void postCallListeners(int kind, boolean noSourceChanges, CategorizedProblem[] newProblems) {
+    private void postCallListeners(int kind, boolean noSourceChanges, Map<IFile, List<CategorizedProblem>> newProblems) {
         // bug 281687 --- synchronize access to listener list
         synchronized (buildListeners) {
             for (IAJBuildListener listener : buildListeners) {
