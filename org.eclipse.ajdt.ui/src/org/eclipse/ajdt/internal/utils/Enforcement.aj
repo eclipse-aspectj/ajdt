@@ -14,7 +14,7 @@ package org.eclipse.ajdt.internal.utils;
 
 /**
  * Check some coding standards and conventions
- */
+ */ 
 public aspect Enforcement {
 
 	declare warning : (get(* System.out) || get(* System.err)) : "There should be no printlns"; //$NON-NLS-1$
