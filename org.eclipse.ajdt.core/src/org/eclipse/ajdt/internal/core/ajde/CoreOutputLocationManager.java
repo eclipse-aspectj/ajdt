@@ -196,8 +196,8 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 */
 	private void init() {
 		outputIsRoot = false;
-		String inpathOutFolder = getInpathOutputFolder();
-		boolean isUsingNonDefaultInpathOutfolder = inpathOutFolder != null;
+		String inpathOutFolderString = getInpathOutputFolder();
+		boolean isUsingNonDefaultInpathOutfolder = inpathOutFolderString != null;
 
 		try {
 			IPath outputLocationPath = jProject.getOutputLocation();
@@ -244,10 +244,14 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			
             // check to see if on inpath and need a special out folder for it.
             if (isUsingNonDefaultInpathOutfolder) {
-                Path inpathOutFolderPath = new Path(inpathOutFolder);
-                File out = workspacePathToFile(inpathOutFolderPath);
+                // first add the inpath out folder to the list of out folders
+                IPath inpathOutFolderPath = new Path(inpathOutFolderString);
+                IFolder inpathOutFolder = workspaceRoot.getFolder(inpathOutFolderPath);
+                File out = inpathOutFolder.getLocation().toFile();
                 fileSystemPathToIContainer.put(out.getAbsolutePath(), 
                         workspaceRoot.getFolder(inpathOutFolderPath));
+                
+                // now map everything coming from the in path to this out folder
                 for (int i = 0; i < cpe.length; i++) {
                     if (AspectJCorePreferences.isOnInpath(cpe[i])) {
                         // now must resolve the entry so that all jars contained in it 
