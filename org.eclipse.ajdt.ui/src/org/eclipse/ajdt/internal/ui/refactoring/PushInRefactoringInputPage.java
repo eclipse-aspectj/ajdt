@@ -12,6 +12,7 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -146,6 +147,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
     
 	public PushInRefactoringInputPage(String name, PushInRefactoringDescriptor descriptor) {
 		super(name);
+		Assert.isNotNull(descriptor.getITDs(), "Cannot perform refactoring with no ITDs Selected");
 		this.descriptor = descriptor;
 	}
 
@@ -381,7 +383,7 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                 PushInRefactoringDescriptor descriptor= (PushInRefactoringDescriptor) inputElement;
                 return descriptor.getITDs();
             }
-            return null;
+            return new IAspectJElement[0];
         }
 
     }
