@@ -99,7 +99,8 @@
     <extension
        point="org.eclipse.contribution.weaving.jdt.weavablenature">
   	  <nature
-          natureid="org.eclipse.ajdt.ui.ajnature">
+           natureid="org.eclipse.ajdt.ui.ajnature"
+           requiresReindexing="true">
 	    </nature>
    </extension>
    <extension
