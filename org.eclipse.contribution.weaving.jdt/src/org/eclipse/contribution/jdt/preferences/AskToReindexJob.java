@@ -47,7 +47,10 @@ public class AskToReindexJob extends UIJob {
 
     private Shell getShell() {
         try {
-            return Display.getCurrent().getActiveShell();
+            Display display = getDisplay();
+            return display == null ?
+                    Display.getCurrent().getActiveShell()
+                    : display.getActiveShell();
         } catch (NullPointerException e) {
             return null;
         }

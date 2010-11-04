@@ -43,25 +43,16 @@ public class WeavingStateConfigurerUI {
     private class EnableWeavingDialog extends MessageDialogWithToggle {
         // problem here is that this message is AJDT specific, even though this plugin
         // should have no mention of AJDT
-        private final static String MESSAGE = "Should AJDT's weaving service be enabled?  (Requires restart)<br/><br/>" + 
+        private final static String MESSAGE = "Should JDT Weaving be enabled?  (Requires restart)<br/><br/>" + 
                 "The weaving service enables AJDT and AspectJ to fully function, but may require more resources to run Eclipse." +
-                "<br/><br/>More information: http://wiki.eclipse.org/JDT_weaving_features";
+                "<br/><br/>More information: http://wiki.eclipse.org/JDT_weaving_features" +
+                "<br/><br/>Problems enabling?  Email: https://dev.eclipse.org/mailman/listinfo/ajdt-dev";
         
-        private final static String EXPANDED_MESSAGE = 
-                "The weaving service enables advanced AJDT features such as content assist " +
-                "and searching.  <br/><br/>AspectJ projects will still have basic functionality even with " +
-                "weaving disabled.  If you encounter any sluggishness or memory problems, it is " +
-                "recommended that you increase your Xmx and PermGen sizes to at least 512 and " +
-                "128 respectively." +
-                "<br/><br/>" +
-                "Alternatively, the weaving service can be enabled or disabled from the JDT Weaving preferences page." +
-                "<br/><br/>More information: http://wiki.eclipse.org/JDT_weaving_features";
-
         public EnableWeavingDialog() {
             super(WeavingStateConfigurerUI.getShell(), "Turn Weaving Service on?", JDTWeavingPlugin.DESC_ASPECTJ_32.createImage(), 
                     "<form>" + MESSAGE + "</form>", QUESTION, new String[] { IDialogConstants.YES_LABEL,
                 IDialogConstants.NO_LABEL }, 0,
-                "Don't ask again until next upgrade", false);
+                "Don't ask again", false);
         }
         
         
