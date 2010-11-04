@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
+import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -15,7 +16,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -50,7 +50,7 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
 	public void run(IAction action) {
 	    if (currSelection != null) {
 	        try {
-                List itds = findAllITDs(currSelection);
+                List<IAspectJElement> itds = findAllITDs(currSelection);
                 if (itds.size() > 0) {
                 	PushInRefactoring refactoring= new PushInRefactoring();
                 	refactoring.setITDs(itds);
@@ -130,8 +130,8 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
 	    }
 	}
 	
-	protected List/*IAspectJElement*/ findAllITDs(IJavaElement[] selection) throws JavaModelException {
-	    List/*IAspectJElement*/ itds = new LinkedList();
+	protected List<IAspectJElement> findAllITDs(IJavaElement[] selection) throws JavaModelException {
+	    List<IAspectJElement> itds = new LinkedList<IAspectJElement>();
 	    for (int i = 0; i < selection.length; i++) {
             IJavaElement element = selection[i];
             itds.addAll(findITDsInChildren(element));
@@ -139,17 +139,17 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
 	    return itds;
 	}
 
-    private Collection findITDsInChildren(IJavaElement element) throws JavaModelException {
-        List/*IAspectJElement*/ itds = new LinkedList();
+    private Collection<IAspectJElement> findITDsInChildren(IJavaElement element) throws JavaModelException {
+        List<IAspectJElement> itds = new LinkedList<IAspectJElement>();
         if (element.isReadOnly()) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         if (element instanceof IntertypeElement) {
-            itds.add(element);
+            itds.add((IAspectJElement) element);
         } else if (element instanceof DeclareElement && 
                 (((DeclareElement) element).getAJKind().isDeclareAnnotation() ||
                 ((DeclareElement) element).getAJKind() == Kind.DECLARE_PARENTS)) {
-            itds.add(element);
+            itds.add((IAspectJElement) element);
         } else if (element instanceof IParent) {
             IParent parent = (IParent) element;
             try {
