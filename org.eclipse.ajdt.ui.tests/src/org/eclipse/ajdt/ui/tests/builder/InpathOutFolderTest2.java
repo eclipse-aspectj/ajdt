@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 
@@ -46,7 +47,17 @@ public class InpathOutFolderTest2 extends UITestCase {
     	    out.refreshLocal(IResource.DEPTH_INFINITE, null);
     	    
     	    IFile joinPointClass = out.getFile("org/aspectj/lang/JoinPoint.class");
-            assertTrue("AspectJ RT should exist in the in path out folder", joinPointClass.exists());
+    	    if (! joinPointClass.exists()) {
+    	        System.out.println("Out folder: " + out.getLocation());
+    	        IResourceVisitor visitor = new IResourceVisitor() {
+                    public boolean visit(IResource resource) throws CoreException {
+                        System.out.println(resource.getLocation());
+                        return true;
+                    }
+                };
+                out.accept(visitor);
+    	        fail("AspectJ RT should exist in the in path out folder");
+    	    }
             
             pluginProjectWithInpathOutFolder.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
