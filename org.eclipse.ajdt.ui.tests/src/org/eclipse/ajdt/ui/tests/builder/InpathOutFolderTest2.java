@@ -13,6 +13,7 @@ package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -39,10 +40,12 @@ public class InpathOutFolderTest2 extends UITestCase {
     	    // and it is a plugin project that relies on the aspectj rt plugin
     	    // after a build, in the out folder, the entire contents of the plugin should be there
     	    IProject pluginProjectWithInpathOutFolder = createPredefinedProject("InPathOutFolderPluginTesting"); //$NON-NLS-1$
+    	    SynchronizationUtils.joinBackgroudActivities();
     	    pluginProjectWithInpathOutFolder.build(IncrementalProjectBuilder.FULL_BUILD, null);
     	    
     	    IFolder out = pluginProjectWithInpathOutFolder.getFolder("out");
     	    
+    	    SynchronizationUtils.joinBackgroudActivities();
     	    // should not need to refresh
     	    out.refreshLocal(IResource.DEPTH_INFINITE, null);
     	    
@@ -61,6 +64,7 @@ public class InpathOutFolderTest2 extends UITestCase {
     	    }
             
             pluginProjectWithInpathOutFolder.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+            SynchronizationUtils.joinBackgroudActivities();
 
             // should not need to refresh
             out.refreshLocal(IResource.DEPTH_INFINITE, null);
