@@ -49,13 +49,14 @@ public class InpathOutFolderTest2 extends UITestCase {
     	    IFile joinPointClass = out.getFile("org/aspectj/lang/JoinPoint.class");
     	    if (! joinPointClass.exists()) {
     	        System.out.println("Out folder: " + out.getLocation());
+    	        System.out.println("All resources in project:");
     	        IResourceVisitor visitor = new IResourceVisitor() {
                     public boolean visit(IResource resource) throws CoreException {
-                        System.out.println(resource.getLocation());
+                        System.out.println("Resource: " + resource.getLocation());
                         return true;
                     }
                 };
-                out.accept(visitor);
+                pluginProjectWithInpathOutFolder.accept(visitor);
     	        fail("AspectJ RT should exist in the in path out folder");
     	    }
             
