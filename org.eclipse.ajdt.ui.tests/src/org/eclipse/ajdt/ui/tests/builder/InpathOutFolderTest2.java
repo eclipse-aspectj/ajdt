@@ -16,6 +16,7 @@ import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 
@@ -42,7 +43,7 @@ public class InpathOutFolderTest2 extends UITestCase {
     	    IFolder out = pluginProjectWithInpathOutFolder.getFolder("out");
     	    
     	    // should not need to refresh
-//    	    out.refreshLocal(IResource.DEPTH_INFINITE, null);
+    	    out.refreshLocal(IResource.DEPTH_INFINITE, null);
     	    
     	    IFile joinPointClass = out.getFile("org/aspectj/lang/JoinPoint.class");
             assertTrue("AspectJ RT should exist in the in path out folder", joinPointClass.exists());
@@ -50,7 +51,7 @@ public class InpathOutFolderTest2 extends UITestCase {
             pluginProjectWithInpathOutFolder.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
             // should not need to refresh
-//            out.refreshLocal(IResource.DEPTH_INFINITE, null);
+            out.refreshLocal(IResource.DEPTH_INFINITE, null);
             assertFalse("AspectJ RT should not exist in the in path out folder", joinPointClass.exists());
         } finally {
             Utils.setAutobuilding(true);
