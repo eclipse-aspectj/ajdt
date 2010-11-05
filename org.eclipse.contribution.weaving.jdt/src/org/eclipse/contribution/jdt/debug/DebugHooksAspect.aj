@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.jdt.debug.core.IJavaObject;
 import org.eclipse.jdt.debug.core.IJavaStackFrame;
@@ -70,7 +71,7 @@ public privileged aspect DebugHooksAspect {
         try {
             
             IThread thread = target.findThread(((JDIThread.StepHandler) handler).getStepRequest().thread());
-            if ((provider != null && isInterestingThread(thread) && provider
+            if ((provider != null && isInterestingThread(thread) && thread.isStepping() && provider
                     .shouldPerformExtraStep(location))) {
                 return true;  // do not proceed
             }
@@ -169,15 +170,24 @@ public privileged aspect DebugHooksAspect {
         try {
             if (thread == null) return false;
             
-            String projectName = thread
-                    .getLaunch()
-                    .getLaunchConfiguration()
+            ILaunchConfiguration launchConfig = thread
+                    .getLaunch().getLaunchConfiguration();
+            
+            String projectName = launchConfig
                     .getAttribute(
                             IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
                             "");
-            IProject project = WORKSPACE_ROOT.getProject(projectName);
-            return (WeavableProjectListener.getInstance()
-                    .isWeavableProject(project));
+            
+            if (!projectName.equals("")) {
+                IProject project = WORKSPACE_ROOT.getProject(projectName);
+                return (WeavableProjectListener.getInstance()
+                        .isWeavableProject(project));
+            } else {
+                // most likely a server launch
+                // return true iff we are running a SpringSource server
+                String serverConfig = launchConfig.getAttribute("server-id", "");
+                return serverConfig.contains("SpringSource"); 
+            }
         } catch (CoreException e) {
             JDTWeavingPlugin.logException(e);
         }
