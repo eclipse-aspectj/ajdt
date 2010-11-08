@@ -17,6 +17,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IThread;
+import org.eclipse.jdi.internal.request.EventRequestImpl;
+import org.eclipse.jdi.internal.request.StepRequestImpl;
 import org.eclipse.jdt.debug.core.IJavaObject;
 import org.eclipse.jdt.debug.core.IJavaStackFrame;
 import org.eclipse.jdt.debug.core.IJavaThread;
@@ -29,7 +31,7 @@ import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import com.sun.jdi.Location;
 import com.sun.jdi.event.Event;
 import com.sun.jdi.event.EventSet;
-
+import com.sun.jdi.InternalException;
 /**
  * The pointcuts and advice that provides hooks for other plugins into the JDT debug infrastructure
  * 
@@ -70,10 +72,13 @@ public privileged aspect DebugHooksAspect {
         // otherwise, proceed as usual
         try {
             
-            IThread thread = target.findThread(((JDIThread.StepHandler) handler).getStepRequest().thread());
-            if ((provider != null && isInterestingThread(thread) && thread.isStepping() && provider
-                    .shouldPerformExtraStep(location))) {
-                return true;  // do not proceed
+            StepRequestImpl request = (StepRequestImpl) ((JDIThread.StepHandler) handler).getStepRequest();
+            if (request != null) {
+                IThread thread = target.findThread(request.thread());
+                if ((provider != null && isInterestingThread(thread) && thread.isStepping() && provider
+                        .shouldPerformExtraStep(location))) {
+                    return true;  // do not proceed
+                }
             }
         } catch (DebugException e) {
             JDTWeavingPlugin.logException(e);
@@ -136,6 +141,39 @@ public privileged aspect DebugHooksAspect {
         proceed(snippet, frame, listener, engine);
     }
     
+    /**
+     * Capture enabling of step requests
+     */
+    pointcut stepRequestEnabled(StepRequestImpl stepRequest) : execution(public void EventRequestImpl.enable()) && this(stepRequest);
+    
+    private static final int MAX_RETRY = 50;
+    /**
+     * There is a problem in that when performing extra step filters, occasionally
+     * an exception is thrown, but on a retry to perform the step request, 
+     * then the extra step is successful.
+     * 
+     * Try 50 times before failing.  This seems to work
+     * @param stepRequest
+     */
+    void around(StepRequestImpl stepRequest) : stepRequestEnabled(stepRequest) {
+        
+        for (int attemptNumber = 1; attemptNumber < MAX_RETRY; attemptNumber++) {
+            try {
+                proceed(stepRequest);
+                return;  // success.  we are done
+            } catch(InternalException e) {
+                if (e.errorCode() == 13) {
+                    // swallow exception and retry
+                } else {
+                    // fail
+                    throw e;
+                }
+            }
+        }
+        
+        // try one more time, but do not swallow
+        proceed(stepRequest);
+    }
     
 
     /**
