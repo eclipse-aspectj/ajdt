@@ -16,6 +16,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.jdi.internal.request.EventRequestImpl;
 import org.eclipse.jdi.internal.request.StepRequestImpl;
@@ -75,7 +76,7 @@ public privileged aspect DebugHooksAspect {
             StepRequestImpl request = (StepRequestImpl) ((JDIThread.StepHandler) handler).getStepRequest();
             if (request != null) {
                 IThread thread = target.findThread(request.thread());
-                if ((provider != null && isInterestingThread(thread) && thread.isStepping() && provider
+                if ((provider != null && isInterestingLaunch(thread) && thread.isStepping() && provider
                         .shouldPerformExtraStep(location))) {
                     return true;  // do not proceed
                 }
@@ -175,6 +176,20 @@ public privileged aspect DebugHooksAspect {
         proceed(stepRequest);
     }
     
+    pointcut gettingStepFilters(JDIDebugTarget target) : execution(public String[] JDIDebugTarget.getStepFilters()) &&
+            this(target);
+    
+    String[] around(JDIDebugTarget target) : gettingStepFilters(target) {
+        String[] initialFilters = proceed(target);
+        try {
+            if (isInterestingLaunch(target)) {
+                return provider.augmentStepFilters(initialFilters);
+            } 
+        } catch(Throwable t) {
+            JDTWeavingPlugin.logException(t);
+        }
+        return initialFilters;
+    }
 
     /**
      * @param snippet
@@ -188,7 +203,7 @@ public privileged aspect DebugHooksAspect {
             IJavaStackFrame frame, IEvaluationListener listener,
             ASTEvaluationEngine engine) {
         try {
-            if (provider != null && isInterestingThread(frame.getThread())
+            if (provider != null && isInterestingLaunch(frame)
                     && provider.shouldPerformEvaluation(frame)) {
                 provider.performEvaluation(snippet, object, frame, listener,
                         engine.getJavaProject());
@@ -204,7 +219,7 @@ public privileged aspect DebugHooksAspect {
      * return true iff the current thread is part of a launch that is associated with an interesting
      * project
      */
-    protected boolean isInterestingThread(IThread thread) {
+    protected boolean isInterestingLaunch(IDebugElement thread) {
         try {
             if (thread == null) return false;
             

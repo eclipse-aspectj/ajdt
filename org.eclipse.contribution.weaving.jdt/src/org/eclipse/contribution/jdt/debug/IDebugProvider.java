@@ -52,5 +52,11 @@ public interface IDebugProvider {
      * @throws DebugException
      */
     boolean shouldPerformExtraStep(Location location) throws DebugException;
+ 
     
+    /**
+     * @return the extra step filters to be added to any step request
+     * @return
+     */
+    String[] augmentStepFilters(String[] origStepFilters);
 }
