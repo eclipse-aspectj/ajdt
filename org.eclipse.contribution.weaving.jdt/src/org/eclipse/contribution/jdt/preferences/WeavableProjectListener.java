@@ -77,7 +77,7 @@ public class WeavableProjectListener implements ILifecycleListener {
     private boolean indexingRequiredProject(IProject project) {
         for (String natureid : indexRequiredNatures) {
             try {
-                if (project.hasNature(natureid)) {
+                if (projectHasNature(project, natureid)) {
                     return true;
                 }
             } catch (CoreException e) {
@@ -85,6 +85,17 @@ public class WeavableProjectListener implements ILifecycleListener {
             }
         }
         return false;
+    }
+
+    /**
+     * @param project
+     * @param natureid
+     * @return
+     * @throws CoreException
+     */
+    protected boolean projectHasNature(IProject project, String natureid)
+            throws CoreException {
+        return project != null && project.isAccessible() && project.hasNature(natureid);
     }
     
     private void initWeavableNatures() {
@@ -129,7 +140,7 @@ public class WeavableProjectListener implements ILifecycleListener {
             }
             if (project != null && project.isAccessible()) {
                 for (String natureId : weavableNatures) {
-                    if (project.hasNature(natureId)) {
+                    if (projectHasNature(project, natureId)) {
                         return true;
                     }
                 }
