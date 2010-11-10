@@ -98,21 +98,21 @@ public privileged aspect DebugHooksAspect {
      */
     pointcut performEvaluation(String snippet, IJavaObject object,
             IJavaThread thread, IEvaluationListener listener,
-            ASTEvaluationEngine engine) 
+            int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine) 
                 : execution(public void ASTEvaluationEngine.evaluate(String, IJavaThread, IEvaluationListener, int, boolean) throws DebugException) && 
-                  args(snippet, object, thread, listener, ..) && this(engine);
+                  args(snippet, object, thread, listener, evaluationDetail, hitBreakpoints) && this(engine);
 
     void around(String snippet, IJavaObject object, IJavaThread thread,
-            IEvaluationListener listener, ASTEvaluationEngine engine) : performEvaluation(snippet, object,
-                    thread, listener, engine) {
+            IEvaluationListener listener, int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine) : performEvaluation(snippet, object,
+                    thread, listener, evaluationDetail, hitBreakpoints, engine) {
         try {
-            if (maybePerformEvaluation(snippet, object, (IJavaStackFrame) thread.getStackFrames()[0], listener, engine)) {
+            if (maybePerformEvaluation(snippet, object, (IJavaStackFrame) thread.getStackFrames()[0], listener, evaluationDetail, hitBreakpoints, engine)) {
                 return; // do not proceed
             }
         } catch (DebugException e) {
             JDTWeavingPlugin.logException(e);
         }
-        proceed(snippet, object, thread, listener, engine);
+        proceed(snippet, object, thread, listener, evaluationDetail, hitBreakpoints, engine);
     }
     
     /**
@@ -125,21 +125,22 @@ public privileged aspect DebugHooksAspect {
      * @param listener
      */
     pointcut performEvaluationWithThread(String snippet, IJavaStackFrame frame, IEvaluationListener listener,
-            ASTEvaluationEngine engine) 
+            int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine) 
                 : execution(public void ASTEvaluationEngine.evaluate(String, IJavaStackFrame, IEvaluationListener, int, boolean) throws DebugException) && 
-                  args(snippet, frame, listener, ..) && this(engine);
+                  args(snippet, frame, listener, evaluationDetail, hitBreakpoints) && this(engine);
 
     void around(String snippet, IJavaStackFrame frame,
-            IEvaluationListener listener, ASTEvaluationEngine engine) : performEvaluationWithThread(snippet, frame, listener, engine) {
+            IEvaluationListener listener, int evaluationDetail, boolean hitBreakpoints, ASTEvaluationEngine engine) :
+                performEvaluationWithThread(snippet, frame, listener, evaluationDetail, hitBreakpoints, engine) {
         try {
             IJavaObject object = frame.getThis();
-            if (maybePerformEvaluation(snippet, object, frame, listener, engine)) {
+            if (maybePerformEvaluation(snippet, object, frame, listener, evaluationDetail, hitBreakpoints, engine)) {
                 return; // do not proceed
             }
         } catch (DebugException e) {
             JDTWeavingPlugin.logException(e);
         }
-        proceed(snippet, frame, listener, engine);
+        proceed(snippet, frame, listener, evaluationDetail, hitBreakpoints, engine);
     }
     
     /**
@@ -200,13 +201,13 @@ public privileged aspect DebugHooksAspect {
      * @return true iff the provider performed the evaluation
      */
     protected boolean maybePerformEvaluation(String snippet, IJavaObject object,
-            IJavaStackFrame frame, IEvaluationListener listener,
+            IJavaStackFrame frame, IEvaluationListener listener, int evaluationDetail, boolean hitBreakpoints,
             ASTEvaluationEngine engine) {
         try {
             if (provider != null && isInterestingLaunch(frame)
                     && provider.shouldPerformEvaluation(frame)) {
                 provider.performEvaluation(snippet, object, frame, listener,
-                        engine.getJavaProject());
+                        engine.getJavaProject(), evaluationDetail, hitBreakpoints);
                 return true;
             }
         } catch (Exception e) {

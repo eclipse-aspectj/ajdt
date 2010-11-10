@@ -36,7 +36,8 @@ public interface IDebugProvider {
      * @throws DebugException
      */
     void performEvaluation(String snippet, IJavaObject object,
-            IJavaStackFrame frame, IEvaluationListener listener, IJavaProject javaProject) throws DebugException;
+            IJavaStackFrame frame, IEvaluationListener listener, IJavaProject javaProject,
+            int evaluationDetail, boolean hitBreakpoints) throws DebugException;
     
     /**
      * @param frame current stack fram where evaluation is occurring
