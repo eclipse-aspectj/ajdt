@@ -27,7 +27,7 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
     
     private static JDTWeavingPlugin INSTANCE;
     
-    public static String ID = "org.eclipse.contribution.jdt"; //$NON-NLS-1$
+    public static String ID = "org.eclipse.contribution.weaving.jdt"; //$NON-NLS-1$
     
     public JDTWeavingPlugin() {
         super();
