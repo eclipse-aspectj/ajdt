@@ -951,13 +951,21 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		        (token.charAt(0) == JavaElement.JEM_PACKAGEDECLARATION)) {
 		    return super.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
-		// need to handle types ourselves, because they may contain inner aspects
+		
+        // need to handle types ourselves, because they may contain inner aspects
 		// (or inner classes containing inner aspects etc)
 		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||
-				(token.charAt(0) == JavaElement.JEM_TYPE)) {
+				(token.charAt(0) == JavaElement.JEM_TYPE) ||
+				(token.charAt(0) == JavaElement.JEM_ANNOTATION)) {
+		    // note that we are also testing for JEM_ANNOTATION here.
+		    // this is because when the type handle identifiers were changed prior to 2.1.1,
+		    // JEM_ASPECT_TYPE and JEM_ANNOTATION were the same.
+		    // Some people have had problems in that the old handles were cached.
+		    // this can probably be safely removed post 2.1.2.
 			if (!memento.hasMoreTokens()) return type;
 			String typeName = memento.nextToken();
-			if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
+			if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE ||
+			        token.charAt(0) == JavaElement.JEM_ANNOTATION) {
 				type = new AspectElement(type, typeName);
 			} else if (token.charAt(0) == JavaElement.JEM_TYPE) {
 				type = getType(type,typeName);
@@ -997,6 +1005,7 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			JavaElement pointcut = new PointcutElement(type, name, parameters);
 			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
 		}
+		
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
 	
