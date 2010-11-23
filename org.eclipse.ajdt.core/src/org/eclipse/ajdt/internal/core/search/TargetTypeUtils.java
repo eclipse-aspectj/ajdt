@@ -35,9 +35,20 @@ public class TargetTypeUtils {
         return (char[]) ReflectionUtils.getPrivateField(TypeReferencePattern.class, "qualification", pattern);
     }
 
+    static String getSimpleNameStr(TypeReferencePattern pattern) {
+        char[] simpleNameChars = getSimpleName(pattern);
+        return simpleNameChars != null ? String.valueOf(simpleNameChars) : null;
+    }
+    
+    static String getQualNameStr(TypeReferencePattern pattern) {
+       char[] qualNameChars = getQualName(pattern);
+       return qualNameChars != null ? String.valueOf(qualNameChars) : null;
+    }
+
     static char[] getSimpleName(TypeReferencePattern pattern) {
         return (char[]) ReflectionUtils.getPrivateField(TypeReferencePattern.class, "simpleName", pattern);
     }
+
 
     static char[] getName(TypeReferencePattern pattern) {
         return getName(getQualName(pattern), getSimpleName(pattern));

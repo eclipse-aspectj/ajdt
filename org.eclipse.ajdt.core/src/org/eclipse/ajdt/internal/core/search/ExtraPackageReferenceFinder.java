@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareAnnotationDeclaration;
-import org.aspectj.org.eclipse.jdt.core.dom.DefaultTypePattern;
+import org.aspectj.org.eclipse.jdt.core.dom.IdentifierTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
@@ -96,9 +96,11 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
             super(participant, decl, fileContents);
         }
         
+    	//TODO: add support for other type pattern nodes
+        
         @Override
-        public boolean visit(DefaultTypePattern node) {
-            String detail = node.getDetail();
+        public boolean visit(IdentifierTypePattern node) {
+            String detail = node.getTypePatternExpression();
             if (detail != null) {
                 if (isMatch(detail, 0, detail.length())) {
                     int actualStart = node.getStartPosition() + offset;

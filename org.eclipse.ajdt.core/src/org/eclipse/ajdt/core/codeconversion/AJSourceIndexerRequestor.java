@@ -14,13 +14,16 @@ package org.eclipse.ajdt.core.codeconversion;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.dom.AjASTVisitor;
+import org.aspectj.org.eclipse.jdt.core.dom.AnyWithAnnotationTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareAnnotationDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareParentsDeclaration;
-import org.aspectj.org.eclipse.jdt.core.dom.DefaultTypePattern;
+import org.aspectj.org.eclipse.jdt.core.dom.IdentifierTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
 import org.aspectj.org.eclipse.jdt.core.dom.SignaturePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
+import org.aspectj.org.eclipse.jdt.core.dom.TypeCategoryTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.TypePattern;
 import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
@@ -61,26 +64,52 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                     
                     BodyDeclaration node = PointcutUtilities.createSingleBodyDeclarationNode(fieldInfo.declarationStart, fieldInfo.node.sourceEnd, contents);
                     if (node instanceof DeclareParentsDeclaration) {
+                    	
                         // found it!
                         DeclareParentsDeclaration declare = (DeclareParentsDeclaration) node;
                         TypePattern childTypePattern = declare.getChildTypePattern();
-                        if (childTypePattern instanceof DefaultTypePattern) {
-                            DefaultTypePattern typePatt = (DefaultTypePattern) childTypePattern;
-                            char[][] tokens = tokenize(typePatt.getDetail());
-                            for (char[] token : tokens) {
-                                // must accept an uknown reference since we don't really know if this is a type, method, or field reference
-                                // source position is wrong, but this is ok.
-                                super.acceptUnknownReference(token, typePatt.getStartPosition());
-                            }
-                        }                        
+ 
+                        // Visit the children
+						AjASTVisitor typePatternVisitor = new AjASTVisitor() {
+
+							public boolean visit(IdentifierTypePattern node) {
+								AJSourceIndexerRequestor.super
+										.acceptUnknownReference(node
+												.getTypePatternExpression()
+												.toCharArray(), node
+												.getStartPosition());
+								return true;
+							}
+							
+							public boolean visit(AnyWithAnnotationTypePattern node) {
+								AJSourceIndexerRequestor.super
+										.acceptUnknownReference(node
+												.getTypePatternExpression()
+												.toCharArray(), node
+												.getStartPosition());
+								return true;
+							}
+							
+							public boolean visit(TypeCategoryTypePattern node) {
+								AJSourceIndexerRequestor.super
+										.acceptUnknownReference(node
+												.getTypePatternExpression()
+												.toCharArray(), node
+												.getStartPosition());
+								return true;
+							}
+							
+							//TODO: Add more as needed. Extract visitor to file if too large
+
+						};
+
+						childTypePattern.accept(typePatternVisitor);
+                        
                         for (Object parentTypePatt : declare.parentTypePatterns()) {
-                            DefaultTypePattern typePatt = (DefaultTypePattern) parentTypePatt;
-                            char[][] tokens = tokenize(typePatt.getDetail());
-                            for (char[] token : tokens) {
-                                // must accept an uknown reference since we don't really know if this is a type, method, or field reference
-                                // source position is wrong, but this is ok.
-                                super.acceptUnknownReference(token, typePatt.getStartPosition());
-                            }
+                        	if (parentTypePatt instanceof IdentifierTypePattern) {
+                        		IdentifierTypePattern typePatt = (IdentifierTypePattern) parentTypePatt;
+                        		super.acceptUnknownReference(typePatt.getTypePatternExpression().toCharArray(), typePatt.getStartPosition());
+                        	}
                         }
                     } else if (node instanceof DeclareAnnotationDeclaration) {
                         // found it!
@@ -98,8 +127,8 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                         
                         PatternNode targetPattern = declare.getPatternNode();
                         
-                        if (targetPattern instanceof DefaultTypePattern) {
-                            String detail = ((DefaultTypePattern) targetPattern).getDetail();
+                        if (targetPattern instanceof IdentifierTypePattern) {
+                            String detail = ((IdentifierTypePattern) targetPattern).getTypePatternExpression();
                             char[][] tokens = detail != null ? CharOperation.splitOn('.', detail.toCharArray()) : null;
                             super.acceptTypeReference(tokens, targetPattern.getStartPosition(), targetPattern.getStartPosition() + targetPattern.getLength());
                         } else if (targetPattern instanceof SignaturePattern) {

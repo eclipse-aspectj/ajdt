@@ -10,33 +10,25 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.search;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.aspectj.org.eclipse.jdt.core.dom.AjASTVisitor;
-import org.aspectj.org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareAnnotationDeclaration;
-import org.aspectj.org.eclipse.jdt.core.dom.DefaultTypePattern;
+import org.aspectj.org.eclipse.jdt.core.dom.IdentifierTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
-import org.aspectj.org.eclipse.jdt.core.dom.SignaturePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaConventions;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.TypeReferenceMatch;
-import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.core.search.matching.TypeReferencePattern;
 
 /**
@@ -67,8 +59,8 @@ public class ExtraTypeReferenceFinder extends AbstractExtraReferenceFinder<TypeR
     protected DeclareVisitor createDeclareVisitor(char[] contents, DeclareElement decl, SearchParticipant participant, 
             TypeReferencePattern pattern) throws JavaModelException {
         return new TypeReferenceDeclareVisitor(participant, 
-                String.valueOf(TargetTypeUtils.getSimpleName(pattern)), 
-                String.valueOf(TargetTypeUtils.getQualName(pattern)), 
+        		TargetTypeUtils.getSimpleNameStr(pattern), 
+        		TargetTypeUtils.getQualNameStr(pattern), 
                 decl, contents);
     }
 
@@ -85,14 +77,17 @@ public class ExtraTypeReferenceFinder extends AbstractExtraReferenceFinder<TypeR
             this.searchQualifier = searchQualifier == null ? "" : searchQualifier;
             this.dotSearchTypeSimpleName = "." + searchTypeSimpleName;
             this.atSearchTypeSimpleName = "@" + searchTypeSimpleName;
-            this.atSearchTypeQualName = "@" + (searchQualifier.length() > 0 ? searchQualifier + "." : "") + searchTypeSimpleName;
+			this.atSearchTypeQualName = "@"
+					+  (this.searchQualifier.length() > 0 ?  this.searchQualifier
+							+ "."
+							: "") + searchTypeSimpleName;
         }
 
         @Override
-        public boolean visit(DefaultTypePattern node) {
+        public boolean visit(IdentifierTypePattern node) {
             // We have already checked qualified names at this point, 
             // so we can assume a match if the simple names match.
-            String detail = node.getDetail();
+            String detail = node.getTypePatternExpression();
             if (detail != null) {
                 if (isSimpleMatch(detail)) {
                     int actualStart = node.getStartPosition() + offset;

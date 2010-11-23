@@ -65,7 +65,7 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 		return super.equals(o) && (occurrenceCount == ajce.occurrenceCount);
 	}
 	
-	private void initializeLocations() {
+	public void initializeLocations() {
 	    // try the easy way:
         IProgramElement ipe = 
             AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
