@@ -155,6 +155,9 @@ public privileged aspect DebugHooksAspect {
      * then the extra step is successful.
      * 
      * Try 50 times before failing.  This seems to work
+     * This is the same problem as described in:
+     * https://bugs.eclipse.org/bugs/show_bug.cgi?id=297071
+     * And it may be mac-only
      * @param stepRequest
      */
     void around(StepRequestImpl stepRequest) : stepRequestEnabled(stepRequest) {
@@ -179,7 +182,11 @@ public privileged aspect DebugHooksAspect {
     
     pointcut gettingStepFilters(JDIDebugTarget target) : execution(public String[] JDIDebugTarget.getStepFilters()) &&
             this(target);
-    
+
+    /**
+     * Allow the {@link IDebugProvider} the capability to supply its own
+     * step filters.
+     */
     String[] around(JDIDebugTarget target) : gettingStepFilters(target) {
         String[] initialFilters = proceed(target);
         try {
