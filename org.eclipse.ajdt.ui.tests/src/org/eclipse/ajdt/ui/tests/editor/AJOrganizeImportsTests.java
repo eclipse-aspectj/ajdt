@@ -57,6 +57,12 @@ public class AJOrganizeImportsTests extends UITestCase {
         javaProject = JavaCore.create(project);
     }
     
+    public void testOrganizeImportsSimple1() throws Exception {
+        checkOrganizeImports("Aspect.aj", "pack", 
+                "package pack;\n\nclass Aspect {\nprivate HashMap val; }", 
+                "package pack;\n\nimport java.util.HashMap;\n\nclass Aspect {\nprivate HashMap val; }");
+    }
+
     public void testOrganizeImports1() throws Exception {
         checkOrganizeImports("Aspect.aj", "pack", 
                 "package pack;\nimport java.util.List;\naspect Aspect { }", 
