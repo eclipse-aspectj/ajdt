@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.javaelements.SourceRange;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
@@ -55,7 +56,6 @@ import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.TypeNameMatch;
-import org.eclipse.ajdt.core.javaelements.SourceRange;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationMessages;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
@@ -65,9 +65,9 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.Strings;
 import org.eclipse.jdt.internal.corext.util.TypeNameMatchCollector;
-import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
 import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
+import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.text.edits.TextEdit;
 
 /**
@@ -198,37 +198,39 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 		 * Tries to find the given type name and add it to the import structure.
 		 */
 		public void add(SimpleName ref) throws CoreException {
-			String typeName= ref.getIdentifier();
-			
-			if (fImportsAdded.contains(typeName)) {
-				return;
-			}
-			
-			IBinding binding= ref.resolveBinding();
-			if (binding != null) {
-				if (binding.getKind() == IBinding.TYPE) {
-					ITypeBinding typeBinding= (ITypeBinding) binding;
-					if (typeBinding.isArray()) {
-						typeBinding= typeBinding.getElementType();
-					}
-					typeBinding= typeBinding.getTypeDeclaration();
-					
-					if (needsImport(typeBinding, ref)) {
-						fImpStructure.addImport(typeBinding);
-						fImportsAdded.add(typeName);
-					}
-				}	
-				return;
-			}
-			
-			if (fDoIgnoreLowerCaseNames && typeName.length() > 0) {
-				char ch= typeName.charAt(0);
-				if (Strings.isLowerCase(ch) && Character.isLetter(ch)) {
-					return;
-				}
-			}
-			fImportsAdded.add(typeName);			
-			fUnresolvedTypes.put(typeName, new UnresolvedTypeData(ref));
+		    String typeName= ref.getIdentifier();
+
+		    if (fImportsAdded.contains(typeName)) {
+		        return;
+		    }
+
+		    IBinding binding= ref.resolveBinding();
+		    if (binding != null) {
+		        if (binding.getKind() != IBinding.TYPE) {
+		            return;
+		        }
+		        ITypeBinding typeBinding= (ITypeBinding) binding;
+		        if (typeBinding.isArray()) {
+		            typeBinding= typeBinding.getElementType();
+		        }
+		        typeBinding= typeBinding.getTypeDeclaration();
+		        if (!typeBinding.isRecovered()) {
+		            if (needsImport(typeBinding, ref)) {
+		                fImpStructure.addImport(typeBinding);
+		                fImportsAdded.add(typeName);
+		            }
+		            return;
+		        }
+		    } else {
+		        if (fDoIgnoreLowerCaseNames && typeName.length() > 0) {
+		            char ch= typeName.charAt(0);
+		            if (Strings.isLowerCase(ch) && Character.isLetter(ch)) {
+		                return;
+		            }
+		        }
+		    }
+		    fImportsAdded.add(typeName);
+		    fUnresolvedTypes.put(typeName, new UnresolvedTypeData(ref));
 		}
 			
 		public boolean process(IProgressMonitor monitor) throws JavaModelException {
@@ -464,7 +466,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			
 			CompilationUnit astRoot= fASTRoot;
 			if (astRoot == null) {
-				astRoot= ASTProvider.getASTProvider().getAST(fCompilationUnit, ASTProvider.WAIT_YES, new SubProgressMonitor(monitor, 2));
+				astRoot= SharedASTProvider.getAST(fCompilationUnit, SharedASTProvider.WAIT_YES, new SubProgressMonitor(monitor, 2));
 			} else {
 				monitor.worked(2);
 			}
@@ -476,8 +478,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			List/*<SimpleName>*/ typeReferences= new ArrayList();
 			List/*<SimpleName>*/ staticReferences= new ArrayList();
 			
-			boolean res= collectReferences(astRoot, typeReferences, staticReferences, oldSingleImports, oldDemandImports);
-			if (!res) {
+			if (!collectReferences(astRoot, typeReferences, staticReferences, oldSingleImports, oldDemandImports)) {
 				return;
 			}
 						
