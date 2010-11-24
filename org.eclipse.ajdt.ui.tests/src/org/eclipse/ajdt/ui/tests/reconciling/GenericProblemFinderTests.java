@@ -10,40 +10,14 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.reconciling;
 
-import java.util.HashMap;
 
-import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
-import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
-import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.compiler.CategorizedProblem;
-import org.eclipse.jdt.internal.core.CompilationUnit;
 
 /**
  * Tests AJCompilationUnitProblemFinder
  * @author andrew
  *
  */
-public class GenericProblemFinderTests extends UITestCase {
-    private IJavaProject proj;
-
-    protected void setUp() throws Exception {
-        proj = JavaCore.create(createPredefinedProject("DefaultEmptyProject")); //$NON-NLS-1$
-        waitForJobsToComplete();
-        setAutobuilding(false);
-    }
-    protected void tearDown() throws Exception {
-        try {
-            super.tearDown();
-        } finally {
-            setAutobuilding(true);
-        }
-    }
-    
+public class GenericProblemFinderTests extends AbstractProblemFindingTests {
     public void testNoProblemsAbstractAspectDeclareParents() throws Exception {
         assertNoProblems(
                 new String[] { "p" }, 
@@ -118,26 +92,5 @@ public class GenericProblemFinderTests extends UITestCase {
                         
                         "package p;\n" +
                         "class Class { }" });
-    }
-
-    private void assertNoProblems(String[] packages, String[] cuNames, String[] cuContents) throws CoreException {
-        ICompilationUnit[] units = createUnits(packages, cuNames, cuContents, proj);
-        buildProject(proj);
-        for (ICompilationUnit unit : units) {
-            assertNoProblems((CompilationUnit) unit);
-        }
-    }
-    
-    /**
-     * @throws JavaModelException
-     */
-    private void assertNoProblems(CompilationUnit unit) throws JavaModelException {
-        HashMap<String,CategorizedProblem[]> problems = new HashMap<String,CategorizedProblem[]>();
-        AJCompilationUnitProblemFinder.processAJ(unit, 
-                AJWorkingCopyOwner.INSTANCE, problems, true, 
-                ICompilationUnit.ENABLE_BINDINGS_RECOVERY | ICompilationUnit.ENABLE_STATEMENTS_RECOVERY | ICompilationUnit.FORCE_PROBLEM_DETECTION, null);
-        
-        MockProblemRequestor.filterAllWarningProblems(problems);
-        assertEquals("Should not have any problems in " + unit + " but found:\n" + MockProblemRequestor.printProblems(problems), 0, problems.size()); //$NON-NLS-1$
     }
 }

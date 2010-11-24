@@ -82,6 +82,7 @@ import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug273691Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug279439Reconciling;
+import org.eclipse.ajdt.ui.tests.reconciling.ExtraAspectMethodProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.GenericProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
@@ -246,6 +247,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
         suite.addTest(new TestSuite(GenericProblemFinderTests.class));
+        suite.addTest(new TestSuite(ExtraAspectMethodProblemFinderTests.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));

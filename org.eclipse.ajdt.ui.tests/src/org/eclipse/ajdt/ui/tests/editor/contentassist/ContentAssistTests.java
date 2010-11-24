@@ -80,6 +80,8 @@ public class ContentAssistTests extends UITestCase {
 			fail("AspectJ artefact members have not been filtered."); //$NON-NLS-1$
 		if (!contains(props, "aspectOf")) //$NON-NLS-1$
 			fail("Not all members of local variable asp are visible."); //$NON-NLS-1$
+		if (!contains(props, "hasAspect")) //$NON-NLS-1$
+		    fail("Not all members of local variable asp are visible."); //$NON-NLS-1$
 		if (!contains(props, "limited AspectJ")) //$NON-NLS-1$
 			fail("Limited AspectJ support note missing"); //$NON-NLS-1$
 	}

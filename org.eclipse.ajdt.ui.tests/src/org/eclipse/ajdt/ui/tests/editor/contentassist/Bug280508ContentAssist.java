@@ -22,7 +22,7 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 /**
  * Tests for content assist for bug 280508
  * 
- * aspectOf assist proposal should appear appropriately
+ * aspectOf and hasAspect assist proposals should appear appropriately
  * 
  * @author Andrew Eisenberg
  * 
@@ -110,4 +110,29 @@ public class Bug280508ContentAssist extends UITestCase {
         assertEquals("Completion start is wrong", offset - "hh".length(), completionProposal.getReplaceStart());
     }    
 
+    public void testHasAspectInClass() throws Exception {
+        MockCompletionRequestor requestor = new MockCompletionRequestor();
+        int offset = cunitContents.indexOf("Aspect.h") + "Aspect.h".length();  
+        cunit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
+        
+        assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+
+        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
+        assertEquals("Signature of proposal should have been the 'hasApsect()' method\n" + completionProposal, 
+                "hasAspect", new String(completionProposal.getName())); 
+        assertEquals("Completion start is wrong", offset - "h".length(), completionProposal.getReplaceStart());
+    }
+    
+    public void testGetWithinTypeName() throws Exception {
+        MockCompletionRequestor requestor = new MockCompletionRequestor();
+        int offset = cunitContents.indexOf("substring") + "substring".length();  
+        cunit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
+        
+        assertEquals("Should have 2 proposal, but found:\n" + requestor.toString(), 2, requestor.accepted.size());
+
+        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
+        assertEquals("Signature of proposal should have been the 'substring()' method\n" + completionProposal, 
+                "substring", new String(completionProposal.getName())); 
+        assertEquals("Completion start is wrong", offset - "substring".length(), completionProposal.getReplaceStart());
+    }
 }
