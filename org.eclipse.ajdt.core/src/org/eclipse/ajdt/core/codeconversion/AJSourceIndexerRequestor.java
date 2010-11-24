@@ -67,50 +67,54 @@ public class AJSourceIndexerRequestor extends SourceIndexerRequestor {
                     	
                         // found it!
                         DeclareParentsDeclaration declare = (DeclareParentsDeclaration) node;
-                        TypePattern childTypePattern = declare.getChildTypePattern();
  
                         // Visit the children
 						AjASTVisitor typePatternVisitor = new AjASTVisitor() {
 
-							public boolean visit(IdentifierTypePattern node) {
-								AJSourceIndexerRequestor.super
-										.acceptUnknownReference(node
-												.getTypePatternExpression()
-												.toCharArray(), node
-												.getStartPosition());
+                            protected void index(String tokenString) {
+                                char[][] tokens = tokenize(tokenString);
+                                for (char[] token : tokens) {
+                                    // must accept an uknown reference since we don't really know if this is a type, method, or field reference
+                                    // source position is wrong, but this is ok.
+                                    AJSourceIndexerRequestor.super
+                                        .acceptUnknownReference(token, 0);
+                                }
+
+//                                AJSourceIndexerRequestor.super
+//                                        .acceptAnnotationTypeReference(tokens, 
+//                                                node.getStartPosition(), 
+//                                                node.getStartPosition() + node.getLength());
+                            }
+
+                            public boolean visit(IdentifierTypePattern node) {
+							    index(node.getTypePatternExpression());
 								return true;
 							}
 							
+                            @Override
 							public boolean visit(AnyWithAnnotationTypePattern node) {
-								AJSourceIndexerRequestor.super
-										.acceptUnknownReference(node
-												.getTypePatternExpression()
-												.toCharArray(), node
-												.getStartPosition());
+                                index(node.getTypePatternExpression());
 								return true;
 							}
 							
+                            @Override
 							public boolean visit(TypeCategoryTypePattern node) {
-								AJSourceIndexerRequestor.super
-										.acceptUnknownReference(node
-												.getTypePatternExpression()
-												.toCharArray(), node
-												.getStartPosition());
+                                index(node.getTypePatternExpression());
 								return true;
 							}
-							
+                            
+                            @Override
+                            public boolean visit(SignaturePattern node) {
+                                index(node.getDetail());
+                                return true;
+                            }
+                            
 							//TODO: Add more as needed. Extract visitor to file if too large
 
 						};
 
-						childTypePattern.accept(typePatternVisitor);
+						declare.accept(typePatternVisitor);
                         
-                        for (Object parentTypePatt : declare.parentTypePatterns()) {
-                        	if (parentTypePatt instanceof IdentifierTypePattern) {
-                        		IdentifierTypePattern typePatt = (IdentifierTypePattern) parentTypePatt;
-                        		super.acceptUnknownReference(typePatt.getTypePatternExpression().toCharArray(), typePatt.getStartPosition());
-                        	}
-                        }
                     } else if (node instanceof DeclareAnnotationDeclaration) {
                         // found it!
                         DeclareAnnotationDeclaration declare = (DeclareAnnotationDeclaration) node;

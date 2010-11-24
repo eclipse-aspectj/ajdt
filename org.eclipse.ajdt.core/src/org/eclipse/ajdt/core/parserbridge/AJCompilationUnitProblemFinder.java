@@ -1089,6 +1089,7 @@ public class AJCompilationUnitProblemFinder extends
     static {
         extraAspectMethods.add("hasAspect");
         extraAspectMethods.add("aspectOf");
+        extraAspectMethods.add("getWithinTypeName");
     }
 
     static final Set<String> declareAnnotationKinds = new HashSet<String>();

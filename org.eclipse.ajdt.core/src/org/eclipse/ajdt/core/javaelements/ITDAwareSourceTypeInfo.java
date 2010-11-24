@@ -132,6 +132,8 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             List<IJavaElement> augmentedChildren = getITDs(type);
             if (type instanceof AspectElement) {
                 augmentedChildren.add(createAspectOf((AspectElement) this.handle));
+                augmentedChildren.add(createHasAspect((AspectElement) this.handle));
+                augmentedChildren.add(createGetWithinTypeName((AspectElement) this.handle));
             }
             if (augmentedChildren.size() > 0 || hasChanges) {
                 IJavaElement[] allChildren = new IJavaElement[origChildren.length + augmentedChildren.size()];
@@ -317,6 +319,55 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             }
         };
 
+    }
+    
+    private SourceMethod createHasAspect(AspectElement parent) {
+        return new SourceMethod(
+                (JavaElement) parent, 
+                "hasAspect", 
+                new String[0]) {
+            protected Object createElementInfo() {
+                return new SourceMethodInfo() {
+                    @Override
+                    public int getModifiers() {
+                        return Flags.AccPublic | Flags.AccStatic;
+                    }
+                    
+                    @Override
+                    public char[] getReturnTypeName() {
+                        return "boolean".toCharArray();
+                    }
+                };
+            }
+            public boolean exists() {
+                return true;
+            }
+        };
+
+    }
+    private SourceMethod createGetWithinTypeName(AspectElement parent) {
+        return new SourceMethod(
+                (JavaElement) parent, 
+                "getWithinTypeName", 
+                new String[0]) {
+            protected Object createElementInfo() {
+                return new SourceMethodInfo() {
+                    @Override
+                    public int getModifiers() {
+                        return Flags.AccPublic;
+                    }
+                    
+                    @Override
+                    public char[] getReturnTypeName() {
+                        return "String".toCharArray();
+                    }
+                };
+            }
+            public boolean exists() {
+                return true;
+            }
+        };
+        
     }
     
     /**

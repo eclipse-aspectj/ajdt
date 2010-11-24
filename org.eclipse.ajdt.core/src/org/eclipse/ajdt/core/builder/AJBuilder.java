@@ -953,7 +953,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                     
                                     // outfolder itself should not be derived
                                     if (!outFolder.equals(outContainer)) {
-                                        outFolder.setDerived(true);
+                                        outFolder.setDerived(true, null);
                                     }
                                     break;
         
@@ -965,10 +965,23 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                         // check to make sure that resource has not been deleted from the file
                                         // system without a refresh
                                         if (!outFile.exists()) {
-                                            resource.copy(outFile.getFullPath(), true, null);
-                                            Util.setReadOnly(outFile, false);
+                                            try {
+                                                resource.copy(outFile.getFullPath(), true, null);
+                                                Util.setReadOnly(outFile, false);
+                                            } catch (ResourceException e) {
+                                                // probably hit https://bugs.eclipse.org/bugs/show_bug.cgi?id=331036
+                                                // We just checked to see if the outfile exists, but we get this exception
+                                                // anyway.  It might be that it has not been refreshed.
+                                                if (e.getStatus().getCode() == IResourceStatus.FAILED_WRITE_LOCAL) {
+                                                    AJLog.log(AJLog.BUILDER, "Could not write to resource '" + resource + "'.  " +
+                                                    		"It probbly already exists on disk.  Try a clean build.");
+                                                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+                                                } else {
+                                                    throw e;
+                                                }
+                                            }
                                         }
-                                        outFile.setDerived(true);
+                                        outFile.setDerived(true, null);
                                     }
                                     break;
                                 }
@@ -1150,7 +1163,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             AJLog.log(AJLog.BUILDER,"Copying added file " + deltaPath);//$NON-NLS-1$
                             createFolder(deltaPath.removeLastSegments(1), outputFolder, true); 
                             resource.copy(fileToRefresh.getFullPath(), IResource.FORCE, null);
-                            fileToRefresh.setDerived(true);
+                            fileToRefresh.setDerived(true, null);
                             Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
                             fileToRefresh.refreshLocal(IResource.DEPTH_ZERO,null);
                             // mark this change so compiler knows about it.

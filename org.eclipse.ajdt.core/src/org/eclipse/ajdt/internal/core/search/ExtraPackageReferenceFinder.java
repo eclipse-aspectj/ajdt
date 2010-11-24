@@ -13,10 +13,13 @@ package org.eclipse.ajdt.internal.core.search;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aspectj.org.eclipse.jdt.core.dom.AnyWithAnnotationTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareAnnotationDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.IdentifierTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
+import org.aspectj.org.eclipse.jdt.core.dom.TypeCategoryTypePattern;
+import org.aspectj.org.eclipse.jdt.core.dom.TypePattern;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
@@ -96,10 +99,28 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
             super(participant, decl, fileContents);
         }
         
-    	//TODO: add support for other type pattern nodes
-        
         @Override
         public boolean visit(IdentifierTypePattern node) {
+            findMatchInTypePattern(node);
+            return super.visit(node);
+        }
+        
+        @Override
+        public boolean visit(AnyWithAnnotationTypePattern node) {
+            findMatchInTypePattern(node);
+            return true;
+        }
+        
+        @Override
+        public boolean visit(TypeCategoryTypePattern node) {
+            findMatchInTypePattern(node);
+            return true;
+        }
+
+        /**
+         * @param node
+         */
+        protected void findMatchInTypePattern(TypePattern node) {
             String detail = node.getTypePatternExpression();
             if (detail != null) {
                 if (isMatch(detail, 0, detail.length())) {
@@ -111,7 +132,6 @@ public class ExtraPackageReferenceFinder extends AbstractExtraReferenceFinder<Pa
                     findMatchesInComplexPattern(node);
                 }
             }
-            return super.visit(node);
         }
 
         @Override

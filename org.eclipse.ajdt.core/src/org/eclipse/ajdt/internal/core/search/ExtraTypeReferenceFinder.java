@@ -13,10 +13,13 @@ package org.eclipse.ajdt.internal.core.search;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.dom.AnyWithAnnotationTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.DeclareAnnotationDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.IdentifierTypePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
+import org.aspectj.org.eclipse.jdt.core.dom.TypeCategoryTypePattern;
+import org.aspectj.org.eclipse.jdt.core.dom.TypePattern;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
@@ -85,6 +88,27 @@ public class ExtraTypeReferenceFinder extends AbstractExtraReferenceFinder<TypeR
 
         @Override
         public boolean visit(IdentifierTypePattern node) {
+            findMatchInTypePattern(node);
+            return super.visit(node);
+        }
+        
+        @Override
+        public boolean visit(AnyWithAnnotationTypePattern node) {
+            findMatchInTypePattern(node);
+            return true;
+        }
+        
+        @Override
+        public boolean visit(TypeCategoryTypePattern node) {
+            findMatchInTypePattern(node);
+            return true;
+        }
+
+
+        /**
+         * @param node
+         */
+        protected void findMatchInTypePattern(TypePattern node) {
             // We have already checked qualified names at this point, 
             // so we can assume a match if the simple names match.
             String detail = node.getTypePatternExpression();
@@ -98,7 +122,6 @@ public class ExtraTypeReferenceFinder extends AbstractExtraReferenceFinder<TypeR
                     findMatchesInComplexPattern(node);
                 }
             }
-            return super.visit(node);
         }
 
 
