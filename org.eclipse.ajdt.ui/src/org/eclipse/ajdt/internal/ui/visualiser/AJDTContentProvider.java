@@ -296,16 +296,17 @@ public class AJDTContentProvider extends JDTContentProvider {
 								// Do nothing
 							} else {
 								String memberName = javaElements[j].getElementName();
-
-								if (memberName.endsWith(".java")) { //$NON-NLS-1$
-									memberName = memberName.substring(0, memberName.length() - 5);
-								} else if (memberName.endsWith(".aj")) { //$NON-NLS-1$
-									memberName = memberName.substring(0, memberName.length() - 3);
+								if (!shouldIgnore(memberName)) {
+    								if (memberName.endsWith(".java")) { //$NON-NLS-1$
+    									memberName = memberName.substring(0, memberName.length() - 5);
+    								} else if (memberName.endsWith(".aj")) { //$NON-NLS-1$
+    									memberName = memberName.substring(0, memberName.length() - 3);
+    								}
+    								JDTMember member = new JDTMember(memberName, javaElements[j]);
+    								member.setSize(getLength((ICompilationUnit) javaElements[j]));
+    
+    								returningClasses.add(member);
 								}
-								JDTMember member = new JDTMember(memberName, javaElements[j]);
-								member.setSize(getLength((ICompilationUnit) javaElements[j]));
-
-								returningClasses.add(member);
 							}
 						}
 					}
@@ -315,6 +316,15 @@ public class AJDTContentProvider extends JDTContentProvider {
 		}
 		return returningClasses;
 	}
+
+    /**
+     * Ignore package-info files
+     * @param memberName
+     * @return
+     */
+    protected boolean shouldIgnore(String memberName) {
+        return memberName.equals("package-info.java");
+    }
 
 	/*
 	 * Lazy initialisation method added to avoid null pointer problem(s!) which
