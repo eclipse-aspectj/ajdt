@@ -29,6 +29,7 @@ import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
+import org.eclipse.ajdt.core.javaelements.DeclareElementInfo;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
@@ -40,6 +41,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.IAnnotatable;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -95,15 +98,15 @@ public class PushInRefactoring extends Refactoring {
      *
      */
     private class NewImportsHolder {
-        Set/* Name */ staticImports;
-        Set/* Name */ typeImports;
-        Set/* String */ extraImports;
+        Set<Name> staticImports;
+        Set<Name> typeImports;
+        Set<String> extraImports;
         ICompilationUnit unit;
         
         NewImportsHolder(ICompilationUnit unit) {
-            staticImports = new HashSet();
-            typeImports = new HashSet();
-            extraImports = new HashSet();
+            staticImports = new HashSet<Name>();
+            typeImports = new HashSet<Name>();
+            extraImports = new HashSet<String>();
             this.unit = unit;
         }
         
@@ -116,35 +119,26 @@ public class PushInRefactoring extends Refactoring {
             }
             
             ImportRewrite rewrite = ImportRewrite.create(unit, true);
-            for (Iterator importIter = typeImports.iterator(); importIter.hasNext();) {
-                Name name = (Name) importIter.next();
+            for (Name name : typeImports) {
                 ITypeBinding binding = name.resolveTypeBinding();
                 if (binding != null) {
                     rewrite.addImport(binding);
                 }
             }
-            for (Iterator importIter = staticImports.iterator(); importIter.hasNext();) {
-                Name name = (Name) importIter.next();
+            for (Name name : staticImports) {
                 rewrite.addImport(name.resolveTypeBinding());
             }
 
-            for (Iterator importIter = extraImports.iterator(); importIter.hasNext();) {
-                String qualName = (String) importIter.next();
+            for (String qualName : extraImports) {
                 rewrite.addImport(qualName);
             }
             TextEdit importEdit = rewrite.rewriteImports(new NullProgressMonitor());
             
             TextFileChange textChange = (TextFileChange) change;
-            if (change == null) {
-                change= new TextFileChange(unit.getElementName(), (IFile) unit.getResource());
-                textChange.setTextType("java");
-                textChange.setEdit(new MultiTextEdit());
-                allChanges.put(unit, change);
-            }
             textChange.getEdit().addChild(importEdit);
         }
 
-        void computeImports(List/* IntertypeElement */itds, ICompilationUnit ajUnit, IProgressMonitor monitor)
+        void computeImports(List<IAspectJElement> itds, ICompilationUnit ajUnit, IProgressMonitor monitor)
                 throws JavaModelException {
             IJavaProject project = ajUnit.getJavaProject();
             ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -154,24 +148,25 @@ public class PushInRefactoring extends Refactoring {
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
             CompilationUnit ajAST = (CompilationUnit) parser.createAST(monitor);
 
-            for (Iterator itdsIter = itds.iterator(); itdsIter.hasNext();) {
-                IAspectJElement itd = (IAspectJElement) itdsIter.next();
+            for (IAspectJElement itd : itds) {
                 ISourceRange range = itd.getSourceRange();
                 ImportReferencesCollector.collect(ajAST, project, new Region(
                         range.getOffset(), range.getLength()),
                         typeImports, staticImports);
                 if (itd instanceof DeclareElement) {
-                    String qualType = getQualifiedTypeForDeclareAnnotation((DeclareElement) itd);
-                    if (qualType != null && qualType.length() > 0) {
-                        extraImports.add(qualType);
-                    }
-                    List/*Type*/ types = getExtraImportsFromDeclareElement((DeclareElement) itd, ajAST);
-                    for (Iterator typeIter = types.iterator(); typeIter
-                            .hasNext();) {
-                        Type type = (Type) typeIter.next();
-                        ImportReferencesCollector.collect(type, project, new Region(
-                                type.getStartPosition(), type.getLength()),
-                                typeImports, staticImports);
+                    DeclareElement declare = (DeclareElement) itd;
+                    // no types added for declare removers
+                    if (!((DeclareElementInfo) declare.getElementInfo()).isAnnotationRemover()) {
+                        String qualType = getQualifiedTypeForDeclareAnnotation(declare);
+                        if (qualType != null && qualType.length() > 0) {
+                            extraImports.add(qualType);
+                        }
+                        List<Type> types = getExtraImportsFromDeclareElement(declare, ajAST);
+                        for (Type type : types) {
+                            ImportReferencesCollector.collect(type, project, new Region(
+                                    type.getStartPosition(), type.getLength()),
+                                    typeImports, staticImports);
+                        }
                     }
                 }
             }
@@ -183,17 +178,18 @@ public class PushInRefactoring extends Refactoring {
         // the last fields of the last type when following a particular naming convention, 
         // are around to force import statements to exist.  We can read them and use them 
         // to seed the extra imports list
-        private List/*Type*/ getExtraImportsFromDeclareElement(DeclareElement itd,
+        private List<Type> getExtraImportsFromDeclareElement(DeclareElement itd,
                 CompilationUnit ajAST) {
             int numTypes = ajAST.types().size();
             if (numTypes == 0) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             
             String details = null;
             AbstractTypeDeclaration lastType = (AbstractTypeDeclaration) ajAST.types().get(numTypes-1);
-            List bodyDecls = lastType.bodyDeclarations();
-            List/*Type*/ extraSimpleNames = new LinkedList();
+            @SuppressWarnings("unchecked")
+            List<BodyDeclaration> bodyDecls = lastType.bodyDeclarations();
+            List<Type> extraSimpleNames = new LinkedList<Type>();
             for (int i = bodyDecls.size()-1; i >= 0; i--) {
                 BodyDeclaration decl = (BodyDeclaration) bodyDecls.get(i);
                 if (decl.getNodeType() == ASTNode.FIELD_DECLARATION) {
@@ -221,17 +217,13 @@ public class PushInRefactoring extends Refactoring {
             }
             return extraSimpleNames;
         }
-
-        void addExtraImport(String typeImport) {
-            extraImports.add(typeImport);
-        }
     }
     
     private boolean deleteEmpty = true;
     
-    private Map /* ICompilationUnit -> Change*/ allChanges = null; 
+    private Map<ICompilationUnit, Change> allChanges = null; 
 
-    private List/*IntertypeElement*/ itds = null;
+    private List<IAspectJElement> itds = null;
     
 
     public RefactoringStatus checkFinalConditions(IProgressMonitor monitor)
@@ -239,34 +231,29 @@ public class PushInRefactoring extends Refactoring {
         final RefactoringStatus status = new RefactoringStatus();
         try {
             monitor.beginTask("Checking preconditions...", 2);
-            allChanges = new LinkedHashMap();
-            Map/*ICompiltionUnit->ITD*/ unitToITDs = new HashMap();
-            for (Iterator itdIter = itds.iterator(); itdIter.hasNext();) {
-                IAspectJElement itd = (IAspectJElement) itdIter.next();
+            allChanges = new LinkedHashMap<ICompilationUnit, Change>();
+            Map<ICompilationUnit, List<IAspectJElement>> unitToITDs = new HashMap<ICompilationUnit, List<IAspectJElement>>();
+            for (IAspectJElement itd : itds) {
                 ICompilationUnit unit = itd.getCompilationUnit();
-                List itds;
+                List<IAspectJElement> itds;
                 if (unitToITDs.containsKey(unit)) {
-                    itds = (List) unitToITDs.get(unit);
+                    itds = unitToITDs.get(unit);
                 } else {
-                    itds = new LinkedList();
+                    itds = new LinkedList<IAspectJElement>();
                     unitToITDs.put(unit, itds);
                 }
                 itds.add(itd);
             }
             
-            Map/*ICompilationUnit -> NewImportsHolder*/ importsMap = new HashMap();
-            for (Iterator unitIter = unitToITDs.entrySet().iterator(); unitIter.hasNext();) {
-                Map.Entry entry = (Map.Entry) unitIter.next();
-                
+            Map<ICompilationUnit, NewImportsHolder> importsMap = new HashMap<ICompilationUnit, NewImportsHolder>();
+            for (Map.Entry<ICompilationUnit,List<IAspectJElement>> entry :  unitToITDs.entrySet()) {
                 status.merge(checkFinalConditionsForITD(
-                        (ICompilationUnit) entry.getKey(),
-                        (List) entry.getValue(), importsMap,
+                        entry.getKey(), entry.getValue(), importsMap,
                         monitor));
             }
             
             // now go through and create the import edits
-            for (Iterator iterator = importsMap.values().iterator(); iterator.hasNext();) {
-                NewImportsHolder holder = (NewImportsHolder) iterator.next();
+            for (NewImportsHolder holder : importsMap.values()) {
                 holder.rewriteImports();
             }
             
@@ -278,23 +265,22 @@ public class PushInRefactoring extends Refactoring {
     }
 
     private RefactoringStatus checkFinalConditionsForITD(final ICompilationUnit ajUnit, 
-            final List/*IAspectJElement*/ itdsForUnit, 
-            final Map/*ICompilationUnit -> NewImportsHolder*/ imports, 
+            final List<IAspectJElement> itdsForUnit, 
+            final Map<ICompilationUnit, NewImportsHolder> imports, 
             final IProgressMonitor monitor) throws JavaModelException {
         
         final RefactoringStatus status = new RefactoringStatus();
         
         
-        final Map/*ICompilationUnit -> IMember[]*/ unitsToTypes = getUnitTypeMap(getTargets(itdsForUnit));
-        final Map/*IJavaProject, Collection<ICompilationUnit>*/ projects= new HashMap();
+        final Map<ICompilationUnit, Set<IMember>> unitsToTypes = getUnitTypeMap(getTargets(itdsForUnit));
+        final Map<IJavaProject, Collection<ICompilationUnit>> projects= new HashMap<IJavaProject, Collection<ICompilationUnit>>();
         
-        for (Iterator unitIter = unitsToTypes.keySet().iterator(); unitIter.hasNext();) {
-            ICompilationUnit targetUnit = (ICompilationUnit) unitIter.next();
+        for (ICompilationUnit targetUnit : unitsToTypes.keySet()) {
             IJavaProject project= targetUnit.getJavaProject();
             if (project != null) {
-                Collection collection = (Collection) projects.get(project);
+                Collection<ICompilationUnit> collection = projects.get(project);
                 if (collection == null) {
-                    collection= new ArrayList();
+                    collection= new ArrayList<ICompilationUnit>();
                     projects.put(project, collection);
                 }
                 collection.add(targetUnit);
@@ -302,12 +288,12 @@ public class PushInRefactoring extends Refactoring {
         }
         
         
-        Collection units;
+        Collection<ICompilationUnit> units;
         IJavaProject aspectProject = ajUnit.getJavaProject();
         if (projects.containsKey(aspectProject)) {
-            units = (Collection) projects.get(aspectProject);
+            units = projects.get(aspectProject);
         } else {
-            units = new ArrayList();
+            units = new ArrayList<ICompilationUnit>();
             projects.put(aspectProject, units);
         }
         units.add(ajUnit);
@@ -340,22 +326,21 @@ public class PushInRefactoring extends Refactoring {
                         boolean declareParentsDone = false;
                         
                         
-                        for (Iterator itdIter = itdsForUnit.iterator(); itdIter.hasNext();) {
-                            IAspectJElement itd = (IAspectJElement) itdIter.next();
+                        for (IAspectJElement itd : itdsForUnit) {
                             
                             // filter out the types not affected by itd 
-                            Collection/*IMember*/ members = new ArrayList();
-                            members.addAll((Collection) unitsToTypes.get(source));
+                            Collection<IMember> members = new ArrayList<IMember>();
+                            members.addAll(unitsToTypes.get(source));
                             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
-                            List/*IJavaElement*/ realTargets;
+                            List<IJavaElement> realTargets;
                             if (itd.getAJKind().isDeclareAnnotation()) {
                                 realTargets = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
                             } else {
                                 realTargets = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
                             }
-                            for (Iterator memberIter = members.iterator(); memberIter
+                            for (Iterator<IMember> memberIter = members.iterator(); memberIter
                                     .hasNext();) {
-                                IMember member = (IMember) memberIter.next();
+                                IMember member = memberIter.next();
                                 if (!realTargets.contains(member)) {
                                     memberIter.remove();
                                 }
@@ -383,14 +368,13 @@ public class PushInRefactoring extends Refactoring {
         IProgressMonitor subMonitor= new SubProgressMonitor(monitor, 1);
         try {
             try {
-                final Set set= projects.keySet();
+                final Set<IJavaProject> set= projects.keySet();
                 subMonitor.beginTask("Compiling source...", set.size());
-                for (Iterator projIter = projects.keySet().iterator(); projIter.hasNext();) {
-                    IJavaProject project = (IJavaProject) projIter.next();
+                for (IJavaProject project : projects.keySet()) {
                     ASTParser parser= ASTParser.newParser(AST.JLS3);
                     parser.setProject(project);
                     parser.setResolveBindings(true);
-                    Collection collection= (Collection) projects.get(project);
+                    Collection<ICompilationUnit> collection= projects.get(project);
                     parser.createASTs((ICompilationUnit[]) collection.toArray(
                             new ICompilationUnit[collection.size()]), new String[0], 
                             requestors, new SubProgressMonitor(subMonitor, 1));
@@ -408,16 +392,15 @@ public class PushInRefactoring extends Refactoring {
 
 
     
-    protected void rewriteAspectType(List itdsForUnit,
+    protected void rewriteAspectType(List<IAspectJElement> itdsForUnit,
             ICompilationUnit source, CompilationUnit ast,
             RefactoringStatus status) throws JavaModelException, CoreException {
             
         // check to see if we need to delete this type
-        Map/*Type->Integer*/ removalStored = new HashMap();
-        Map/*Type->List of DeleteEdit*/ typeDeletes = new HashMap();
+        Map<IType, Integer> removalStored = new HashMap<IType, Integer>();
+        Map<IType, List<DeleteEdit>> typeDeletes = new HashMap<IType, List<DeleteEdit>>();
         
-        for (Iterator itdIter = itdsForUnit.iterator(); itdIter.hasNext();) {
-            IAspectJElement itd = (IAspectJElement) itdIter.next();
+        for (IAspectJElement itd : itdsForUnit) {
             IType type = (IType) itd.getParent();
             int numRemovals;
             if (removalStored.containsKey(type)) {
@@ -426,11 +409,11 @@ public class PushInRefactoring extends Refactoring {
             } else {
                 removalStored.put(type, new Integer(1));
             }
-            List deletes;
+            List<DeleteEdit> deletes;
             if (typeDeletes.containsKey(type)) {
-                deletes = (List) typeDeletes.get(type);
+                deletes = typeDeletes.get(type);
             } else {
-                deletes = new LinkedList();
+                deletes = new LinkedList<DeleteEdit>();
                 typeDeletes.put(type, deletes);
             }
             
@@ -447,23 +430,22 @@ public class PushInRefactoring extends Refactoring {
 
     // Deletes all aspect types that have no more children
     // returns true if the compilation unit should be deleted
-    private boolean deleteTypes(CompilationUnit ast, Map typeDeletes,
-            Map removalStored) throws JavaModelException {
+    private boolean deleteTypes(CompilationUnit ast, Map<IType, List<DeleteEdit>> typeDeletes,
+            Map<IType, Integer> removalStored) throws JavaModelException {
         if (!deleteEmpty) {
             return false;
         }
         int typesDeleted = 0;
-        for (Iterator removalIter = removalStored.entrySet().iterator(); removalIter.hasNext();) {
-            Map.Entry entry = (Map.Entry) removalIter.next();
-            IType type = (IType) entry.getKey();
-            int removals = ((Integer) entry.getValue()).intValue();;
+        for (Map.Entry<IType, Integer> entry : removalStored.entrySet()) {
+            IType type = entry.getKey();
+            int removals = entry.getValue();
             
             if (type.getChildren().length == removals) {
-                List typeNodes = ast.types();
-                for (Iterator typeIter = typeNodes.iterator(); typeIter.hasNext();) {
-                    AbstractTypeDeclaration typeNode = (AbstractTypeDeclaration) typeIter.next();
+                @SuppressWarnings("unchecked")
+                List<AbstractTypeDeclaration> typeNodes = ast.types();
+                for (AbstractTypeDeclaration typeNode : typeNodes) {
                     if (typeNode.getName().toString().equals(type.getElementName())) {
-                        List deletes = (List) typeDeletes.get(type);
+                        List<DeleteEdit> deletes = typeDeletes.get(type);
                         deletes.clear();
                         deletes.add(new DeleteEdit(type.getSourceRange().getOffset(), type.getSourceRange().getLength()));
                         typesDeleted++;
@@ -477,10 +459,9 @@ public class PushInRefactoring extends Refactoring {
 
 
     private void applyTargetTypeEdits(IAspectJElement itd,
-            ICompilationUnit source, Collection/*IMember*/ targets) throws CoreException, JavaModelException {
+            ICompilationUnit source, Collection<IMember> targets) throws CoreException, JavaModelException {
         MultiTextEdit multiEdit = new MultiTextEdit();
-        for (Iterator targetIter = targets.iterator(); targetIter.hasNext();) {
-            IMember target = (IMember) targetIter.next();
+        for (IMember target : targets) {
             TextEdit edit = null;
             if (itd instanceof IntertypeElement) {
                 if (target instanceof IType) {
@@ -544,7 +525,74 @@ public class PushInRefactoring extends Refactoring {
 
     private TextEdit createEditForDeclareTarget(DeclareElement itd,
             IMember target) throws JavaModelException {
-        return new InsertEdit(getDeclareInsertLocation(target), getTextForDeclare(itd));
+        DeclareElementInfo declareElementInfo = (DeclareElementInfo) itd.getElementInfo();
+        if (declareElementInfo.isAnnotationRemover()) {
+            // must use the model to access removals
+            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
+            IProgramElement ipe = model.javaElementToProgramElement(itd);
+            return getAnnotationRemovalEdit(target, ipe.getRemovedAnnotationTypes());
+        } else {
+            return new InsertEdit(getDeclareInsertLocation(target), getTextForDeclare(itd));
+        }
+    }
+
+    /**
+     * Delete the specified annotations on the target
+     * @param target target element to have annotations to delete
+     * @param removedAnnotationTypes annotations to delete
+     * @return the delete edit.  May be a MultiText edit
+     * if multiple annotations are removed
+     * @throws JavaModelException 
+     */
+    private TextEdit getAnnotationRemovalEdit(IMember target,
+            String[] removedAnnotationTypes) throws JavaModelException {
+        if (target instanceof IAnnotatable) {
+            IAnnotatable annotatable = (IAnnotatable) target;
+            IAnnotation[] anns = annotatable.getAnnotations();
+            List<DeleteEdit> deletes = new ArrayList<DeleteEdit>(removedAnnotationTypes.length);
+            for (String removedType : removedAnnotationTypes) {
+                // there can be only one match per removed type
+                // however, there can be two annotations with the
+                // same simple name on the member, but at least one has
+                // a matching qual name.
+                // So, if there is a simple name match, keep on looking, 
+                // but a qual name match, end it.
+                DeleteEdit edit = null; 
+                for (IAnnotation ann : anns) {
+                    // don't know if ann is a simple or a qualified name, 
+                    // so check both.
+                    String annName = ann.getElementName();
+                    boolean qualMatch = removedType.equals(annName);
+                    boolean simpleMatch = removedType.endsWith("." + annName);
+                    if (simpleMatch || qualMatch) {
+                        // match!
+                        ISourceRange range = ann.getSourceRange();
+                        edit = new DeleteEdit(range.getOffset(), range.getLength());
+                        if (qualMatch) {
+                            // can only be one qualified match
+                            break;
+                        }
+                    }
+                }
+                if (edit != null) {
+                    deletes.add(edit);
+                }
+            }
+            if (deletes.size() == 0) {
+                return null;
+            } else if (deletes.size() == 1) {
+                return deletes.get(0);
+            } else {
+                MultiTextEdit multi = new MultiTextEdit();
+                for (DeleteEdit delete : deletes) {
+                    multi.addChild(delete);
+                }
+                return multi;
+            }
+        } else {
+            // nothing found
+            return null;
+        }
     }
 
     private String getTextForDeclare(DeclareElement itd) throws JavaModelException {
@@ -643,14 +691,11 @@ public class PushInRefactoring extends Refactoring {
     }
 
 
-    private void applyAspectEdits(ICompilationUnit source, Map typeDeletes) throws JavaModelException,
+    private void applyAspectEdits(ICompilationUnit source, Map<IType, List<DeleteEdit>> typeDeletes) throws JavaModelException,
             CoreException {
         MultiTextEdit edit = new MultiTextEdit();
-        for (Iterator typeDeletesIter = typeDeletes.values().iterator(); typeDeletesIter.hasNext();) {
-            List deletesForOneType = (List) typeDeletesIter.next();
-            for (Iterator deleteIter = deletesForOneType.iterator(); deleteIter
-                    .hasNext();) {
-                DeleteEdit delete = (DeleteEdit) deleteIter.next();
+        for (List<DeleteEdit> deletesForOneType : typeDeletes.values()) {
+            for (DeleteEdit delete : deletesForOneType) {
                 edit.addChild(delete);
             }
         }
@@ -671,16 +716,16 @@ public class PushInRefactoring extends Refactoring {
 
 
 
-    private Map/* ICompilationUnit -> Set of IMember */ getUnitTypeMap(IMember[] targets) {
-        Map unitToTypes = new HashMap();
+    private Map<ICompilationUnit, Set<IMember>> getUnitTypeMap(IMember[] targets) {
+        Map<ICompilationUnit, Set<IMember>> unitToTypes = new HashMap<ICompilationUnit, Set<IMember>>();
         for (int i = 0; i < targets.length; i++) {
             IMember target = targets[i];
             ICompilationUnit unit = target.getCompilationUnit();
-            Set currTypes;
+            Set<IMember> currTypes;
             if (unitToTypes.containsKey(unit)) {
-                currTypes = (Set) unitToTypes.get(unit);
+                currTypes = unitToTypes.get(unit);
             } else {
-                currTypes = new HashSet();
+                currTypes = new HashSet<IMember>();
                 unitToTypes.put(unit, currTypes);
             }
             currTypes.add(target);
@@ -697,8 +742,7 @@ public class PushInRefactoring extends Refactoring {
         monitor.beginTask("Checking preconditions...", 1);
         
         try {
-            for (Iterator itdIter = itds.iterator(); itdIter.hasNext();) {
-                IAspectJElement itd = (IAspectJElement) itdIter.next();
+            for (IAspectJElement itd : itds) {
                 status.merge(initialITDCheck(itd));
             }
         } finally {
@@ -750,7 +794,7 @@ public class PushInRefactoring extends Refactoring {
             OperationCanceledException {
         monitor.beginTask("Creating change...", 1);
         try {
-            final Collection changes= (Collection) allChanges.values();
+            final Collection<Change> changes= allChanges.values();
             CompositeChange change= new CompositeChange(getName(), (Change[]) changes.toArray(new Change[changes.size()])) {
     
                 public ChangeDescriptor getDescriptor() {
@@ -769,15 +813,14 @@ public class PushInRefactoring extends Refactoring {
         StringBuffer descriptionsb = new StringBuffer();
         StringBuffer commentsb = new StringBuffer();
         StringBuffer argssb = new StringBuffer();
-        for (Iterator itdIter = itds.iterator(); itdIter.hasNext();) {
-            IAspectJElement itd = (IAspectJElement) itdIter.next();
+        for (IAspectJElement itd : itds) {
             projectsb.append(itd.getJavaProject().getElementName() + "\n");
             descriptionsb.append(MessageFormat.format("Push In intertype declaration for ''{0}''\n", new Object[] { itd.getElementName()}));
             String itdLabel = AJProjectModelFactory.getInstance().getModelForJavaElement(itd).getJavaElementLinkName(itd);
             commentsb.append(MessageFormat.format("Push In intertype declaration for ''{0}''\n", new Object[] { itdLabel }));
             argssb.append(itd.getHandleIdentifier() + "\n");
         }
-        Map arguments = new HashMap();
+        Map<String, String> arguments = new HashMap<String, String>();
         arguments.put(ALL_ITDS, argssb.toString());
         return new PushInRefactoringDescriptor(
                 projectsb.toString(), 
@@ -792,13 +835,13 @@ public class PushInRefactoring extends Refactoring {
     }
 
 
-    public RefactoringStatus initialize(Map arguments) {
-        String value= (String) arguments.get(ALL_ITDS);
+    public RefactoringStatus initialize(Map<String, String> arguments) {
+        String value= arguments.get(ALL_ITDS);
         if (value != null) {
             String[] values = value.split("\\n");
-            List/*IntertypeElement*/ newitds = new ArrayList(values.length);
+            List<IAspectJElement> newitds = new ArrayList<IAspectJElement>(values.length);
             for (int i = 0; i < values.length; i++) {
-                newitds.add(AspectJCore.create(value));
+                newitds.add((IAspectJElement) AspectJCore.create(value));
             }
             setITDs(newitds);
             return new RefactoringStatus();
@@ -807,11 +850,11 @@ public class PushInRefactoring extends Refactoring {
         }
     }
     
-    public void setITDs(List/*IntertypeElement*/ itds) {
+    public void setITDs(List<IAspectJElement> itds) {
         this.itds = itds;
     }
     
-    public List/*IntertypeElement*/ getITDs() {
+    public List<IAspectJElement> getITDs() {
         return itds;
     }
 
@@ -819,21 +862,20 @@ public class PushInRefactoring extends Refactoring {
     // this method returns all members by any itd being pushed in from a CU
     // it does not distinguish between which type is affected by which ITD
     // later, we need to do that filtering
-    private IMember[] getTargets(List/*IAspectJElement*/ itds) throws JavaModelException {
+    private IMember[] getTargets(List<IAspectJElement> itds) throws JavaModelException {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement((IJavaElement) itds.get(0));
-        List/*IMember*/ targets = new ArrayList();
+        List<IMember> targets = new ArrayList<IMember>();
         
-        for (Iterator itdIter = itds.iterator(); itdIter.hasNext();) {
-            IAspectJElement itd = (IAspectJElement) itdIter.next();
-            List/*IJavaElement*/ elts;
+        for (IAspectJElement itd : itds) {
+            List<IJavaElement> elts;
             if (itd.getAJKind().isDeclareAnnotation()) {
                 elts = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
             } else {
                 elts = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
             }
 
-            for (Iterator eltIter = elts.iterator(); eltIter.hasNext();) {
-                targets.add(eltIter.next());
+            for (IJavaElement elt : elts) {
+                targets.add((IMember) elt);
             }
         }
         return (IMember[]) targets.toArray(new IMember[targets.size()]);
@@ -845,21 +887,5 @@ public class PushInRefactoring extends Refactoring {
     
     private boolean isCUnitContainingITD(ICompilationUnit unit, IAspectJElement itd) {
         return itd != null && itd.getCompilationUnit().equals(unit);
-    }
-
-    /**
-     * field has been transformed in the AST, so must look for a different name
-     */
-    private String transformedITDName(IntertypeElement itd) {
-        String name = itd.getElementName();
-        if (name.endsWith("_new")) {
-            // check to see if constructor
-            String maybeConstructor = name.substring(0, name.length()-"_new".length());
-            String[] maybeConstructorArr = maybeConstructor.split("\\.");
-            if (maybeConstructorArr.length == 2 && maybeConstructorArr[0].equals(maybeConstructorArr[1])) {
-                return maybeConstructorArr[0] + "$new";
-            }
-        }
-        return name.replace('.', '$');
     }
 }
