@@ -63,25 +63,47 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     protected void assertContents(ICompilationUnit[] existingUnits, String[] expectedContents) throws JavaModelException {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < existingUnits.length; i++) {
-            char[] contents;
-            if (existingUnits[i] instanceof AJCompilationUnit) {
-                ((AJCompilationUnit) existingUnits[i]).requestOriginalContentMode();
-            }
-            contents = ((CompilationUnit) existingUnits[i]).getContents();
-            if (existingUnits[i] instanceof AJCompilationUnit) {
-                ((AJCompilationUnit) existingUnits[i]).discardOriginalContentMode();
-            }
-            String actualContents = String.valueOf(contents);
-            if (!actualContents.equals(expectedContents[i])) {
-                sb.append("\n-----EXPECTING-----\n");
-                sb.append(expectedContents[i]);
-                sb.append("\n--------WAS--------\n");
-                sb.append(actualContents);
+            if (expectedContents[i] != null) {
+                char[] contents = extractContents(existingUnits[i]);
+                
+                String actualContents = String.valueOf(contents);
+                if (!actualContents.equals(expectedContents[i])) {
+                    sb.append("\n-----EXPECTING-----\n");
+                    sb.append(expectedContents[i]);
+                    sb.append("\n--------WAS--------\n");
+                    sb.append(actualContents);
+                }
+            } else {
+                // unit should have been deleted
+                if (existingUnits[i].exists()) {
+                    sb.append("\nUnit " + existingUnits[i].getElementName() + " should have been deleted.\n");
+                    sb.append("Instead had the following contents:\n");
+                    sb.append(extractContents(existingUnits[i]));
+                }
             }
         }
         if (sb.length() > 0) {
             fail("Refactoring produced unexpected results:" + sb.toString());
         }
+    }
+
+    /**
+     * @param existingUnits
+     * @param i
+     * @return
+     * @throws JavaModelException
+     */
+    public char[] extractContents(ICompilationUnit unit)
+            throws JavaModelException {
+        char[] contents;
+        if (unit instanceof AJCompilationUnit) {
+            ((AJCompilationUnit) unit).requestOriginalContentMode();
+        }
+        contents = ((CompilationUnit) unit).getContents();
+        if (unit instanceof AJCompilationUnit) {
+            ((AJCompilationUnit) unit).discardOriginalContentMode();
+        }
+        return contents;
     }
 
     protected void assertContents(ICompilationUnit existingUnits, String expectedContents) throws JavaModelException {
