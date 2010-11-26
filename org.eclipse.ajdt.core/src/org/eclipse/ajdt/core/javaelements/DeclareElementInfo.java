@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 public class DeclareElementInfo extends AspectJMemberElementInfo {
     private boolean extendz = false;
     private boolean implementz = false;
+    private boolean annotationRemover = false;
     
     private char[][] types;
     
@@ -65,6 +66,14 @@ public class DeclareElementInfo extends AspectJMemberElementInfo {
         return types[0];
     }
     
-	
-	
+    /**
+     * @return true iff this declare element removes the target annotation
+     */
+    public boolean isAnnotationRemover() {
+        return annotationRemover;
+    }
+    
+    public void setAnnotationRemover(boolean annotationRemover) {
+        this.annotationRemover = annotationRemover;
+    }
 }

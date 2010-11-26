@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.aspectj.weaver.ResolvedType;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
@@ -51,9 +52,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -64,10 +62,6 @@ import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
-import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
-import org.eclipse.jdt.internal.core.SourceType;
-import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
  * This class can be used as a source requestor for the JDT parser *OR*
@@ -417,9 +411,7 @@ public class AJCompilationUnitStructureRequestor extends
 
 		DeclareElementInfo info = new DeclareElementInfo();
 		
-		String msg = ""; //$NON-NLS-1$
 		if (decl.declareDecl instanceof DeclareErrorOrWarning){
-			msg = ": \"" + ((DeclareErrorOrWarning)decl.declareDecl).getMessage() + "\"";  //$NON-NLS-1$//$NON-NLS-2$
 			if (((DeclareErrorOrWarning)decl.declareDecl).isError()){
 				info.setAJKind(IProgramElement.Kind.DECLARE_ERROR);
 				nameSourceEnd += 4;
@@ -448,6 +440,8 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE);
 				nameSourceEnd += "@type".length()-1; //$NON-NLS-1$
 			}
+			
+			info.setAnnotationRemover(anno.isRemover());
 		} else {
 			//assume declare soft
 			info.setAJKind(IProgramElement.Kind.DECLARE_SOFT);

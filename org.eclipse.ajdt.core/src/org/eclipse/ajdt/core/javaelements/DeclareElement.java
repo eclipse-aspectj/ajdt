@@ -63,6 +63,8 @@ public class DeclareElement extends AspectJMemberElement{
                         elementInfo.setTypes((String[]) types.toArray(new String[types.size()]));
                     }
                 }
+                
+                elementInfo.setAnnotationRemover(ipe.isAnnotationRemover());
     	    }        
             return elementInfo;
         } catch (Exception e) {
