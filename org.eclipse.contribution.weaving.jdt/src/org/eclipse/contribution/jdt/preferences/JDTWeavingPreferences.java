@@ -13,6 +13,7 @@ package org.eclipse.contribution.jdt.preferences;
 
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
+import org.eclipse.core.runtime.IProduct;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -41,8 +42,8 @@ public class JDTWeavingPreferences {
      * If version has changed, then ask
      */
     public static boolean shouldAskToEnableWeaving() {
-        return getAskToEnableWeaving() || 
-          ! getCurrentVersion().equals(getLastVersion()); 
+        return isNotRunningAsTest() && (getAskToEnableWeaving() || 
+          ! getCurrentVersion().equals(getLastVersion())); 
     }
     
     public static void setAskToEnableWeaving(boolean value) {
@@ -66,7 +67,7 @@ public class JDTWeavingPreferences {
      * currently weaving
      */
     public static boolean shouldAskToReindex() {
-        return getAskToReindex() &&
+        return isNotRunningAsTest() && getAskToReindex() &&
           IsWovenTester.isWeavingActive() &&
           WeavableProjectListener.getInstance().workspaceHasReindexableProjects(); 
     }
@@ -101,6 +102,14 @@ public class JDTWeavingPreferences {
         return (hook != null ? hook.getVersion() : new Version(0,0,0)).toString();
     }
     
+    public static boolean isNotRunningAsTest() {
+        IProduct p = Platform.getProduct();
+        if (p != null) {
+            String app = p.getApplication();
+            return app != null && (app.contains("test") || app.contains("antRunner")); 
+        }
+        return false;
+    }
     
     
     public static IPreferenceStore getPreferences() {
