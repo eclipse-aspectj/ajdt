@@ -106,7 +106,7 @@ public class JDTWeavingPreferences {
         IProduct p = Platform.getProduct();
         if (p != null) {
             String app = p.getApplication();
-            return app != null && (app.contains("test") || app.contains("antRunner")); 
+            return app != null && (app.contains("test") || app.contains("antRunner") || app.contains("swtbot") || app.contains("swtBot")); 
         }
         return false;
     }
