@@ -30,19 +30,31 @@ public class JDTWeavingPreferences {
     public final static String HOOK_ID = "org.eclipse.equinox.weaving.hook";
     public final static String ASK_TO_REINDEX_PROJECTS = "org.eclipse.contribution.weaving.jdt.reindex";
 
+    
+    private static final boolean TEST_MODE;
+
+    static {
+        String application = System.getProperty("eclipse.application", "");
+        if (application.length() > 0) {
+            TEST_MODE = application.endsWith("testapplication"); //$NON-NLS-1$
+        } else {
+            TEST_MODE = false;
+        }
+    }
     private JDTWeavingPreferences() {
         // singleton
     }
     
     /**
+     * if not in test mode and 
      * if the user has checked "don't ask again" AND the version has not changed,
      * don't ask
      * 
      * If version has changed, then ask
      */
     public static boolean shouldAskToEnableWeaving() {
-        return getAskToEnableWeaving() || 
-          ! getCurrentVersion().equals(getLastVersion()); 
+        return ! TEST_MODE && (getAskToEnableWeaving() || 
+          ! getCurrentVersion().equals(getLastVersion())); 
     }
     
     public static void setAskToEnableWeaving(boolean value) {
