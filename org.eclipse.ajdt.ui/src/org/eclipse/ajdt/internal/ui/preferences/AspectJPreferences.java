@@ -643,7 +643,7 @@ public class AspectJPreferences {
 		pstoreInplace.setValue(XREF_CHECKED_FILTERS_INPLACE, sb.toString());
 	}
 
-	public static List getFilterCheckedInplaceList() {
+	public static List<String> getFilterCheckedInplaceList() {
 		IPreferenceStore pstoreInplace = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 		String xRefCheckedFilters = pstoreInplace

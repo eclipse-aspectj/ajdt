@@ -31,11 +31,14 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import org.eclipse.contribution.xref.core.IXReferenceProviderExtension;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 
-public class AJXReferenceProvider implements IXReferenceProvider {
+public class AJXReferenceProvider implements IXReferenceProvider, IXReferenceProviderExtension {
 
-	private static final Class[] myClasses = new Class[] { IJavaElement.class };
+	private static final Class<?>[] myClasses = new Class[] { IJavaElement.class };
 
 	private AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelationshipTypes();
 
@@ -44,7 +47,7 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getClasses()
 	 */
-	public Class[] getClasses() {
+	public Class<?>[] getClasses() {
 		return myClasses;
 	}
 
@@ -52,26 +55,25 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(je);
 	    IProgramElement ipe = model.javaElementToProgramElement(je);
 	    if (ipe != null) {
-    	    List /*IProgramElement*/ ipeChildren = ipe.getChildren();
+    	    List<IProgramElement> ipeChildren = ipe.getChildren();
     	    if (ipeChildren != null) {
-    	        SortedSet /*IJavaElement*/ jeChildren = new TreeSet(new AJComparator());
-        	    for (Iterator ipeIter = ipeChildren.iterator(); ipeIter.hasNext();) {
-                    IProgramElement ipeChild = (IProgramElement) ipeIter.next();
+    	        SortedSet<IJavaElement> jeChildren = new TreeSet<IJavaElement>(new AJComparator());
+        	    for (IProgramElement ipeChild : ipeChildren) {
                     if (ipeChild.getKind() == IProgramElement.Kind.CODE) {
                         jeChildren.add(model.programElementToJavaElement(ipeChild));
                     }
                 }
         	    
-                return (IJavaElement[]) (jeChildren.toArray(new IJavaElement[] {}));
+                return (IJavaElement[]) (jeChildren.toArray(new IJavaElement[0]));
     	    }
 	    }
 	    return null;
 	}
 
-	private List /* AJRelationshipType */getAJRelationshipTypes(List relNames) {
-		List visibleAJRelTypes = new ArrayList();
+	private List<AJRelationshipType> getAJRelationshipTypes(List<String> relNames) {
+		List<AJRelationshipType> visibleAJRelTypes = new ArrayList<AJRelationshipType>();
 		for (int i = 0; i < relationshipTypes.length; i++) {
-			String name = (String) relationshipTypes[i].getDisplayName();
+			String name = relationshipTypes[i].getDisplayName();
 			if (!relNames.contains(name)) {
 				visibleAJRelTypes.add(relationshipTypes[i]);
 			}
@@ -84,22 +86,20 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
-	public Collection getXReferences(Object o, List checkedRelNames) {
+	public Collection<IXReference> getXReferences(IAdaptable o, List<String> checkedRelNames) {
 		if (!(o instanceof IJavaElement))
-			return Collections.EMPTY_SET;
+			return Collections.emptySet();
 
-		List visibleAJRelTypes = getAJRelationshipTypes(checkedRelNames);
-		List xrefs = new ArrayList();
+		List<AJRelationshipType> visibleAJRelTypes = getAJRelationshipTypes(checkedRelNames);
+		List<IXReference> xrefs = new ArrayList<IXReference>();
 		IJavaElement je = (IJavaElement) o;
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(je);
 
-		for (Iterator it = visibleAJRelTypes.iterator(); it.hasNext();) {
-			AJRelationshipType ajType = (AJRelationshipType) it.next();
-			List associates = new ArrayList();
-			List related = model.getRelationshipsForElement(je, ajType);
+		for (AJRelationshipType ajType : visibleAJRelTypes) {
+			List<IAdaptable> associates = new ArrayList<IAdaptable>();
+			List<IJavaElement> related = model.getRelationshipsForElement(je, ajType);
 			if (related != null && related.size() > 0) {
-				for (Iterator iter = related.iterator(); iter.hasNext();) {
-					IJavaElement javaElement = (IJavaElement) iter.next();
+				for (IJavaElement javaElement : related) {
 					AJNode associate = new AJNode(javaElement, model
 							.getJavaElementLinkName(javaElement));
 					associates.add(associate);
@@ -125,9 +125,9 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 
 		private String name;
 
-		private List associates;
+		private List<IAdaptable> associates;
 
-		public XRef(String name, List associates) {
+		public XRef(String name, List<IAdaptable> associates) {
 			this.name = name;
 			this.associates = associates;
 		}
@@ -136,17 +136,17 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 			return name;
 		}
 
-		public Iterator getAssociates() {
+		public Iterator<IAdaptable> getAssociates() {
 			return associates.iterator();
 		}
 	}
 
-	public void setCheckedFilters(List l) {
+	public void setCheckedFilters(List<String> l) {
 		AspectJPreferences.setCheckedFilters(l);
 	}
 
-	public List getFilterCheckedList() {
-		List checked = AspectJPreferences.getFilterCheckedList();
+	public List<String> getFilterCheckedList() {
+		List<String> checked = AspectJPreferences.getFilterCheckedList();
 		if (checked != null) {
 			return checked;
 		}
@@ -154,12 +154,12 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 		return getFilterDefaultList();
 	}
 	
-	public void setCheckedInplaceFilters(List l) {
+	public void setCheckedInplaceFilters(List<String> l) {
 		AspectJPreferences.setCheckedInplaceFilters(l);
 	}
 
-	public List getFilterCheckedInplaceList() {
-		List checked = AspectJPreferences.getFilterCheckedInplaceList();
+	public List<String> getFilterCheckedInplaceList() {
+		List<String> checked = AspectJPreferences.getFilterCheckedInplaceList();
 		if (checked != null) {
 			return checked;
 		}
@@ -172,8 +172,8 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getFilterList()
 	 */
-	public List getFilterList() {
-		List populatingList = new ArrayList();
+	public List<String> getFilterList() {
+		List<String> populatingList = new ArrayList<String>();
 		for (int i = 0; i < relationshipTypes.length; i++) {
 			populatingList.add(relationshipTypes[i].getDisplayName());
 		}
@@ -185,8 +185,8 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getFilterDefaultList()
 	 */
-	public List getFilterDefaultList() {
-		List defaultFilterList = new ArrayList();
+	public List<String> getFilterDefaultList() {
+		List<String> defaultFilterList = new ArrayList<String>();
 		
 		// list of relationships to filter out by default
 		defaultFilterList.add(AJRelationshipManager.USES_POINTCUT.getDisplayName());
@@ -194,4 +194,9 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 
 		return defaultFilterList;
 	}
+
+    public Collection<IXReference> getXReferences(Object o, List<String> l) {
+        Assert.isLegal(o instanceof IAdaptable, "Object should be of type IAdaptable: " + o);
+        return getXReferences((IAdaptable) o, l);
+    }
 }
