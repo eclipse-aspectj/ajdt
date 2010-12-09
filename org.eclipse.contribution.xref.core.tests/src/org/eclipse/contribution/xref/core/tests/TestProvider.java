@@ -17,24 +17,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import org.eclipse.contribution.xref.core.IXReferenceProviderExtension;
 import org.eclipse.contribution.xref.core.XReference;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author hawkinsh
  *  
  */
-public class TestProvider implements IXReferenceProvider {
+public class TestProvider implements IXReferenceProvider, IXReferenceProviderExtension {
 
-	private List checkedFilterList;
-	private List checkedFilterInplaceList;
+	private List<String> checkedFilterList;
+	private List<String> checkedFilterInplaceList;
 	
 	public static boolean beBad = false; // for setting up test conditions
 	
 	public TestProvider() {
-		checkedFilterList = new ArrayList();
-		checkedFilterInplaceList = new ArrayList();
+		checkedFilterList = new ArrayList<String>();
+		checkedFilterInplaceList = new ArrayList<String>();
 	}
 	
 	/*
@@ -42,7 +46,7 @@ public class TestProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getClasses()
 	 */
-	public Class[] getClasses() {
+	public Class<?>[] getClasses() {
 		return new Class[] { String.class };
 	}
 
@@ -51,12 +55,12 @@ public class TestProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
-	public Collection getXReferences(Object o, List checked) {
-		String s = (String) o;
-		Set a = new HashSet();
-		a.add(s.toUpperCase());
+	public Collection<IXReference> getXReferences(IAdaptable o, List<String> checked) {
+		String s = ((AdaptableString) o).getVal();
+		Set<IAdaptable> a = new HashSet<IAdaptable>();
+		a.add(new AdaptableString(s.toUpperCase()));
 		XReference xr = new XReference("In Upper Case", a); //$NON-NLS-1$
-		List l = new ArrayList();
+		List<IXReference> l = new ArrayList<IXReference>();
 		l.add(xr);
 		return l;
 	}
@@ -79,27 +83,34 @@ public class TestProvider implements IXReferenceProvider {
 		return "My Description"; //$NON-NLS-1$
 	}
 
-	public void setCheckedFilters(List l) {
+	public void setCheckedFilters(List<String> l) {
 		checkedFilterList = l;
 	}
 
-	public void setCheckedInplaceFilters(List l) {
+	public void setCheckedInplaceFilters(List<String> l) {
 		checkedFilterInplaceList = l;
 	}
 
-	public List getFilterCheckedList() {
+	public List<String> getFilterCheckedList() {
 		return checkedFilterList;
 	}
 
-	public List getFilterCheckedInplaceList() {
+	public List<String> getFilterCheckedInplaceList() {
 		return checkedFilterInplaceList;
 	}
 	
-	public List getFilterList() {
+	public List<String> getFilterList() {
 		return null;
 	}
 
-	public List getFilterDefaultList() {
+	public List<String> getFilterDefaultList() {
 		return null;
 	}
+	
+
+    public Collection<IXReference> getXReferences(Object o, List<String> l) {
+        Assert.isLegal(o instanceof IAdaptable, "Object should be of type IAdaptable: " + o);
+        return getXReferences((IAdaptable) o, l);
+    }
+
 }

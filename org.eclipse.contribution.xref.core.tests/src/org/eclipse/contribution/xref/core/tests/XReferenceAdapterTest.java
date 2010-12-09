@@ -21,6 +21,7 @@ import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.core.XReferenceProviderManager;
+import org.eclipse.core.runtime.IAdaptable;
 
 /**
  * @author hawkinsh
@@ -29,46 +30,44 @@ import org.eclipse.contribution.xref.core.XReferenceProviderManager;
 public class XReferenceAdapterTest extends TestCase {
 
 	public void testGetReferenceSource() {
-		Object o = new Object();
+		AdaptableString o = new AdaptableString();
 		XReferenceAdapter xra = new XReferenceAdapter(o);
 		assertEquals(o, xra.getReferenceSource());
 	}
 
 	public void testGetXReferences() {
-		Object o = new Object();
+	    AdaptableString o = new AdaptableString();
 		XReferenceAdapter xra = new XReferenceAdapter(o);
-		Collection references = xra.getXReferences();
+		Collection<IXReference> references = xra.getXReferences();
 		assertEquals(0, references.size());
-		XReferenceAdapter xra2 = new XReferenceAdapter("more lower case"); //$NON-NLS-1$
+		XReferenceAdapter xra2 = new XReferenceAdapter(new AdaptableString("more lower case")); //$NON-NLS-1$
 		references = xra2.getXReferences();
 		assertEquals(1, references.size());
 
-		IXReference xref = (IXReference) references.iterator().next();
+		IXReference xref = references.iterator().next();
 		assertEquals("In Upper Case", xref.getName()); //$NON-NLS-1$
-		Iterator it = xref.getAssociates();
+		Iterator<IAdaptable> it = xref.getAssociates();
 		int numAssociates = 0;
 		while (it.hasNext()) {
-			String element = (String) it.next();
-			assertEquals("MORE LOWER CASE", element); //$NON-NLS-1$
+		    AdaptableString element = (AdaptableString) it.next();
+			assertEquals("MORE LOWER CASE", element.getVal()); //$NON-NLS-1$
 			numAssociates++;
 		}
 		assertEquals(1, numAssociates);
 
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
-		List providers = manager.getRegisteredProviders();
-		for (Iterator iter = providers.iterator(); iter.hasNext();) {
-            XReferenceProviderDefinition def = (XReferenceProviderDefinition) iter.next();
-    		def.setEnabled(false);            
+		List<XReferenceProviderDefinition> providers = manager.getRegisteredProviders();
+		for (XReferenceProviderDefinition provider : providers) {
+    		provider.setEnabled(false);            
         }
 
-		XReferenceAdapter xra3 = new XReferenceAdapter("more lower case"); //$NON-NLS-1$
+		XReferenceAdapter xra3 = new XReferenceAdapter(new AdaptableString("more lower case")); //$NON-NLS-1$
 		references = xra3.getXReferences();
 		assertEquals(0, references.size());
 
-		for (Iterator iter = providers.iterator(); iter.hasNext();) {
-            XReferenceProviderDefinition def = (XReferenceProviderDefinition) iter.next();
-    		def.setEnabled(true);
+		for (XReferenceProviderDefinition provider : providers) {
+    		provider.setEnabled(true);
         }		
 	}
 }

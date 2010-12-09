@@ -14,6 +14,7 @@ package org.eclipse.contribution.xref.core.tests;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.contribution.xref.core.IXReferenceProvider;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.core.XReferenceProviderManager;
 
@@ -51,9 +52,9 @@ public class XReferenceProviderManagerTest extends TestCase {
 	public void testGetProvidersFor() {
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
-		List providers = manager.getProvidersFor(new Object());
+		List<IXReferenceProvider> providers = manager.getProvidersFor(new AdaptableObject());
 		assertEquals(0, providers.size());
-		providers = manager.getProvidersFor("lower case"); //$NON-NLS-1$
+		providers = manager.getProvidersFor(new AdaptableString());
 		assertEquals(1, providers.size());
 		assertTrue(providers.get(0) instanceof TestProvider);
 	}

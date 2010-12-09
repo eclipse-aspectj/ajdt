@@ -12,7 +12,6 @@
 package org.eclipse.contribution.xref.core.tests;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -33,15 +32,14 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		XReferenceProviderManager manager = XReferenceProviderManager.getManager();
-		List providers = manager.getRegisteredProviders();
-		for (Iterator iter = providers.iterator(); iter.hasNext();) {
-            XReferenceProviderDefinition element = (XReferenceProviderDefinition) iter.next();
-            if (element.getProvider().getProviderDescription().equals("My Description")) { //$NON-NLS-1$
-                def = element;
+		List<XReferenceProviderDefinition> providers = manager.getRegisteredProviders();
+		for (XReferenceProviderDefinition providerDef : providers) {
+            if (providerDef.getProvider().getProviderDescription().equals("My Description")) { //$NON-NLS-1$
+                def = providerDef;
             }
         }
 		if (def == null) {
-			def = (XReferenceProviderDefinition)providers.get(0);
+			def = providers.get(0);
             
         } 
 		
@@ -85,22 +83,22 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 	}
 
 	public void testSetCheckedFilters() {
-		List li = new ArrayList();
+		List<String> li = new ArrayList<String>();
 		li.add("Item 1"); //$NON-NLS-1$
 		def.setCheckedFilters(li);
-		List returned = def.getCheckedFilters();
+		List<String> returned = def.getCheckedFilters();
 		assertTrue("One item should be checked", returned.size()==1); //$NON-NLS-1$
 		// Reset
-		def.setCheckedFilters(new ArrayList());		
+		def.setCheckedFilters(new ArrayList<String>());		
 	}
 	
 	public void testSetCheckedInplaceFilters() {
-		List li = new ArrayList();
+		List<String> li = new ArrayList<String>();
 		li.add("Item 1"); //$NON-NLS-1$
 		def.setCheckedInplaceFilters(li);
-		List returned = def.getCheckedInplaceFilters();
+		List<String> returned = def.getCheckedInplaceFilters();
 		assertTrue("One item should be checked", returned.size()==1); //$NON-NLS-1$
 		// Reset
-		def.setCheckedInplaceFilters(new ArrayList());		
+		def.setCheckedInplaceFilters(new ArrayList<String>());		
 	}
 }

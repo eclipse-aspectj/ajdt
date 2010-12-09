@@ -55,7 +55,8 @@ public class XReferenceAdapterFactoryTest extends TestCase {
     
     	
 	public void testGetAdapterList() {
-		Class[] adaptedClasses = xraf.getAdapterList();
+		@SuppressWarnings("rawtypes")
+        Class[] adaptedClasses = xraf.getAdapterList();
 		assertEquals(1,adaptedClasses.length);
 		assertEquals(IXReferenceAdapter.class,adaptedClasses[0]);
 	}

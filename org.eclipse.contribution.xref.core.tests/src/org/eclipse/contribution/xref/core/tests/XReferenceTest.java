@@ -15,9 +15,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.eclipse.contribution.xref.core.XReference;
-
 import junit.framework.TestCase;
+
+import org.eclipse.contribution.xref.core.XReference;
+import org.eclipse.core.runtime.IAdaptable;
 
 /**
  * @author hawkinsh
@@ -43,9 +44,9 @@ public class XReferenceTest extends TestCase {
 	 * Class to test for void XReference(String)
 	 */
 	public void testXReferenceString() {
-		XReference xref = new XReference("extends"); //$NON-NLS-1$
-		assertEquals("extends",xref.getName()); //$NON-NLS-1$
-		Iterator it = xref.getAssociates();
+		XReference xref = new XReference("extends");
+		assertEquals("extends",xref.getName());
+		Iterator<IAdaptable> it = xref.getAssociates();
 		assertFalse(it.hasNext());
 	}
 
@@ -53,69 +54,69 @@ public class XReferenceTest extends TestCase {
 	 * Class to test for void XReference(String, Set)
 	 */
 	public void testXReferenceStringSet() {
-		Set s = new HashSet();
-		s.add("one"); //$NON-NLS-1$
-		s.add("two"); //$NON-NLS-1$
-		XReference xref = new XReference("extends",s); //$NON-NLS-1$
-		assertEquals("extends",xref.getName()); //$NON-NLS-1$
+		Set<IAdaptable> s = new HashSet<IAdaptable>();
+		s.add(new AdaptableString("one"));
+		s.add(new AdaptableString("two"));
+		XReference xref = new XReference("extends",s);
+		assertEquals("extends",xref.getName());
 		int numElements = 0;
-		for (Iterator iter = xref.getAssociates(); iter.hasNext();) {
+		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = (String) iter.next();
-			assertTrue(element.equals("one") || element.equals("two"));			 //$NON-NLS-1$ //$NON-NLS-2$
+			String element = ((AdaptableString) iter.next()).getVal();
+			assertTrue(element.equals("one") || element.equals("two"));
 		}
 		assertEquals(2,numElements);
 	}
 
 	public void testAddAssociate() {
-		XReference xref = new XReference("extends"); //$NON-NLS-1$
-		xref.addAssociate("one"); //$NON-NLS-1$
+		XReference xref = new XReference("extends");
+		xref.addAssociate(new AdaptableString("one"));
 		int numElements = 0;
-		for (Iterator iter = xref.getAssociates(); iter.hasNext();) {
+		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = (String) iter.next();
-			assertTrue(element.equals("one"));			 //$NON-NLS-1$
+			String element = ((AdaptableString) iter.next()).getVal();
+			assertTrue(element.equals("one"));			
 		}
 		assertEquals(1,numElements);
-		xref.addAssociate("two"); //$NON-NLS-1$
+		xref.addAssociate(new AdaptableString("two"));
 		numElements = 0;
-		for (Iterator iter = xref.getAssociates(); iter.hasNext();) {
+		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = (String) iter.next();
-			assertTrue(element.equals("one") || element.equals("two"));			 //$NON-NLS-1$ //$NON-NLS-2$
+			String element = ((AdaptableString) iter.next()).getVal();
+			assertTrue(element.equals("one") || element.equals("two"));
 		}
 		assertEquals(2,numElements);
-		xref.addAssociate("one"); //$NON-NLS-1$
+		xref.addAssociate(new AdaptableString("one"));
 		numElements = 0;
-		for (Iterator iter = xref.getAssociates(); iter.hasNext();) {
+		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = (String) iter.next();
-			assertTrue(element.equals("one") || element.equals("two"));			 //$NON-NLS-1$ //$NON-NLS-2$
+			String element = ((AdaptableString) iter.next()).getVal();
+			assertTrue(element.equals("one") || element.equals("two"));
 		}
 		assertEquals(2,numElements);		
 	}
 
 	public void testRemoveAssociate() {
-		XReference xref = new XReference("extends"); //$NON-NLS-1$
-		xref.addAssociate("one"); //$NON-NLS-1$
-		xref.addAssociate("two"); //$NON-NLS-1$
-		xref.removeAssociate("one"); //$NON-NLS-1$
+		XReference xref = new XReference("extends");
+		xref.addAssociate(new AdaptableString("one"));
+		xref.addAssociate(new AdaptableString("two"));
+		xref.removeAssociate(new AdaptableString("one"));
 		int numElements = 0;
-		for (Iterator iter = xref.getAssociates(); iter.hasNext();) {
+		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = (String) iter.next();
-			assertTrue(element.equals("two"));			 //$NON-NLS-1$
+			String element = ((AdaptableString) iter.next()).getVal();
+			assertTrue(element.equals("two"));			
 		}
 		assertEquals(1,numElements);
-		xref.removeAssociate("three"); //$NON-NLS-1$
+		xref.removeAssociate(new AdaptableString("three"));
 		numElements = 0;
-		for (Iterator iter = xref.getAssociates(); iter.hasNext();) {
+		for (Iterator<IAdaptable> iter = xref.getAssociates(); iter.hasNext();) {
 			numElements++;
-			String element = (String) iter.next();
-			assertTrue(element.equals("two"));			 //$NON-NLS-1$
+			String element = ((AdaptableString) iter.next()).getVal();
+			assertTrue(element.equals("two"));			
 		}
 		assertEquals(1,numElements);
-		xref.removeAssociate("two"); //$NON-NLS-1$
+		xref.removeAssociate(new AdaptableString("two"));
 		assertFalse(xref.getAssociates().hasNext());		
 	}
 
