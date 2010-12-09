@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2010 IBM Corporation, SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,17 +7,23 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *     Helen Hawkins   - initital version
+ *     Andrew Eisenberg - implements IAdaptable
  *******************************************************************************/
 package org.eclipse.contribution.xref.ui.tests.views;
+
+import org.eclipse.core.runtime.IAdaptable;
 
 /**
  * @author hawkinsh
  *
  */
-public class TestXRefClassWithEntities {
+public class TestXRefClassWithEntities implements IAdaptable {
 	
 	public TestXRefClassWithEntities() {
 	}
 
+    public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+        return null;
+    }
 }

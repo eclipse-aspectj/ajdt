@@ -15,15 +15,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import org.eclipse.contribution.xref.core.IXReferenceProviderExtension;
 import org.eclipse.contribution.xref.core.XReference;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author hawkinsh
  *  
  */
-public class TestXRefProvider implements IXReferenceProvider {
+public class TestXRefProvider implements IXReferenceProvider, IXReferenceProviderExtension {
 
 	public static boolean beBad = false; // for setting up test conditions
 
@@ -32,7 +36,7 @@ public class TestXRefProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getClasses()
 	 */
-	public Class[] getClasses() {
+	public Class<?>[] getClasses() {
 		return new Class[] { TestXRefClass.class };
 	}
 
@@ -41,10 +45,10 @@ public class TestXRefProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
-	public Collection getXReferences(Object o, List checked) {
+	public Collection<IXReference> getXReferences(IAdaptable o, List<String> checked) {
 		XReference e = new XReference("extends"); //$NON-NLS-1$
 		XReference i = new XReference("implements"); //$NON-NLS-1$
-		List l = new ArrayList();
+		List<IXReference> l = new ArrayList<IXReference>();
 		l.add(e);
 		l.add(i);
 		return l;
@@ -59,16 +63,21 @@ public class TestXRefProvider implements IXReferenceProvider {
  		
  	}
 	
-	public void setCheckedFilters(List l) {	}
+	public void setCheckedFilters(List<String> l) {	}
 
-	public void setCheckedInplaceFilters(List l) { }
+	public void setCheckedInplaceFilters(List<String> l) { }
 
-	public List getFilterCheckedList() { return null; }
+	public List<String> getFilterCheckedList() { return null; }
 
-	public List getFilterCheckedInplaceList() { return null; }
+	public List<String> getFilterCheckedInplaceList() { return null; }
 	
-	public List getFilterList() { return null; }
+	public List<String> getFilterList() { return null; }
 
-	public List getFilterDefaultList() { return null; }
-	
+	public List<String> getFilterDefaultList() { return null; }
+
+    public Collection<IXReference> getXReferences(Object o, List<String> l) {
+        Assert.isLegal(o instanceof IAdaptable, "Object should be of type IAdaptable: " + o);
+        return getXReferences((IAdaptable) o, l);
+    }
+
 }

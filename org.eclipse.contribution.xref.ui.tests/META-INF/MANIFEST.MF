@@ -14,6 +14,7 @@ Require-Bundle: org.eclipse.contribution.xref.ui,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
  org.junit,
- org.eclipse.contribution.xref.core
+ org.eclipse.contribution.xref.core,
+ org.eclipse.contribution.xref.core.tests;bundle-version="2.1.2"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

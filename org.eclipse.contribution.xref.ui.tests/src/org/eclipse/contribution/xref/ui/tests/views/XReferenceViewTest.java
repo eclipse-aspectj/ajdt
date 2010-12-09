@@ -14,6 +14,7 @@ package org.eclipse.contribution.xref.ui.tests.views;
 import junit.framework.TestCase;
 
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
+import org.eclipse.contribution.xref.core.tests.AdaptableObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
@@ -153,7 +154,7 @@ public class XReferenceViewTest extends TestCase {
 		assertEquals(0, viewContentProvider.getElements(null).length);
 
 		// add a XReference adapter with no XReference
-		Object source = new Object();
+		AdaptableObject source = new AdaptableObject();
 		XReferenceAdapter xra = new XReferenceAdapter(source);
 		viewContentProvider.inputChanged(null, null, xra);
 		Object[] es = viewContentProvider.getElements(xra);
