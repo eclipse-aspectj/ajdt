@@ -13,6 +13,8 @@ package org.eclipse.contribution.xref.core;
 
 import java.util.Iterator;
 
+import org.eclipse.core.runtime.IAdaptable;
+
 /**
  * A base interface to capture references between elements in the workspace
  */
@@ -32,6 +34,6 @@ public interface IXReference {
 	 * and returns an IWorkbenchAdapter on request.
 	 * @return a non-null iterator over the related items
 	 */
-	public Iterator getAssociates();
+	public Iterator<IAdaptable> getAssociates();
 	
 }

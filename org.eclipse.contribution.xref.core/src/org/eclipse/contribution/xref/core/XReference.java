@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IAdaptable;
+
 /**
  * Convenience implementation of IXReference
  * @see org.eclipse.contribution.xref.core.IXReference
@@ -23,7 +25,7 @@ import java.util.Set;
 public class XReference implements IXReference {
 
 	private String name;
-	private Set associates;
+	private Set<IAdaptable> associates;
 	
 	
 	/**
@@ -33,7 +35,7 @@ public class XReference implements IXReference {
 	 */
 	public XReference(String name) {
 		this.name = name;
-		associates = new HashSet();
+		associates = new HashSet<IAdaptable>();
 	}
 	
 	/**
@@ -42,9 +44,9 @@ public class XReference implements IXReference {
 	 * @param name the reference type name
 	 * @param to the set of objects connected via this reference
 	 */
-	public XReference(String name, Set to) {
+	public XReference(String name, Set<IAdaptable> to) {
 		this.name = name;
-		this.associates = new HashSet(to);
+		this.associates = new HashSet<IAdaptable>(to);
 	}
 
 	/* (non-Javadoc)
@@ -55,13 +57,13 @@ public class XReference implements IXReference {
 	/* (non-Javadoc)
 	 * @see org.eclipse.contributions.xref.core.IXReference#getAssociates()
 	 */
-	public Iterator getAssociates() { return associates.iterator(); }
+	public Iterator<IAdaptable> getAssociates() { return associates.iterator(); }
 	
 	/**
 	 * Add an associate (object connected via this reference)
 	 * @param o the object to be associated
 	 */
-	public void addAssociate( Object o ) {
+	public void addAssociate( IAdaptable o ) {
 		associates.add(o);
 	}
 	
@@ -69,7 +71,7 @@ public class XReference implements IXReference {
 	 * Remove an associate from this reference
 	 * @param o the object to be disassociated
 	 */
-	public void removeAssociate( Object o ) {
+	public void removeAssociate( IAdaptable o ) {
 		associates.remove(o);
 	}
 	

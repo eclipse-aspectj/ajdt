@@ -14,9 +14,11 @@ package org.eclipse.contribution.xref.core;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.contribution.xref.core.IXReference;
 
 /**
  * <p>
@@ -52,23 +54,25 @@ public interface IXReferenceProvider {
 	 * <p>A call to this method must always return the same class set
 	 * (dynamic modification of the class set is not supported).</p>
 	 */
-	public Class[] getClasses();
+	public Class<?>[] getClasses();
 	
 	/**
-	 * Get the collection of IXReferences for the Object o. "o" is 
-	 * guaranteed to be non-null and of a type returned by getClasses.
-	 * This method will be called in "user time" and should have a 
-	 * sub-second response time. To contribute cross references that cannot 
-	 * guarantee to be computed in that timeframe, return an 
-	 * <code>IDeferredXReference</code>. See the 
-	 * <code>org.eclipse.contributions.xref.internal.providers.ProjectReferencesProvider</code> 
-	 * for an example of a provider that uses this technique.
-	 * @param o the object to get cross references for
-	 * @return IXReference collection of cross references for "o". If there
-	 * are no cross references to be contributed, either an empty collection or
-	 * null is an acceptable return value.
+     * Get the collection of {@link IXReference}s for the Object o. "o" is 
+     * guaranteed to be non-null and of a type returned by getClasses.
+     * This method will be called in "user time" and should have a 
+     * sub-second response time. To contribute cross references that cannot 
+     * guarantee to be computed in that timeframe, return an 
+     * IDeferredXReference. See the 
+     * <code>org.eclipse.contributions.xref.internal.providers.ProjectReferencesProvider</code> 
+     * for an example of a provider that uses this technique.
+     * @param o the object to get cross references for
+     * @return {@link IXReference} collection of cross references for "o". If there
+     * are no cross references to be contributed, either an empty collection or
+     * null is an acceptable return value.
+     * 
+     * @deprecated use {@link IXReferenceProviderExtension#getXReferences(IAdaptable, List)} instead.  
 	 */
-	public Collection getXReferences(Object o, List l);
+	public Collection<IXReference> getXReferences(Object o, List<String> l);
 	
 	public IJavaElement[] getExtraChildren(IJavaElement je);
 
@@ -85,7 +89,7 @@ public interface IXReferenceProvider {
 	 * @param List of Strings corresponding to the items checked by the user
 	 * to indicate the items to exclude in the Cross References View
 	 */
-	public void setCheckedFilters(List l);
+	public void setCheckedFilters(List<String> l);
 
 	/**
 	 * Enables the provider to handle the list of items to be filtered from the
@@ -94,30 +98,30 @@ public interface IXReferenceProvider {
 	 * @param List of Strings corresponding to the items checked by the user
 	 * to indicate the items to exclude in the Cross References Inplace View
 	 */
-	public void setCheckedInplaceFilters(List l);
+	public void setCheckedInplaceFilters(List<String> l);
 	
 	/**
 	 * Returns a List of Strings corresponding to the items previously checked
 	 * by the user to populate the Cross References View
 	 */
-	public List /* String */ getFilterCheckedList();
+	public List<String> getFilterCheckedList();
 	
 	/**
 	 * Returns a List of Strings corresponding to the items previously checked
 	 * by the user to populate the Cross References Inplace View
 	 */
-	public List /* String */ getFilterCheckedInplaceList();
+	public List<String> getFilterCheckedInplaceList();
 	
 	/**
 	 * Returns a List of Strings corresponding to the items used to populate the checkBox with
 	 */
-	public List /* String */ getFilterList();
+	public List<String> getFilterList();
 	
 	/**
 	 * Returns a List of Strings corresponding to the items specified to
 	 * be checked by default in the Cross References Views
 	 */
-	public List /* String */ getFilterDefaultList();
+	public List<String> getFilterDefaultList();
 	
 	/**
 	 * Providers are contributed by other plugins, and should be considered untrusted 

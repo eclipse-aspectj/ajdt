@@ -17,7 +17,6 @@ import org.eclipse.contribution.xref.core.XReferencePlugin;
 import java.io.PrintStream;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * A tracing policy aspect
@@ -51,7 +50,7 @@ public aspect TracingPolicy {
 	public static class TraceConsole {
 		
 		private static PrintStream destination = System.out;
-		private static Set listeners = new HashSet();
+		private static Set<ITraceListener> listeners = new HashSet<ITraceListener>();
 		private static StringBuffer buff = new StringBuffer();
 		
 		private static final String sig = XReferencePlugin.PLUGIN_ID + ": "; //$NON-NLS-1$
@@ -81,9 +80,8 @@ public aspect TracingPolicy {
 		public static void printlnAnonymous(String s) {
 			destination.println(s);
 			buff.append(s);
-			for (Iterator it = listeners.iterator(); it.hasNext(); ) {
-				ITraceListener l = (ITraceListener) it.next();
-				l.newTraceLine(buff.toString());
+			for (ITraceListener listener : listeners) {
+			    listener.newTraceLine(buff.toString());
 			}
 			buff = new StringBuffer();			
 		}

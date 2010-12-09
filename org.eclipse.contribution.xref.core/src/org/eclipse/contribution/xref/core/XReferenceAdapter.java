@@ -13,10 +13,10 @@ package org.eclipse.contribution.xref.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
@@ -24,25 +24,24 @@ import org.eclipse.jdt.core.IJavaElement;
  * @see org.eclipse.contribution.xref.core.IXReferenceAdapter
  *  
  */
-public class XReferenceAdapter implements IXReferenceAdapter {
+public class XReferenceAdapter extends PlatformObject implements IXReferenceAdapter {
 
-	private Object referenceSource;
+	private IAdaptable referenceSource;
 	
 	/**
 	 * @param source
 	 *            the object for which we're providing cross references
 	 */
-	public XReferenceAdapter(Object source) {
+	public XReferenceAdapter(IAdaptable source) {
 		referenceSource = source;
 	}
 
 	public IJavaElement[] getExtraChildren(IJavaElement je) {
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
-		List providers = manager.getProvidersFor(referenceSource);
-		for (Iterator iter = providers.iterator(); iter.hasNext();) {
-			IXReferenceProvider element = (IXReferenceProvider) iter.next();
-			return element.getExtraChildren(je);
+		List<IXReferenceProvider> providers = manager.getProvidersFor(referenceSource);
+		for (IXReferenceProvider provider : providers) {
+			return provider.getExtraChildren(je);
 		}
 		return null;
 	}
@@ -52,7 +51,7 @@ public class XReferenceAdapter implements IXReferenceAdapter {
 	 * 
 	 * @see org.eclipse.contributions.xref.core.IXReferenceAdapter#getReferenceSource()
 	 */
-	public Object getReferenceSource() {
+	public IAdaptable getReferenceSource() {
 		return referenceSource;
 	}
 
@@ -61,29 +60,30 @@ public class XReferenceAdapter implements IXReferenceAdapter {
 	 * 
 	 * @see org.eclipse.contributions.xref.core.IXReferenceAdapter#getXReferences()
 	 */
-	public Collection getXReferences() {		
+	@SuppressWarnings("deprecation")
+    public Collection<IXReference> getXReferences() {		
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
-		List providers = manager.getProvidersFor(referenceSource);
-		List xrefs = new ArrayList();
-		for (Iterator iter = providers.iterator(); iter.hasNext();) {
-			IXReferenceProvider element = (IXReferenceProvider) iter.next();
-			
-			// Establishes which view requires the cross references, (Inplace or View) and passes the corresponding
-			// checkedFilterList to the provider
-			if (manager.getIsInplace()) {
-				Collection c = element.getXReferences(referenceSource, element.getFilterCheckedInplaceList());
-				if (c != null) {
-						xrefs.addAll(c);                
-		          }
+		List<IXReferenceProvider> providers = manager.getProvidersFor(referenceSource);
+		List<IXReference> xrefs = new ArrayList<IXReference>();
+		boolean isInplace = manager.getIsInplace();
+		for (IXReferenceProvider provider : providers) {
+		    List<String> filter;
+		    Collection<IXReference> c;
+            if (isInplace) {
+			    filter = provider.getFilterCheckedInplaceList();
 			} else {
-				Collection c = element.getXReferences(referenceSource, element.getFilterCheckedList());
-				if (c != null) {
-						xrefs.addAll(c);                
-		          }
+			    filter = provider.getFilterCheckedList();
+			}
+			if (provider instanceof IXReferenceProviderExtension) {
+			    c = ((IXReferenceProviderExtension) provider).getXReferences(referenceSource, filter);
+			} else {
+			    c = provider.getXReferences(referenceSource, filter);
+			}
+			if (c != null) {
+			    xrefs.addAll(c);                
 			}
 		}
 		return xrefs;
 	}
-	
 }

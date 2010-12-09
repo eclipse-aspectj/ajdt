@@ -93,42 +93,42 @@ public class XReferenceProviderDefinition {
 	/**
 	 * @return List of Strings
 	 */
-	public List /* String */ getCheckedInplaceFilters() {
+	public List<String> getCheckedInplaceFilters() {
 		return provider.getFilterCheckedInplaceList();
 	}
 
 	/**
 	 * @param List of Strings
 	 */
-	public void setCheckedInplaceFilters(List /* String */ checkedList) {
+	public void setCheckedInplaceFilters(List<String> checkedList) {
 		provider.setCheckedInplaceFilters(checkedList);
 	}
 
 	/**
 	 * @return List of Strings
 	 */
-	public List /* String */ getCheckedFilters() {
+	public List<String> getCheckedFilters() {
 		return provider.getFilterCheckedList();
 	}
 
 	/**
 	 * @param List of Strings
 	 */
-	public void setCheckedFilters(List /* String */ checkedList) {
+	public void setCheckedFilters(List<String> checkedList) {
 		provider.setCheckedFilters(checkedList);
 	}
 
 	/**
 	 * @return List of Strings
 	 */
-	public List /* String */ getAllFilters() {
+	public List<String> getAllFilters() {
 		return provider.getFilterList();
 	}
 
 	/**
 	 * @return List of Strings
 	 */
-	public List /* String */ getDefaultFilters() {
+	public List<String> getDefaultFilters() {
 		return provider.getFilterDefaultList();
 	}
 

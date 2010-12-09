@@ -19,23 +19,25 @@ import org.eclipse.core.runtime.IAdapterFactory;
  */
 public class XReferenceAdapterFactory implements IAdapterFactory {
  
-	private static final Class[] adapterList = new Class[]{IXReferenceAdapter.class};
+	private static final Class<?>[] adapterList = new Class[]{IXReferenceAdapter.class};
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapter(java.lang.Object, java.lang.Class)
 	 */
-	public Object getAdapter(Object adaptableObject, Class adapterType) {
+	@SuppressWarnings("rawtypes")
+    public Object getAdapter(Object adaptableObject, Class adapterType) {
 		if (!adapterType.equals(IXReferenceAdapter.class) ) {
 			return null;
 		}
 		
-		return new XReferenceAdapter(adaptableObject);
+		return new XReferenceAdapter((IXReferenceAdapter) adaptableObject);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdapterFactory#getAdapterList()
 	 */
-	public Class[] getAdapterList() {
+	@SuppressWarnings("rawtypes")
+    public Class[] getAdapterList() {
 		return adapterList;
 	}
 

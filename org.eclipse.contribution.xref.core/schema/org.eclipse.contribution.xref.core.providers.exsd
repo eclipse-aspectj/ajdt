@@ -1,16 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.contributions.xref.core">
+<schema targetNamespace="org.eclipse.contributions.xref.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appInfo>
+      <appinfo>
          <meta.schema plugin="org.eclipse.contributions.xref.core" id="providers" name="Cross Reference Providers"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          This extension point is used to contribute IXReferenceProviders to the workbench. IXReferenceProviders provide reference information for a set of types. When querying an IXReferenceAdapter for references of a type recognised by the provider, the provider will be called to contribute any references it might have for the instance in question.
       </documentation>
    </annotation>
 
    <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
             <element ref="xrefProvider"/>
@@ -53,9 +58,9 @@
                <documentation>
                   A class that implements the IXReferenceProvider interface
                </documentation>
-               <appInfo>
-                  <meta.attribute kind="java"/>
-               </appInfo>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.contribution.xref.core.IXReferenceProvider"/>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="label" type="string" use="required">
@@ -83,18 +88,18 @@
    </element>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="since"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          org.eclipse.contributions.xref.core 1.0.0
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="examples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The following example shows the plugin.xml fragment used to connect the
 TypeProvider reference provider that displays &quot;extends&quot; and &quot;implements&quot;
@@ -114,27 +119,27 @@ references for all ITypes:
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="apiInfo"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          See the IXReferenceProvider, IXReference, and IXReferenceAdapter interfaces
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="implementation"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The org.eclipse.contribution.xref.core plugin provides the implementation of this extension point.
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="copyright"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          Copyright (c) 2003 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials 
