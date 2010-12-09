@@ -88,7 +88,7 @@ public class CustomFilterDialog {
 	
 	private static boolean isListOfStrings(List listToCheck) {
 		for (Iterator iter = listToCheck.iterator(); iter.hasNext();) {
-			Object itemToCheck = (Object) iter.next();
+			Object itemToCheck = iter.next();
 			if (!(itemToCheck instanceof String)) {
 				return false;
 			}

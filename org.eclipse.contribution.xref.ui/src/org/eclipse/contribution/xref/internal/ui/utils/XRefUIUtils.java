@@ -306,7 +306,7 @@ public class XRefUIUtils {
 					for (int i = 0; i < types.length; i++) {
 						if ((types[i] instanceof SourceType)
 								&& (types[i].getParent() instanceof ICompilationUnit)) {
-							IAdaptable a = ((SourceType)types[i]);
+							IAdaptable a = types[i];
 							if (a != null) {
 								xrefAdapterList.add(a.getAdapter(IXReferenceAdapter.class));
 							}
