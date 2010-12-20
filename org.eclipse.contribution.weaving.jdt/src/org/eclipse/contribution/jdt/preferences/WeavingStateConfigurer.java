@@ -20,6 +20,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
@@ -148,13 +149,20 @@ public class WeavingStateConfigurer {
             
             weavingInfo.setMarkedAsStarted(becomeEnabled);
             
-            manipulator.saveConfiguration(infos, new File(Platform.getConfigurationLocation().getURL().getFile() + SimpleConfiguratorManipulator.BUNDLES_INFO_PATH), Platform.getInstallLocation().getURL().toURI());
+            URL configURL = Platform.getConfigurationLocation().getURL();
+            if (configURL == null || !"file".equals(configURL.getProtocol())) {
+                throw new IOException("Platform configuration location is not found: " + configURL);
+            }
+            
+            URL installURL = Platform.getInstallLocation().getURL();
+            if (installURL == null || !"file".equals(installURL.getProtocol())) {
+                throw new IOException("Platform install location is not found: " + installURL);
+            }
+            manipulator.saveConfiguration(infos, new File(configURL.getFile() + SimpleConfiguratorManipulator.BUNDLES_INFO_PATH), new File(installURL.getFile()).toURI());
             
             return Status.OK_STATUS;
         } catch (IOException e) {
             return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Cannot load configuration", e);
-        } catch (URISyntaxException e) {
-            return new Status(IStatus.ERROR, JDTWeavingPlugin.ID, "Problem saving configuration", e);
         }
     }
 
