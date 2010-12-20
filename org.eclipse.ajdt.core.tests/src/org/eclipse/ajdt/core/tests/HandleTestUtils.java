@@ -161,8 +161,8 @@ public class HandleTestUtils {
 		return null;
 	}
 
-	public static List checkJavaHandle(String origJavaHandle, AJProjectModelFacade model) {
-	    List/*String*/ accumulatedErrors = new ArrayList();
+	public static List<String> checkJavaHandle(String origJavaHandle, AJProjectModelFacade model) {
+	    List<String> accumulatedErrors = new ArrayList<String>();
 	    
 	    try {
 	        
