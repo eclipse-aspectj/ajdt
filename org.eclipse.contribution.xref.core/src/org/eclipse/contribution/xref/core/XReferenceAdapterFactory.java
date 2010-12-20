@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.core;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IAdapterFactory;
 
 /**
@@ -28,9 +29,13 @@ public class XReferenceAdapterFactory implements IAdapterFactory {
     public Object getAdapter(Object adaptableObject, Class adapterType) {
 		if (!adapterType.equals(IXReferenceAdapter.class) ) {
 			return null;
+		} else if (adaptableObject instanceof XReferenceAdapter) {
+		    return adaptableObject;
+		} else if (adaptableObject instanceof IAdaptable) {
+		    return new XReferenceAdapter((IAdaptable) adaptableObject);
+		} else {
+		    return null;
 		}
-		
-		return new XReferenceAdapter((IXReferenceAdapter) adaptableObject);
 	}
 
 	/* (non-Javadoc)
