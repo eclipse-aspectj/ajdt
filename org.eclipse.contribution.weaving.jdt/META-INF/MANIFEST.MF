@@ -21,6 +21,7 @@ Bundle-Activator: org.eclipse.contribution.jdt.JDTWeavingPlugin
 Export-Package: 
  org.eclipse.contribution.jdt;version="2.1.1";uses:="org.osgi.framework,org.eclipse.ui.plugin",
  org.eclipse.contribution.jdt.cuprovider;version="2.1.1";uses:="org.eclipse.jdt.core,org.eclipse.jdt.internal.core",
+ org.eclipse.contribution.jdt.debug,
  org.eclipse.contribution.jdt.imagedescriptor;version="2.1.1";uses:="org.eclipse.jdt.internal.ui.text.java,org.eclipse.jface.resource",
  org.eclipse.contribution.jdt.itdawareness;version="2.1.1";
   uses:="org.eclipse.jdt.internal.compiler.env,
