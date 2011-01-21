@@ -34,6 +34,7 @@ import org.eclipse.ajdt.core.tests.builder.DerivedTests;
 import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug270202;
 import org.eclipse.ajdt.core.tests.builder.LinkedFoldersTestBug275903;
 import org.eclipse.ajdt.core.tests.builder.RefreshTestsImprecise;
+import org.eclipse.ajdt.core.tests.codeconversion.AnnotationConversionTests;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.Bug279974Tests;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
@@ -137,8 +138,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(GetExpandedRegionTests.class));
         suite.addTest(new TestSuite(Bug283468Test.class));
         suite.addTest(new TestSuite(MultipleProjectModelTests.class));
-        
-        
+        suite.addTest(new TestSuite(AnnotationConversionTests.class));
 		
 		// core compiler configuration and ajde
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests.class));

@@ -20,9 +20,11 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.tests.testutils.DefaultLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFolder;
@@ -43,6 +45,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -484,6 +487,28 @@ public class AJDTCoreTestCase extends TestCase {
         return unit;
     }
     
+    
+    protected IField getFirstField(ICompilationUnit[] units)
+    throws JavaModelException {
+        return (IField) units[0].getTypes()[0].getChildren()[0];
+    }
+    protected IMethod getFirstMethod(ICompilationUnit unit)
+    throws JavaModelException {
+        return (IMethod) unit.getTypes()[0].getChildren()[0];
+    }
+
+    protected IntertypeElement getFirstIntertypeElement(ICompilationUnit unit) throws JavaModelException {
+        return (IntertypeElement) unit.getTypes()[0].getChildren()[0];
+    }
+    protected IntertypeElement getFirstIntertypeElement(ICompilationUnit[] units) throws JavaModelException {
+        return (IntertypeElement) units[0].getTypes()[0].getChildren()[0];
+    }
+    protected IntertypeElement getLastIntertypeElement(ICompilationUnit unit) throws JavaModelException {
+        IJavaElement[] children = unit.getTypes()[0].getChildren();
+        return (IntertypeElement) children[children.length-1];
+    }
+
+
 
     
     public IPackageFragment createPackage(String name, IJavaProject javaProject) throws CoreException {

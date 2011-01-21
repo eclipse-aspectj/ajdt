@@ -23,9 +23,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
-/**
- * 
- */
 public class CodeCheckerTest extends AJDTCoreTestCase {
 
 	/**

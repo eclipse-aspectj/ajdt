@@ -128,24 +128,6 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         }
     }
     
-    protected IField getFirstField(ICompilationUnit[] units)
-            throws JavaModelException {
-        return (IField) units[0].getTypes()[0].getChildren()[0];
-    }
-
-    protected IntertypeElement getFirstIntertypeElement(ICompilationUnit unit) throws JavaModelException {
-        return (IntertypeElement) unit.getTypes()[0].getChildren()[0];
-    }
-    protected IntertypeElement getFirstIntertypeElement(ICompilationUnit[] units) throws JavaModelException {
-        return (IntertypeElement) units[0].getTypes()[0].getChildren()[0];
-    }
-    protected IntertypeElement getLastIntertypeElement(ICompilationUnit unit) throws JavaModelException {
-        IJavaElement[] children = unit.getTypes()[0].getChildren();
-        return (IntertypeElement) children[children.length-1];
-    }
-
-
-    
     protected RefactoringStatus performRefactoring(Refactoring ref, boolean providesUndo, boolean performOnFail) throws Exception {
         // force updating of indexes
         super.buildProject(project);
