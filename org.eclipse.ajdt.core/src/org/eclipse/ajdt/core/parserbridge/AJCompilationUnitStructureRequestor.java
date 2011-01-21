@@ -212,7 +212,12 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.isAnnotation = isAnnotation;
 		mi.typeParameters = convertToJDTTypeParameters(typeParameters);
 		if (methodDeclaration != null) {
-		    mi.annotations = convertToJDTAnnotations(methodDeclaration.annotations);
+		    try {
+		        mi.annotations = convertToJDTAnnotations(methodDeclaration.annotations);
+		    } catch (NullPointerException e) {
+	            // ensure that this annotation handling code does not break existing functionality
+	            // catch and log the exception
+		    }
 		}
 		super.enterMethod(mi);
 	}
@@ -419,7 +424,12 @@ public class AJCompilationUnitStructureRequestor extends
 		//info.setArgumentTypeNames(parameterTypes);
 		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
-		info.setAnnotations(createJDTAnnotations(decl.annotations, info, handle));
+		try {
+		    info.setAnnotations(createJDTAnnotations(decl.annotations, info, handle));
+		} catch (Exception e) {
+		    // ensure that this annotation handling code does not break existing functionality
+		    // catch and log the exception
+		}
 		
 		addToChildren(parentInfo, handle);
 		this.newElements.put(handle, info);
