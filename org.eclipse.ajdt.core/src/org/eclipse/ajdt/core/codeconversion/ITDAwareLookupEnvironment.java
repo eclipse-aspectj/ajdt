@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.parserbridge.ITDInserter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -53,12 +54,6 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
         super.completeTypeBindings();
     }
     
-    // not controlled externally any more
-    public void setInsertITDs(boolean insertITDs) {
-//        this.insertITDs = insertITDs;
-    }
-    
-    
     private ICompilationUnit findCU(CompilationUnitDeclaration unit) {
         String fileName = new String(unit.getFileName());
         IPath path = new Path(fileName);
@@ -77,20 +72,8 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
     }
 
 
-    static Field unitsField;
     private CompilationUnitDeclaration[] getUnits() {
-        try {
-            if (unitsField == null) {
-                unitsField = LookupEnvironment.class.getDeclaredField("units");
-                unitsField.setAccessible(true);
-            }
-            return (CompilationUnitDeclaration[]) unitsField.get(this);
-        } catch (SecurityException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (NoSuchFieldException e) {
-        } catch (IllegalAccessException e) {
-        }
-        return null;
+        return (CompilationUnitDeclaration[]) ReflectionUtils.getPrivateField(LookupEnvironment.class, "units", this);
     }
     
     /**

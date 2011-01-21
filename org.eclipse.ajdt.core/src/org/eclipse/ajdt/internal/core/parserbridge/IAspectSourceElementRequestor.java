@@ -17,6 +17,7 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.eclipse.jdt.internal.core.AnnotatableInfo;
 
 /*
  * Part of the source element parser responsible for building the output.
@@ -46,6 +47,19 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
  */
 public interface IAspectSourceElementRequestor extends ISourceElementRequestor {
 
+    
+    // make the two methods accessible here
+    class AJAnnotatableInfo extends AnnotatableInfo {
+        @Override
+        public void setSourceRangeStart(int start) {
+            super.setSourceRangeStart(start);
+        }
+        @Override
+        public void setSourceRangeEnd(int end) {
+            super.setSourceRangeEnd(end);
+        }
+    }
+    
     /* AJDT 1.7 begin */
     class AspectTypeInfo extends org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo {
         public boolean isAspect;

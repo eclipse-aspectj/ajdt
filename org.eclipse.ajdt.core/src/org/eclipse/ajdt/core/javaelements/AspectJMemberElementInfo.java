@@ -15,8 +15,10 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 
 /**
@@ -172,6 +174,14 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public char[] getReturnTypeName() {
 		return returnType;
 	}	
+	
+	public void setAnnotations(IAnnotation[] annotations) {
+	    if (annotations == null) {
+	        this.annotations = Annotation.NO_ANNOTATIONS;
+	    } else {
+	        this.annotations = annotations;
+	    }
+	}
 	
 	/* AJDT 1.7 */
 	protected IJavaElement[] children;

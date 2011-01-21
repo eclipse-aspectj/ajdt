@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -25,9 +26,13 @@ import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
+import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
-import org.aspectj.weaver.ResolvedType;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
@@ -48,11 +53,45 @@ import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
+import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
+import org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ArrayReference;
+import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.CharLiteral;
+import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
+import org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.ExtendedStringLiteral;
+import org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
+import org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue;
+import org.eclipse.jdt.internal.compiler.ast.JavadocArrayQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
+import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
+import org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.jdt.internal.core.AnnotatableInfo;
@@ -62,6 +101,13 @@ import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
+import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
+import org.eclipse.jdt.internal.core.SourceConstructorInfo;
+import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
+import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
+import org.eclipse.jdt.internal.core.SourceMethodInfo;
+import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
 
 /**
  * This class can be used as a source requestor for the JDT parser *OR*
@@ -165,6 +211,7 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.isConstructor = isConstructor;
 		mi.isAnnotation = isAnnotation;
 		mi.typeParameters = convertToJDTTypeParameters(typeParameters);
+		mi.annotations = convertToJDTAnnotations(methodDeclaration.annotations);
 		
 		super.enterMethod(mi);
 	}
@@ -371,13 +418,32 @@ public class AJCompilationUnitStructureRequestor extends
 		//info.setArgumentTypeNames(parameterTypes);
 		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
-
+		info.setAnnotations(createJDTAnnotations(decl.annotations, info, handle));
+		
 		addToChildren(parentInfo, handle);
 		this.newElements.put(handle, info);
 		this.infoStack.push(info);
 		this.handleStack.push(handle);	
 	}
 	
+
+    /**
+     * @param annotations
+     * @return
+     */
+    private IAnnotation[] createJDTAnnotations(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[] ajAnnotations, AnnotatableInfo parentInfo, JavaElement parentHandle) {
+        Annotation[] jdtAnnotations = convertToJDTAnnotations(ajAnnotations);
+        IAnnotation[] realAnnotations = org.eclipse.jdt.internal.core.Annotation.NO_ANNOTATIONS;
+        if (jdtAnnotations != null) {
+            realAnnotations = new IAnnotation[jdtAnnotations.length];
+            for (int i = 0; i < jdtAnnotations.length; i++) {
+                org.eclipse.jdt.internal.compiler.ast.Annotation annotation = jdtAnnotations[i];
+                realAnnotations[i] = acceptAnnotation(annotation, parentInfo, parentHandle);
+            }
+        }
+        return realAnnotations;
+    }
 
     private String concat(char[][] declName) {
         StringBuffer sb = new StringBuffer();
@@ -477,14 +543,14 @@ public class AJCompilationUnitStructureRequestor extends
 		//info.setArgumentTypeNames(parameterTypes);
 		info.setReturnType(returnType == null ? VOID : returnType);
 		info.setExceptionTypeNames(exceptionTypes);
-
+		
 		addToChildren(parentInfo, handle);
 		this.newElements.put(handle, info);
 		this.infoStack.push(info);
 		this.handleStack.push(handle);	
 	}
 	
-	public void enterPointcut(
+    public void enterPointcut(
 			int declarationStart,
 			int modifiers,
 			char[] returnType,
@@ -763,10 +829,10 @@ public class AJCompilationUnitStructureRequestor extends
             }
         }
         if (typeInfo.childrenCategories != null) {
-            Iterator iterator = typeInfo.childrenCategories.entrySet().iterator();
+            Iterator<Map.Entry<IJavaElement, char[][]>> iterator = typeInfo.childrenCategories.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                info.addCategories((IJavaElement) entry.getKey(), (char[][]) entry.getValue());
+                Map.Entry<IJavaElement, char[][]> entry = iterator.next();
+                info.addCategories(entry.getKey(), entry.getValue());
             }
         }
         return info;
@@ -799,18 +865,6 @@ public class AJCompilationUnitStructureRequestor extends
 		}
 		resolveDuplicates(handle);
 		
-		
-		// make the two methods accessible here
-		class AJAnnotatableInfo extends AnnotatableInfo {
-		    @Override
-			protected void setSourceRangeStart(int start) {
-				super.setSourceRangeStart(start);
-			}
-		    @Override
-			protected void setSourceRangeEnd(int end) {
-				super.setSourceRangeEnd(end);
-			}
-		}
 		AJAnnotatableInfo info = new AJAnnotatableInfo() ;
 		info.setSourceRangeStart(declarationStart);
 		info.setSourceRangeEnd(declarationEnd);
@@ -835,12 +889,15 @@ public class AJCompilationUnitStructureRequestor extends
 	    }
 	    
 	    this.handleStack.pop();
+	    
 	    AspectJMemberElementInfo info = (AspectJMemberElementInfo) this.infoStack.pop();
 	    info.setSourceRangeEnd(declarationEnd);
 	    info.setChildren(getChildren(info));
 	}
 	
-	// copied from so that children Map is accessible
+
+	
+	// copied from super so that children Map is accessible
 	private IJavaElement[] getChildren(Object info) {
 	    ArrayList childrenList = (ArrayList) this.children.get(info);
 	    if (childrenList != null) {
@@ -863,7 +920,296 @@ public class AJCompilationUnitStructureRequestor extends
 	}
 
     
-	private org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] convertToJDTTypeParameters(
+	// unused
+    private Annotation[] convertToJDTAnnotations(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[] ajAnnotations) {
+        if (ajAnnotations == null) {
+            return null;
+        }
+        Annotation[] jdtAnnotations = new Annotation[ajAnnotations.length];
+        for (int i = 0; i < ajAnnotations.length; i++) {
+            jdtAnnotations[i] = convertToJDTAnnotation(ajAnnotations[i]);
+        }
+        return jdtAnnotations;
+    }
+
+    private Annotation convertToJDTAnnotation(org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation ajAnnotation) {
+        Annotation jdtAnnotation = null;
+        if (ajAnnotation != null) {
+            if (ajAnnotation instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation) {
+                jdtAnnotation = new MarkerAnnotation(convertToJDTTypeReference(ajAnnotation.type), ajAnnotation.sourceStart);
+            } else if (ajAnnotation instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation) {
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation) ajAnnotation;
+                NormalAnnotation castedJDT = new NormalAnnotation(convertToJDTTypeReference(castedAJ.type), castedAJ.sourceStart);
+                if (castedAJ.memberValuePairs != null) {
+                    castedJDT.memberValuePairs = new MemberValuePair[castedAJ.memberValuePairs.length];
+                    for (int j = 0; j < castedAJ.memberValuePairs.length; j++) {
+                        org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair ajMVP = castedAJ.memberValuePairs[j];
+                        if (ajMVP != null) {
+                            MemberValuePair jdtMVP = new MemberValuePair(ajMVP.name, ajMVP.sourceStart, ajMVP.sourceEnd, convertToJDTExpression(ajMVP.value));
+                            jdtMVP.bits = ajMVP.bits;
+                            castedJDT.memberValuePairs[j] = jdtMVP;
+                        }
+                    }
+                }
+                jdtAnnotation = castedJDT;
+            } else { // SingleMemberAnnotation
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation) ajAnnotation;
+                SingleMemberAnnotation castedJDT = new SingleMemberAnnotation(convertToJDTTypeReference(castedAJ.type), castedAJ.sourceStart);
+                castedJDT.memberValue = convertToJDTExpression(castedAJ.memberValue);
+                
+                jdtAnnotation = castedJDT;
+            }
+            jdtAnnotation.sourceEnd = ajAnnotation.sourceEnd;
+            jdtAnnotation.declarationSourceEnd = ajAnnotation.declarationSourceEnd;
+            jdtAnnotation.implicitConversion = ajAnnotation.implicitConversion;
+            jdtAnnotation.bits = ajAnnotation.bits;
+            jdtAnnotation.statementEnd = ajAnnotation.statementEnd;
+        }
+        return jdtAnnotation;
+    }
+    
+    /**
+     * Only handle certain kinds of expressions
+     * all others will be returned as null
+     * 
+     * String constants
+     * int constants
+     * arrays
+     * ClassRefs
+     * Enum ref
+     * Annotation ref
+     * 
+     * @param ajExpr
+     * @return jdtExpr
+     */
+    private Expression convertToJDTExpression(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression ajExpr) {
+        if (ajExpr == null) {
+            return null;
+        }
+        Expression jdtExpr = null;
+        if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation) ajExpr;
+            StringLiteralConcatenation castedJDT = new StringLiteralConcatenation((StringLiteral) convertToJDTExpression(castedAJ.literals[0]), (StringLiteral) convertToJDTExpression(castedAJ.literals[1]));
+            for (int i = 2; i < castedAJ.literals.length; i++) {
+                // may not be able to handle non-string constants here
+                castedJDT.extendsWith((StringLiteral) convertToJDTExpression(castedAJ.literals[i]));
+            }
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.CharLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.CharLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.CharLiteral) ajExpr;
+            CharLiteral castedJDT = new CharLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.DoubleLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.DoubleLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.DoubleLiteral) ajExpr;
+            DoubleLiteral castedJDT = new DoubleLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.FloatLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.FloatLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.FloatLiteral) ajExpr;
+            FloatLiteral castedJDT = new FloatLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue) {
+            IntLiteralMinValue castedJDT = new IntLiteralMinValue();
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral) ajExpr;
+            IntLiteral castedJDT = new IntLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue) {
+            LongLiteralMinValue castedJDT = new LongLiteralMinValue();
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral) ajExpr;
+            LongLiteral castedJDT = new LongLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral) {
+            // note that here we capture both StringLiteral and ExtendedStringLiteral
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral) ajExpr;
+            // can we get away with no line number?
+            StringLiteral castedJDT = new StringLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd, 0);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer) ajExpr;
+            ArrayInitializer castedJDT = new ArrayInitializer();
+            if (castedAJ.expressions != null) {
+                castedJDT.expressions = new Expression[castedAJ.expressions.length];
+                for (int i = 0; i < castedJDT.expressions.length; i++) {
+                    castedJDT.expressions[i] = convertToJDTExpression(castedAJ.expressions[i]);
+                }
+            }
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression) ajExpr;
+            ArrayAllocationExpression castedJDT = new ArrayAllocationExpression();
+            castedJDT.type = convertToJDTTypeReference(castedAJ.type);
+            if (castedAJ.dimensions != null) {
+                castedJDT.dimensions = new Expression[castedAJ.dimensions.length];
+                for (int i = 0; i < castedJDT.dimensions.length; i++) {
+                    castedJDT.dimensions[i] = convertToJDTExpression(castedAJ.dimensions[i]);
+                }
+            }
+            castedJDT.initializer = (ArrayInitializer) convertToJDTExpression(castedAJ.initializer);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference) ajExpr;
+            FieldReference castedJDT = new FieldReference(castedAJ.token, toPos(castedAJ.sourceStart, castedAJ.sourceEnd));
+            castedJDT.nameSourcePosition = castedAJ.nameSourcePosition;
+            castedJDT.receiver = convertToJDTExpression(castedAJ.receiver);
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference) ajExpr;
+            ArrayReference castedJDT = new ArrayReference(convertToJDTExpression(castedAJ.receiver), convertToJDTExpression(castedAJ.position));
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference) ajExpr;
+            QualifiedNameReference castedJDT = new QualifiedNameReference(castedAJ.tokens, castedAJ.sourcePositions, castedAJ.sourceStart, castedAJ.sourceEnd);
+            castedJDT.indexOfFirstFieldBinding = castedAJ.indexOfFirstFieldBinding;
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference) ajExpr;
+            SingleNameReference castedJDT = new SingleNameReference(castedAJ.token, toPos(castedAJ.sourceStart, castedAJ.sourceEnd));
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference) {
+            jdtExpr = convertToJDTTypeReference((org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference) ajExpr);
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess) ajExpr;
+            ClassLiteralAccess castedJDT = new ClassLiteralAccess(castedAJ.sourceEnd, convertToJDTTypeReference(castedAJ.type));
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation) {
+            jdtExpr = convertToJDTAnnotation((org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation) ajExpr);
+        }
+
+        
+        if (jdtExpr != null) {
+            // now fill in other fields
+            jdtExpr.bits = ajExpr.bits;
+            jdtExpr.implicitConversion = ajExpr.implicitConversion;
+            jdtExpr.sourceStart = ajExpr.sourceStart;
+            jdtExpr.sourceEnd = ajExpr.sourceEnd;
+            jdtExpr.statementEnd = ajExpr.statementEnd;
+        }
+        return jdtExpr;
+    }
+
+    /**
+     * Recursively converts from an aj type reference to a JDT type reference.
+     * This class is not involved with Content assist and code select, so the CompletionOn* and SelectionOn* variants of
+     * type references should not make it here.
+     * @param ajRef
+     * @return jdtRef
+     */
+    private TypeReference convertToJDTTypeReference(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference ajRef) {
+        if (ajRef == null) {
+            return null;
+        }
+        TypeReference jdtRef = null;
+        if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference) ajRef;
+            jdtRef = new JavadocImplicitTypeReference(castedAJ.token, castedAJ.sourceStart);
+        } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference) {
+            if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference) {
+                if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArrayQualifiedTypeReference) {
+                    org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArrayQualifiedTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArrayQualifiedTypeReference) ajRef;
+                    jdtRef = new JavadocArrayQualifiedTypeReference(new JavadocQualifiedTypeReference(castedAJ.tokens, castedAJ.sourcePositions, castedAJ.tagSourceStart, castedAJ.tagSourceEnd), castedAJ.dimensions());
+                } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference) {
+                    org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference) ajRef;
+                    jdtRef = new ParameterizedQualifiedTypeReference(castedAJ.tokens, convertDoubleArray(castedAJ.typeArguments), castedAJ.dimensions(), castedAJ.sourcePositions);
+                } else {  // assume vanilla ArrayQualifiedTypeReference
+                    org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference) ajRef;
+                    jdtRef = new ArrayQualifiedTypeReference(castedAJ.tokens, castedAJ.dimensions(), castedAJ.sourcePositions);
+                }
+            } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference) {
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference) ajRef;
+                jdtRef = new JavadocQualifiedTypeReference(castedAJ.tokens, castedAJ.sourcePositions, castedAJ.tagSourceStart, castedAJ.tagSourceEnd);
+            } else { // assume vanilla QualifiedTypeReference
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference) ajRef;
+                jdtRef = new QualifiedTypeReference(castedAJ.tokens, castedAJ.sourcePositions);
+            }
+        } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference) {
+            if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference) {
+                if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference) {
+                    org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference) ajRef;
+                    jdtRef = new JavadocArraySingleTypeReference(castedAJ.token, castedAJ.dimensions, toPos(castedAJ.sourceStart, castedAJ.sourceEnd));
+                } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference) {
+                    org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference) ajRef;
+                    jdtRef = new ParameterizedSingleTypeReference(castedAJ.token, convertSingleArray(castedAJ.typeArguments), castedAJ.dimensions, toPos(castedAJ.sourceStart, castedAJ.sourceEnd));
+                } else {  // assume vanilla ArrayTypeReference
+                    org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference) ajRef;
+                    jdtRef = new ArrayTypeReference(castedAJ.token, castedAJ.dimensions, toPos(castedAJ.sourceStart, castedAJ.sourceEnd));
+                }
+            } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference) {
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference) ajRef;
+                jdtRef = new JavadocSingleTypeReference(castedAJ.token, toPos(castedAJ.sourceStart, castedAJ.sourceEnd), castedAJ.tagSourceStart, castedAJ.tagSourceEnd);
+            } else {  // assume vanilla SingleTypeReference
+                org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference) ajRef;
+                jdtRef = new SingleTypeReference(castedAJ.token, toPos(castedAJ.sourceStart, castedAJ.sourceEnd));
+            }
+        } else if (ajRef instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard) ajRef;
+            Wildcard castedJDT = new Wildcard(castedAJ.kind);
+            castedJDT.bound = convertToJDTTypeReference(castedAJ.bound);
+            jdtRef = castedJDT;
+        }
+        
+        Assert.isNotNull(jdtRef, "Conversion to JDT type reference failed.  Original AJ type reference is: '" + ajRef + "' and class '" + ajRef.getClass() + "'");
+        
+        // now fill in the rest of the shared fields.  Not all of them will be applicable in all cases
+        jdtRef.bits = ajRef.bits;
+        jdtRef.implicitConversion = ajRef.implicitConversion;
+        jdtRef.statementEnd = ajRef.statementEnd;
+        
+        return jdtRef;
+    }
+
+    private TypeReference[][] convertDoubleArray(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference[][] ajTypeArguments) {
+        if (ajTypeArguments == null) {
+            return null;
+        }
+        TypeReference[][] jdtTypeArguments = new TypeReference[ajTypeArguments.length][];
+        for (int i = 0; i < jdtTypeArguments.length; i++) {
+            jdtTypeArguments[i] = convertSingleArray(ajTypeArguments[i]);
+        }
+        return jdtTypeArguments;
+    }
+
+    private TypeReference[] convertSingleArray(
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference[] ajTypeArguments) {
+        if (ajTypeArguments != null) {
+            TypeReference[] jdtTypeArguments = new TypeReference[ajTypeArguments.length];
+            for (int j = 0; j < jdtTypeArguments.length; j++) {
+                jdtTypeArguments[j] = convertToJDTTypeReference(ajTypeArguments[j]);
+            }
+            return jdtTypeArguments;
+        } else {
+            return null;
+        }
+    }
+
+    private static long NON_EXISTENT_POSITION = toPos(-1, -2);
+
+    private static long toPos(long start, long end) {
+        if (start == 0 && end <= 0) {
+            return NON_EXISTENT_POSITION;
+        }
+        return ((start << 32) | end);
+    }
+    private static long[] toPoss(long starts[], long ends[]) {
+        if (starts == null || ends == null) {
+            return null;
+        }
+        // can safely assume start and end are same length
+        long[] newPoss = new long[starts.length];
+        for (int i = 0; i < newPoss.length; i++) {
+            newPoss[i] = toPos(starts[i], ends[i]);
+        }
+        return newPoss;
+    }
+
+    
+    
+    private org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] convertToJDTTypeParameters(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] ajTypeParams) {
         org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] jdtTypeParams = 
             new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[ajTypeParams == null ? 0 : ajTypeParams.length];
