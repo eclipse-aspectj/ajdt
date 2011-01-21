@@ -211,8 +211,9 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.isConstructor = isConstructor;
 		mi.isAnnotation = isAnnotation;
 		mi.typeParameters = convertToJDTTypeParameters(typeParameters);
-		mi.annotations = convertToJDTAnnotations(methodDeclaration.annotations);
-		
+		if (methodDeclaration != null) {
+		    mi.annotations = convertToJDTAnnotations(methodDeclaration.annotations);
+		}
 		super.enterMethod(mi);
 	}
 
@@ -427,10 +428,6 @@ public class AJCompilationUnitStructureRequestor extends
 	}
 	
 
-    /**
-     * @param annotations
-     * @return
-     */
     private IAnnotation[] createJDTAnnotations(
             org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[] ajAnnotations, AnnotatableInfo parentInfo, JavaElement parentHandle) {
         Annotation[] jdtAnnotations = convertToJDTAnnotations(ajAnnotations);
