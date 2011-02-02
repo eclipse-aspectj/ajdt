@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
@@ -72,6 +73,10 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             char[] uniqueKey, int start, int end) {
         try {
             IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
+            if (targetType == null) {
+                // type couldn't be found.  this is really some kind of problem
+                return;
+            }
             List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
             for (IJavaElement elt : itds) {
                 if (matchedField(elt, name)) {

@@ -17,6 +17,7 @@ import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -65,6 +66,58 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
 
         public Object getElementInfo() throws JavaModelException {
             return info;
+        }
+    }
+    private final static class ITIT extends SourceType {
+        final Object info;
+        private ITIT(JavaElement parent, IType actualType) throws JavaModelException {
+            super(parent, actualType.getElementName());
+            this.info = createInfo(actualType);
+        }
+
+        public Object createInfo(IType actualType) throws JavaModelException {
+            Object elementInfo = ((JavaElement) actualType).getElementInfo();
+            if (elementInfo instanceof SourceTypeElementInfo) {
+                SourceTypeElementInfo origInfo = (SourceTypeElementInfo) elementInfo;
+                SourceTypeElementInfo newInfo = new SourceTypeElementInfo();
+                ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "handle", newInfo, origInfo.getHandle());
+                ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "superclassName", newInfo, origInfo.getSuperclassName());
+                ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "superInterfaceNames", newInfo, origInfo.getInterfaceNames());
+                ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "children", newInfo, convertChildren(origInfo.getChildren()));
+                // MemberElementInfo is package protected, so we need to access using Class.forName
+                try {
+                    ReflectionUtils.setPrivateField((Class<? super SourceTypeElementInfo>) Class.forName("org.eclipse.jdt.internal.core.MemberElementInfo"), "flags", newInfo, origInfo.getModifiers());
+                } catch (ClassNotFoundException e) {
+                }
+                elementInfo = newInfo;
+            }
+            return elementInfo;
+        }
+
+        private IJavaElement[] convertChildren(IJavaElement[] children) {
+            IJavaElement[] newChildren = new IJavaElement[children.length];
+            for (int i = 0; i < children.length; i++) {
+                switch (children[i].getElementType()) {
+                    case IJavaElement.FIELD:
+                    case IJavaElement.METHOD:
+                    case IJavaElement.TYPE:
+                    case IJavaElement.INITIALIZER:
+                        newChildren[i] = children[i];
+                        break;
+                        
+                    default:
+                        throw new IllegalArgumentException(children[i].getHandleIdentifier());
+                }
+            }
+            return newChildren;
+        }
+
+        public Object getElementInfo() throws JavaModelException {
+            return info;
+        }
+        @Override
+        public boolean exists() {
+            return super.exists();
         }
     }
 
@@ -221,6 +274,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     if (declareParentsMap != null) {
                         augmentHierarchy(declareParentsMap.get(type.getFullyQualifiedName()));
                     }
+                } else if (ije instanceof IType) {
+                    // an ITIT
+                    itds.add(new ITIT(type, (IType) ije));
                 }
             }
             return itds;

@@ -42,7 +42,10 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
+import org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.eclipse.jdt.internal.compiler.parser.TypeConverter;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
@@ -75,6 +78,7 @@ public class ITDInserter extends ASTVisitor {
         FieldDeclaration[] fields;
         TypeReference superClass;
         TypeReference[] superInterfaces;
+        TypeDeclaration[] memberTypes;
     }
     
     private static class ITDTypeConverter extends TypeConverter {
@@ -123,10 +127,12 @@ public class ITDInserter extends ASTVisitor {
         orig.fields = type.fields;
         orig.superClass = type.superclass;
         orig.superInterfaces = type.superInterfaces;
+        orig.memberTypes = type.memberTypes;
         
         try {
             List<FieldDeclaration> itdFields = new LinkedList<FieldDeclaration>();
             List<AbstractMethodDeclaration> itdMethods = new LinkedList<AbstractMethodDeclaration>();
+            List<TypeDeclaration> itits = new LinkedList<TypeDeclaration>();
             IType handle = getHandle(type);
             
 
@@ -164,6 +170,13 @@ public class ITDInserter extends ASTVisitor {
                             addSuperInterfaces(elt, type);
                         }
                     }
+                } else if (elt.getKind() == IProgramElement.Kind.CLASS) {
+                    // this is an ITIT - intertype inner type
+//                    IType ititModel = unit.getJavaProject().findType(elt.getFullyQualifiedName(), (IProgressMonitor) null);
+                    TypeDeclaration ititAST = createITIT(elt.getName(), type);
+                    if (ititAST != null) {
+                        itits.add(ititAST);
+                    }
                 } else if (elt.getKind() == IProgramElement.Kind.ASPECT) {
                     // probably an instantiation of a declare parents relationship from an abstact aspect
                     Map<String, List<String>> parentsMap = elt.getDeclareParentsMap();
@@ -196,8 +209,7 @@ public class ITDInserter extends ASTVisitor {
                         System.arraycopy(type.fields, 0, fields, 0, numFields);
                     }
                     for (int i = 0; i < itdFields.size(); i++) {
-                        fields[i + numFields] = 
-                            (FieldDeclaration) itdFields.get(i);
+                        fields[i + numFields] = itdFields.get(i);
                     }
                     type.fields = fields;
                 }
@@ -208,10 +220,20 @@ public class ITDInserter extends ASTVisitor {
                         System.arraycopy(type.methods, 0, methods, 0, numMethods);
                     }
                     for (int i = 0; i < itdMethods.size(); i++) {
-                        methods[i + numMethods] = 
-                            (AbstractMethodDeclaration) itdMethods.get(i);
+                        methods[i + numMethods] = itdMethods.get(i);
                     }
                     type.methods = methods;
+                }
+                if (itits.size() > 0) {
+                    int numInners = type.memberTypes == null ? 0 : type.memberTypes.length;
+                    TypeDeclaration[] inners = new TypeDeclaration[numInners + itits.size()];
+                    if (numInners > 0) {
+                        System.arraycopy(type.methods, 0, inners, 0, numInners);
+                    }
+                    for (int i = 0; i < itits.size(); i++) {
+                        inners[i + numInners] = itits.get(i);
+                    }
+                    type.memberTypes = inners;
                 }
             }
         } catch (Exception e) {
@@ -221,6 +243,20 @@ public class ITDInserter extends ASTVisitor {
         }
     }
     
+    private TypeDeclaration createITIT(String name, TypeDeclaration enclosing) {
+        TypeDeclaration decl = new TypeDeclaration(enclosing.compilationResult);
+        decl.enclosingType = enclosing;
+        decl.name = name.toCharArray();
+        ClassScope innerClassScope = new ClassScope(enclosing.scope, decl);
+        decl.binding = new MemberTypeBinding(new char[][] { enclosing.name, name.toCharArray()}, innerClassScope, enclosing.binding);
+        decl.staticInitializerScope = enclosing.staticInitializerScope;
+        decl.initializerScope = enclosing.initializerScope;
+        decl.scope = innerClassScope;
+        decl.binding.superInterfaces = new ReferenceBinding[0];
+        decl.binding.typeVariables = new TypeVariableBinding[0];
+        
+        return decl;
+    }
 
     private FieldDeclaration createField(IProgramElement field, TypeDeclaration type) {
         FieldDeclaration decl = new FieldDeclaration();
@@ -301,8 +337,19 @@ public class ITDInserter extends ASTVisitor {
         Argument[] args = constructor.getParameterTypes() != null ? 
                 new Argument[constructor.getParameterTypes().size()] :
                     new Argument[0];
-        for (int i = 0; i < args.length; i++) {
-            args[i] = new Argument(((String) constructor.getParameterNames().get(i)).toCharArray(),
+
+        List<String> pNames = constructor.getParameterNames();
+        // bug 270123, bug 334328... no parameter names if coming in from a jar and
+        // not build with debug info...mock it up.
+        if (pNames == null || pNames.size() != args.length) {
+            pNames = new ArrayList<String>(args.length);
+            for (int i = 0; i < args.length; i++) {
+                pNames.add("args" + i);
+            }
+        }
+         
+       for (int i = 0; i < args.length; i++) {
+            args[i] = new Argument(pNames.get(i).toCharArray(),
                     0,
                     createTypeReference(new String((char[]) constructor.getParameterTypes().get(i))),
                     0);
@@ -437,5 +484,6 @@ public class ITDInserter extends ASTVisitor {
         type.fields = orig.fields;
         type.superclass = orig.superClass;
         type.superInterfaces = orig.superInterfaces;
+        type.memberTypes = orig.memberTypes;
     }
 }
