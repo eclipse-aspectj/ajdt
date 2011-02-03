@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.core.CompilationUnit;
  */
 public abstract class AbstractProblemFindingTests extends UITestCase {
 
-    private IJavaProject proj;
+    protected IJavaProject proj;
 
     public AbstractProblemFindingTests(String name) {
         super(name);

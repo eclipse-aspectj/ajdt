@@ -60,6 +60,7 @@ import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests2;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests3;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests4;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTests5;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.ITITContentAssistTests;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.PetClinicTests;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.hierarchy.ITDAwareHierarchyTests;
@@ -84,6 +85,7 @@ import org.eclipse.ajdt.ui.tests.reconciling.Bug273691Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug279439Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.ExtraAspectMethodProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.GenericProblemFinderTests;
+import org.eclipse.ajdt.ui.tests.reconciling.ITITProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
@@ -186,6 +188,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(ContentAssistTests5.class));
         suite.addTest(new TestSuite(Bug273691ContentAssist.class));
         suite.addTest(new TestSuite(Bug280508ContentAssist.class));
+        suite.addTest(new TestSuite(ITITContentAssistTests.class));
         
         // test the roo petclinic project
         suite.addTest(new TestSuite(PetClinicTests.class));
@@ -249,6 +252,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
         suite.addTest(new TestSuite(GenericProblemFinderTests.class));
         suite.addTest(new TestSuite(ExtraAspectMethodProblemFinderTests.class));
+        suite.addTest(new TestSuite(ITITProblemFinderTests.class));
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));

@@ -345,16 +345,4 @@ public abstract class UITestCase extends AJDTCoreTestCase {
         } catch (InterruptedException e) {
         }
     }
-    
-    public void setAutobuilding(boolean autobuild) throws CoreException {
-        IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
-        workspaceDesc.setAutoBuilding(autobuild);
-        AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
-
-    }
-    
-    public boolean isAutobuilding() {
-        return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
-    }
-
 }
