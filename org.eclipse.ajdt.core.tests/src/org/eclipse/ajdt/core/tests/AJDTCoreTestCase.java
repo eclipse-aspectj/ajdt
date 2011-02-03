@@ -32,6 +32,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -467,15 +468,23 @@ public class AJDTCoreTestCase extends TestCase {
     }
     
     protected ICompilationUnit[] createUnits(String[] packages, String[] cuNames, String[] cuContents, IJavaProject project) throws CoreException {
-        ICompilationUnit[] units = new ICompilationUnit[cuNames.length];
-        for (int i = 0; i < units.length; i++) {
-            units[i] = createCompilationUnitAndPackage(packages[i], cuNames[i], cuContents[i], project);
+        
+        boolean oldAutoBuilding = isAutobuilding();
+        setAutobuilding(false);
+        
+        try {
+            ICompilationUnit[] units = new ICompilationUnit[cuNames.length];
+            for (int i = 0; i < units.length; i++) {
+                units[i] = createCompilationUnitAndPackage(packages[i], cuNames[i], cuContents[i], project);
+            }
+            project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+            waitForManualBuild();
+            waitForAutoBuild();
+            assertNoProblems(project.getProject());
+            return units;
+        } finally {
+            setAutobuilding(oldAutoBuilding);
         }
-        project.getProject().build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-        waitForManualBuild();
-        waitForAutoBuild();
-        assertNoProblems(project.getProject());
-        return units;
     }
     
     protected ICompilationUnit createUnit(String pkg, String cuName, String cuContents, IJavaProject project) throws CoreException {
@@ -571,5 +580,14 @@ public class AJDTCoreTestCase extends TestCase {
         return errorFound ? sb.toString() : null;
     }
     
+    public void setAutobuilding(boolean autobuild) throws CoreException {
+        IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
+        workspaceDesc.setAutoBuilding(autobuild);
+        AspectJPlugin.getWorkspace().setDescription(workspaceDesc);
+
+    }
     
+    public boolean isAutobuilding() {
+        return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
+    }
 }
