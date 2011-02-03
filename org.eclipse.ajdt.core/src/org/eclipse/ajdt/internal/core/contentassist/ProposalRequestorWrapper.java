@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.core.contentassist;
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement.Accessibility;
+import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.core.model.AJWorldFacade;
@@ -24,6 +25,7 @@ import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.codeassist.InternalCompletionProposal;
 
@@ -141,16 +143,19 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	            // not an ITD
 	            return true;
 	        }
-	    } else {
-	        
-	        // this is the proposal that has been added by the context switch for ITDs
-            if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF &&
-                    contextSwitchIgnore(proposal)) {
+	    } else if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF) {
+	        // check to see if this is the proposal that has been added by the context switch for ITDs
+	        if (contextSwitchIgnore(proposal)) {
                 return false;
             }
-
-	        return true;
+	    } else if (proposal.getKind() == CompletionProposal.TYPE_REF) {
+	    	// check to see if this is an ITIT type that should not be see
+	    	char[] typeName = (char[]) ReflectionUtils.getPrivateField(InternalCompletionProposal.class, "typeName", (InternalCompletionProposal) proposal);
+	    	if (typeName != null && CharOperation.contains('$', typeName)) {
+	    		return false;
+	    	}
 	    }
+	    return true;
     }
 	
 	// ignore the proposal added by the context switch identifier

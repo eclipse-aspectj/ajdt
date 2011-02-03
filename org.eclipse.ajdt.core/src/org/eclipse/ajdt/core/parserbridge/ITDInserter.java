@@ -254,7 +254,7 @@ public class ITDInserter extends ASTVisitor {
         decl.scope = innerClassScope;
         decl.binding.superInterfaces = new ReferenceBinding[0];
         decl.binding.typeVariables = new TypeVariableBinding[0];
-        
+        decl.binding.memberTypes = new ReferenceBinding[0];
         return decl;
     }
 
