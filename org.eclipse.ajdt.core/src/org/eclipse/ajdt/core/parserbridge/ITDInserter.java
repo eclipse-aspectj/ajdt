@@ -228,7 +228,7 @@ public class ITDInserter extends ASTVisitor {
                     int numInners = type.memberTypes == null ? 0 : type.memberTypes.length;
                     TypeDeclaration[] inners = new TypeDeclaration[numInners + itits.size()];
                     if (numInners > 0) {
-                        System.arraycopy(type.methods, 0, inners, 0, numInners);
+                        System.arraycopy(type.memberTypes, 0, inners, 0, numInners);
                     }
                     for (int i = 0; i < itits.size(); i++) {
                         inners[i + numInners] = itits.get(i);
