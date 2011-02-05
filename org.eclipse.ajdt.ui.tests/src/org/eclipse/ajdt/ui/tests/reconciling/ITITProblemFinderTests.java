@@ -36,9 +36,11 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                 new String[] { "CityAspect.aj", "Function.java", "City.java", "Test.java" }, 
                 new String[] {
                         "package p;\n" + 
+                        "import java.util.List;" + 
                         "privileged aspect CityAspect {\n" + 
                         "    public static class City.Keys {\n" + 
-                        "        public static final Function<Object, City> CITY = null;\n" + 
+                        "        public static final Function<List<String>, City> CITY = null;\n" + 
+                        "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" + 
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.get();\n" + 
@@ -47,7 +49,7 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         
                         "package p;\n" + 
                         "public class Function<K, V> {\n" + 
-                        "    public void get() { }\n" + 
+                        "    public K get() { return null; }\n" + 
                         "}",
                         
                         "package p;\n" +
@@ -57,8 +59,8 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "import p.City;\n" + 
                         "public class Test {\n" + 
                         "    public static void main(String[] args) { \n" + 
-                        "        City.Keys.CITY.get();   \n" + 
-                        "        p.City.Keys.CITY.get();   \n" + 
+                        "        City.Keys.CITY.get().get(0).substring(0);   \n" + 
+                        "        p.City.Keys.CITY2.get().put(null, null);   \n" + 
                         "    }\n" + 
                         "}"
                 });
@@ -71,9 +73,11 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                 new String[] { "CityAspect.aj", "Function.java", "City.java", "Test.java" }, 
                 new String[] {
                         "package p;\n" + 
+                        "import java.util.List;" + 
                         "privileged aspect CityAspect {\n" + 
                         "    public static class City.Keys {\n" + 
-                        "        public static final Function<Object, City> CITY = null;\n" + 
+                        "        public static final Function<List<String>, City> CITY = null;\n" + 
+                        "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" + 
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.get();\n" + 
@@ -127,6 +131,41 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "package p;\n" +
                         "public class City {\n" +
                         "   void x() { City.Keys.CITY.get(); }\n" +
+                        "}",
+                });
+        checkModel();
+    }
+
+    public void testITITReferenceInTargetTypeWithOddImportStatements() throws Exception {
+        assertNoProblems(
+                new String[] { "p", "p", "p" }, 
+                new String[] { "CityAspect.aj", "Function.java", "City.java" }, 
+                new String[] {
+                        "package p;\n" + 
+                        "privileged aspect CityAspect {\n" + 
+                        "    public static class City.Keys {\n" + 
+                        "        public static final Function<Object, City> CITY = null;\n" + 
+                        "    }\n" + 
+                        "    void x() {\n" + 
+                        "        City.Keys.CITY.get();\n" + 
+                        "    }\n" + 
+                        "}",
+                        
+                        "package p;\n" + 
+                        "public class Function<K, V> {\n" + 
+                        "    public void get() { }\n" + 
+                        "}",
+                        
+                        "package p;\n" +
+                        "import p.City;\n" + 
+                        "import p.City.Keys;\n" + 
+                        "import static p.City.Keys.CITY;\n" + 
+                        "public class City {\n" +
+                        "   void x() { \n" +
+                        "     City.Keys.CITY.get();\n" +
+                        "     Keys.CITY.get();\n" +
+                        "     CITY.get();\n" +
+                        "   }\n" +
                         "}",
                 });
         checkModel();

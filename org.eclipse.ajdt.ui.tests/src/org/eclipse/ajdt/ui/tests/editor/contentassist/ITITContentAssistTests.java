@@ -10,16 +10,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.editor.contentassist;
 
-import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.core.JavaModelManager;
 
 /**
  * Tests for content assist of ITITs
@@ -73,8 +69,7 @@ public class ITITContentAssistTests extends UITestCase {
         assertContentAssist(unit, contents.indexOf("y.Keys"), "City");
     }
     
-    // FIXADE this test is disabled, but we should look into why it is failing. 
-    public void _testContentAssistInAspect() throws Exception {
+    public void testContentAssistInAspect() throws Exception {
         
         String contents = 
         "package p;\n" + 
@@ -103,16 +98,21 @@ public class ITITContentAssistTests extends UITestCase {
                 }, proj);
         
         ICompilationUnit unit = proj.findType("p.AspectCity").getCompilationUnit();
-        assertContentAssist(unit, contents.indexOf("er()"), "getter");
-        assertContentAssist(unit, contents.indexOf("s.CITY"), "Keys");
-        assertContentAssist(unit, contents.indexOf("y.Keys"), "City");
-        assertContentAssist(unit, contents.indexOf("Y.g"), "CITY");
+        try {
+            unit.becomeWorkingCopy(null);
+            assertContentAssist(unit, contents.indexOf("er()"), "getter");
+            assertContentAssist(unit, contents.indexOf("s.CITY"), "Keys");
+            assertContentAssist(unit, contents.indexOf("y.Keys"), "City");
+            assertContentAssist(unit, contents.indexOf("Y.g"), "CITY");
+        } finally {
+            unit.discardWorkingCopy();
+        }
     }
 
 
     
     // This is not working yet. See Bug 336185
-    public void _testContentAssistInTargetType() throws Exception {
+    public void testContentAssistInTargetType() throws Exception {
         String contents = "package p;\n" +
         "public class City {\n" +
         "   void x() { City.Keys.CITY.getter(); }\n" +
