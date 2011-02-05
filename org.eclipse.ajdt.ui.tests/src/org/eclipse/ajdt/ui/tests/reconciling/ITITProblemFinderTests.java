@@ -40,7 +40,8 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "privileged aspect CityAspect {\n" + 
                         "    public static class City.Keys {\n" + 
                         "        public static final Function<List<String>, City> CITY = null;\n" + 
-                        "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" + 
+                        "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" +
+                        "        public static final List<String> xxx(int y, String z) { return null; }" +
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.get();\n" + 
@@ -60,6 +61,7 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "public class Test {\n" + 
                         "    public static void main(String[] args) { \n" + 
                         "        City.Keys.CITY.get().get(0).substring(0);   \n" + 
+                        "        City.Keys.xxx(0, null).get(0).substring(0);   \n" + 
                         "        p.City.Keys.CITY2.get().put(null, null);   \n" + 
                         "    }\n" + 
                         "}"
@@ -78,6 +80,7 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "    public static class City.Keys {\n" + 
                         "        public static final Function<List<String>, City> CITY = null;\n" + 
                         "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" + 
+                        "        public static final List<String> xxx(int y, String z) { return null; }" +
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.get();\n" + 
@@ -101,6 +104,7 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "        City.Keys.CITY.get();\n" + 
                         "        Keys.CITY.get();\n" + 
                         "        CITY.get(); \n" + 
+                        "        City.Keys.xxx(0, null).get(0).substring(0);   \n" + 
                         "    }\n" + 
                         "}" 
                 });
@@ -114,9 +118,11 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                 new String[] { "CityAspect.aj", "Function.java", "City.java" }, 
                 new String[] {
                         "package p;\n" + 
+                        "import java.util.List;" + 
                         "privileged aspect CityAspect {\n" + 
                         "    public static class City.Keys {\n" + 
                         "        public static final Function<Object, City> CITY = null;\n" + 
+                        "        public static final List<String> xxx(int y, String z) { return null; }" +
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.get();\n" + 
@@ -130,7 +136,10 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         
                         "package p;\n" +
                         "public class City {\n" +
-                        "   void x() { City.Keys.CITY.get(); }\n" +
+                        "   void x() { \n" +
+                        "      City.Keys.CITY.get();\n" +
+                        "        City.Keys.xxx(0, null).get(0).substring(0);   \n" + 
+                        "  }\n" +
                         "}",
                 });
         checkModel();
@@ -142,9 +151,11 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                 new String[] { "CityAspect.aj", "Function.java", "City.java" }, 
                 new String[] {
                         "package p;\n" + 
+                        "import java.util.List;" + 
                         "privileged aspect CityAspect {\n" + 
                         "    public static class City.Keys {\n" + 
                         "        public static final Function<Object, City> CITY = null;\n" + 
+                        "        public static final List<String> xxx(int y, String z) { return null; }" +
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.get();\n" + 
@@ -165,6 +176,7 @@ public class ITITProblemFinderTests extends AbstractProblemFindingTests {
                         "     City.Keys.CITY.get();\n" +
                         "     Keys.CITY.get();\n" +
                         "     CITY.get();\n" +
+                        "        City.Keys.xxx(0, null).get(0).substring(0);   \n" + 
                         "   }\n" +
                         "}",
                 });
