@@ -49,6 +49,7 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
         suite.addTestSuite(ITDAwareCodeSelectionTests.class);
         suite.addTestSuite(ITDAwareCodeSelectionTests2.class);
         suite.addTestSuite(ITDAwareCodeSelectionTests3.class);
+        suite.addTestSuite(ITITAwareCodeSelectionTests.class);
         return suite;
     }
 
