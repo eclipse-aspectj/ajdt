@@ -51,13 +51,105 @@ public class ITITAwareCodeSelectionTests extends
     }
     
 
-    public void testNothingYet() throws Exception {
-        // stub
+    public void testSelectOtherType1() throws Exception {
+    	ICompilationUnit unit = 
+        createUnits(
+                new String[] { "p", "p", "p", "q" }, 
+                new String[] { "CityAspect.aj", "Function.java", "City.java", "Test.java" }, 
+                new String[] {
+                        "package p;\n" + 
+                        "import java.util.List;" + 
+                        "privileged aspect CityAspect {\n" + 
+                        "    public static class City.Keys {\n" + 
+                        "        public static final Function<List<String>, City> CITY = null;\n" + 
+                        "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" + 
+                        "    }\n" + 
+                        "    void x() {\n" + 
+                        "        City.Keys.CITY.get();\n" + 
+                        "    }\n" + 
+                        "}",
+                        
+                        "package p;\n" + 
+                        "public class Function<K, V> {\n" + 
+                        "    public K get() { return null; }\n" + 
+                        "}",
+                        
+                        "package p;\n" +
+                        "public class City { }",
+                        
+                        "package q;\n" + 
+                        "import p.City;\n" + 
+                        "public class Test {\n" + 
+                        "    public static void main(String[] args) { \n" + 
+                        "        City.Keys.CITY.get().get(0).substring(0);   \n" + 
+                        "        p.City.Keys.CITY2.get().put(null, null);   \n" + 
+                        "    }\n" + 
+                        "}"
+                }, project)[3];
+    	
+    	// after the ITIT reference, we can't do any more code selection.
+    	// that is why commenting out the gets
+      validateCodeSelect(unit, findRegion(unit, "Keys", 1), "Keys");
+      validateCodeSelect(unit, findRegion(unit, "CITY", 1), "CITY");
+//      validateCodeSelect(unit, findRegion(unit, "get", 1), "get");
+//      validateCodeSelect(unit, findRegion(unit, "get", 2), "get");
+//      validateCodeSelect(unit, findRegion(unit, "substring", 1), "substring");
+      validateCodeSelect(unit, findRegion(unit, "CITY2", 1), "CITY2");
+//      validateCodeSelect(unit, findRegion(unit, "get", 3), "get");
+//      validateCodeSelect(unit, findRegion(unit, "put", 1), "put");
     }
-    //    public void testSelectTargetTypeNameField3() throws Exception {
-//        ICompilationUnit unit = createCompilationUnitAndPackage("p", "Aspect.aj", "package p;\nimport q.AClass;\naspect Aspect {\nint AClass.x; }", project);
-//        createCompilationUnitAndPackage("q", "AClass.java", "package q;\n public class AClass { }", project);
-//        validateCodeSelect(unit, findRegion(unit, "AClass", 1), "AClass");
-//    }
 
+    public void testSelectOtherType2() throws Exception {
+        ICompilationUnit unit = 
+        createUnits(
+                new String[] { "p", "p", "p", "q" }, 
+                new String[] { "CityAspect.aj", "Function.java", "City.java", "Test.java" }, 
+                new String[] {
+                        "package p;\n" + 
+                        "import java.util.List;" + 
+                        "privileged aspect CityAspect {\n" + 
+                        "    public static class City.Keys {\n" + 
+                        "        public static final Function<List<String>, City> CITY = null;\n" + 
+                        "        public static final Function<java.util.HashMap<String, String>, City> CITY2 = null;\n" + 
+                        "    }\n" + 
+                        "    void x() {\n" + 
+                        "        City.Keys.CITY.get();\n" + 
+                        "    }\n" + 
+                        "}",
+                        
+                        "package p;\n" + 
+                        "public class Function<K, V> {\n" + 
+                        "    public K get() { return null; }\n" + 
+                        "}",
+                        
+                        "package p;\n" +
+                        "public class City { }",
+                        
+                        "package q;\n" + 
+                        "import p.City;\n" + 
+                        "import p.City.Keys;\n" + 
+                        "import static p.City.Keys.CITY;\n" + 
+                        "public class Test {\n" + 
+                        "    public static void main(String[] args) { \n" + 
+                        "        City.Keys.CITY.get();\n" + 
+                        "        Keys.CITY.get();\n" + 
+                        "        CITY.get(); \n" + 
+                        "    }\n" + 
+                        "}" 
+                }, project)[3];
+        
+        // after the ITIT reference, we can't do any more code selection.
+        // that is why commenting out the gets
+      validateCodeSelect(unit, findRegion(unit, "Keys", 1), "Keys");
+      validateCodeSelect(unit, findRegion(unit, "Keys", 2), "Keys");
+      validateCodeSelect(unit, findRegion(unit, "CITY", 1), "CITY");
+      validateCodeSelect(unit, findRegion(unit, "Keys", 3), "Keys");
+      validateCodeSelect(unit, findRegion(unit, "CITY", 2), "CITY");
+//      validateCodeSelect(unit, findRegion(unit, "get", 1), "get");
+      validateCodeSelect(unit, findRegion(unit, "Keys", 4), "Keys");
+      validateCodeSelect(unit, findRegion(unit, "CITY", 3), "CITY");
+//      validateCodeSelect(unit, findRegion(unit, "get", 2), "get");
+      validateCodeSelect(unit, findRegion(unit, "CITY", 4), "CITY");
+//      validateCodeSelect(unit, findRegion(unit, "get", 3), "get");
+    }
 }
