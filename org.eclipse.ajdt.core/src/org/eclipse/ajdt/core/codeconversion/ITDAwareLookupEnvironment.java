@@ -1,7 +1,5 @@
 package org.eclipse.ajdt.core.codeconversion;
 
-import java.lang.reflect.Field;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,7 +18,7 @@ import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
 public class ITDAwareLookupEnvironment extends LookupEnvironment {
     
-    private List cusToRevert;
+    private List<ITDInserter> cusToRevert;
     
     private boolean insertITDs = true;
     
@@ -34,13 +32,13 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
         // only insert ITDs for the source types that we are parsing, 
         // not the types grabbed by the LookupEnvironment
         if (insertITDs) {
-            cusToRevert = new LinkedList();
+            cusToRevert = new LinkedList<ITDInserter>();
             CompilationUnitDeclaration[] units = getUnits();
             for (int i = 0; i < units.length; i++) {
                 if (units[i] != null) {
                   ICompilationUnit cunit = findCU(units[i]);
                   if (cunit != null) {
-                      ITDInserter visitor = new ITDInserter(cunit, this.problemReporter);
+                      ITDInserter visitor = new ITDInserter(cunit, this, this.problemReporter);
                       units[i].traverse(visitor, units[i].scope);
                       cusToRevert.add(visitor);
                   }
@@ -81,8 +79,7 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
      */
     public void revertCompilationUnits() {
         if (cusToRevert != null) {
-            for (Iterator visitorIter = cusToRevert.iterator(); visitorIter.hasNext();) {
-                ITDInserter visitor = (ITDInserter) visitorIter.next();
+            for (ITDInserter visitor : cusToRevert) {
                 visitor.revert();
             }
         }

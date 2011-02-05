@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJWorldFacade;
 import org.eclipse.ajdt.core.model.AJWorldFacade.ErasedTypeSignature;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IParent;
@@ -39,13 +40,20 @@ import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
+import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.SignatureWrapper;
+import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
+import org.eclipse.jdt.internal.compiler.lookup.UnresolvedReferenceBinding;
 import org.eclipse.jdt.internal.compiler.parser.TypeConverter;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
@@ -91,6 +99,9 @@ public class ITDInserter extends ASTVisitor {
     }
 
     private final ICompilationUnit unit;
+    
+    private final LookupEnvironment env;
+
 
     private Map<TypeDeclaration, OrigContents> origMap = new HashMap<TypeDeclaration, OrigContents>();
 
@@ -98,10 +109,11 @@ public class ITDInserter extends ASTVisitor {
 
     private AJProjectModelFacade model;
     
-    public ITDInserter(ICompilationUnit unit, ProblemReporter reporter) {
+    public ITDInserter(ICompilationUnit unit, LookupEnvironment env, ProblemReporter reporter) {
         this.unit = unit;
         typeConverter = new ITDTypeConverter(reporter);
         model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
+        this.env = env;
     }
     
     public boolean visit(TypeDeclaration type, BlockScope blockScope) {
@@ -134,7 +146,6 @@ public class ITDInserter extends ASTVisitor {
             List<AbstractMethodDeclaration> itdMethods = new LinkedList<AbstractMethodDeclaration>();
             List<TypeDeclaration> itits = new LinkedList<TypeDeclaration>();
             IType handle = getHandle(type);
-            
 
             List<IProgramElement> ipes = getITDs(handle);
             for (IProgramElement elt : ipes) {
@@ -172,9 +183,10 @@ public class ITDInserter extends ASTVisitor {
                     }
                 } else if (elt.getKind() == IProgramElement.Kind.CLASS) {
                     // this is an ITIT - intertype inner type
-//                    IType ititModel = unit.getJavaProject().findType(elt.getFullyQualifiedName(), (IProgressMonitor) null);
                     TypeDeclaration ititAST = createITIT(elt.getName(), type);
                     if (ititAST != null) {
+                        // add children, etc
+                        populateITIT(ititAST, elt);
                         itits.add(ititAST);
                     }
                 } else if (elt.getKind() == IProgramElement.Kind.ASPECT) {
@@ -243,6 +255,79 @@ public class ITDInserter extends ASTVisitor {
         }
     }
     
+    
+    /**
+     * Adds all children field and methods to this ITIT
+     * @param ititAST
+     * @param elt the AspectJ element that knows about children 
+     */
+    private void populateITIT(TypeDeclaration ititAST, IProgramElement elt) {
+        List<FieldDeclaration> fields = new LinkedList<FieldDeclaration>();
+        List<FieldBinding> fieldBindings = new LinkedList<FieldBinding>();
+        List<AbstractMethodDeclaration> methods = new LinkedList<AbstractMethodDeclaration>();
+        List<MethodBinding> methodBindings = new LinkedList<MethodBinding>();
+        
+        for (IProgramElement child : elt.getChildren()) {
+            if (child.getKind() == IProgramElement.Kind.FIELD) {
+                FieldDeclaration field = createField(child, ititAST);
+                fields.add(field);
+                fieldBindings.add(new FieldBinding(field, getReturnTypeBinding(child.getCorrespondingTypeSignature().toCharArray(), 
+                        ititAST.binding), field.modifiers, ititAST.binding));
+            } else if (child.getKind() == IProgramElement.Kind.METHOD) {
+                MethodDeclaration method = createMethod(child, ititAST, null);
+                methods.add(method);
+                methodBindings.add(new MethodBinding(method.modifiers, method.selector, 
+                        getReturnTypeBinding(child.getCorrespondingTypeSignature().toCharArray(), ititAST.binding), 
+                        getParameterBindings(elt, ititAST.binding), new ReferenceBinding[0], ititAST.binding));
+            }
+        }
+        ititAST.fields = (FieldDeclaration[]) fields.toArray(new FieldDeclaration[0]);
+        ititAST.methods = (AbstractMethodDeclaration[]) methods.toArray(new MethodDeclaration[0]);
+        
+        
+        // figure out how to make type bindings and figure out method bindings
+        ititAST.binding.setFields(fieldBindings.toArray(new FieldBinding[0]));
+    }
+
+    private TypeBinding[] getParameterBindings(IProgramElement elt, ReferenceBinding ititBinding) {
+        List<char[]> paramTypes = elt.getParameterSignatures();
+        if (paramTypes == null) {
+            return new TypeBinding[0];
+        }
+        TypeBinding[] paramBindings = new TypeBinding[paramTypes.size()];
+        int i = 0;
+        for (char[] paramType : paramTypes) {
+            paramBindings[i++] = getReturnTypeBinding(paramType, ititBinding);
+        }
+        return paramBindings;
+    }
+
+    /**
+     * Ask the oracle for the type binding with the given name
+     * @param child
+     * @return
+     */
+    protected TypeBinding getReturnTypeBinding(char[] typeName, TypeBinding ititBinding) {
+        TypeBinding typeBinding = env.getTypeFromTypeSignature(new SignatureWrapper(typeName), 
+                new TypeVariableBinding[0], (ReferenceBinding) ititBinding, new char[0][][]);
+            typeBinding = BinaryTypeBinding.resolveType(typeBinding, env, false);
+        return typeBinding;
+    }
+
+    /**
+     * DELETEME - not used
+     * will not work for arrays or parameterized types
+     * @param child
+     * @return
+     */
+    protected char[][] getTypeAsCharChar(String type) {
+        int genIndex = type.indexOf('<');
+        if (genIndex > 0) {
+            type = type.substring(0, genIndex);
+        }
+        return CharOperation.splitOn('.', type.toCharArray());
+    }
+
     private TypeDeclaration createITIT(String name, TypeDeclaration enclosing) {
         TypeDeclaration decl = new TypeDeclaration(enclosing.compilationResult);
         decl.enclosingType = enclosing;
@@ -255,12 +340,21 @@ public class ITDInserter extends ASTVisitor {
         decl.binding.superInterfaces = new ReferenceBinding[0];
         decl.binding.typeVariables = new TypeVariableBinding[0];
         decl.binding.memberTypes = new ReferenceBinding[0];
+        decl.modifiers = Flags.AccPublic | Flags.AccStatic;
+        decl.binding.modifiers = decl.modifiers;
+        
+        // also set the bindings, but may have to unset them as well.
+        ReferenceBinding[] newBindings = new ReferenceBinding[enclosing.binding.memberTypes.length+1];
+        System.arraycopy(enclosing.binding.memberTypes, 0, newBindings, 0, enclosing.binding.memberTypes.length);
+        newBindings[enclosing.binding.memberTypes.length] = decl.binding;
+        enclosing.binding.memberTypes = newBindings;
         return decl;
     }
 
     private FieldDeclaration createField(IProgramElement field, TypeDeclaration type) {
         FieldDeclaration decl = new FieldDeclaration();
-        decl.name = field.getName().split("\\.")[1].toCharArray();
+        String[] split = field.getName().split("\\.");
+        decl.name = split[split.length-1].toCharArray();
         decl.type = createTypeReference(field.getCorrespondingType(true));
         decl.modifiers = field.getRawModifiers();
         return decl;
@@ -270,7 +364,8 @@ public class ITDInserter extends ASTVisitor {
         MethodDeclaration decl = new MethodDeclaration(type.compilationResult);
         decl.scope = new MethodScope(type.scope, decl, true);
         
-        decl.selector = method.getName().split("\\.")[1].toCharArray();
+        String[] split = method.getName().split("\\.");
+        decl.selector = split[split.length-1].toCharArray();
         decl.modifiers = method.getRawModifiers();
         
 
@@ -281,8 +376,11 @@ public class ITDInserter extends ASTVisitor {
                 new Argument[method.getParameterTypes().size()] :
                     new Argument[0];
         try {
-            AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
-            ErasedTypeSignature sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
+            ErasedTypeSignature sig = null;
+            if (handle != null) {
+                AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
+                sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
+            }
             if (sig == null) {
                 String[] params = new String[method.getParameterTypes().size()];
                 for (int i = 0; i < params.length; i++) {

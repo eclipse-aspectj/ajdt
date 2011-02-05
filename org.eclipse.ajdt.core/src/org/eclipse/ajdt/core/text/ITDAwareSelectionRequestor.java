@@ -29,12 +29,14 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
 
 /**
@@ -42,9 +44,6 @@ import org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
  * @created Apr 28, 2009
  * 
  * A selection requestor that knows about ITDs.
- * 
- * If the carat is on the ITD itself, this cannot be selected...
- * Need some different logic to deal with this
  */
 public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     
@@ -53,6 +52,7 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     private Set<IJavaElement> accepted;
     
     private ArrayList<Replacement> replacements;
+    private IJavaProject javaProject;
     
     public ITDAwareSelectionRequestor(AJProjectModelFacade model, ICompilationUnit currentUnit) {
         this.model = model;
@@ -67,12 +67,12 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
     public void acceptError(CategorizedProblem error) {
         // can ignore
     }
-
+    
     public void acceptField(char[] declaringTypePackageName,
             char[] declaringTypeName, char[] name, boolean isDeclaration,
             char[] uniqueKey, int start, int end) {
         try {
-            IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
+            IType targetType = findType(declaringTypePackageName, declaringTypeName);
             if (targetType == null) {
                 // type couldn't be found.  this is really some kind of problem
                 return;
@@ -91,10 +91,70 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                 IField field = targetType.getField(String.valueOf(name));
                 if (field.exists()) {
                     accepted.add(field);
+                    return;
+                }
+            }
+            
+            // now check to see if we actually found a field in an ITIT
+            IJavaElement parent = targetType.getParent();
+            if (parent.getElementType() == IJavaElement.TYPE) {
+                // definitely an inner type.  If the outer type does not match,
+                // then we know that this was from an ITIT
+                char[] enclosingName = (parent.getElementName() + ".").toCharArray();
+                if (!CharOperation.prefixEquals(enclosingName, declaringTypeName)) {
+                    IField field = targetType.getField(String.valueOf(name));
+                    if (field.exists()) {
+                        accepted.add(field);
+                    }
                 }
             }
         } catch (JavaModelException e) {
         }
+    }
+
+    /**
+     * for itits:
+     * If the initial type finding returns null, then look for a dot (ie- an inner type) in the type name
+     * Get the parent type and look to see if it has any aspect declarations on it of the name of the inner
+     * type.  if so, then use that one
+     */
+    private IType findType(char[] declaringTypePackageName,
+            char[] declaringTypeName) throws JavaModelException {
+        if (javaProject == null) {
+            javaProject = currentUnit.getJavaProject();
+        }
+        IType type = javaProject.findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
+        if (type != null) {
+            return type;
+        } else {
+            // check to see if this type is an ITIT
+            int index = CharOperation.lastIndexOf('.', declaringTypeName);
+            if (index >= 0) {
+                // definitely an inner type...now get the enclosing type to look for ITDs
+                char[] enclosingTypeName = CharOperation.subarray(declaringTypeName, 0, index);
+                char[] innerTypeName =  CharOperation.subarray(declaringTypeName, index+1, declaringTypeName.length);
+                IType enclosingType = javaProject.findType(toQualifiedName(declaringTypePackageName, enclosingTypeName));
+                if (enclosingType != null) {
+                    String innerTypeStr = String.valueOf(innerTypeName);
+                    IType innerType = enclosingType.getType(innerTypeStr);
+                    if (innerType.exists()) {
+                        // a standard inner type
+                        // probably won't get here since should have been returned above
+                        return innerType;
+                    } else if (model.hasModel()) {
+                        // now check to see if the type has any ITITs declared on it
+                        List<IJavaElement> rels = model.getRelationshipsForElement(enclosingType, AJRelationshipManager.ASPECT_DECLARATIONS);
+                        for (IJavaElement rel : rels) {
+                            if (rel.getElementType() == IJavaElement.TYPE && innerTypeStr.equals(rel.getElementName())) {
+                                return (IType) rel;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // not found...probably an error or the model hasn't been built.
+        return null;
     }
 
     private IntertypeElement maybeGetITD(int pos) throws JavaModelException {
@@ -114,38 +174,59 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             char[][] typeParameterNames, char[][][] typeParameterBoundNames,
             boolean isConstructor, boolean isDeclaration, char[] uniqueKey,
             int start, int end) {
-        String[] simpleParameterSigs;
-        if (parameterSignatures != null) {
-            simpleParameterSigs = new String[parameterSignatures.length];
-            for (int i = 0; i < parameterSignatures.length; i++) {
-                simpleParameterSigs[i] = toSimpleName(parameterSignatures[i]);
-            }
-        } else {
-            simpleParameterSigs = null;
-        }
-        
         try {
-            IType targetType = currentUnit.getJavaProject().findType(toQualifiedName(declaringTypePackageName, declaringTypeName));
-            if (targetType != null) {
-                List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
-                for (IJavaElement elt : itds) {
-                    if (matchedMethod(elt, selector, simpleParameterSigs)) {
-                        accepted.add(elt);
-                        return;
-                    }
+            IType targetType = findType(declaringTypePackageName, declaringTypeName);
+            if (targetType == null) {
+                return;
+            }
+            
+            String[] simpleParameterSigs;
+            if (parameterSignatures != null) {
+                simpleParameterSigs = new String[parameterSignatures.length];
+                for (int i = 0; i < parameterSignatures.length; i++) {
+                    simpleParameterSigs[i] = toSimpleName(parameterSignatures[i]);
                 }
-                
-                IntertypeElement itd = maybeGetITD(start);
-                if (itd != null) {
-                    // if we are selecting inside of an ITD and the method being matched is a regular method, we find it here.
-                    IMethod method = targetType.getMethod(String.valueOf(selector), parameterSignatures);
-                    if (method.exists()) {
-                        accepted.add(method);
-                    }
-                    
-                    // still need to determine if the ITD declaration itself is being selected
+            } else {
+                simpleParameterSigs = null;
+            }
+        
+            List<IJavaElement> itds = ensureModel(targetType).getRelationshipsForElement(targetType, AJRelationshipManager.ASPECT_DECLARATIONS);
+            for (IJavaElement elt : itds) {
+                if (matchedMethod(elt, selector, simpleParameterSigs)) {
+                    accepted.add(elt);
+                    return;
                 }
             }
+            
+            IntertypeElement itd = maybeGetITD(start);
+            String selectorStr = String.valueOf(selector);
+            if (itd != null) {
+                // if we are selecting inside of an ITD and the method being matched is a regular method, we find it here.
+                IMethod method = targetType.getMethod(selectorStr, parameterSignatures);
+                if (method.exists()) {
+                    accepted.add(method);
+                    return;
+                }
+                // still need to determine if the ITD declaration itself is being selected
+            }
+            
+            
+            // now check to see if we actually found a method in an ITIT
+            IJavaElement parent = targetType.getParent();
+            if (parent.getElementType() == IJavaElement.TYPE) {
+                // definitely an inner type.  If the outer type does not match,
+                // then we know that this was from an ITIT
+                char[] enclosingName = (parent.getElementName() + ".").toCharArray();
+                if (!CharOperation.prefixEquals(enclosingName, declaringTypeName)) {
+                	IMethod[] methods = targetType.getMethods();
+                	for (IMethod method : methods) {
+                        if (method.getElementName().equals(selectorStr) && matchedParameters(simpleParameterSigs, method.getParameterTypes())) {
+                        	accepted.add(method);
+                        }
+                    }
+                }
+            }
+
         } catch (JavaModelException e) {
         }
     }
@@ -195,6 +276,19 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                 if (contained(origStart, origEnd, typeNameStart, typeNameStart + typeNameLength)) {
                     IType targetType = itd.findTargetType();
                     if (targetType != null && targetType.getFullyQualifiedName('.').equals(toQualifiedName(packageName, annotationName))) {
+                        accepted.add(targetType);
+                    }
+                }
+            } else {
+            
+                // now check to see if we actually found an ITIT
+                IType targetType = findType(packageName, annotationName);
+                IJavaElement parent = targetType.getParent();
+                if (parent.getElementType() == IJavaElement.TYPE) {
+                    // definitely an inner type.  If the outer type does not match,
+                    // then we know that this was from an ITIT
+                    char[] enclosingName = (parent.getElementName() + ".").toCharArray();
+                    if (!CharOperation.prefixEquals(enclosingName, annotationName)) {
                         accepted.add(targetType);
                     }
                 }
@@ -259,27 +353,41 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                         return (itdParameterSigs == null || itdParameterSigs.length == 0) && 
                                (simpleParameterSigs == null || simpleParameterSigs.length == 0);
                     }
-                    
                     if (itdParameterSigs.length == simpleParameterSigs.length) {
-                        for (int i = 0; i < itdParameterSigs.length; i++) {
-                            String simple = toSimpleName(itdParameterSigs[i]);
-                            if (! simple.equals(simpleParameterSigs[i])) {
-                                return false;
-                            }
-                        }
-                        return true;
+                        return matchedParameters(simpleParameterSigs, itdParameterSigs);
                     }
                 }
             }
         }
         return false;
     }
+
+    /**
+     * Since we can't resolved unresolved type signatures coming from source
+     * files, we only compare the simple names of the types.  99% of the time,
+     * this is sufficient.
+     *  
+     * @param simpleParameterSigs
+     * @param itdParameterSigs
+     */
+    protected boolean matchedParameters(String[] simpleParameterSigs,
+            String[] itdParameterSigs) {
+        if (itdParameterSigs.length == simpleParameterSigs.length) {
+            for (int i = 0; i < itdParameterSigs.length; i++) {
+                String simple = toSimpleName(itdParameterSigs[i]);
+                if (! simple.equals(simpleParameterSigs[i])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     
     private String toSimpleName(String signature) {
         String simple = Signature.getSignatureSimpleName(signature);
         int typeParamIndex = simple.indexOf('<');
         if (typeParamIndex > 0) {
-            simple = simple.substring(typeParamIndex+1);
+            simple = simple.substring(0, typeParamIndex);
         }
         int dotIndex = simple.indexOf('.');
         if (dotIndex > 0) {

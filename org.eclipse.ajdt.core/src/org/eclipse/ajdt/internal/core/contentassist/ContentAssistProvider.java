@@ -17,6 +17,7 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.text.ITDCodeSelection;
@@ -119,6 +120,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         // code complete
         /* AJDT 1.7 */
         CompletionEngine engine = new CompletionEngine(environment, wrapped, project.getOptions(true), project, owner, monitor);
+        engine.lookupEnvironment = new ITDAwareLookupEnvironment(engine.lookupEnvironment, environment);
         engine.complete(mcu, transformedPos, 0, typeRoot);
         
         return true;
@@ -137,7 +139,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
             int offset, int length, IJavaElement[] prevResults)
             throws JavaModelException {
 
-        System.out.println("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
+        AJLog.log("===Code Select.  Unit: " + unit.getElementName() + " [ " + offset + ", " + length + " ]");
         
         // see if we should shortcut other processing and we can
         // quickly find a selection that we know is only valid inside of

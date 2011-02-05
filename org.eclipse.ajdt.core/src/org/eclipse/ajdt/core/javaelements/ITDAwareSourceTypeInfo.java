@@ -33,7 +33,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnitElementInfo;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.SourceField;
+import org.eclipse.jdt.internal.core.SourceFieldElementInfo;
 import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceMethodInfo;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
@@ -68,14 +71,15 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return info;
         }
     }
-    private final static class ITIT extends SourceType {
+    private final class ITIT extends SourceType {
         final Object info;
-        private ITIT(JavaElement parent, IType actualType) throws JavaModelException {
+        private ITIT(JavaElement parent, IType actualType, IProgramElement ajElement) throws JavaModelException {
             super(parent, actualType.getElementName());
-            this.info = createInfo(actualType);
+            this.info = createInfo(actualType, ajElement);
         }
 
-        public Object createInfo(IType actualType) throws JavaModelException {
+        @SuppressWarnings("unchecked")
+        public Object createInfo(IType actualType, IProgramElement ajElement) throws JavaModelException {
             Object elementInfo = ((JavaElement) actualType).getElementInfo();
             if (elementInfo instanceof SourceTypeElementInfo) {
                 SourceTypeElementInfo origInfo = (SourceTypeElementInfo) elementInfo;
@@ -83,7 +87,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "handle", newInfo, origInfo.getHandle());
                 ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "superclassName", newInfo, origInfo.getSuperclassName());
                 ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "superInterfaceNames", newInfo, origInfo.getInterfaceNames());
-                ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "children", newInfo, convertChildren(origInfo.getChildren()));
+                ReflectionUtils.setPrivateField(SourceTypeElementInfo.class, "children", newInfo, convertChildren(origInfo.getChildren(), ajElement.getChildren()));
                 // MemberElementInfo is package protected, so we need to access using Class.forName
                 try {
                     ReflectionUtils.setPrivateField((Class<? super SourceTypeElementInfo>) Class.forName("org.eclipse.jdt.internal.core.MemberElementInfo"), "flags", newInfo, origInfo.getModifiers());
@@ -94,17 +98,42 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return elementInfo;
         }
 
-        private IJavaElement[] convertChildren(IJavaElement[] children) {
+        private IJavaElement[] convertChildren(IJavaElement[] children, List<IProgramElement> ipes) {
             IJavaElement[] newChildren = new IJavaElement[children.length];
             for (int i = 0; i < children.length; i++) {
+                char[] typeName;
+                String[] paramTypes;
+                if (!children[i].isReadOnly()) {
+                    if (ipes.size() >= i) {
+                        typeName = ipes.get(i).getCorrespondingType(true).toCharArray();
+                        List<char[]> parameterSignatures = ipes.get(i).getParameterSignatures();
+                        if (parameterSignatures != null) {
+                            paramTypes = new String[parameterSignatures.size()];
+                            int j = 0;
+                            for (char[] paramArr : parameterSignatures) {
+                                paramTypes[j++] = String.valueOf(paramArr).replace('/', '.');
+                            }
+                        } else {
+                            paramTypes = new String[0];
+                        }
+                    } else {
+                        typeName = "java.lang.Object".toCharArray();
+                        paramTypes = new String[0];
+                    }
+                } else {
+                    throw new IllegalArgumentException(children[i].getHandleIdentifier() +
+                            " should not be read only");
+                }
                 switch (children[i].getElementType()) {
                     case IJavaElement.FIELD:
+                        newChildren[i] = new ITITField((SourceField) children[i], typeName);
+                        break;
                     case IJavaElement.METHOD:
+                        newChildren[i] = new ITITMethod((SourceMethod) children[i], typeName, paramTypes);
+                        break;
                     case IJavaElement.TYPE:
                     case IJavaElement.INITIALIZER:
-                        newChildren[i] = children[i];
-                        break;
-                        
+                        // not allowed
                     default:
                         throw new IllegalArgumentException(children[i].getHandleIdentifier());
                 }
@@ -120,6 +149,146 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             return super.exists();
         }
     }
+
+    private final class ITITMethod extends SourceMethod {
+        private final SourceMethod orig;
+        private final char[] fullTypeName;
+        private ITITSourceMethodInfo thisInfo;
+        
+        protected ITITMethod(SourceMethod orig, char[] fullTypeName, String[] parameterTypes) {
+            super((JavaElement) orig.getParent(), orig.getElementName(), parameterTypes);
+            this.orig = orig;
+            this.fullTypeName = fullTypeName;
+        }
+
+        @Override
+        public Object getElementInfo() {
+            if (thisInfo != null) {
+                return thisInfo;
+            }
+            try {
+                SourceMethodInfo info = (SourceMethodInfo) ((JavaElement) orig).getElementInfo();
+                thisInfo = new ITITSourceMethodInfo();
+                thisInfo.setReturnType(fullTypeName);
+                thisInfo.setFlags(info.getModifiers());
+                thisInfo.setNameSourceStart(info.getNameSourceStart());
+                thisInfo.setNameSourceEnd(info.getNameSourceEnd());
+                thisInfo.setSourceRangeStart(info.getDeclarationSourceStart());
+                thisInfo.setSourceRangeEnd(info.getDeclarationSourceEnd());
+                thisInfo.setArgumentNames(info.getArgumentNames());
+                // not handling type parameters for now.
+            } catch (Exception e) {
+            }
+            return thisInfo;
+        }
+
+        
+    }
+    private final class ITITField extends SourceField {
+
+        private final SourceField orig;
+        private final char[] fullTypeName;
+        private ITITSourceFieldElementInfo thisInfo;
+        
+        protected ITITField(SourceField orig, char[] fullTypeName) {
+            super((JavaElement) orig.getParent(), orig.getElementName());
+            this.orig = orig;
+            this.fullTypeName = fullTypeName;
+        }
+        
+        @Override
+        public Object getElementInfo() {
+            if (thisInfo != null) {
+                return thisInfo;
+            }
+            try {
+                SourceFieldElementInfo info = (SourceFieldElementInfo) ((JavaElement) orig).getElementInfo();
+                thisInfo = new ITITSourceFieldElementInfo();
+                thisInfo.setTypeName(fullTypeName);
+                thisInfo.setFlags(info.getModifiers());
+                thisInfo.setNameSourceStart(info.getNameSourceStart());
+                thisInfo.setNameSourceEnd(info.getNameSourceEnd());
+                thisInfo.setSourceRangeStart(info.getDeclarationSourceStart());
+                thisInfo.setSourceRangeEnd(info.getDeclarationSourceEnd());
+            } catch (Exception e) {
+            }
+            return thisInfo;
+        }
+    }
+    
+    class ITITSourceMethodInfo extends SourceMethodInfo {
+
+        @Override
+        protected void setReturnType(char[] type) {
+            super.setReturnType(type);
+        }
+
+        @Override
+        protected void setArgumentNames(char[][] names) {
+            super.setArgumentNames(names);
+        }
+
+        @Override
+        protected void setNameSourceEnd(int end) {
+            super.setNameSourceEnd(end);
+        }
+
+        @Override
+        protected void setNameSourceStart(int start) {
+            super.setNameSourceStart(start);
+        }
+
+        @Override
+        protected void setFlags(int flags) {
+            super.setFlags(flags);
+        }
+
+        @Override
+        protected void setSourceRangeEnd(int end) {
+            super.setSourceRangeEnd(end);
+        }
+
+        @Override
+        protected void setSourceRangeStart(int start) {
+            super.setSourceRangeStart(start);
+        }
+        
+    }
+    
+    class ITITSourceFieldElementInfo extends SourceFieldElementInfo {
+
+        @Override
+        protected void setTypeName(char[] typeName) {
+            super.setTypeName(typeName);
+        }
+
+        @Override
+        protected void setNameSourceEnd(int end) {
+            super.setNameSourceEnd(end);
+        }
+
+        @Override
+        protected void setNameSourceStart(int start) {
+            super.setNameSourceStart(start);
+        }
+
+        @Override
+        protected void setFlags(int flags) {
+            super.setFlags(flags);
+        }
+
+        @Override
+        protected void setSourceRangeEnd(int end) {
+            super.setSourceRangeEnd(end);
+        }
+
+        @Override
+        protected void setSourceRangeStart(int start) {
+            super.setSourceRangeStart(start);
+        }
+        
+    }
+    
 
     public ITDAwareSourceTypeInfo(SourceType type) throws JavaModelException {
         this((ISourceType) type.getElementInfo(), type);
@@ -276,7 +445,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                     }
                 } else if (ije instanceof IType) {
                     // an ITIT
-                    itds.add(new ITIT(type, (IType) ije));
+                    itds.add(new ITIT(type, (IType) ije, model.javaElementToProgramElement(ije)));
                 }
             }
             return itds;

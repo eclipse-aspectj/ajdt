@@ -838,7 +838,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         return new List[] { declareExtends, declareImplements };
     }
 
-
+    /**
+     * returns reasonable text for all ITDs and ITITs
+     * @param currentTypeName
+     * @return
+     */
     protected char[] getInterTypeDecls(char[] currentTypeName) {
         if (unit != null && currentTypeName != null && currentTypeName.length > 0) {
             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(unit);
@@ -856,47 +860,107 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                             String name = declareElt.getName().substring(lastDot+1);
     
                             if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
-                                for (IProgramElement.Modifiers modifier : declareElt.getModifiers()) {
-                                    sb.append(modifier + " ");
-                                }
-                                sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n\t");
+                                createITDFieldText(sb, declareElt, name);
                             } else if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD || 
                                        declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
-                                
-                                sb.append(getAccessibilityString(declareElt));
-                                for (IProgramElement.Modifiers modifier : declareElt.getModifiers()) {
-                                    sb.append(modifier + " ");
-                                }
-                                // need to add a return statement?
-                                if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
-                                    sb.append(declareElt.getCorrespondingType(true) + " " + name);
-                                } else {
-                                    sb.append(currentTypeName);
-                                }
-                                sb.append("(");
-                                List<String> names = declareElt.getParameterNames();
-                                List<char[]> types = declareElt.getParameterTypes();
-                                if (types != null && names != null) {
-                                    for (Iterator<?> typeIter = types.iterator(), nameIter = names.iterator(); 
-                                         typeIter.hasNext();) {
-                                        String paramType = String.valueOf(typeIter.next());
-                                        String paramName = (String) nameIter.next();
-                                        sb.append(paramType + " " + paramName);
-                                        if (typeIter.hasNext()) {
-                                            sb.append(", ");
-                                        }
-                                    }
-                                }
-                                sb.append(") { }\n");
+                                createITDMethodText(currentTypeName, sb, declareElt, name);
                             }
+                        } else if (declareElt.getKind() == IProgramElement.Kind.CLASS) {
+                        	// Intertype Inner type
+                        	// add the declaration and all fields/methhods
+                        	createITITText(sb, declareElt);
                         }
                     }
                     return sb.toString().toCharArray();
                 }
             }
         }
-        
         return new char[0];
+    }
+
+
+    /**
+     * @param sb
+     * @param declareElt
+     */
+    protected void createITITText(StringBuffer sb, IProgramElement declareElt) {
+        sb.append("\n\tstatic class ").append(declareElt.getName()).append(" {\n");
+        List<IProgramElement> children = declareElt.getChildren();
+        for (IProgramElement child : children) {
+            sb.append("\t\tpublic static ");
+            sb.append(child.getCorrespondingType(true) + " ");
+            sb.append(child.getName());
+            if (child.getKind() == IProgramElement.Kind.FIELD) {
+            	sb.append(";\n");
+            } else {
+            	sb.append("(");
+                List<String> names = child.getParameterNames();
+                List<char[]> types = child.getParameterTypes();
+                if (types != null && names != null) {
+                    for (Iterator<?> typeIter = types.iterator(), nameIter = names.iterator(); 
+                         typeIter.hasNext();) {
+                        String paramType = String.valueOf((char[]) typeIter.next());
+                        String paramName = (String) nameIter.next();
+                        sb.append(paramType + " " + paramName);
+                        if (typeIter.hasNext()) {
+                            sb.append(", ");
+                        }
+                    }
+                }
+                sb.append(") { }\n");
+            }
+        }
+        sb.append("\t}\n");
+    }
+
+
+    /**
+     * @param currentTypeName
+     * @param sb
+     * @param declareElt
+     * @param name
+     */
+    protected void createITDMethodText(char[] currentTypeName, StringBuffer sb,
+            IProgramElement declareElt, String name) {
+        sb.append(getAccessibilityString(declareElt));
+        for (IProgramElement.Modifiers modifier : declareElt.getModifiers()) {
+            sb.append(modifier + " ");
+        }
+        // need to add a return statement?
+        if (declareElt.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD) {
+            sb.append(declareElt.getCorrespondingType(true) + " " + name);
+        } else {
+            sb.append(currentTypeName);
+        }
+        sb.append("(");
+        List<String> names = declareElt.getParameterNames();
+        List<char[]> types = declareElt.getParameterTypes();
+        if (types != null && names != null) {
+            for (Iterator<?> typeIter = types.iterator(), nameIter = names.iterator(); 
+                 typeIter.hasNext();) {
+                String paramType = String.valueOf(typeIter.next());
+                String paramName = (String) nameIter.next();
+                sb.append(paramType + " " + paramName);
+                if (typeIter.hasNext()) {
+                    sb.append(", ");
+                }
+            }
+        }
+        sb.append(") { }\n");
+    }
+
+
+    /**
+     * @param sb
+     * @param declareElt
+     * @param name
+     */
+    protected void createITDFieldText(StringBuffer sb,
+            IProgramElement declareElt, String name) {
+        for (IProgramElement.Modifiers modifier : declareElt.getModifiers()) {
+            sb.append(modifier + " ");
+        }
+        sb.append(declareElt.getCorrespondingType(true) + " " + name + ";\n\t");
     }
 
 
