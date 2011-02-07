@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * Tests for content assist of ITITs
@@ -32,41 +33,52 @@ public class ITITContentAssistTests extends UITestCase {
     
     public void testContentAssistInOtherType() throws Exception {
         
-        String contents = "package q;\n" +
-        "import p.City;\n" +
-        "public class Test {\n" +
-        "   void x() { City.Keys.CITY.getter(); }\n" +
+        String contents =                             
+        "package q;\n" + 
+        "import p.City;\n" + 
+        "public class Test {\n" + 
+        "    public static void main(String[] args) { \n" + 
+        "        City.Keys.CITY.getter().get(0).substring(0);   \n" + 
+        "        p.City.Keys.A_CITY.getter().put(null, null);   \n" + 
+        "    }\n" + 
         "}";
-        createUnits(
-                new String[] { "p", "p", "p", "q" }, 
-                new String[] { "AspectCity.aj", "Function.java", "City.java", "Test.java" }, 
-                new String[] {
-                        "package p;\n" + 
-                        "privileged aspect AspectCity {\n" + 
-                        "    public static class City.Keys {\n" + 
-                        "        public static final Function<Object, City> CITY = null;\n" + 
-                        "    }\n" + 
-                        "    void x() {\n" + 
-                        "        City.Keys.CITY.getter();\n" + 
-                        "    }\n" + 
-                        "}",
-                        
-                        "package p;\n" + 
-                        "public class Function<K, V> {\n" + 
-                        "    public void getter() { }\n" + 
-                        "}",
-                        "package p;\n" +
-                        "public class City {\n" +
-                        "   void x() { City.Keys.CITY.getter(); }\n" +
-                        "}",
-                        contents,
-                }, proj);
+
+        ICompilationUnit unit = 
+            createUnits(
+                    new String[] { "p", "p", "p", "q" }, 
+                    new String[] { "CityAspect.aj", "Function.java", "City.java", "Test.java" }, 
+                    new String[] {
+                            "package p;\n" + 
+                            "import java.util.List;" + 
+                            "privileged aspect CityAspect {\n" + 
+                            "    public static class City.Keys {\n" + 
+                            "        public static final Function<List<String>, City> CITY = null;\n" + 
+                            "        public static final Function<java.util.HashMap<String, String>, City> A_CITY = null;\n" + 
+                            "    }\n" + 
+                            "    void x() {\n" + 
+                            "        City.Keys.CITY.getter();\n" + 
+                            "    }\n" + 
+                            "}",
+                            
+                            "package p;\n" + 
+                            "public class Function<K, V> {\n" + 
+                            "    public K getter() { return null; }\n" + 
+                            "}",
+                            
+                            "package p;\n" +
+                            "public class City { }",
+                            contents
+                    }, proj)[3];
         
-        ICompilationUnit unit = proj.findType("q.Test").getCompilationUnit();
-        assertContentAssist(unit, contents.indexOf("Y.g"), "CITY");
-        assertContentAssist(unit, contents.indexOf("er()"), "getter");
-        assertContentAssist(unit, contents.indexOf("s.CITY"), "Keys");
-        assertContentAssist(unit, contents.indexOf("y.Keys"), "City");
+        assertContentAssist(unit, findLocation(contents, "Keys", 1), "Keys");
+        assertContentAssist(unit, findLocation(contents, "CITY", 1), "CITY");
+        assertContentAssist(unit, findLocation(contents, "getter", 1), "getter");
+        assertContentAssist(unit, findLocation(contents, "get", 2), "get", 2);
+        assertContentAssist(unit, findLocation(contents, "substring", 1), "substring", 2);
+        assertContentAssist(unit, findLocation(contents, "A_CITY", 1), "A_CITY");
+        assertContentAssist(unit, findLocation(contents, "getter", 2), "getter");
+        assertContentAssist(unit, findLocation(contents, "put", 1), "put", 5);
+
     }
     
     public void testContentAssistInAspect() throws Exception {
@@ -99,11 +111,13 @@ public class ITITContentAssistTests extends UITestCase {
         
         ICompilationUnit unit = proj.findType("p.AspectCity").getCompilationUnit();
         try {
+            // must be a working copy or else AJCompilationUnit thinks
+            // that we are not in an AJ editor
             unit.becomeWorkingCopy(null);
-            assertContentAssist(unit, contents.indexOf("er()"), "getter");
-            assertContentAssist(unit, contents.indexOf("s.CITY"), "Keys");
-            assertContentAssist(unit, contents.indexOf("y.Keys"), "City");
-            assertContentAssist(unit, contents.indexOf("Y.g"), "CITY");
+            assertContentAssist(unit, findLocation(contents, "getter"), "getter");
+            assertContentAssist(unit, findLocation(contents, "Keys"), "Keys");
+            assertContentAssist(unit, findLocation(contents, "City", 2), "City");
+            assertContentAssist(unit, findLocation(contents, "CITY"), "CITY");
         } finally {
             unit.discardWorkingCopy();
         }
@@ -115,17 +129,23 @@ public class ITITContentAssistTests extends UITestCase {
     public void testContentAssistInTargetType() throws Exception {
         String contents = "package p;\n" +
         "public class City {\n" +
-        "   void x() { City.Keys.CITY.getter(); }\n" +
+        "   void x() {\n" +
+        "      City.Keys.CITY.getter();\n" +
+        "      City.Keys.xxx().get(\"\").charAt(0);" +
+        "   }\n" +
         "}";
         
-        createUnits(
+        ICompilationUnit unit = createUnits(
                 new String[] { "p", "p", "p" }, 
                 new String[] { "AspectCity.aj", "Function.java", "City.java" }, 
                 new String[] {
                         "package p;\n" + 
+                        "import java.util.List;" + 
+                        "import java.util.HashMap;" + 
                         "privileged aspect AspectCity {\n" + 
                         "    public static class City.Keys {\n" + 
                         "        public static final Function<Object, City> CITY = null;\n" + 
+                        "        public static final HashMap<String, String> xxx() { return null; }\n" + 
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.getter();\n" + 
@@ -138,23 +158,50 @@ public class ITITContentAssistTests extends UITestCase {
                         "}",
                         
                         contents,
-                }, proj);
+                }, proj)[2];
         
-        ICompilationUnit unit = proj.findType("p.City").getCompilationUnit();
-        assertContentAssist(unit, contents.indexOf("er()"), "getter");
-        assertContentAssist(unit, contents.indexOf("s.CITY"), "Keys");
-        assertContentAssist(unit, contents.indexOf("y.Keys"), "City");
-        assertContentAssist(unit, contents.indexOf("Y.g"), "CITY");
+        assertContentAssist(unit, findLocation(contents, "getter"), "getter");
+        assertContentAssist(unit, findLocation(contents, "Keys"), "Keys");
+        assertContentAssist(unit, findLocation(contents, "City", 2), "City");
+        assertContentAssist(unit, findLocation(contents, "CITY"), "CITY");
+        assertContentAssist(unit, findLocation(contents, "xxx"), "xxx");
+        assertContentAssist(unit, findLocation(contents, "get", 2), "get", 4);
+        assertContentAssist(unit, findLocation(contents, "charAt"), "charAt");
     }
     
-    public void assertContentAssist(ICompilationUnit unit, int offset, String proposalName) throws Exception {
+    private void assertContentAssist(ICompilationUnit unit, int offset,
+            String proposalName, int amount) throws JavaModelException {
         MockCompletionRequestor requestor = new MockCompletionRequestor();
         unit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
-        assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+        assertEquals("Wrong number of proposals found, all proposals:\n" + requestor.toString(), amount, requestor.accepted.size());
 
-        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
-        assertEquals("wrong proposal name", 
-                proposalName, new String(completionProposal.getCompletion())); 
+        for (int i = 0; i < requestor.accepted.size(); i++) {
+            CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(i);
+            if (completionProposal.getCompletion() != null && String.valueOf(completionProposal.getCompletion()).equals(proposalName)) {
+                return;
+            }
+        }
+        fail("Proposal name " + proposalName + " not found.  All Proposals:\n" + requestor.toString()); 
+    }
+
+    private void assertContentAssist(ICompilationUnit unit, int offset, String proposalName) throws Exception {
+        assertContentAssist(unit, offset, proposalName, 1);
     }    
+    
+    
+    protected final int findLocation(String contents, String toFind) {
+        return findLocation(contents, toFind, 1);
+    }
+    protected final int findLocation(String contents, String toFind,
+            int occurrence) {
+        int start = 0;
+        while (occurrence-- > 0) {
+            start = contents.indexOf(toFind, start + 1);
+            if (start < 0)
+                fail("Too few occurrences of '" + toFind + "' where found");
+        }
+        return start + toFind.length();
+    }
+
 }
