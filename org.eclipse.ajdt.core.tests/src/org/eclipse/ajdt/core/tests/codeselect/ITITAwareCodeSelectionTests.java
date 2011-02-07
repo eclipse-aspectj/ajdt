@@ -51,6 +51,89 @@ public class ITITAwareCodeSelectionTests extends
     }
     
 
+    public void testSelectInTargetType() throws Exception {
+        
+        ICompilationUnit unit = createUnits(
+                new String[] { "p", "p", "p" }, 
+                new String[] { "AspectCity.aj", "Function.java", "City.java" }, 
+                new String[] {
+                        "package p;\n" + 
+                        "import java.util.List;" + 
+                        "import java.util.HashMap;" + 
+                        "privileged aspect AspectCity {\n" + 
+                        "    public static class City.Keys {\n" + 
+                        "        public static final Function<Object, City> CITY = null;\n" + 
+                        "        public static final HashMap<String, String> xxx() { return null; }\n" + 
+                        "    }\n" + 
+                        "    void x() {\n" + 
+                        "        City.Keys.CITY.getter();\n" + 
+                        "    }\n" + 
+                        "}",
+                        
+                        "package p;\n" + 
+                        "public class Function<K, V> {\n" + 
+                        "    public void getter() { }\n" + 
+                        "}",
+                        
+                        "package p;\n" +
+                        "public class City {\n" +
+                        "   void x() {\n" +
+                        "      City.Keys.CITY.getter();\n" +
+                        "      City.Keys.xxx().get(\"\").charAt(0);" +
+                        "   }\n" +
+                        "}",
+                }, project)[2];
+        
+        // after the ITIT reference, we can't do any more code selection.
+        // that is why commenting out the gets
+//        validateCodeSelect(unit, findRegion(unit, "getter", 1), "getter");
+        validateCodeSelect(unit, findRegion(unit, "Keys", 1), "Keys");
+        validateCodeSelect(unit, findRegion(unit, "City", 1), "City");
+        validateCodeSelect(unit, findRegion(unit, "xxx", 1), "xxx");
+//        validateCodeSelect(unit, findRegion(unit, "get", 2), "get");
+//        validateCodeSelect(unit, findRegion(unit, "charAt", 1), "charAt");
+    }
+    
+    public void testSelectInAspect() throws Exception {
+    	ICompilationUnit unit =
+            createUnits(
+                    new String[] { "p", "p", "p" }, 
+                    new String[] { "AspectCity.aj", "Function.java", "City.java" }, 
+                    new String[] {
+                            "package p;\n" + 
+                            "privileged aspect AspectCity {\n" + 
+                            "    void x() {\n" + 
+                            "        City.Keys.CITY.getter();\n" + 
+                            "    }\n" + 
+                            "    public static class City.Keys {\n" + 
+                            "        public static final Function<Object, City> CITY = null;\n" + 
+                            "    }\n" + 
+                            "}",
+                            
+                            "package p;\n" + 
+                            "public class Function<K, V> {\n" + 
+                            "    public void getter() { }\n" + 
+                            "}",
+
+                            "package p;\n" +
+                            "public class City {\n" +
+                            "}",
+                    }, project)[0];
+
+            try {
+                // must be a working copy or else AJCompilationUnit thinks
+                // that we are not in an AJ editor
+                unit.becomeWorkingCopy(null);
+//                validateCodeSelect(unit, findRegion(unit, "getter", 1), "getter");
+                validateCodeSelect(unit, findRegion(unit, "Keys", 1), "Keys");
+                validateCodeSelect(unit, findRegion(unit, "City", 2), "City");
+                validateCodeSelect(unit, findRegion(unit, "CITY", 1), "CITY");
+            } finally {
+                unit.discardWorkingCopy();
+            }
+
+    }
+    
     public void testSelectOtherType1() throws Exception {
     	ICompilationUnit unit = 
         createUnits(
