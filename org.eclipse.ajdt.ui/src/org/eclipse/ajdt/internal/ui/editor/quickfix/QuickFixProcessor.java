@@ -363,13 +363,13 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 			case IProblem.InheritedMethodReducesVisibility:
 			case IProblem.MethodReducesVisibility:
 			case IProblem.OverridingNonVisibleMethod:
-				ModifierCorrectionSubProcessor.addChangeOverriddenModfierProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_VISIBLE);
+				ModifierCorrectionSubProcessor.addChangeOverriddenModifierProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_VISIBLE);
 				break;
 			case IProblem.FinalMethodCannotBeOverridden:
-				ModifierCorrectionSubProcessor.addChangeOverriddenModfierProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_NON_FINAL);
+				ModifierCorrectionSubProcessor.addChangeOverriddenModifierProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_NON_FINAL);
 				break;
 			case IProblem.CannotOverrideAStaticMethodWithAnInstanceMethod:
-				ModifierCorrectionSubProcessor.addChangeOverriddenModfierProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_NON_STATIC);
+				ModifierCorrectionSubProcessor.addChangeOverriddenModifierProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_NON_STATIC);
 				break;
 			case IProblem.CannotHideAnInstanceMethodWithAStaticMethod:
 			case IProblem.IllegalModifierForInterfaceMethod:
@@ -385,7 +385,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 			case IProblem.IllegalModifierForVariable:
 			case IProblem.IllegalVisibilityModifierForInterfaceMemberType:
 			case IProblem.UnexpectedStaticModifierForMethod:
-				ModifierCorrectionSubProcessor.addRemoveInvalidModfiersProposal(context, problem, proposals, 5);
+				ModifierCorrectionSubProcessor.addRemoveInvalidModifiersProposal(context, problem, proposals, 5);
 				break;
 			case IProblem.NotVisibleMethod:
 			case IProblem.NotVisibleConstructor:

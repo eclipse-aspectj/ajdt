@@ -456,7 +456,7 @@ public class ITDRenameRefactoringProcessor extends JavaRenameProcessor {
         
         String rawName = extractRawITDName(newName);
         status.merge(Checks.checkName(rawName, JavaConventionsUtil.validateMethodName(rawName, itd)));
-        if (status.isOK() && Checks.startsWithUpperCase(rawName))
+        if (status.isOK() && !Checks.startsWithLowerCase(rawName))
             status= RefactoringStatus.createWarningStatus(RefactoringCoreMessages.Checks_method_names_lowercase);
 
         
