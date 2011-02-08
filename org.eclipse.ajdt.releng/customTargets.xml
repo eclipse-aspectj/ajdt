@@ -56,10 +56,13 @@
   		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
   			<fileset dir="${workdir}/org.eclipse.contribution.weaving-feature"/>
   		</copy>
+    	
+    	<!-- no longer supported
   		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.pde.build">
   			<fileset dir="${workdir}/org.eclipse.ajdt.pde.build-feature"/>
   		</copy>
-
+			-->
+    	
   		<!-- plugins -->
   		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
   			<fileset dir="${workdir}/org.eclipse.aspectj">
@@ -161,11 +164,14 @@
   				<exclude name="bin/**"/>
   			</fileset>
     	</copy>
+    	
+    	<!-- no longer supported
   	  <copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.pde.build">
   	  	<fileset dir="${workdir}/org.eclipse.ajdt.pde.build">
   				<exclude name="bin/**"/>
   			</fileset>
     	</copy>
+    	-->
     	
     	<!-- Equinox Aspects -->
     	<!-- Retrieved from map file

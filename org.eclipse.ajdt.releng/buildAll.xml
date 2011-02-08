@@ -39,12 +39,14 @@
 		<delete dir="${target.eclipse}" />
 	</target>
 
-	<target name="pdebuild" description="Perform the pde headless build">
+	<target name="pdebuild" depends="find.pdebuild.home" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
-			dir="${pdebuild.home}/scripts"
+			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.ant.core.antRunner" />
+			<arg value="-data" />
+			<arg value="${build.dest}/target/build-workspace" />
 			<!--<arg value="-verbose" />-->
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
 			<arg value="-DbaseLocation=${target.eclipse}" />
@@ -73,10 +75,16 @@
 			<entry key="zip.full.location" value="${zip.full.location}"/>
 		</propertyfile>
 	</target>
+	
+	<target name="find.pdebuild.home">
+		<files includes="${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" id="pdebuild.folder" />
+		<property name="pdebuild.home" value="${toString:pdebuild.folder}" />
+		<echo message="pdebuild.home=${pdebuild.home}" />
+	</target>
 
-	<target name="generateP2metadata" description="Generate p2 metadata for the AJDT update site">
+	<target name="generateP2metadata" depends="find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
 		<java fork="true" failonerror="true"
-			dir="${pdebuild.home}/scripts"
+			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.equinox.p2.metadata.generator.EclipseGenerator" />
@@ -109,43 +117,41 @@
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
 	</target>
 	<target name="check-eclipse-already-downloaded" description="Check to see if the target Eclipse is already downloaded">
-		<available file="${download.home}/${build.eclipse.tar.3.6}" property="download.completed"/>
+		<available file="${download.home}/${target.eclipse.tar}" property="download.completed"/>
 	</target>
 
 	<target name="download-eclipse" depends="check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
 		
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
-			<param name="theURL" value="${build.url.3.6}"/>
+			<param name="theURL" value="${target.url}"/>
 			<param name="downloadsDir" value="${download.home}"/>
-			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
+			<param name="theFile" value="${target.eclipse.tar}"/>
 		</antcall>
 	</target>
 
+	
 	<!-- for now, only tar files are supported -->
 	<target name="provision-build-eclipse" depends="check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
+		<!-- set the build eclipse archive if it doesn't already exist -->
+		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar}"/>
 
+		
 		<!-- Unpack eclipse -->
 		<mkdir dir="${build.dest}"/>
 		<antcall target="unpack-archive">
-			<param name="theFile" value="${download.home}/${build.eclipse.tar.3.6}" />
+			<param name="theFile" value="${build.eclipse.tar}" />
 			<param name="theDir" value="${build.dest}" />
 		</antcall>
 
 		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/36/update" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/37/tmp" 
 			feature.id="org.eclipse.ajdt" />
 
-		<!-- This is the old location
-		<install-bundle 
-			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/36/build" 
-			feature.id="org.eclipse.ajdt" />
--->
 
-		<!-- ajdt-pde integration and test framework -->
+		<!-- test framework -->
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
 
 		<!-- Mark as provisioned -->
@@ -155,13 +161,12 @@
 	<!-- for now, only tar files are supported -->
 	<!-- Sets up the Target eclipse to build against-->
 	<target name="provision-target-eclipse" unless="no.provision.target">
-
 		<!-- download if not already there -->
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
-			<param name="theURL" value="${build.url.3.6}"/>
+			<param name="theURL" value="${target.url}"/>
 			<param name="downloadsDir" value="${download.home}"/>
-			<param name="theFile" value="${build.eclipse.tar.3.6}"/>
+			<param name="theFile" value="${target.eclipse.tar}"/>
 		</antcall>
 		<!-- Unpack a fresh eclipse -->
 		<delete failonerror="false">
@@ -169,7 +174,7 @@
 		</delete>
 		<mkdir dir="${build.dest}/target"/>
 		<antcall target="unpack-archive">
-			<param name="theFile" value="${download.home}/${build.eclipse.tar.3.6}" />
+			<param name="theFile" value="${download.home}/${target.eclipse.tar}" />
 			<param name="theDir" value="${build.dest}/target" />
 		</antcall>
 
