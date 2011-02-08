@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -50,18 +51,18 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	public void testAspectPathDirWeaving() throws Exception {
 		createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
 		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
+		this.waitForIndexes();
 		AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(weaveMeProject);
         
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-		List/*IRelationship*/ allRels = model.getRelationshipsForProject( rels);
+		List<IRelationship> allRels = model.getRelationshipsForProject(rels);
 		boolean gotBinaryAdvice = false;
-		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-		    IRelationship rel = (IRelationship) iter.next();
+		for (IRelationship rel : allRels) {
 			IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("main")) { //$NON-NLS-1$
-			    for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+			    for (String targetStr : rel.getTargets()) {
 	                IJavaElement target = model.programElementToJavaElement(
-	                        (String) targetIter.next());
+	                        targetStr);
                     if (target.getElementName().indexOf("before") != -1) { //$NON-NLS-1$
                         gotBinaryAdvice = true;
                     }
@@ -82,16 +83,15 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(project);
-        List/*IRelationship*/ allRels = model.getRelationshipsForProject(rels);
+        List<IRelationship> allRels = model.getRelationshipsForProject(rels);
 		boolean gotBeforeAdviceWithoutRuntimeTest = false;
 		boolean gotAroundAdviceWithRuntimeTest = false;
-		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
-		    IRelationship rel = (IRelationship) iter.next();
+		for (IRelationship rel : allRels) {
             IJavaElement source = model.programElementToJavaElement(rel.getSourceHandle());
 			if (source.getElementName().equals("bar")) { //$NON-NLS-1$
-                for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext(); ) {
+                for (String targetStr : rel.getTargets()) {
                     IJavaElement target = model.programElementToJavaElement(
-                            (String) targetIter.next());
+                            targetStr);
     				if (target.getElementName().equals("before") //$NON-NLS-1$
     						&& !rel.hasRuntimeTest()) {
     					gotBeforeAdviceWithoutRuntimeTest = true;
@@ -130,9 +130,9 @@ public class AJModelTest2 extends AJDTCoreTestCase {
         IType otherClass = jProject.findType("test.OtherClass");
 
         // no build yet. should return empty sets for each
-        Set demoSet = getDeclaredMethods(demo);
-        Set myAspectSet = getDeclaredMethods(myAspect);
-        Set otherClassSet = getDeclaredMethods(otherClass);
+        Set<IMethod> demoSet = getDeclaredMethods(demo);
+        Set<IMethod> myAspectSet = getDeclaredMethods(myAspect);
+        Set<IMethod> otherClassSet = getDeclaredMethods(otherClass);
         
         assertEquals("Project hasn't been built, so no relationships should have been found.", 0, demoSet.size());
         assertEquals("Project hasn't been built, so no relationships should have been found.", 0, myAspectSet.size());
@@ -151,13 +151,13 @@ public class AJModelTest2 extends AJDTCoreTestCase {
         assertEquals("Shouldn't have any ITDs.", 0, otherClassSet.size());
     }
 
-    public static Set/*IMethod*/ getDeclaredMethods(IType type) throws JavaModelException {
-        Set methods = new HashSet/*IMethod*/();
+    @SuppressWarnings("deprecation")
+    public static Set<IMethod> getDeclaredMethods(IType type) throws JavaModelException {
+        Set<IMethod> methods = new HashSet<IMethod>();
         AJRelationshipType[] types = new AJRelationshipType[] { AJRelationshipManager.DECLARED_ON };
-        List/*AJRelationship*/ rels = AJModel.getInstance().getAllRelationships(
+        List<AJRelationship> rels = AJModel.getInstance().getAllRelationships(
                 type.getResource().getProject(), types);
-        for (Iterator relIter = rels.iterator(); relIter.hasNext();) {
-            AJRelationship rel = (AJRelationship) relIter.next();
+        for (AJRelationship rel : rels) {
             if (rel.getTarget().equals(type)) {
                 IntertypeElement iType = (IntertypeElement) rel.getSource();
                 methods.add(iType);

@@ -229,6 +229,25 @@ public class AJDTCoreTestCase extends TestCase {
     
     protected static class Requestor extends TypeNameRequestor { }
 
+    
+    protected void waitForIndexes() {
+        joinBackgroudActivities();
+        Job[] jobs = Job.getJobManager().find(null);
+        for (int i = 0; i < jobs.length; i++) {
+            if (jobs[i].getName().startsWith("Java indexing")) {
+                boolean wasInterrupted = true;
+                while (wasInterrupted) {
+                    try {
+                        wasInterrupted = false;
+                        jobs[i].join();
+                    } catch (InterruptedException e) {
+                        wasInterrupted = true;
+                    }
+                }
+            }
+        }
+    }
+
     public static void waitForAutoBuild() {
         waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
     }

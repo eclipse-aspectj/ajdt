@@ -92,6 +92,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         ap1.getFile("src/AFile.java").create(new ReaderInputStream(new StringReader("class AFile {}")), false, null);
         
         // incremental build
+        waitForIndexes();
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
         
@@ -100,6 +101,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         assertEquals(1, testLog.numberOfEntriesForMessage("   []"));
         // this message comes from the project we care about
         // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        testLog.printLog();
         assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/AspectProj1/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that these are the only 2 times the list has been set
@@ -113,6 +115,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         ap2.getFile("src/AFile.java").create(new ReaderInputStream(new StringReader("class AFile {}")), false, null);
         
         // incremental build
+        waitForIndexes();
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
         
@@ -121,6 +124,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         assertEquals(1, testLog.numberOfEntriesForMessage("   []"));
         // this message comes from the project we care about
         // the closing "]" is necessary because it ensures that we are looking at a message for changed elements on classpath
+        testLog.printLog();
         assertEquals(1, testLog.numberOfEntriesForMessage(new String[] {"/AspectProj2-On AspectPath/bin", "/JavaProj2-On Inpath/bin]"}));
 
         // ensure that these are the only 2 times the list has been set
@@ -134,6 +138,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         jp1.getFile("src/AFile.java").create(new ReaderInputStream(new StringReader("class AFile {}")), false, null);
         
         // incremental build
+        waitForIndexes();
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
         
@@ -153,6 +158,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         jp1.getFile("src/c/B.java").touch(null);
         
         // incremental build
+        waitForIndexes();
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
         
@@ -173,6 +179,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         jp3.getFile("src/AFile.java").create(new ReaderInputStream(new StringReader("class AFile {}")), false, null);
         
         // incremental build
+        waitForIndexes();
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
         
@@ -203,6 +210,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
     
     public void testChangeJar() throws Exception {
         // incremental build
+        waitForIndexes();
         getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
         waitForAutoBuild();
 
