@@ -12,7 +12,6 @@
 package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -26,11 +25,6 @@ import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
-import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
-import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
-import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
@@ -68,7 +62,6 @@ import org.eclipse.jdt.internal.compiler.ast.CharLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.ExtendedStringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
@@ -79,6 +72,8 @@ import org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
 import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
@@ -88,6 +83,7 @@ import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -101,13 +97,6 @@ import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
-import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
-import org.eclipse.jdt.internal.core.SourceConstructorInfo;
-import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
-import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
-import org.eclipse.jdt.internal.core.SourceMethodInfo;
-import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
 
 /**
  * This class can be used as a source requestor for the JDT parser *OR*
@@ -849,10 +838,16 @@ public class AJCompilationUnitStructureRequestor extends
 	 * XXX This should override something
 	 */
 	public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
-		super.acceptImport(declarationStart, declarationEnd, CharOperation.splitOn('.', name), onDemand, modifiers);
+		super.acceptImport(declarationStart, declarationEnd, declarationStart + "import ".length(), declarationEnd, CharOperation.splitOn('.', name), onDemand, modifiers);
 	}
 
-	/**
+	public void acceptImport(int declarationStart, int declarationEnd,
+            char[][] tokens, boolean onDemand, int modifiers) {
+	    super.acceptImport(declarationStart, declarationEnd, declarationStart + "import ".length(), declarationEnd, tokens, onDemand, modifiers);
+        
+    }
+
+    /**
 	 * use {@link #acceptPackage(ImportReference)} instead
 	 * @deprecated
 	 */
