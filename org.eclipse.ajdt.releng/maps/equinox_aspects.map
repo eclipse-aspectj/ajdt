@@ -4,3 +4,4 @@ plugin@org.eclipse.equinox.weaving.caching=HEAD,:pserver:anonymous@dev.eclipse.o
 plugin@org.eclipse.equinox.weaving.caching.j9=HEAD,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.caching.j9
 fragment@org.eclipse.equinox.weaving.hook=HEAD,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.hook
 feature@org.eclipse.equinox.weaving.sdk=HEAD,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/features/org.eclipse.equinox.weaving.sdk
+feature@org.eclipse.license=v20110121,:pserver:anonymous@dev.eclipse.org:/cvsroot/eclipse,,org.eclipse.sdk-feature/features/org.eclipse.license
