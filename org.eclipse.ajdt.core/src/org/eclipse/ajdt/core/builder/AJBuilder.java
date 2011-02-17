@@ -132,7 +132,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         IProject[] requiredProjects = getRequiredProjects(project,true);
 
         // perform all pre-build actions
-        CompilationParticipant[] participants = prebuild(kind, project, requiredProjects, compilerConfig);      
+        CompilationParticipant[] participants = prebuild(kind, project, requiredProjects, compilerConfig);
         progressMonitor.worked(1);
 
         String mode = "";  //$NON-NLS-1$
@@ -792,7 +792,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 false, IResource.DEPTH_ZERO);
         for (int i = 0, l = markers.length; i < l; i++) {
             if (markers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
-               
                 return true;
             }
         }
