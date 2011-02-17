@@ -176,7 +176,10 @@ public class AJDTCoreTestCase extends TestCase {
             jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
         } catch (NullPointerException npe) {
         }
-        jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        // if not autobuilding, then test is completely in charge of building
+        if (isAutobuilding()) {
+            jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        }
         return jp.getProject();
     }
     

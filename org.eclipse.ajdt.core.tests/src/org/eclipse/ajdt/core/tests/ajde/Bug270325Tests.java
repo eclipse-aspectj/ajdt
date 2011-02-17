@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.ajde.core.AjCompiler;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
@@ -20,6 +21,7 @@ import org.eclipse.ajdt.internal.core.ajde.CoreBuildMessageHandler;
 import org.eclipse.ajdt.internal.core.ajde.CoreBuildProgressMonitor;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
+import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 
@@ -69,10 +71,12 @@ public class Bug270325Tests extends AJDTCoreTestCase {
     IProject ap3;
     IProject myProj;
 
+    private ICompilerFactory origCompilerFactory;
+
     protected void setUp() throws Exception {
         super.setUp();
-        AspectJPlugin.getDefault()
-                .setCompilerFactory(new MockCompilerFactory());
+        origCompilerFactory = AspectJPlugin.getDefault().getCompilerFactory();
+        AspectJPlugin.getDefault().setCompilerFactory(new MockCompilerFactory());
         Utils.setAutobuilding(false);
         jp1 = createPredefinedProject("JavaProj1");
         jp2 = createPredefinedProject("JavaProj2-On Inpath");
@@ -80,17 +84,29 @@ public class Bug270325Tests extends AJDTCoreTestCase {
         ap1 = createPredefinedProject("AspectProj1");
         ap2 = createPredefinedProject("AspectProj2-On AspectPath");
         ap3 = createPredefinedProject("AspectProj3-Has Outjar");
+        // FIXADE bug in Eclipse 3.7M5 where after deleting and recreating the project, 
+        // the project preferences go away.
+        // so, must explicitly set the output jar here otherwise it won't be recreated
+        // this may not be required in future versions of Eclipse
+        // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
+        AspectJCorePreferences.setProjectOutJar(ap3, "output.jar");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
+        // create and build this project last to ensure all prereqs exist
         myProj = createPredefinedProject("AspectProjWeCareAbout");
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+        myProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
     }
 
     protected void tearDown() throws Exception {
-        Utils.setAutobuilding(true);
-        super.tearDown();
+        try {
+            super.tearDown();
+        } finally {
+            Utils.setAutobuilding(true);
+            AspectJPlugin.getDefault().setCompilerFactory(origCompilerFactory);
+        }
     }
 
     public void testNoDupsOnClasspath() throws Exception {
-        myProj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
         MockCoreCompilerConfiguration config = (MockCoreCompilerConfiguration) 
                 AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(myProj)
                 .getCompilerConfiguration();
@@ -98,12 +114,10 @@ public class Bug270325Tests extends AJDTCoreTestCase {
         
         jp1.getFile("src/c/B.java").touch(null);
         jp2.getFile("src/Nothing2.java").touch(null);
-        Utils.sleep(1000);
 
         jp1.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         jp2.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
-        Utils.sleep(1000);
         // incremental build
         myProj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
         assertEquals("Should have only entries of modified contents.  Entries were:\n" + config.modifiedContents, 2, config.modifiedContents.size());

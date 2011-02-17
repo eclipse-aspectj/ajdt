@@ -12,6 +12,7 @@ package org.eclipse.ajdt.core.tests.builder;
 
 import java.io.File;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
 import org.eclipse.core.resources.IFile;
@@ -97,6 +98,13 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 	
 	public void testInpathOutLocation() throws Exception {
 	    IProject project1 = createPredefinedProject("ExportAsJar"); //$NON-NLS-1$
+        // FIXADE bug in Eclipse 3.7M5 where after deleting and recreating the project, 
+        // the project preferences go away.
+        // so, must explicitly set the output jar here otherwise it won't be recreated
+        // this may not be required in future versions of Eclipse
+        // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
+        AspectJCorePreferences.setProjectOutJar(project1, "export.jar");
+
 	    IProject project2 = createPredefinedProject("JarOnInpath"); //$NON-NLS-1$
 	    CoreOutputLocationManager om = new CoreOutputLocationManager(project2);
 	    om.buildStarting();

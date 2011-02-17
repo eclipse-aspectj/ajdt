@@ -11,12 +11,14 @@ package org.eclipse.ajdt.core.tests.ajde;
 
 import java.io.StringReader;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 /**
@@ -49,13 +51,27 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         ap1 = createPredefinedProject("AspectProj1");
         ap2 = createPredefinedProject("AspectProj2-On AspectPath");
         ap3 = createPredefinedProject("AspectProj3-Has Outjar");
+        // FIXADE bug in Eclipse 3.7M5 where after deleting and recreating the project, 
+        // the project preferences go away.
+        // so, must explicitly set the output jar here otherwise it won't be recreated
+        // this may not be required in future versions of Eclipse
+        // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
+        AspectJCorePreferences.setProjectOutJar(ap3, "output.jar");
+        joinBackgroudActivities();
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
+        // create and build this project last to ensure all prereqs exist
         myProj = createPredefinedProject("AspectProjWeCareAbout");
+        myProj.build(IncrementalProjectBuilder.FULL_BUILD, null);
        
     }
 
     protected void tearDown() throws Exception {
-        super.tearDown();
-        Utils.setAutobuilding(true);
+        try {
+            super.tearDown();
+        } finally {
+            Utils.setAutobuilding(true);
+        }
     }
     
     /*
@@ -69,7 +85,7 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         myProj.getFile("src/a/B.java").touch(null);
         
         // incremental build
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
         waitForAutoBuild();
         
         // check log
@@ -90,11 +106,12 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
 
         // change the project
         ap1.getFile("src/AFile.java").create(new ReaderInputStream(new StringReader("class AFile {}")), false, null);
+        ap1.refreshLocal(IResource.DEPTH_INFINITE, null);
         
         // incremental build
         waitForIndexes();
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
         
         // check log
         // This first entry is from when project ap1 is built
@@ -116,8 +133,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // incremental build
         waitForIndexes();
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
         
         // check log
         // This first entry is from when project ap2 is built
@@ -139,8 +156,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // incremental build
         waitForIndexes();
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
         
         // check log
         // this message comes from the project we care about
@@ -159,8 +176,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // incremental build
         waitForIndexes();
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
         
         // check log
         // this message comes from the project we care about
@@ -180,8 +197,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         
         // incremental build
         waitForIndexes();
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
         
         // incremental build...again
         // we have a situation where there is a double build because there 
@@ -189,8 +206,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         // In general, we don't recommend binary folder dependencies for
         // this reason (should use project dependencies instead)
         // this second build should bypass the compiler since there are no changes.
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
 
         
         // check log
@@ -211,8 +228,8 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
     public void testChangeJar() throws Exception {
         // incremental build
         waitForIndexes();
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
 
         testLog.clearLog();
 
@@ -220,8 +237,9 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         ap3.getFile("src/AFile.java").create(new ReaderInputStream(new StringReader("class AFile {}")), false, null);
         
         // incremental build
-        getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
-        waitForAutoBuild();
+        waitForIndexes();
+        getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+        joinBackgroudActivities();
         
         // check log
         // This first entry is from when project ap3 is built

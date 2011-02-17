@@ -68,6 +68,7 @@ public class Bug268609Test extends AJDTCoreTestCase {
 	    assertFalse(".settings folder should not exist", onAspectPath.getFile(settingsFilePath).exists());
     }
 	
+	// FIXADE failing because of https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
 	public void testOldStyleSettingsAppliedAndFlagSet() throws Exception {
 	    // a build has already occurred
 	    IFile settingsFile = hasAspectPath.getFile(settingsFilePath);
@@ -83,6 +84,7 @@ public class Bug268609Test extends AJDTCoreTestCase {
                 contents.indexOf("org.eclipse.ajdt.ui.inPath=visited") == -1);
     }
 	
+    // FIXADE failing because of https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
 	public void testOldStyleSettingsNotReapplied() throws Exception {
 	    hasAspectPath.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 	    hasAspectPath.build(IncrementalProjectBuilder.FULL_BUILD, null);
