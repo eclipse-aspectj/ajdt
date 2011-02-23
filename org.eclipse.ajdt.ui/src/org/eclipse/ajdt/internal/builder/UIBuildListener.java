@@ -53,6 +53,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -218,11 +219,13 @@ public class UIBuildListener implements IAJBuildListener {
 		    case IncrementalProjectBuilder.CLEAN_BUILD:
 		        deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
 		        deleteUpdateMarkers.doDeleteOnly(true);
+		        deleteUpdateMarkers.setPriority(Job.BUILD);
 		        deleteUpdateMarkers.schedule();
 		        break;
 		        
 		    case IncrementalProjectBuilder.FULL_BUILD:
 		        deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+                deleteUpdateMarkers.setPriority(Job.BUILD);
 		        deleteUpdateMarkers.schedule();
 		        break;
 		        

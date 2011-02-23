@@ -595,6 +595,7 @@ public class AJDTUtils {
 
 	    DeleteAndUpdateAJMarkersJob deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
         deleteUpdateMarkers.doDeleteOnly(true);
+        deleteUpdateMarkers.setPriority(Job.BUILD);
         deleteUpdateMarkers.schedule();
 		
         // bug 129553: exclude .aj files so that the java builder doesnt try to
