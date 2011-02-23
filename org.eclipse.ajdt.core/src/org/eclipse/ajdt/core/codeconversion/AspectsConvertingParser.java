@@ -306,7 +306,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     consumeRetOrThrow();
                 else if (inPointcutDesignator
                         && Character.isUpperCase(name[0])  // Assume all types start with upercase
-                        && (content[scanner.getCurrentTokenStartPosition()-1]!='.')) {
+                        && (content[scanner.getCurrentTokenStartPosition()-1]!='.')  // can ignore if looks fully qualified
+                        && (content[scanner.getCurrentTokenStartPosition()-1]!='*')) // can ignore if looks like a wild core 
+                {
                     typeReferences.add(String.valueOf(name));
                 }
 
