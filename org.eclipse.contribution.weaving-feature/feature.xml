@@ -17,10 +17,6 @@
       %license
    </license>
 
-   <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
-   </url>
-
    <includes
          id="org.eclipse.contribution.weaving.source"
          version="0.0.0"
@@ -34,14 +30,14 @@
          optional="true"/>
          
    <requires>
-      <import plugin="org.eclipse.osgi" />
-      <import plugin="org.eclipse.core.runtime"  />
-      <import plugin="org.eclipse.jdt.core" />
-      <import plugin="org.eclipse.jdt.ui" />
-      <import plugin="org.eclipse.jface"  />
-      <import plugin="org.eclipse.ui"  />
+      <import plugin="org.eclipse.osgi" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.runtime" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.core" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.ui" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jface" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui" version="3.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.browser"/>
-      <import plugin="org.eclipse.ui.forms" />
+      <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
