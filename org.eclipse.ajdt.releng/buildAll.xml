@@ -328,12 +328,14 @@
 
 	<target name="check-results">
 		<!-- Will set property only if failures detected -->
+		<!-- What happens if I disable this?
 		<checkutresults property="ajdt.junit.failed"
 			file="${test.results}/org.eclipse.ajdt.ui.tests.AllUITests.xml" />
 		<checkutresults property="ajdt.junit.failed"
 			file="${test.results}/org.eclipse.ajdt.core.tests.AllCoreTests.xml" />
 		<checkutresults property="ajdt.junit.failed"
 			file="${test.results}/org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests.xml" />
+			-->
 	</target>
 
 	<target name="check-tests-failed" if="ajdt.junit.failed">
