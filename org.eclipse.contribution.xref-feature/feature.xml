@@ -17,10 +17,6 @@
       %license
    </license>
 
-   <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
-   </url>
-
    <includes
          id="org.eclipse.contribution.xref.source"
          version="0.0.0" 
@@ -29,7 +25,7 @@
 
 
    <requires>
-      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.core.runtime" version="3.2.0" match="compatible"/>
       <import plugin="org.eclipse.jdt.core"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.resources"/>
