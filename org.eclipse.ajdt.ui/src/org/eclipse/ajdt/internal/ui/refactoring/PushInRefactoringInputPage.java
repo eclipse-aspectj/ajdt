@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Accessibility;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
@@ -17,6 +19,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
@@ -260,6 +263,10 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                         cell.setImage(icon.getImageDescriptor().createImage());
                     } catch (JavaModelException e) {
                     }
+                } else if (elt instanceof IType) {
+                    AJDTIcon icon = (AJDTIcon) AspectJImages.instance()
+                            .getStructureIcon(Kind.CLASS, Accessibility.PUBLIC);
+                    cell.setImage(icon.getImageDescriptor().createImage());
                 }
             }
         });
@@ -269,8 +276,8 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         aspectColumn.setLabelProvider(new CellLabelProvider() {
             public void update(ViewerCell cell) {
                 Object elt = cell.getElement();
-                if (elt instanceof IntertypeElement || elt instanceof DeclareElement) {
-                    IAspectJElement itd = (IAspectJElement) elt;
+                if (elt instanceof IntertypeElement || elt instanceof DeclareElement || elt instanceof IType) {
+                    IMember itd = (IMember) elt;
                     cell.setText(itd.getParent().getElementName());
                 }
             }
@@ -282,8 +289,8 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
         itdColumn.setLabelProvider(new CellLabelProvider() {
             public void update(ViewerCell cell) {
                 Object elt = cell.getElement();
-                if (elt instanceof IntertypeElement) {
-                    IAspectJElement itd = (IAspectJElement) elt;
+                if (elt instanceof IntertypeElement || elt instanceof IType) {
+                    IMember itd = (IMember) elt;
                     cell.setText(itd.getElementName());
                 } else if (elt instanceof DeclareElement) {
                     DeclareElement de = (DeclareElement) elt;
@@ -302,11 +309,11 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                         cell.setText(de.getElementName() + " " + annotationName);
                     } else {
                         // declare parents
-                        List parents = ipe.getParentTypes();
+                        List<String> parents = ipe.getParentTypes();
                         StringBuffer sb = new StringBuffer();
-                        for (Iterator parentIter = parents.iterator(); parentIter
+                        for (Iterator<String> parentIter = parents.iterator(); parentIter
                                 .hasNext();) {
-                            String parent = (String) parentIter.next();
+                            String parent = parentIter.next();
                             String[] splits = parent.split("\\.");
                             parent = splits[splits.length-1];
                             sb.append(parent);
@@ -347,11 +354,10 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                             targetName = split[0];
                         }
                     } else {
-                        List/*IJavaElement*/ elts = model.getRelationshipsForElement(de, AJRelationshipManager.DECLARED_ON);
+                        List<IJavaElement> elts = model.getRelationshipsForElement(de, AJRelationshipManager.DECLARED_ON);
                         StringBuffer sb = new StringBuffer();
-                        for (Iterator eltIter = elts.iterator(); eltIter
-                                .hasNext();) {
-                            IJavaElement target = (IJavaElement) eltIter.next();
+                        for (Iterator<IJavaElement> eltIter = elts.iterator(); eltIter.hasNext(); ) {
+                            IJavaElement target = eltIter.next();
                             sb.append(target.getElementName());
                             if (eltIter.hasNext()) {
                                 sb.append(", ");
@@ -359,6 +365,20 @@ public class PushInRefactoringInputPage extends UserInputWizardPage {
                         }
                         targetName = sb.toString();
                     }
+                    cell.setText(targetName);
+                } else if (elt instanceof IType) {
+                    IType type = (IType) elt;
+                    AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(type);
+                    List<IJavaElement> elts = model.getRelationshipsForElement(type, AJRelationshipManager.DECLARED_ON);
+                    StringBuffer sb = new StringBuffer();
+                    for (Iterator<IJavaElement> eltIter = elts.iterator(); eltIter.hasNext(); ) {
+                        IJavaElement target = eltIter.next();
+                        sb.append(target.getElementName());
+                        if (eltIter.hasNext()) {
+                            sb.append(", ");
+                        }
+                    }
+                    String targetName = sb.toString();
                     cell.setText(targetName);
                 }
             }
