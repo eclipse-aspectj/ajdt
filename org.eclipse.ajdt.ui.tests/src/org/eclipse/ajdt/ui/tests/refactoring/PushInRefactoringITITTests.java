@@ -288,7 +288,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
-                        "  }",
+                        "}",
                         "package pack2;\n" +
                         "public class Java {}",
                 },
@@ -304,7 +304,7 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
-                        "}",
+                        "  }",
                 }, ToPushIn.ALL
         );
     }
