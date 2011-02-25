@@ -13,12 +13,15 @@
 package org.eclipse.ajdt.core.tests.refactoring;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
@@ -84,12 +87,6 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         }
     }
 
-    /**
-     * @param existingUnits
-     * @param i
-     * @return
-     * @throws JavaModelException
-     */
     public char[] extractContents(ICompilationUnit unit)
             throws JavaModelException {
         char[] contents;

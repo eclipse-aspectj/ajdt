@@ -176,10 +176,7 @@ public class AJDTCoreTestCase extends TestCase {
             jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
         } catch (NullPointerException npe) {
         }
-        // if not autobuilding, then test is completely in charge of building
-        if (isAutobuilding()) {
-            jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-        }
+        jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
         return jp.getProject();
     }
     
@@ -231,25 +228,6 @@ public class AJDTCoreTestCase extends TestCase {
     }
     
     protected static class Requestor extends TypeNameRequestor { }
-
-    
-    protected void waitForIndexes() {
-        joinBackgroudActivities();
-        Job[] jobs = Job.getJobManager().find(null);
-        for (int i = 0; i < jobs.length; i++) {
-            if (jobs[i].getName().startsWith("Java indexing")) {
-                boolean wasInterrupted = true;
-                while (wasInterrupted) {
-                    try {
-                        wasInterrupted = false;
-                        jobs[i].join();
-                    } catch (InterruptedException e) {
-                        wasInterrupted = true;
-                    }
-                }
-            }
-        }
-    }
 
     public static void waitForAutoBuild() {
         waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
@@ -596,7 +574,9 @@ public class AJDTCoreTestCase extends TestCase {
                 sb.append(markers[i].getResource().getName()).append(" : ");
                 sb.append(markers[i].getAttribute(IMarker.LINE_NUMBER)).append(" : ");
                 sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
-                errorFound = true;
+                if (!((String) markers[i].getAttribute(IMarker.MESSAGE)).contains("can't determine modifiers of missing type")) {
+                    errorFound = true;
+                }
             }
         }
         return errorFound ? sb.toString() : null;
