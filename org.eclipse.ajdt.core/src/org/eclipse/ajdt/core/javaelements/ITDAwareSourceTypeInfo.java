@@ -104,7 +104,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 char[] typeName;
                 String[] paramTypes;
                 if (!children[i].isReadOnly()) {
-                    if (ipes.size() >= i) {
+                    if (i < ipes.size()) {
                         typeName = ipes.get(i).getCorrespondingType(true).toCharArray();
                         List<char[]> parameterSignatures = ipes.get(i).getParameterSignatures();
                         if (parameterSignatures != null) {
