@@ -38,10 +38,17 @@
 		<delete dir="${build.dist}" />
 		<delete dir="${target.eclipse}" />
 	</target>
+	
+	<target name="find.pdebuild.home">
+		<files includes="${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" id="pdebuild.folder" />
+		<property name="pdebuild.home" value="${toString:pdebuild.folder}" />
+		<echo message="pdebuild.home=${pdebuild.home}" />
+	</target>
+	
 
-	<target name="pdebuild" description="Perform the pde headless build">
+	<target name="pdebuild" depends="find.pdebuild.home" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
-			dir="${pdebuild.home}/scripts"
+			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.ant.core.antRunner" />
@@ -74,9 +81,9 @@
 		</propertyfile>
 	</target>
 
-	<target name="generateP2metadata" description="Generate p2 metadata for the AJDT update site">
+	<target name="generateP2metadata" depends="find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
 		<java fork="true" failonerror="true"
-			dir="${pdebuild.home}/scripts"
+			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
 			<arg value="org.eclipse.equinox.p2.metadata.generator.EclipseGenerator" />
