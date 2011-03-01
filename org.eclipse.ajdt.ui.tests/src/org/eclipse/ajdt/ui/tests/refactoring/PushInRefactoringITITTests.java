@@ -297,14 +297,14 @@ public class PushInRefactoringITITTests extends AbstractAJDTRefactoringTest {
                         "import pack2.Java;\n" +
                         "public aspect Aspect {\n" +
                         "  int x;\n" +
-                        "}",
+                        "  }",
                         "package pack2;\n" +
                         "public class Java {\n" +
                         "\tpublic static final class ITIT {\n" + 
                         "    public static final java.util.List<String> X = null;\n" +
                         "    public static final int X() { return 9; }\n" +
                         "  }\n" +
-                        "  }",
+                        "}",
                 }, ToPushIn.ALL
         );
     }
