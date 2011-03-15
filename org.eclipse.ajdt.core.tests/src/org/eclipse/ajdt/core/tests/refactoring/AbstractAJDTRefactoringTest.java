@@ -84,12 +84,6 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
         }
     }
 
-    /**
-     * @param existingUnits
-     * @param i
-     * @return
-     * @throws JavaModelException
-     */
     public char[] extractContents(ICompilationUnit unit)
             throws JavaModelException {
         char[] contents;
