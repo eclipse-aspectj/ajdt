@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.contribution.xref.ui.tests; singleton:=true
-Bundle-Version: 2.1.2.qualifier
+Bundle-Version: 2.1.3.qualifier
 Bundle-ClassPath: xrefuitests.jar
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -15,6 +15,6 @@ Require-Bundle: org.eclipse.contribution.xref.ui,
  org.eclipse.jdt.core,
  org.junit,
  org.eclipse.contribution.xref.core,
- org.eclipse.contribution.xref.core.tests;bundle-version="2.1.2"
+ org.eclipse.contribution.xref.core.tests;bundle-version="2.1.3"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
