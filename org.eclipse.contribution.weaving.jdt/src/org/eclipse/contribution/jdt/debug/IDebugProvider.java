@@ -12,9 +12,13 @@ package org.eclipse.contribution.jdt.debug;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.debug.core.IJavaBreakpoint;
+import org.eclipse.jdt.debug.core.IJavaBreakpointListener;
 import org.eclipse.jdt.debug.core.IJavaObject;
 import org.eclipse.jdt.debug.core.IJavaStackFrame;
+import org.eclipse.jdt.debug.core.IJavaThread;
 import org.eclipse.jdt.debug.eval.IEvaluationListener;
+import org.eclipse.jdt.internal.debug.core.breakpoints.ConditionalBreakpointHandler;
 
 import com.sun.jdi.Location;
 
@@ -60,4 +64,17 @@ public interface IDebugProvider {
      * @return
      */
     String[] augmentStepFilters(String[] origStepFilters);
+
+    /**
+     * This method is executed when a conditional breakpoint is hit on 
+     * an interesting stack frame.  The DebugProvider will evaluate the condition
+     * in the context of the target language.
+     * 
+     * @param thread The current thread
+     * @param breakpoint The breakpoint that is hit.
+     * @param handler the original {@link ConditionalBreakpointHandler}
+     * @return {@link IJavaBreakpointListener#SUSPEND} if the condition evaluates to true or there is a problem
+     * or {@link IJavaBreakpointListener#DONT_SUSPEND} if the condition evaluates to false.
+     */
+    int conditionalBreakpointHit(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler);
 }
