@@ -20,10 +20,12 @@ import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.jdi.internal.request.EventRequestImpl;
 import org.eclipse.jdi.internal.request.StepRequestImpl;
+import org.eclipse.jdt.debug.core.IJavaBreakpoint;
 import org.eclipse.jdt.debug.core.IJavaObject;
 import org.eclipse.jdt.debug.core.IJavaStackFrame;
 import org.eclipse.jdt.debug.core.IJavaThread;
 import org.eclipse.jdt.debug.eval.IEvaluationListener;
+import org.eclipse.jdt.internal.debug.core.breakpoints.ConditionalBreakpointHandler;
 import org.eclipse.jdt.internal.debug.core.model.JDIDebugTarget;
 import org.eclipse.jdt.internal.debug.core.model.JDIThread;
 import org.eclipse.jdt.internal.debug.eval.ast.engine.ASTEvaluationEngine;
@@ -197,6 +199,23 @@ public privileged aspect DebugHooksAspect {
             JDTWeavingPlugin.logException(t);
         }
         return initialFilters;
+    }
+    
+    pointcut conditionalBreakpointHit(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler) : execution(public int ConditionalBreakpointHandler.breakpointHit(IJavaThread, IJavaBreakpoint))
+                && args(thread, breakpoint) && this(handler);
+    
+    int around(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler) :
+            conditionalBreakpointHit(thread, breakpoint, handler) {
+        try {
+            if (provider != null && 
+                    isInterestingLaunch(thread) && provider.shouldPerformEvaluation((IJavaStackFrame) thread.getTopStackFrame())) {
+                return provider.conditionalBreakpointHit(thread, breakpoint, handler);
+            }
+        } catch (Throwable t) {
+            JDTWeavingPlugin.logException(t);
+        }
+        
+        return proceed(thread, breakpoint, handler);
     }
 
     /**

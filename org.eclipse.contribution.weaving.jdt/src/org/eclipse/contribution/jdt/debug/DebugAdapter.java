@@ -11,9 +11,12 @@
 
 package org.eclipse.contribution.jdt.debug;
 
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PlatformObject;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 /**
  * Adaptable object that provides general refactoring support
@@ -34,6 +37,15 @@ public class DebugAdapter extends PlatformObject implements IAdaptable {
     
     public IDebugProvider getProvider() {
         if (provider == null) {
+            // probably don't need this any more
+//            try {
+//            	Bundle bundle = Platform.getBundle("com.springsource.sts.groovy.debug.core");
+//            	if (bundle != null) {
+//                    bundle.start();
+//            	}
+//            } catch (BundleException e) {
+//            	JDTWeavingPlugin.logException(e);
+//            }
             provider = (IDebugProvider) getAdapter(IDebugProvider.class);
         }
         return provider;
