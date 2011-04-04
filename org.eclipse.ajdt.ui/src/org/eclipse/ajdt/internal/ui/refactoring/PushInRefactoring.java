@@ -60,6 +60,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
@@ -98,14 +99,14 @@ public class PushInRefactoring extends Refactoring {
      *
      */
     private class NewImportsHolder {
-        Set<Name> staticImports;
-        Set<Name> typeImports;
+        Set<SimpleName> staticImports;
+        Set<SimpleName> typeImports;
         Set<String> extraImports;
         ICompilationUnit unit;
         
         NewImportsHolder(ICompilationUnit unit) {
-            staticImports = new HashSet<Name>();
-            typeImports = new HashSet<Name>();
+            staticImports = new HashSet<SimpleName>();
+            typeImports = new HashSet<SimpleName>();
             extraImports = new HashSet<String>();
             this.unit = unit;
         }

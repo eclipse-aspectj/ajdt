@@ -312,8 +312,8 @@ public class PullOutRefactoring extends Refactoring {
 		public void collectImports(ImportRewrite importRewrite, RefactoringStatus status) throws JavaModelException {
 			Region rangeLimit = new Region(memberNode.getStartPosition(), memberNode.getLength());
 			
-			List<Name> extraType = new ArrayList<Name>();
-			List<Name> extraStatic = new ArrayList<Name>();
+			List<SimpleName> extraType = new ArrayList<SimpleName>();
+			List<SimpleName> extraStatic = new ArrayList<SimpleName>();
 			
 			ImportReferencesCollector.collect(memberNode, member.getJavaProject(), rangeLimit, extraType, extraStatic);
 			
