@@ -22,7 +22,6 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
-import org.aspectj.ajde.core.internal.OutputLocationAdapter;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AopXmlPreferences;
@@ -682,4 +681,12 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	public List<String> getProjectXmlConfigFiles() {
 		return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
 	}
+
+    public String getProjectEncoding() {
+        try {
+            return project.getDefaultCharset();
+        } catch (CoreException e) {
+            return ResourcesPlugin.getEncoding();
+        }
+    }
 }
