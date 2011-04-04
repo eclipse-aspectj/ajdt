@@ -19,6 +19,7 @@ import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
@@ -29,11 +30,12 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
 import org.eclipse.jdt.internal.core.SourceMethodInfo;
 import org.eclipse.jdt.internal.core.util.Util;
-
+ 
 /**
  * Most code copied from org.eclipse.jdt.internal.core.SourceMethod
  * 
@@ -48,7 +50,7 @@ public class AspectJMemberElement extends NamedMember implements IMethod, IAspec
 			fParameterTypes= fgEmptyList;
 		} else {
 			fParameterTypes= parameterTypes;
-		}
+		} 
 	}
 	
 	/* (non-Javadoc)
@@ -390,5 +392,12 @@ public String retrieveSignatureFromSource() throws JavaModelException {
             int start = startLocation;
             return new SourceRange(start, info.getNameSourceEnd());
         }
+    }
+
+    /*
+     * FIXADE Empty implementation now.  Determine if we need to do something real here 
+     */
+    public ILocalVariable[] getParameters() throws JavaModelException {
+        return new ILocalVariable[0];
     }
 }

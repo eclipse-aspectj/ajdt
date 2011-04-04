@@ -6,7 +6,7 @@
  * http://eclipse.org/legal/epl-v10.html 
  *  
  * Contributors: IBM Corporation - initial API and implementation 
- * 				 Helen Hawkins   - initial version (bug 148190)
+ *               Helen Hawkins   - initial version (bug 148190)
  *******************************************************************/
 package org.eclipse.ajdt.internal.core.ajde;
 
@@ -22,7 +22,6 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.ICompilerConfiguration;
 import org.aspectj.ajde.core.IOutputLocationManager;
-import org.aspectj.ajde.core.internal.OutputLocationAdapter;
 import org.aspectj.ajdt.internal.core.builder.CompilerConfigurationChangeFlags;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AopXmlPreferences;
@@ -57,11 +56,11 @@ import org.eclipse.osgi.util.NLS;
  */
 public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
-	private String cachedClasspath = null;
-	protected IProject project;
-	protected CoreOutputLocationManager locationManager;
+    private String cachedClasspath = null;
+    protected IProject project;
+    protected CoreOutputLocationManager locationManager;
 
-	// fully qualified list of file names that have been touched since
+    // fully qualified list of file names that have been touched since
     // last build
     // set to null originally since we don't know anything 
     // about build state when first created.  Assume everything 
@@ -77,10 +76,10 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     private List<String> classpathElementsWithModifiedContents = null;
 
     public CoreCompilerConfiguration(IProject project) {
-		this.project = project;
-		AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " doesn't know previous state, so assuming EVERYTHING has changed.");
-		configurationChanges = EVERYTHING;
-	}
+        this.project = project;
+        AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " doesn't know previous state, so assuming EVERYTHING has changed.");
+        configurationChanges = EVERYTHING;
+    }
     
     public void buildStarting() {
         ((CoreOutputLocationManager) getOutputLocationManager()).buildStarting();
@@ -92,425 +91,425 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     
     
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public Map<String, String> getJavaOptionsMap() {
-		Map<String, String> optionsMap = null;
+        Map<String, String> optionsMap = null;
 
-		JavaProject javaProject;
-		try {
-			javaProject = (JavaProject) project.getNature(JavaCore.NATURE_ID);
-			optionsMap = javaProject.getOptions(true);
-		} catch (CoreException e) {
-		}
+        JavaProject javaProject;
+        try {
+            javaProject = (JavaProject) project.getNature(JavaCore.NATURE_ID);
+            optionsMap = javaProject.getOptions(true);
+        } catch (CoreException e) {
+        }
 
-		if (optionsMap == null) {
-			return JavaCore.getOptions();
-		} else {
-			return optionsMap;
-		}
-	}
+        if (optionsMap == null) {
+            return JavaCore.getOptions();
+        } else {
+            return optionsMap;
+        }
+    }
 
-	public String getNonStandardOptions() {
-		// ajdt.ui supplies impl
-		return ""; //$NON-NLS-1$
-	}
+    public String getNonStandardOptions() {
+        // ajdt.ui supplies impl
+        return ""; //$NON-NLS-1$
+    }
 
-	public Set<File> getAspectPath() {
-		String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
+    public Set<File> getAspectPath() {
+        String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
 
-		// need to expand any variables on the path
-		String aspectpath = expandVariables(v[0], v[2]);
+        // need to expand any variables on the path
+        String aspectpath = expandVariables(v[0], v[2]);
 
-		// Ensure that every entry in the list is a fully qualified one.
-		aspectpath = fullyQualifyPathEntries(aspectpath);
+        // Ensure that every entry in the list is a fully qualified one.
+        aspectpath = fullyQualifyPathEntries(aspectpath);
 
-		if (aspectpath.length() == 0)
-			return null;
+        if (aspectpath.length() == 0)
+            return null;
 
-		return mapStringToSet(aspectpath, false);
-	}
+        return mapStringToSet(aspectpath, false);
+    }
 
-	public String getClasspath() {
-		if (cachedClasspath != null)
-			return cachedClasspath;
-		IJavaProject jp = JavaCore.create(project);
-		// bug 73035: use this build classpath resolver which is a direct
-		// copy from JDT, so the classpath environment is much closer between
-		// AspectJ and Java projects.
-		cachedClasspath = new BuildClasspathResolver().getClasspath(AspectJPlugin.getWorkspace().getRoot(), jp);
-		return cachedClasspath;
-	}
+    public String getClasspath() {
+        if (cachedClasspath != null)
+            return cachedClasspath;
+        IJavaProject jp = JavaCore.create(project);
+        // bug 73035: use this build classpath resolver which is a direct
+        // copy from JDT, so the classpath environment is much closer between
+        // AspectJ and Java projects.
+        cachedClasspath = new BuildClasspathResolver().getClasspath(AspectJPlugin.getWorkspace().getRoot(), jp);
+        return cachedClasspath;
+    }
 
-	public Set<File> getInpath() {
-		String[] v = AspectJCorePreferences.getResolvedProjectInpath(project);
+    public Set<File> getInpath() {
+        String[] v = AspectJCorePreferences.getResolvedProjectInpath(project);
 
-		// need to expand any variables on the path
-		String inpath = expandVariables(v[0], v[2]);
+        // need to expand any variables on the path
+        String inpath = expandVariables(v[0], v[2]);
 
-		// Ensure that every entry in the list is a fully qualified one.
-		inpath = fullyQualifyPathEntries(inpath);
+        // Ensure that every entry in the list is a fully qualified one.
+        inpath = fullyQualifyPathEntries(inpath);
 
-		if (inpath.length() == 0)
-			return null;
+        if (inpath.length() == 0)
+            return null;
 
-		return mapStringToSet(inpath, false);
-	}
+        return mapStringToSet(inpath, false);
+    }
 
-	public String getOutJar() {
-		String outputJar = AspectJCorePreferences.getProjectOutJar(project);
+    public String getOutJar() {
+        String outputJar = AspectJCorePreferences.getProjectOutJar(project);
 
-		// If outputJar does not start with a slash, we might need to prepend
-		// the project work directory.
-		if (outputJar.trim().length() > 0 && !(outputJar.startsWith("\\") || outputJar.startsWith("/"))) { //$NON-NLS-1$ //$NON-NLS-2$
-			String trimmedName = outputJar.trim();
-			boolean prependProject = true;
+        // If outputJar does not start with a slash, we might need to prepend
+        // the project work directory.
+        if (outputJar.trim().length() > 0 && !(outputJar.startsWith("\\") || outputJar.startsWith("/"))) { //$NON-NLS-1$ //$NON-NLS-2$
+            String trimmedName = outputJar.trim();
+            boolean prependProject = true;
 
-			// It might still be a fully qualified path if the 2nd char is a ':'
-			// (i.e. its
-			// a windows absolute path with a drive letter in it !)
-			if (trimmedName.length() > 1) {
-				if (trimmedName.charAt(1) == ':')
-					prependProject = false;
-			}
+            // It might still be a fully qualified path if the 2nd char is a ':'
+            // (i.e. its
+            // a windows absolute path with a drive letter in it !)
+            if (trimmedName.length() > 1) {
+                if (trimmedName.charAt(1) == ':')
+                    prependProject = false;
+            }
 
-			if (prependProject) {
-				// Its a relative path, it should be relative to the project.
-				String projectBaseDirectory = project.getLocation().toOSString();
-				outputJar = projectBaseDirectory + File.separator + outputJar.trim();
-			}
-		}
+            if (prependProject) {
+                // Its a relative path, it should be relative to the project.
+                String projectBaseDirectory = project.getLocation().toOSString();
+                outputJar = projectBaseDirectory + File.separator + outputJar.trim();
+            }
+        }
 
-		return outputJar;
-	}
+        return outputJar;
+    }
 
-	public IOutputLocationManager getOutputLocationManager() {
-		if (locationManager == null) {
-			locationManager = new CoreOutputLocationManager(project);
-		}
-		return locationManager;
-	}
+    public IOutputLocationManager getOutputLocationManager() {
+        if (locationManager == null) {
+            locationManager = new CoreOutputLocationManager(project);
+        }
+        return locationManager;
+    }
 
-	/**
-	 * bug 270335 need to recreate locationManager if any of the
-	 * following configuration changes have occurred:
-	 * ASPECTPATH_CHANGED | CLASSPATH_CHANGED | INPATH_CHANGED | 
-	 * OUTJAR_CHANGED | OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
-	 * 
-	 * @return true if {@link #locationManager} field has been reset to 
-	 * null.  false otherwise
-	 */
-	public boolean flushOutputLocationManagerIfNecessary(int buildKind) {
-	    if (buildKind == IncrementalProjectBuilder.FULL_BUILD || 
-	            buildKind == IncrementalProjectBuilder.CLEAN_BUILD) {
-	        locationManager = null;
-	    } else if ((configurationChanges & 
-	            (ASPECTPATH_CHANGED | CLASSPATH_CHANGED | 
-	             INPATH_CHANGED | OUTJAR_CHANGED | 
-	             OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED)) != 0) {
-	        locationManager = null;
-	    } else {
-	        // we don't know if bin folders of depending projects
-	        // have changed, so just assume that they have
-	        if (locationManager != null) {
-	            locationManager.zapBinFolderToProjectMap();
-	        }
-	    }
-	    return locationManager == null;
-	}
-	
-	public List<String> getProjectSourceFiles() {
-		Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
-		List<String> iofiles = new ArrayList<String>(files.size());
-		for (IFile f : files) {
-			iofiles.add(f.getLocation().toOSString());
-		}
-		return iofiles;
-	}
+    /**
+     * bug 270335 need to recreate locationManager if any of the
+     * following configuration changes have occurred:
+     * ASPECTPATH_CHANGED | CLASSPATH_CHANGED | INPATH_CHANGED | 
+     * OUTJAR_CHANGED | OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
+     * 
+     * @return true if {@link #locationManager} field has been reset to 
+     * null.  false otherwise
+     */
+    public boolean flushOutputLocationManagerIfNecessary(int buildKind) {
+        if (buildKind == IncrementalProjectBuilder.FULL_BUILD || 
+                buildKind == IncrementalProjectBuilder.CLEAN_BUILD) {
+            locationManager = null;
+        } else if ((configurationChanges & 
+                (ASPECTPATH_CHANGED | CLASSPATH_CHANGED | 
+                 INPATH_CHANGED | OUTJAR_CHANGED | 
+                 OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED)) != 0) {
+            locationManager = null;
+        } else {
+            // we don't know if bin folders of depending projects
+            // have changed, so just assume that they have
+            if (locationManager != null) {
+                locationManager.zapBinFolderToProjectMap();
+            }
+        }
+        return locationManager == null;
+    }
+    
+    public List<String> getProjectSourceFiles() {
+        Set<IFile> files = BuildConfig.getIncludedSourceFiles(project);
+        List<String> iofiles = new ArrayList<String>(files.size());
+        for (IFile f : files) {
+            iofiles.add(f.getLocation().toOSString());
+        }
+        return iofiles;
+    }
 
-	public Map<String, File> getSourcePathResources() {
-		IJavaProject jProject = JavaCore.create(project);
-		Map<String, File> map = new HashMap<String, File>();
-		try {
-			IClasspathEntry[] classpathEntries = jProject.getResolvedClasspath(false);
+    public Map<String, File> getSourcePathResources() {
+        IJavaProject jProject = JavaCore.create(project);
+        Map<String, File> map = new HashMap<String, File>();
+        try {
+            IClasspathEntry[] classpathEntries = jProject.getResolvedClasspath(false);
 
-			// find the absolute output path
-			String realOutputLocation;
-			IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
-			if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-				// root
-				realOutputLocation = jProject.getResource().getLocation().toOSString();
-			} else {
-				IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(workspaceRelativeOutputPath);
-				realOutputLocation = out.getLocation().toOSString();
-			}
-			for (int i = 0; i < classpathEntries.length; i++) {
-				if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-					IClasspathEntry sourceEntry = classpathEntries[i];
-					IPath sourcePath = sourceEntry.getPath();
-					List<String> files = new ArrayList<String>();
-					sourcePath = sourcePath.removeFirstSegments(1);
-					IResource[] srcContainer = new IResource[] { project.findMember(sourcePath) };
-					if (srcContainer[0] != null) {
-						getProjectRelativePaths(srcContainer, files, CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
-								.segmentCount() - 1, sourceEntry);
+            // find the absolute output path
+            String realOutputLocation;
+            IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
+            if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
+                // root
+                realOutputLocation = jProject.getResource().getLocation().toOSString();
+            } else {
+                IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(workspaceRelativeOutputPath);
+                realOutputLocation = out.getLocation().toOSString();
+            }
+            for (int i = 0; i < classpathEntries.length; i++) {
+                if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+                    IClasspathEntry sourceEntry = classpathEntries[i];
+                    IPath sourcePath = sourceEntry.getPath();
+                    List<String> files = new ArrayList<String>();
+                    sourcePath = sourcePath.removeFirstSegments(1);
+                    IResource[] srcContainer = new IResource[] { project.findMember(sourcePath) };
+                    if (srcContainer[0] != null) {
+                        getProjectRelativePaths(srcContainer, files, CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
+                                .segmentCount() - 1, sourceEntry);
 
-						ArrayList<IResource> linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
+                        ArrayList<IResource> linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
 
-						for (Iterator<String> it = files.iterator(); it.hasNext();) {
-							String relPath = (String) it.next();
-							String fullPath = getResourceFullPath(srcContainer[0], relPath, linkedSrcFolders);
+                        for (Iterator<String> it = files.iterator(); it.hasNext();) {
+                            String relPath = (String) it.next();
+                            String fullPath = getResourceFullPath(srcContainer[0], relPath, linkedSrcFolders);
 
-							// put file on list if not in output path
-							if (!fullPath.startsWith(realOutputLocation) && !relPath.endsWith(".classpath") //$NON-NLS-1$
-									&& !relPath.endsWith(".project") //$NON-NLS-1$
-									&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
-									&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
-								File file = new File(fullPath);
-								if (file.exists()) {
-									map.put(relPath, file);
-								}
-							}
-						}
-					}
-				}
-			}
-		} catch (JavaModelException jmEx) {
-			// bug 90094 - removed creating an AspectJ dialog here so
-			// that we behave like the jdt. The error is coming out in the
-			// problems view anyway (which is how jdt behaves)
-		}
+                            // put file on list if not in output path
+                            if (!fullPath.startsWith(realOutputLocation) && !relPath.endsWith(".classpath") //$NON-NLS-1$
+                                    && !relPath.endsWith(".project") //$NON-NLS-1$
+                                    && !relPath.endsWith(".ajsym") //$NON-NLS-1$
+                                    && !relPath.endsWith(".lst")) { //$NON-NLS-1$
+                                File file = new File(fullPath);
+                                if (file.exists()) {
+                                    map.put(relPath, file);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JavaModelException jmEx) {
+            // bug 90094 - removed creating an AspectJ dialog here so
+            // that we behave like the jdt. The error is coming out in the
+            // problems view anyway (which is how jdt behaves)
+        }
 
-		return map;
-	}
+        return map;
+    }
 
-	public void flushClasspathCache() {
-		cachedClasspath = null;
-	}
+    public void flushClasspathCache() {
+        cachedClasspath = null;
+    }
 
-	public String expandVariables(String path, String eKinds) {
-		StringBuffer resultBuffer = new StringBuffer();
-		StringTokenizer strTok = new StringTokenizer(path, File.pathSeparator);
-		StringTokenizer strTok2 = new StringTokenizer(eKinds, File.pathSeparator);
-		while (strTok.hasMoreTokens()) {
-			String current = strTok.nextToken();
-			int entryKind = Integer.parseInt(strTok2.nextToken());
-			if (entryKind == IClasspathEntry.CPE_VARIABLE) {
-				int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 0);
-				if (slashPos != -1) {
-					String exp = JavaCore.getClasspathVariable(current.substring(0, slashPos)).toOSString();
-					resultBuffer.append(exp);
-					resultBuffer.append(current.substring(slashPos));
-				} else {
-					String exp = JavaCore.getClasspathVariable(current).toOSString();
-					resultBuffer.append(exp);
-				}
-			} else {
-				resultBuffer.append(current);
-			}
-			resultBuffer.append(File.pathSeparator);
-		}
-		return resultBuffer.toString();
-	}
+    public String expandVariables(String path, String eKinds) {
+        StringBuffer resultBuffer = new StringBuffer();
+        StringTokenizer strTok = new StringTokenizer(path, File.pathSeparator);
+        StringTokenizer strTok2 = new StringTokenizer(eKinds, File.pathSeparator);
+        while (strTok.hasMoreTokens()) {
+            String current = strTok.nextToken();
+            int entryKind = Integer.parseInt(strTok2.nextToken());
+            if (entryKind == IClasspathEntry.CPE_VARIABLE) {
+                int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 0);
+                if (slashPos != -1) {
+                    String exp = JavaCore.getClasspathVariable(current.substring(0, slashPos)).toOSString();
+                    resultBuffer.append(exp);
+                    resultBuffer.append(current.substring(slashPos));
+                } else {
+                    String exp = JavaCore.getClasspathVariable(current).toOSString();
+                    resultBuffer.append(exp);
+                }
+            } else {
+                resultBuffer.append(current);
+            }
+            resultBuffer.append(File.pathSeparator);
+        }
+        return resultBuffer.toString();
+    }
 
-	/**
-	 * @param inputPath
-	 * @return
-	 */
-	public String fullyQualifyPathEntries(String inputPath) {
-		StringBuffer resultBuffer = new StringBuffer();
-		StringTokenizer strTok = new StringTokenizer(inputPath, File.pathSeparator);
-		while (strTok.hasMoreTokens()) {
-			String current = strTok.nextToken();
-			File f = new File(current);
-			if (f.exists() && f.isAbsolute()) {
-				// entry not relative to workspace (it's fully qualifed)
-				resultBuffer.append(current);
-			} else {
-				// Try to resolve path relative to the workspace. Need to
-				// replace part of the path string with a fully qualified
-				// equivalent.
-				String projectName = null;
-				int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 1);
-				if (slashPos != -1) {
-					projectName = current.substring(1, slashPos);
-				} else {
-					projectName = current.substring(1);
-				}
+    /**
+     * @param inputPath
+     * @return
+     */
+    public String fullyQualifyPathEntries(String inputPath) {
+        StringBuffer resultBuffer = new StringBuffer();
+        StringTokenizer strTok = new StringTokenizer(inputPath, File.pathSeparator);
+        while (strTok.hasMoreTokens()) {
+            String current = strTok.nextToken();
+            File f = new File(current);
+            if (f.exists() && f.isAbsolute()) {
+                // entry not relative to workspace (it's fully qualifed)
+                resultBuffer.append(current);
+            } else {
+                // Try to resolve path relative to the workspace. Need to
+                // replace part of the path string with a fully qualified
+                // equivalent.
+                String projectName = null;
+                int slashPos = current.indexOf(AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR, 1);
+                if (slashPos != -1) {
+                    projectName = current.substring(1, slashPos);
+                } else {
+                    projectName = current.substring(1);
+                }
 
-				IProject proj = AspectJPlugin.getWorkspace().getRoot().getProject(projectName);
+                IProject proj = AspectJPlugin.getWorkspace().getRoot().getProject(projectName);
 
-				if (proj != null && proj.getLocation() != null) {
-					String projectPath = proj.getLocation().toString();
+                if (proj != null && proj.getLocation() != null) {
+                    String projectPath = proj.getLocation().toString();
 
-					if (slashPos != -1) {
-						String rest = current.substring(slashPos + 1);
-						IResource res = proj.findMember(rest);
-						if (res != null) {
-							resultBuffer.append(res.getRawLocation().toOSString());
-						} else {
-							resultBuffer.append(projectPath + AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR + rest);
-						}
-					} else {
-						resultBuffer.append(projectPath);
-					}
-				}// end if named project found
-				else {
-					AJLog.log(AJLog.BUILDER, "AspectJ path entry " + current //$NON-NLS-1$
-							+ " does not exist."); //$NON-NLS-1$
-					resultBuffer.append(current);
-				}// end else entry not found in workspace
-			}// end if entry is relative to workspace
-			resultBuffer.append(File.pathSeparator);
-		}// end while more tokens to process
+                    if (slashPos != -1) {
+                        String rest = current.substring(slashPos + 1);
+                        IResource res = proj.findMember(rest);
+                        if (res != null) {
+                            resultBuffer.append(res.getRawLocation().toOSString());
+                        } else {
+                            resultBuffer.append(projectPath + AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR + rest);
+                        }
+                    } else {
+                        resultBuffer.append(projectPath);
+                    }
+                }// end if named project found
+                else {
+                    AJLog.log(AJLog.BUILDER, "AspectJ path entry " + current //$NON-NLS-1$
+                            + " does not exist."); //$NON-NLS-1$
+                    resultBuffer.append(current);
+                }// end else entry not found in workspace
+            }// end if entry is relative to workspace
+            resultBuffer.append(File.pathSeparator);
+        }// end while more tokens to process
 
-		String result = resultBuffer.toString();
-		if (result.endsWith(File.pathSeparator)) {
-			result = result.substring(0, result.length() - 1);
-		}
+        String result = resultBuffer.toString();
+        if (result.endsWith(File.pathSeparator)) {
+            result = result.substring(0, result.length() - 1);
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	/**
-	 * Utility method for converting a semicolon separated list of files stored in a string into a Set of {@link File} objects.
-	 * 
-	 */
-	private Set<File> mapStringToSet(String input, boolean validateFiles) {
-		if (input.length() == 0)
-			return null;
-		String inputCopy = input;
+    /**
+     * Utility method for converting a semicolon separated list of files stored in a string into a Set of {@link File} objects.
+     * 
+     */
+    private Set<File> mapStringToSet(String input, boolean validateFiles) {
+        if (input.length() == 0)
+            return null;
+        String inputCopy = input;
 
-		StringBuffer invalidEntries = new StringBuffer();
+        StringBuffer invalidEntries = new StringBuffer();
 
-		// For relative paths (they don't start with a File.separator
-		// or a drive letter on windows) - we prepend the projectBaseDirectory
-		String projectBaseDirectory = project.getLocation().toOSString();
+        // For relative paths (they don't start with a File.separator
+        // or a drive letter on windows) - we prepend the projectBaseDirectory
+        String projectBaseDirectory = project.getLocation().toOSString();
 
-		Set<File> fileSet = new HashSet<File>();
-		while (inputCopy.indexOf(File.pathSeparator) != -1) {
-			int idx = inputCopy.indexOf(File.pathSeparator);
-			String path = inputCopy.substring(0, idx);
+        Set<File> fileSet = new HashSet<File>();
+        while (inputCopy.indexOf(File.pathSeparator) != -1) {
+            int idx = inputCopy.indexOf(File.pathSeparator);
+            String path = inputCopy.substring(0, idx);
 
-			File f = new File(path);
-			if (!f.isAbsolute())
-				f = new File(projectBaseDirectory + File.separator + path);
-			if (validateFiles && !f.exists()) {
-				invalidEntries.append(f + "\n"); //$NON-NLS-1$
-			} else {
-				fileSet.add(f);
-			}
-			inputCopy = inputCopy.substring(idx + 1);
-		}
-		// Process the final element
-		if (inputCopy.length() != 0) {
-			File f = new File(inputCopy);
-			if (!f.isAbsolute())
-				f = new File(projectBaseDirectory + File.separator + inputCopy);
-			if (validateFiles && !f.exists()) {
-				invalidEntries.append(f + "\n"); //$NON-NLS-1$
-			} else {
-				fileSet.add(f);
-			}
+            File f = new File(path);
+            if (!f.isAbsolute())
+                f = new File(projectBaseDirectory + File.separator + path);
+            if (validateFiles && !f.exists()) {
+                invalidEntries.append(f + "\n"); //$NON-NLS-1$
+            } else {
+                fileSet.add(f);
+            }
+            inputCopy = inputCopy.substring(idx + 1);
+        }
+        // Process the final element
+        if (inputCopy.length() != 0) {
+            File f = new File(inputCopy);
+            if (!f.isAbsolute())
+                f = new File(projectBaseDirectory + File.separator + inputCopy);
+            if (validateFiles && !f.exists()) {
+                invalidEntries.append(f + "\n"); //$NON-NLS-1$
+            } else {
+                fileSet.add(f);
+            }
 
-		}
+        }
 
-		if (validateFiles && invalidEntries.length() != 0) {
-			AJLog.log(AJLog.COMPILER, NLS.bind(CoreMessages.missingJarsWarning, invalidEntries.toString()));
-		}
-		return fileSet;
-	}
+        if (validateFiles && invalidEntries.length() != 0) {
+            AJLog.log(AJLog.COMPILER, NLS.bind(CoreMessages.missingJarsWarning, invalidEntries.toString()));
+        }
+        return fileSet;
+    }
 
-	private void getProjectRelativePaths(IResource[] resource_list, List<String> allProjectFiles, CoreUtils.FilenameFilter filter,
-			int trimSegments, IClasspathEntry sourceEntry) {
-		try {
-			for (int i = 0; i < resource_list.length; i++) {
-				IResource ir = resource_list[i];
-				// bug 161739: skip excluded resources
-				char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry).fullInclusionPatternChars();
-				char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry).fullExclusionPatternChars();
-				if (!Util.isExcluded(ir, inclusionPatterns, exclusionPatterns)) {
-					if (ir instanceof IContainer) {
-						getProjectRelativePaths(((IContainer) ir).members(), allProjectFiles, filter, trimSegments, sourceEntry);
-					} else if (filter.accept(ir.getName())) {
-						String[] segments = ir.getProjectRelativePath().segments();
-						String path = ""; //$NON-NLS-1$
-						for (int j = trimSegments; j < segments.length; j++) {
-							path += segments[j];
-							if (j < segments.length - 1)
-								path += '/'; // matches Eclipse's separator
-						}
-						allProjectFiles.add(path);
-					}
+    private void getProjectRelativePaths(IResource[] resource_list, List<String> allProjectFiles, CoreUtils.FilenameFilter filter,
+            int trimSegments, IClasspathEntry sourceEntry) {
+        try {
+            for (int i = 0; i < resource_list.length; i++) {
+                IResource ir = resource_list[i];
+                // bug 161739: skip excluded resources
+                char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry).fullInclusionPatternChars();
+                char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry).fullExclusionPatternChars();
+                if (!Util.isExcluded(ir, inclusionPatterns, exclusionPatterns)) {
+                    if (ir instanceof IContainer) {
+                        getProjectRelativePaths(((IContainer) ir).members(), allProjectFiles, filter, trimSegments, sourceEntry);
+                    } else if (filter.accept(ir.getName())) {
+                        String[] segments = ir.getProjectRelativePath().segments();
+                        String path = ""; //$NON-NLS-1$
+                        for (int j = trimSegments; j < segments.length; j++) {
+                            path += segments[j];
+                            if (j < segments.length - 1)
+                                path += '/'; // matches Eclipse's separator
+                        }
+                        allProjectFiles.add(path);
+                    }
 
-				}
-			}
-		} catch (Exception e) {
-		}
-	}
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
 
-	private ArrayList<IResource> getLinkedChildFolders(IResource resource) {
-		ArrayList<IResource> resultList = new ArrayList<IResource>();
+    private ArrayList<IResource> getLinkedChildFolders(IResource resource) {
+        ArrayList<IResource> resultList = new ArrayList<IResource>();
 
-		if (resource instanceof IContainer) {
-			try {
-				IResource[] children = ((IContainer) resource).members();
-				for (int i = 0; i < children.length; i++) {
-					if ((children[i] instanceof IFolder) && children[i].isLinked()) {
-						resultList.add(children[i]);
-					}
-				}
-			} catch (CoreException e) {
-			}
-		}
-		return resultList;
-	}
+        if (resource instanceof IContainer) {
+            try {
+                IResource[] children = ((IContainer) resource).members();
+                for (int i = 0; i < children.length; i++) {
+                    if ((children[i] instanceof IFolder) && children[i].isLinked()) {
+                        resultList.add(children[i]);
+                    }
+                }
+            } catch (CoreException e) {
+            }
+        }
+        return resultList;
+    }
 
-	private String getResourceFullPath(IResource srcContainer, String relPath, ArrayList<IResource> linkedFolders) {
-		String result = null;
-		if (relPath.lastIndexOf('/') != -1) {
-			// Check to see if the relPath under scrutiny is
-			// under a linked folder in this project.
-			Iterator<IResource> it = linkedFolders.iterator();
-			while (it.hasNext()) {
-				IFolder folder = (IFolder) it.next();
-				String linkedFolderName = folder.getName();
-				if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
-					// Do the replacement ensuring that the result uses
-					// operating system separator characters.
-					result = folder.getLocation().toString() + relPath.substring(linkedFolderName.length());
-					result = result.replace('/', File.separatorChar);
-					break;
-				}
-			}
-		}
-		if (result == null) {
-			result = srcContainer.getLocation().toOSString() + File.separator + relPath;
-		}
-		return result;
-	}
+    private String getResourceFullPath(IResource srcContainer, String relPath, ArrayList<IResource> linkedFolders) {
+        String result = null;
+        if (relPath.lastIndexOf('/') != -1) {
+            // Check to see if the relPath under scrutiny is
+            // under a linked folder in this project.
+            Iterator<IResource> it = linkedFolders.iterator();
+            while (it.hasNext()) {
+                IFolder folder = (IFolder) it.next();
+                String linkedFolderName = folder.getName();
+                if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
+                    // Do the replacement ensuring that the result uses
+                    // operating system separator characters.
+                    result = folder.getLocation().toString() + relPath.substring(linkedFolderName.length());
+                    result = result.replace('/', File.separatorChar);
+                    break;
+                }
+            }
+        }
+        if (result == null) {
+            result = srcContainer.getLocation().toOSString() + File.separator + relPath;
+        }
+        return result;
+    }
 
-	public void addModifiedFile(File changedFile) {
-	    AJLog.log(AJLog.BUILDER, "File: " + changedFile + " has changed.");
-	    if (modifiedFiles != null) {
-	        modifiedFiles.add(changedFile);
-	    } else {
-	        AJLog.log(AJLog.BUILDER, "    but, we don't have any state yet, so not recording the change.");
-	    }
-	}
-	
-	/**
-	 * Flag this compiler configuration as having had a change.
-	 * This is reset after a call to {@link #configurationRead()}
-	 * @param changeFlag change flag from 
-	 * {@link CompilerConfigurationChangeFlags}
-	 */
-	public void configurationChanged(int changeFlag) {
-	    configurationChanges |= changeFlag;
-	    logConfigurationChange(changeFlag);
-	}
+    public void addModifiedFile(File changedFile) {
+        AJLog.log(AJLog.BUILDER, "File: " + changedFile + " has changed.");
+        if (modifiedFiles != null) {
+            modifiedFiles.add(changedFile);
+        } else {
+            AJLog.log(AJLog.BUILDER, "    but, we don't have any state yet, so not recording the change.");
+        }
+    }
+    
+    /**
+     * Flag this compiler configuration as having had a change.
+     * This is reset after a call to {@link #configurationRead()}
+     * @param changeFlag change flag from 
+     * {@link CompilerConfigurationChangeFlags}
+     */
+    public void configurationChanged(int changeFlag) {
+        configurationChanges |= changeFlag;
+        logConfigurationChange(changeFlag);
+    }
 
-	private void logConfigurationChange(int changeFlag) {
-	    List<String> changeKind = new ArrayList<String>();
+    private void logConfigurationChange(int changeFlag) {
+        List<String> changeKind = new ArrayList<String>();
         if ((changeFlag & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
             changeKind.add("PROJECTSOURCEFILES_CHANGED");
         }
@@ -543,15 +542,15 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             changeKind.add("INJARS_CHANGED");
         }
         AJLog.log(AJLog.BUILDER, "CoreCompilerConfiguration for project " + project.getName() + " registered a configuration change: " + changeKind);
-	}
-	
-	/**
-	 * converts the current configuration change list to a 
-	 * human readable string
-	 * @return human readable string denoting all configuration
-	 * changes since last read.
-	 */
-	private String toConfigurationString() {
+    }
+    
+    /**
+     * converts the current configuration change list to a 
+     * human readable string
+     * @return human readable string denoting all configuration
+     * changes since last read.
+     */
+    private String toConfigurationString() {
         List<String> changeKind = new ArrayList<String>();
         if ((configurationChanges & PROJECTSOURCEFILES_CHANGED) != NO_CHANGES) {
             changeKind.add("PROJECTSOURCEFILES_CHANGED");
@@ -585,66 +584,66 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
             changeKind.add("INJARS_CHANGED");
         }
         return changeKind.toString();
-	}
+    }
 
-	/**
-	 * Callback method from AspectJ to tell us that it has processed the configuration information and is going to proceed with a
-	 * build.
-	 */
-	public void configurationRead() {
-	    // we now know nothing has changed
-	    AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " has been read by compiler.  Resetting.");
-	    AJLog.log(AJLog.BUILDER, "     Configuration was " + toConfigurationString());
-	    
-	    // we are still not keeping track of some changes:
-	    // JAVAOPTIONS_CHANGED | NONSTANDARDOPTIONS_CHANGED | OUTJAR_CHANGED |
+    /**
+     * Callback method from AspectJ to tell us that it has processed the configuration information and is going to proceed with a
+     * build.
+     */
+    public void configurationRead() {
+        // we now know nothing has changed
+        AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " has been read by compiler.  Resetting.");
+        AJLog.log(AJLog.BUILDER, "     Configuration was " + toConfigurationString());
+        
+        // we are still not keeping track of some changes:
+        // JAVAOPTIONS_CHANGED | NONSTANDARDOPTIONS_CHANGED | OUTJAR_CHANGED |
         // OUTPUTDESTINATIONS_CHANGED | INJARS_CHANGED
-	    configurationChanges = NO_CHANGES;
-	    resetModifiedList();
-	}
+        configurationChanges = NO_CHANGES;
+        resetModifiedList();
+    }
 
-	/**
-	 * Need to tell AspectJ what has changed in the configuration since the last build was done - the lazy answer (which causes it
-	 * to behave as it always used to) is EVERYTHING.
-	 * 
-	 * @see CompilerConfigurationChangeFlags
-	 * @see AspectJCorePreferences#isIncrementalCompilationOptimizationsEnabled
-	 */
-	public int getConfigurationChanges() {
-	    // if the optimization flag is turned off, then return EVERYTHING
-	    if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
+    /**
+     * Need to tell AspectJ what has changed in the configuration since the last build was done - the lazy answer (which causes it
+     * to behave as it always used to) is EVERYTHING.
+     * 
+     * @see CompilerConfigurationChangeFlags
+     * @see AspectJCorePreferences#isIncrementalCompilationOptimizationsEnabled
+     */
+    public int getConfigurationChanges() {
+        // if the optimization flag is turned off, then return EVERYTHING
+        if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
             AJLog.log(AJLog.BUILDER, "Optimizations turned off, so assuming all parts of configuration have changed");
             return EVERYTHING;
-	    } else {
-	        AJLog.log(AJLog.BUILDER, "Sending the following configuration changes to the compiler: " + toConfigurationString());
-	        return AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled() ? configurationChanges : EVERYTHING;
-	    }
-	}
+        } else {
+            AJLog.log(AJLog.BUILDER, "Sending the following configuration changes to the compiler: " + toConfigurationString());
+            return AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled() ? configurationChanges : EVERYTHING;
+        }
+    }
 
-	/**
-	 * If we know, tell AspectJ a List<File> that have changed since the last build. We should be able to work this out from
-	 * analysing delta changes. Returning null means we have no idea and will cause AspectJ to do the analysis to work it out.
-	 */
-	public List<File> getProjectSourceFilesChanged() {
-	    if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
+    /**
+     * If we know, tell AspectJ a List<File> that have changed since the last build. We should be able to work this out from
+     * analysing delta changes. Returning null means we have no idea and will cause AspectJ to do the analysis to work it out.
+     */
+    public List<File> getProjectSourceFilesChanged() {
+        if (!AspectJCorePreferences.isIncrementalCompilationOptimizationsEnabled()) {
             AJLog.log(AJLog.BUILDER, "Optimizations turned off, so assuming all source files have changed");
             return null;
         } else if (modifiedFiles == null) {
             // null means we dont know
-	        AJLog.log(AJLog.BUILDER, "We don't know what has changed since last build, so assuming all source files have changed");
-	        return null;
-	    } else {
-	        AJLog.log(AJLog.BUILDER, modifiedFiles.size() + " source file changes since last build");
-	        return modifiedFiles;
-	    }
-	}
+            AJLog.log(AJLog.BUILDER, "We don't know what has changed since last build, so assuming all source files have changed");
+            return null;
+        } else {
+            AJLog.log(AJLog.BUILDER, modifiedFiles.size() + " source file changes since last build");
+            return modifiedFiles;
+        }
+    }
 
-	public void resetModifiedList() {
-	    AJLog.log(AJLog.BUILDER, "Resetting list of modified source files.  Was " + 
-	            (modifiedFiles == null ? "null" : modifiedFiles.toString()));
-	    modifiedFiles = new ArrayList<File>();
-	}
-	
+    public void resetModifiedList() {
+        AJLog.log(AJLog.BUILDER, "Resetting list of modified source files.  Was " + 
+                (modifiedFiles == null ? "null" : modifiedFiles.toString()));
+        modifiedFiles = new ArrayList<File>();
+    }
+    
     public void resetClasspathElementsWithModifiedContents() {
         classpathElementsWithModifiedContents = null;
     }
@@ -653,33 +652,41 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         AJLog.log(AJLog.BUILDER, "      " + (modifiedContents == null ? "NULL" : modifiedContents.toString()));
         classpathElementsWithModifiedContents = modifiedContents;
     }
-	
-	// must go through the classpath and look at projects we depend on that have been built before our
-	// most recent last build
-	public List<String> getClasspathElementsWithModifiedContents() {
-	    return classpathElementsWithModifiedContents;
-	}
+    
+    // must go through the classpath and look at projects we depend on that have been built before our
+    // most recent last build
+    public List<String> getClasspathElementsWithModifiedContents() {
+        return classpathElementsWithModifiedContents;
+    }
 
-	
-	/**
-	 * helper method that grabs the compiler configuration for a particular project
-	 * creates one if it does not exist
-	 * @param project
-	 * @return the project's compiler configuration
-	 */
-	public static CoreCompilerConfiguration getCompilerConfigurationForProject(IProject project) {
-	    return (CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
-	}
-	
-	public File[] getCompiledSourceFiles() {
-	    CoreOutputLocationManager coreOutputLocationManager = (CoreOutputLocationManager) getOutputLocationManager();
-	    File[] compiledSourceFiles = 
-	        coreOutputLocationManager.getCompiledSourceFiles();
-	    return compiledSourceFiles;
-	    
-	}
-	
-	public List<String> getProjectXmlConfigFiles() {
-		return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
-	}
+    
+    /**
+     * helper method that grabs the compiler configuration for a particular project
+     * creates one if it does not exist
+     * @param project
+     * @return the project's compiler configuration
+     */
+    public static CoreCompilerConfiguration getCompilerConfigurationForProject(IProject project) {
+        return (CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
+    }
+    
+    public File[] getCompiledSourceFiles() {
+        CoreOutputLocationManager coreOutputLocationManager = (CoreOutputLocationManager) getOutputLocationManager();
+        File[] compiledSourceFiles = 
+            coreOutputLocationManager.getCompiledSourceFiles();
+        return compiledSourceFiles;
+        
+    }
+    
+    public List<String> getProjectXmlConfigFiles() {
+        return new AopXmlPreferences(project).getAopXmlFilesAsListOfStrings();
+    }
+
+    public String getProjectEncoding() {
+        try {
+            return project.getDefaultCharset();
+        } catch (CoreException e) {
+            return ResourcesPlugin.getEncoding();
+        }
+    }
 }
