@@ -43,6 +43,7 @@ public class DerivedTests extends AJDTCoreTestCase {
     
     public void testCopyDerived() throws Exception {
         IProject proj = createPredefinedProject("CopyDerived1");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         // all out folders were empty.
         // project was built when created
@@ -121,6 +122,7 @@ public class DerivedTests extends AJDTCoreTestCase {
     // As above, but test that when root folder is out folder
     public void testCopyDerivedInRoot() throws Exception {
         IProject proj = createPredefinedProject("CopyDerived2");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
 
         checkFileIsNotDerived(proj, "file.txt");
         checkFileIsDerived(proj, "Nothing.class");
@@ -149,6 +151,8 @@ public class DerivedTests extends AJDTCoreTestCase {
     // output folder
     public void testDeleteSourceFolder() throws Exception {
         IProject proj = createPredefinedProject("CopyDerived1");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
         IJavaProject jProj = JavaCore.create(proj);
         IClasspathEntry[] classpath = jProj.getRawClasspath();
         IClasspathEntry[] newClasspath = new IClasspathEntry[classpath.length-1];

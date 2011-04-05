@@ -49,7 +49,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
 	        
 	        // load project and full build
 	        IProject proj = createPredefinedProject("Bean Example");
-	
+	        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+	        
 	        testLog.clearLog();
 	        
 	        proj.getFile("src/bean/Point.java").touch(null);
@@ -75,7 +76,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
 
         // load project and full build
         IProject proj = createPredefinedProject("Bean Example");
-        
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
         // touch source files (one Java and one AJ)
         proj.getFile("src/bean/Point.java").touch(null);
         proj.getFile("src/bean/BoundPoint.aj").touch(null);
@@ -109,7 +111,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
     public void testAddDeleteSourceFiles() throws Exception {
         // load project and full build
         IProject proj = createPredefinedProject("Bean Example");
-        
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
         testLog.clearLog();
 
         // create a Java file and an Aspect file
@@ -150,6 +153,7 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
     
     public void testClasspathChange() throws Exception {
         IProject proj = createPredefinedProject("Bean Example");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         proj.getFile(".classpath").touch(null);
 
@@ -168,6 +172,7 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
 
     public void testManifestChange() throws Exception {
         IProject proj = createPredefinedProject("Bean Example");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         proj.getFile("META-INF/MANIFEST.MF").touch(null);
 
@@ -193,6 +198,7 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
     public void testChangeBeforeBuild() throws Exception {
         // load project and full build
         IProject proj = createPredefinedProject("Bean Example");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
 
         testLog.clearLog();
         
@@ -227,6 +233,7 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
     public void testAddDeleteChangeReources() throws Exception {
         // load project and full build
         IProject proj = createPredefinedProject("Bean Example");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         testLog.clearLog();
 
@@ -272,6 +279,7 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
     public void testBadBuild() throws Exception {
         // load project and full build
         IProject proj = createPredefinedProject("Bean Example");
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         testLog.clearLog();
 
