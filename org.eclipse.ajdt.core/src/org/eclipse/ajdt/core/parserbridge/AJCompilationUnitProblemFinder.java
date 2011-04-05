@@ -83,6 +83,7 @@ import org.eclipse.jdt.internal.core.ImportContainer;
 import org.eclipse.jdt.internal.core.ImportDeclaration;
 import org.eclipse.jdt.internal.core.Initializer;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.MemberValuePair;
 import org.eclipse.jdt.internal.core.NameLookup;
@@ -1342,5 +1343,45 @@ class NullRequestor extends AJCompilationUnitStructureRequestor implements ISour
 
     protected SourceField createField(JavaElement parent, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) {
         return null;
+    }
+
+    @Override
+    public void enterMethod(int declarationStart, int modifiers,
+            char[] returnType, char[] name, int nameSourceStart,
+            int nameSourceEnd, char[][] parameterTypes,
+            char[][] parameterNames, char[][] exceptionTypes,
+            boolean isConstructor, boolean isAnnotation,
+            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] typeParameters,
+            AbstractMethodDeclaration methodDeclaration) {
+    }
+
+    @Override
+    public void acceptImport(int declarationStart, int declarationEnd,
+            int nameSourceStart, int nameSourceEnd, char[][] tokens,
+            boolean onDemand, int modifiers) {
+    }
+
+    @Override
+    protected SourceMethod createMethodHandle(JavaElement parent,
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
+        return super.createMethodHandle(parent, methodInfo);
+    }
+
+    @Override
+    protected SourceType createTypeHandle(JavaElement parent, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
+        return super.createTypeHandle(parent, typeInfo);
+    }
+
+    @Override
+    protected IAnnotation acceptAnnotation(
+            org.eclipse.jdt.internal.compiler.ast.Annotation annotation,
+            AnnotatableInfo parentInfo, JavaElement parentHandle) {
+        return null;
+    }
+
+    @Override
+    protected void acceptTypeParameter(
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo typeParameterInfo,
+            JavaElementInfo parentInfo) {
     }
 }
