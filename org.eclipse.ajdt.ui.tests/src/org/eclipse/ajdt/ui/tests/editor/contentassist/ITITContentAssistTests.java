@@ -33,7 +33,7 @@ public class ITITContentAssistTests extends UITestCase {
     
     public void testContentAssistInOtherType() throws Exception {
         
-        String contents =                             
+        String contents =
         "package q;\n" + 
         "import p.City;\n" + 
         "public class Test {\n" + 
