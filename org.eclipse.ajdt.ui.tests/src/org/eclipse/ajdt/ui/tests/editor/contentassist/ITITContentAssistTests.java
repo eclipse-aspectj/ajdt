@@ -53,7 +53,7 @@ public class ITITContentAssistTests extends UITestCase {
                             "privileged aspect CityAspect {\n" + 
                             "    public static class City.Keys {\n" + 
                             "        public static final Function<List<String>, City> CITY = null;\n" + 
-                            "        public static final Function<java.util.HashMap<String, String>, City> A_CITY = null;\n" + 
+                            "        public static final Function<java.util.Map<String, String>, City> A_CITY = null;\n" + 
                             "    }\n" + 
                             "    void x() {\n" + 
                             "        City.Keys.CITY.getter();\n" + 
@@ -77,7 +77,7 @@ public class ITITContentAssistTests extends UITestCase {
         assertContentAssist(unit, findLocation(contents, "substring", 1), "substring", 2);
         assertContentAssist(unit, findLocation(contents, "A_CITY", 1), "A_CITY");
         assertContentAssist(unit, findLocation(contents, "getter", 2), "getter");
-        assertContentAssist(unit, findLocation(contents, "put", 1), "put", 5);
+        assertContentAssist(unit, findLocation(contents, "put", 1), "put", 2);
 
     }
     
@@ -141,11 +141,11 @@ public class ITITContentAssistTests extends UITestCase {
                 new String[] {
                         "package p;\n" + 
                         "import java.util.List;" + 
-                        "import java.util.HashMap;" + 
+                        "import java.util.Map;" + 
                         "privileged aspect AspectCity {\n" + 
                         "    public static class City.Keys {\n" + 
                         "        public static final Function<Object, City> CITY = null;\n" + 
-                        "        public static final HashMap<String, String> xxx() { return null; }\n" + 
+                        "        public static final Map<String, String> xxx() { return null; }\n" + 
                         "    }\n" + 
                         "    void x() {\n" + 
                         "        City.Keys.CITY.getter();\n" + 
@@ -165,7 +165,7 @@ public class ITITContentAssistTests extends UITestCase {
         assertContentAssist(unit, findLocation(contents, "City", 2), "City");
         assertContentAssist(unit, findLocation(contents, "CITY"), "CITY");
         assertContentAssist(unit, findLocation(contents, "xxx"), "xxx");
-        assertContentAssist(unit, findLocation(contents, "get", 2), "get", 4);
+        assertContentAssist(unit, findLocation(contents, "get", 2), "get", 2);
         assertContentAssist(unit, findLocation(contents, "charAt"), "charAt");
     }
     
