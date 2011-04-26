@@ -17,28 +17,28 @@ public class DeclareElementInfo extends AspectJMemberElementInfo {
     
     private char[][] types;
     
-    /**
-     * @return true if this is an extends declare parent
-     */
-    public boolean isExtends() {
-        return extendz;
-    }
-    
-    public void setExtends(boolean extendz) {
-        this.extendz = extendz;
-    }
-    
-    /**
-     * @return true if this is an extends declare parent
-     */
-    public boolean isImplements() {
-        return implementz;
-    }
-    
-    public void setImplements(boolean implementz) {
-        this.implementz = implementz;
-    }
-    
+//    /**
+//     * @return true if this is an extends declare parent
+//     */
+//    public boolean isExtends() {
+//        return extendz;
+//    }
+//    
+//    public void setExtends(boolean extendz) {
+//        this.extendz = extendz;
+//    }
+//    
+//    /**
+//     * @return true if this is an extends declare parent
+//     */
+//    public boolean isImplements() {
+//        return implementz;
+//    }
+//    
+//    public void setImplements(boolean implementz) {
+//        this.implementz = implementz;
+//    }
+//    
 	public void setTypes(String[] types) {
 	    this.types = new char[types.length][];
 	    for (int i = 0; i < types.length; i++) {

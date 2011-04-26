@@ -11,12 +11,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 
 /**
@@ -47,21 +51,16 @@ public class DeclareElement extends AspectJMemberElement{
         	    elementInfo.setSourceRangeStart(ipe.getSourceLocation().getOffset());
         	    elementInfo.setName(name.toCharArray());
         	    elementInfo.setAJKind(getKindForString(name));
-        	    String details = ipe.getDetails();
-        	    if (details != null) {
-                    elementInfo.setExtends(details.startsWith("extends"));
-                    elementInfo.setImplements(details.startsWith("implements"));
-        	    }
-                if (elementInfo.isImplements() || elementInfo.isExtends()) {
-                    List<String> types = ipe.getParentTypes();
-                    if (types != null) {
-                        int index = 0;
-                        for (String type : types) {
-                            type = type.replaceAll("\\$", "\\.");
-                            types.set(index++, type);
-                        }
-                        elementInfo.setTypes((String[]) types.toArray(new String[types.size()]));
+        	    
+                List<String> types = ipe.getParentTypes();
+                if (types != null) {
+                    List<String> typesConverted = new ArrayList<String>(types.size());
+                    for (String parentTypeName : types) {
+                        
+                        parentTypeName = parentTypeName.replaceAll("\\$", "\\.");
+                        typesConverted.add(parentTypeName);
                     }
+                    elementInfo.setTypes((String[]) typesConverted.toArray(new String[typesConverted.size()]));
                 }
                 
                 elementInfo.setAnnotationRemover(ipe.isAnnotationRemover());
@@ -74,7 +73,7 @@ public class DeclareElement extends AspectJMemberElement{
         }
 	}
 	
-   protected Kind getKindForString(String kindString) {
+    protected Kind getKindForString(String kindString) {
         for (int i = 0; i < IProgramElement.Kind.ALL.length; i++) {
             if (kindString.startsWith(IProgramElement.Kind.ALL[i].toString())) return IProgramElement.Kind.ALL[i];  
         }

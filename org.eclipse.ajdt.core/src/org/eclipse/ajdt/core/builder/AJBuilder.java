@@ -132,7 +132,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         IProject[] requiredProjects = getRequiredProjects(project,true);
 
         // perform all pre-build actions
-        CompilationParticipant[] participants = prebuild(kind, project, requiredProjects, compilerConfig);
+        CompilationParticipant[] participants = prebuild(kind, project, requiredProjects, compilerConfig);      
         progressMonitor.worked(1);
 
         String mode = "";  //$NON-NLS-1$
@@ -374,11 +374,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
         
         if (errorFound) {
             // there is a null value in the array. must squash the array
-            List<BuildContext> resultsList = Arrays.asList(results);
-            for (Iterator<BuildContext> iterator = resultsList.iterator(); iterator.hasNext();) {
-                BuildContext buildContext = iterator.next();
-                if (buildContext == null) {
-                    iterator.remove();
+            List<BuildContext> resultsList = new ArrayList<BuildContext>(results.length);
+            for (BuildContext buildContext : results) {
+                if (results != null) {
+                    resultsList.add(buildContext);
                 }
             }
             results = resultsList.toArray(new BuildContext[resultsList.size()]);
@@ -792,6 +791,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 false, IResource.DEPTH_ZERO);
         for (int i = 0, l = markers.length; i < l; i++) {
             if (markers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
+               
                 return true;
             }
         }

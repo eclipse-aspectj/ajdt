@@ -171,15 +171,11 @@ public class ITDInserter extends ASTVisitor {
                         itdFields.add(createField(elt, type));
                     }
                 } else if (elt.getKind() == IProgramElement.Kind.DECLARE_PARENTS) {
-                    // XXX this is wrong.  Can't tell by looking at the text, must determine if it is class or interface through the model 
-                    String details = elt.getDetails();
-                    boolean isExtends = details != null && details.startsWith("extends");
-                    if (elt.getParentTypes() != null && elt.getParentTypes().size() > 0) {
-                        if (isExtends && TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
-                            addSuperClass(elt, type);
-                        } else {
-                            addSuperInterfaces(elt, type);
-                        }
+                    boolean isClass = isClass(elt);
+                    if (isClass && TypeDeclaration.kind(type.modifiers) == TypeDeclaration.CLASS_DECL) {
+                        addSuperClass(elt, type);
+                    } else {
+                        addSuperInterfaces(elt, type);
                     }
                 } else if (elt.getKind() == IProgramElement.Kind.CLASS) {
                     // this is an ITIT - intertype inner type
@@ -195,7 +191,7 @@ public class ITDInserter extends ASTVisitor {
                     if (parentsMap != null && type.binding != null && type.binding.compoundName != null) {
                         List<String> parents = parentsMap.get(String.valueOf(CharOperation.concatWith(type.binding.compoundName, '.')));
                         List<String> interfacesToAdd = new LinkedList<String>();
-                        for (String parent : parents) {
+                        for (String parent : parents) { 
                             try {
                                 IType parentElt = unit.getJavaProject().findType(parent, (IProgressMonitor) null);
                                 if (parentElt != null && parentElt.isClass()) {
@@ -302,6 +298,21 @@ public class ITDInserter extends ASTVisitor {
         return paramBindings;
     }
 
+    
+    private boolean isClass(IProgramElement elt) throws JavaModelException {
+        List<String> parentTypes = elt.getParentTypes();
+        if (parentTypes != null && parentTypes.size() > 0) {
+            for (String parentTypeName : parentTypes) {
+                IType parentType = unit.getJavaProject().findType(parentTypeName, (IProgressMonitor) null);
+                if (parentType != null) {
+                    return parentType.isClass();
+                }
+            } 
+        }
+        // don't really know
+        return false;
+    }
+    
     /**
      * Ask the oracle for the type binding with the given name
      * @param child
