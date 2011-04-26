@@ -21,6 +21,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
+import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 
 /**
  * @author gharley
@@ -63,8 +64,8 @@ public class AspectPathBlock extends PathBlock {
 
 
 
-
-    protected void internalSetProjectPath(List pathEntries,
+	@Override
+    protected void internalSetProjectPath(List<CPListElement> pathEntries,
             StringBuffer pathBuffer, StringBuffer contentKindBuffer,
             StringBuffer entryKindBuffer) {
         AspectJCorePreferences.setProjectAspectPath(getJavaProject().getProject(),

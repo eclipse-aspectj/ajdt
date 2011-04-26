@@ -79,14 +79,14 @@ public class InPathBlock extends PathBlock {
 
         setJavaProject(jproject);
         
-        List newInPath = null;
+        List<CPListElement> newInPath = null;
 
         if (inpathEntries != null) {
             newInPath = getExistingEntries(inpathEntries);
         }
 
         if (newInPath == null) {
-            newInPath = new ArrayList();
+            newInPath = new ArrayList<CPListElement>();
         }
 
         IProject project = jproject.getProject();
@@ -143,7 +143,7 @@ public class InPathBlock extends PathBlock {
 
     
         
-    protected void internalSetProjectPath(List pathEntries,
+    protected void internalSetProjectPath(List<CPListElement> pathEntries,
             StringBuffer pathBuffer, StringBuffer contentKindBuffer,
             StringBuffer entryKindBuffer) {
         AspectJCorePreferences.setProjectInPath(getJavaProject().getProject(),pathBuffer.toString(),

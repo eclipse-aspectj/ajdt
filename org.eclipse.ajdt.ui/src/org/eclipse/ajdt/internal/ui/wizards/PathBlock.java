@@ -210,7 +210,7 @@ public abstract class PathBlock {
                 fPathList);
     }
     
-    protected abstract void internalSetProjectPath(List pathEntries,
+    protected abstract void internalSetProjectPath(List<CPListElement> pathEntries,
             StringBuffer pathBuffer, StringBuffer contentKindBuffer,
             StringBuffer entryKindBuffer);
     
@@ -231,7 +231,7 @@ public abstract class PathBlock {
     
     
     private void libaryPageSelectionChanged(DialogField field) {
-        List selElements = fPathList.getSelectedElements();
+        List<?> selElements = fPathList.getSelectedElements();
         fPathList.enableButton(IDX_REMOVE, canRemove(selElements));
         fPathList.enableButton(IDX_EDIT, canEdit(selElements));
     }
@@ -281,8 +281,8 @@ public abstract class PathBlock {
             // elements with classpath containers
             // since there is no direct control over
             // them.
-            List cplist = fPathList.getElements();
-            List elementsToAdd = new ArrayList(nElementsChosen);
+            List<?> cplist = fPathList.getElements();
+            List<CPListElement> elementsToAdd = new ArrayList<CPListElement>(nElementsChosen);
 
             for (int i = 0; i < nElementsChosen; i++) {
                 CPListElement curr = libentries[i];
@@ -305,7 +305,7 @@ public abstract class PathBlock {
         }
     }
 
-    void editRestictions(List selectedElements) {
+    void editRestictions(List<?> selectedElements) {
         
         if (selectedElements == null || selectedElements.size() != 1) {
             return;
@@ -367,7 +367,7 @@ public abstract class PathBlock {
      */
     protected void updateJavaBuildPathStatus() {
         List elements = fPathList.getElements();
-        List /* IClasspathEntry */ entries = new ArrayList();
+        List /* IClasspathEntry */<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
 
         for (int i = elements.size() - 1; i >= 0; i--) {
             CPListElement currElement = (CPListElement) elements.get(i);
@@ -385,7 +385,7 @@ public abstract class PathBlock {
             outPath = fCurrJProject.getPath();
         }
         
-        IClasspathEntry[] entriesArr = (IClasspathEntry[]) entries.toArray(new IClasspathEntry[0]);
+        IClasspathEntry[] entriesArr = entries.toArray(new IClasspathEntry[0]);
         IJavaModelStatus status = JavaConventions.validateClasspath(
                 fCurrJProject, entriesArr, outPath);
 
@@ -420,7 +420,7 @@ public abstract class PathBlock {
     private IJavaModelStatus checkForDuplicates(IJavaProject currJProject,
             IClasspathEntry[] entries) {
         try {
-            Map allEntries = new HashMap(entries.length, 1.0f);
+            Map<String, IClasspathEntry> allEntries = new HashMap<String, IClasspathEntry>(entries.length, 1.0f);
             for (int i = 0; i < entries.length; i++) {
             	// ignore entries that are inside of a container
             	if (getClasspathContainer(entries[i]) == null) {
@@ -438,8 +438,8 @@ public abstract class PathBlock {
 
             IClasspathEntry[] resolvedProjectClasspath = currJProject
                     .getResolvedClasspath(true);
-            Map resolvedEntries = new HashMap();
-            Iterator allEntriesIter = allEntries.values().iterator();
+            Map<String, IClasspathEntry> resolvedEntries = new HashMap<String, IClasspathEntry>();
+            Iterator<IClasspathEntry> allEntriesIter = allEntries.values().iterator();
             while (allEntriesIter.hasNext()) {
                 ClasspathEntry rawEntry = (ClasspathEntry) allEntriesIter
                         .next();
@@ -523,7 +523,7 @@ public abstract class PathBlock {
     /**
      * only able to edit the restrictions child of a classpath container entry
      */
-    private boolean canEdit(List selElements) {
+    private boolean canEdit(List<?> selElements) {
         if (selElements.size() != 1) {
             return false;
         }
@@ -545,7 +545,7 @@ public abstract class PathBlock {
      * @return true if all elements are CPListElements that are not attributes
      * and are not contained in classpath containers
      */
-    private boolean canRemove(List selElements) {
+    private boolean canRemove(List<?> selElements) {
         if (selElements.size() == 0) {
             return false;
         }
@@ -600,7 +600,7 @@ public abstract class PathBlock {
 	}
 
 	// Don't think this is used.
-    private void askForAddingExclusionPatternsDialog(List newEntries) {
+    private void askForAddingExclusionPatternsDialog(List<CPListElement> newEntries) {
         HashSet modified = new HashSet();
         if (!modified.isEmpty()) {
             String title = UIMessages.InPathLibrariesWorkbookPage_exclusion_added_title;
@@ -615,7 +615,7 @@ public abstract class PathBlock {
                 getShell(), fCurrJProject.getPath(),
                 getUsedContainers());
         if (selected != null) {
-            ArrayList res = new ArrayList();
+            ArrayList<CPListElement> res = new ArrayList<CPListElement>();
             for (int i = 0; i < selected.length; i++) {
                 IPath curr = selected[i];
                 IResource resource = fWorkspaceRoot.findMember(curr);
@@ -623,8 +623,7 @@ public abstract class PathBlock {
                     res.add(newCPLibraryElement(resource));
                 }
             }
-            return (CPListElement[]) 
-                    res.toArray(new CPListElement[res.size()]);
+            return res.toArray(new CPListElement[res.size()]);
         }
         return null;
     }
@@ -634,7 +633,7 @@ public abstract class PathBlock {
                 getShell(), fCurrJProject.getPath(),
                 getUsedContainers());
         if (selected != null) {
-            ArrayList res = new ArrayList();
+            ArrayList<CPListElement> res = new ArrayList<CPListElement>();
 
             for (int i = 0; i < selected.length; i++) {
                 IPath curr = selected[i];
@@ -655,8 +654,7 @@ public abstract class PathBlock {
                     res.add(newCPLibraryElement(resource));
                 }
             }
-            return (CPListElement[]) 
-                    res.toArray(new CPListElement[res.size()]);
+            return res.toArray(new CPListElement[res.size()]);
         }
         return null;
     }
@@ -665,13 +663,12 @@ public abstract class PathBlock {
         IPath[] selected = BuildPathDialogAccess
                 .chooseExternalJAREntries(getShell());
         if (selected != null) {
-            ArrayList res = new ArrayList();
+            ArrayList<CPListElement> res = new ArrayList<CPListElement>();
             for (int i = 0; i < selected.length; i++) {
                 res.add(new CPListElement(fCurrJProject,
                         IClasspathEntry.CPE_LIBRARY, selected[i], null));
             }
-            return (CPListElement[]) 
-                    res.toArray(new CPListElement[res.size()]);
+            return res.toArray(new CPListElement[res.size()]);
         }
         return null;
     }
@@ -680,20 +677,20 @@ public abstract class PathBlock {
   
     private CPListElement[] openVariableSelectionDialog() {
         List existingElements = fPathList.getElements();
-        ArrayList existingPaths = new ArrayList(existingElements.size());
+        ArrayList<IPath> existingPaths = new ArrayList<IPath>(existingElements.size());
         for (int i = 0; i < existingElements.size(); i++) {
             CPListElement elem = (CPListElement) existingElements.get(i);
             if (elem.getEntryKind() == IClasspathEntry.CPE_VARIABLE) {
                 existingPaths.add(elem.getPath());
             }
         }
-        IPath[] existingPathsArray = (IPath[]) existingPaths
+        IPath[] existingPathsArray = existingPaths
                 .toArray(new IPath[existingPaths.size()]);
 
         IPath[] paths = BuildPathDialogAccess.chooseVariableEntries(
                 getShell(), existingPathsArray);
         if (paths != null) {
-            ArrayList result = new ArrayList();
+            ArrayList<CPListElement> result = new ArrayList<CPListElement>();
             for (int i = 0; i < paths.length; i++) {
                 CPListElement elem = new CPListElement(fCurrJProject,
                         IClasspathEntry.CPE_VARIABLE, paths[i], null);
@@ -705,8 +702,7 @@ public abstract class PathBlock {
                     result.add(elem);
                 }
             }
-            return (CPListElement[]) 
-                    result.toArray(new CPListElement[result.size()]);
+            return result.toArray(new CPListElement[result.size()]);
         }
         return null;
     }
@@ -742,7 +738,7 @@ public abstract class PathBlock {
     private CPListElement[] openProjectSelectionDialog() {
         
         try {
-            ArrayList selectable= new ArrayList();
+            ArrayList<IJavaProject> selectable= new ArrayList<IJavaProject>();
             selectable.addAll(Arrays.asList(fCurrJProject.getJavaModel().getJavaProjects()));
             selectable.remove(fCurrJProject);
             
@@ -792,7 +788,7 @@ public abstract class PathBlock {
 
   
   private IPath[] getUsedContainers() {
-        ArrayList res = new ArrayList();
+        ArrayList<IPath> res = new ArrayList<IPath>();
         if (fCurrJProject.exists()) {
             try {
                 IPath outputLocation = fCurrJProject.getOutputLocation();
@@ -813,7 +809,7 @@ public abstract class PathBlock {
                 }
             }
         }
-        return (IPath[]) res.toArray(new IPath[res.size()]);
+        return res.toArray(new IPath[res.size()]);
     }
 
     public TabItem tabContent(TabFolder folder) {
@@ -871,7 +867,7 @@ public abstract class PathBlock {
     protected void internalConfigureJavaProject(List pathElements,
             IProgressMonitor monitor) throws CoreException, InterruptedException {
         int nEntries = pathElements.size();
-        List /* IClasspathEntry */ pathEntries = new ArrayList();
+        List /* IClasspathEntry */<IClasspathEntry> pathEntries = new ArrayList<IClasspathEntry>();
 
         for (int i = 0; i < nEntries; i++) {
         	// Bug 243356
@@ -886,13 +882,13 @@ public abstract class PathBlock {
         monitor.worked(2);
 
         
-        Map inpathRestrictions = new HashMap();
-        Map aspectpathRestrictions = new HashMap();
+        Map<IPath, String> inpathRestrictions = new HashMap<IPath, String>();
+        Map<IPath, String> aspectpathRestrictions = new HashMap<IPath, String>();
         StringBuffer pathBuffer = new StringBuffer();
         StringBuffer contentKindBuffer = new StringBuffer();
         StringBuffer entryKindBuffer = new StringBuffer();
-        for (Iterator pathIter = pathEntries.iterator(); pathIter.hasNext();) {
-			IClasspathEntry pathEntry = (IClasspathEntry) pathIter.next();
+        for (Iterator<IClasspathEntry> pathIter = pathEntries.iterator(); pathIter.hasNext();) {
+			IClasspathEntry pathEntry = pathIter.next();
             pathBuffer.append(pathEntry.getPath());
             pathBuffer.append(File.pathSeparator);
             contentKindBuffer.append(pathEntry.getContentKind());
@@ -936,7 +932,7 @@ public abstract class PathBlock {
 
     // ensure that all the entries have the expected restrictions 
     private boolean updatePathRestrictions(IClasspathEntry[] entries,
-            Map restrictions, boolean isAspectPath) {
+            Map<IPath, String> restrictions, boolean isAspectPath) {
         String restrictionKind = isAspectPath ? AspectJCorePreferences.ASPECTPATH_RESTRICTION_ATTRIBUTE_NAME
                 : AspectJCorePreferences.INPATH_RESTRICTION_ATTRIBUTE_NAME;
         
@@ -946,7 +942,7 @@ public abstract class PathBlock {
                 // restrictions only available on container entries
 
                 if (restrictions.containsKey(entries[i].getPath())) {
-                    String restrictionStr = (String) restrictions.get(entries[i].getPath());
+                    String restrictionStr = restrictions.get(entries[i].getPath());
                     entries[i] = AspectJCorePreferences.updatePathRestrictions(entries[i], restrictionStr,
                             restrictionKind);
                     hasChanges = true;
@@ -957,8 +953,8 @@ public abstract class PathBlock {
     }
 
 
-    protected ArrayList /*CPListElement*/ getExistingEntries(IClasspathEntry[] pathEntries) {
-        ArrayList /*CPListElement*/ newPath = new ArrayList();
+    protected List<CPListElement> getExistingEntries(IClasspathEntry[] pathEntries) {
+        List<CPListElement> newPath = new ArrayList<CPListElement>();
         for (int i = 0; i < pathEntries.length; i++) {
             IClasspathEntry curr = pathEntries[i];
             if (curr.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {

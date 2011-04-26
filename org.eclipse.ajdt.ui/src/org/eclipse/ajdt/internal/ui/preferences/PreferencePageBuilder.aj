@@ -9,32 +9,23 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
-import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
-import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.PathBlock;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.TreeListDialogField;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
