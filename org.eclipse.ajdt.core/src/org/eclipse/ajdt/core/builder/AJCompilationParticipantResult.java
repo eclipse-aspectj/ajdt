@@ -15,6 +15,14 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IAnnotatable;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IParent;
+import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.BuildContext;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -98,5 +106,49 @@ public class AJCompilationParticipantResult extends BuildContext {
     
     public String[] getDependencies() {
         return dependencies;
+    }
+    
+    private Boolean hasAnnotationsCache = null;
+    
+    @Override
+    public boolean hasAnnotations() {
+        if (hasAnnotationsCache == null) {
+            try {
+                if (file != null) {
+                    ITypeRoot root = (ITypeRoot) JavaCore.create(file);
+                    if (root.exists()) {
+                        hasAnnotationsCache = hasAnnotations(root);
+                    } else {
+                        hasAnnotationsCache = false;
+                    }
+                }
+            } catch (JavaModelException e) {
+                hasAnnotationsCache = false;
+            }
+            
+        }
+        
+        return hasAnnotationsCache;
+    }
+
+    /**
+     * @param parent
+     * @throws JavaModelException
+     */
+    private boolean hasAnnotations(IParent parent) throws JavaModelException {
+        IJavaElement[] children = parent.getChildren();
+        for (IJavaElement child : children) {
+            if (child instanceof IAnnotatable) {
+                if (((IAnnotatable) child).getAnnotations().length > 0) {
+                    return true;
+                }
+            }
+            if (child instanceof IParent) {
+                if (hasAnnotations((IParent) child)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

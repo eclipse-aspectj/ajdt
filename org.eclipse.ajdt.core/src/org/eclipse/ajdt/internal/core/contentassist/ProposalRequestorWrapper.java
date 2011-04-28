@@ -111,7 +111,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	            world = new AJWorldFacade(unit.getJavaProject().getProject());
 	        }
 	        
-	        ITDInfo info = world.findITDInfoIfExists(proposal.getDeclarationSignature(), proposal.getName());
+	        ITDInfo info = world.findITDInfoFromTargetType(proposal.getDeclarationSignature(), proposal.getName());
 	        if (info != null) {
     	        if (info.accessibility == Accessibility.PUBLIC) {
     	            // accessible everywhere

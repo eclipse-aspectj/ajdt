@@ -326,6 +326,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         }
                         public void run() throws Exception {
                             participant.buildStarting(results, false);
+                            if (participant.isAnnotationProcessor()) {
+                                participant.processAnnotations(results);
+                            }
                             participant.buildFinished(javaProject);
                         }
                     });

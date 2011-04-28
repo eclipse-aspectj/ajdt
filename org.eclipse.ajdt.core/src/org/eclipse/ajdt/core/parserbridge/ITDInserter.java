@@ -39,6 +39,7 @@ import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
@@ -53,7 +54,6 @@ import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SignatureWrapper;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
-import org.eclipse.jdt.internal.compiler.lookup.UnresolvedReferenceBinding;
 import org.eclipse.jdt.internal.compiler.parser.TypeConverter;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
@@ -95,6 +95,9 @@ public class ITDInserter extends ASTVisitor {
         }
         protected TypeReference createTypeReference(char[] typeName) {
             return super.createTypeReference(typeName, 0, typeName.length);
+        }
+        protected TypeReference createTypeReference(String typeSignature) {
+            return super.createTypeReference(typeSignature, 0, typeSignature.length());
         }
     }
 
@@ -325,19 +328,7 @@ public class ITDInserter extends ASTVisitor {
         return typeBinding;
     }
 
-    /**
-     * DELETEME - not used
-     * will not work for arrays or parameterized types
-     * @param child
-     * @return
-     */
-    protected char[][] getTypeAsCharChar(String type) {
-        int genIndex = type.indexOf('<');
-        if (genIndex > 0) {
-            type = type.substring(0, genIndex);
-        }
-        return CharOperation.splitOn('.', type.toCharArray());
-    }
+    
 
     private TypeDeclaration createITIT(String name, TypeDeclaration enclosing) {
         TypeDeclaration decl = new TypeDeclaration(enclosing.compilationResult);
@@ -390,14 +381,14 @@ public class ITDInserter extends ASTVisitor {
             ErasedTypeSignature sig = null;
             if (handle != null) {
                 AJWorldFacade world = new AJWorldFacade(handle.getJavaProject().getProject());
-                sig = world.getTypeParameters(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
+                sig = world.getMethodTypeSignatures(Signature.createTypeSignature(handle.getFullyQualifiedName(), true), method);
             }
             if (sig == null) {
                 String[] params = new String[method.getParameterTypes().size()];
                 for (int i = 0; i < params.length; i++) {
                     params[i] = new String(Signature.getTypeErasure((char[]) method.getParameterTypes().get(i)));
                 }
-                sig = new ErasedTypeSignature(method.getCorrespondingType(true), params);
+                sig = new ErasedTypeSignature(method.getCorrespondingTypeSignature(), params);
             }
             
             List<String> pNames = method.getParameterNames();
@@ -415,6 +406,9 @@ public class ITDInserter extends ASTVisitor {
                         createTypeReference(Signature.getElementType(sig.paramTypes[i])),
                         0);
             }
+            
+            decl.returnType = createTypeReferenceFromSignature(sig.returnTypeSig);
+            decl.typeParameters = createTypeParameters(sig.typeParameters);
         } catch (Exception e) {
             AJLog.log("Exception occurred in ITDInserter.createMethod().  (Ignoring)");
             AJLog.log("Relevant method: " + method.getParent().getName() + "." + method.getName());
@@ -438,6 +432,27 @@ public class ITDInserter extends ASTVisitor {
         return decl;
     }
     
+    /**
+     * @param typeParameters
+     * @return
+     */
+    private TypeParameter[] createTypeParameters(
+            org.eclipse.ajdt.core.model.AJWorldFacade.TypeParameter[] typeParameters) {
+        if (typeParameters == null || typeParameters.length == 0) {
+            return null;
+        }
+        TypeParameter[] newTypeParameters = new TypeParameter[typeParameters.length];
+        for (int i = 0; i < typeParameters.length; i++) {
+            newTypeParameters[i] = new TypeParameter();
+            newTypeParameters[i].name = typeParameters[i].name.toCharArray();
+            if (typeParameters[i].upperBoundTypeName != null) {
+                newTypeParameters[i].bounds = new TypeReference[1];
+                newTypeParameters[i].bounds[0] = createTypeReference(typeParameters[i].upperBoundTypeName);
+            }
+        }
+        return newTypeParameters;
+    }
+
     private ConstructorDeclaration createConstructor(IProgramElement constructor, TypeDeclaration type) {
         ConstructorDeclaration decl = new ConstructorDeclaration(type.compilationResult);
         decl.scope = new MethodScope(type.scope, decl, true);
@@ -478,8 +493,13 @@ public class ITDInserter extends ASTVisitor {
     private void addSuperClass(String newSuper, TypeDeclaration decl) {
         newSuper = newSuper.replaceAll("\\$", "\\.");
         decl.superclass = createTypeReference(newSuper);
+        decl.binding.superclass = createTypeBinding(newSuper);
     }
     
+    private ReferenceBinding createTypeBinding(String newSuper) {
+        return env.askForType(CharOperation.splitOn('.', newSuper.toCharArray()));
+    }
+
     private void addSuperInterfaces(IProgramElement ipe, TypeDeclaration decl) {
         List<String> newInterfaces = ipe.getParentTypes();
         addSuperInterfaces(newInterfaces, decl);
@@ -501,6 +521,22 @@ public class ITDInserter extends ASTVisitor {
                 refs[i + superInterfacesNum] = createTypeReference(newInterfaces.get(i).replaceAll("\\$", "\\."));
             }
             decl.superInterfaces = refs;
+            
+            // now do the bindings
+            if (decl.binding != null && decl.binding.superInterfaces != null) {
+                superInterfacesNum = decl.binding.superInterfaces.length;
+            } else {
+                superInterfacesNum = 0;
+            }
+            
+            ReferenceBinding[] refBindings = new ReferenceBinding[superInterfacesNum + newInterfaces.size()];
+            if (superInterfacesNum > 0) {
+                System.arraycopy(decl.binding.superInterfaces, 0, refBindings, 0, decl.binding.superInterfaces.length);
+            }
+            for (int i = 0; i < refBindings.length-superInterfacesNum; i++) {
+                refBindings[i + superInterfacesNum] = createTypeBinding(newInterfaces.get(i));
+            }
+            decl.binding.superInterfaces = refBindings;
         }
     }
     
@@ -566,9 +602,12 @@ public class ITDInserter extends ASTVisitor {
         return Collections.emptyList();
     }
     
+    private TypeReference createTypeReferenceFromSignature(String origTypeSig) {
+        return typeConverter.createTypeReference(origTypeSig);
+    }
     private TypeReference createTypeReference(String origTypeName) {
         // remove any references to #RAW
-        if (origTypeName .endsWith("#RAW")) {
+        if (origTypeName.endsWith("#RAW")) {
             origTypeName = origTypeName.substring(0, origTypeName.length()-4);
         }
         // can't use the binary name

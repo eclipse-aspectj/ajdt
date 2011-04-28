@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.ITypeParameter;
 
 /**
  * @author Luzius Meisser
@@ -59,5 +60,13 @@ public class IntertypeElementInfo extends AspectJMemberElementInfo {
     
     public void setTargetTypeEnd(int targetTypeEnd) {
         this.targetTypeEnd = targetTypeEnd;
+    }
+    
+    public void setTypeParameters(ITypeParameter[] typeParameters) {
+        this.typeParameters = typeParameters;
+    }
+    
+    public ITypeParameter[] getTypeParameters() {
+        return this.typeParameters;
     }
 }

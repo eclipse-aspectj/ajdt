@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
@@ -69,6 +70,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
+                        newInfo.setTypeParameters(createTypeParameters(null));
                         return newInfo;
 
                     }
@@ -92,6 +94,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newInfo.setArgumentNames(info.getArgumentNames(), getParamNum());
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
+                        newInfo.setTypeParameters(createTypeParameters(null));
                         return newInfo;
 
                     }
@@ -129,9 +132,9 @@ public class MethodIntertypeElement extends IntertypeElement
             if (min == null) {
                 super.setArgumentNames(null);
             } else {
-                List /*char[][]*/ newNames; 
+                List<char[]> newNames; 
                 int minValue = min.intValue();
-                newNames = new ArrayList(minValue);
+                newNames = new ArrayList<char[]>(minValue);
                 for (int i = 0; i < minValue; i++) {
                     if (names != null && i < names.length) {
                         newNames.add(names[i]);
@@ -143,6 +146,11 @@ public class MethodIntertypeElement extends IntertypeElement
                         newNames.toArray(new char[newNames.size()][]));
             }
         }
+        
+        public void setTypeParameters(ITypeParameter[] typeParameters) {
+            this.typeParameters = typeParameters;
+        }
+
 
         protected void setExceptionTypeNames(char[][] types) {
             super.setExceptionTypeNames(types);
@@ -184,14 +192,18 @@ public class MethodIntertypeElement extends IntertypeElement
         public IntertypeElement getOriginal() {
             return original;
         }
+        
+        public void setTypeParameters(ITypeParameter[] typeParameters) {
+            this.typeParameters = typeParameters;
+        }
 
         protected void setArgumentNames(char[][] names, Integer min) {
             if (min == null) {
                 super.setArgumentNames(null);
             } else {
-                List /*char[][]*/ newNames; 
+                List<char[]> newNames; 
                 int minValue = min.intValue();
-                newNames = new ArrayList(minValue);
+                newNames = new ArrayList<char[]>(minValue);
                 for (int i = 0; i < minValue; i++) {
                     if (names != null && i < names.length) {
                         newNames.add(names[i]);

@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -61,6 +62,9 @@ public abstract aspect PluginFFDC extends FFDC {
 		} else if (th instanceof ResourceException && (((ResourceException)th).getStatus().getCode() == IResourceStatus.RESOURCE_NOT_FOUND || ((ResourceException)th).getStatus().getCode() == IResourceStatus.PROJECT_NOT_OPEN)) {
 			// Ignore "resource does not exist" and "resource is not open" Exceptions
 			return;
+		} else if (th instanceof AbortCompilation) {
+		    //ignore abort compilation
+		    return;
 		} else if (th instanceof CoreException) {
 			status = ((CoreException) th).getStatus();
 		} else {
