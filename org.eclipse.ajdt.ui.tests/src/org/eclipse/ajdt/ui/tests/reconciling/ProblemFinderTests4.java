@@ -14,10 +14,9 @@ import java.util.HashMap;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.problemfinding.MockProblemRequestor;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -37,7 +36,7 @@ import org.eclipse.ui.part.FileEditorInput;
  * @author andrew
  *
  */
-public class ProblemFinderTests4 extends AJDTCoreTestCase {
+public class ProblemFinderTests4 extends UITestCase {
     private AJCompilationUnit inAspectFileCU;
     private CompilationUnit inJavaFileCU;
     private AJCompilationUnit inSwitchFileCU;

@@ -18,9 +18,8 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
-import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.problemfinding.MockProblemRequestor;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -46,7 +45,7 @@ import org.eclipse.ui.internal.views.log.LogView;
  * @author andrew
  *
  */
-public class ProblemFinderTests10 extends AJDTCoreTestCase {
+public class ProblemFinderTests10 extends UITestCase {
     List/*ICompilationUnit*/ allCUnits = new ArrayList();
     ICompilationUnit errorUnit;
     IProject proj;
