@@ -20,7 +20,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -50,6 +49,7 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -228,6 +228,14 @@ public class AJDTCoreTestCase extends TestCase {
     }
     
     protected static class Requestor extends TypeNameRequestor { }
+
+    
+    protected void waitForJobsToComplete(){
+        AJDTCoreTestCase.waitForAutoBuild();
+        AJDTCoreTestCase.waitForManualBuild();
+        AJDTCoreTestCase.waitForAutoRefresh();
+        AJDTCoreTestCase.waitForManualRefresh();
+    }
 
     public static void waitForAutoBuild() {
         waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
