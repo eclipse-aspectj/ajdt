@@ -349,18 +349,20 @@ public class AJCompilationUnitProblemFinder extends
         message.append("----------------------------------- WORKING COPIES -------------------------------------"); //$NON-NLS-1$
         if (environment != null) {
             ICompilationUnit[] workingCopies = environment.getWorkingCopies();
-            for (int i = 0; i < workingCopies.length; i++) {
-                message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
-                message.append(lineDelimiter);
-                if (workingCopies[i] instanceof AJCompilationUnit) {
-                    ((AJCompilationUnit) workingCopies[i]).requestOriginalContentMode();
+            if (workingCopies != null) {
+                for (int i = 0; i < workingCopies.length; i++) {
+                    message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
+                    message.append(lineDelimiter);
+                    if (workingCopies[i] instanceof AJCompilationUnit) {
+                        ((AJCompilationUnit) workingCopies[i]).requestOriginalContentMode();
+                    }
+                    message.append(workingCopies[i].getSource());
+                    if (workingCopies[i] instanceof AJCompilationUnit) {
+                        ((AJCompilationUnit) workingCopies[i]).discardOriginalContentMode();
+                    }
+                    message.append(lineDelimiter);
+                    message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
                 }
-                message.append(workingCopies[i].getSource());
-                if (workingCopies[i] instanceof AJCompilationUnit) {
-                    ((AJCompilationUnit) workingCopies[i]).discardOriginalContentMode();
-                }
-                message.append(lineDelimiter);
-                message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
             }
         } else {
             message.append("none");
@@ -676,7 +678,9 @@ public class AJCompilationUnitProblemFinder extends
             }
             
             if (numArgs > 0 &&
-                    id == IProblem.UndefinedType &&
+                    (id == IProblem.UndefinedType ||
+                     id == IProblem.InternalTypeNameProvided
+                    )  &&
                     firstArg.indexOf('$') != -1) {
                 // based on previous test, we are not inside of an ITD, 
                 // so we may be defining a field or variable with a 

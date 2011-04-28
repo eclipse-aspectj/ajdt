@@ -128,7 +128,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         if (worldInfo != null) {
             iTypeParameters = worldInfo.getITypeParameters(this);
         } else {
-            iTypeParameters = null;
+            iTypeParameters = IntertypeElementInfo.NO_TYPE_PARAMETERS;
         }
         return iTypeParameters;
     }

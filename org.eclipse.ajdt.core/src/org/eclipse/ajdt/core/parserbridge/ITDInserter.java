@@ -12,6 +12,7 @@ package org.eclipse.ajdt.core.parserbridge;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +98,7 @@ public class ITDInserter extends ASTVisitor {
             return super.createTypeReference(typeName, 0, typeName.length);
         }
         protected TypeReference createTypeReference(String typeSignature) {
-            return super.createTypeReference(typeSignature, 0, typeSignature.length());
+            return super.createTypeReference(typeSignature.replace('/', '.'), 0, typeSignature.length());
         }
     }
 
@@ -491,18 +492,24 @@ public class ITDInserter extends ASTVisitor {
     }
 
     private void addSuperClass(String newSuper, TypeDeclaration decl) {
-        newSuper = newSuper.replaceAll("\\$", "\\.");
         decl.superclass = createTypeReference(newSuper);
         decl.binding.superclass = createTypeBinding(newSuper);
     }
     
     private ReferenceBinding createTypeBinding(String newSuper) {
+        newSuper = newSuper.replace('$', '.');
         return env.askForType(CharOperation.splitOn('.', newSuper.toCharArray()));
     }
 
     private void addSuperInterfaces(IProgramElement ipe, TypeDeclaration decl) {
         List<String> newInterfaces = ipe.getParentTypes();
-        addSuperInterfaces(newInterfaces, decl);
+        if (newInterfaces != null) {
+            List<String> copy = new ArrayList<String>(newInterfaces.size());
+            for (String newInterface : newInterfaces) {
+                copy.add(newInterface.replace('$', '.'));
+            }
+            addSuperInterfaces(newInterfaces, decl);
+        }
     }
 
     /**
@@ -513,14 +520,40 @@ public class ITDInserter extends ASTVisitor {
             TypeDeclaration decl) {
         if (newInterfaces != null) {
             int superInterfacesNum = decl.superInterfaces == null ? 0 : decl.superInterfaces.length;
-            TypeReference[] refs = new TypeReference[superInterfacesNum + newInterfaces.size()];
+
+            // remove duplicates
+            List<TypeReference> newReferences = new ArrayList<TypeReference>(newInterfaces.size());
+            for (Iterator<String> iterator = newInterfaces.iterator(); iterator
+                    .hasNext();) {
+                String newInterface = iterator.next();
+                TypeReference reference = createTypeReference(newInterface);
+                boolean matchFound = false;
+                for (int i = 0; i < superInterfacesNum; i++) {
+                	if (CharOperation.equals(decl.superInterfaces[i].getTypeName(), reference.getTypeName())) {
+                		iterator.remove();
+                		matchFound = true;
+                		break;
+                	}
+                }
+                if (!matchFound) {
+                    newReferences.add(reference);
+                }
+            }
+        	
+        	
+        	// add the ast
+            TypeReference[] refs = new TypeReference[superInterfacesNum + newReferences.size()];
             if (superInterfacesNum > 0) {
                 System.arraycopy(decl.superInterfaces, 0, refs, 0, decl.superInterfaces.length);
             }
             for (int i = 0; i < refs.length-superInterfacesNum; i++) {
-                refs[i + superInterfacesNum] = createTypeReference(newInterfaces.get(i).replaceAll("\\$", "\\."));
+                refs[i + superInterfacesNum] = newReferences.get(i);
             }
             decl.superInterfaces = refs;
+            
+            
+            // FIXADE I *think* that the bindings and the ast must be identical, so I could combine
+            // but I'm not entirely sure there isn't a corner case somewhere.
             
             // now do the bindings
             if (decl.binding != null && decl.binding.superInterfaces != null) {

@@ -18,12 +18,14 @@ import org.eclipse.jdt.core.ITypeParameter;
  */
 public class IntertypeElementInfo extends AspectJMemberElementInfo {
 	
+    static final ITypeParameter[] NO_TYPE_PARAMETERS = new ITypeParameter[0];
     int declaredModifiers;
     private char[] qualifiedReturnType;
     int targetTypeStart;
     int targetTypeEnd;
     
     public IntertypeElementInfo() {
+        this.typeParameters = NO_TYPE_PARAMETERS;
     }
     
 	protected char[] targetType;
