@@ -47,7 +47,7 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("Bug265557DeclareSoft"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         
         IFolder src = proj.getFolder("src");
         
@@ -67,7 +67,7 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
         };
         src.accept(visitor);
         
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         
     }

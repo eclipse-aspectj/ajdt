@@ -43,7 +43,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
         IFile myAspectFile2;
         super.setUp();
         proj = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         demoFile = proj.getFile("src/test/Demo.aj"); //$NON-NLS-1$
         demoCU = new AJCompilationUnit(demoFile);
@@ -119,7 +119,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
      */
     public void testSyntaxError() throws Exception {
         otherClassCU.getBuffer().setContents(otherClassCU.getBuffer().getContents() + "gggg"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
 
         HashMap problems = new HashMap();
         AJCompilationUnitProblemFinder.processAJ(otherClassCU, 
@@ -134,7 +134,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
         String contents = otherClassCU.getBuffer().getContents();
         try {
             otherClassCU.getBuffer().setContents(contents.substring(0, contents.length()-2) + "t() { } }\n"); //$NON-NLS-1$
-            waitForJobsToComplete();
+            joinBackgroudActivities();
 
             HashMap problems = new HashMap();
             AJCompilationUnitProblemFinder.processAJ(otherClassCU, 
@@ -164,7 +164,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
         try {
             otherClassCU.becomeWorkingCopy(new MockProblemRequestor(), null);
             otherClassCU.getBuffer().setContents(contents + "gggg"); //$NON-NLS-1$
-            waitForJobsToComplete();
+            joinBackgroudActivities();
             
             otherClassCU.reconcile(AST.JLS3, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) otherClassCU.getPerWorkingCopyInfo().getProblemRequestor();
@@ -183,7 +183,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
             String s = contents;
             s = s.replaceFirst("foo", "fffffff"); //$NON-NLS-1$ //$NON-NLS-2$
             demoCU.getBuffer().setContents(s);
-            waitForJobsToComplete();
+            joinBackgroudActivities();
             
             demoCU.reconcile(AST.JLS3, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) demoCU.getPerWorkingCopyInfo().getProblemRequestor();

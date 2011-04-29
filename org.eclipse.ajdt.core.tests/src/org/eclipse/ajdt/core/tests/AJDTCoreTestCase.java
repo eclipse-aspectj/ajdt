@@ -42,6 +42,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -230,13 +231,6 @@ public class AJDTCoreTestCase extends TestCase {
     protected static class Requestor extends TypeNameRequestor { }
 
     
-    protected void waitForJobsToComplete(){
-        AJDTCoreTestCase.waitForAutoBuild();
-        AJDTCoreTestCase.waitForManualBuild();
-        AJDTCoreTestCase.waitForAutoRefresh();
-        AJDTCoreTestCase.waitForManualRefresh();
-    }
-
     public static void waitForAutoBuild() {
         waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
     }
@@ -265,12 +259,71 @@ public class AJDTCoreTestCase extends TestCase {
         
     }
     
-       public static void joinBackgroudActivities()  {
-            waitForAutoBuild();
-            waitForManualBuild();
-            waitForAutoRefresh();
-            waitForManualRefresh();
+    private static final long TWO_MINUTES = 1000 * 60 * 2;
+    public static void joinBackgroudActivities()  {
+        waitForAutoBuild();
+        waitForManualBuild();
+        waitForAutoRefresh();
+        waitForManualRefresh();
+        
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + TWO_MINUTES;
+        while (! allJobsQuiet()) {
+            waitForJobs();
+            if (System.currentTimeMillis() > endTime) {
+                fail("Waited too long for jobs to finish.  All jobs:\n" + printJobs());
+            }
         }
+    }
+    
+    public static String printJobs() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        StringBuilder sb = new StringBuilder();
+        sb.append("------------------------");
+        sb.append("Printing jobs");
+        for (int i= 0; i < jobs.length; i++) {
+            sb.append(jobs[i]);
+        }
+        sb.append("------------------------");
+        return sb.toString();
+    }
+
+    
+    private static boolean allJobsQuiet() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        for (int i= 0; i < jobs.length; i++) {
+            Job job= jobs[i];
+            int state= job.getState();
+            //ignore jobs we don't care about
+            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+                    (state == Job.RUNNING || state == Job.WAITING)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    
+    private static void waitForJobs() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        for (int i= 0; i < jobs.length; i++) {
+            Job job= jobs[i];
+            int state= job.getState();
+            //ignore jobs we don't care about
+            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+                    (state == Job.RUNNING || state == Job.WAITING)) {
+                try {
+                    job.join();
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+    }
 
     
     /**

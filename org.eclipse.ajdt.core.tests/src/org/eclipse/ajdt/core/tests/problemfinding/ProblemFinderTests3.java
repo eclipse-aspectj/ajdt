@@ -38,7 +38,7 @@ public class ProblemFinderTests3 extends AJDTCoreTestCase {
         IFile deleteActionAspectFile;
         super.setUp();
         proj = createPredefinedProject("ITDTesting2"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         actionExecutorFile = proj.getFile("src/generics/ActionExecutor.java"); //$NON-NLS-1$
         actionExecutorCU = new AJCompilationUnit(actionExecutorFile);

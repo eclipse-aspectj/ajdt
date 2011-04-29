@@ -42,13 +42,13 @@ public class ProblemFinderTests7 extends AJDTCoreTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("PrivilegedAspectReconciling"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         
         allCUnits.add(createUnit("src/HasPrivateMembers.java"));
         allCUnits.add(createUnit("src/IsPrivileged.aj"));
         allCUnits.add(createUnit("src/IsPrivilegedWithError.aj"));
         
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         
     }

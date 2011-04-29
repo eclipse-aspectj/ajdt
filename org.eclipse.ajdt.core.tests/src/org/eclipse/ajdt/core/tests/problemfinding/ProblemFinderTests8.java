@@ -44,7 +44,7 @@ public class ProblemFinderTests8 extends AJDTCoreTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("AJProblemsBug246393"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         
         allCUnits.add(createUnit("src/ajfiles/AnAspect.aj"));
         allCUnits.add(createUnit("src/ajfiles/C2.aj"));
@@ -55,7 +55,7 @@ public class ProblemFinderTests8 extends AJDTCoreTestCase {
         allCUnits.add(createUnit("src/javafiles/Concrete.java"));
         allCUnits.add(createUnit("src/javafiles/Interface.java"));
         
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         
     }

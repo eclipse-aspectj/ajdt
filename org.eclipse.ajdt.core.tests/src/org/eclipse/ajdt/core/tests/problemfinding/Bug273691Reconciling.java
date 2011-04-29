@@ -47,7 +47,7 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         proj = createPredefinedProject("Bug273691"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         
         IFolder src = proj.getFolder("src");
         
@@ -63,7 +63,7 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
         };
         src.accept(visitor);
         
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         
     }

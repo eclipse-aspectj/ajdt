@@ -48,7 +48,7 @@ public class ProblemFinderTests2 extends AJDTCoreTestCase {
         IFile otherClassFile2;
         super.setUp();
         proj = createPredefinedProject("ITDTesting"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
         demoFile = proj.getFile("src/test/Demo.aj"); //$NON-NLS-1$
         demoCU = new AJCompilationUnit(demoFile);

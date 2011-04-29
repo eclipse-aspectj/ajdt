@@ -45,7 +45,7 @@ public abstract class AbstractProblemFindingTests extends AJDTCoreTestCase {
 
     protected void setUp() throws Exception {
         proj = JavaCore.create(createPredefinedProject("DefaultEmptyProject")); //$NON-NLS-1$
-        waitForJobsToComplete();
+        joinBackgroudActivities();
         setAutobuilding(false);
     }
 
