@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
@@ -66,6 +67,7 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
             }
         };
         src.accept(visitor);
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         joinBackgroudActivities();
         setAutobuilding(false);

@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
@@ -52,6 +53,7 @@ public class ProblemFinderTests6 extends AJDTCoreTestCase {
         allCUnits.add(createUnit("src/bug/FailingManager.java"));
         
         joinBackgroudActivities();
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         setAutobuilding(false);
         
     }
