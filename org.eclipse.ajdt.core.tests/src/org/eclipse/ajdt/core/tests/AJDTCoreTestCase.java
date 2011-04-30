@@ -296,12 +296,18 @@ public class AJDTCoreTestCase extends TestCase {
         for (int i= 0; i < jobs.length; i++) {
             Job job= jobs[i];
             int state= job.getState();
-            //ignore jobs we don't care about
-            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
-                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+            if ((job.getName().startsWith("Java indexing") ||
+                    job.getName().startsWith("Searching for markers")) &&
                     (state == Job.RUNNING || state == Job.WAITING)) {
                 return false;
             }
+//            int state= job.getState();
+//            //ignore jobs we don't care about
+//            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+//                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+//                    (state == Job.RUNNING || state == Job.WAITING)) {
+//                return false;
+//            }
         }
         return true;
     }
@@ -313,15 +319,26 @@ public class AJDTCoreTestCase extends TestCase {
         for (int i= 0; i < jobs.length; i++) {
             Job job= jobs[i];
             int state= job.getState();
-            //ignore jobs we don't care about
-            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
-                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+            if ((job.getName().startsWith("Java indexing") ||
+                    job.getName().startsWith("Searching for markers")) &&
                     (state == Job.RUNNING || state == Job.WAITING)) {
                 try {
                     job.join();
                 } catch (InterruptedException e) {
                 }
+                
             }
+            
+//            //ignore jobs we don't care about
+//            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+//                    !job.getName().equals("Usage Data Event consumer") &&
+//                    !job.getName().equals("Animation start" ) &&  //$NON-NLS-1$
+//                    (state == Job.RUNNING || state == Job.WAITING)) {
+//                try {
+//                    job.join();
+//                } catch (InterruptedException e) {
+//                }
+//            }
         }
     }
 
