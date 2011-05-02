@@ -42,14 +42,15 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class ProblemFinderTests11 extends AJDTCoreTestCase {
-    List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    List<ICompilationUnit> allCUnits = new ArrayList<ICompilationUnit> ();
     ICompilationUnit errorUnit;
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
+        setAutobuilding(false);
         proj = createPredefinedProject("Bug265557DeclareSoft"); //$NON-NLS-1$
-        joinBackgroudActivities();
-        
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
+
         IFolder src = proj.getFolder("src");
         
         IResourceVisitor visitor = new IResourceVisitor() {
@@ -70,8 +71,6 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
         proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         joinBackgroudActivities();
-        setAutobuilding(false);
-        
     }
     
     private ICompilationUnit createUnit(IFile file) {
@@ -97,8 +96,8 @@ public class ProblemFinderTests11 extends AJDTCoreTestCase {
     
     public void testProblemFindingAll() throws Exception {
         StringBuffer sb = new StringBuffer();
-        for (Iterator cunitIter = allCUnits.iterator(); cunitIter.hasNext();) {
-            sb.append(problemFind((ICompilationUnit) cunitIter.next()));
+        for (ICompilationUnit element : allCUnits) {
+            sb.append(problemFind(element));
         }
         if (sb.length() > 0) {
             fail(sb.toString());

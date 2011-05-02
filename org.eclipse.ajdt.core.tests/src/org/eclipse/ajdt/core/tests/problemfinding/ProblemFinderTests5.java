@@ -42,8 +42,9 @@ public class ProblemFinderTests5 extends AJDTCoreTestCase {
     private IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
+        setAutobuilding(false);
         proj = createPredefinedProject("ITDOnInterfaces"); //$NON-NLS-1$
-        joinBackgroudActivities();
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
 
         allCUnits.add(createUnit("src/p/AClass.java"));
         allCUnits.add(createUnit("src/p/AnAspect.aj"));
@@ -53,10 +54,7 @@ public class ProblemFinderTests5 extends AJDTCoreTestCase {
         allCUnits.add(createUnit("src/p/ASubInterface2.java"));
         allCUnits.add(createUnit("src/q/AClass.java"));
         
-        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         joinBackgroudActivities();
-        setAutobuilding(false);
-        
     }
     private ICompilationUnit createUnit(String fName) {
         return (ICompilationUnit) AspectJCore.create(proj.getFile(fName));

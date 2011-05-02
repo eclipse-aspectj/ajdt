@@ -12,7 +12,6 @@ package org.eclipse.ajdt.core.tests.problemfinding;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCore;
@@ -43,15 +42,15 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class Bug279439Reconciling extends AJDTCoreTestCase {
-    List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    List<ICompilationUnit> allCUnits = new ArrayList<ICompilationUnit> ();
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
+        setAutobuilding(false);
         proj = createPredefinedProject("Bug279439"); //$NON-NLS-1$
-        joinBackgroudActivities();
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
         
         IFolder src = proj.getFolder("src");
-        
         IResourceVisitor visitor = new IResourceVisitor() {
             public boolean visit(IResource resource) throws CoreException {
                 if (resource.getType() == IResource.FILE && 
@@ -63,11 +62,7 @@ public class Bug279439Reconciling extends AJDTCoreTestCase {
             }
         };
         src.accept(visitor);
-        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
-
         joinBackgroudActivities();
-        setAutobuilding(false);
-        
     }
     
     private ICompilationUnit createUnit(IFile file) {
@@ -81,8 +76,8 @@ public class Bug279439Reconciling extends AJDTCoreTestCase {
 
     public void testProblemFindingAll() throws Exception {
         StringBuffer sb = new StringBuffer();
-        for (Iterator cunitIter = allCUnits.iterator(); cunitIter.hasNext();) {
-            sb.append(problemFind((ICompilationUnit) cunitIter.next()));
+        for (ICompilationUnit element : allCUnits) {
+            sb.append(problemFind(element));
         }
         if (sb.length() > 0) {
             fail(sb.toString());
