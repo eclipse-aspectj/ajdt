@@ -15,24 +15,6 @@ package org.eclipse.ajdt.ui.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import org.eclipse.ajdt.core.tests.problemfinding.Bug273691Reconciling;
-import org.eclipse.ajdt.core.tests.problemfinding.Bug279439Reconciling;
-import org.eclipse.ajdt.core.tests.problemfinding.ExtraAspectMethodProblemFinderTests;
-import org.eclipse.ajdt.core.tests.problemfinding.GenericProblemFinderTests;
-import org.eclipse.ajdt.core.tests.problemfinding.ITITProblemFinderTests;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests11;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests12;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests13;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests14;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests16;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests2;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests3;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests5;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests6;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests7;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests8;
-import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests9;
 import org.eclipse.ajdt.ui.tests.actions.AddAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest;
@@ -99,8 +81,14 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
+import org.eclipse.ajdt.ui.tests.reconciling.Bug279439Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests12;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests4;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests5;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests6;
+import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
 import org.eclipse.ajdt.ui.tests.refactoring.ConvertLocalToFieldTests;
 import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
 import org.eclipse.ajdt.ui.tests.refactoring.ExtractConstantTests;
@@ -236,6 +224,13 @@ public class AllAJDTUITests {
         // the rest have been moved to the core tests plugin
         suite.addTest(new TestSuite(ProblemFinderTests4.class));
         suite.addTest(new TestSuite(ProblemFinderTests10.class));
+        suite.addTest(new TestSuite(ProblemFinderTests5.class));
+        suite.addTest(new TestSuite(ProblemFinderTests6.class));
+        suite.addTest(new TestSuite(ProblemFinderTests8.class));
+        suite.addTest(new TestSuite(ProblemFinderTests11.class));
+        suite.addTest(new TestSuite(ProblemFinderTests12.class));
+        suite.addTest(new TestSuite(Bug279439Reconciling.class));
+
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
