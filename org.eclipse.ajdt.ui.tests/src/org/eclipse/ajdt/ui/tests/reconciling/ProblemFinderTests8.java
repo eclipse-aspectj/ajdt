@@ -18,7 +18,6 @@ import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.problemfinding.MockProblemRequestor;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -38,7 +37,7 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class ProblemFinderTests8 extends AJDTCoreTestCase {
-    private List/*ICompilationUnit*/ allCUnits = new ArrayList(); 
+    private List<ICompilationUnit> allCUnits = new ArrayList<ICompilationUnit>(); 
    
     
     private IProject proj;
@@ -69,35 +68,35 @@ public class ProblemFinderTests8 extends AJDTCoreTestCase {
     }
     
     public void testProblemFinding0() throws Exception {
-        problemFind((ICompilationUnit) allCUnits.get(0));
+        problemFind(allCUnits.get(0));
     }
     
     public void testProblemFinding1() throws Exception {
-        problemFind1Error((ICompilationUnit) allCUnits.get(1));
+        problemFind1Error(allCUnits.get(1));
     }
     
     public void testProblemFinding2() throws Exception {
-        problemFind((ICompilationUnit) allCUnits.get(2));
+        problemFind(allCUnits.get(2));
     }
     
     public void testProblemFinding3() throws Exception {
-        problemFind((ICompilationUnit) allCUnits.get(3));
+        problemFind(allCUnits.get(3));
     }
     
     public void testProblemFinding4() throws Exception {
-        problemFind((ICompilationUnit) allCUnits.get(4));
+        problemFind(allCUnits.get(4));
     }
     
     public void testProblemFinding5() throws Exception {
-        problemFind1Error((ICompilationUnit) allCUnits.get(5));
+        problemFind1Error(allCUnits.get(5));
     }
     
     public void testProblemFinding6() throws Exception {
-        problemFind((ICompilationUnit) allCUnits.get(6));
+        problemFind(allCUnits.get(6));
     }
     
     public void testProblemFinding7() throws Exception {
-        problemFind((ICompilationUnit) allCUnits.get(7));
+        problemFind(allCUnits.get(7));
     }
  
     private void problemFind1Error(ICompilationUnit unit) throws Exception {
