@@ -42,7 +42,7 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  *
  */
 public class Bug273691Reconciling extends AJDTCoreTestCase {
-    List/*ICompilationUnit*/ allCUnits = new ArrayList();
+    List<ICompilationUnit> allCUnits = new ArrayList<ICompilationUnit>();
     IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
@@ -79,8 +79,8 @@ public class Bug273691Reconciling extends AJDTCoreTestCase {
 
     public void testProblemFindingAll() throws Exception {
         StringBuffer sb = new StringBuffer();
-        for (Iterator cunitIter = allCUnits.iterator(); cunitIter.hasNext();) {
-            sb.append(problemFind((ICompilationUnit) cunitIter.next()));
+        for (ICompilationUnit unit : allCUnits) {
+            sb.append(problemFind(unit));
         }
         if (sb.length() > 0) {
             fail(sb.toString());
