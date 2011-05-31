@@ -91,9 +91,11 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	}
 	public void append(char[] text) {
 		realBuffer.append(text);
+		upToDate = false;
 	}
 	public void append(String text) {
 		realBuffer.append(text);
+		upToDate = false;
 	}
 	public boolean equals(Object obj) {
 		return realBuffer.equals(obj);
@@ -121,13 +123,17 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	}
 	public void replace(int position, int length, char[] text) {
 		position = translatePositionToReal(position);
-		if (position != -1)
+		if (position != -1) {
 			realBuffer.replace(position, length, text);
+			upToDate = false;
+		}
 	}
 	public void replace(int position, int length, String text) {
 		position = translatePositionToReal(position);
-		if (position != -1)
+		if (position != -1) {
 			realBuffer.replace(position, length, text);
+			upToDate = false;
+		}
 	}
 	public void save(IProgressMonitor progress, boolean force)
 			throws JavaModelException {
@@ -141,7 +147,7 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	}
 	
 	private void ensureUpToDate(){
-		if (!upToDate){
+		if (!upToDate) {
 			
 			fakeBuffer.setContents((char[])realBuffer.getCharacters().clone());
 			AspectsConvertingParser conv = new AspectsConvertingParser((char[])realBuffer.getCharacters().clone());
