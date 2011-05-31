@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Andrew Eisenberg - fix for Bug 345883
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
 
@@ -257,7 +258,7 @@ privileged aspect AJNewTypeWizardPage {
 				fCreatedFile = createNewFile(getPackageFragmentRootText(), pack.getElementName());
 				InputStream is = new ByteArrayInputStream("".getBytes()); //$NON-NLS-1$
 				fCreatedFile.create(is, false, monitor);
-				ICompilationUnit parentCU = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fCreatedFile);
+				AJCompilationUnit parentCU = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fCreatedFile);
 				// AspectJ change end
 				
 				//String cuName= getCompilationUnitName(typeName);
@@ -335,13 +336,13 @@ privileged aspect AJNewTypeWizardPage {
 					sibling = elems.length > 0 ? elems[0] : null;
 				}
 				
-				// AspectJ change begin
-				int ind = content.indexOf("aspect"); //$NON-NLS-1$
-				if (ind != -1) {
-					// rewrite to class, otherwise createType will think the contents are invalid
-					content.replace(ind,ind+"aspect".length(),"class");  //$NON-NLS-1$//$NON-NLS-2$
-				}
-				// AspectJ change end
+//				// AspectJ change begin
+//				int ind = content.indexOf("aspect"); //$NON-NLS-1$
+//				if (ind != -1) {
+//					// rewrite to class, otherwise createType will think the contents are invalid
+//					content.replace(ind,ind+"aspect".length(),"class");  //$NON-NLS-1$//$NON-NLS-2$
+//				}
+//				// AspectJ change end
 				createdType= enclosingType.createType(content.toString(), sibling, false, new SubProgressMonitor(monitor, 2));
 			
 				indent= StubUtility.getIndentUsed(enclosingType) + 1;
@@ -352,12 +353,9 @@ privileged aspect AJNewTypeWizardPage {
 			
 			// add imports for superclass/interfaces, so types can be resolved correctly
 			
-			ICompilationUnit cu= createdType.getCompilationUnit();	
-			
 			// AspectJ change begin
-			if (cu instanceof AJCompilationUnit) {
-				((AJCompilationUnit)cu).requestOriginalContentMode();
-			}
+			AJCompilationUnit cu= (AJCompilationUnit) createdType.getCompilationUnit();	
+			cu.requestOriginalContentMode();
 			// AspectJ change end
 
 			if (!isInnerClass) { // AspectJ change
@@ -375,15 +373,12 @@ privileged aspect AJNewTypeWizardPage {
 			imports= new ImportsManager(astRoot);
 			
 			// AspectJ change begin
-			if (cu instanceof AJCompilationUnit) {
-				((AJCompilationUnit)cu).discardOriginalContentMode();
-			}
+			cu.discardOriginalContentMode();
 			// AspectJ change end
+			
 			createTypeMembers(createdType, imports, new SubProgressMonitor(monitor, 1));
 			// AspectJ change begin
-			if (cu instanceof AJCompilationUnit) {
-				((AJCompilationUnit)cu).requestOriginalContentMode();
-			}
+			cu.requestOriginalContentMode();
 			// AspectJ change end
 	
 			// add imports
@@ -400,24 +395,25 @@ privileged aspect AJNewTypeWizardPage {
 			IBuffer buf= cu.getBuffer();
 			String originalContent= buf.getText(range.getOffset(), range.getLength());
 			
-			// AspectJ change begin
-			String repl = originalContent;
-			int ind = originalContent.indexOf("aspect"); //$NON-NLS-1$
-			if (ind != -1) {
-				repl = originalContent.substring(0,ind) + "class" //$NON-NLS-1$
-					+ originalContent.substring(ind+"aspect".length()); //$NON-NLS-1$
-			}
-			String formattedContent= CodeFormatterUtil.format(
-					CodeFormatter.K_CLASS_BODY_DECLARATIONS, repl, indent, lineDelimiter, pack.getJavaProject());
-			formattedContent= Strings.trimLeadingTabsAndSpaces(formattedContent);
-			ind = formattedContent.indexOf("class"); //$NON-NLS-1$
-			if (ind != -1) {
-				formattedContent = formattedContent.substring(0,ind) + "aspect" //$NON-NLS-1$
-					+ formattedContent.substring(ind+"class".length()); //$NON-NLS-1$
-			}
-			// AspectJ change end
+//			// AspectJ change begin
+//			String repl = originalContent;
+//			int ind = originalContent.indexOf("aspect"); //$NON-NLS-1$
+//			if (ind != -1) {
+//				repl = originalContent.substring(0,ind) + "class" //$NON-NLS-1$
+//					+ originalContent.substring(ind+"aspect".length()); //$NON-NLS-1$
+//			}
+//			String formattedContent= CodeFormatterUtil.format(
+//					CodeFormatter.K_CLASS_BODY_DECLARATIONS, repl, indent, lineDelimiter, pack.getJavaProject());
+//			formattedContent= Strings.trimLeadingTabsAndSpaces(formattedContent);
+//			ind = formattedContent.indexOf("class"); //$NON-NLS-1$
+//			if (ind != -1) {
+//				formattedContent = formattedContent.substring(0,ind) + "aspect" //$NON-NLS-1$
+//					+ formattedContent.substring(ind+"class".length()); //$NON-NLS-1$
+//			}
+//			buf.replace(range.getOffset(), range.getLength(), formattedContent);
+//			// AspectJ change end
 
-			buf.replace(range.getOffset(), range.getLength(), formattedContent);
+//			buf.replace(range.getOffset(), range.getLength(), originalContent);
 			if (!isInnerClass) {
 				String fileComment= getFileComment(cu);
 				if (fileComment != null && fileComment.length() > 0) {

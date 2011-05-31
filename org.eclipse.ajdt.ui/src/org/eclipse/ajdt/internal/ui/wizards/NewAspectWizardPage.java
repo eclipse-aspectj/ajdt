@@ -202,8 +202,11 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 		// pick & choose the wanted UI components
 		
 		createContainerControls(composite, nColumns);	
-		createPackageControls(composite, nColumns);	
-		createEnclosingTypeControls(composite, nColumns);
+		createPackageControls(composite, nColumns);
+		
+		// allowing creation of an inner aspect is of low
+		// value and is not currently working, so disable
+//		createEnclosingTypeControls(composite, nColumns);
 				
 		createSeparator(composite, nColumns);
 		
