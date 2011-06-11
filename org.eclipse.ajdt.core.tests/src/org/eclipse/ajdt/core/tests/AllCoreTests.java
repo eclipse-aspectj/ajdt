@@ -67,6 +67,7 @@ import org.eclipse.ajdt.core.tests.model.MultipleProjectModelTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.core.tests.problemfinding.Bug273691Reconciling;
+import org.eclipse.ajdt.core.tests.problemfinding.Bug347021ProblemFinderTests;
 import org.eclipse.ajdt.core.tests.problemfinding.ExtraAspectMethodProblemFinderTests;
 import org.eclipse.ajdt.core.tests.problemfinding.GenericProblemFinderTests;
 import org.eclipse.ajdt.core.tests.problemfinding.ITITProblemFinderTests;
@@ -199,6 +200,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(GenericProblemFinderTests.class));
         suite.addTest(new TestSuite(ExtraAspectMethodProblemFinderTests.class));
         suite.addTest(new TestSuite(ITITProblemFinderTests.class));
+        suite.addTest(new TestSuite(Bug347021ProblemFinderTests.class));
 
 
 		// AST tests
