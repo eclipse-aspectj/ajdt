@@ -601,7 +601,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         applyReplacements();
 
         // uncomment to see the transformed source code
+//        System.out.println("----------\nConversion:");
 //        System.out.println(String.valueOf(content));
+//        System.out.println("----------");
         
         return replacements;
     }

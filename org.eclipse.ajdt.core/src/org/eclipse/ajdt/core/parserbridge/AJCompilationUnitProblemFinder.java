@@ -741,6 +741,22 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
             
+            if ((id == IProblem.InvalidTypeForCollection || 
+                    id == IProblem.InvalidTypeForCollectionTarget14 ||
+                    id == IProblem.IncompatibleTypesInConditionalOperator ||
+                    id == IProblem.IllegalCast) &&
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor) &&
+                    // I wish there were a more precise way of doing this.  Need to 
+                    // look for a 'this' expression.
+                    extractProblemRegion(categorizedProblem, unit).contains("this")) {
+                    
+                // Bug 347021 
+                // a 'this' expression in an ITD refers to the target type, not the aspect.
+                // these problems here indicate that the aspect type is being used instead 
+                // of the target type.
+                return false;
+            }
+            
         } catch (JavaModelException e) {
         }
         
@@ -758,8 +774,6 @@ public class AJCompilationUnitProblemFinder extends
             // the implementation of this abstract method is not necessarily there
             return false;
         }
-        
-        
         return true;
     }
 
