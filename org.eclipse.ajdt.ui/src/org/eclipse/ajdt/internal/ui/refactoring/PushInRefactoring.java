@@ -28,6 +28,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElementInfo;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
@@ -139,7 +140,7 @@ public class PushInRefactoring extends Refactoring {
             textChange.getEdit().addChild(importEdit);
         }
 
-        void computeImports(List<IAspectJElement> itds, ICompilationUnit ajUnit, IProgressMonitor monitor)
+        void computeImports(List<IMember> itds, ICompilationUnit ajUnit, IProgressMonitor monitor)
                 throws JavaModelException {
             IJavaProject project = ajUnit.getJavaProject();
             ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -149,7 +150,7 @@ public class PushInRefactoring extends Refactoring {
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
             CompilationUnit ajAST = (CompilationUnit) parser.createAST(monitor);
 
-            for (IAspectJElement itd : itds) {
+            for (IMember itd : itds) {
                 ISourceRange range = itd.getSourceRange();
                 ImportReferencesCollector.collect(ajAST, project, new Region(
                         range.getOffset(), range.getLength()),
@@ -224,7 +225,7 @@ public class PushInRefactoring extends Refactoring {
     
     private Map<ICompilationUnit, Change> allChanges = null; 
 
-    private List<IAspectJElement> itds = null;
+    private List<IMember> itds = null;
     
 
     public RefactoringStatus checkFinalConditions(IProgressMonitor monitor)
@@ -233,21 +234,21 @@ public class PushInRefactoring extends Refactoring {
         try {
             monitor.beginTask("Checking preconditions...", 2);
             allChanges = new LinkedHashMap<ICompilationUnit, Change>();
-            Map<ICompilationUnit, List<IAspectJElement>> unitToITDs = new HashMap<ICompilationUnit, List<IAspectJElement>>();
-            for (IAspectJElement itd : itds) {
+            Map<ICompilationUnit, List<IMember>> unitToITDs = new HashMap<ICompilationUnit, List<IMember>>();
+            for (IMember itd : itds) {
                 ICompilationUnit unit = itd.getCompilationUnit();
-                List<IAspectJElement> itds;
+                List<IMember> itds;
                 if (unitToITDs.containsKey(unit)) {
                     itds = unitToITDs.get(unit);
                 } else {
-                    itds = new LinkedList<IAspectJElement>();
+                    itds = new LinkedList<IMember>();
                     unitToITDs.put(unit, itds);
                 }
                 itds.add(itd);
             }
             
             Map<ICompilationUnit, NewImportsHolder> importsMap = new HashMap<ICompilationUnit, NewImportsHolder>();
-            for (Map.Entry<ICompilationUnit,List<IAspectJElement>> entry :  unitToITDs.entrySet()) {
+            for (Map.Entry<ICompilationUnit,List<IMember>> entry :  unitToITDs.entrySet()) {
                 status.merge(checkFinalConditionsForITD(
                         entry.getKey(), entry.getValue(), importsMap,
                         monitor));
@@ -265,17 +266,28 @@ public class PushInRefactoring extends Refactoring {
         return status;
     }
 
+    /**
+     * Checks the conditions for a single {@link AJCompilationUnit}
+     * @param ajUnit the unit to check
+     * @param itdsForUnit all itds in this unit
+     * @param imports a map from target {@link ICompilationUnit} to imports that need to be added
+     * initially empty, but populated in this method
+     * @param monitor
+     * @return
+     * @throws JavaModelException
+     */
     private RefactoringStatus checkFinalConditionsForITD(final ICompilationUnit ajUnit, 
-            final List<IAspectJElement> itdsForUnit, 
+            final List<IMember> itdsForUnit, 
             final Map<ICompilationUnit, NewImportsHolder> imports, 
             final IProgressMonitor monitor) throws JavaModelException {
         
         final RefactoringStatus status = new RefactoringStatus();
         
-        
+        // group all of the ITD targets by the ICompilationUnit that they are in
         final Map<ICompilationUnit, Set<IMember>> unitsToTypes = getUnitTypeMap(getTargets(itdsForUnit));
-        final Map<IJavaProject, Collection<ICompilationUnit>> projects= new HashMap<IJavaProject, Collection<ICompilationUnit>>();
         
+        // group all of the ICompilationUnits by project
+        final Map<IJavaProject, Collection<ICompilationUnit>> projects= new HashMap<IJavaProject, Collection<ICompilationUnit>>();
         for (ICompilationUnit targetUnit : unitsToTypes.keySet()) {
             IJavaProject project= targetUnit.getJavaProject();
             if (project != null) {
@@ -288,7 +300,7 @@ public class PushInRefactoring extends Refactoring {
             }
         }
         
-        
+        // also add the ajunit to the collection of affected units
         Collection<ICompilationUnit> units;
         IJavaProject aspectProject = ajUnit.getJavaProject();
         if (projects.containsKey(aspectProject)) {
@@ -299,6 +311,7 @@ public class PushInRefactoring extends Refactoring {
         }
         units.add(ajUnit);
         
+        // this requestor performs the real work
         ASTRequestor requestors = new ASTRequestor() {
             public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
                 try {
@@ -318,26 +331,35 @@ public class PushInRefactoring extends Refactoring {
                     // make the simplifying assumption that the CU that contains the
                     // ITD does not also contain a target type
                     // Bug 310020
-                    if (isCUnitContainingITD(source, (IAspectJElement) itdsForUnit.get(0))) {
-                        rewriteAspectType(itdsForUnit, source, ast, status);
+                    if (isCUnitContainingITD(source, (IMember) itdsForUnit.get(0))) {
+                        // this is an AJCU.
+                        rewriteAspectType(itdsForUnit, source, ast);
                     } else {
-                        // only do the declare parents once in order to a
+                        // this is a regular CU
+                        
+                        // only push in the declare parents once in order to a
                         // avoid overlapping edits...the declare parents rewrite
                         // takes care of *all* declare parents on that target
                         boolean declareParentsDone = false;
                         
-                        
-                        for (IAspectJElement itd : itdsForUnit) {
+                        for (IMember itd : itdsForUnit) {
                             
                             // filter out the types not affected by itd 
                             Collection<IMember> members = new ArrayList<IMember>();
                             members.addAll(unitsToTypes.get(source));
                             AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
                             List<IJavaElement> realTargets;
-                            if (itd.getAJKind().isDeclareAnnotation()) {
-                                realTargets = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
+                            if (itd instanceof IAspectJElement && ((IAspectJElement) itd).getAJKind().isDeclareAnnotation()) {
+                                realTargets = model
+                                        .getRelationshipsForElement(
+                                                itd,
+                                                AJRelationshipManager.ANNOTATES);
                             } else {
-                                realTargets = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
+                                // regular ITD or an ITIT
+                                realTargets = model
+                                        .getRelationshipsForElement(
+                                                itd,
+                                                AJRelationshipManager.DECLARED_ON);
                             }
                             for (Iterator<IMember> memberIter = members.iterator(); memberIter
                                     .hasNext();) {
@@ -350,7 +372,8 @@ public class PushInRefactoring extends Refactoring {
                             if (members.size() > 0) {
                                 //  hmmmm...this may break if there are more than one 
                                 // type in a CU that has declare parents on it being pushed in
-                                if (itd.getAJKind() == Kind.DECLARE_PARENTS) {
+                                if (itd instanceof IAspectJElement && 
+                                        ((IAspectJElement) itd).getAJKind() == Kind.DECLARE_PARENTS) {
                                     if (declareParentsDone) {
                                         continue;
                                     } else {
@@ -392,30 +415,40 @@ public class PushInRefactoring extends Refactoring {
     }
 
 
-    
-    protected void rewriteAspectType(List<IAspectJElement> itdsForUnit,
-            ICompilationUnit source, CompilationUnit ast,
-            RefactoringStatus status) throws JavaModelException, CoreException {
+    /**
+     * Removes all ITDs in the given compilation unit.
+     * Will delete an aspect if it has no more members.
+     * Will delete an {@link AJCompilationUnit} if all 
+     * of its types are deleted.
+     * @param itdsForUnit the ITDs for the given unit
+     * @param source 
+     * @param ast used to calculate imports
+     * @throws JavaModelException
+     * @throws CoreException
+     */
+    protected void rewriteAspectType(List<IMember> itdsForUnit,
+            ICompilationUnit source, CompilationUnit ast) throws JavaModelException, CoreException {
             
-        // check to see if we need to delete this type
+        // used to keep track of aspect types that are deleted.
         Map<IType, Integer> removalStored = new HashMap<IType, Integer>();
         Map<IType, List<DeleteEdit>> typeDeletes = new HashMap<IType, List<DeleteEdit>>();
         
-        for (IAspectJElement itd : itdsForUnit) {
-            IType type = (IType) itd.getParent();
+        // go through each ITD and create a delete edit for it
+        for (IMember itd : itdsForUnit) {
+            IType parentAspectType = (IType) itd.getParent();
             int numRemovals;
-            if (removalStored.containsKey(type)) {
-                numRemovals = ((Integer) removalStored.get(type)).intValue();
-                removalStored.put(type, new Integer(++numRemovals));
+            if (removalStored.containsKey(parentAspectType)) {
+                numRemovals = ((Integer) removalStored.get(parentAspectType)).intValue();
+                removalStored.put(parentAspectType, new Integer(++numRemovals));
             } else {
-                removalStored.put(type, new Integer(1));
+                removalStored.put(parentAspectType, new Integer(1));
             }
             List<DeleteEdit> deletes;
-            if (typeDeletes.containsKey(type)) {
-                deletes = typeDeletes.get(type);
+            if (typeDeletes.containsKey(parentAspectType)) {
+                deletes = typeDeletes.get(parentAspectType);
             } else {
                 deletes = new LinkedList<DeleteEdit>();
-                typeDeletes.put(type, deletes);
+                typeDeletes.put(parentAspectType, deletes);
             }
             
             DeleteEdit edit = new DeleteEdit(itd.getSourceRange().getOffset(), itd.getSourceRange().getLength()+1);
@@ -429,8 +462,15 @@ public class PushInRefactoring extends Refactoring {
         }
     }
 
-    // Deletes all aspect types that have no more children
-    // returns true if the compilation unit should be deleted
+    /**
+     * Deletes all aspect types that have no more children
+     * returns true if the compilation unit should be deleted
+     * @param ast
+     * @param typeDeletes
+     * @param removalStored
+     * @return
+     * @throws JavaModelException
+     */
     private boolean deleteTypes(CompilationUnit ast, Map<IType, List<DeleteEdit>> typeDeletes,
             Map<IType, Integer> removalStored) throws JavaModelException {
         if (!deleteEmpty) {
@@ -441,6 +481,8 @@ public class PushInRefactoring extends Refactoring {
             IType type = entry.getKey();
             int removals = entry.getValue();
             
+            // check to see if all of the type's children 
+            // have been removed.  If so, delete the type 
             if (type.getChildren().length == removals) {
                 @SuppressWarnings("unchecked")
                 List<AbstractTypeDeclaration> typeNodes = ast.types();
@@ -454,30 +496,38 @@ public class PushInRefactoring extends Refactoring {
                 }
             }
         }
+        
+        // check to see if all types have been deleted.
         return (ast.types().size() == typesDeleted);
     }
 
 
 
-    private void applyTargetTypeEdits(IAspectJElement itd,
+    private void applyTargetTypeEdits(IMember itd,
             ICompilationUnit source, Collection<IMember> targets) throws CoreException, JavaModelException {
         MultiTextEdit multiEdit = new MultiTextEdit();
         for (IMember target : targets) {
             TextEdit edit = null;
-            if (itd instanceof IntertypeElement) {
-                if (target instanceof IType) {
-                    IType type = (IType) target;
-                    // ignore ITD fields and constructors on interfaces
-                    if (type.isInterface() && itd.getAJKind() != Kind.INTER_TYPE_METHOD) {
-                        edit = null;
-                    } else {
-                        edit = createEditForITDTarget((IntertypeElement) itd, type);
+            if (itd instanceof IAspectJElement) {
+                IAspectJElement ajElement = (IAspectJElement) itd;
+                if (itd instanceof IntertypeElement) {
+                    if (target instanceof IType) {
+                        IType type = (IType) target;
+                        // ignore ITD fields and constructors on interfaces
+                        if (type.isInterface() && ajElement.getAJKind() != Kind.INTER_TYPE_METHOD) {
+                            edit = null;
+                        } else {
+                            edit = createEditForITDTarget((IntertypeElement) itd, type);
+                        }
                     }
+                } else if (ajElement.getAJKind().isDeclareAnnotation()) {
+                    edit = createEditForDeclareTarget((DeclareElement) itd, target);
+                } else if (ajElement.getAJKind() == Kind.DECLARE_PARENTS) {
+                    edit = createEditForDeclareParents((IType) target);
                 }
-            } else if (itd.getAJKind().isDeclareAnnotation()) {
-                edit = createEditForDeclareTarget((DeclareElement) itd, target);
-            } else if (itd.getAJKind() == Kind.DECLARE_PARENTS) {
-                edit = createEditForDeclareParents((IType) target);
+            } else if (itd instanceof IType) {
+                // an ITIT
+                edit = createEditForIntertypeInnerType((IType) itd, (IType) target);
             }
             if (edit != null) {
                 multiEdit.addChild(edit);
@@ -506,6 +556,22 @@ public class PushInRefactoring extends Refactoring {
         return null;
     }
 
+    /**
+     * Creates the text edit for pushing in an intertype inner type
+     * @param itit the intertype inner type to push in 
+     * @param target the target to push the itit into.
+     * @return
+     */
+    private TextEdit createEditForIntertypeInnerType(IType itit, IType target) throws JavaModelException {
+        String source = itit.getSource();
+        // now, we must replace the '.' and the preceding identifier in the type name
+        int nameOffset = itit.getNameRange().getOffset() - itit.getSourceRange().getOffset();
+        int dotOffset = source.lastIndexOf('$', nameOffset);
+        int classIndex = source.lastIndexOf("class ", dotOffset);
+        source = "\n\t" + source.substring(0, classIndex + "class ".length()) + source.substring(dotOffset + 1, source.length()) + "\n";
+        return new InsertEdit(getITDInsertLocation(target), source);
+    }
+
     // Uses AspectsConvertingParser to recreate the class/interface declaration line
     // this inserts *all* declare parents into the target type.
     // The assumption is that this target type is having all of its declare parents pushed in.
@@ -515,10 +581,11 @@ public class PushInRefactoring extends Refactoring {
         parser.setUnit(type.getCompilationUnit());
         char[] implementsExtends = 
             parser.createImplementExtendsITDs(type.getElementName().toCharArray());
-        // now find source location
+        // now find the insert location
         String source = type.getSource();
         String toSearch = type.isClass() ? "class" : "interface";
-        int implExtEnd = source.indexOf("{");
+        int nameOffset = type.getNameRange().getOffset() - type.getSourceRange().getOffset();
+        int implExtEnd = source.indexOf("{", nameOffset);
         int implExtStart = source.lastIndexOf(toSearch, implExtEnd);
         int offset = type.getSourceRange().getOffset();
         return new ReplaceEdit(offset+implExtStart, implExtEnd-implExtStart, new String(implementsExtends));
@@ -717,6 +784,11 @@ public class PushInRefactoring extends Refactoring {
 
 
 
+    /**
+     * Finds all of the compilation units for the given array of target elements
+     * @param targets an array of target elements that are the target of ITDs in a single Aspect
+     * @return all of the targets grouped by their {@link ICompilationUnit} 
+     */
     private Map<ICompilationUnit, Set<IMember>> getUnitTypeMap(IMember[] targets) {
         Map<ICompilationUnit, Set<IMember>> unitToTypes = new HashMap<ICompilationUnit, Set<IMember>>();
         for (int i = 0; i < targets.length; i++) {
@@ -743,7 +815,7 @@ public class PushInRefactoring extends Refactoring {
         monitor.beginTask("Checking preconditions...", 1);
         
         try {
-            for (IAspectJElement itd : itds) {
+            for (IMember itd : itds) {
                 status.merge(initialITDCheck(itd));
             }
         } finally {
@@ -753,7 +825,7 @@ public class PushInRefactoring extends Refactoring {
     }
     
     
-    private RefactoringStatus initialITDCheck(IAspectJElement itd) {
+    private RefactoringStatus initialITDCheck(IMember itd) {
         RefactoringStatus status= new RefactoringStatus();
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
         if (!model.hasModel()) {
@@ -814,7 +886,7 @@ public class PushInRefactoring extends Refactoring {
         StringBuffer descriptionsb = new StringBuffer();
         StringBuffer commentsb = new StringBuffer();
         StringBuffer argssb = new StringBuffer();
-        for (IAspectJElement itd : itds) {
+        for (IMember itd : itds) {
             projectsb.append(itd.getJavaProject().getElementName() + "\n");
             descriptionsb.append(MessageFormat.format("Push In intertype declaration for ''{0}''\n", new Object[] { itd.getElementName()}));
             String itdLabel = AJProjectModelFactory.getInstance().getModelForJavaElement(itd).getJavaElementLinkName(itd);
@@ -840,9 +912,9 @@ public class PushInRefactoring extends Refactoring {
         String value= arguments.get(ALL_ITDS);
         if (value != null) {
             String[] values = value.split("\\n");
-            List<IAspectJElement> newitds = new ArrayList<IAspectJElement>(values.length);
+            List<IMember> newitds = new ArrayList<IMember>(values.length);
             for (int i = 0; i < values.length; i++) {
-                newitds.add((IAspectJElement) AspectJCore.create(value));
+                newitds.add((IMember) AspectJCore.create(value));
             }
             setITDs(newitds);
             return new RefactoringStatus();
@@ -851,27 +923,33 @@ public class PushInRefactoring extends Refactoring {
         }
     }
     
-    public void setITDs(List<IAspectJElement> itds) {
+    public void setITDs(List<IMember> itds) {
         this.itds = itds;
     }
     
-    public List<IAspectJElement> getITDs() {
+    public List<IMember> getITDs() {
         return itds;
     }
 
 
-    // this method returns all members by any itd being pushed in from a CU
-    // it does not distinguish between which type is affected by which ITD
-    // later, we need to do that filtering
-    private IMember[] getTargets(List<IAspectJElement> itds) throws JavaModelException {
+    /**
+     * This method determines all of the targets of the set of ITDs passed in.
+     * it does not distinguish between which type is affected by which ITD
+     * later, we need to do that filtering
+     * @param itds set of ITDs to putsh in from a single compilation unit
+     * @return array of target elements for these ITDs.
+     * @throws JavaModelException
+     */
+    private IMember[] getTargets(List<IMember> itds) throws JavaModelException {
         AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement((IJavaElement) itds.get(0));
         List<IMember> targets = new ArrayList<IMember>();
         
-        for (IAspectJElement itd : itds) {
+        for (IMember itd : itds) {
             List<IJavaElement> elts;
-            if (itd.getAJKind().isDeclareAnnotation()) {
+            if (itd instanceof IAspectJElement && ((IAspectJElement) itd).getAJKind().isDeclareAnnotation()) {
                 elts = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
             } else {
+                // either an ITD or an ITIT (IType)
                 elts = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
             }
 
@@ -886,7 +964,7 @@ public class PushInRefactoring extends Refactoring {
         return edit.getClass() == MultiTextEdit.class && !edit.hasChildren();
     }
     
-    private boolean isCUnitContainingITD(ICompilationUnit unit, IAspectJElement itd) {
+    private boolean isCUnitContainingITD(ICompilationUnit unit, IMember itd) {
         return itd != null && itd.getCompilationUnit().equals(unit);
     }
 }

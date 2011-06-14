@@ -270,6 +270,7 @@ public class AJMarkersDialog extends Dialog {
 		}
 		if(pageChanged) {
 			Job deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+            deleteUpdateMarkers.setPriority(Job.BUILD);
 			deleteUpdateMarkers.schedule();
 		}
 		super.okPressed();

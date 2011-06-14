@@ -21,61 +21,62 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
+import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 
 /**
  * @author gharley
  */
 public class AspectPathBlock extends PathBlock {
 
-	private List existingAspectPath;
+    private List existingAspectPath;
 
-	public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
-	    super(context, pageToShow);
-		fPathList.setLabelText(UIMessages.AspectPathBlock_aspectpath_label);
-	}
+    public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
+        super(context, pageToShow);
+        fPathList.setLabelText(UIMessages.AspectPathBlock_aspectpath_label);
+    }
 
 
 
-	/*
-	 * @see BuildPathBasePage#getSelection
-	 */
-	public List getSelection() {
-		return fPathList.getSelectedElements();
-	}
+    /*
+     * @see BuildPathBasePage#getSelection
+     */
+    public List getSelection() {
+        return fPathList.getSelectedElements();
+    }
 
-	public void init(IJavaProject jproject, IClasspathEntry[] aspectpathEntries) {
-	    setJavaProject(jproject);
-	    
-	    existingAspectPath = null;
-		if (aspectpathEntries != null) {
-			existingAspectPath = getExistingEntries(aspectpathEntries);
-		}
+    public void init(IJavaProject jproject, IClasspathEntry[] aspectpathEntries) {
+        setJavaProject(jproject);
+        
+        existingAspectPath = null;
+        if (aspectpathEntries != null) {
+            existingAspectPath = getExistingEntries(aspectpathEntries);
+        }
 
-		if (existingAspectPath == null) {
-			existingAspectPath = new ArrayList();
-		}
+        if (existingAspectPath == null) {
+            existingAspectPath = new ArrayList();
+        }
 
-		fPathList.setElements(existingAspectPath);
+        fPathList.setElements(existingAspectPath);
 
         super.init();
-	}
+    }
 
 
 
 
-
-    protected void internalSetProjectPath(List pathEntries,
+    @Override
+    protected void internalSetProjectPath(List<CPListElement> pathEntries,
             StringBuffer pathBuffer, StringBuffer contentKindBuffer,
             StringBuffer entryKindBuffer) {
         AspectJCorePreferences.setProjectAspectPath(getJavaProject().getProject(),
-				pathBuffer.toString(), contentKindBuffer.toString(),
-				entryKindBuffer.toString());
+                pathBuffer.toString(), contentKindBuffer.toString(),
+                entryKindBuffer.toString());
 
-		LaunchConfigurationManagementUtils.updateAspectPaths(getJavaProject(),
-				existingAspectPath, pathEntries);
+        LaunchConfigurationManagementUtils.updateAspectPaths(getJavaProject(),
+                existingAspectPath, pathEntries);
     }
 
-	
+    
     protected String getBlockNote() {
         return UIMessages.AspectPathBlock_note;
     }

@@ -79,14 +79,14 @@ public class InPathBlock extends PathBlock {
 
         setJavaProject(jproject);
         
-        List newInPath = null;
+        List<CPListElement> newInPath = null;
 
         if (inpathEntries != null) {
             newInPath = getExistingEntries(inpathEntries);
         }
 
         if (newInPath == null) {
-            newInPath = new ArrayList();
+            newInPath = new ArrayList<CPListElement>();
         }
 
         IProject project = jproject.getProject();
@@ -143,7 +143,7 @@ public class InPathBlock extends PathBlock {
 
     
         
-    protected void internalSetProjectPath(List pathEntries,
+    protected void internalSetProjectPath(List<CPListElement> pathEntries,
             StringBuffer pathBuffer, StringBuffer contentKindBuffer,
             StringBuffer entryKindBuffer) {
         AspectJCorePreferences.setProjectInPath(getJavaProject().getProject(),pathBuffer.toString(),
@@ -153,19 +153,19 @@ public class InPathBlock extends PathBlock {
 
     
     public TabItem tabContent(TabFolder folder){
-    	TabItem item = super.tabContent(folder);
-    	
-    	// create the inpath outfolder
-		Control control = item.getControl();
-		if (control instanceof Composite) {
-		    Composite parent = (Composite) control;
-		    
-			// dummy label as a place holder in grid layout
-			new Label(parent,SWT.LEFT | SWT.WRAP);
-			Label label = new Label(parent,SWT.LEFT | SWT.WRAP);
+        TabItem item = super.tabContent(folder);
+        
+        // create the inpath outfolder
+        Control control = item.getControl();
+        if (control instanceof Composite) {
+            Composite parent = (Composite) control;
+            
+            // dummy label as a place holder in grid layout
+            new Label(parent,SWT.LEFT | SWT.WRAP);
+            Label label = new Label(parent,SWT.LEFT | SWT.WRAP);
             label.setText(UIMessages.InPathBlock_6);
-			
-			fInpathOutputField = new StringButtonDialogField(new IStringButtonAdapter() {
+            
+            fInpathOutputField = new StringButtonDialogField(new IStringButtonAdapter() {
                 public void changeControlPressed(DialogField field) {
                     IContainer container= chooseContainer(fOutputLocationPath);
                     if (container != null) {
@@ -173,10 +173,10 @@ public class InPathBlock extends PathBlock {
                     }
                 }
             });
-			if (fOutputLocationPath != null) {
-			    fInpathOutputField.setTextWithoutUpdate(fOutputLocationPath.toPortableString());
-			}
-			fInpathOutputField.setButtonLabel(UIMessages.InPathBlock_Browse);
+            if (fOutputLocationPath != null) {
+                fInpathOutputField.setTextWithoutUpdate(fOutputLocationPath.toPortableString());
+            }
+            fInpathOutputField.setButtonLabel(UIMessages.InPathBlock_Browse);
             fInpathOutputField.doFillIntoGrid(parent, 3);
             FOutputPathModifyListener = new ModifyListener() {
                 public void modifyText(ModifyEvent e) {
@@ -186,9 +186,9 @@ public class InPathBlock extends PathBlock {
             };
             fOutputPathTextBox = fInpathOutputField.getTextControl(parent);
             fOutputPathTextBox.addModifyListener(FOutputPathModifyListener);
-			
-		}
-    	return item;
+            
+        }
+        return item;
     }
     
     private void changeInpathOutputFolder() {

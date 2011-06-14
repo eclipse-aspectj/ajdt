@@ -114,7 +114,7 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
      */
     static IFile[] javaFileToIFile(File[] files) {
         IWorkspace workspace= ResourcesPlugin.getWorkspace();
-        List iFiles = new ArrayList(files.length);
+        List<IFile> iFiles = new ArrayList<IFile>(files.length);
         for (int i = 0; i < files.length; i++) {
             IFile[] newFiles = workspace.getRoot().findFilesForLocationURI(files[i].toURI());
             // inner loop---if a single file is mapped to several linked files in the workspace

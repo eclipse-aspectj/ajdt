@@ -9,8 +9,11 @@ import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
+import org.eclipse.ajdt.core.model.AJProjectModelFactory;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider;
@@ -36,34 +39,34 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
 
     private IJavaElement[] currSelection;
                          
-	private IWorkbenchWindow window= null;
-	
-	private CompilationUnitEditor editor = null;
-	
-	public PushInRefactoringAction() {
+    private IWorkbenchWindow window= null;
+    
+    private CompilationUnitEditor editor = null;
+    
+    public PushInRefactoringAction() {
     }
 
-	public void dispose() {
-	    window = null;
-	}
+    public void dispose() {
+        window = null;
+    }
 
-	public void run(IAction action) {
-	    if (currSelection != null) {
-	        try {
-                List<IAspectJElement> itds = findAllITDs(currSelection);
+    public void run(IAction action) {
+        if (currSelection != null) {
+            try {
+                List<IMember> itds = findAllITDs(currSelection);
                 if (itds.size() > 0) {
-                	PushInRefactoring refactoring= new PushInRefactoring();
-                	refactoring.setITDs(itds);
-                	run(new PushInRefactoringWizard(refactoring, "Push In Intertype Declaration", 
-                	        refactoring.createDescriptor()), getShell(), "Push In Intertype Declaration");
+                    PushInRefactoring refactoring= new PushInRefactoring();
+                    refactoring.setITDs(itds);
+                    run(new PushInRefactoringWizard(refactoring, "Push In Intertype Declaration", 
+                            refactoring.createDescriptor()), getShell(), "Push In Intertype Declaration");
                 } else {
                     MessageDialog.openInformation(getShell(), "No ITDs", 
                             "No intertype declarations selected");
                 }
             } catch (JavaModelException e) {
             }
-		}
-	}
+        }
+    }
 
     private Shell getShell() {
         if (window != null) {
@@ -75,18 +78,18 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
         }
     }
 
-	public void run(RefactoringWizard wizard, Shell parent, String dialogTitle) {
-		try {
-			RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
-			operation.run(parent, dialogTitle);
-		} catch (InterruptedException exception) {
-			// Do nothing
-		}
-	}
+    public void run(RefactoringWizard wizard, Shell parent, String dialogTitle) {
+        try {
+            RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
+            operation.run(parent, dialogTitle);
+        } catch (InterruptedException exception) {
+            // Do nothing
+        }
+    }
 
-	public void selectionChanged(IAction action, ISelection selection) {
-	    currSelection = null;
-	    if (selection instanceof IStructuredSelection) {
+    public void selectionChanged(IAction action, ISelection selection) {
+        currSelection = null;
+        if (selection instanceof IStructuredSelection) {
             IStructuredSelection extended= (IStructuredSelection) selection;
             Object[] elements= extended.toArray();
             IJavaElement[] candidates = new IJavaElement[elements.length];
@@ -105,7 +108,7 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
                 }
             }
             currSelection = candidates;
-	    } else if (selection instanceof ITextSelection) {
+        } else if (selection instanceof ITextSelection) {
             if (editor != null) {
                 ITextSelection textSel = (ITextSelection) selection;
                 CompilationUnitDocumentProvider provider = (CompilationUnitDocumentProvider)
@@ -122,25 +125,25 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
                     }
                 }
             }
-	    }
-	    action.setEnabled(currSelection != null && currSelection.length > 0);
-	    if (window == null) {
-	        IWorkbench workbench = PlatformUI.getWorkbench();
-	        window = workbench.getActiveWorkbenchWindow();
-	    }
-	}
-	
-	protected List<IAspectJElement> findAllITDs(IJavaElement[] selection) throws JavaModelException {
-	    List<IAspectJElement> itds = new LinkedList<IAspectJElement>();
-	    for (int i = 0; i < selection.length; i++) {
+        }
+        action.setEnabled(currSelection != null && currSelection.length > 0);
+        if (window == null) {
+            IWorkbench workbench = PlatformUI.getWorkbench();
+            window = workbench.getActiveWorkbenchWindow();
+        }
+    }
+    
+    protected List<IMember> findAllITDs(IJavaElement[] selection) throws JavaModelException {
+        List<IMember> itds = new LinkedList<IMember>();
+        for (int i = 0; i < selection.length; i++) {
             IJavaElement element = selection[i];
             itds.addAll(findITDsInChildren(element));
         }
-	    return itds;
-	}
+        return itds;
+    }
 
-    private Collection<IAspectJElement> findITDsInChildren(IJavaElement element) throws JavaModelException {
-        List<IAspectJElement> itds = new LinkedList<IAspectJElement>();
+    private Collection<IMember> findITDsInChildren(IJavaElement element) throws JavaModelException {
+        List<IMember> itds = new LinkedList<IMember>();
         if (element.isReadOnly()) {
             return Collections.emptyList();
         }
@@ -151,16 +154,34 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
                 ((DeclareElement) element).getAJKind() == Kind.DECLARE_PARENTS)) {
             itds.add((IAspectJElement) element);
         } else if (element instanceof IParent) {
-            IParent parent = (IParent) element;
-            try {
-                IJavaElement[] children = parent.getChildren();
-                for (int i = 0; i < children.length; i++) {
-                    itds.addAll(findITDsInChildren(children[i]));
+            if (isITIT(element)) {
+                itds.add((IMember) element);
+            } else {
+                IParent parent = (IParent) element;
+                try {
+                    IJavaElement[] children = parent.getChildren();
+                    for (int i = 0; i < children.length; i++) {
+                        itds.addAll(findITDsInChildren(children[i]));
+                    }
+                } catch (JavaModelException e) {
                 }
-            } catch (JavaModelException e) {
             }
         }
         return itds;
+    }
+
+    /**
+     * Checks to see if the element is an intertype inner type
+     * @param element
+     * @return true if an ITIT false otherwise
+     */
+    private boolean isITIT(IJavaElement element) {
+        // FIXADE this is not a good way of finding this information
+        // we should not be dipping into aspectj to find this
+        // and we should not be looking at relationships
+        // would be better to determine this information by looking at the IJavaElement directly
+        // but there is no way of doing this right now.
+        return AJProjectModelFactory.getInstance().getModelForJavaElement(element).getRelationshipsForElement(element, AJRelationshipManager.DECLARED_ON).size() > 0;
     }
 
     public void setActiveEditor(IAction action, IEditorPart targetEditor) {
@@ -172,7 +193,7 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
     }
 
     public void init(IWorkbenchWindow window) {
-    	this.window= window;
+        this.window= window;
     }
 
     public void init(IViewPart view) {
