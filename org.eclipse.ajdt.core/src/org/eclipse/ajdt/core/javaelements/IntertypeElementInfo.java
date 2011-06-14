@@ -11,36 +11,39 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.ITypeParameter;
 
 /**
  * @author Luzius Meisser
  */
 public class IntertypeElementInfo extends AspectJMemberElementInfo {
-	
+    
+    static final ITypeParameter[] NO_TYPE_PARAMETERS = new ITypeParameter[0];
     int declaredModifiers;
     private char[] qualifiedReturnType;
     int targetTypeStart;
     int targetTypeEnd;
     
     public IntertypeElementInfo() {
+        this.typeParameters = NO_TYPE_PARAMETERS;
     }
     
-	protected char[] targetType;
+    protected char[] targetType;
 
-	public char[] getTargetType() {
-		return targetType;
-	}
-	public void setTargetType(char[] targetType) {
-		this.targetType = targetType;
-	}
-	
-	public void setDeclaredModifiers(int declaredModifiers) {
+    public char[] getTargetType() {
+        return targetType;
+    }
+    public void setTargetType(char[] targetType) {
+        this.targetType = targetType;
+    }
+    
+    public void setDeclaredModifiers(int declaredModifiers) {
         this.declaredModifiers = declaredModifiers;
     }
-	public int getDeclaredModifiers() {
+    public int getDeclaredModifiers() {
         return declaredModifiers;
     }
-	
+    
     public void setQualifiedReturnType(char[] qualifiedReturnType) {
         this.qualifiedReturnType = qualifiedReturnType;
     }
@@ -59,5 +62,13 @@ public class IntertypeElementInfo extends AspectJMemberElementInfo {
     
     public void setTargetTypeEnd(int targetTypeEnd) {
         this.targetTypeEnd = targetTypeEnd;
+    }
+    
+    public void setTypeParameters(ITypeParameter[] typeParameters) {
+        this.typeParameters = typeParameters;
+    }
+    
+    public ITypeParameter[] getTypeParameters() {
+        return this.typeParameters;
     }
 }

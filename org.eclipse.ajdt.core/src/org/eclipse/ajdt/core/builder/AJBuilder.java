@@ -326,6 +326,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         }
                         public void run() throws Exception {
                             participant.buildStarting(results, false);
+                            if (participant.isAnnotationProcessor()) {
+                                participant.processAnnotations(results);
+                            }
                             participant.buildFinished(javaProject);
                         }
                     });
@@ -374,11 +377,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
         
         if (errorFound) {
             // there is a null value in the array. must squash the array
-            List<BuildContext> resultsList = Arrays.asList(results);
-            for (Iterator<BuildContext> iterator = resultsList.iterator(); iterator.hasNext();) {
-                BuildContext buildContext = iterator.next();
-                if (buildContext == null) {
-                    iterator.remove();
+            List<BuildContext> resultsList = new ArrayList<BuildContext>(results.length);
+            for (BuildContext buildContext : results) {
+                if (results != null) {
+                    resultsList.add(buildContext);
                 }
             }
             results = resultsList.toArray(new BuildContext[resultsList.size()]);

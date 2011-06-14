@@ -27,11 +27,15 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJWorldFacade;
+import org.eclipse.ajdt.core.model.AJWorldFacade.ITDInfo;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.JavaElement;
@@ -50,26 +54,26 @@ public abstract class IntertypeElement extends AspectJMemberElement {
      * @param jemDelimter Should be one of the JEM_ITD_FIELD or JEM_ITD_METHOD (see {@link AspectElement}) 
      */
     public static IntertypeElement create(char jemDelimeter, JavaElement parent,
- 		   String name, String[] parameters) {
-    	if (jemDelimeter == JEM_ITD_FIELD) {
-    		Assert.isTrue(parameters==null || parameters.length==0, "Fields shouldn't have parameters!");
-    		return new FieldIntertypeElement(parent, name);
-    	}
-    	else if (jemDelimeter == JEM_ITD_METHOD) {
-    		return new MethodIntertypeElement(parent, name, parameters);
-    	}
-    	else throw new IllegalArgumentException("jemDelimeter should be one of JEM_ITD_FIELD or JEM_ITD_METHOD");
+           String name, String[] parameters) {
+        if (jemDelimeter == JEM_ITD_FIELD) {
+            Assert.isTrue(parameters==null || parameters.length==0, "Fields shouldn't have parameters!");
+            return new FieldIntertypeElement(parent, name);
+        }
+        else if (jemDelimeter == JEM_ITD_METHOD) {
+            return new MethodIntertypeElement(parent, name, parameters);
+        }
+        else throw new IllegalArgumentException("jemDelimeter should be one of JEM_ITD_FIELD or JEM_ITD_METHOD");
     }
     
     public char getJemDelimeter() {
-    	return getHandleMementoDelimiter();
+        return getHandleMementoDelimiter();
     }
     
     public static char getJemDelimter(InterTypeDeclaration decl) {
-    	if (decl instanceof InterTypeFieldDeclaration) 
-    		return JEM_ITD_FIELD;
-    	else /* constructor or method */
-    		return JEM_ITD_METHOD;
+        if (decl instanceof InterTypeFieldDeclaration) 
+            return JEM_ITD_FIELD;
+        else /* constructor or method */
+            return JEM_ITD_METHOD;
     }
     
     protected IntertypeElement(JavaElement parent, String name, String[] parameterTypes) {
@@ -83,7 +87,8 @@ public abstract class IntertypeElement extends AspectJMemberElement {
     protected Object createElementInfo() {
         IntertypeElementInfo info = new IntertypeElementInfo();
         
-        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForJavaElement(this).javaElementToProgramElement(this);
+        IProject project = this.getJavaProject().getProject();
+        IProgramElement ipe = AJProjectModelFactory.getInstance().getModelForProject(project).javaElementToProgramElement(this);
         if (ipe != IHierarchy.NO_STRUCTURE) {
             // this way of creating the element info does not contain proper source locations for the name and target type
             info.setAJExtraInfo(ipe.getExtraInfo());
@@ -103,12 +108,37 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
             info.setReturnType(ipe.getCorrespondingType(false).toCharArray());
             info.setQualifiedReturnType(ipe.getCorrespondingType(true).toCharArray());
+
+            info.setTypeParameters(createTypeParameters(project));
+            
         } else {
             // no successful build yet, we don't know the contents
             info.setName(name.toCharArray());
             info.setAJKind(IProgramElement.Kind.ERROR);
         }
         return info;
+    }
+
+    protected ITypeParameter[] createTypeParameters(IProject project) {
+        if (project == null) {
+            project = this.getJavaProject().getProject();
+        }
+        ITDInfo worldInfo = new AJWorldFacade(project).findITDInfoFromDeclaringType(Signature.createTypeSignature(getDeclaringType().getFullyQualifiedName(), true).toCharArray(), name.toCharArray());
+        ITypeParameter[] iTypeParameters;
+        if (worldInfo != null) {
+            iTypeParameters = worldInfo.getITypeParameters(this);
+        } else {
+            iTypeParameters = IntertypeElementInfo.NO_TYPE_PARAMETERS;
+        }
+        return iTypeParameters;
+    }
+    
+    @Override
+    public ISourceRange getJavadocRange() throws JavaModelException {
+        if (getParent() instanceof BinaryAspectElement) {
+            return null;
+        }
+        return super.getJavadocRange();
     }
     
     /**
@@ -154,7 +184,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             if (rels.size() == 1 && rels.get(0) instanceof IType) {
                 targetTypeCache = (IType) rels.get(0);
             } else if (rels.size() > 1) {
-                // we have an interface and several concreate types
+                // we have an interface and several concrete types
                 // we want to return the interface type
                 for (IJavaElement rel : rels) {
                     try {

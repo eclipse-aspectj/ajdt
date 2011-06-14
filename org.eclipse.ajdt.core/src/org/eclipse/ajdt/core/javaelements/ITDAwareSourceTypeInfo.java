@@ -104,7 +104,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 char[] typeName;
                 String[] paramTypes;
                 if (!children[i].isReadOnly()) {
-                    if (ipes.size() >= i) {
+                    if (i < ipes.size()) {
                         typeName = ipes.get(i).getCorrespondingType(true).toCharArray();
                         List<char[]> parameterSignatures = ipes.get(i).getParameterSignatures();
                         if (parameterSignatures != null) {
@@ -323,7 +323,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             // still works when there are large numbers ofannotations
             Object info = ((JavaElement) handle.getCompilationUnit()).getElementInfo();
             if (info != null && info instanceof CompilationUnitElementInfo) {
-            	((CompilationUnitElementInfo) info).annotationNumber = 0;
+                ((CompilationUnitElementInfo) info).annotationNumber = 0;
             }
         } catch (JavaModelException e) {
         }
@@ -621,7 +621,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
         return super.getChildren();
     }
     
-						/* AJDT 1.7 */
+                        /* AJDT 1.7 */
     public void setChildren(IJavaElement[] children) {
         this.children = children;
     }

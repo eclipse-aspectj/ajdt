@@ -39,7 +39,7 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	}
 	
     public AJCodeElement(JavaElement parent, String name, int occurrence) {
-        this(parent,name); //$NON-NLS-1$
+        this(parent,name);
         this.occurrenceCount = occurrence;
     }
 

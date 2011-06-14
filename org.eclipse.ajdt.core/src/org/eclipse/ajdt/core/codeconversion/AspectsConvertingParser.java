@@ -306,7 +306,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     consumeRetOrThrow();
                 else if (inPointcutDesignator
                         && Character.isUpperCase(name[0])  // Assume all types start with upercase
-                        && (content[scanner.getCurrentTokenStartPosition()-1]!='.')) {
+                        && (content[scanner.getCurrentTokenStartPosition()-1]!='.')  // can ignore if looks fully qualified
+                        && (content[scanner.getCurrentTokenStartPosition()-1]!='*')) // can ignore if looks like a wild core 
+                {
                     typeReferences.add(String.valueOf(name));
                 }
 
@@ -599,7 +601,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         applyReplacements();
 
         // uncomment to see the transformed source code
+//        System.out.println("----------\nConversion:");
 //        System.out.println(String.valueOf(content));
+//        System.out.println("----------");
         
         return replacements;
     }

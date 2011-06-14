@@ -39,20 +39,20 @@ import org.eclipse.jdt.internal.codeassist.InternalCompletionProposal;
  */
 public class ProposalRequestorWrapper extends CompletionRequestor {
 
-	CompletionRequestor wrapped;
-	ArrayList insertionTable;
-	
-	private AJWorldFacade world;
-	private ICompilationUnit unit;
+    CompletionRequestor wrapped;
+    ArrayList insertionTable;
+    
+    private AJWorldFacade world;
+    private ICompilationUnit unit;
 
-	   // this is the identifier added by the AspectsConvertingParser
+       // this is the identifier added by the AspectsConvertingParser
     // should be ignored
     private final String contextSwitchIdentifier;
 
-	/**
-	 * @param wrapped
-	 * @param buffer
-	 */
+    /**
+     * @param wrapped
+     * @param buffer
+     */
     public ProposalRequestorWrapper(CompletionRequestor wrapped,
             ICompilationUnit unit,
             JavaCompatibleBuffer buffer, String contextSwitchIdentifier) {
@@ -73,27 +73,27 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
         this.insertionTable = insertionTable;
         this.contextSwitchIdentifier = null;
     }
-	
-	public void accept(CompletionProposal proposal) {
-	    
-	    if (!shouldAccept(proposal)) {
-	        return;
-	    }
-	    
-	    if (insertionTable.size() > 0) {
-	        translateReplaceRange(proposal);
-	    }
-		wrapped.accept(proposal);
-	}
-	
+    
+    public void accept(CompletionProposal proposal) {
+        
+        if (!shouldAccept(proposal)) {
+            return;
+        }
+        
+        if (insertionTable.size() > 0) {
+            translateReplaceRange(proposal);
+        }
+        wrapped.accept(proposal);
+    }
+    
     private void translateReplaceRange(CompletionProposal proposal) {
         int s = proposal.getReplaceStart();
-		int e = proposal.getReplaceEnd();
-		proposal.setReplaceRange(trans(s), trans(e));
-		
-		/* AJDT 1.7 */
-		// translate all proposals contained in this one
-		if (proposal instanceof InternalCompletionProposal) {
+        int e = proposal.getReplaceEnd();
+        proposal.setReplaceRange(trans(s), trans(e));
+        
+        /* AJDT 1.7 */
+        // translate all proposals contained in this one
+        if (proposal instanceof InternalCompletionProposal) {
             InternalCompletionProposal internalProposal = (InternalCompletionProposal) proposal;
             if (internalProposal.getRequiredProposals() != null) {
                 for (int i = 0; i < internalProposal.getRequiredProposals().length; i++) {
@@ -102,133 +102,133 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
             }
         }
     }
-	
-	protected boolean shouldAccept(CompletionProposal proposal) {
-	    if (proposal.getKind() == CompletionProposal.FIELD_REF ||
-	            proposal.getKind() == CompletionProposal.METHOD_REF) {
-	        
-	        if (world == null) {
-	            world = new AJWorldFacade(unit.getJavaProject().getProject());
-	        }
-	        
-	        ITDInfo info = world.findITDInfoIfExists(proposal.getDeclarationSignature(), proposal.getName());
-	        if (info != null) {
-    	        if (info.accessibility == Accessibility.PUBLIC) {
-    	            // accessible everywhere
-    	            return true;
-    	        } else if (info.accessibility == Accessibility.PACKAGE) {
-    	            // accessible only in package of declaring aspect
-    	            if (((IPackageFragment) unit.getParent()).getElementName().equals(info.packageDeclaredIn)) {
-    	                int oldFlags = proposal.getFlags();
-    	                oldFlags |= Flags.AccDefault;
-    	                oldFlags &= ~Flags.AccPublic;
-    	                proposal.setFlags(oldFlags);
-    	                return true;
-    	            }
-    	        } else if (info.accessibility == Accessibility.PRIVATE) {
-    	            // accessible only in declaring aspect's compilation unit
-    	            if (unit.getElementName().startsWith(info.topLevelAspectName + ".") &&
-    	               ((IPackageFragment) unit.getParent()).getElementName().equals(info.packageDeclaredIn)) {
+    
+    protected boolean shouldAccept(CompletionProposal proposal) {
+        if (proposal.getKind() == CompletionProposal.FIELD_REF ||
+                proposal.getKind() == CompletionProposal.METHOD_REF) {
+            
+            if (world == null) {
+                world = new AJWorldFacade(unit.getJavaProject().getProject());
+            }
+            
+            ITDInfo info = world.findITDInfoFromTargetType(proposal.getDeclarationSignature(), proposal.getName());
+            if (info != null) {
+                if (info.accessibility == Accessibility.PUBLIC) {
+                    // accessible everywhere
+                    return true;
+                } else if (info.accessibility == Accessibility.PACKAGE) {
+                    // accessible only in package of declaring aspect
+                    if (((IPackageFragment) unit.getParent()).getElementName().equals(info.packageDeclaredIn)) {
+                        int oldFlags = proposal.getFlags();
+                        oldFlags |= Flags.AccDefault;
+                        oldFlags &= ~Flags.AccPublic;
+                        proposal.setFlags(oldFlags);
+                        return true;
+                    }
+                } else if (info.accessibility == Accessibility.PRIVATE) {
+                    // accessible only in declaring aspect's compilation unit
+                    if (unit.getElementName().startsWith(info.topLevelAspectName + ".") &&
+                       ((IPackageFragment) unit.getParent()).getElementName().equals(info.packageDeclaredIn)) {
 
-    	                int oldFlags = proposal.getFlags();
+                        int oldFlags = proposal.getFlags();
                         oldFlags |= Flags.AccPrivate;
                         oldFlags &= ~Flags.AccPublic;
                         proposal.setFlags(oldFlags);
-    	                    return true;
-    	            }
+                            return true;
+                    }
     
-    	        }
-    	        return false;
-	        } else {
-	            // not an ITD
-	            return true;
-	        }
-	    } else if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF) {
-	        // check to see if this is the proposal that has been added by the context switch for ITDs
-	        if (contextSwitchIgnore(proposal)) {
+                }
+                return false;
+            } else {
+                // not an ITD
+                return true;
+            }
+        } else if (proposal.getKind() == CompletionProposal.LOCAL_VARIABLE_REF) {
+            // check to see if this is the proposal that has been added by the context switch for ITDs
+            if (contextSwitchIgnore(proposal)) {
                 return false;
             }
-	    } else if (proposal.getKind() == CompletionProposal.TYPE_REF) {
-	    	// check to see if this is an ITIT type that should not be see
-	    	char[] typeName = (char[]) ReflectionUtils.getPrivateField(InternalCompletionProposal.class, "typeName", (InternalCompletionProposal) proposal);
-	    	if (typeName != null && CharOperation.contains('$', typeName)) {
-	    		return false;
-	    	}
-	    }
-	    return true;
+        } else if (proposal.getKind() == CompletionProposal.TYPE_REF) {
+            // check to see if this is an ITIT type that should not be see
+            char[] typeName = (char[]) ReflectionUtils.getPrivateField(InternalCompletionProposal.class, "typeName", (InternalCompletionProposal) proposal);
+            if (typeName != null && CharOperation.contains('$', typeName)) {
+                return false;
+            }
+        }
+        return true;
     }
-	
-	// ignore the proposal added by the context switch identifier
+    
+    // ignore the proposal added by the context switch identifier
     private boolean contextSwitchIgnore(CompletionProposal proposal) {
         return contextSwitchIdentifier != null &&
                 new String(proposal.getCompletion()).startsWith(contextSwitchIdentifier);
     }
-	
-	
+    
+    
     private int trans(int pos){
-		return AspectsConvertingParser.translatePositionToBeforeChanges(pos, insertionTable);
-	}
-	
-	public void acceptContext(CompletionContext context) {
-		wrapped.acceptContext(context);
-	}
-	
-	public void endReporting() {
-		wrapped.endReporting();
-	}
-	
-	public void beginReporting() {
-		wrapped.beginReporting();
-	}
-	
-	public void completionFailure(IProblem problem) {
-		wrapped.completionFailure(problem);
-	}
-	
-	public String[] getFavoriteReferences() {
-	    return wrapped.getFavoriteReferences();
-	}
+        return AspectsConvertingParser.translatePositionToBeforeChanges(pos, insertionTable);
+    }
+    
+    public void acceptContext(CompletionContext context) {
+        wrapped.acceptContext(context);
+    }
+    
+    public void endReporting() {
+        wrapped.endReporting();
+    }
+    
+    public void beginReporting() {
+        wrapped.beginReporting();
+    }
+    
+    public void completionFailure(IProblem problem) {
+        wrapped.completionFailure(problem);
+    }
+    
+    public String[] getFavoriteReferences() {
+        return wrapped.getFavoriteReferences();
+    }
 
-	public boolean isAllowingRequiredProposals(int proposalKind,
-	        int requiredProposalKind) {
-	    return wrapped.isAllowingRequiredProposals(proposalKind, requiredProposalKind);
-	}
-	
-	public boolean isExtendedContextRequired() {
-	    return wrapped.isExtendedContextRequired();
-	}
-	
-	public boolean isIgnored(int completionProposalKind) {
-	    return wrapped.isIgnored(completionProposalKind);
-	}
-	
-	public void setAllowsRequiredProposals(int proposalKind,
-	        int requiredProposalKind, boolean allow) {
-	    wrapped.setAllowsRequiredProposals(proposalKind, requiredProposalKind, allow);
-	}
-	
-	public void setFavoriteReferences(String[] favoriteImports) {
-	    wrapped.setFavoriteReferences(favoriteImports);
-	}
-	
-	public void setIgnored(int completionProposalKind, boolean ignore) {
-	    wrapped.setIgnored(completionProposalKind, ignore);
-	}
-	
-	public void setRequireExtendedContext(boolean require) {
-	    wrapped.setRequireExtendedContext(require);
-	}
-	
-	public boolean equals(Object obj) {
-		return wrapped.equals(obj);
-	}
-	public int hashCode() {
-		return wrapped.hashCode();
-	}
-	public String toString() {
-		return wrapped.toString();
-	}
-	
-	
+    public boolean isAllowingRequiredProposals(int proposalKind,
+            int requiredProposalKind) {
+        return wrapped.isAllowingRequiredProposals(proposalKind, requiredProposalKind);
+    }
+    
+    public boolean isExtendedContextRequired() {
+        return wrapped.isExtendedContextRequired();
+    }
+    
+    public boolean isIgnored(int completionProposalKind) {
+        return wrapped.isIgnored(completionProposalKind);
+    }
+    
+    public void setAllowsRequiredProposals(int proposalKind,
+            int requiredProposalKind, boolean allow) {
+        wrapped.setAllowsRequiredProposals(proposalKind, requiredProposalKind, allow);
+    }
+    
+    public void setFavoriteReferences(String[] favoriteImports) {
+        wrapped.setFavoriteReferences(favoriteImports);
+    }
+    
+    public void setIgnored(int completionProposalKind, boolean ignore) {
+        wrapped.setIgnored(completionProposalKind, ignore);
+    }
+    
+    public void setRequireExtendedContext(boolean require) {
+        wrapped.setRequireExtendedContext(require);
+    }
+    
+    public boolean equals(Object obj) {
+        return wrapped.equals(obj);
+    }
+    public int hashCode() {
+        return wrapped.hashCode();
+    }
+    public String toString() {
+        return wrapped.toString();
+    }
+    
+    
 
 }

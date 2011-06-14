@@ -350,18 +350,20 @@ public class AJCompilationUnitProblemFinder extends
         message.append("----------------------------------- WORKING COPIES -------------------------------------"); //$NON-NLS-1$
         if (environment != null) {
             ICompilationUnit[] workingCopies = environment.getWorkingCopies();
-            for (int i = 0; i < workingCopies.length; i++) {
-                message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
-                message.append(lineDelimiter);
-                if (workingCopies[i] instanceof AJCompilationUnit) {
-                    ((AJCompilationUnit) workingCopies[i]).requestOriginalContentMode();
+            if (workingCopies != null) {
+                for (int i = 0; i < workingCopies.length; i++) {
+                    message.append("----------------------------------- WORKING COPY SOURCE BEGIN -------------------------------------"); //$NON-NLS-1$
+                    message.append(lineDelimiter);
+                    if (workingCopies[i] instanceof AJCompilationUnit) {
+                        ((AJCompilationUnit) workingCopies[i]).requestOriginalContentMode();
+                    }
+                    message.append(workingCopies[i].getSource());
+                    if (workingCopies[i] instanceof AJCompilationUnit) {
+                        ((AJCompilationUnit) workingCopies[i]).discardOriginalContentMode();
+                    }
+                    message.append(lineDelimiter);
+                    message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
                 }
-                message.append(workingCopies[i].getSource());
-                if (workingCopies[i] instanceof AJCompilationUnit) {
-                    ((AJCompilationUnit) workingCopies[i]).discardOriginalContentMode();
-                }
-                message.append(lineDelimiter);
-                message.append("----------------------------------- WORKING COPY SOURCE END -------------------------------------"); //$NON-NLS-1$
             }
         } else {
             message.append("none");
@@ -677,7 +679,9 @@ public class AJCompilationUnitProblemFinder extends
             }
             
             if (numArgs > 0 &&
-                    id == IProblem.UndefinedType &&
+                    (id == IProblem.UndefinedType ||
+                     id == IProblem.InternalTypeNameProvided
+                    )  &&
                     firstArg.indexOf('$') != -1) {
                 // based on previous test, we are not inside of an ITD, 
                 // so we may be defining a field or variable with a 
@@ -738,6 +742,22 @@ public class AJCompilationUnitProblemFinder extends
                 return false;
             }
             
+            if ((id == IProblem.InvalidTypeForCollection || 
+                    id == IProblem.InvalidTypeForCollectionTarget14 ||
+                    id == IProblem.IncompatibleTypesInConditionalOperator ||
+                    id == IProblem.IllegalCast) &&
+                    insideITD(categorizedProblem, unit, isJavaFileInAJEditor) &&
+                    // I wish there were a more precise way of doing this.  Need to 
+                    // look for a 'this' expression.
+                    extractProblemRegion(categorizedProblem, unit).contains("this")) {
+                    
+                // Bug 347021 
+                // a 'this' expression in an ITD refers to the target type, not the aspect.
+                // these problems here indicate that the aspect type is being used instead 
+                // of the target type.
+                return false;
+            }
+            
         } catch (JavaModelException e) {
         }
         
@@ -755,8 +775,6 @@ public class AJCompilationUnitProblemFinder extends
             // the implementation of this abstract method is not necessarily there
             return false;
         }
-        
-        
         return true;
     }
 

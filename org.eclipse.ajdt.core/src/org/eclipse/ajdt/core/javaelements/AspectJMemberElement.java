@@ -30,7 +30,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
 import org.eclipse.jdt.internal.core.SourceMethodInfo;

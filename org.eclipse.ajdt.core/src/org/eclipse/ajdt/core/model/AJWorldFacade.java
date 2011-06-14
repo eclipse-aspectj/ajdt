@@ -25,13 +25,18 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.weaver.ConcreteTypeMunger;
 import org.aspectj.weaver.ResolvedMember;
+import org.aspectj.weaver.ResolvedMemberImpl;
 import org.aspectj.weaver.ResolvedType;
 import org.aspectj.weaver.ResolvedTypeMunger;
+import org.aspectj.weaver.TypeVariable;
 import org.aspectj.weaver.UnresolvedType;
 import org.aspectj.weaver.World;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.core.compiler.CharOperation;
 
 /**
  * @author Andrew Eisenberg
@@ -43,18 +48,23 @@ import org.eclipse.jdt.core.Signature;
  */
 public final class AJWorldFacade {
     public static class ErasedTypeSignature {
-        public ErasedTypeSignature(String returnType, String[] paramTypes) {
-            super();
-            this.returnType = returnType;
+        public ErasedTypeSignature(String returnTypeSig, String[] paramTypes, TypeParameter[] typeParameters) {
+            this.returnTypeSig = returnTypeSig;
             this.paramTypes = paramTypes;
+            this.typeParameters = typeParameters;
         }
-        public final String returnType;
+        public ErasedTypeSignature(String returnType, String[] paramTypes) {
+            this.returnTypeSig = returnType;
+            this.paramTypes = paramTypes;
+            this.typeParameters = null;
+        }
+        public final String returnTypeSig;
         public final String[] paramTypes;
+        public final TypeParameter[] typeParameters;
     }
     
     public static class ITDInfo {
-        
-        static ITDInfo create(ConcreteTypeMunger cMunger) {
+        static ITDInfo create(ConcreteTypeMunger cMunger, boolean includeTypeParameters) {
             ResolvedType aspectType = cMunger.getAspectType();
             if (aspectType != null) {
                 ResolvedMember sig = cMunger.getSignature();
@@ -63,23 +73,55 @@ public final class AJWorldFacade {
                         Accessibility.PUBLIC;
                 String packageDeclaredIn = aspectType.getPackageName();
                 String topLevelAspectName = aspectType.getOutermostType().getClassName();
-                return new ITDInfo(a, packageDeclaredIn, topLevelAspectName);
+                TypeParameter[] convertedTypeParameters;
+                if (includeTypeParameters) {
+                    convertedTypeParameters = convertTypeParameters(sig.getTypeVariables());
+                } else {
+                    convertedTypeParameters = null;
+                }
+                return new ITDInfo(a, packageDeclaredIn, topLevelAspectName, convertedTypeParameters);
             } else { 
                 return null;
             }
         }
         
         public ITDInfo(Accessibility accessibility, String packageDeclaredIn,
-                String topLevelAspectName) {
+                String topLevelAspectName, TypeParameter[] typeParameters) {
             this.accessibility = accessibility;
             this.packageDeclaredIn = packageDeclaredIn;
             this.topLevelAspectName = topLevelAspectName;
+            this.typeParameters = typeParameters;
         }
         public final Accessibility accessibility;
         public final String packageDeclaredIn;
         public final String topLevelAspectName;
+        public final TypeParameter[] typeParameters;
+
+        public ITypeParameter[] getITypeParameters(IntertypeElement parent) {
+            if (typeParameters == null) {
+                return null;
+            }
+            
+            ITypeParameter[] itypeParameters = new ITypeParameter[typeParameters.length];
+            for (int i = 0; i < typeParameters.length; i++) {
+                itypeParameters[i] = new org.eclipse.jdt.internal.core.TypeParameter(parent, typeParameters[i].name);
+            }
+            return itypeParameters;
+        }
     }
 
+    // FIXADE do we even need this class?  maybe just need the parameter name
+    public static class TypeParameter {
+        public final String name;
+        public final String upperBoundTypeName;
+        public TypeParameter(String name, String upperBoundTypeName) {
+            this.name = name;
+            this.upperBoundTypeName = upperBoundTypeName;
+        }
+    }
+
+    private static final TypeParameter[] NO_TYPE_PARAMETERS = new TypeParameter[0];
+    
     private final AjBuildManager manager;
     private final World world;
     
@@ -95,30 +137,102 @@ public final class AJWorldFacade {
         }
     }
     
-    private Map /* char[] -> List<ConcreteTypeMunger> */ cachedMungers;
+    /**
+     * @param typeVariables
+     * @return
+     */
+    static TypeParameter[] convertTypeParameters(
+            TypeVariable[] typeVariables) {
+        if (typeVariables == null || typeVariables.length == 0) {
+            return NO_TYPE_PARAMETERS;
+        }
+        TypeParameter[] typeParameters = new TypeParameter[typeVariables.length];
+        
+        for (int i = 0; i < typeVariables.length; i++) {
+            String name = typeVariables[i].getName();
+            UnresolvedType upperBoundMunger = typeVariables[i].getFirstBound();
+            String upperBound;
+            if (upperBoundMunger != null) {
+                upperBound = createJDTSignature(upperBoundMunger.getBaseName());
+            } else {
+                upperBound = null;
+            }
+            typeParameters[i] = new TypeParameter(name, upperBound);
+        }
+        return typeParameters;
+    }
+
+    private Map<char[], List<ConcreteTypeMunger>> cachedMungers;
     
-    private void cacheMunger(char[] typeName, List mungers) {
+    private void cacheMunger(char[] typeName, List<ConcreteTypeMunger> mungers) {
         if (cachedMungers == null) {
-            cachedMungers = new HashMap();
+            cachedMungers = new HashMap<char[], List<ConcreteTypeMunger>>();
         }
         cachedMungers.put(typeName, mungers);
     }
+    
+    
+    
+    public ITDInfo findITDInfoFromDeclaringType(char[] declaringTypeSignature, char[] name) {
+        if (world == null || declaringTypeSignature == null) {
+            return null;
+        }
+        List<ConcreteTypeMunger> itds;
+        String nameStr = new String(name);
+        ResolvedType type = null;
+        try {
+            String sig = createAJSignature(declaringTypeSignature);
+            type = world.getCoreType(UnresolvedType.forSignature(sig));
+        } catch (Exception e) {
+            // can't do much here
+            return null;
+        }
+        if (type == null || type.isMissing() || type.crosscuttingMembers == null) {
+            return null;
+        }
+        itds = type.crosscuttingMembers.getTypeMungers();
+        
+        if (itds == null) {
+            return null;
+        }
+        
+        for (ConcreteTypeMunger concreteTypeMunger : itds) {
+            ResolvedTypeMunger munger = concreteTypeMunger.getMunger();
+            if (munger == null) {
+                continue;
+            }
+            if (munger.getKind() == ResolvedTypeMunger.Field) {
+                if (munger.getSignature().getName().equals(nameStr)) {
+                    return ITDInfo.create(concreteTypeMunger, true);
+                }
+            }
+            
+            if (munger.getKind() == ResolvedTypeMunger.Method) {
+                // also need to compare parameters, but parameters
+                // are expensive to calculate
+                if (nameStr.endsWith("." + munger.getSignature().getName())) {
+                    return ITDInfo.create(concreteTypeMunger, true);
+                }
+            }
+        }
+        return null;
+    }    
 
-    public ITDInfo findITDInfoIfExists(char[] targetTypeSignature, char[] name) {
+    public ITDInfo findITDInfoFromTargetType(char[] targetTypeSignature, char[] name) {
         if (world == null || targetTypeSignature == null) {
             return null;
         }
-        List itds;
+        List<ConcreteTypeMunger> itds;
         String nameStr = new String(name);
         if (cachedMungers != null && cachedMungers.containsKey(targetTypeSignature)) {
-            itds = (List) cachedMungers.get(targetTypeSignature);
+            itds = (List<ConcreteTypeMunger>) cachedMungers.get(targetTypeSignature);
             if (itds == null) {
                 return null;
             }
         } else {
             ResolvedType type = null;
             try {
-                String sig = createSignature(targetTypeSignature);
+                String sig = createAJSignature(targetTypeSignature);
                 type = world.getCoreType(UnresolvedType.forSignature(sig));
             } catch (Exception e) {
                 // don't cache
@@ -132,15 +246,14 @@ public final class AJWorldFacade {
             cacheMunger(targetTypeSignature, itds);
         }
         
-        for (Iterator iterator = itds.iterator(); iterator.hasNext();) {
-            ConcreteTypeMunger cMunger = (ConcreteTypeMunger) iterator.next();
-            ResolvedTypeMunger munger = cMunger.getMunger();
+        for (ConcreteTypeMunger concreteTypeMunger : itds) {
+            ResolvedTypeMunger munger = concreteTypeMunger.getMunger();
             if (munger == null) {
                 continue;
             }
             if (munger.getKind() == ResolvedTypeMunger.Field) {
                 if (munger.getSignature().getName().equals(nameStr)) {
-                    return ITDInfo.create(cMunger);
+                    return ITDInfo.create(concreteTypeMunger, false);
                 }
             }
             
@@ -148,38 +261,48 @@ public final class AJWorldFacade {
                 // also need to compare parameters, but parameters
                 // are expensive to calculate
                 if (munger.getSignature().getName().equals(nameStr)) {
-                    return ITDInfo.create(cMunger);
+                    return ITDInfo.create(concreteTypeMunger, false);
                 }
             }
         }
         return null;
     }
 
-    private String createSignature(char[] targetTypeSignature) {
+    private String createAJSignature(char[] targetTypeSignature) {
         char[] copy = new char[targetTypeSignature.length];
         System.arraycopy(targetTypeSignature, 0, copy, 0, copy.length);
         
-        // AspectJ parameterized signatures start with 'P'
-        boolean isGeneric = false;
-        for (int i = 0; i < copy.length; i++) {
-            if (copy[i] == '<') {
-                isGeneric = true;
-            }
+//        // AspectJ parameterized signatures start with 'P'
+//        boolean isGeneric = false;
+//        for (int i = 0; i < copy.length; i++) {
+//            if (copy[i] == '<') {
+//                isGeneric = true;
+//            }
+//        }
+//        
+//        if (isGeneric) {
+//            copy[0] = 'P';
+//        }
+        CharOperation.replace(copy, '.', '/');
+        return String.valueOf(copy);
+    }
+    
+    private static String createJDTSignature(String ajSignature) {
+        char[] copy = ajSignature.toCharArray();
+        CharOperation.replace(copy, '/', '.');
+        if (copy[0] == 'P') {
+            copy[0] = 'L';
         }
-        
-        if (isGeneric) {
-            copy[0] = 'P';
-        }
-        String sig = new String(copy);
-        sig = sig.replace('.', '/');
-        
-        return sig;
+        return String.valueOf(copy);
     }
 
-    public ErasedTypeSignature getTypeParameters(String typeSignature, IProgramElement elt) {
+    public ErasedTypeSignature getMethodTypeSignatures(String typeSignature, IProgramElement elt) {
         if (world == null) {
             return null;
         }
+        // ensure '/' instead of '.'
+        typeSignature = createAJSignature(typeSignature.toCharArray());
+        
         ResolvedType type = world.resolve(UnresolvedType.forSignature(typeSignature));
         if (type == null || type.isMissing()) {
             return null;
@@ -197,17 +320,17 @@ public final class AJWorldFacade {
             return null;
         }
         
-        String returnType = myMunger.getSignature().getReturnType().getErasureSignature();
-        returnType = returnType.replaceAll("/", "\\.");
-        returnType = Signature.toString(returnType);
+        String returnTypeSig = myMunger.getSignature().getReturnType().getSignature();
+        returnTypeSig = createJDTSignature(returnTypeSig);
+//        returnTypeSig = Signature.toString(returnType);
         UnresolvedType[] parameterTypes = myMunger.getSignature().getParameterTypes();
         String[] parameterTypesStr = new String[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             parameterTypesStr[i] = parameterTypes[i].getErasureSignature();
-            parameterTypesStr[i] = parameterTypesStr[i].replaceAll("/", "\\.");
+            parameterTypesStr[i] = createJDTSignature(parameterTypesStr[i]);
             parameterTypesStr[i] = Signature.toString(parameterTypesStr[i]);
         }
-        return new ErasedTypeSignature(returnType, parameterTypesStr);
+        return new ErasedTypeSignature(returnTypeSig, parameterTypesStr, convertTypeParameters(myMunger.getSignature().getTypeVariables()));
     }
 
     private boolean equalSignatures(IProgramElement elt, ConcreteTypeMunger munger) {
@@ -226,16 +349,16 @@ public final class AJWorldFacade {
     }
 
     private String qualifiedElementName(ResolvedMember signature) {
-        return signature.getDeclaringType().getBaseName() + "." + signature.getName();
+        return signature.getDeclaringType().getClassName() + "." + signature.getName();
     }
 
     private String qualifiedElementName(IProgramElement elt) {
-        String packageName = elt.getPackageName();
-        if (packageName != null && packageName.length() > 0) {
-            return elt.getPackageName() + "." + elt.getName();
-        } else {
+//        String packageName = elt.getPackageName();
+//        if (packageName != null && packageName.length() > 0) {
+//            return packageName + "." + elt.getName();
+//        } else {
             return elt.getName();
-        }
+//        }
     }
 
     private boolean equalParams(IProgramElement elt, ConcreteTypeMunger munger) {

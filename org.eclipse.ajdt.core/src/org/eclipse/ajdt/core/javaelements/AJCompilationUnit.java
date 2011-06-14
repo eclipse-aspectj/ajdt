@@ -679,6 +679,11 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 		if(javaCompBuffer == null) {
 			convertBuffer(super.getBuffer());
 		}
+		if (javaCompBuffer == null) {
+		    // if still null here, then some horrendous syntax error occurred and
+		    // we can't do anything, so just exit
+		    return;
+		}
 		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
 		
 		//check if inside intertype method declaration

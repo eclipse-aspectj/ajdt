@@ -218,10 +218,10 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
                 // then we know that this was from an ITIT
                 char[] enclosingName = (parent.getElementName() + ".").toCharArray();
                 if (!CharOperation.prefixEquals(enclosingName, declaringTypeName)) {
-                	IMethod[] methods = targetType.getMethods();
-                	for (IMethod method : methods) {
+                    IMethod[] methods = targetType.getMethods();
+                    for (IMethod method : methods) {
                         if (method.getElementName().equals(selectorStr) && matchedParameters(simpleParameterSigs, method.getParameterTypes())) {
-                        	accepted.add(method);
+                            accepted.add(method);
                         }
                     }
                 }
@@ -283,13 +283,15 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             
                 // now check to see if we actually found an ITIT
                 IType targetType = findType(packageName, annotationName);
-                IJavaElement parent = targetType.getParent();
-                if (parent.getElementType() == IJavaElement.TYPE) {
-                    // definitely an inner type.  If the outer type does not match,
-                    // then we know that this was from an ITIT
-                    char[] enclosingName = (parent.getElementName() + ".").toCharArray();
-                    if (!CharOperation.prefixEquals(enclosingName, annotationName)) {
-                        accepted.add(targetType);
+                if (targetType != null) {
+                    IJavaElement parent = targetType.getParent();
+                    if (parent.getElementType() == IJavaElement.TYPE) {
+                        // definitely an inner type.  If the outer type does not match,
+                        // then we know that this was from an ITIT
+                        char[] enclosingName = (parent.getElementName() + ".").toCharArray();
+                        if (!CharOperation.prefixEquals(enclosingName, annotationName)) {
+                            accepted.add(targetType);
+                        }
                     }
                 }
             }
