@@ -21,6 +21,7 @@ import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoring;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
@@ -319,16 +320,16 @@ public class PushInRefactoringRemoveAnnotationTests extends AbstractAJDTRefactor
     }
     private void performRefactoringAndUndo(String[] packNames, String[] cuNames, String[] initialContents, String[] finalContents, ToPushIn toPush) throws Exception {
         ICompilationUnit[] units = createUnits(packNames, cuNames, initialContents);
-        List<IAspectJElement> itds;
+        List<IMember> itds;
         if (toPush == ToPushIn.ALL) {
-            itds = new ArrayList<IAspectJElement>();
+            itds = new ArrayList<IMember>();
             for (IJavaElement elt : units[0].getTypes()[0].getChildren()) {
                 if (elt instanceof IAspectJElement) {
                     itds.add((IAspectJElement) elt);
                 }
             }
         } else {
-            itds = Collections.singletonList((IAspectJElement) units[0].getTypes()[0].getChildren()[0]);
+            itds = Collections.singletonList((IMember) units[0].getTypes()[0].getChildren()[0]);
         }
         
         PushInRefactoring refactoring = new PushInRefactoring();

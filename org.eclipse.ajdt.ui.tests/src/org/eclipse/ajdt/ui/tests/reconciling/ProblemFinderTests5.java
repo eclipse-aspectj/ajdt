@@ -17,9 +17,10 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
+import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.CompilationUnitProblemFinder;
@@ -34,15 +35,16 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  * @author andrew
  *
  */
-public class ProblemFinderTests5 extends UITestCase {
+public class ProblemFinderTests5 extends AJDTCoreTestCase {
     private List/*ICompilationUnit*/ allCUnits = new ArrayList(); 
    
     
     private IProject proj;
     protected void setUp() throws Exception {
         super.setUp();
+        setAutobuilding(false);
         proj = createPredefinedProject("ITDOnInterfaces"); //$NON-NLS-1$
-        waitForJobsToComplete();
+        proj.build(IncrementalProjectBuilder.FULL_BUILD, null);
 
         allCUnits.add(createUnit("src/p/AClass.java"));
         allCUnits.add(createUnit("src/p/AnAspect.aj"));
@@ -52,9 +54,7 @@ public class ProblemFinderTests5 extends UITestCase {
         allCUnits.add(createUnit("src/p/ASubInterface2.java"));
         allCUnits.add(createUnit("src/q/AClass.java"));
         
-        waitForJobsToComplete();
-        setAutobuilding(false);
-        
+        joinBackgroudActivities();
     }
     private ICompilationUnit createUnit(String fName) {
         return (ICompilationUnit) AspectJCore.create(proj.getFile(fName));

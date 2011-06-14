@@ -81,26 +81,14 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
-import org.eclipse.ajdt.ui.tests.reconciling.Bug273691Reconciling;
 import org.eclipse.ajdt.ui.tests.reconciling.Bug279439Reconciling;
-import org.eclipse.ajdt.ui.tests.reconciling.ExtraAspectMethodProblemFinderTests;
-import org.eclipse.ajdt.ui.tests.reconciling.GenericProblemFinderTests;
-import org.eclipse.ajdt.ui.tests.reconciling.ITITProblemFinderTests;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests10;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests11;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests12;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests13;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests14;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests16;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests2;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests3;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests4;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests5;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests6;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests7;
 import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests8;
-import org.eclipse.ajdt.ui.tests.reconciling.ProblemFinderTests9;
 import org.eclipse.ajdt.ui.tests.refactoring.ConvertLocalToFieldTests;
 import org.eclipse.ajdt.ui.tests.refactoring.CopyPasteAJTest;
 import org.eclipse.ajdt.ui.tests.refactoring.ExtractConstantTests;
@@ -110,6 +98,7 @@ import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 import org.eclipse.ajdt.ui.tests.refactoring.MoveTypeIntoAspectRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.PullOutRefactoringTests;
+import org.eclipse.ajdt.ui.tests.refactoring.PushInRefactoringITITTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushInRefactoringRemoveAnnotationTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.RenamePackageTest;
@@ -227,28 +216,17 @@ public class AllAJDTUITests {
         }
         
         // reconciling
-        suite.addTest(new TestSuite(ProblemFinderTests.class));
-        suite.addTest(new TestSuite(ProblemFinderTests2.class));
-        suite.addTest(new TestSuite(ProblemFinderTests3.class));
+        // these are the reconciling tests that depend on UI components.
+        // the rest have been moved to the core tests plugin
         suite.addTest(new TestSuite(ProblemFinderTests4.class));
+        suite.addTest(new TestSuite(ProblemFinderTests10.class));
         suite.addTest(new TestSuite(ProblemFinderTests5.class));
         suite.addTest(new TestSuite(ProblemFinderTests6.class));
-        suite.addTest(new TestSuite(ProblemFinderTests7.class));
         suite.addTest(new TestSuite(ProblemFinderTests8.class));
-        suite.addTest(new TestSuite(ProblemFinderTests9.class));
-        suite.addTest(new TestSuite(ProblemFinderTests10.class));
         suite.addTest(new TestSuite(ProblemFinderTests11.class));
         suite.addTest(new TestSuite(ProblemFinderTests12.class));
-        suite.addTest(new TestSuite(ProblemFinderTests13.class));
-        suite.addTest(new TestSuite(ProblemFinderTests14.class));
-        // mysteriously failing on build server
-//        suite.addTest(new TestSuite(ProblemFinderTests15.class));
-        suite.addTest(new TestSuite(ProblemFinderTests16.class));
-        suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(Bug279439Reconciling.class));
-        suite.addTest(new TestSuite(GenericProblemFinderTests.class));
-        suite.addTest(new TestSuite(ExtraAspectMethodProblemFinderTests.class));
-        suite.addTest(new TestSuite(ITITProblemFinderTests.class));
+
 
         // debug
         suite.addTest(new TestSuite(JavaConsoleHyperlinkTest.class));
@@ -263,6 +241,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(CopyPasteAJTest.class));
         suite.addTest(new TestSuite(PushinRefactoringTests.class));
         suite.addTest(new TestSuite(PushInRefactoringRemoveAnnotationTests.class));
+        suite.addTest(new TestSuite(PushInRefactoringITITTests.class));
         suite.addTest(new TestSuite(PullOutRefactoringTests.class));
         suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
         suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
