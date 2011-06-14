@@ -26,7 +26,6 @@ Export-Package: org.eclipse.ajdt.ui.tests,
  org.eclipse.ajdt.ui.tests.utils,
  org.eclipse.ajdt.ui.tests.visualiser,
  org.eclipse.ajdt.ui.tests.wizards,
- org.eclipse.ajdt.ui.tests.wizards.export,
  org.eclipse.ajdt.ui.tests.xref
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

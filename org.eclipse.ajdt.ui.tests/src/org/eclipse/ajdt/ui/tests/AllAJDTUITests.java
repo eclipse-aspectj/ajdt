@@ -117,7 +117,6 @@ import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
-import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -195,9 +194,6 @@ public class AllAJDTUITests {
         
         // new aspectJ project wizard
         suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
-        
-        // export wizard tests
-        suite.addTest(new TestSuite(AJCTaskTest.class));
         
         // internal.builder tests
         suite.addTest(new TestSuite(ProjectDependenciesTest.class));        
