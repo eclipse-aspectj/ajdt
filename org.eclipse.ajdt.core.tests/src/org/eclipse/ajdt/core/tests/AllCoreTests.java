@@ -66,6 +66,19 @@ import org.eclipse.ajdt.core.tests.model.ModelCheckerTests;
 import org.eclipse.ajdt.core.tests.model.MultipleProjectModelTests;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.core.tests.newbuildconfig.BuildConfigurationTest2;
+import org.eclipse.ajdt.core.tests.problemfinding.Bug273691Reconciling;
+import org.eclipse.ajdt.core.tests.problemfinding.Bug347021ProblemFinderTests;
+import org.eclipse.ajdt.core.tests.problemfinding.ExtraAspectMethodProblemFinderTests;
+import org.eclipse.ajdt.core.tests.problemfinding.GenericProblemFinderTests;
+import org.eclipse.ajdt.core.tests.problemfinding.ITITProblemFinderTests;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests13;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests14;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests16;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests2;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests3;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests7;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests9;
 import org.eclipse.ajdt.core.tests.refactoring.AspectRenameRefactoringTests;
 import org.eclipse.ajdt.core.tests.refactoring.FindITDGettersAndSettersTest;
 import org.eclipse.ajdt.core.tests.refactoring.ITDRenameParticipantRefactoringTest;
@@ -171,6 +184,23 @@ public class AllCoreTests {
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));
         suite.addTest(new TestSuite(BuildConfigurationTest2.class));
+
+        // Problem finding/reconciling tests
+        suite.addTest(new TestSuite(ProblemFinderTests.class));
+        suite.addTest(new TestSuite(ProblemFinderTests2.class));
+        suite.addTest(new TestSuite(ProblemFinderTests3.class));
+        suite.addTest(new TestSuite(ProblemFinderTests7.class));
+        suite.addTest(new TestSuite(ProblemFinderTests9.class));
+        suite.addTest(new TestSuite(ProblemFinderTests13.class));
+        suite.addTest(new TestSuite(ProblemFinderTests14.class));
+        // mysteriously failing on build server
+//        suite.addTest(new TestSuite(ProblemFinderTests15.class));
+        suite.addTest(new TestSuite(ProblemFinderTests16.class));
+        suite.addTest(new TestSuite(Bug273691Reconciling.class));
+        suite.addTest(new TestSuite(GenericProblemFinderTests.class));
+        suite.addTest(new TestSuite(ExtraAspectMethodProblemFinderTests.class));
+        suite.addTest(new TestSuite(ITITProblemFinderTests.class));
+        suite.addTest(new TestSuite(Bug347021ProblemFinderTests.class));
 
 
 		// AST tests

@@ -43,6 +43,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -279,12 +280,88 @@ public class AJDTCoreTestCase extends TestCase {
         
     }
     
+    private static final long TWO_MINUTES = 1000 * 60 * 2;
        public static void joinBackgroudActivities()  {
             waitForAutoBuild();
             waitForManualBuild();
             waitForAutoRefresh();
             waitForManualRefresh();
+        
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + TWO_MINUTES;
+        while (! allJobsQuiet()) {
+            waitForJobs();
+            if (System.currentTimeMillis() > endTime) {
+                fail("Waited too long for jobs to finish.  All jobs:\n" + printJobs());
+            }
         }
+    }
+    
+    public static String printJobs() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        StringBuilder sb = new StringBuilder();
+        sb.append("------------------------");
+        sb.append("Printing jobs");
+        for (int i= 0; i < jobs.length; i++) {
+            sb.append(jobs[i]);
+        }
+        sb.append("------------------------");
+        return sb.toString();
+    }
+
+    
+    private static boolean allJobsQuiet() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        for (int i= 0; i < jobs.length; i++) {
+            Job job= jobs[i];
+            int state= job.getState();
+            if ((job.getName().startsWith("Java indexing") ||
+                    job.getName().startsWith("Searching for markers")) &&
+                    (state == Job.RUNNING || state == Job.WAITING)) {
+                return false;
+            }
+//            int state= job.getState();
+//            //ignore jobs we don't care about
+//            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+//                    !job.getName().equals("Usage Data Event consumer") &&  //$NON-NLS-1$
+//                    (state == Job.RUNNING || state == Job.WAITING)) {
+//                return false;
+//            }
+        }
+        return true;
+    }
+
+    
+    private static void waitForJobs() {
+        IJobManager jobManager= Job.getJobManager();
+        Job[] jobs= jobManager.find(null);
+        for (int i= 0; i < jobs.length; i++) {
+            Job job= jobs[i];
+            int state= job.getState();
+            if ((job.getName().startsWith("Java indexing") ||
+                    job.getName().startsWith("Searching for markers")) &&
+                    (state == Job.RUNNING || state == Job.WAITING)) {
+                try {
+                    job.join();
+                } catch (InterruptedException e) {
+                }
+                
+            }
+            
+//            //ignore jobs we don't care about
+//            if (!job.getName().equals("Flush Cache Job") &&  //$NON-NLS-1$
+//                    !job.getName().equals("Usage Data Event consumer") &&
+//                    !job.getName().equals("Animation start" ) &&  //$NON-NLS-1$
+//                    (state == Job.RUNNING || state == Job.WAITING)) {
+//                try {
+//                    job.join();
+//                } catch (InterruptedException e) {
+//                }
+//            }
+        }
+    }
 
     
     /**
@@ -596,7 +673,9 @@ public class AJDTCoreTestCase extends TestCase {
                 sb.append(markers[i].getResource().getName()).append(" : ");
                 sb.append(markers[i].getAttribute(IMarker.LINE_NUMBER)).append(" : ");
                 sb.append(markers[i].getAttribute(IMarker.MESSAGE)).append("\n");
-                errorFound = true;
+                if (!((String) markers[i].getAttribute(IMarker.MESSAGE)).contains("can't determine modifiers of missing type")) {
+                    errorFound = true;
+                }
             }
         }
         return errorFound ? sb.toString() : null;
