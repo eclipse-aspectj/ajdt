@@ -160,6 +160,7 @@ public class AbstractITDSearchTest extends AJDTCoreTestCase {
         SearchMatch match = matches.get(0);
         assertEquals("Wrong match location", contents.indexOf(matchName, matchStart), match.getOffset());
         assertEquals("Wrong match length", matchName.length(), match.getLength());
+        assertTrue("Match enclosing element does not exist", ((IJavaElement) match.getElement()).exists());
             
             // disabled because we can't get this right right now.
     //        assertEquals("Expected exact match, but was potential", SearchMatch.A_ACCURATE, match.getAccuracy());

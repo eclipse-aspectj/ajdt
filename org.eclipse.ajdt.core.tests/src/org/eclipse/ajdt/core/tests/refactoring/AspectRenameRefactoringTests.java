@@ -529,6 +529,68 @@ public class AspectRenameRefactoringTests extends AbstractAJDTRefactoringTest {
         });
     }
     
+    public void testRenameTypeInITD1() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "p", 
+                "p", 
+        } ,
+        new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "package p;\npublic class Class {  }", 
+                "package p;\naspect Aspect {\n  Class Class.bar() { Class a = new Class(); return a; } }", 
+        }, 
+        new String[] { 
+                "package p;\npublic class XXX {  }", 
+                "package p;\naspect Aspect {\n  XXX XXX.bar() { XXX a = new XXX(); return a; } }", 
+        });
+    }
+    
+    public void testRenameTypeInITD2() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "p", 
+                "p", 
+        } ,
+        new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "package p;\npublic class Class {  }", 
+                "package p;\naspect Aspect {\n  Class Class.bar= new Class(); }", 
+        }, 
+        new String[] { 
+                "package p;\npublic class XXX {  }", 
+                "package p;\naspect Aspect {\n  XXX XXX.bar= new XXX(); }", 
+        });
+    }
+    
+    public void testRenameTypeInAdvice1() throws Exception {
+        performRefactoringAndUndo("XXX", 
+                new String[] { 
+                "p", 
+                "p", 
+        } ,
+        new String[] { 
+                "Class.java", 
+                "Aspect.aj", 
+        } ,
+        new String[] { 
+                "package p;\npublic class Class {  }", 
+                "package p;\naspect Aspect {\n  before() : adviceexecution() { Class c = new Class(); } }", 
+        }, 
+        new String[] { 
+                "package p;\npublic class XXX {  }", 
+                "package p;\naspect Aspect {\n  before() : adviceexecution() { XXX c = new XXX(); } }", 
+        });
+    }
+    
+
+    
     // assume we are renaming the first type in the first CU
     private void performRefactoringAndUndo(String newName, String[] cuNames, String[] initialContents, String[] finalContents) throws Exception {
         String[] packNames = new String[cuNames.length];

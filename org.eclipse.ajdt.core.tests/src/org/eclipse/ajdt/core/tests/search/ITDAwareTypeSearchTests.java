@@ -59,8 +59,35 @@ public class ITDAwareTypeSearchTests extends AbstractITDSearchTest {
         List<SearchMatch> matches = findSearchMatches(javaType, this.getName());
         assertMatch("Java", contents, matches);
     }
+    public void testITDMethodType3() throws Exception {
+        String contents = "package p;\nimport q.Java;\naspect Aspect {\n void Foo.foo() { new Java(); } \n class Foo { } }";
+        createCU("p", "Aspect.aj", contents);
+        ICompilationUnit unit = createCU("q", "Java.java", "package q;\npublic class Java { }");
+        IType javaType = unit.getType("Java");
+        
+        List<SearchMatch> matches = findSearchMatches(javaType, this.getName());
+        assertMatch("Java", contents, matches);
+    }
     public void testITDFieldType2() throws Exception {
         String contents = "package p;\nimport q.Java;\naspect Aspect {\n int Java.foo; }";
+        createCU("p", "Aspect.aj", contents);
+        ICompilationUnit unit = createCU("q", "Java.java", "package q;\npublic class Java { }");
+        IType javaType = unit.getType("Java");
+        
+        List<SearchMatch> matches = findSearchMatches(javaType, this.getName());
+        assertMatch("Java", contents, matches);
+    }
+    public void testITDFieldType3() throws Exception {
+        String contents = "package p;\nimport q.Java;\naspect Aspect {\n Object Foo.foo = new Java(); \n class Foo { } }";
+        createCU("p", "Aspect.aj", contents);
+        ICompilationUnit unit = createCU("q", "Java.java", "package q;\npublic class Java { }");
+        IType javaType = unit.getType("Java");
+        
+        List<SearchMatch> matches = findSearchMatches(javaType, this.getName());
+        assertMatch("Java", contents, matches);
+    }
+    public void testITDFieldType4() throws Exception {
+        String contents = "package p;\nimport q.Java;\naspect Aspect {\n Object Foo.foo2 = Java.class; \n class Foo { } }";
         createCU("p", "Aspect.aj", contents);
         ICompilationUnit unit = createCU("q", "Java.java", "package q;\npublic class Java { }");
         IType javaType = unit.getType("Java");
