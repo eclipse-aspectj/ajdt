@@ -19,12 +19,11 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
-import org.aspectj.asm.internal.HandleProviderDelimiter;
 import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
@@ -36,6 +35,7 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
 /**
  * @author Luzius Meisser
+ * @author Andrew Eisenberg
  */
 public class AspectElement extends SourceType implements IAspectJElement {
 
@@ -282,6 +282,36 @@ public class AspectElement extends SourceType implements IAspectJElement {
         Object info = getElementInfo();
         return info instanceof AspectElementInfo ? ((AspectElementInfo) info)
                 .isPrivileged() : false;
+    }
+    
+    @Override
+    public IMethod getMethod(String selector, String[] parameterTypeSignatures) {
+        int dollarIdx = selector.indexOf('$');
+        // '$' must not be the first or last character
+        if (dollarIdx > 0 && dollarIdx < selector.length()-1) {
+            // probably an ITD
+            return getITDMethod(selector.replace('$', '.'), parameterTypeSignatures);
+        }
+        return super.getMethod(selector, parameterTypeSignatures);
+    }
+    
+    public IntertypeElement getITDMethod(String selector, String[] parameterTypeSignatures) {
+        return IntertypeElement.create(JEM_ITD_METHOD, this, selector, parameterTypeSignatures);
+    }
+    
+    @Override
+    public IField getField(String fieldName) {
+        int dollarIdx = fieldName.indexOf('$');
+        // '$' must not be the first or last character
+        if (dollarIdx > 0 && dollarIdx < fieldName.length()-1) {
+            // probably an ITD
+            return getITDField(fieldName.replace('$', '.'));
+        }
+        return super.getField(fieldName);
+    }
+
+    public IField getITDField(String fieldName) {
+        return (IField) IntertypeElement.create(JEM_ITD_FIELD, this, fieldName, new String[0]);
     }
 
     /*
