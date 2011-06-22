@@ -253,24 +253,35 @@ public privileged aspect DebugHooksAspect {
             ILaunchConfiguration launchConfig = thread
                     .getLaunch().getLaunchConfiguration();
             
-            String projectName = launchConfig
-                    .getAttribute(
-                            IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
-                            "");
-            
-            if (!projectName.equals("")) {
-                IProject project = WORKSPACE_ROOT.getProject(projectName);
-                return (WeavableProjectListener.getInstance()
-                        .isWeavableProject(project));
-            } else {
-                // most likely a server launch
-                // return true iff we are running a SpringSource server
-                String serverConfig = launchConfig.getAttribute("server-id", "");
-                return serverConfig.contains("SpringSource"); 
-            }
+            return isInterestingLaunch(launchConfig);
         } catch (CoreException e) {
             JDTWeavingPlugin.logException(e);
         }
         return false;
+    }
+
+    /**
+     * Made public, static for testing
+     * @param launchConfig
+     * @return
+     * @throws CoreException
+     */
+    public static boolean isInterestingLaunch(ILaunchConfiguration launchConfig)
+            throws CoreException {
+        String projectName = launchConfig
+                .getAttribute(
+                        IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
+                        "");
+        
+        if (!projectName.equals("")) {
+            IProject project = WORKSPACE_ROOT.getProject(projectName);
+            return (WeavableProjectListener.getInstance()
+                    .isWeavableProject(project));
+        } else {
+            // most likely a server launch
+            // return true iff we are running a SpringSource server
+            String pluginId = launchConfig.getType().getPluginIdentifier();
+            return pluginId != null && (pluginId.contains("springsource") || pluginId.contains("vmware")); 
+        }
     }
 }
