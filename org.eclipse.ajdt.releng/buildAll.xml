@@ -239,7 +239,7 @@
 	</target>
 
 	
-	<target name="run-test-eclipse" depends="run-weaving-tests,run-core-tests,run-ui-tests"/>
+	<target name="run-test-eclipse" depends="run-core-tests,run-ui-tests,run-weaving-tests"/>
 
 	<target name="run-weaving-tests" depends="refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
