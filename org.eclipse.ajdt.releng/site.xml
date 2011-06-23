@@ -14,9 +14,6 @@ pack200="true">
    <feature url="features/org.eclipse.contribution.xref_0.0.0.AJFVERSION.jar" id="org.eclipse.contribution.xref" version="0.0.0.AJFVERSION">
       <category name="org.eclipse.ajdt.other"/>
    </feature>
-   <feature url="features/org.eclipse.ajdt.pde.build_0.0.0_AJFVERSION.jar" id="org.eclipse.ajdt.pde.build" version="0.0.0.AJFVERSION">
-      <category name="org.eclipse.ajdt.other"/>
-   </feature>
    <feature url="features/org.eclipse.ajdt.source_0.0.0.AJFVERSION.jar" id="org.eclipse.ajdt.source" version="0.0.0.AJFVERSION">
       <category name="org.eclipse.ajdt.source"/>
    </feature>

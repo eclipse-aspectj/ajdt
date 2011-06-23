@@ -429,7 +429,7 @@
     <replace file="${updateSite.loc}/site.xml" token="0.0.0.AJFVERSION"
 	       value="${org.eclipse.ajdt}"/>
     <replace file="${updateSite.loc}/site.xml" token="0.0.0.EAFVERSION"
-	       value="1.0.0.${org.eclipse.equinox.weaving.sdk,0.0.0}"/>
+	       value="1.0.000.${org.eclipse.equinox.weaving.sdk,0.0.0}"/>
 	</target>
 	
 	
