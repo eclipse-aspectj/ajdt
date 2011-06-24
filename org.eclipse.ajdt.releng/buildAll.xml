@@ -228,8 +228,6 @@
 
 		<!-- org.eclipse.test needs to be in the target -->
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/eclipse/dropins" overwrite="true" />
-		<!-- now, remove the _3.2.0 from the end of the test pluign since library.xml hardcodes this string -->
-		<move file="${build.dest}/target/eclipse/dropins/eclipse/plugins/org.eclipse.test_3.2.0" tofile="${build.dest}/target/eclipse/dropins/eclipse/plugins/org.eclipse.test"/>
 
 		<!-- start with a clean workspace -->
 		<delete failonerror="false">
