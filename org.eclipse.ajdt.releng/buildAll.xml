@@ -223,11 +223,20 @@
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
 			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@3\:start,"/>
 
+		
+		
+		
 		<!-- org.eclipse.test needs to be in the target AND the build eclipses -->
-		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target" overwrite="true" />
-
-		<!-- org.eclipse.test needs to be in the target -->
-		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/eclipse/dropins" overwrite="true" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="file:${builder}/build_bundles/${eclipse.test.framework.version}" 
+			feature.id="org.eclipse.test" />
+		
+		<install-bundle 
+			eclipse.loc="${build.dest}/eclipse" 
+			updatesite.url="file:${builder}/build_bundles/${eclipse.test.framework.version}" 
+			feature.id="org.eclipse.test" />
+		
 
 		<!-- start with a clean workspace -->
 		<delete failonerror="false">
