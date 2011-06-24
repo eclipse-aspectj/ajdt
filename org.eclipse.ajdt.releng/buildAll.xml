@@ -258,6 +258,7 @@
 			<property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.AllWeavingTests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="org.eclipse.test" value="${org.eclipse.test}" />
 			<property name="arch" value="${build.arch}"/>
 			<property name="os" value="${build.os}"/>
 			<property name="ws" value="${build.ws}"/>
@@ -273,6 +274,7 @@
 			<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="org.eclipse.test" value="${org.eclipse.test}" />
 			<property name="arch" value="${build.arch}"/>
 			<property name="os" value="${build.os}"/>
 			<property name="ws" value="${build.ws}"/>
@@ -287,6 +289,7 @@
 			<property name="classname" value="org.eclipse.ajdt.ui.tests.AllUITests" />
 			<property name="eclipse-home" value="${target.eclipse}" />
 			<property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+			<property name="org.eclipse.test" value="${org.eclipse.test}" />
 			<property name="arch" value="${build.arch}"/>
 			<property name="os" value="${build.os}"/>
 			<property name="ws" value="${build.ws}"/>
@@ -315,6 +318,7 @@
              <property name="classname" value="org.eclipse.contribution.weaving.jdt.tests.EmptyTest" />
              <property name="eclipse-home" value="${target.eclipse}" />
              <property name="vmargs" value="${vmargs} ${osgi.vmargs}" />
+						 <property name="org.eclipse.test" value="${org.eclipse.test}" />
              <property name="arch" value="${build.arch}"/>
              <property name="os" value="${build.os}"/>
              <property name="ws" value="${build.ws}"/>
