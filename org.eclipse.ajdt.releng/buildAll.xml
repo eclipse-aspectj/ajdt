@@ -262,7 +262,7 @@
 			<property name="arch" value="${build.arch}"/>
 			<property name="os" value="${build.os}"/>
 			<property name="ws" value="${build.ws}"/>
-			<property name="timeout" value="180000"/>
+			<property name="timeout" value="720000"/>
 		</ant>
 	</target>
 	
