@@ -87,7 +87,7 @@
 			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
-			<arg value="org.eclipse.equinox.p2.metadata.generator.EclipseGenerator" />
+			<arg value="org.eclipse.equinox.p2.metadata.publisher.EclipseGenerator" />
 			<arg value="-updateSite" />
 			<arg value="${updateSite.loc}" />
 			<arg value="-base" />
