@@ -17,11 +17,14 @@ import org.eclipse.contribution.jdt.preferences.AskToReindexJob;
 import org.eclipse.contribution.jdt.preferences.EnableWeavingServiceJob;
 import org.eclipse.contribution.jdt.preferences.JDTWeavingPreferences;
 import org.eclipse.contribution.jdt.preferences.WeavableProjectListener;
+import org.eclipse.core.internal.jobs.JobManager;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -44,6 +47,8 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
         
         Workspace workspace = (Workspace) ResourcesPlugin.getWorkspace();
         workspace.addLifecycleListener(WeavableProjectListener.getInstance());
+        
+        Job.getJobManager().join(JavaUI.ID_PLUGIN, null);
         
         // check to see if we should ask to turn weaving on
         if (!IsWovenTester.isWeavingActive() && JDTWeavingPreferences.shouldAskToEnableWeaving()) {
