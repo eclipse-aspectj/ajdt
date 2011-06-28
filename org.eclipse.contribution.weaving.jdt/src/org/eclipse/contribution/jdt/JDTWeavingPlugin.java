@@ -37,10 +37,6 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
     public JDTWeavingPlugin() {
         super();
         INSTANCE = this;
-        
-        // force loading of this class to avoid deadlocks
-        MatchLocator.class.getName();  
-        SearchPattern.class.getName();  
     }
     
     @Override
