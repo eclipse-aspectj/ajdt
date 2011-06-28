@@ -11,8 +11,10 @@
 
 package org.eclipse.contribution.weaving.jdt.tests;
 
+import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.weaving.jdt.tests.cuprovider.CompilationUnitProviderTests;
 import org.eclipse.contribution.weaving.jdt.tests.imagedescriptor.ImageDescriptorSelectorTests;
 import org.eclipse.contribution.weaving.jdt.tests.itdawareness.ITDAwarenessTests;
@@ -20,6 +22,9 @@ import org.eclipse.contribution.weaving.jdt.tests.preferences.WeavingServiceEnab
 import org.eclipse.contribution.weaving.jdt.tests.preferences.WeavingStateTests;
 import org.eclipse.contribution.weaving.jdt.tests.refactoring.RefactoringHooksTests;
 import org.eclipse.contribution.weaving.jdt.tests.sourceprovider.SourceTransformerTests;
+import org.eclipse.core.runtime.Platform;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 /**
  * @author Andrew Eisenberg
@@ -28,6 +33,14 @@ import org.eclipse.contribution.weaving.jdt.tests.sourceprovider.SourceTransform
  */
 public class AllWeavingTests {
     public static junit.framework.Test suite() {
+        // force early loading of the jdt weaving bundle
+        try {
+            Platform.getBundle(JDTWeavingPlugin.ID).start(Bundle.START_TRANSIENT);
+        } catch (BundleException e) {
+            e.printStackTrace();
+            TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
+        }
+        
         TestSuite suite = new TestSuite(AllWeavingTests.class.getName());
         suite.addTestSuite(CompilationUnitProviderTests.class);
         suite.addTestSuite(SourceTransformerTests.class);
