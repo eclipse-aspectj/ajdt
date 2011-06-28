@@ -23,7 +23,6 @@ import org.eclipse.contribution.weaving.jdt.tests.preferences.WeavingStateTests;
 import org.eclipse.contribution.weaving.jdt.tests.refactoring.RefactoringHooksTests;
 import org.eclipse.contribution.weaving.jdt.tests.sourceprovider.SourceTransformerTests;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
@@ -36,16 +35,19 @@ public class AllWeavingTests {
     public static junit.framework.Test suite() {
         // force early loading of the jdt weaving bundle
         try {
-            Bundle javaUIBundle = Platform.getBundle(JavaPlugin.getPluginId());
-            javaUIBundle.start(Bundle.START_TRANSIENT);
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
-            SynchronizationUtils.joinBackgroudActivities();
+            
+            Bundle jdtWeavingBundle = Platform.getBundle(JDTWeavingPlugin.ID);
+            jdtWeavingBundle.start(Bundle.START_TRANSIENT);
+//            Bundle javaUIBundle = Platform.getBundle(JavaPlugin.getPluginId());
+//            javaUIBundle.start(Bundle.START_TRANSIENT);
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
+//            SynchronizationUtils.joinBackgroudActivities();
         } catch (BundleException e) {
             e.printStackTrace();
             TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
