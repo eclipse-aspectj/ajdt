@@ -35,19 +35,8 @@ public class AllWeavingTests {
     public static junit.framework.Test suite() {
         // force early loading of the jdt weaving bundle
         try {
-            
             Bundle jdtWeavingBundle = Platform.getBundle(JDTWeavingPlugin.ID);
             jdtWeavingBundle.start(Bundle.START_TRANSIENT);
-//            Bundle javaUIBundle = Platform.getBundle(JavaPlugin.getPluginId());
-//            javaUIBundle.start(Bundle.START_TRANSIENT);
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
-//            SynchronizationUtils.joinBackgroudActivities();
         } catch (BundleException e) {
             e.printStackTrace();
             TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
