@@ -24,6 +24,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -38,6 +40,10 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
     public JDTWeavingPlugin() {
         super();
         INSTANCE = this;
+        
+        // force loading of this class to avoid deadlocks
+        MatchLocator.class.getName();  
+        SearchPattern.class.getName();  
     }
     
     @Override
@@ -47,8 +53,6 @@ public class JDTWeavingPlugin extends AbstractUIPlugin {
         
         Workspace workspace = (Workspace) ResourcesPlugin.getWorkspace();
         workspace.addLifecycleListener(WeavableProjectListener.getInstance());
-        
-        Job.getJobManager().join(JavaUI.ID_PLUGIN, null);
         
         // check to see if we should ask to turn weaving on
         if (!IsWovenTester.isWeavingActive() && JDTWeavingPreferences.shouldAskToEnableWeaving()) {
