@@ -337,6 +337,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 // extra problems and new dependencies
                 newProblems = new HashMap<IFile, List<CategorizedProblem>>();
                 for (int i = 0; i < results.length; i++) {
+                    // bug 349963
+                    // I don't really like putting this here since null values should really not be here.
+                    if (results[i] == null) {
+                        continue;
+                    }
                     AJCompilationParticipantResult result = (AJCompilationParticipantResult) results[i];
                     List<CategorizedProblem> problems = result.getProblems();
                     if (problems != null) {
