@@ -298,7 +298,7 @@
 	
 	
 	<target name="set-test-properties">
-		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=128M"/>
+		<property name="vmargs" value="-Xmx1024M -XX:PermSize=64M -XX:MaxPermSize=256M"/>
 		<property name="osgi.vmargs" value="-Daj.weaving.verbose=true -Dorg.aspectj.weaver.showWeaveInfo=true -Dorg.aspectj.osgi.verbose=true -Dosgi.clean=true"/>
 	</target>
 	
