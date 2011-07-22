@@ -64,10 +64,12 @@ public aspect CompilationUnitProviderAspect {
      */
     private String trimName(String original) {
         String noo = original;
-        int extensionIndex = original.lastIndexOf('.') + 1;
+        int extensionIndex = original.indexOf('.') + 1;
         if (extensionIndex >= 0) {
             int mementoIndex = extensionIndex;
-            while (mementoIndex < original.length() && Character.isJavaIdentifierPart(original.charAt(mementoIndex))) {
+            while (mementoIndex < original.length() && (Character.isJavaIdentifierPart(original.charAt(mementoIndex)) ||
+                    // Bug 352871 - Scala files may have more than one dot in them
+                    original.charAt(mementoIndex) == '.')) {
                 mementoIndex++;
             }
             noo = original.substring(0, mementoIndex);
