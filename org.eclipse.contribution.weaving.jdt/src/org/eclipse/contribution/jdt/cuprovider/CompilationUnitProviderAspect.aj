@@ -64,7 +64,7 @@ public aspect CompilationUnitProviderAspect {
      */
     private String trimName(String original) {
         String noo = original;
-        int extensionIndex = original.indexLastOf('.') + 1;
+        int extensionIndex = original.lastIndexOf('.') + 1;
         if (extensionIndex >= 0) {
             int mementoIndex = extensionIndex;
             while (mementoIndex < original.length() && Character.isJavaIdentifierPart(original.charAt(mementoIndex))) {
@@ -76,7 +76,7 @@ public aspect CompilationUnitProviderAspect {
     }
     
     private String findExtension(String name) {
-        int extensionIndex = name.indexLastOf('.') + 1;
+        int extensionIndex = name.lastIndexOf('.') + 1;
         String extension;
         if (extensionIndex > 0) {
             extension = name.substring(extensionIndex);
