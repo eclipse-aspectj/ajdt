@@ -56,7 +56,7 @@ public aspect CompilationUnitProviderAspect {
     }
 
     /**
-     * hacks of any excess parts of the compilation unit name that indicate
+     * hacks off any excess parts of the compilation unit name that indicate
      * extra characters were included in the name
      * 
      * @param original the original name of the compilation unit
@@ -64,7 +64,7 @@ public aspect CompilationUnitProviderAspect {
      */
     private String trimName(String original) {
         String noo = original;
-        int extensionIndex = original.indexOf('.') + 1;
+        int extensionIndex = original.indexLastOf('.') + 1;
         if (extensionIndex >= 0) {
             int mementoIndex = extensionIndex;
             while (mementoIndex < original.length() && Character.isJavaIdentifierPart(original.charAt(mementoIndex))) {
@@ -76,7 +76,7 @@ public aspect CompilationUnitProviderAspect {
     }
     
     private String findExtension(String name) {
-        int extensionIndex = name.indexOf('.') + 1;
+        int extensionIndex = name.indexLastOf('.') + 1;
         String extension;
         if (extensionIndex > 0) {
             extension = name.substring(extensionIndex);
