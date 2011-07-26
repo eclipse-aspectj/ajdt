@@ -250,6 +250,8 @@ public privileged aspect DebugHooksAspect {
         try {
             if (thread == null) return false;
             
+            if (provider.isAlwaysInteretingLaunch()) return true;
+            
             ILaunchConfiguration launchConfig = thread
                     .getLaunch().getLaunchConfiguration();
             

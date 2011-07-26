@@ -77,4 +77,10 @@ public interface IDebugProvider {
      * or {@link IJavaBreakpointListener#DONT_SUSPEND} if the condition evaluates to false.
      */
     int conditionalBreakpointHit(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler);
+
+    /**
+     * @return true iff the standard way of looking for interesting launches should be overridden 
+     * and all launches should take advantage of extended debugging support.
+     */
+    boolean isAlwaysInteretingLaunch();
 }
