@@ -7,7 +7,9 @@ public class HandleTestingClass {
 
 		foo2(x,y);
 
-		class MyClass { }
+		class MyClass { 
+		    int x = 9;
+		}
 		new MyClass() {};
 		new MyClass() {};
 		
@@ -25,7 +27,9 @@ public class HandleTestingClass {
 		return y;
 	}
 	
-	class MyClass { }
+	class MyClass {
+	    int x = 9;
+	}
 	
 	{ }
 	static { }
