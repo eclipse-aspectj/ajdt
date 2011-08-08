@@ -24,7 +24,6 @@ import org.aspectj.org.eclipse.jdt.core.dom.PatternNode;
 import org.aspectj.org.eclipse.jdt.core.dom.SignaturePattern;
 import org.aspectj.org.eclipse.jdt.core.dom.SimpleName;
 import org.aspectj.org.eclipse.jdt.core.dom.TypeCategoryTypePattern;
-import org.aspectj.org.eclipse.jdt.core.dom.TypePattern;
 import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
 import org.eclipse.jdt.core.compiler.CharOperation;
