@@ -29,8 +29,8 @@ public class WeavingTestApplication implements IApplication {
                 System.out.println("Weaving service has been enabled.");
             } else {
                 System.out.println("Could not enable weaving service.  Reason:");
-//                System.out.println(status.getMessage());
-//                status.getException().printStackTrace();
+                System.out.println(status.getMessage());
+                status.getException().printStackTrace();
             }
         }
         System.out.println("Shutting down");

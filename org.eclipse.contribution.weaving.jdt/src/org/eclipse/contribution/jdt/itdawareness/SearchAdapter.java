@@ -38,7 +38,7 @@ public class SearchAdapter extends PlatformObject implements IAdaptable {
         return provider;
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public Object getAdapter(Class adapter) {
         if (adapter == ISearchProvider.class) {
             return super.getAdapter(adapter);
