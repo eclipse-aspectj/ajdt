@@ -67,6 +67,8 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -233,9 +235,30 @@ public class AJDTUtils {
             checkMyEclipseNature(project);
         }
         
+        // Bug 354413
+        // ensure that the state object is deleted for this project otherwise it can contribute to stale searches
+        removeJDTState(project);
+        
         refreshPackageExplorer();
     }
     
+    
+    private static void removeJDTState(IProject project) {
+        // delete cached
+        PerProjectInfo info = JavaModelManager.getJavaModelManager().getPerProjectInfo(project, false);
+        if (info != null) {
+            info.savedState = null;
+            info.triedRead = true;
+        }
+        // delete stored state
+        IPath workingLocation = project.getWorkingLocation(JavaCore.PLUGIN_ID);
+        File file = workingLocation.append("state.dat").toFile();
+        if (file.exists()) {
+            file.delete();
+        }
+        
+    }
+
     /*
      * checks to see if the manifest editor for 
      * the given project is open
