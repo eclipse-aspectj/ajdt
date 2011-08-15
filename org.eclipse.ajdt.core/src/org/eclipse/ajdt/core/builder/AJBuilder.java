@@ -338,6 +338,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 newProblems = new HashMap<IFile, List<CategorizedProblem>>();
                 for (int i = 0; i < results.length; i++) {
                     AJCompilationParticipantResult result = (AJCompilationParticipantResult) results[i];
+                    // Bug 349963---why is result null?
+                    if (result == null) {
+                        continue;
+                    }
                     List<CategorizedProblem> problems = result.getProblems();
                     if (problems != null) {
                         newProblems.put(result.getFile(), problems);
