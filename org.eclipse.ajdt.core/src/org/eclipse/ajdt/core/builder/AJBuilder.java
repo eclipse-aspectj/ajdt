@@ -974,15 +974,20 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                                 resource.copy(outFile.getFullPath(), true, null);
                                                 Util.setReadOnly(outFile, false);
                                             } catch (ResourceException e) {
-                                                // probably hit https://bugs.eclipse.org/bugs/show_bug.cgi?id=331036
-                                                // We just checked to see if the outfile exists, but we get this exception
-                                                // anyway.  It might be that it has not been refreshed.
-                                                if (e.getStatus().getCode() == IResourceStatus.FAILED_WRITE_LOCAL) {
-                                                    AJLog.log(AJLog.BUILDER, "Could not write to resource '" + resource + "'.  " +
-                                                    		"It probbly already exists on disk.  Try a clean build.");
-                                                    outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+                                                resource.refreshLocal(IResource.DEPTH_ZERO, null);
+                                                if (resource.exists()) {
+                                                    // probably hit https://bugs.eclipse.org/bugs/show_bug.cgi?id=331036
+                                                    // We just checked to see if the outfile exists, but we get this exception
+                                                    // anyway.  It might be that it has not been refreshed.
+                                                    if (e.getStatus().getCode() == IResourceStatus.FAILED_WRITE_LOCAL) {
+                                                        AJLog.log(AJLog.BUILDER, "Could not write to resource '" + resource + "'.  " +
+                                                        		"It probbly already exists on disk.  Try a clean build.");
+                                                        outFile.refreshLocal(IResource.DEPTH_ZERO, null);
+                                                    } else {
+                                                        throw e;
+                                                    }
                                                 } else {
-                                                    throw e;
+                                                    // resource was deleted in the middle of the build.  Can safely ignore this
                                                 }
                                             }
                                         }
