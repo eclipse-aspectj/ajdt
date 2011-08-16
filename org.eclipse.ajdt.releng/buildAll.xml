@@ -268,7 +268,8 @@
 	
 	<target name="run-core-tests" depends="refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
-		<ant target="core-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
+		<!-- This should be a core-test, but the tests are hanging on the build server, so maybe they need to be UI tests. -->
+		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace}" />
 			<property name="plugin-name" value="org.eclipse.ajdt.core.tests" />
 			<property name="classname" value="org.eclipse.ajdt.core.tests.AllCoreTests" />
