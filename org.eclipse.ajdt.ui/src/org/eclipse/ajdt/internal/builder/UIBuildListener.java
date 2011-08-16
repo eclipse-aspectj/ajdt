@@ -244,7 +244,7 @@ public class UIBuildListener implements IAJBuildListener {
         if (DebugTracing.DEBUG_MODEL) {
             AJModelChecker.doModelCheckIfRequired(
                     AJProjectModelFactory.getInstance().getModelForProject(project));
-        }       
+        }
         
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
             AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
