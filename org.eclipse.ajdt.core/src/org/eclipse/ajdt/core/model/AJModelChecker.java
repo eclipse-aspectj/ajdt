@@ -40,32 +40,29 @@ public class AJModelChecker {
         // not instantiable
     }
     
-    
     public static void doModelCheckIfRequired(AJProjectModelFacade model) {
         if (shouldCheckModel()) {
             AJLog.logStart("Model sanity check for: " + model.getProject().getName());
-            List problems = internalCheckModel(model);
+            List<String> problems = internalCheckModel(model);
             logProblems(problems);
             AJLog.logEnd(AJLog.MODEL, "Model sanity check for: " + model.getProject().getName());
         }
     }
-    
     
     public static boolean shouldCheckModel() {
         // if the state listener is not null, this means that debug tracing is enabled.
         return AjState.stateListener != null;
     }
     
-    
-    private static void logProblems(List/*String*/ problems) {
+    private static void logProblems(List<String> problems) {
         if (problems.size() == 0) {
             AJLog.log(AJLog.MODEL, "Crosscutting model sanity checked with no problems");
             return;
         }
         
         AJLog.log(AJLog.MODEL, "Crosscutting model sanity checked.  The following problems found:");
-        for (Iterator probIter = problems.iterator(); probIter.hasNext();) {
-            String problem = (String) probIter.next();
+        for (Iterator<String> probIter = problems.iterator(); probIter.hasNext();) {
+            String problem = probIter.next();
             AJLog.log(AJLog.MODEL, problem);
         }
         AJLog.log(AJLog.MODEL, "");
@@ -77,17 +74,17 @@ public class AJModelChecker {
      * returns list of questionable relationships as strings.  An empty list is returned if the
      * model is OK. 
      */
-    private static List/*String*/ internalCheckModel(AJProjectModelFacade model) {
+    private static List<String> internalCheckModel(AJProjectModelFacade model) {
         IRelationshipMap relationships = model.getAllRelationships();
-        List/*String*/ problems = new ArrayList();
+        List<String> problems = new ArrayList<String>();
         if (relationships != null) {
-            for (Iterator relIter = relationships.getEntries().iterator(); relIter.hasNext();) {
+            for (Iterator<String> relIter = relationships.getEntries().iterator(); relIter.hasNext();) {
                 String handle = (String) relIter.next();
-                List relsForHandle = relationships.get(handle);
-                for (Iterator relIter2 = relsForHandle.iterator(); relIter2
+                List<IRelationship> relsForHandle = relationships.get(handle);
+                for (Iterator<IRelationship> relIter2 = relsForHandle.iterator(); relIter2
                         .hasNext();) {
                     IRelationship rel = (IRelationship) relIter2.next();
-                    List res = invalidAdviceRelationsip(rel, model);
+                    List<String> res = invalidAdviceRelationsip(rel, model);
                     problems.addAll(res);
                     res = itdsNotOnType(rel, model);
                     problems.addAll(res);
@@ -100,8 +97,8 @@ public class AJModelChecker {
         return problems;
     }
     
-    private static List/*String*/ invalidAdviceRelationsip(IRelationship rel, AJProjectModelFacade model) {
-        List/*String*/ problems = new ArrayList();
+    private static List<String> invalidAdviceRelationsip(IRelationship rel, AJProjectModelFacade model) {
+        List<String> problems = new ArrayList<String>();
         if (rel.getKind() == IRelationship.Kind.ADVICE ||
                 rel.getKind() == IRelationship.Kind.ADVICE_AFTER ||
                 rel.getKind() == IRelationship.Kind.ADVICE_AFTERRETURNING ||
@@ -122,8 +119,8 @@ public class AJModelChecker {
                         "\n\tIt is the source relationship of " + toRelString(rel));
             }
             
-            for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                String target = (String) targetIter.next();
+            for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+                String target = targetIter.next();
                 elt = model.programElementToJavaElement(target);
                 if (!elt.exists()) {
                     problems.add("Java Element does not exist: " + target + 
@@ -142,8 +139,8 @@ public class AJModelChecker {
         }
         return problems;
     }
-    private static List/*String*/ itdsNotOnType(IRelationship rel, AJProjectModelFacade model) {
-        List/*String*/ problems = new ArrayList();
+    private static List<String> itdsNotOnType(IRelationship rel, AJProjectModelFacade model) {
+        List<String> problems = new ArrayList<String>();
         if (rel.getKind() == IRelationship.Kind.DECLARE_INTER_TYPE) {
             
             IJavaElement elt = model.programElementToJavaElement(rel.getSourceHandle());
@@ -165,8 +162,8 @@ public class AJModelChecker {
                         "\n\tIt is the source relationship of " + toRelString(rel));
             }
             
-            for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-                String target = (String) targetIter.next();
+            for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+                String target = targetIter.next();
                 elt = model.programElementToJavaElement(target);
                 if (!elt.exists()) {
                     problems.add("Java Element does not exist: " + target + 
@@ -197,8 +194,8 @@ public class AJModelChecker {
         sb.append(" --");
         sb.append(rel.getName());
         sb.append("--> ");
-        for (Iterator targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
-            String target = (String) targetIter.next();
+        for (Iterator<String> targetIter = rel.getTargets().iterator(); targetIter.hasNext();) {
+            String target = targetIter.next();
             sb.append(target);
             if (targetIter.hasNext()) {
                 sb.append(",   ");

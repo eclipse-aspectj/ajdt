@@ -292,10 +292,12 @@ public class AJProjectModelFacade {
         } else if (je instanceof ICompilationUnit) {
             cu = (ICompilationUnit) je;
         }
-        if (cu != null &&
-                CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cu.getResource().getName())) {
-            ajHandle = ajHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + JavaElement.JEM_COMPILATIONUNIT, 
-                    Character.toString(AspectElement.JEM_ASPECT_CU));
+        if (cu != null) {
+            IResource resource = cu.getResource();
+            if (resource != null && resource.exists() && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(resource.getName())) {
+                ajHandle = ajHandle.replaceFirst("" + JavaElement.JEM_ESCAPE + JavaElement.JEM_COMPILATIONUNIT, 
+                        Character.toString(AspectElement.JEM_ASPECT_CU));
+            }
         }
         
         IProgramElement ipe = structureModel.findElementForHandleOrCreate(ajHandle, false);
