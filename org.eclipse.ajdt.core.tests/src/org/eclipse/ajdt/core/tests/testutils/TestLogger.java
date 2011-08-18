@@ -23,9 +23,9 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
  */
 public class TestLogger implements IAJLogger {
 
-    private List log;
-    private List buildLog;
-    private List tempBuildLog;
+    private List<String> log;
+    private List<List<String>> buildLog;
+    private List<String> tempBuildLog;
     private boolean loggingBuildEvent = false;
     private boolean foundSplit = false;
     
@@ -43,16 +43,16 @@ public class TestLogger implements IAJLogger {
      */
     public void log(String msg) {
         if (log == null) {
-            log = new ArrayList();
+            log = new ArrayList<String>();
         }
         msg = msg.replaceAll("\\\\","/");
         log.add(msg);
         
         if (buildLog == null) {
-            buildLog = new ArrayList();
+            buildLog = new ArrayList<List<String>>();
         }
         if (tempBuildLog == null) {
-            tempBuildLog = new ArrayList();
+            tempBuildLog = new ArrayList<String>();
         }
         
         StringBuffer sb = new StringBuffer(msg);
@@ -70,7 +70,7 @@ public class TestLogger implements IAJLogger {
             // this is the last log line when we build. 
             loggingBuildEvent = false;
             tempBuildLog.add(msg);
-            buildLog.add(new ArrayList(tempBuildLog));
+            buildLog.add(new ArrayList<String>(tempBuildLog));
             tempBuildLog.clear();
         } else if (loggingBuildEvent) {
             // we're in a build, therefore add msg to tempBuildLog.
@@ -85,8 +85,8 @@ public class TestLogger implements IAJLogger {
         if (log == null) {
              return false;
         }
-        for (Iterator iter = log.iterator(); iter.hasNext();) {
-            String logEntry = (String) iter.next();
+        for (Iterator<String> iter = log.iterator(); iter.hasNext();) {
+            String logEntry = iter.next();
             if (logEntry.indexOf(msg) != -1) {
                 return true;
             }
@@ -100,8 +100,11 @@ public class TestLogger implements IAJLogger {
      * @return
      */
     public String getMostRecentMatchingMessage(String msg) {
+        if (log == null) {
+            return null;
+        }
         for (int i = log.size()-1; i >= 0; i--) {
-           String logEntry = (String)log.get(i);
+           String logEntry = log.get(i);
             if (logEntry.indexOf(msg) != -1) {
                 return logEntry;
             }
@@ -115,8 +118,8 @@ public class TestLogger implements IAJLogger {
      */
     public int numberOfEntriesForMessage(String msg) {
         int occurances = 0;
-        for (Iterator iter = log.iterator(); iter.hasNext();) {
-            String logEntry = (String) iter.next();
+        for (Iterator<String> iter = log.iterator(); iter.hasNext();) {
+            String logEntry = iter.next();
             StringBuffer sb = new StringBuffer(logEntry);
             if (sb.indexOf(msg) != -1) {
                 occurances++;
@@ -131,8 +134,8 @@ public class TestLogger implements IAJLogger {
      */
     public int numberOfEntriesForMessage(String[] msgs) {
         int occurances = 0;
-        for (Iterator iter = log.iterator(); iter.hasNext();) {
-            String logEntry = (String) iter.next();
+        for (Iterator<String> iter = log.iterator(); iter.hasNext();) {
+            String logEntry = iter.next();
             StringBuffer sb = new StringBuffer(logEntry);
             boolean allFound = true;
             for (int i = 0; i < msgs.length; i++) {
@@ -150,7 +153,7 @@ public class TestLogger implements IAJLogger {
     /**
      * Returns the last given number of lines of the log
      */
-    public List getMostRecentEntries(int numberOfLines) {
+    public List<String> getMostRecentEntries(int numberOfLines) {
         if (log == null) {
             return Collections.emptyList();
         }
@@ -181,16 +184,16 @@ public class TestLogger implements IAJLogger {
         System.out.println(""); //$NON-NLS-1$
         System.out.println("Printing log begin ------------------------------------"); //$NON-NLS-1$
         if (log != null) {
-            for (Iterator iter = log.iterator(); iter.hasNext();) {
-                String element = (String) iter.next();
+            for (Iterator<String> iter = log.iterator(); iter.hasNext();) {
+                String element = iter.next();
                 System.out.println("LOG: " + element); //$NON-NLS-1$
             }
         }
         System.out.println("-------------------------------------- Printing log end"); //$NON-NLS-1$
     }
     
-    public List getPreviousBuildEntry(int i) {
-        return (ArrayList)buildLog.get(buildLog.size() - i);
+    public List<String> getPreviousBuildEntry(int i) {
+        return buildLog.get(buildLog.size() - i);
     }
 
     public void waitForLogToClear() {

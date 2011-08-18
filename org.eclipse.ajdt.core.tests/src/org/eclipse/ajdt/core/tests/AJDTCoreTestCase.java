@@ -20,6 +20,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -50,7 +51,6 @@ import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -177,7 +177,10 @@ public class AJDTCoreTestCase extends TestCase {
             jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
         } catch (NullPointerException npe) {
         }
-        jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        // if not autobuilding, then test is completely in charge of building
+        if (isAutobuilding()) {
+            jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+        }
         return jp.getProject();
     }
     
@@ -231,6 +234,24 @@ public class AJDTCoreTestCase extends TestCase {
     protected static class Requestor extends TypeNameRequestor { }
 
     
+    protected void waitForIndexes() {
+        joinBackgroudActivities();
+        Job[] jobs = Job.getJobManager().find(null);
+        for (int i = 0; i < jobs.length; i++) {
+            if (jobs[i].getName().startsWith("Java indexing")) {
+                boolean wasInterrupted = true;
+                while (wasInterrupted) {
+                    try {
+                        wasInterrupted = false;
+                        jobs[i].join();
+                    } catch (InterruptedException e) {
+                        wasInterrupted = true;
+                    }
+                }
+            }
+        }
+    }
+
     public static void waitForAutoBuild() {
         waitForJobFamily(ResourcesPlugin.FAMILY_AUTO_BUILD);
     }
@@ -260,11 +281,11 @@ public class AJDTCoreTestCase extends TestCase {
     }
     
     private static final long TWO_MINUTES = 1000 * 60 * 2;
-    public static void joinBackgroudActivities()  {
-        waitForAutoBuild();
-        waitForManualBuild();
-        waitForAutoRefresh();
-        waitForManualRefresh();
+       public static void joinBackgroudActivities()  {
+            waitForAutoBuild();
+            waitForManualBuild();
+            waitForAutoRefresh();
+            waitForManualRefresh();
         
         long startTime = System.currentTimeMillis();
         long endTime = startTime + TWO_MINUTES;
@@ -311,7 +332,7 @@ public class AJDTCoreTestCase extends TestCase {
         }
         return true;
     }
-    
+
     
     private static void waitForJobs() {
         IJobManager jobManager= Job.getJobManager();

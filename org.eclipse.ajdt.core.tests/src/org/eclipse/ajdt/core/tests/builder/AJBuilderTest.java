@@ -233,6 +233,8 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
+        getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
+
 		// check class files end up in correct output folder
 		IFolder bin = project.getFolder("bin"); //$NON-NLS-1$
 		if (!bin.exists()) {

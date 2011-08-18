@@ -109,11 +109,6 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
         Utils.setAutobuilding(true);
         
         proj2 = createPredefinedProject("ExportAsJar");
-        // FIXADE bug in Eclipse 3.7M5 where after deleting and recreating the project, 
-        // the project preferences go away.
-        // so, must explicitly set the output jar here otherwise it won't be recreated
-        // this may not be required in future versions of Eclipse
-        // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
         AspectJCorePreferences.setProjectOutJar(proj2, "export.jar");
         proj2.build(IncrementalProjectBuilder.FULL_BUILD, null);
         proj1 = createPredefinedProject("JarOnInpath");

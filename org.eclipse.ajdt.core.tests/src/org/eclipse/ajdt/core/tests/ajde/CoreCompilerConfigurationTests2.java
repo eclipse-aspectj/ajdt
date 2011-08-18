@@ -51,11 +51,6 @@ public class CoreCompilerConfigurationTests2 extends AJDTCoreTestCase {
         ap1 = createPredefinedProject("AspectProj1");
         ap2 = createPredefinedProject("AspectProj2-On AspectPath");
         ap3 = createPredefinedProject("AspectProj3-Has Outjar");
-        // FIXADE bug in Eclipse 3.7M5 where after deleting and recreating the project, 
-        // the project preferences go away.
-        // so, must explicitly set the output jar here otherwise it won't be recreated
-        // this may not be required in future versions of Eclipse
-        // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
         AspectJCorePreferences.setProjectOutJar(ap3, "output.jar");
         joinBackgroudActivities();
         getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, null);
