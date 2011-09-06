@@ -5,3 +5,6 @@ plugin@org.eclipse.equinox.weaving.caching.j9=HEAD,:pserver:anonymous@dev.eclips
 fragment@org.eclipse.equinox.weaving.hook=HEAD,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/bundles/org.eclipse.equinox.weaving.hook
 feature@org.eclipse.equinox.weaving.sdk=HEAD,:pserver:anonymous@dev.eclipse.org:/cvsroot/rt,,org.eclipse.equinox/weaving/features/org.eclipse.equinox.weaving.sdk
 feature@org.eclipse.license=v20110121,:pserver:anonymous@dev.eclipse.org:/cvsroot/eclipse,,org.eclipse.sdk-feature/features/org.eclipse.license
+
+!!*** MYLYN DEPENDENCIES
+plugin@com.sun.syndication,0.9.0=GET,http://download.eclipse.org/tools/orbit/downloads/drops/R20090529135407/bundles/com.sun.syndication_0.9.0.v200803061811.jar
