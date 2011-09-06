@@ -36,7 +36,10 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -812,7 +815,12 @@ public class PushInRefactoring extends Refactoring {
             monitor = new NullProgressMonitor();
         }
         RefactoringStatus status= new RefactoringStatus();
+        
         monitor.beginTask("Checking preconditions...", 1);
+
+        if (itds.isEmpty()) {
+            return RefactoringStatus.createWarningStatus("No Intertype declarations selected.  Nothing to do.");
+        }
         
         try {
             for (IMember itd : itds) {
@@ -827,34 +835,50 @@ public class PushInRefactoring extends Refactoring {
     
     private RefactoringStatus initialITDCheck(IMember itd) {
         RefactoringStatus status= new RefactoringStatus();
-        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
-        if (!model.hasModel()) {
-            status.merge(RefactoringStatus.createFatalErrorStatus("Rebuild project.  No crosscutting model available."));
+        if (itd == null) {
+            status.merge(RefactoringStatus.createFatalErrorStatus("Intertype declaration has not been specified"));
+            return status;
         }
         try {
-            if (itd == null) {
-                status.merge(RefactoringStatus.createFatalErrorStatus("Intertype declaration has not been specified"));
-            } else if (!itd.exists()) {
-                status.merge(RefactoringStatus.createFatalErrorStatus(MessageFormat.format("ITD ''{0}'' does not exist.", new Object[] { itd.getElementName()})));
-            } else if (!itd.getCompilationUnit().isStructureKnown()) {
-                status.merge(RefactoringStatus.createFatalErrorStatus(MessageFormat.format("Compilation unit ''{0}'' contains compile errors.", new Object[] { itd.getCompilationUnit().getElementName()})));
+            AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForJavaElement(itd);
+            if (!model.hasModel()) {
+                status.merge(RefactoringStatus.createFatalErrorStatus("No crosscutting model available.  Rebuild project."));
             }
+            ICompilationUnit unit = itd.getCompilationUnit();
+            Object[] itdName = new Object[] { unit.getElementName()};
+            if (!itd.exists()) {
+                status.merge(RefactoringStatus.createFatalErrorStatus(MessageFormat.format("ITD ''{0}'' does not exist.", new Object[] { itd.getElementName()})));
+            } else if (!unit.isStructureKnown()) {
+                status.merge(RefactoringStatus.createFatalErrorStatus(MessageFormat.format("Compilation unit ''{0}'' contains compile errors.", itdName)));
+            } else
+                try {
+                    if (unit.getResource().findMaxProblemSeverity(IMarker.MARKER, true, IResource.DEPTH_ZERO) >= IMarker.SEVERITY_ERROR) {
+                        status.merge(RefactoringStatus.createFatalErrorStatus(MessageFormat.format("Compilation unit ''{0}'' contains compile errors.", itdName)));
+                    }
+                } catch (CoreException e) {
+                    status.merge(RefactoringStatus.create(e.getStatus()));
+                }
             
             // now check target types
             IMember[] targets = getTargets(Collections.singletonList(itd));
-            for (int i = 0; i < targets.length; i++) {
-                IMember target = targets[i];
-                if (!target.exists()) {
-                    status.merge(RefactoringStatus.createFatalErrorStatus(
-                            MessageFormat.format("Target type ''{0}'' does not exist.", new Object[] { target.getElementName()})));
-                } else if (target.isBinary()) {
-                    status.merge(RefactoringStatus.createFatalErrorStatus(
-                            MessageFormat.format("Target type ''{0}'' is binary.", new Object[] { target.getElementName()})));
-                } else if (!itd.getCompilationUnit().isStructureKnown()) {
-                    status.merge(RefactoringStatus.createFatalErrorStatus(
-                            MessageFormat.format("Compilation unit ''{0}'' contains compile errors.", 
-                                    new Object[] { target.getCompilationUnit().getElementName()})));
+            if (targets.length > 0) {
+                for (int i = 0; i < targets.length; i++) {
+                    IMember target = targets[i];
+                    if (!target.exists()) {
+                        status.merge(RefactoringStatus.createFatalErrorStatus(
+                                MessageFormat.format("Target type ''{0}'' does not exist.", new Object[] { target.getElementName()})));
+                    } else if (target.isBinary()) {
+                        status.merge(RefactoringStatus.createFatalErrorStatus(
+                                MessageFormat.format("Target type ''{0}'' is binary.", new Object[] { target.getElementName()})));
+                    } else if (!unit.isStructureKnown()) {
+                        status.merge(RefactoringStatus.createFatalErrorStatus(
+                                MessageFormat.format("Compilation unit ''{0}'' contains compile errors.", 
+                                        new Object[] { target.getCompilationUnit().getElementName()})));
+                    }
                 }
+            } else {
+                status.merge(RefactoringStatus.createWarningStatus(MessageFormat.format("ITD ''{0}'' has no target.  This refactoring will delete the declaration.  " +
+                		"Perhaps there is an unresolved compilation error?", itd.getElementName())));
             }
         } catch (JavaModelException e) {
             status.addFatalError("JavaModelException:\n\t" + e.getMessage() + "\n\t" + e.getJavaModelStatus().getMessage());
@@ -946,12 +970,11 @@ public class PushInRefactoring extends Refactoring {
         
         for (IMember itd : itds) {
             List<IJavaElement> elts;
-            if (itd instanceof IAspectJElement && ((IAspectJElement) itd).getAJKind().isDeclareAnnotation()) {
-                elts = model.getRelationshipsForElement(itd, AJRelationshipManager.ANNOTATES);
-            } else {
-                // either an ITD or an ITIT (IType)
-                elts = model.getRelationshipsForElement(itd, AJRelationshipManager.DECLARED_ON);
-            }
+            AJRelationshipType relationship = itd instanceof IAspectJElement && ((IAspectJElement) itd).getAJKind().isDeclareAnnotation() ?
+                    AJRelationshipManager.ANNOTATES :
+                        // either an ITD or an ITIT (IType)
+                        AJRelationshipManager.DECLARED_ON;
+            elts = model.getRelationshipsForElement(itd, relationship);
 
             for (IJavaElement elt : elts) {
                 targets.add((IMember) elt);
