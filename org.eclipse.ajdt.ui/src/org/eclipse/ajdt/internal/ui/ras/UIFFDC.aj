@@ -11,9 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ras;
 
+import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog2;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerAction;
-import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.text.BadLocationException;

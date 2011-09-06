@@ -30,7 +30,6 @@ import java.util.Set;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -51,7 +50,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.layout.PixelConverter; /* AJDT 1.7 */
+import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -521,8 +520,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XNoInline,
 				enableDisableValues, 0, true);
 
-		//		 AJ5 options do not apply to Eclipse 3.0
-		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
 		label = UIMessages.CompilerConfigurationBlock_aj_messages_java5;
 		excomposite = createStyleSection(composite, label, nColumns);
 		
@@ -582,7 +579,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_uncheckedAdviceConversion,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-		}
 		label = UIMessages.CompilerConfigurationBlock_aj_messages_programming;
 		excomposite = createStyleSection(composite, label, nColumns);
 

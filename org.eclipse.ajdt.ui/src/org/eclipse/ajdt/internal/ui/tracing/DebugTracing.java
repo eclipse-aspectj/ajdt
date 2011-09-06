@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.aspectj.bridge.Version;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -85,8 +84,6 @@ public class DebugTracing {
 		eventData.append( "Startup information: ");  //$NON-NLS-1$
 		eventData.append( "\n   AJDT version: " ); //$NON-NLS-1$
 		eventData.append( version );
-		eventData.append( " for Eclipse " ); //$NON-NLS-1$
-		eventData.append( EclipseVersion.MAJOR_VERSION + "." + EclipseVersion.MINOR_VERSION); //$NON-NLS-1$
 		
 		eventData.append( "\n   AspectJ Compiler version: " ); //$NON-NLS-1$
 		eventData.append( Version.text );

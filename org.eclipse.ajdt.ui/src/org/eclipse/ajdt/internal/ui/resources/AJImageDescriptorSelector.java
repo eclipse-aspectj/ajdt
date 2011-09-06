@@ -1,15 +1,13 @@
 package org.eclipse.ajdt.internal.ui.resources;
 
-import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
 import org.eclipse.contribution.jdt.imagedescriptor.IImageDescriptorSelector;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;

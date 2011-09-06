@@ -10,12 +10,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor.actions;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.io.Serializable;
 
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsOperation.IChooseImportQuery;
 import org.eclipse.core.filebuffers.FileBuffers;

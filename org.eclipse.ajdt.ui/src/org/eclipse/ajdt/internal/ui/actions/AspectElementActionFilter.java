@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.jdt.internal.debug.ui.MemberActionFilter;
-import org.eclipse.jdt.internal.ui.viewsupport.MemberFilterAction;
 import org.eclipse.ui.IActionFilter;
 
 /**

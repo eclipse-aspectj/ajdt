@@ -3,7 +3,6 @@ package org.eclipse.ajdt.internal.ui.wizards;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElementAttribute;
 import org.eclipse.jdt.ui.wizards.ClasspathAttributeConfiguration;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.ImageDescriptor;

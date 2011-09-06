@@ -19,7 +19,6 @@ import java.util.ArrayList;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
@@ -51,13 +50,11 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.templates.persistence.TemplatePersistenceData;
 import org.eclipse.jface.text.templates.persistence.TemplateReaderWriter;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.UIPlugin;
@@ -65,8 +62,6 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
 
 // --- end imports ---
 /**
@@ -314,8 +309,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
         ajProjectListener = new EnsureAJBuilder();
         AspectJPlugin.getWorkspace().addResourceChangeListener(ajProjectListener, IResourceChangeEvent.PRE_BUILD);
 
-		checkEclipseVersion();
-
 		// 126728: don't try to use the Visualiser / Xref components if the
 		// required plugins are not available
 		if (Platform.getBundle(VISUALISER_ID)==null) {
@@ -361,25 +354,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	    AJBuilder.removeAJBuildListener(buildListener);
 	}
 	
-
-	private void checkEclipseVersion() {
-		Bundle bundle = Platform.getBundle("org.eclipse.jdt.core"); //$NON-NLS-1$
-		String versionStr = (String) bundle.getHeaders().get(
-				Constants.BUNDLE_VERSION);
-		Version version = new Version(versionStr);
-		if ((version.getMajor() != EclipseVersion.MAJOR_VERSION)
-				|| (version.getMinor() != EclipseVersion.MINOR_VERSION)) {
-			MessageDialog.openError(null,
-					UIMessages.ajdtErrorDialogTitle,
-					NLS.bind(UIMessages.wrong_eclipse_version,
-							new String[] {
-									EclipseVersion.MAJOR_VERSION + "." //$NON-NLS-1$
-											+ EclipseVersion.MINOR_VERSION,
-									version.getMajor() + "." //$NON-NLS-1$
-											+ version.getMinor() }));
-		}
-	}
-
 	/**
 	 * get the active window in the workbench, or null if no window is active
 	 */

@@ -3,8 +3,6 @@ package org.eclipse.ajdt.internal.ui.refactoring;
 import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJCore;
-import org.eclipse.ajdt.core.javaelements.IAspectJElement;
-import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.ltk.core.refactoring.Refactoring;

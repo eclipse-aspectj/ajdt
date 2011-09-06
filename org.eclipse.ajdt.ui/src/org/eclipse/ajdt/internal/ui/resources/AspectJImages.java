@@ -17,8 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;

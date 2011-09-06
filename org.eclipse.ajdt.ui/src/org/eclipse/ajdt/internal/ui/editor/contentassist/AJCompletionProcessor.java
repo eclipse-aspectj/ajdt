@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
