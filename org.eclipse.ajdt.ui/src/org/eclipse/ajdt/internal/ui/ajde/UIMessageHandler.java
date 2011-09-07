@@ -112,6 +112,8 @@ public class UIMessageHandler implements IBuildMessageHandler {
 						+ message.getMessage() + " file=" //$NON-NLS-1$
 						+ message.getSourceLocation().getSourceFile().getPath()
 						+ " line=" + message.getSourceLocation().getLine()); //$NON-NLS-1$
+			} else {
+			    AJLog.log(AJLog.COMPILER_MESSAGES,message.getMessage());
 			}
 			problems.add(new ProblemTracker(message.getMessage(), 
 					message.getSourceLocation(), 
