@@ -13,5 +13,6 @@
 <aspect name="org.eclipse.contribution.jdt.itdawareness.SearchHooksAspect"/>
 <aspect name="org.eclipse.contribution.jdt.debug.DebugHooksAspect"/>
 </aspects>
+<weaver options="-Xlint:ignore" />
 </aspectj>
 
