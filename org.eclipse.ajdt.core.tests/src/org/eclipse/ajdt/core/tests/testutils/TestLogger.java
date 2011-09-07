@@ -192,6 +192,17 @@ public class TestLogger implements IAJLogger {
         System.out.println("-------------------------------------- Printing log end"); //$NON-NLS-1$
     }
     
+    public String getLog() {
+        StringBuilder sb = new StringBuilder();
+        if (log != null) {
+            for (Iterator<String> iter = log.iterator(); iter.hasNext();) {
+                String element = iter.next();
+                sb.append(element).append("\n"); //$NON-NLS-1$
+            }
+        }
+        return sb.toString();
+    }
+    
     public List<String> getPreviousBuildEntry(int i) {
         return buildLog.get(buildLog.size() - i);
     }

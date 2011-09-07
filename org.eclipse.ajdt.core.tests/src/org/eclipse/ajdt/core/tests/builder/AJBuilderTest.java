@@ -104,11 +104,9 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			StringReader sr = new StringReader(sb.toString());
 			c.setContents(new ReaderInputStream(sr), IResource.FORCE, null);
 			sr.close();
-//			waitForAutoBuild();
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-//			waitForAutoBuild();
-			assertTrue("project should have errors", testLog //$NON-NLS-1$
-					.containsMessage("error at")); //$NON-NLS-1$
+			assertTrue("project should have errors, but had:\n" + testLog.getLog(), testLog //$NON-NLS-1$
+					.containsMessage("Syntax error on")); //$NON-NLS-1$
 			assertTrue("bin directory should contain class file", //$NON-NLS-1$
 					outputDirContainsFile(project, "pack", "C.class")); //$NON-NLS-1$ //$NON-NLS-2$
 			assertFalse(
@@ -121,12 +119,11 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			binC = binPack.getFile("C.class"); //$NON-NLS-1$
 			assertTrue("class file should exist", binC.exists()); //$NON-NLS-1$
 
-			Utils.setAutobuilding(false);
 			project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 			// testing the same steps are taken during a clean as they
 			// are in the javaBuilder part of bug 101481
 			assertTrue(
-					"should have should have cleaned the output folder", //$NON-NLS-1$
+					"should have cleaned the output folder", //$NON-NLS-1$
 					bin.members().length == 0);
 			assertTrue(
 					"should have removed problems and tasks for the project", //$NON-NLS-1$
