@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoring;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -58,7 +59,8 @@ public class PushinRefactoringTests extends UITestCase {
     
     // gives us access to the findAllITDs method
     class MockAction extends PushInRefactoringAction {
-        protected List findAllITDs(IJavaElement[] selection)
+        @Override
+        protected List<IMember> findAllITDs(IJavaElement[] selection)
                 throws JavaModelException {
             return super.findAllITDs(selection);
         }
@@ -79,7 +81,7 @@ public class PushinRefactoringTests extends UITestCase {
     
     public void testSimpleITDsNoDelete() throws Exception {
         IPackageFragment frag = (IPackageFragment) JavaCore.create(pushinProj.getFolder("src/pushin"));
-        List itds = action.findAllITDs(
+        List<IMember> itds = action.findAllITDs(
                 new IJavaElement[] { frag });
         doRefactoringAndInitialCheck(pushinJavaProj, itds);
         
@@ -91,7 +93,7 @@ public class PushinRefactoringTests extends UITestCase {
     
     public void testITDsWillDelete() throws Exception {
         IPackageFragment frag = (IPackageFragment) JavaCore.create(pushinProj.getFolder("src/pushin2"));
-        List itds = action.findAllITDs(
+        List<IMember> itds = action.findAllITDs(
                 new IJavaElement[] { frag });
         doRefactoringAndInitialCheck(pushinJavaProj, itds);
         lookForAJFiles(frag.getResource());
@@ -102,7 +104,7 @@ public class PushinRefactoringTests extends UITestCase {
     
     public void testDeclareAnnotation() throws Exception {
         IPackageFragment frag = (IPackageFragment) JavaCore.create(pushinProj.getFolder("src/pushin3"));
-        List itds = action.findAllITDs(
+        List<IMember> itds = action.findAllITDs(
                 new IJavaElement[] { frag });
         doRefactoringAndInitialCheck(pushinJavaProj, itds);
         
@@ -117,7 +119,7 @@ public class PushinRefactoringTests extends UITestCase {
     
     public void testDeclareAnnotationBig() throws Exception {
         IPackageFragment frag = (IPackageFragment) JavaCore.create(pushinProj.getFolder("src/pushin4"));
-        List itds = action.findAllITDs(
+        List<IMember> itds = action.findAllITDs(
                 new IJavaElement[] { frag });
         doRefactoringAndInitialCheck(pushinJavaProj, itds);
         IFile aspectFileA = pushinProj.getFile("src/pushin4/A.aj");
@@ -148,7 +150,7 @@ public class PushinRefactoringTests extends UITestCase {
     
     public void testDeclareParents() throws Exception {
         IPackageFragment frag = (IPackageFragment) JavaCore.create(pushinProj.getFolder("src/pushin5"));
-        List itds = action.findAllITDs(
+        List<IMember> itds = action.findAllITDs(
                 new IJavaElement[] { frag });
         doRefactoringAndInitialCheck(pushinJavaProj, itds);
 
@@ -196,7 +198,7 @@ public class PushinRefactoringTests extends UITestCase {
         // test that the test clinic project works with push in
         
         IJavaProject petClinic = JavaCore.create(createPredefinedProject("petclinic2"));
-        List itds = action.findAllITDs(new IJavaElement[] { petClinic });
+        List<IMember> itds = action.findAllITDs(new IJavaElement[] { petClinic });
         doRefactoringAndInitialCheck(petClinic, itds);
         
         
@@ -208,7 +210,7 @@ public class PushinRefactoringTests extends UITestCase {
     // name, push in refactoring should still work
     public void testBug283657() throws Exception {
         IJavaProject refactoringProj = JavaCore.create(createPredefinedProject("Bug283657Refactoring"));
-        List itds = action.findAllITDs(new IJavaElement[] { refactoringProj });
+        List<IMember> itds = action.findAllITDs(new IJavaElement[] { refactoringProj });
         assertEquals("Should have found 2 ITDs in project", 2, itds.size());
         doRefactoringAndInitialCheck(refactoringProj, itds);
         
@@ -226,7 +228,7 @@ public class PushinRefactoringTests extends UITestCase {
         ICompilationUnit subUnit = createCompilationUnitAndPackage("p", "S.java", "package p;\n class S<P> implements I<P> { }", refactoringProj);
 
         assertNoProblems(refactoringProj.getProject());
-        List itds = action.findAllITDs(new IJavaElement[] { refactoringProj });
+        List<IMember> itds = action.findAllITDs(new IJavaElement[] { refactoringProj });
         assertEquals("Should have found 2 ITDs in project", 2, itds.size());
         doRefactoringAndInitialCheck(refactoringProj, itds);
         assertNoProblems(refactoringProj.getProject());
@@ -261,7 +263,7 @@ public class PushinRefactoringTests extends UITestCase {
         resource.accept(visitor);
     }
 
-    private void doRefactoringAndInitialCheck(IJavaProject jProject, List itds)
+    private void doRefactoringAndInitialCheck(IJavaProject jProject, List<IMember> itds)
             throws PartInitException, Exception, CoreException {
         refactoring.setITDs(itds);
         LogView logView = (LogView) Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$

@@ -6,13 +6,4 @@ public aspect Aspect {
     void Target.foo() {
         
     }
-	
-		
-	int x1;
-	int x2;
-	int x3;
-	int x;
-	int y;
-	int z;
- 
 }
