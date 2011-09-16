@@ -147,7 +147,7 @@
 		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/37/tmp" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/37/update" 
 			feature.id="org.eclipse.ajdt" />
 
 
