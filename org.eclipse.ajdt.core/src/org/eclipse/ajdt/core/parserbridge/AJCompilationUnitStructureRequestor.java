@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.parserbridge;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
@@ -27,11 +27,6 @@ import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
-import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo;
-import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
-import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
-import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
@@ -52,6 +47,7 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
+import org.eclipse.ajdt.internal.core.parserbridge.CompilerASTNodeCompatibilityWrapper;
 import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.IAnnotation;
@@ -69,7 +65,6 @@ import org.eclipse.jdt.internal.compiler.ast.CharLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.ExtendedStringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
@@ -80,6 +75,8 @@ import org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
 import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
@@ -89,6 +86,7 @@ import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -102,13 +100,6 @@ import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
-import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
-import org.eclipse.jdt.internal.core.SourceConstructorInfo;
-import org.eclipse.jdt.internal.core.SourceConstructorWithChildrenInfo;
-import org.eclipse.jdt.internal.core.SourceMethod;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
-import org.eclipse.jdt.internal.core.SourceMethodInfo;
-import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
 
 /**
  * This class can be used as a source requestor for the JDT parser *OR*
@@ -117,7 +108,6 @@ import org.eclipse.jdt.internal.core.SourceMethodWithChildrenInfo;
  * @author Luzius Meisser 
  * @author Andrew Eisenberg
  */
- /* AJDT 1.7 lots of changes Do not sync with 1.6 */
 public class AJCompilationUnitStructureRequestor extends
         CompilationUnitStructureRequestor implements IAspectSourceElementRequestor {
 
@@ -1040,18 +1030,48 @@ public class AJCompilationUnitStructureRequestor extends
             FloatLiteral castedJDT = new FloatLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
             jdtExpr = castedJDT;
         } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue) {
-            IntLiteralMinValue castedJDT = new IntLiteralMinValue();
+            // ECLIPSE 3.7.1 --- must use reflection since constructors have changed
+            // ORIG
+//            IntLiteralMinValue castedJDT = new IntLiteralMinValue();
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue) ajExpr;
+            IntLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTIntLiteralMinValue(castedAJ);
+            } catch (Exception e) {
+            }
             jdtExpr = castedJDT;
         } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral) {
+            // ECLIPSE 3.7.1 --- must use reflection since constructors have changed
+            // ORIG
+//            IntLiteralMinValue castedJDT = new IntLiteralMinValue();
             org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral) ajExpr;
-            IntLiteral castedJDT = new IntLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            IntLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTIntLiteral(castedAJ);
+            } catch (Exception e) {
+            }
             jdtExpr = castedJDT;
         } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue) {
-            LongLiteralMinValue castedJDT = new LongLiteralMinValue();
+            // ECLIPSE 3.7.1 --- must use reflection since constructors have changed
+            // ORIG
+//            IntLiteralMinValue castedJDT = new IntLiteralMinValue();
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue) ajExpr;
+            LongLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTLongLiteralMinValue(castedAJ);
+            } catch (Exception e) {
+            }
             jdtExpr = castedJDT;
         } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral) {
+            // ECLIPSE 3.7.1 --- must use reflection since constructors have changed
+            // ORIG
+//            IntLiteralMinValue castedJDT = new IntLiteralMinValue();
             org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral) ajExpr;
-            LongLiteral castedJDT = new LongLiteral(castedAJ.source(), castedAJ.sourceStart, castedAJ.sourceEnd);
+            LongLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTLongLiteral(castedAJ);
+            } catch (Exception e) {
+            }
             jdtExpr = castedJDT;
         } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral) {
             // note that here we capture both StringLiteral and ExtendedStringLiteral
