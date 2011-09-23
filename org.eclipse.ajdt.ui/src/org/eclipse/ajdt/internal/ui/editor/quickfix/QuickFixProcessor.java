@@ -19,10 +19,12 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
+import org.eclipse.jdt.internal.ui.text.correction.ICommandAccess;
 import org.eclipse.jdt.internal.ui.text.correction.JavadocTagsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.LocalCorrectionsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ModifierCorrectionSubProcessor;
@@ -237,8 +239,8 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 		}
 		// AspectJ Change End
 
-		HashSet handledProblems= new HashSet(locations.length);
-		ArrayList resultingCollections= new ArrayList();
+		HashSet<Integer> handledProblems= new HashSet<Integer>(locations.length);
+		ArrayList<ICommandAccess> resultingCollections= new ArrayList<ICommandAccess>();
 		for (int i= 0; i < locations.length; i++) {
 			IProblemLocation curr= locations[i];
 			Integer id= new Integer(curr.getProblemId());
@@ -246,10 +248,10 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 				process(context, curr, resultingCollections);
 			}
 		}
-		return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
+		return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 	}
 
-	private void process(IInvocationContext context, IProblemLocation problem, Collection proposals) throws CoreException {
+	private void process(IInvocationContext context, IProblemLocation problem, Collection<ICommandAccess> proposals) throws CoreException {
 		int id= problem.getProblemId();
 		if (id == 0) { // no proposals for none-problem locations
 			return;
@@ -509,10 +511,13 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 			case IProblem.InvalidUsageOfVarargs:
 			case IProblem.InvalidUsageOfAnnotations:
 			case IProblem.InvalidUsageOfAnnotationDeclarations:
-				ReorgCorrectionsSubProcessor.getNeed50ComplianceProposals(context, problem, proposals);
+			    // FICXADE  Need reflection here!
+			    // ECLIPSE 3.8
+//                ReorgCorrectionsSubProcessor.getNeedHigherComplianceProposals(context, problem, proposals, JavaCore.VERSION_1_5);
+                // ORIG
+//                ReorgCorrectionsSubProcessor.getNeed50ComplianceProposals(context, problem, proposals);
 				break;
 			case IProblem.NonGenericType:
-			    /* AJDT 1.7 */
                 TypeArgumentMismatchSubProcessor.removeMismatchedArguments(context, problem, proposals);
 				break;
 			case IProblem.MissingOverrideAnnotation:
