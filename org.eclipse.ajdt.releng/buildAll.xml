@@ -162,12 +162,14 @@
 	<!-- Sets up the Target eclipse to build against-->
 	<target name="provision-target-eclipse" unless="no.provision.target">
 		<!-- download if not already there -->
+		<!--  disable downloading
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
 			<param name="theURL" value="${target.url}"/>
 			<param name="downloadsDir" value="${download.home}"/>
 			<param name="theFile" value="${target.eclipse.tar}"/>
 		</antcall>
+		-->
 		<!-- Unpack a fresh eclipse -->
 		<delete failonerror="false">
 			<fileset dir="${build.dest}/target/eclipse"/>
