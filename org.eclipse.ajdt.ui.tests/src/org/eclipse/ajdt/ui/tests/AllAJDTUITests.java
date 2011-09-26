@@ -98,6 +98,7 @@ import org.eclipse.ajdt.ui.tests.refactoring.ITDRenameProcessorTests;
 import org.eclipse.ajdt.ui.tests.refactoring.MoveTypeIntoAspectRefactoringTests;
 import org.eclipse.ajdt.ui.tests.refactoring.OrganizeImportsTest;
 import org.eclipse.ajdt.ui.tests.refactoring.PullOutRefactoringTests;
+import org.eclipse.ajdt.ui.tests.refactoring.PushInRefactoringDeclareParentsTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushInRefactoringITITTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushInRefactoringRemoveAnnotationTests;
 import org.eclipse.ajdt.ui.tests.refactoring.PushinRefactoringTests;
@@ -233,7 +234,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(DebugBreakpointsTests.class));
         
         // ras tests
-        suite.addTest(new TestSuite(PluginFFDCTest.class));     
+        suite.addTest(new TestSuite(PluginFFDCTest.class));
         
         // Refactoring
         suite.addTest(new TestSuite(RenamePackageTest.class));
@@ -242,6 +243,7 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(PushinRefactoringTests.class));
         suite.addTest(new TestSuite(PushInRefactoringRemoveAnnotationTests.class));
         suite.addTest(new TestSuite(PushInRefactoringITITTests.class));
+        suite.addTest(new TestSuite(PushInRefactoringDeclareParentsTests.class));
         suite.addTest(new TestSuite(PullOutRefactoringTests.class));
         suite.addTest(new TestSuite(ITDAwareRippleSearchTests.class));
         suite.addTest(new TestSuite(ITDRenameProcessorTests.class));
