@@ -44,11 +44,11 @@ public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
     }
     
     public static LongLiteral createJDTLongLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
-        return (LongLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, true);
+        return (LongLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, false);
     }
     
     public static LongLiteral createJDTLongLiteralMinValue(org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
-        return (LongLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, true);
+        return (LongLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, false);
     }
     
     private static NumberLiteral buildLiteral(char[] source, int sourceStart, int sourceEnd, boolean isInt) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, SecurityException, NoSuchMethodException {
@@ -84,7 +84,13 @@ public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
         
         @SuppressWarnings("unchecked")
         Class<? extends NumberLiteral> clazz = (Class<? extends NumberLiteral>) Class.forName("org.eclipse.jdt.internal.compiler.ast." + (isInt ? "Int" : "Long") + "Literal");
-        return clazz.getConstructor(char[].class, int.class, int.class);
+        Constructor<? extends NumberLiteral> cons = clazz.getConstructor(char[].class, int.class, int.class);
+        if (isInt) {
+            intLiteralConstructorCached = cons;
+        } else {
+            longLiteralConstructorCached = cons;
+        }
+        return cons;
     }
 
     private static Method getXXXLiteralMethod(boolean isInt) throws ClassNotFoundException {
@@ -106,6 +112,11 @@ public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
         Method buildXXXMethod;
         try {
             buildXXXMethod = clazz.getMethod("build" + (isInt ? "Int" : "Long") + "Literal", char[].class, int.class, int.class);
+            if (isInt) {
+                buildIntLiteralCached = buildXXXMethod;
+            } else {
+                buildLongLiteralCached = buildXXXMethod;
+            }
         } catch (SecurityException e) {
             buildXXXMethod = null;
         } catch (NoSuchMethodException e) {
