@@ -89,17 +89,17 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 */ 
     static String NO_BUILD_ON_CHANGE = "NO BUILD ON CHANGE"; //$NON-NLS-1$
 
-	protected List fComboBoxes;
+	protected List<Combo> fComboBoxes;
 
-	protected List fCheckBoxes;
+	protected List<Button> fCheckBoxes;
 	
 	/*
 	 * Stores a list of widgets that use AspectJCores preference store
 	 * not AJDT UI preference store
 	 */
-	protected Set fUsesAspectJCorePreferences;
+	protected Set<Button> fUsesAspectJCorePreferences;
 
-	protected final ArrayList fExpandedComposites;
+	protected final ArrayList<ExpandableComposite> fExpandedComposites;
 	
 	private IProject[] projects;
 	
@@ -115,7 +115,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * The default values used when the plugin is first installed or when
 	 * "restore defaults" is clicked.
 	 */
-	private static final Map defaultValueMap = new HashMap();
+	private static final Map<String,String> defaultValueMap = new HashMap<String,String>();
 	static {
         defaultValueMap.put(
                 AspectJCorePreferences.OPTION_IncrementalCompilationOptimizations,
@@ -281,10 +281,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	public AJCompilerPreferencePage() {
 		super();
 		setTitle(UIMessages.AJCompilerPreferencePage_aspectj_compiler);
-		fCheckBoxes = new ArrayList();
-		fUsesAspectJCorePreferences = new HashSet();
-		fComboBoxes = new ArrayList();
-		fExpandedComposites = new ArrayList();
+		fCheckBoxes = new ArrayList<Button>();
+		fUsesAspectJCorePreferences = new HashSet<Button>();
+		fComboBoxes = new ArrayList<Combo>();
+		fExpandedComposites = new ArrayList<ExpandableComposite>();
 	}
 
 	protected static class ControlData {
@@ -721,7 +721,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	/*
 	 * (non-Javadoc) Method declared on PreferencePage
 	 */
-	public boolean performOk() {
+	@SuppressWarnings("deprecation")
+    public boolean performOk() {
 		if (isProjectPreferencePage()) {
 			return projectPerformOK();
 		} else {
@@ -842,9 +843,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * accordingly if there is a change.
 	 */
 	private boolean updateProjectSettings() {
-		List tempComboBoxes = new ArrayList();
+		List<Combo> tempComboBoxes = new ArrayList<Combo>();
 		tempComboBoxes.addAll(fComboBoxes);
-		List tempCheckBoxes = new ArrayList();
+		List<Button> tempCheckBoxes = new ArrayList<Button>();
 		tempCheckBoxes.addAll(fCheckBoxes);
 
 		boolean settingsChanged = false;
@@ -1274,7 +1275,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	public static void setProjectDefaultsIfValueNotAlreadySet(
 			IEclipsePreferences projectNode) {
-		List existingKeysList = new ArrayList();
+		List<String> existingKeysList = new ArrayList<String>();
 		try {
 			existingKeysList = Arrays.asList(projectNode.keys());
 		} catch (BackingStoreException e) {
