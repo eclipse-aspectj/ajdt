@@ -537,19 +537,55 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                 );
     }
     
-    //    same package
-    //    other packages
-    //    other projects
-    //    some parents not pushed in.
-    
-    // import required
-    // no import required
-    // fully qualified
-    // interface already exists
-    // extends already exists
-    
-    // multiple targets
-
+    //  multiple targets
+    public void testGenerics1() throws Exception {
+        performRefactoringAndUndo(
+                new String[] {
+                        "pack1",
+                        "pack2",
+                        "pack2",
+                },
+                new String[] {
+                        "Aspect.aj",
+                        "Target1.java",
+                        "Target2.java",
+                },
+                new String[] {
+                        "package pack1;\n" + 
+                        "import java.util.List;\n" + 
+                        "public aspect Aspect {\n" + 
+                        "  declare parents : pack2.* extends I<String,   List<String>   >;\n" + 
+                        "  public static interface I<A, B> {\n" + 
+                        "  }\n" + 
+                        "}",
+                        "package pack2;\n" +
+                        "public class Target1 { }",
+                        "package pack2;\n" +
+                        "public interface Target2 { }",
+                },
+                new String[] {
+                        "package pack1;\n" +
+                        "import java.util.List;\n" +
+                        "public aspect Aspect {\n" +
+                        "  \n" +
+                        "  public static interface I<A, B> {\n" +
+                        "  }\n" +
+                        "}",
+                        "package pack2;\n" +
+                        "\n" +
+                        "import java.util.List;\n" +
+                        "import pack1.AnAspect.I;\n" +
+                        "\n" +
+                        "public class Target1 implements I<String, List<String>> { }",
+                        "package pack2;\n" +
+                        "\n" +
+                        "import java.util.List;\n" +
+                        "import pack1.AnAspect.I;\n" +
+                        "\n" +
+                        "public interface Target2 extends I<String, List<String>> { }",
+                }, ToPushIn.FIRST
+                );
+    }
 
     // First compilation unit contains the elements to push in.
     private void performRefactoringAndUndo(String[] packNames, String[] cuNames, String[] initialContents, String[] finalContents, ToPushIn toPush) throws Exception {
