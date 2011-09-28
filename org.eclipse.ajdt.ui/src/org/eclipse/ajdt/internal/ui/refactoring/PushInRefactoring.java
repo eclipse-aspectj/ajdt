@@ -27,8 +27,6 @@ import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Kind;
-import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
-import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -71,6 +69,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Type;
@@ -79,7 +78,10 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.NameLookup;
+import org.eclipse.jdt.internal.core.NameLookup.Answer;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
 import org.eclipse.jface.text.Region;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -93,7 +95,6 @@ import org.eclipse.ltk.core.refactoring.resource.DeleteResourceChange;
 import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.MultiTextEdit;
-import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
 /**
@@ -246,7 +247,10 @@ public class PushInRefactoring extends Refactoring {
             }
             set.addAll(parentTypes);
             for (String parent : parentTypes) {
-                extraImports.add(parent);
+                String[] split = parent.split("<|>|,");
+                for (String name : split) {
+                    extraImports.add(name.trim());
+                }
             }
         }
     }
@@ -554,12 +558,7 @@ public class PushInRefactoring extends Refactoring {
         // convert all parents to simple names
         List<String> simpleParents = new ArrayList<String>(newParents.size());
         for (String qual : newParents) {
-            int dot = qual.lastIndexOf('.');
-            if (dot == -1) {
-                simpleParents.add(qual);
-            } else {
-                simpleParents.add(qual.substring(dot+1, qual.length()));
-            }
+            simpleParents.add(convertToSimple(qual));
         }
         
         // now remove any possible duplicates
@@ -592,7 +591,7 @@ public class PushInRefactoring extends Refactoring {
         ASTRewrite rewriter = ASTRewrite.create(astUnit.getAST());
         AST ast = typeDecl.getAST();
         if (newSuper != null) {
-            SimpleType newSuperType = ast.newSimpleType(ast.newSimpleName(newSuper));
+            Type newSuperType = createTypeAST(newSuper, ast);
             if (superclassType == null) {
                 rewriter.set(typeDecl, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, newSuperType, null);
             } else {
@@ -602,7 +601,7 @@ public class PushInRefactoring extends Refactoring {
         if (simpleParents.size() > 0) {
             ListRewrite listRewrite = rewriter.getListRewrite(typeDecl, TypeDeclaration.SUPER_INTERFACE_TYPES_PROPERTY);
             for (String simpleParent : simpleParents) {
-                listRewrite.insertLast(ast.newSimpleType(ast.newSimpleName(simpleParent)), null);
+                listRewrite.insertLast(createTypeAST(simpleParent, ast), null);
             }
         }        
         // finally, add the new change
@@ -619,13 +618,96 @@ public class PushInRefactoring extends Refactoring {
         }
     }
 
+
+    private Type createTypeAST(String newSuper, AST ast) {
+        String toParse = newSuper + " t;";
+        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        parser.setSource((toParse).toCharArray());
+        parser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
+        ASTNode astNode = parser.createAST(null);
+        Type t = null;
+        if (astNode instanceof TypeDeclaration) {
+            Object object = ((TypeDeclaration) astNode).bodyDeclarations().get(0);
+            if (object instanceof FieldDeclaration) {
+                t = ((FieldDeclaration) object).getType();
+                t = (Type) ASTNode.copySubtree(ast, t);
+            }
+        }
+        if (t == null) {
+            t = ast.newSimpleType(ast.newSimpleName("MISSING"));
+        }
+        return t;
+    }
+
+    /**
+     * Converts from a possibly generic fully qualified type name to a simple fully
+     * qualified type name
+     * @param qualName
+     * @return
+     */
+    String convertToSimple(String qualName) {
+        char[] charArray = qualName.toCharArray();
+        StringBuilder candidate = new StringBuilder(charArray.length);
+        StringBuilder complete = new StringBuilder(charArray.length);
+        for (char c : charArray) {
+            switch (c) {
+                case '.':
+                    candidate.delete(0, candidate.length());
+                    break;
+                case '<':
+                case ',':
+                case '>':
+                    complete.append(candidate).append(c);
+                    candidate.delete(0, candidate.length());
+                    break;
+                default:
+                    candidate.append(c);
+            }
+        }
+        complete.append(candidate);
+        return complete.toString();
+    }
+
+
     /**
      * @return true iff name is the fully qualified name of a class, false if an interface, enum, etc 
      * @throws JavaModelException 
      */
     private boolean isClass(String name, IType type) throws JavaModelException {
+        String erasedName = name;
+        int genericsIndex = name.indexOf('<');
+        if (genericsIndex > 0) {
+            erasedName = name.substring(0, genericsIndex);
+        }
+        
+        int dotIndex = erasedName.lastIndexOf('.');
+        String packageName;
+        String simpleName;
+        if (dotIndex > 0) {
+            packageName = erasedName.substring(0, dotIndex);
+            simpleName = erasedName.substring(dotIndex +1);
+        } else {
+            packageName = "";
+            simpleName = erasedName;
+        }
+        IType found = findType(packageName, simpleName, type);
+        return found != null && found.isClass();
+    } 
+    private IType findType(String packageName, String simpleName, IType type) throws JavaModelException {
         NameLookup lookup = getLookup(type);
-        return lookup.findType(name, false, NameLookup.ACCEPT_CLASSES) != null;
+        Answer answer = lookup.findType(simpleName, packageName, false, NameLookup.ACCEPT_CLASSES | NameLookup.ACCEPT_INTERFACES, true, false, false, null);
+        if (answer != null) {
+            return answer.type;
+        }
+        // might be an inner type
+        int dotIndex = packageName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            IType foundType = findType(packageName.substring(0, dotIndex), packageName.substring(dotIndex+1), type);
+            if (foundType != null && foundType.getType(simpleName).exists()) {
+                return foundType.getType(simpleName);
+            }
+        }
+        return null;
     }
 
 
@@ -635,6 +717,7 @@ public class PushInRefactoring extends Refactoring {
         		message)));
     }
 
+    @SuppressWarnings("unchecked")
     private TypeDeclaration findType(CompilationUnit ast, String name) {
         for (TypeDeclaration type : (Iterable<TypeDeclaration>) ast.types()) {
             if (type.getName().getIdentifier().equals(name)) {
@@ -749,26 +832,6 @@ public class PushInRefactoring extends Refactoring {
         int classIndex = source.lastIndexOf("class ", dotOffset);
         source = "\n\t" + source.substring(0, classIndex + "class ".length()) + source.substring(dotOffset + 1, source.length()) + "\n";
         return new InsertEdit(getITDInsertLocation(target), source);
-    }
-
-    // Uses AspectsConvertingParser to recreate the class/interface declaration line
-    // this inserts *all* declare parents into the target type.
-    // The assumption is that this target type is having all of its declare parents pushed in.
-    // So, it is not exactly right in all situations.
-    // FIXADE --- not used delete???
-    private TextEdit createEditForDeclareParents(IType type) throws JavaModelException {
-        AspectsConvertingParser parser = new AspectsConvertingParser(null);
-        parser.setUnit(type.getCompilationUnit());
-        char[] implementsExtends = 
-            parser.createImplementExtendsITDs(type.getElementName().toCharArray());
-        // now find the insert location
-        String source = type.getSource();
-        String toSearch = type.isClass() ? "class" : "interface";
-        int nameOffset = type.getNameRange().getOffset() - type.getSourceRange().getOffset();
-        int implExtEnd = source.indexOf("{", nameOffset);
-        int implExtStart = source.lastIndexOf(toSearch, implExtEnd);
-        int offset = type.getSourceRange().getOffset();
-        return new ReplaceEdit(offset+implExtStart, implExtEnd-implExtStart, new String(implementsExtends));
     }
 
     private TextEdit createEditForDeclareTarget(DeclareElement itd,
@@ -1011,8 +1074,12 @@ public class PushInRefactoring extends Refactoring {
     
     private RefactoringStatus initialITDCheck(IMember itd) {
         RefactoringStatus status= new RefactoringStatus();
+        
         if (itd == null) {
             status.merge(RefactoringStatus.createFatalErrorStatus("Intertype declaration has not been specified"));
+            return status;
+        }
+        if (! (itd instanceof IAspectJElement)) {
             return status;
         }
         try {
@@ -1034,7 +1101,6 @@ public class PushInRefactoring extends Refactoring {
                 } catch (CoreException e) {
                     status.merge(RefactoringStatus.create(e.getStatus()));
                 }
-            
             // now check target types
             IMember[] targets = getTargets(Collections.singletonList(itd));
             if (targets.length > 0) {
