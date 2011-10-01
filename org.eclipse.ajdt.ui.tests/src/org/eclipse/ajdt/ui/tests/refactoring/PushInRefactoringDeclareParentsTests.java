@@ -574,13 +574,13 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                         "package pack2;\n" +
                         "\n" +
                         "import java.util.List;\n" +
-                        "import pack1.AnAspect.I;\n" +
+                        "import pack1.Aspect.I;\n" +
                         "\n" +
                         "public class Target1 implements I<String, List<String>> { }",
                         "package pack2;\n" +
                         "\n" +
                         "import java.util.List;\n" +
-                        "import pack1.AnAspect.I;\n" +
+                        "import pack1.Aspect.I;\n" +
                         "\n" +
                         "public interface Target2 extends I<String, List<String>> { }",
                 }, ToPushIn.FIRST
