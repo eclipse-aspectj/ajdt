@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?> 
+<!--  Bug 360093 AJDT should not be contributing its own welcome page -->
+<!--  This file is no longer used -->
 <welcomePage 
 	title="Eclipse AspectJ Development Tools (AJDT)">
 	<intro>This page will help familiarize you with the Eclipse AspectJ development tooling.

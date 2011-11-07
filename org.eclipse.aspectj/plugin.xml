@@ -54,8 +54,5 @@
       <configExtension
             configId="com.ibm.rational.welcome.core.introConfig"
             content="intro/rad/radAjdtWebExtensionContent.xml"/>
-
-
    </extension>
-  
 </plugin>
