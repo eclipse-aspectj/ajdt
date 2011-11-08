@@ -91,6 +91,7 @@ import org.eclipse.ajdt.core.tests.search.ITDAwarePolymorphicSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareSearchTests;
 import org.eclipse.ajdt.core.tests.search.ITDAwareTypeSearchTests;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.core.JavaCore;
 import org.osgi.framework.Bundle;
 
 /**
@@ -101,6 +102,9 @@ import org.osgi.framework.Bundle;
 public class AllCoreTests {
 
 	public static Test suite() throws Exception {
+	    // attempt to avoid deadlock by early loading of JavaCore.
+	    JavaCore.initializeAfterLoad(null);
+	    
 	    AspectJPlugin.getDefault().setHeadless(true);
 
 	    // ensure that the UI plugin is not going to start
