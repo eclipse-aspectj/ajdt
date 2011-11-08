@@ -51,6 +51,64 @@ public class ITDAwareCodeSelectionTests4 extends
         }
     }
     
+    // bug 361876
+    public void testSelectITDMethod1() throws Exception {
+        ICompilationUnit unit = createCompilationUnitAndPackage("p", "Aspect.aj", 
+                "package p;\n" + 
+        		"aspect Aspect {\n" + 
+        		"    public void Test.method(String arg1) { }\n" + 
+        		"    public void Test.method() { }\n" + 
+        		"}", project);
+        createCompilationUnitAndPackage("p", "Test.java", 
+                "package p;\n" + 
+                "public class Test { }", project);
+        validateCodeSelect(unit, findRegion(unit, "method", 1), "Test.method", false, 1);
+        validateCodeSelect(unit, findRegion(unit, "method", 2), "Test.method", false, 0);
+    }
+    // bug 361876
+    public void testSelectITDMethod2() throws Exception {
+        ICompilationUnit unit = createCompilationUnitAndPackage("p", "Aspect.aj", 
+                "package p;\n" + 
+                "aspect Aspect {\n" + 
+                "    public void Test.caller() {\n" + 
+                "        this.method(null);\n" + 
+                "        this.method();\n" + 
+                "    }\n" + 
+                "    public void caller(Test t) {\n" + 
+                "        t.method(null);\n" + 
+                "        t.method();\n" + 
+                "    }\n" + 
+                "    public void Test.method(String arg1) { }\n" + 
+                "    public void Test.method() { }\n" + 
+                "}", project);
+        createCompilationUnitAndPackage("p", "Test.java", 
+                "package p;\n" + 
+                "public class Test { }", project);
+        validateCodeSelect(unit, findRegion(unit, "method", 1), "Test.method", false, 1);
+        validateCodeSelect(unit, findRegion(unit, "method", 2), "Test.method", false, 0);
+        validateCodeSelect(unit, findRegion(unit, "method", 3), "Test.method", false, 1);
+        validateCodeSelect(unit, findRegion(unit, "method", 4), "Test.method", false, 0);
+    }
+    // bug 361876
+    public void testSelectITDMethod3() throws Exception {
+        createCompilationUnitAndPackage("p", "Aspect.aj", 
+                "package p;\n" + 
+                "aspect Aspect {\n" + 
+                "    public void Test.method(String arg1) { }\n" + 
+                "    public void Test.method() { }\n" + 
+                "}", project);
+        ICompilationUnit unit = createCompilationUnitAndPackage("p", "Test.java", 
+                "package p;\n" + 
+        		"public class Test {\n" + 
+        		"    void xx() {\n" + 
+        		"        method(null);\n" + 
+        		"        method();\n" + 
+        		"    }\n" + 
+        		"}", project);
+        validateCodeSelect(unit, findRegion(unit, "method", 1), "Test.method", false, 1);
+        validateCodeSelect(unit, findRegion(unit, "method", 2), "Test.method", false, 0);
+    }
+    
     public void testSelectTargetTypeNameField1() throws Exception {
         ICompilationUnit unit = createCompilationUnitAndPackage("p", "Aspect.aj", "package p;\naspect Aspect {\nint AClass.x;\nclass AClass { } }", project);
         validateCodeSelect(unit, findRegion(unit, "AClass", 1), "AClass");

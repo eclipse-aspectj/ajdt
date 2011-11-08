@@ -104,6 +104,11 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
     }
     protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
             String expected, boolean expectingProblems) throws Exception {
+        validateCodeSelect(unit, region, expected, expectingProblems, -1);
+    } 
+    
+    protected void validateCodeSelect(ICompilationUnit unit, IRegion region,
+            String expected, boolean expectingProblems, int numParams) throws Exception {
         if (!expectingProblems) {
             this.assertNoProblems(unit.getJavaProject().getProject());
         }
@@ -116,6 +121,10 @@ public abstract class AbstractITDAwareCodeSelectionTests extends
         assertTrue("Java element " + elt.getHandleIdentifier()
                 + " should exist", elt.exists());
         assertEquals(expected, elt.getElementName());
+        
+        if (numParams >= 0 && elt instanceof IMethod) {
+            assertEquals("Wrong number of parameters for " + elt, numParams, ((IMethod) elt).getNumberOfParameters());
+        }
     }
 
     protected void validateCodeSelect(ICompilationUnit unit,
