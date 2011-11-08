@@ -336,6 +336,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
         cuInitJob.schedule();
 	}
 	
+	// this method may be outdated since the name of the bundle has moved
 	private void startM2Eclipse() {
 	    Bundle m2eclipseBundle = Platform.getBundle("org.maven.ide.eclipse");
 	    if (m2eclipseBundle != null) {
