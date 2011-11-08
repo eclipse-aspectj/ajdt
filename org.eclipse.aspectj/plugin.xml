@@ -30,10 +30,29 @@
             
       <configExtension
             configId="org.eclipse.ui.intro.universalConfig"
-            content="intro/eclipse/ajdtNewsExtensionContent.xml"/>
+            content="intro/rad/radAjdtWebExtensionContent.xml"/>
+
+      <!--
+          For STS
+      -->
+      <configExtension
+            configId="com.springsource.sts.ide.ui.intro.config"
+            content="intro/eclipse/ajdtOverviewExtensionContent.xml"/>
+
+      <configExtension
+            configId="com.springsource.sts.ide.ui.intro.config"
+            content="intro/eclipse/ajdtTutorialsExtensionContent.xml"/>  
+      
+      <configExtension
+            configId="com.springsource.sts.ide.ui.intro.config"
+            content="intro/eclipse/ajdtSamplesExtensionContent.xml"/>
+            
+      <configExtension
+            configId="com.springsource.sts.ide.ui.intro.config"
+            content="intro/rad/radAjdtWebExtensionContent.xml"/>
 
 	  <!--
-	      Below are welcome page extensions for IBM Rational tooling.
+	      For IBM Rational tooling.
 	  --> 
       <configExtension
             configId="com.ibm.rational.welcome.core.introConfig"
@@ -47,10 +66,6 @@
             configId="com.ibm.rational.welcome.core.introConfig"
             content="intro/rad/radAjdtSamplesExtensionContent.xml"/>
             
-      <configExtension
-            configId="com.ibm.rational.welcome.core.introConfig"
-            content="intro/rad/radAjdtNewsExtensionContent.xml"/>
-
       <configExtension
             configId="com.ibm.rational.welcome.core.introConfig"
             content="intro/rad/radAjdtWebExtensionContent.xml"/>
