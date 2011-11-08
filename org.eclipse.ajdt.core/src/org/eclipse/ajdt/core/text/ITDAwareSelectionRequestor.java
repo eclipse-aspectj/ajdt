@@ -200,16 +200,16 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
             
             IntertypeElement itd = maybeGetITD(start);
             String selectorStr = String.valueOf(selector);
-            if (itd != null) {
+            if (itd != null && !isDeclaration) {
                 // if we are selecting inside of an ITD and the method being matched is a regular method, we find it here.
                 IMethod method = targetType.getMethod(selectorStr, parameterSignatures);
                 if (method.exists()) {
                     accepted.add(method);
                     return;
                 }
-                // still need to determine if the ITD declaration itself is being selected
             }
             
+            // still need to determine if the ITD declaration itself is being selected
             
             // now check to see if we actually found a method in an ITIT
             IJavaElement parent = targetType.getParent();

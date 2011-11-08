@@ -942,7 +942,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         if (types != null && names != null) {
             for (Iterator<?> typeIter = types.iterator(), nameIter = names.iterator(); 
                  typeIter.hasNext();) {
-                String paramType = String.valueOf(typeIter.next());
+                String paramType = String.valueOf((char[]) typeIter.next());
                 String paramName = (String) nameIter.next();
                 sb.append(paramType + " " + paramName);
                 if (typeIter.hasNext()) {
