@@ -125,7 +125,7 @@ public class JDTWeavingPreferencePage
             public void handleEvent(Event event) {
                 openUrl(event.text);
             }
-        });        
+        });
         Label weaverVersion = new Label(area, SWT.NONE);
         weaverVersion.setText(new WeavingStateConfigurer().getWeaverVersionInfo());
 
