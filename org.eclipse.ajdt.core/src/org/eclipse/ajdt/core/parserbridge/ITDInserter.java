@@ -551,10 +551,6 @@ public class ITDInserter extends ASTVisitor {
             }
             decl.superInterfaces = refs;
             
-            
-            // FIXADE I *think* that the bindings and the ast must be identical, so I could combine
-            // but I'm not entirely sure there isn't a corner case somewhere.
-            
             // now do the bindings
             if (decl.binding != null && decl.binding.superInterfaces != null) {
                 superInterfacesNum = decl.binding.superInterfaces.length;
@@ -569,7 +565,9 @@ public class ITDInserter extends ASTVisitor {
             for (int i = 0; i < refBindings.length-superInterfacesNum; i++) {
                 refBindings[i + superInterfacesNum] = createTypeBinding(newInterfaces.get(i));
             }
-            decl.binding.superInterfaces = refBindings;
+            if (decl.binding != null) {
+                decl.binding.superInterfaces = refBindings;
+            }
         }
     }
     
