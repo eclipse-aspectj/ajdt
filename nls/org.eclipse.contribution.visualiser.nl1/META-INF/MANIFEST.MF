@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: Visualiser NL1 Fragment
-Bundle-SymbolicName: org.eclipse.contribution.visualiser.nl1; singleton:=true
-Bundle-Version: 2.2.0
-Bundle-Vendor: Eclipse.org
-Fragment-Host: org.eclipse.contribution.visualiser;bundle-version="2.2.0"
-Bundle-Localization: nl_fragment
-Bundle-ClassPath: nl1.jar
