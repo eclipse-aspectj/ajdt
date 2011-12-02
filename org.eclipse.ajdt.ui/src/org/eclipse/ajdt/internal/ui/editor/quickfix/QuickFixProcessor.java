@@ -385,7 +385,7 @@ public class QuickFixProcessor implements IQuickFixProcessor, IQuickAssistProces
 			case IProblem.IllegalModifierForVariable:
 			case IProblem.IllegalVisibilityModifierForInterfaceMemberType:
 			case IProblem.UnexpectedStaticModifierForMethod:
-				ModifierCorrectionSubProcessor.addRemoveInvalidModifiersProposal(context, problem, proposals, 5);
+				ModifierCorrectionSubProcessor.addRemoveInvalidModfiersProposal(context, problem, proposals, 5);
 				break;
 			case IProblem.NotVisibleMethod:
 			case IProblem.NotVisibleConstructor:
