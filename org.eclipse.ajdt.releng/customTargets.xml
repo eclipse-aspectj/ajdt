@@ -114,11 +114,6 @@
   				<exclude name="bin/**"/>
   			</fileset>
   		</copy>
-  		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui.visual.tests">
-  			<fileset dir="${workdir}/org.eclipse.ajdt.ui.visual.tests">
-  				<exclude name="bin/**"/>
-  			</fileset>
-  		</copy>
   		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.examples">
   			<fileset dir="${workdir}/org.eclipse.ajdt.examples">
   				<exclude name="bin/**"/>
