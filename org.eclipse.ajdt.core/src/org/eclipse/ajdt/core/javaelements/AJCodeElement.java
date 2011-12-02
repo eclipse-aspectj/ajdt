@@ -33,14 +33,15 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	
 	private int startLine;
 	
-	public AJCodeElement(JavaElement parent, String name) {
-		super(parent,name,0,0,0,0,"I", new org.eclipse.jdt.internal.compiler.ast.Annotation[0], 0, false); //$NON-NLS-1$
-		this.name=name;
-	}
-	
+    public AJCodeElement(JavaElement parent, String name) {
+        super(parent,name,0,0,0,0,"I", null); //$NON-NLS-1$
+        this.name=name;
+    }
+    
     public AJCodeElement(JavaElement parent, String name, int occurrence) {
-        this(parent,name); //$NON-NLS-1$
+        super(parent,name,0,0,0,0,"I", null); //$NON-NLS-1$
         this.occurrenceCount = occurrence;
+        this.name=name;
     }
 
 
