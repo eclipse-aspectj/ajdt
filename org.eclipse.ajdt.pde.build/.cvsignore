@@ -1,8 +1,0 @@
-bin
-bin_ant
-temp*
-build.xml
-pdebuild.jar
-org.eclipse.pde.build_*.zip
-pdebuildsrc.zip
-javaCompiler.pdebuild.jar.args

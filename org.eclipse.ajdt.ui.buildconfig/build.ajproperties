@@ -1,2 +1,0 @@
-src.includes = src/
-src.excludes = src/org/eclipse/ajdt/internal/buildconfig/PropertyPageManager.java
