@@ -30,12 +30,6 @@
          version="0.0.0"/>
 
    <plugin
-         id="org.eclipse.contribution.visualiser.tests"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="org.eclipse.contribution.xref.core.tests"
          download-size="0"
          install-size="0"
