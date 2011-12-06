@@ -28,7 +28,7 @@ pack200="true">
    </feature>
    <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools (Required)">
       <description>
-         The AJDT project provides Eclipse tooling for the AspectJ language.  See http://eclispe.org/ajdt
+         The AJDT project provides Eclipse tooling for the AspectJ language.  See http://eclipse.org/ajdt
       </description>
    </category-def>
    <category-def name="org.eclipse.ajdt.other" label="Other AJDT Tools (Optional)">
