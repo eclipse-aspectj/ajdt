@@ -412,7 +412,7 @@ public class AJProjectModelFacade {
                     count = 0;
                 }
             }
-            jHandle += "!0!0!0!0!I!0!false";
+            jHandle += "!0!0!0!0!I";
             if (count > 1) {
                 jHandle += "" + JavaElement.JEM_COUNT + count;
             }

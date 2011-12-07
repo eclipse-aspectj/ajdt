@@ -18,7 +18,6 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 
 public class Bug159197Test extends AJDTCoreTestCase {
 
-    // FIXADE failing because of https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
 	public void testMissingAspectPath() throws Exception {
 		IProject project = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		IMarker[] markers = project.findMarkers(
@@ -39,7 +38,6 @@ public class Bug159197Test extends AJDTCoreTestCase {
 				found);
 	}
 
-    // FIXADE failing because of https://bugs.eclipse.org/bugs/show_bug.cgi?id=335591
 	public void testMissingInpath() throws Exception {
 		IProject project = createPredefinedProject("CorePreferencesTestProject"); //$NON-NLS-1$
 		IMarker[] markers = project.findMarkers(

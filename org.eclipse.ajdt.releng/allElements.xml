@@ -60,7 +60,9 @@
  	<target name="assemble.org.eclipse.aspectj.feature_tests">
  		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
  	</target>
+ 	<!--  Not building this any more
  	<target name="assemble.org.eclipse.ajdt.pde.build">
  		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
  	</target>
+ 	-->
 </project>

@@ -91,7 +91,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
         }
         
         createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I!0!false"; //$NON-NLS-1$
+		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!0!0!0!0!I"; //$NON-NLS-1$
 
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
