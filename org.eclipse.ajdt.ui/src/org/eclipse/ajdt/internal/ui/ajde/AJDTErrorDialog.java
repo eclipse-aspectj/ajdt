@@ -15,6 +15,9 @@ package org.eclipse.ajdt.internal.ui.ajde;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IconAndMessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
@@ -52,10 +55,6 @@ import org.eclipse.ui.PlatformUI;
  * @see org.eclipse.core.runtime.IStatus
  */
 public class AJDTErrorDialog extends IconAndMessageDialog {
-    /**
-     * Static to prevent opening of error dialogs for automated testing.
-     */
-    public final static boolean AUTOMATED_MODE = false;
 
     /**
      * Reserve room for this many list items.
@@ -308,8 +307,10 @@ public class AJDTErrorDialog extends IconAndMessageDialog {
      * one child status matching the mask.
      */
     public int open() {
-        if (!AUTOMATED_MODE) {
+        if (!AspectJPlugin.getDefault().isHeadless()) {
             return super.open();
+        } else {
+            AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, longMessage, new Exception()));
         }
         setReturnCode(OK);
         return OK;
