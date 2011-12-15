@@ -73,7 +73,9 @@ import org.eclipse.text.edits.TextEditGroup;
  * Changes Marked "// AspectJ Change" (changes marked with "// AspectJ Extension"
  * are changes between org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer
  * and the org.aspectj.... version.
+ * @deprecated This class has not been updated for AspectJ 1.7 and may be removed in future versions of AJDT
  */
+@Deprecated
 public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	
 	// AspectJ Change - this is needed here, even if it's removed from

@@ -25,7 +25,9 @@ import org.eclipse.text.edits.TextEdit;
  * Factory, dynamically loaded by the TypeDeclaration class in the shadows/dom tree.
  * This is a factory for type declaration that returns the Aj subclass of typedeclaration.
  * @author AndyClement
+ * @deprecated This class has not been updated for AspectJ 1.7 and may be removed in future versions of AJDT
  */
+@Deprecated
 public class AjASTRewriteAnalyzerFactory implements IASTRewriteAnalyzerFactory {
 //	public ASTVisitor getASTRewriteAnalyzer(IDocument document, TextEdit rootEdit, RewriteEventStore eventStore, 
 //			NodeInfoStore nodeInfos, Map options, TargetSourceRangeComputer extendedSourceRangeComputer) {

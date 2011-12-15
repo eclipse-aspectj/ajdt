@@ -41,7 +41,9 @@ import org.eclipse.text.edits.TextEdit;
 /**
  * Taken from org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFormatter 
  * Changes Marked "// AspectJ Change" 
-*/
+ * @deprecated This class has not been updated for AspectJ 1.7 and may be removed in future versions of AJDT
+ */
+@Deprecated
 /* package */ final class AjASTRewriteFormatter {
 
 	public static class NodeMarker extends Position {

@@ -83,7 +83,9 @@ import org.eclipse.text.edits.TextEditGroup;
  * are changes between org.eclipse.jdt.internal.core.dom.rewrite.ASTRewrite
  * and the org.aspectj.... version).
  * 
+ * @deprecated This class has not been updated for AspectJ 1.7 and may be removed in future versions of AJDT
  */
+@Deprecated
 public class AjASTRewrite {
 
 	/** root node for the rewrite: Only nodes under this root are accepted */

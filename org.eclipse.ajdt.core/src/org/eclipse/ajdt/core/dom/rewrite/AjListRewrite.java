@@ -37,7 +37,9 @@ import org.eclipse.text.edits.TextEditGroup;
  * 
  * Taken from org.aspectj.org.eclipse.jdt.core.dom.rewrite.ListRewrite 
  * Changes Marked "// AspectJ Change" 
+ * @deprecated This class has not been updated for AspectJ 1.7 and may be removed in future versions of AJDT
  */
+@Deprecated
 public final class AjListRewrite {
 	
 	private ASTNode parent;
