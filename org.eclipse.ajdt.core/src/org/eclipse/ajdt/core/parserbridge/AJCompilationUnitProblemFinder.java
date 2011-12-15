@@ -147,7 +147,8 @@ public class AJCompilationUnitProblemFinder extends
 	 * Use the AspectJ parser
 	 * @see org.eclipse.jdt.internal.compiler.Compiler#initializeParser()
 	 */
-	public void initializeParser() {
+	@Override
+    public void initializeParser() {
 		// AspectJ Change Begin
 	    if (cu != null) {  // wait until object is initialized to initialize parser
              try {
@@ -1056,7 +1057,7 @@ public class AJCompilationUnitProblemFinder extends
 
     private static String extractProblemRegion(
             CategorizedProblem categorizedProblem, CompilationUnit unit) {
-        char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
+        char[] contents = unit.getContents();
         StringBuffer sb = new StringBuffer();
         for (int i = categorizedProblem.getSourceStart(); 
                 i < categorizedProblem.getSourceEnd()+1 && i < contents.length; i++) {
@@ -1066,7 +1067,7 @@ public class AJCompilationUnitProblemFinder extends
     }
     
     private static String extractNextJavaIdentifier(CompilationUnit unit, int start) {
-        char[] contents = ((org.eclipse.jdt.internal.core.CompilationUnit) unit).getContents();
+        char[] contents = unit.getContents();
         StringBuffer sb = new StringBuffer();
         int next = start;
         while (! Character.isJavaIdentifierStart(contents[next]) &&
@@ -1127,238 +1128,232 @@ class NullRequestor extends AJCompilationUnitStructureRequestor implements ISour
         super(null, null, null);
     }
 
+    @Override
     public void acceptImport(int declarationStart, int declarationEnd,
             char[] name, boolean onDemand, int modifiers) {
     }
 
+    @Override
     public void enterMethod(
             org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi,
             AbstractMethodDeclaration mdecl) {
     }
 
+    @Override
     protected void enterType(int declarationStart, int modifiers, char[] name,
             int nameSourceStart, int nameSourceEnd, char[] superclass,
             char[][] superinterfaces, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] tpInfo,
             boolean isAspect, boolean isPrivilegedAspect) {
     }
 
+    @Override
     public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect,
             boolean isPrivilegedAspect) { }
 
+    @Override
     public void setParser(Parser parser) { }
 
+    @Override
     public void setSource(char[] source) { }
 
+    @Override
     protected Annotation createAnnotation(JavaElement parent, String name) { 
         return null;
     }
 
-    protected SourceField createField(JavaElement parent, org.eclipse.jdt.internal.core.util.FieldInfo fieldInfo) { 
-        return null;
-    }
-
+    @Override
     protected ImportContainer createImportContainer(ICompilationUnit parent) { 
         return null;
     }
 
+    @Override
     protected ImportDeclaration createImportDeclaration(ImportContainer parent,
             String name, boolean onDemand) { 
         return null;
     }
 
+    @Override
     protected Initializer createInitializer(JavaElement parent) { 
         return null;
     }
 
-    protected SourceMethod createMethod(
-            JavaElement parent,
-            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
-        return null;
-    }
-
+    @Override
     protected PackageDeclaration createPackageDeclaration(JavaElement parent,
             String name) {
         return null;
     }
 
-    protected SourceType createType(JavaElement parent, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
-        return null;
-    }
-
+    @Override
     protected TypeParameter createTypeParameter(JavaElement parent, String name) {
         return null;
     }
 
-    protected IAnnotation enterAnnotation(
-            org.eclipse.jdt.internal.compiler.ast.Annotation annotation,
-            AnnotatableInfo parentInfo, JavaElement parentHandle) {
-        return null;
-    }
-
-    protected void enterTypeParameter(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo typeParameterInfo) {
-    }
-
-    protected void exitMember(int declarationEnd) {
-    }
-
+    @Override
     protected Object getMemberValue(MemberValuePair memberValuePair,
             Expression expression) {
         return null;
     }
 
+    @Override
     protected IMemberValuePair getMemberValuePair(
             org.eclipse.jdt.internal.compiler.ast.MemberValuePair memberValuePair) {
         return null;
     }
 
+    @Override
     protected IMemberValuePair[] getMemberValuePairs(
             org.eclipse.jdt.internal.compiler.ast.MemberValuePair[] memberValuePairs) {
         return null;
     }
 
+    @Override
     protected void resolveDuplicates(SourceRefElement handle) {
     }
 
+    @Override
     public void acceptAnnotationTypeReference(char[] annotation,
             int sourcePosition) { }
 
+    @Override
     public void acceptAnnotationTypeReference(char[][] annotation,
             int sourceStart, int sourceEnd) { }
 
+    @Override
     public void acceptConstructorReference(char[] typeName, int argCount,
             int sourcePosition) { }
 
+    @Override
     public void acceptFieldReference(char[] fieldName, int sourcePosition) { }
 
+    @Override
     public void acceptImport(int declarationStart, int declarationEnd,
             char[][] tokens, boolean onDemand, int modifiers) { }
 
+    @Override
     public void acceptLineSeparatorPositions(int[] positions) { }
 
+    @Override
     public void acceptMethodReference(char[] methodName, int argCount,
             int sourcePosition) { }
 
+    @Override
     public void acceptPackage(ImportReference importReference) { }
 
+    @Override
     public void acceptProblem(CategorizedProblem problem) { }
 
+    @Override
     public void acceptTypeReference(char[] typeName, int sourcePosition) { }
 
+    @Override
     public void acceptTypeReference(char[][] typeName, int sourceStart,
             int sourceEnd) { }
 
+    @Override
     public void acceptUnknownReference(char[] name, int sourcePosition) { }
 
+    @Override
     public void acceptUnknownReference(char[][] name, int sourceStart,
             int sourceEnd) { }
 
-    public void enterCompilationUnit() { }
-
-    public void enterConstructor(org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
-
-    public void enterField(org.eclipse.jdt.internal.core.util.FieldInfo fieldInfo) { }
-
+    @Override
     public void enterInitializer(int declarationStart, int modifiers) { }
 
-    public void enterMethod(org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
-
+    @Override
     public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) { }
 
-    public void exitCompilationUnit(int declarationEnd) { }
-
+    @Override
     public void exitConstructor(int declarationEnd) { }
 
+    @Override
     public void exitField(int initializationStart, int declarationEnd,
             int declarationSourceEnd) { }
 
+    @Override
     public void exitInitializer(int declarationEnd) { }
 
+    @Override
     public void exitMethod(int declarationEnd, Expression defaultValue) { }
 
+    @Override
     public void exitType(int declarationEnd) { }
 
-    public void enterConstructor(org.aspectj.org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
-
-    public void enterField(org.aspectj.org.eclipse.jdt.internal.core.util.FieldInfo fieldInfo) { }
-
-    public void enterMethod(org.aspectj.org.eclipse.jdt.internal.core.util.MethodInfo methodInfo) { }
-
+    @Override
     public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) { }
 
+    @Override
     public void acceptPackage(org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference ir) { }
 
+    @Override
     public void enterAdvice(int declarationStart, int modifiers,
             char[] returnType, char[] name, int nameSourceStart,
             int nameSourceEnd, char[][] parameterTypes,
             char[][] parameterNames, char[][] exceptionTypes,
             AdviceDeclaration decl) { }
 
+    @Override
     public void enterDeclare(int declarationStart, int modifiers,
             char[] returnType, char[] name, int nameSourceStart,
             int nameSourceEnd, char[][] parameterTypes,
             char[][] parameterNames, char[][] exceptionTypes,
             DeclareDeclaration decl) { }
 
+    @Override
     public void enterInterTypeDeclaration(int declarationStart, int modifiers,
             char[] returnType, char[] name, int nameSourceStart,
             int nameSourceEnd, char[][] parameterTypes,
             char[][] parameterNames, char[][] exceptionTypes,
             InterTypeDeclaration decl) { }
 
-    public void enterMethod(
-            int declarationStart,
-            int modifiers,
-            char[] returnType,
-            char[] name,
-            int nameSourceStart,
-            int nameSourceEnd,
-            char[][] parameterTypes,
-            char[][] parameterNames,
-            char[][] exceptionTypes,
-            org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo[] typeParameters,
-            AbstractMethodDeclaration decl) { }
-
+    @Override
     public void enterMethod(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo,
             AbstractMethodDeclaration decl) { }
 
+    @Override
     public void enterPointcut(int declarationStart, int modifiers,
             char[] returnType, char[] name, int nameSourceStart,
             int nameSourceEnd, char[][] parameterTypes,
             char[][] parameterNames, char[][] exceptionTypes,
             PointcutDeclaration decl) { }
 
+    @Override
     public void enterType(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo,
             boolean isAspect, boolean isPrivilegedAspect) { }
 
+    @Override
     public void acceptPackage(int declarationStart, int declarationEnd,
             char[] name) { }
 
+    @Override
     public void acceptProblem(
             org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem problem) { }
 
+    @Override
     public void enterConstructor(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
 
+    @Override
     public void enterField(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) { }
 
+    @Override
     public void enterMethod(
             org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
 
-
-    public void exitMethod(int declarationEnd, int defaultValueStart,
-            int defaultValueEnd) { }
-
+    @Override
     public void enterConstructor(
             org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
 
+    @Override
     public void enterField(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) { }
 
+    @Override
     public void enterMethod(
             org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) { }
 
+    @Override
     protected SourceField createField(JavaElement parent, org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) {
         return null;
     }
@@ -1401,5 +1396,19 @@ class NullRequestor extends AJCompilationUnitStructureRequestor implements ISour
     protected void acceptTypeParameter(
             org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeParameterInfo typeParameterInfo,
             JavaElementInfo parentInfo) {
+    }
+
+    @Override
+    public void exitCompilationUnit(int declarationEnd) {
+    }
+
+    @Override
+    public void exitMethod(
+            int declarationEnd,
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression defaultValue) {
+    }
+
+    @Override
+    public void enterCompilationUnit() {
     }
 }

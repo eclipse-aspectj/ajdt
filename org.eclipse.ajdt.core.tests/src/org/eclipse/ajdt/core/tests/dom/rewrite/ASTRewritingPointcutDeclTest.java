@@ -607,11 +607,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 						+ "    public abstract void kee(int p1, int p2, int p3) throws IllegalArgumentException, IllegalAccessException, SecurityException;\n" //$NON-NLS-1$
 						+ "    public abstract void lee(int p1, int p2, int p3) throws IllegalArgumentException, IllegalAccessException, SecurityException;\n" //$NON-NLS-1$
 						+ "}\n"); //$NON-NLS-1$
-		ASTParser parser = ASTParser.newParser(AST.JLS2); // ajh02: need to
-															// use 2 for
-															// returnType - in 3
-															// it has
-															// "returnType2"
+		ASTParser parser = ASTParser.newParser(AST.JLS3); 
 		parser.setSource(doc.get().toCharArray());
 		parser.setCompilerOptions(compilerOptions);
 		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
@@ -636,9 +632,9 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		{ // change return type
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "gee"); //$NON-NLS-1$
 			assertTrue(
-					"Has no return type: gee", methodDecl.getReturnType() != null); //$NON-NLS-1$
+					"Has no return type: gee", methodDecl.getReturnType2() != null); //$NON-NLS-1$
 
-			Type returnType = methodDecl.getReturnType();
+			Type returnType = methodDecl.getReturnType2();
 			Type newReturnType = astRoot.getAST().newPrimitiveType(
 					PrimitiveType.FLOAT);
 			rewrite.replace(returnType, newReturnType, null);
@@ -646,7 +642,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		{ // remove return type
 			MethodDeclaration methodDecl = findMethodDeclaration(type, "hee"); //$NON-NLS-1$
 			assertTrue(
-					"Has no return type: hee", methodDecl.getReturnType() != null); //$NON-NLS-1$
+					"Has no return type: hee", methodDecl.getReturnType2() != null); //$NON-NLS-1$
 
 			// from method to constructor
 			rewrite.set(methodDecl, MethodDeclaration.CONSTRUCTOR_PROPERTY,

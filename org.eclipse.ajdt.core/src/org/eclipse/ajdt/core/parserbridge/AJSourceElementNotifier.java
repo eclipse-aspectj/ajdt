@@ -382,7 +382,7 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 				return;
 			}
 		} 
-		requestor.exitMethod(methodDeclaration.declarationSourceEnd, null);
+		requestor.exitMethod(methodDeclaration.declarationSourceEnd, (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) null);
 	}
 }
 

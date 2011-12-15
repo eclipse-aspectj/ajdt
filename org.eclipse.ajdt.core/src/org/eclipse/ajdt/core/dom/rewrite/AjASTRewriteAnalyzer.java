@@ -24,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.*;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer.SourceRange;
 import org.aspectj.org.eclipse.jdt.core.formatter.IndentManipulation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer;
@@ -45,6 +46,8 @@ import org.eclipse.ajdt.core.dom.rewrite.AjASTRewriteFormatter.Prefix;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
 import org.eclipse.text.edits.CopySourceEdit;
 import org.eclipse.text.edits.CopyTargetEdit;
 import org.eclipse.text.edits.DeleteEdit;
@@ -108,7 +111,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			RewriteEventStore eventStore2, NodeInfoStore nodeStore,
 			List comments, Map options, TargetSourceRangeComputer xsrComputer) {
 		if (astRewriteAnalyzerFactory == null) {
-		  return new ASTRewriteAnalyzer(content2,lineInfo2,lineDelim,result,eventStore2,nodeStore,comments,options,xsrComputer);
+		  return new ASTRewriteAnalyzer(content2,lineInfo2,lineDelim,result,eventStore2,nodeStore,comments,options,xsrComputer, null);
 		}
 		return astRewriteAnalyzerFactory.getASTRewriteAnalyzer(content2,lineInfo2,lineDelim,result,eventStore2,nodeStore,comments,options,xsrComputer);
 	}
@@ -140,6 +143,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	private final NodeInfoStore nodeInfos;
 	private final TargetSourceRangeComputer extendedSourceRangeComputer;
 	private final LineCommentEndOffsets lineCommentEndOffsets;
+    private final Map options;
 	
 	/**
 	 * Constructor for ASTRewriteAnalyzer.
@@ -157,6 +161,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		this.content= content;
 		this.lineInfo= lineInfo;
 		this.nodeInfos= nodeInfos;
+        this.options = options;
 		this.tokenScanner= null;
 		this.currentEdit= rootEdit;
 		this.sourceCopyInfoToEdit= new IdentityHashMap();
@@ -169,12 +174,22 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 		
 	final TokenScanner getScanner() {
-		if (this.tokenScanner == null) {
-			IScanner scanner= ToolFactory.createScanner(true, false, false, false);
-			scanner.setSource(this.content);
-			this.tokenScanner= new TokenScanner(scanner);
-		}
-		return this.tokenScanner;
+        if (this.tokenScanner == null) {
+            CompilerOptions compilerOptions = new CompilerOptions(this.options);
+            Scanner scanner = 
+                    new Scanner(
+                            true,/*tokenizeComments*/
+                            false,/*tokenizeWhiteSpace*/
+                            false,/*checkNonExternalizedStringLiterals*/
+                            compilerOptions.sourceLevel,
+                            compilerOptions.complianceLevel,
+                            null/*taskTags*/,
+                            null/*taskPriorities*/,
+                            true/*taskCaseSensitive*/);
+            scanner.setSource(this.content);
+            this.tokenScanner= new TokenScanner(scanner);
+        }
+        return this.tokenScanner;
 	}
 	
 	final char[] getContent() {

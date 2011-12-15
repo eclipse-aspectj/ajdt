@@ -879,7 +879,6 @@ public class AJCompilationUnitStructureRequestor extends
 
         addToChildren(parentInfo, handle);
         this.newElements.put(handle, info);
-
     }
 
 
@@ -888,10 +887,10 @@ public class AJCompilationUnitStructureRequestor extends
      * a little kludgy here.  super type creates JavaElementInfo on the exitMethod
      * this type creates JavaElementInfos on the enterMethod
      */
-    public void exitMethod(int declarationEnd, int defaultValueStart,
-            int defaultValueEnd) {
+    public void exitMethod(int declarationEnd, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression defaultValue) {
         NamedMember handle = (NamedMember) this.handleStack.peek();
         if (! (handle instanceof AspectJMemberElement)) {
+            // by passing null to the super method, we do not keep track of default annotation values
             super.exitMethod(declarationEnd, null);
             return;
         }
@@ -915,11 +914,9 @@ public class AJCompilationUnitStructureRequestor extends
         }
     }
     
-
-    
     // copied from super so that children Map is accessible
     private IJavaElement[] getChildren(Object info) {
-        ArrayList childrenList = (ArrayList) this.children.get(info);
+        ArrayList<IJavaElement> childrenList = (ArrayList<IJavaElement>) this.children.get(info);
         if (childrenList != null) {
             return (IJavaElement[]) childrenList.toArray(new IJavaElement[childrenList.size()]);
         }
@@ -1294,5 +1291,4 @@ public class AJCompilationUnitStructureRequestor extends
         }
         return ajTypeParams;
     }
-
 }

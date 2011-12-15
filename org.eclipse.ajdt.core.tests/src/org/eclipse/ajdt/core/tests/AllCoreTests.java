@@ -106,7 +106,7 @@ public class AllCoreTests {
 	    JavaCore.initializeAfterLoad(null);
 	    
 	    AspectJPlugin.getDefault().setHeadless(true);
-
+	    
 	    // ensure that the UI plugin is not going to start
         Bundle ajdtui = 
             Platform.getBundle("org.eclipse.ajdt.ui");
