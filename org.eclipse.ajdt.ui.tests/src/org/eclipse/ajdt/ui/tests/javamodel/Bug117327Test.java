@@ -13,6 +13,7 @@ package org.eclipse.ajdt.ui.tests.javamodel;
 
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -26,7 +27,7 @@ public class Bug117327Test extends UITestCase {
 		IResource file = project.findMember(filename);
 		if (file == null)
 			fail("Required file not found: " + filename); //$NON-NLS-1$
-
+		SynchronizationUtils.joinBackgroudActivities();
 		IMarker[] markers = file.findMarkers(IAJModelMarker.DECLARATION_MARKER, true,
 					IResource.DEPTH_INFINITE);
 		assertEquals("Expected two declaration markers", 2, markers.length); //$NON-NLS-1$
