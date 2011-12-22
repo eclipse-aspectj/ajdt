@@ -103,8 +103,50 @@ public class AnnotationConversionTests extends AJDTCoreTestCase {
         assertAnnotations("@Other( value = [CONST1, Aspect.CONST2], )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other({CONST1, Aspect.CONST2}) void foo() { } \nfinal static int CONST1 = 9; \n final static int CONST2 = 9; }\n @interface Other {\n int[] value(); }"));
     }
     
-    // short?
-    // byte?
+    public void testSingleMemberAnnotationMethodBoolean1() throws Exception {
+        assertAnnotations("@Other( value = true, )\n", 
+                getAnnotationsForMethod("package p;\naspect Aspect { @Other(true) void foo() { } \n" +
+                		" }\n " +
+                		"@interface Other {\n boolean value(); }"));
+    }
+    
+    public void testSingleMemberAnnotationMethodBoolean2() throws Exception {
+        assertAnnotations("@Other( value = false, )\n", 
+                getAnnotationsForMethod("package p;\naspect Aspect { @Other(false) void foo() { } \n" +
+                		" }\n " +
+                		"@interface Other {\n boolean value(); }"));
+    }
+    
+    public void testSingleMemberAnnotationMethodBoolean3() throws Exception {
+        assertAnnotations("@Other( value = Boolean.class, )\n", 
+                getAnnotationsForMethod("package p;\naspect Aspect { @Other(Boolean.class) void foo() { } \n" +
+                		" }\n @interface Other {\n Class<?> value(); }"));
+    }
+    
+    // Java 7 support
+    public void testSingleMemberAnnotationMethodLiteral1() throws Exception {
+        setJava7SourceLevel(project);
+        assertAnnotations("@Other( value = 26, )\n", 
+                getAnnotationsForMethod("package p;\naspect Aspect { @Other(0b11010) void foo() { } \n }\n @interface Other {\n byte value(); }"));
+    }
+    
+    public void testSingleMemberAnnotationMethodLiteral2() throws Exception {
+        assertAnnotations("@Other( value = 26, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(0x1a) void foo() { } \n }\n @interface Other {\n int value(); }"));
+    }
+    
+    public void testSingleMemberAnnotationMethodLiteral3() throws Exception {
+        assertAnnotations("@Other( value = 123.4, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(1.234e2) void foo() { } \n }\n @interface Other {\n double value(); }"));
+    }
+    
+    public void testSingleMemberAnnotationMethodLiteral4() throws Exception {
+        assertAnnotations("@Other( value = 123.4, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(123.4f) void foo() { } \n }\n @interface Other {\n float value(); }"));
+    }
+    
+    // Java 7 support
+    public void testSingleMemberAnnotationMethodLiteral5() throws Exception {
+        setJava7SourceLevel(project);
+        assertAnnotations("@Other( value = 9223372036854775807, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(0x7fff_ffff_ffff_ffffL) void foo() { } \n }\n @interface Other {\n long value(); }"));
+    }
     
     public void testSingleMemberAnnotationMethod7() throws Exception {
         assertAnnotations("@Other( value = CONST, )\n", getAnnotationsForMethod("package p;\naspect Aspect { \n @Other(CONST) void foo() { }\nfinal static int CONST = 9; }\n @interface Other {\n int value(); }"));

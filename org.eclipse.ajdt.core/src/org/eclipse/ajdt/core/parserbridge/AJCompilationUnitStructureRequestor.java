@@ -65,6 +65,7 @@ import org.eclipse.jdt.internal.compiler.ast.CharLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
@@ -80,6 +81,7 @@ import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
 import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
@@ -89,6 +91,7 @@ import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation;
+import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -1045,6 +1048,30 @@ public class AJCompilationUnitStructureRequestor extends
             IntLiteral castedJDT = null;
             try {
                 castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTIntLiteral(castedAJ);
+            } catch (Exception e) {
+            }
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral) ajExpr;
+            FalseLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTFalseLiteral(castedAJ);
+            } catch (Exception e) {
+            }
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral) ajExpr;
+            NullLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTNullLiteral(castedAJ);
+            } catch (Exception e) {
+            }
+            jdtExpr = castedJDT;
+        } else if (ajExpr instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral) {
+            org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral castedAJ = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral) ajExpr;
+            TrueLiteral castedJDT = null;
+            try {
+                castedJDT = CompilerASTNodeCompatibilityWrapper.createJDTTrueLiteral(castedAJ);
             } catch (Exception e) {
             }
             jdtExpr = castedJDT;

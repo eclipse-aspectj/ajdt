@@ -59,6 +59,7 @@ import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 
 /**
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model
@@ -118,6 +119,12 @@ public class AJDTCoreTestCase extends TestCase {
             }
             AJCompilationUnitManager.INSTANCE.clearCache();
         }
+    }
+
+    
+    protected void setJava7SourceLevel(IJavaProject javaProject) {
+        javaProject.setOption(CompilerOptions.OPTION_Compliance, "1.7");
+        javaProject.setOption(CompilerOptions.OPTION_Source, "1.7");
     }
 
     /**

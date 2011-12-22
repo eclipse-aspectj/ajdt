@@ -22,9 +22,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.eclipse.ajdt.internal.core.ras.NoFFDC;
+import org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
 import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
 import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
+import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.ast.NumberLiteral;
+import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 
 /**
  * Changes to the constructors of several compiler AST nodes has occurred between 3.7.0 and 3.7.1.
@@ -35,6 +38,18 @@ import org.eclipse.jdt.internal.compiler.ast.NumberLiteral;
  */
 public class CompilerASTNodeCompatibilityWrapper implements NoFFDC {
 
+    public static TrueLiteral createJDTTrueLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
+        return new TrueLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
+    }
+    
+    public static FalseLiteral createJDTFalseLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
+        return new FalseLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
+    }
+    
+    public static NullLiteral createJDTNullLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
+        return new NullLiteral(ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd);
+    }
+    
     public static IntLiteral createJDTIntLiteral(org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral ajdtLiteral) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException {
         return (IntLiteral) buildLiteral(ajdtLiteral.source(), ajdtLiteral.sourceStart, ajdtLiteral.sourceEnd, true);
     }
