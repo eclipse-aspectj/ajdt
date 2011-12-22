@@ -724,6 +724,7 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
 	pushOnAstStack(impt = new ImportReference(tokens, positions, true, ClassFileConstants.AccDefault));
 	
+    impt.trailingStarPosition = this.intStack[this.intPtr--];
 	if (this.currentToken == TokenNameSEMICOLON){
 		impt.declarationSourceEnd = this.scanner.currentPosition - 1;
 	} else {
