@@ -161,7 +161,42 @@ public class AJOrganizeImportsTests extends UITestCase {
                 "package pack;\n\nimport java.util.ArrayList;\n\naspect Aspect {\ndeclare @type : ArrayList : @Foo; }\n @interface @Foo { }", 
         "package pack;\n\nimport java.util.ArrayList;\n\naspect Aspect {\ndeclare @type : ArrayList : @Foo; }\n @interface @Foo { }");
     }
-
+    // Bug 367354
+    public void testOnDemand1() throws Exception {
+        checkOrganizeImports("Aspect.aj", "pack", 
+                "package pack;\n" + 
+                "import javax.swing.*;\n" + 
+                "\n" + 
+                "class Aspect {\n" + 
+                "    JFrame j;\n" + 
+                "}", 
+                "package pack;\n" + 
+                "import javax.swing.JFrame;\n" + 
+                "\n" + 
+                "class Aspect {\n" + 
+                "    JFrame j;\n" + 
+                "}");
+    }
+    
+    // Bug 367354
+    public void testOnDemand2() throws Exception {
+        checkOrganizeImports("Aspect.aj", "pack", 
+                "package pack;\n" + 
+                "import javax.swing.*;\n" +
+                "import java.util.List;\n" + 
+                "class Aspect {\n" + 
+                "    JFrame j;\n" +
+                "    List<String> s;\n" + 
+                "}", 
+                "package pack;\n" + 
+                "import java.util.List;\n" + 
+                "\n" + 
+                "import javax.swing.JFrame;\n" + 
+                "class Aspect {\n" + 
+                "    JFrame j;\n" + 
+                "    List<String> s;\n" + 
+                "}");
+    }
     private void checkOrganizeImports(String cuName, String packageName, String original, String expected) throws Exception {
         ICompilationUnit unit = createCompilationUnitAndPackage(packageName, cuName, original, javaProject);
         ASTParser parser = ASTParser.newParser(AST.JLS3);
