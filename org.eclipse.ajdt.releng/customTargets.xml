@@ -371,13 +371,12 @@
 		<replace file="${buildDirectory}/features/org.eclipse.ajdt/feature.xml"
 			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving.sdk}"/>
 
-		<property file="${buildDirectory}/featureVersions.properties" />	
 		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
 			token="&lt;!--EAINCLUDES" value=""/>
 		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
 			token="EAINCLUDES--&gt;" value=""/>
 		<replace file="${buildDirectory}/features/org.eclipse.contribution.weaving/feature.xml"
-			token="0.0.0.EAVERSION" value="1.0.0.${org.eclipse.equinox.weaving.sdk,0.0.0}"/>
+			token="0.0.0.EAVERSION" value="${org.eclipse.equinox.weaving.sdk}"/>
 		
 	</target>
 
