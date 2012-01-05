@@ -16,6 +16,7 @@ import junit.framework.AssertionFailedError;
 
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
@@ -23,6 +24,7 @@ import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.osgi.framework.Version;
 
 /**
  * Tests for converting Annotations from the AJ AST into JDT JavaModel
@@ -127,15 +129,14 @@ public class AnnotationConversionTests extends AJDTCoreTestCase {
     
     // Java 7 support
     public void testSingleMemberAnnotationMethodLiteral1() throws Exception {
-        setJava7SourceLevel(project);
-        try {
-            assertAnnotations("@Other( value = 26, )\n", 
-                    getAnnotationsForMethod("package p;\naspect Aspect { @Other(0b11010) void foo() { } \n }\n @interface Other {\n byte value(); }"));
-        } catch (AssertionFailedError e) {
-            // could be running on an eclipse version that does not have Java 7 support
-            assertAnnotations("@Other( value = null, )\n", 
-                    getAnnotationsForMethod("package p;\naspect Aspect { @Other(0b11010) void foo() { } \n }\n @interface Other {\n byte value(); }"));
+        // requires 3.7.1 or greater
+        int compare = Platform.getBundle("org.eclipse.jdt.core").getVersion().compareTo(Version.parseVersion("3.7.1"));
+        if (compare < 0) {
+            return;
         }
+        setJava7SourceLevel(project);
+        assertAnnotations("@Other( value = 26, )\n", 
+                getAnnotationsForMethod("package p;\naspect Aspect { @Other(0b11010) void foo() { } \n }\n @interface Other {\n byte value(); }"));
     }
     
     public void testSingleMemberAnnotationMethodLiteral2() throws Exception {
@@ -152,13 +153,13 @@ public class AnnotationConversionTests extends AJDTCoreTestCase {
     
     // Java 7 support
     public void testSingleMemberAnnotationMethodLiteral5() throws Exception {
-        setJava7SourceLevel(project);
-        try {
-            assertAnnotations("@Other( value = 9223372036854775807, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(0x7fff_ffff_ffff_ffffL) void foo() { } \n }\n @interface Other {\n long value(); }"));
-        } catch (AssertionFailedError e) {
-            // could be running on an eclipse version that does not have Java 7 support
-            assertAnnotations("@Other( value = null, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(0x7fff_ffff_ffff_ffffL) void foo() { } \n }\n @interface Other {\n long value(); }"));
+        // requires 3.7.1 or greater
+        int compare = Platform.getBundle("org.eclipse.jdt.core").getVersion().compareTo(Version.parseVersion("3.7.1"));
+        if (compare < 0) {
+            return;
         }
+        setJava7SourceLevel(project);
+        assertAnnotations("@Other( value = 9223372036854775807, )\n", getAnnotationsForMethod("package p;\naspect Aspect { @Other(0x7fff_ffff_ffff_ffffL) void foo() { } \n }\n @interface Other {\n long value(); }"));
     }
     
     public void testSingleMemberAnnotationMethod7() throws Exception {
