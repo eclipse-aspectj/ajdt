@@ -28,6 +28,8 @@ public class Bug243376Test extends UITestCase {
      * aspect path, the unnecessary auto build does *not* occur.
      */
     public void testNoAutoBuildAfterFullBuild() throws Exception {
+        // requires a completely clean workspace
+        super.cleanWorkspace(true);
 
         IProject hasAspectPath = createPredefinedProject("Project with Aspect Path"); //$NON-NLS-1$
         /* IProject onAspectPath = */ createPredefinedProject("Project on Aspect Path"); //$NON-NLS-1$

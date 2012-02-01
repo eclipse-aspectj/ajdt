@@ -42,6 +42,13 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		AspectJPlugin.getDefault().setAJLogger(null);
 		Utils.setAutobuilding(true);
 	}
+	
+	@Override
+	protected void setUp() throws Exception {
+	    super.setUp();
+        // requires a completely clean workspace
+        super.cleanWorkspace(true);
+	}
 
 	/**
 	 * Test for bug 101481 - "clean" build doesn't work and refreshing of output

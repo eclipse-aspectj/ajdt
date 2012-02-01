@@ -30,6 +30,8 @@ public class CoreCompilerConfigurationTests extends AJDTCoreTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
+        // requires a completely clean workspace
+        super.cleanWorkspace(true);
         Utils.setAutobuilding(false);
         testLog = new TestLogger();
         AspectJPlugin.getDefault().setAJLogger(testLog);

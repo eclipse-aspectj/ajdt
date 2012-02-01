@@ -42,6 +42,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
@@ -66,6 +67,7 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
  */
 public class AJDTCoreTestCase extends TestCase {
     
+    public static final String DEFAULT_PROJECT_NAME = "DefaultEmptyProject";
     DefaultLogger defaultLogger = new DefaultLogger();
     {
         try {
@@ -92,7 +94,10 @@ public class AJDTCoreTestCase extends TestCase {
 
     protected void tearDown() throws Exception {
         super.tearDown();
-        
+        cleanWorkspace(false);
+    }
+
+    protected void cleanWorkspace(boolean complete) throws CoreException {
         try {
             // don't autobuild while we are deleting the projects
             Utils.setAutobuilding(false);
@@ -100,10 +105,12 @@ public class AJDTCoreTestCase extends TestCase {
             IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
             for (int i = 0; i < allProjects.length; i++) {
                 IProject project = allProjects[i];
-                if (project.getName().equals("DefaultEmptyProject")) {
-                    // don't delete project, just the contents
+                // keep the default project around on non-complete cleans
+                if (!complete && project.getName().equals(DEFAULT_PROJECT_NAME)) {
                     IJavaProject defaultProject = JavaCore.create(project);
                     defaultProject.setOptions(null);
+                    project.getFile(".classpath").delete(true, null);
+                    project.getFile(".classpath.COPY").copy(new Path(".classpath"), true, null);
                     project.getFolder("src").delete(true, null);
                     project.getFolder("bin").delete(true, null);
                     createDefaultSourceFolder(defaultProject);
@@ -114,7 +121,8 @@ public class AJDTCoreTestCase extends TestCase {
             allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
             for (int i = 0; i < allProjects.length; i++) {
                 IProject project = allProjects[i];
-                if (!project.getName().equals("DefaultEmptyProject")) {
+                // keep the default project around on non-complete cleans
+                if (complete || !project.getName().equals(DEFAULT_PROJECT_NAME)) {
                     deleteProject(project,true);
                 }
             }
