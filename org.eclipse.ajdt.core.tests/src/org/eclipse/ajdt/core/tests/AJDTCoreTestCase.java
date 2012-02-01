@@ -100,12 +100,23 @@ public class AJDTCoreTestCase extends TestCase {
             IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
             for (int i = 0; i < allProjects.length; i++) {
                 IProject project = allProjects[i];
-                deleteProject(project,false);
+                if (project.getName().equals("DefaultEmptyProject")) {
+                    // don't delete project, just the contents
+                    IJavaProject defaultProject = JavaCore.create(project);
+                    defaultProject.setOptions(null);
+                    project.getFolder("src").delete(true, null);
+                    project.getFolder("bin").delete(true, null);
+                    createDefaultSourceFolder(defaultProject);
+                } else {
+                    deleteProject(project,false);
+                }
             }
             allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
             for (int i = 0; i < allProjects.length; i++) {
                 IProject project = allProjects[i];
-                deleteProject(project,true);
+                if (!project.getName().equals("DefaultEmptyProject")) {
+                    deleteProject(project,true);
+                }
             }
         } finally {
             // ensure we use default logger for next test
@@ -553,12 +564,13 @@ public class AJDTCoreTestCase extends TestCase {
                 .getPackageFragmentRoot(folder);
         for (int i = 0; i < entries.length; i++) {
             final IClasspathEntry entry = entries[i];
-            if (entry.getPath().equals(folder.getFullPath()))
+            if (entry.getPath().equals(folder.getFullPath())) {
                 return root;
+            }
         }
         
         
-        // else, remove old suorce folders and add this new one
+        // else, remove old source folders and add this new one
         IClasspathEntry[] oldEntries = javaProject.getRawClasspath();
         List<IClasspathEntry> oldEntriesList = new ArrayList<IClasspathEntry>();
         oldEntriesList.add(JavaCore.newSourceEntry(root.getPath()));

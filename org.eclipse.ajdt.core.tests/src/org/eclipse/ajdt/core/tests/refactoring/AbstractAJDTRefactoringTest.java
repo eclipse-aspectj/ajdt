@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.tests.refactoring;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -45,7 +46,12 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     protected IPackageFragment p;
     protected void setUp() throws Exception {
         super.setUp();
-        project = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
+        IProject maybeProject = ResourcesPlugin.getWorkspace().getRoot().getProject("DefaultEmptyProject");
+        if (!maybeProject.exists()) {
+            project = JavaCore.create(createPredefinedProject("DefaultEmptyProject"));
+        } else {
+            project = JavaCore.create(maybeProject);
+        }
         p = createPackage("p", project);
     }
     
