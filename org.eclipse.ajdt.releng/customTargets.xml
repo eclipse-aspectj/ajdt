@@ -330,6 +330,10 @@
 		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching.j9/build.properties">
 			qualifier=${org.eclipse.equinox.weaving.caching.j9,0.0.0}
 		</concat>
+		
+		<!-- workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=369880 can remove when we start building against 4.2 M5 or later.  -->
+		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook/META-INF/MANIFEST.MF"
+			token="Bundle-RequiredExecutionEnvironment: J2SE-1.5" value=""/>
 	</target>
 
 	<!-- ===================================================================== -->
