@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -71,6 +72,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
                         newInfo.setTypeParameters(createTypeParameters(null));
+                        newInfo.setArguments(info.getArguments());
                         return newInfo;
 
                     }
@@ -95,6 +97,7 @@ public class MethodIntertypeElement extends IntertypeElement
                         newInfo.setSourceRangeStart(info.getSourceRange().getOffset());
                         newInfo.setSourceRangeEnd(info.getSourceRange().getOffset() + info.getSourceRange().getLength());
                         newInfo.setTypeParameters(createTypeParameters(null));
+                        newInfo.setArguments(info.getArguments());
                         return newInfo;
 
                     }
@@ -126,6 +129,10 @@ public class MethodIntertypeElement extends IntertypeElement
 
         protected void setReturnType(char[] type) {
             super.setReturnType(type);
+        }
+        
+        public void setArguments(ILocalVariable[] arguments) {
+            this.arguments = arguments;
         }
 
         protected void setArgumentNames(char[][] names, Integer min) {
@@ -193,6 +200,10 @@ public class MethodIntertypeElement extends IntertypeElement
             return original;
         }
         
+        public void setArguments(ILocalVariable[] arguments) {
+            this.arguments = arguments;
+        }
+
         public void setTypeParameters(ITypeParameter[] typeParameters) {
             this.typeParameters = typeParameters;
         }

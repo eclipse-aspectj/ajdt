@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.parserbridge;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -50,12 +49,18 @@ import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.ajdt.internal.core.parserbridge.CompilerASTNodeCompatibilityWrapper;
 import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
@@ -70,14 +75,12 @@ import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
-import org.eclipse.jdt.internal.compiler.ast.IntLiteralMinValue;
 import org.eclipse.jdt.internal.compiler.ast.JavadocArrayQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocArraySingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
-import org.eclipse.jdt.internal.compiler.ast.LongLiteralMinValue;
 import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
@@ -94,6 +97,7 @@ import org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Wildcard;
+import org.eclipse.jdt.internal.compiler.codegen.Opcodes;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.jdt.internal.core.AnnotatableInfo;
@@ -101,6 +105,7 @@ import org.eclipse.jdt.internal.core.CompilationUnitStructureRequestor;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaElementInfo;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
 
@@ -914,8 +919,80 @@ public class AJCompilationUnitStructureRequestor extends
                     acceptTypeParameter(jdtTypeParameters[i], info);
                 }
             }
+            // JDT requires that the arguments field is set.  We can't create the arguments exactly
+            // since we don't have full slocs and we don't have annotations, but we can get pretty close
+            info.setArguments(createMethodParameters((AspectJMemberElement) handle, info));
         }
     }
+    
+    /**
+     * @param handle
+     * @param info
+     * @return
+     */
+    private ILocalVariable[] createMethodParameters(AspectJMemberElement handle,
+            AspectJMemberElementInfo info) {
+        char[][] argumentNames = info.getArgumentNames();
+        String[] parameterTypes = handle.getParameterTypes();
+        if (argumentNames == null) {
+            return null;
+        }
+        if (argumentNames.length == 0) {
+            return LocalVariable.NO_LOCAL_VARIABLES;
+        }
+        LocalVariable[] result = new LocalVariable[argumentNames.length];
+        for(int i = 0; i < argumentNames.length; i++) {
+            // we don't know the slocs, so just make something up that is vaguely reasonable
+            result[i] = new LocalVariable(handle, String.valueOf(
+                    argumentNames[i]), info.getDeclarationSourceStart(),
+                    info.getDeclarationSourceStart()+1, info.getDeclarationSourceStart(),
+                    info.getDeclarationSourceStart()+1, parameterTypes[i], 
+                    new org.eclipse.jdt.internal.compiler.ast.Annotation[0],
+                    Flags.AccDefault, true);
+        }
+        
+        return result;
+    }
+
+//    private LocalVariable[] acceptMethodParameters(Argument[] arguments, JavaElement methodHandle, char[][] argumentTypeNames) {
+//        if (arguments == null) return null;
+//        LocalVariable[] result = new LocalVariable[arguments.length];
+//        Annotation[][] paramAnnotations = new Annotation[arguments.length][];
+//        for(int i = 0; i < arguments.length; i++) {
+//            Argument argument = arguments[i];
+//            ITDParameterInfo localVarInfo = new ITDParameterInfo();
+//            localVarInfo.setSourceRangeStart(argument.declarationSourceStart);
+//            localVarInfo.setSourceRangeEnd(argument.declarationSourceStart);
+//            localVarInfo.setNameSourceStart(argument.sourceStart);
+//            localVarInfo.setNameSourceEnd(argument.sourceEnd);
+//            
+//            String paramTypeSig = JavaModelManager.getJavaModelManager().intern(Signature.createTypeSignature(argumentTypeNames[i], false));
+//            result[i] = new LocalVariable(
+//                    methodHandle,
+//                    new String(argument.name),
+//                    argument.declarationSourceStart,
+//                    argument.declarationSourceEnd,
+//                    argument.sourceStart,
+//                    argument.sourceEnd,
+//                    paramTypeSig,
+//                    argument.annotations,
+//                    argument.modifiers, 
+//                    true);
+//            this.newElements.put(result[i], localVarInfo);
+//            this.infoStack.push(localVarInfo);
+//            this.handleStack.push(result[i]);
+//            if (argument.annotations != null) {
+//                paramAnnotations[i] = new Annotation[argument.annotations.length];
+//                for (int  j = 0; j < argument.annotations.length; j++ ) {
+//                    org.eclipse.jdt.internal.compiler.ast.Annotation annotation = argument.annotations[j];
+//                    acceptAnnotation(annotation, localVarInfo, result[i]);
+//                }
+//            }
+//            this.infoStack.pop();
+//            this.handleStack.pop();
+//        }
+//        return result;
+//    }
     
     // copied from super so that children Map is accessible
     private IJavaElement[] getChildren(Object info) {
