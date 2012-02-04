@@ -32,6 +32,7 @@ import org.aspectj.weaver.patterns.DeclareAnnotation;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
 import org.aspectj.weaver.patterns.DeclarePrecedence;
+import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElementInfo;
@@ -108,6 +109,7 @@ import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.PackageDeclaration;
+import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 
 /**
  * This class can be used as a source requestor for the JDT parser *OR*
@@ -898,8 +900,14 @@ public class AJCompilationUnitStructureRequestor extends
     public void exitMethod(int declarationEnd, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression defaultValue) {
         NamedMember handle = (NamedMember) this.handleStack.peek();
         if (! (handle instanceof AspectJMemberElement)) {
+            org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo = (org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo) this.infoStack.peek();
             // by passing null to the super method, we do not keep track of default annotation values
             super.exitMethod(declarationEnd, null);
+            if (handle instanceof IMethod && methodInfo.node == null && methodInfo.parameterNames != null && methodInfo.parameterNames.length > 0) {
+                // need to create method parameters since they weren't created in Super
+                ILocalVariable[] methodParameters = createMethodParameters(handle, ((IMethod) handle).getParameterTypes(), methodInfo.parameterNames, methodInfo.declarationStart);
+                ReflectionUtils.setPrivateField(SourceMethodElementInfo.class, "arguments", (SourceMethodElementInfo) newElements.get(handle), methodParameters);
+            }
             return;
         }
         
@@ -921,19 +929,11 @@ public class AJCompilationUnitStructureRequestor extends
             }
             // JDT requires that the arguments field is set.  We can't create the arguments exactly
             // since we don't have full slocs and we don't have annotations, but we can get pretty close
-            info.setArguments(createMethodParameters((AspectJMemberElement) handle, info));
+            info.setArguments(createMethodParameters(handle, ((AspectJMemberElement) handle).getParameterTypes(), info.getArgumentNames(), info.getDeclarationSourceStart()));
         }
     }
     
-    /**
-     * @param handle
-     * @param info
-     * @return
-     */
-    private ILocalVariable[] createMethodParameters(AspectJMemberElement handle,
-            AspectJMemberElementInfo info) {
-        char[][] argumentNames = info.getArgumentNames();
-        String[] parameterTypes = handle.getParameterTypes();
+    private ILocalVariable[] createMethodParameters(JavaElement handle, String[] parameterTypes, char[][] argumentNames, int reasonableOffset) {
         if (argumentNames == null) {
             return null;
         }
@@ -944,9 +944,9 @@ public class AJCompilationUnitStructureRequestor extends
         for(int i = 0; i < argumentNames.length; i++) {
             // we don't know the slocs, so just make something up that is vaguely reasonable
             result[i] = new LocalVariable(handle, String.valueOf(
-                    argumentNames[i]), info.getDeclarationSourceStart(),
-                    info.getDeclarationSourceStart()+1, info.getDeclarationSourceStart(),
-                    info.getDeclarationSourceStart()+1, parameterTypes[i], 
+                    argumentNames[i]), reasonableOffset,
+                    reasonableOffset+1, reasonableOffset,
+                    reasonableOffset+1, parameterTypes[i], 
                     new org.eclipse.jdt.internal.compiler.ast.Annotation[0],
                     Flags.AccDefault, true);
         }
