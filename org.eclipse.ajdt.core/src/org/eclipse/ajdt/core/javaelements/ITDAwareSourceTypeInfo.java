@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -167,7 +168,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 return thisInfo;
             }
             try {
-                SourceMethodInfo info = (SourceMethodInfo) ((JavaElement) orig).getElementInfo();
+                SourceMethodElementInfo info = (SourceMethodElementInfo) ((JavaElement) orig).getElementInfo();
                 thisInfo = new ITITSourceMethodInfo();
                 thisInfo.setReturnType(fullTypeName);
                 thisInfo.setFlags(info.getModifiers());
@@ -176,6 +177,7 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
                 thisInfo.setSourceRangeStart(info.getDeclarationSourceStart());
                 thisInfo.setSourceRangeEnd(info.getDeclarationSourceEnd());
                 thisInfo.setArgumentNames(info.getArgumentNames());
+                thisInfo.setArguments((ILocalVariable[]) ReflectionUtils.getPrivateField(SourceMethodElementInfo.class, "arguments", info));
                 // not handling type parameters for now.
             } catch (Exception e) {
             }
@@ -253,6 +255,9 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
             super.setSourceRangeStart(start);
         }
         
+        protected void setArguments(ILocalVariable[] arguments) {
+            this.arguments = arguments;
+        }
     }
     
     class ITITSourceFieldElementInfo extends SourceFieldElementInfo {

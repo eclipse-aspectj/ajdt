@@ -890,6 +890,12 @@ public class AJCompilationUnitStructureRequestor extends
         addToChildren(parentInfo, handle);
         this.newElements.put(handle, info);
     }
+    
+    public void exitConstructor(int declarationEnd) {
+        // must ensure that we call exitMethod defined in this class so that constructor arguments are
+        // properly initialized
+        this.exitMethod(declarationEnd, (org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression) null);
+    }
 
 
     /* AJDT 1.7 */

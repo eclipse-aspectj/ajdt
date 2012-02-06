@@ -23,6 +23,8 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeFieldDeclaration;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -31,7 +33,9 @@ import org.eclipse.ajdt.core.model.AJWorldFacade;
 import org.eclipse.ajdt.core.model.AJWorldFacade.ITDInfo;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
@@ -110,6 +114,24 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setQualifiedReturnType(ipe.getCorrespondingType(true).toCharArray());
 
             info.setTypeParameters(createTypeParameters(project));
+            
+            char[][] argumentNames = info.getArgumentNames();
+            char[][] argumentTypeNames = info.getArgumentTypeNames();
+            if (argumentNames != null && argumentNames.length > 0) {
+                ILocalVariable[] arguments = new ILocalVariable[argumentNames.length];
+                for (int i = 0; i < argumentNames.length; i++) {
+                    arguments[i] = new LocalVariable(this, String.valueOf(argumentNames[i]), 
+                            // sloc is not correct, but it is close enough
+                            sourceLocation.getOffset(), 
+                            sourceLocation.getOffset()+1, 
+                            sourceLocation.getOffset(), 
+                            sourceLocation.getOffset()+1, 
+                            String.valueOf(argumentTypeNames[i]), 
+                            new Annotation[0], Flags.AccDefault, true);
+                }
+                info.setArguments(arguments);
+                
+            }
             
         } else {
             // no successful build yet, we don't know the contents
