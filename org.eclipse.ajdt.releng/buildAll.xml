@@ -35,6 +35,7 @@
     	<echo message="forceContextQualifier=${forceContextQualifier}"/>
     	<echo message="=============================================="/>
     	<property file="provisioning_support/download.properties" />
+    	<property file="local.properties" />
     	<property file="build.properties" />
 
     	<condition property="target.eclipse.tar" value="${target.eclipse.tar.42}">
@@ -56,7 +57,6 @@
     	<echo message="target.url=${target.url}"/>
     	<echo message="target.eclipse.tar=${target.eclipse.tar}"/>
     	
-    	<property file="local.properties" />
     </target>
 
 
@@ -108,7 +108,7 @@
 		<property name="pdebuild.home" value="${toString:pdebuild.folder}" />
 		<echo message="pdebuild.home=${pdebuild.home}" />
 		<echo message="path=${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" />
-		<echo message="path=$${toString:pdebuild.folder}" />
+		<echo message="path=${toString:pdebuild.folder}" />
 			
 	</target>
 
