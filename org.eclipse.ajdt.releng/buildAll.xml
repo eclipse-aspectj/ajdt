@@ -7,9 +7,6 @@
 	<!-- help with provisioning -->
 	<import file="provisioning_support/get-dependencies.xml"/>
 
-	<property file="provisioning_support/download.properties" />
-	<property file="local.properties" />
-	<property file="build.properties" />
 
 	<taskdef resource="com/ibm/lakeba/ant/taskdefs.properties">
 		<classpath>
@@ -17,21 +14,46 @@
 		</classpath>
 	</taskdef>
 
-	<!-- ===================================================================== -->
-	<!-- Create the timestamp tp be used for the build                         -->
-	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
-	<!-- a properties file or from the command line                            -->
-	<!-- ===================================================================== -->
-	<tstamp>
-		<format property="tstampQual" pattern="yyyyMMdd-HH00" locale="en,US" timezone="America/Vancouver"/>
-	</tstamp>
-	<echo message="tstampQual=${tstampQual}"/>
-	<property name="forceContextQualifier" value="${qualPrefix}-${tstampQual}"/>
-	<property name="buildLabel" value="build-${forceContextQualifier}"/>
+		<!-- - - - - - - - - - - - - - - - - - 
+          target: init
+          Initializes properties
+     - - - - - - - - - - - - - - - - - -->
+    <target name="init">
+    	<!-- ===================================================================== -->
+    	<!-- Create the timestamp tp be used for the build                         -->
+    	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
+    	<!-- a properties file or from the command line                            -->
+    	<!-- ===================================================================== -->
+    	<tstamp>
+    		<format property="tstampQual" pattern="yyyyMMdd-HH00" locale="en,US" timezone="America/Vancouver"/>
+    	</tstamp>
+    	<echo message="tstampQual=${tstampQual}"/>
+    	<property name="forceContextQualifier" value="${qualPrefix}-${tstampQual}"/>
+    	<property name="buildLabel" value="build-${forceContextQualifier}"/>
 
-	<echo message="=============================================="/>
-	<echo message="forceContextQualifier=${forceContextQualifier}"/>
-	<echo message="=============================================="/>
+    	<echo message="=============================================="/>
+    	<echo message="forceContextQualifier=${forceContextQualifier}"/>
+    	<echo message="=============================================="/>
+    	<property file="provisioning_support/download.properties" />
+    	<condition property="target.eclipse.tar" value="${target.eclipse.tar.42}">
+    		<equals arg1="target.eclipse.version" arg2="42"/>
+    	</condition>
+    	<condition property="target.eclipse.tar" value="${target.eclipse.tar.37}">
+    		<equals arg1="target.eclipse.version" arg2="37"/>
+    	</condition>
+    	
+    	<!-- downloading has been disabled -->
+    	<condition property="target.url" value="${target.url.42}">
+    		<equals arg1="target.eclipse.version" arg2="42"/>
+    	</condition>
+    	<condition property="target.url" value="${target.url.37}">
+    		<equals arg1="target.eclipse.version" arg2="37"/>
+    	</condition>
+    	
+    	<property file="local.properties" />
+    	<property file="build.properties" />
+    </target>
+
 
 	<target name="clean" unless="noclean">
 		<delete dir="${build.home}" />
@@ -39,7 +61,7 @@
 		<delete dir="${target.eclipse}" />
 	</target>
 
-	<target name="pdebuild" depends="find.pdebuild.home" description="Perform the pde headless build">
+	<target name="pdebuild" depends="init,find.pdebuild.home" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
 			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
@@ -61,7 +83,7 @@
 		</java>
 	</target>
 
-	<target name="zip-archive" description="Zip up a copy of the archive for local installation">
+	<target name="zip-archive" depends="init" description="Zip up a copy of the archive for local installation">
 		<property name="zip.name" value="ajdt-${forceContextQualifier}.zip"/>
 		<property name="zip.full.location" value="${build.dist}/${zip.name}"/>
 
@@ -82,7 +104,7 @@
 		<echo message="pdebuild.home=${pdebuild.home}" />
 	</target>
 
-	<target name="generateP2metadata" depends="find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
+	<target name="generateP2metadata" depends="init,find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
 		<java fork="true" failonerror="true"
 			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
@@ -120,7 +142,7 @@
 		<available file="${download.home}/${target.eclipse.tar}" property="download.completed"/>
 	</target>
 
-	<target name="download-eclipse" depends="check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
+	<target name="download-eclipse" depends="init,check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
 		
 		<mkdir dir="${download.home}"/>
 		<antcall target="downloadFile">
@@ -132,7 +154,7 @@
 
 	
 	<!-- for now, only tar files are supported -->
-	<target name="provision-build-eclipse" depends="check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
+	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar}"/>
 
@@ -160,7 +182,7 @@
 
 	<!-- for now, only tar files are supported -->
 	<!-- Sets up the Target eclipse to build against-->
-	<target name="provision-target-eclipse" unless="no.provision.target">
+	<target name="provision-target-eclipse" depends="init" unless="no.provision.target">
 		<!-- download if not already there -->
 		<!--  disable downloading
 		<mkdir dir="${download.home}"/>
@@ -200,11 +222,10 @@
 
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/target/eclipse/.provisioned" />
-
 	</target>
 
 	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
-	<target name="provision-test-eclipse">
+	<target name="provision-test-eclipse" depends="init">
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
 			updatesite.url="file:${updateSite.loc}" 
@@ -218,16 +239,12 @@
 			updatesite.url="file:${updateSite.loc}" 
 			feature.id="org.eclipse.aspectj.feature_tests" />
 
-
 		<!-- Ensure that weaving bundle is auto-started, but ensure that we don't add the line twice -->
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
 			token="osgi.bundles=org.eclipse.equinox.weaving.aspectj@3\:start," value="osgi.bundles="/>
 		<replace file="${build.dest}/target/eclipse/configuration/config.ini"
 			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@3\:start,"/>
 
-		
-		
-		
 		<!-- org.eclipse.test needs to be in the target AND the build eclipses -->
 		<mkdir dir="${build.dest}/target/test_framework"/>
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/test_framework" />
@@ -250,9 +267,9 @@
 
 	</target>
 
-	<target name="run-test-eclipse" depends="run-weaving-tests,run-core-tests,run-ui-tests"/>
+	<target name="run-test-eclipse" depends="init,run-weaving-tests,run-core-tests,run-ui-tests"/>
 	
-	<target name="run-weaving-tests" depends="refresh-test-workspace">
+	<target name="run-weaving-tests" depends="init,refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace}" />
@@ -268,7 +285,7 @@
 		</ant>
 	</target>
 	
-	<target name="run-core-tests" depends="refresh-test-workspace">
+	<target name="run-core-tests" depends="init,refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
 		<!-- This should be a core-test, but the tests are hanging on the build server, so maybe they need to be UI tests. -->
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
@@ -284,7 +301,7 @@
 		</ant>
 	</target>
 
-	<target name="run-ui-tests" depends="refresh-test-workspace">
+	<target name="run-ui-tests" depends="init,refresh-test-workspace">
 		<antcall target="refresh-test-workspace" />
 		<ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
 			<property name="data-dir" value="${test.workspace}" />
@@ -313,7 +330,7 @@
 	on the build server.  So, we run this empty test first in order to get things
 	going.
 	-->
-	<target name="refresh-test-workspace" depends="set-test-properties">
+	<target name="refresh-test-workspace" depends="init,set-test-properties">
 		<delete dir="${test.workspace}"/>
     <ant target="ui-test" antfile="${test.library.xml}" dir="${target.eclipse}" inheritall="false">
              <property name="data-dir" value="${test.workspace}" />
@@ -329,7 +346,7 @@
 	</target>
 	
 	
-	<target name="copy-test-results">
+	<target name="copy-test-results" depends="init">
 		<!--
 			Copy the xml output files created by the plugin test harness to a
 			temp location from where it can be merged into build log
@@ -375,7 +392,7 @@
 		some jars are not being properly processed.  As this is not a
 		requirement any longer, it is ok to disable.
 	-->
-	<target name="optimizeUpdateSite">
+	<target name="optimizeUpdateSite" depends="init">
 		<!-- Step 1 - process all the JARs and mark them for packing -->
 		<java fork="true" failonerror="true"
 		  classname="org.eclipse.core.launcher.Main">
@@ -416,10 +433,10 @@
 
 <!--	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,optimizeUpdateSite,generateP2metadata,zip-archive" /> -->
 	<!-- Disable optimizeUpdateSite -->
-	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,zip-archive" /> 
+	<target name="build" depends="init,provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,zip-archive" /> 
 
 	<target name="tests"
-		depends="provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
+		depends="init,provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
 
-	<target name="run" depends="clean,build,tests,upload" />
+	<target name="run" depends="init,clean,build,tests,upload" />
 </project>
