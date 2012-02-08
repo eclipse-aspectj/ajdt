@@ -107,6 +107,9 @@
 		<files includes="${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" id="pdebuild.folder" />
 		<property name="pdebuild.home" value="${toString:pdebuild.folder}" />
 		<echo message="pdebuild.home=${pdebuild.home}" />
+		<echo message="path=${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" />
+		<echo message="path=$${toString:pdebuild.folder}" />
+			
 	</target>
 
 	<target name="generateP2metadata" depends="init,find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
