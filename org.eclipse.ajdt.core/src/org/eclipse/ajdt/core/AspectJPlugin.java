@@ -215,7 +215,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	}
 	
 	public IEclipsePreferences getPreferences() {
-        return new InstanceScope().getNode(PLUGIN_ID);
+        return InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 	}
 	
 	public void setHeadless(boolean isHeadless) {
