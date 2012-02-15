@@ -299,7 +299,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			try {
 				File ajdeFile = new File(FileLocator.toFileURL(ajdeURL).getFile());
 				if (ajdeFile.exists()) {
-					aspectjtoolsDir += ajdeFile.getAbsolutePath();
+					aspectjtoolsDir += "\""+ ajdeFile.getAbsolutePath() + "\"";
 				} else {
 					int lengthOfPath = ajdeFile.getAbsolutePath().length();
 					MessageDialog.openError(getShell(),
@@ -311,7 +311,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				}
 				File weaverFile = new File(FileLocator.toFileURL(weaverURL).getFile());
 				if (weaverFile.exists()) {
-					aspectjtoolsDir += File.pathSeparator + weaverFile.getAbsolutePath();
+					aspectjtoolsDir += File.pathSeparator + "\""+ weaverFile.getAbsolutePath()+"\"";
 				} else {
 					int lengthOfPath = weaverFile.getAbsolutePath().length();
 					MessageDialog.openError(getShell(),
@@ -329,7 +329,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				if (coreFile.exists() && 
 						(coreFile.getName().endsWith("jar") //$NON-NLS-1$ 
 								|| coreFile.getName().endsWith("cp"))) { //$NON-NLS-1$
-					aspectjtoolsDir += File.pathSeparator + coreFile.getAbsolutePath();
+					aspectjtoolsDir += File.pathSeparator + "\""+ coreFile.getAbsolutePath()+"\"";
 				} else {
 					int lengthOfPath = coreFile.getAbsolutePath().length();
 					MessageDialog.openError(getShell(),
@@ -385,7 +385,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 			vmArgs.add("-classpath"); //$NON-NLS-1$
 			
-			vmArgs.add(checkForSpaces(aspectjtoolsDir + File.pathSeparator + javadocJarDir + File.pathSeparator + aspectjrtDir));
+			vmArgs.add(checkForSpaces(aspectjtoolsDir + File.pathSeparator + "\""+ javadocJarDir + "\""+ File.pathSeparator + "\""+ aspectjrtDir + "\""));
 			vmArgs.add("org.aspectj.tools.ajdoc.Main"); //$NON-NLS-1$
 			
 			// Condense arguments into a file so that a poject 
@@ -395,18 +395,23 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			
 			for (int i = 0; i < progArgs.size(); i++) {
 				// Keep adding arguments till we reach the source files.
-				if(((String)progArgs.get(i)).indexOf(".java")  != -1
-						|| ((String)progArgs.get(i)).indexOf(".aj") != -1){
+				String progArg = (String)progArgs.get(i);
+                if(progArg.endsWith(".java")
+						|| progArg.endsWith(".java")) {
 					sourceIndex = i;
 					break;
 				}
-				String curr = (String) progArgs.get(i);	
-				vmArgs.add(checkForSpaces(curr));
+                if (progArg.equals("-classpath")) {
+                    // skip the classpath since it is already set
+                    i ++;
+                } else {
+                    vmArgs.add(checkForSpaces(progArg));
+                }
 			}
 			
 			// Create a temporary file containing a list of
 			// all the source files to use as an argument file.
-			File tempFile = File.createTempFile("filelist", ".ls");
+			File tempFile = File.createTempFile("filelist", ".lst");
 			tempFile.deleteOnExit();
 			vmArgs.add("@" + tempFile.getPath());
 			java.io.BufferedWriter out = new java.io.BufferedWriter(new java.io.FileWriter(tempFile));
@@ -487,7 +492,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		StringBuffer buf = new StringBuffer();
 		for (int i = 0; i < curr.length(); i++) {
 			char ch = curr.charAt(i);
-			if (ch == '\\' || ch == '\'') {
+			if (ch == '\\' || ch == '\'' /*|| ch == ' '*/) {
 				buf.append('\\');
 			}
 			buf.append(ch);
