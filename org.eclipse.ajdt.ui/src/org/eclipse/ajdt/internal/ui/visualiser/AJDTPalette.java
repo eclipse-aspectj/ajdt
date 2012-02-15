@@ -100,9 +100,9 @@ public class AJDTPalette implements IVisualiserPalette {
 	 */
 	public RGB getRandomRGBValue() {
 	    Random rand = new Random();
-		int r = ((int) (rand.nextInt() * 30)) * 5 + 50;
-		int g = ((int) (rand.nextInt() * 30)) * 5 + 50;
-		int b = ((int) (rand.nextInt() * 40)) * 5 + 50;
+		int r = Math.abs(((int) (rand.nextInt() * 30)) * 5 + 50) % 255;
+		int g = Math.abs(((int) (rand.nextInt() * 30)) * 5 + 50) % 255;
+		int b = Math.abs(((int) (rand.nextInt() * 40)) * 5 + 50) % 255;
 		return new RGB(r, g, b);
 	}
 
