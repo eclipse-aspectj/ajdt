@@ -19,6 +19,9 @@
           Initializes properties
      - - - - - - - - - - - - - - - - - -->
     <target name="init">
+    	<property file="provisioning_support/download.properties" />
+    	<property file="local.properties" />
+    	<property file="build.properties" />
     	<!-- ===================================================================== -->
     	<!-- Create the timestamp tp be used for the build                         -->
     	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
@@ -34,9 +37,6 @@
     	<echo message="=============================================="/>
     	<echo message="forceContextQualifier=${forceContextQualifier}"/>
     	<echo message="=============================================="/>
-    	<property file="provisioning_support/download.properties" />
-    	<property file="local.properties" />
-    	<property file="build.properties" />
 
     	<condition property="target.eclipse.tar" value="${target.eclipse.tar.42}">
     		<equals arg1="${target.eclipse.version}" arg2="42"/>
