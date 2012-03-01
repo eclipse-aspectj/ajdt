@@ -604,14 +604,22 @@ public class AJCompilationUnitProblemFinder extends
             
             if (id == IProblem.TypeMismatch &&
                     numArgs == 2 &&
-                    typeAtPositionIsArg(categorizedProblem, unit, firstArg) &&
-                    findLastSegment(getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor)).equals(findLastSegment(secondArg))) {
-                // bug 284358
-                // this problem occurs when 'this' is returned from an ITD method
-                // the resolver thinks there is a type mismath because it was 
-                // expecting the aspect type (argument 1) instead of the ITD type
-                // (argument 2)
-                return false;
+                    typeAtPositionIsArg(categorizedProblem, unit, firstArg)) {
+                if (findLastSegment(getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor)).equals(findLastSegment(secondArg))) {
+                    // bug 284358
+                    // this problem occurs when 'this' is returned from an ITD method
+                    // the resolver thinks there is a type mismath because it was 
+                    // expecting the aspect type (argument 1) instead of the ITD type
+                    // (argument 2)
+                    return false;
+                }
+                
+                if (insideITD(categorizedProblem, unit, isJavaFileInAJEditor) &&
+                        isThisExpression(categorizedProblem, unit)) {
+                    // Bug 361170
+                    // Likely a this expresion that is casted to a super type of the ITD
+                    return false;
+                }
             }
             
             if (numArgs > 0 && 
@@ -777,6 +785,19 @@ public class AJCompilationUnitProblemFinder extends
             return false;
         }
         return true;
+    }
+
+    /**
+     * checks that the selection of the categorizedProblem is 'this'
+     * @param categorizedProblem
+     * @param unit
+     * @return
+     */
+    private static boolean isThisExpression(
+            CategorizedProblem p, CompilationUnit unit) {
+        char[] contents = unit.getContents();
+        return p.getSourceEnd() < contents.length && p.getSourceEnd() - p.getSourceStart() == 3 && 
+                contents[p.getSourceStart()] == 't' && contents[p.getSourceStart()+1] == 'h' && contents[p.getSourceStart()+2] == 'i' && contents[p.getSourceStart()+3] == 's';
     }
 
     /**
