@@ -307,6 +307,10 @@ public class ITDInserter extends ASTVisitor {
         List<String> parentTypes = elt.getParentTypes();
         if (parentTypes != null && parentTypes.size() > 0) {
             for (String parentTypeName : parentTypes) {
+                int genericsIndex = parentTypeName.indexOf("<");
+                if (genericsIndex > 0) {
+                    parentTypeName = parentTypeName.substring(0, genericsIndex);
+                }
                 IType parentType = unit.getJavaProject().findType(parentTypeName, (IProgressMonitor) null);
                 if (parentType != null) {
                     return parentType.isClass();
@@ -493,10 +497,16 @@ public class ITDInserter extends ASTVisitor {
 
     private void addSuperClass(String newSuper, TypeDeclaration decl) {
         decl.superclass = createTypeReference(newSuper);
-        decl.binding.superclass = createTypeBinding(newSuper);
+        if (decl.binding != null) {
+            decl.binding.superclass = createTypeBinding(newSuper);
+        }
     }
     
     private ReferenceBinding createTypeBinding(String newSuper) {
+        int genericsIndex = newSuper.indexOf("<");
+        if (genericsIndex > 0) {
+            newSuper = newSuper.substring(0, genericsIndex);
+        }
         newSuper = newSuper.replace('$', '.');
         return env.askForType(CharOperation.splitOn('.', newSuper.toCharArray()));
     }
