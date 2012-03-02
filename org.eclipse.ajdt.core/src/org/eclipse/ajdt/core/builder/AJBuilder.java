@@ -681,13 +681,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
     }
     
-    private List/*String*/ listOfClassPathEntriesToListOfString(
-            List/*IClassPathEntry*/ entries) {
+    private List<String> listOfClassPathEntriesToListOfString(
+            List<IClasspathEntry> entries) {
         IWorkspaceRoot root = getProject().getWorkspace().getRoot();
-        List strings = new ArrayList(entries.size());
-        for (Iterator iterator = entries.iterator(); iterator
-                .hasNext();) {
-            IPath path = ((IClasspathEntry) iterator.next()).getPath();
+        List<String> strings = new ArrayList<String>(entries.size());
+        for (IClasspathEntry entry : entries) {
+            IPath path = entry.getPath();
             boolean exists;
             // only add if exists
             IResource onPath;
@@ -763,10 +762,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
             AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).
             getCompilerConfiguration();
         boolean success = true;
-        Set inpath = compilerConfig.getInpath();
+        Set<File> inpath = compilerConfig.getInpath();
         if (inpath != null) {
-            for (Iterator iter = inpath.iterator(); iter.hasNext();) {
-                File f = (File) iter.next();
+            for (File f : inpath) {
                 if (!f.exists()) {
                     String missingMessage = NLS.bind(
                             CoreMessages.BuilderMissingInpathEntry, project
@@ -776,10 +774,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 }
             }
         }
-        Set aspectpath = compilerConfig.getAspectPath();
+        Set<File> aspectpath = compilerConfig.getAspectPath();
         if (aspectpath != null) {
-            for (Iterator iter = aspectpath.iterator(); iter.hasNext();) {
-                File f = (File) iter.next();
+            for (File f : aspectpath) {
                 if (!f.exists()) {
                     String missingMessage = NLS.bind(
                             CoreMessages.BuilderMissingAspectpathEntry, project
@@ -829,7 +826,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         if (javaProject == null || workspaceRoot == null)
             return new IProject[0];
 
-        ArrayList projects = new ArrayList();
+        ArrayList<IProject> projects = new ArrayList<IProject>();
         try {
             IClasspathEntry[] entries = javaProject.getExpandedClasspath();
             for (int i = 0, l = entries.length; i < l; i++) {
@@ -889,7 +886,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
      * @param IJavaProject
      */
     private IClasspathEntry[] getSrcClasspathEntry(IJavaProject javaProject) throws JavaModelException {
-        List srcEntries = new ArrayList();
+        List<IClasspathEntry> srcEntries = new ArrayList<IClasspathEntry>();
         if (javaProject == null) {
             return new IClasspathEntry[0];
         }
@@ -957,8 +954,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                     IFolder outFolder = (IFolder) createFolder(outPath, outContainer, true);
                                     
                                     // outfolder itself should not be derived
-                                    if (!outFolder.equals(outContainer)) {
-                                        outFolder.setDerived(true, null);
+                                    if (outFolder.equals(outContainer)) {
+                                        outFolder.setDerived(false, null);
                                     }
                                     break;
         
@@ -971,7 +968,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                         // system without a refresh
                                         if (!outFile.exists()) {
                                             try {
-                                                resource.copy(outFile.getFullPath(), true, null);
+                                                resource.copy(outFile.getFullPath(), IResource.DERIVED | IResource.FORCE, null);
                                                 Util.setReadOnly(outFile, false);
                                             } catch (ResourceException e) {
                                                 resource.refreshLocal(IResource.DEPTH_ZERO, null);
@@ -991,7 +988,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
                                                 }
                                             }
                                         }
-                                        outFile.setDerived(true, null);
                                     }
                                     break;
                                 }
@@ -1000,7 +996,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
                         }
                         return false;
                     }
-
                 };
                 
                 srcContainer.accept(copyVisitor);
@@ -1032,11 +1027,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
         for (int i = 0, l = srcEntries.length; i < l; i++) {
             IClasspathEntry srcEntry = srcEntries[i];
-            IPath srcPath = srcEntry.getPath().removeFirstSegments(1);          
+            IPath srcPath = srcEntry.getPath().removeFirstSegments(1);
             IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
 
             // handle case where project root is a source folder
-            if (srcContainer.equals(project.getProject())) {                
+            if (srcContainer.equals(project.getProject())) {
                 int segmentCount = delta.getFullPath().segmentCount();
                 IResourceDelta[] children = delta.getAffectedChildren();
                 for (int j = 0, m = children.length; j < m; j++) {
@@ -1172,8 +1167,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             }
                             AJLog.log(AJLog.BUILDER,"Copying added file " + deltaPath);//$NON-NLS-1$
                             createFolder(deltaPath.removeLastSegments(1), outputFolder, true); 
-                            resource.copy(fileToRefresh.getFullPath(), IResource.FORCE, null);
-                            fileToRefresh.setDerived(true, null);
+                            resource.copy(fileToRefresh.getFullPath(), IResource.FORCE | IResource.DERIVED, null);
                             Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
                             fileToRefresh.refreshLocal(IResource.DEPTH_ZERO,null);
                             // mark this change so compiler knows about it.
@@ -1202,8 +1196,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                             }
                             AJLog.log(AJLog.BUILDER,"Copying changed file " + deltaPath);//$NON-NLS-1$
                             createFolder(deltaPath.removeLastSegments(1), outputFolder, true);
-                            resource.copy(fileToRefresh.getFullPath(), IResource.FORCE, null);
-                            fileToRefresh.setDerived(true);
+                            resource.copy(fileToRefresh.getFullPath(), IResource.FORCE | IResource.DERIVED, null);
                             Util.setReadOnly(fileToRefresh, false); // just in case the original was read only
                             break;
                     }                   
@@ -1231,19 +1224,17 @@ public class AJBuilder extends IncrementalProjectBuilder {
      * Creates folder with the given path in the given output folder. This method is taken
      * from org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.createFolder(..)
      */
-    private IContainer createFolder(IPath packagePath, IContainer outputFolder, boolean derived) throws CoreException {
+    private IContainer createFolder(IPath packagePath, IContainer outputFolder, boolean isDerived) throws CoreException {
         // Fix for 98663 - create the bin folder if it doesn't exist
         if(!outputFolder.exists() && outputFolder instanceof IFolder) {
             ((IFolder)outputFolder).create(true, true, null);
         }
         if (packagePath.isEmpty()) return outputFolder;
         IFolder folder = outputFolder.getFolder(packagePath);
-        folder.refreshLocal(IResource.DEPTH_ZERO,null);
         if (!folder.exists()) {
-            createFolder(packagePath.removeLastSegments(1), outputFolder, derived);
-            folder.create(true, true, null);
-            folder.setDerived(derived);
-            folder.refreshLocal(IResource.DEPTH_ZERO,null);
+            createFolder(packagePath.removeLastSegments(1), outputFolder, isDerived);
+            int flags = isDerived ? IResource.FORCE | IResource.DERIVED : IResource.FORCE;
+            folder.create(flags, true, null);
         }
         return folder;
     }
