@@ -38,72 +38,77 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 	private static AspectJPlugin plugin;
 
 	// id of this plugin
-	public static final String PLUGIN_ID = "org.eclipse.ajdt.core"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "org.eclipse.ajdt.core"; 
 
 	// plugin containing aspectjtools.jar, or the contents thereof
-    public static final String TOOLS_PLUGIN_ID = "org.aspectj.ajde"; //$NON-NLS-1$
+    public static final String TOOLS_PLUGIN_ID = "org.aspectj.ajde"; 
 
 	// plugin containing aspectjweaver.jar, or the contents thereof
-    public static final String WEAVER_PLUGIN_ID = "org.aspectj.weaver"; //$NON-NLS-1$
+    public static final String WEAVER_PLUGIN_ID = "org.aspectj.weaver"; 
 
 	// the plugin containing aspectjrt.jar
-	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
+	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; 
 
-	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; //$NON-NLS-1$
+	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; 
 
 	/**
 	 * The name of the default build config file for an AspectJ project
 	 */
-	public static final String DEFAULT_CONFIG_FILE = ".generated.lst"; //$NON-NLS-1$
+	public static final String DEFAULT_CONFIG_FILE = ".generated.lst"; 
 
-	public static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
-	public static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+	public static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; 	
+	public static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; 
 
-	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; //$NON-NLS-1$
+	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; 
 	
-	public static final String AJ_FILE_EXT = "aj"; //$NON-NLS-1$
+	public static final String AJ_FILE_EXT = "aj"; 
 	
-	public static final String ASPECTJRT_CONTAINER = PLUGIN_ID + ".ASPECTJRT_CONTAINER"; //$NON-NLS-1$
+	public static final String ASPECTJRT_CONTAINER = PLUGIN_ID + ".ASPECTJRT_CONTAINER"; 
 	
 	// AspectJ keywords
-    public static final String[] ajKeywords = { "aspect", "pointcut", "privileged", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public static final String[] ajKeywords = { "aspect", "pointcut", "privileged",   
 		// Pointcut designators: methods and constructora
-		"call", "execution", "initialization", "preinitialization" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		"call", "execution", "initialization", "preinitialization" ,    
 		// Pointcut designators: exception handlers
-		"handler", //$NON-NLS-1$
+		"handler", 
 		// Pointcut designators: fields
-		"get", "set", //$NON-NLS-1$ //$NON-NLS-2$
+		"get", "set",  
 		// Pointcut designators: static initialization
-		"staticinitialization", //$NON-NLS-1$
+		"staticinitialization", 
 		// Pointcut designators: object
 		// (this already a Java keyword)
-		"target", "args", //$NON-NLS-1$ //$NON-NLS-2$
+		"target", "args",  
 		// Pointcut designators: lexical extents
-		"within", "withincode", //$NON-NLS-1$ //$NON-NLS-2$
+		"within", "withincode",  
 		// Pointcut designators: control flow
-		"cflow", "cflowbelow", //$NON-NLS-1$ //$NON-NLS-2$
+		"cflow", "cflowbelow",  
 		// Pointcut Designators for annotations
-		"annotation", //$NON-NLS-1$
+		"annotation", 
 		// Advice
-		"before", "after", "around", "proceed", "throwing" , "returning" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-		"adviceexecution" , //$NON-NLS-1$
+		"before", "after", "around", "proceed", "throwing" , "returning" ,      
+		"adviceexecution" , 
 		// Declarations
-		"declare", "parents" , "warning" , "error", "soft" , "precedence" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		"declare", "parents" , "warning" , "error", "soft" , "precedence" , 
 		// variables
-		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , 
 		// Associations
-		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin",  
 		// Declare annotation
-		"@type", "@method", "@field" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		"@type", "@method", "@field",
+		
+		// Optional keywords
+		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=373584
+		"lock", "unlock", "thisAspectInstance"
+    }; 
     
     
-    public static final String[] declareAnnotationKeywords = { "type", "method", "field" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public static final String[] declareAnnotationKeywords = { "type", "method", "field" };   
     
 	/**
 	 * Folder separator used by Eclipse in paths irrespective if on Windows or
 	 * *nix.
 	 */
-	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; //$NON-NLS-1$
+	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; 
 
 	public static final boolean USING_CU_PROVIDER = checkForCUprovider();
 	
