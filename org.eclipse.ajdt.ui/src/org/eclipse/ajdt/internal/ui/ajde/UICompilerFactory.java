@@ -28,11 +28,11 @@ import org.eclipse.core.resources.IProject;
  */ 
 public class UICompilerFactory implements ICompilerFactory {
 
-	private Map compilerMap = new HashMap();
+	private Map<IProject, AjCompiler> compilerMap = new HashMap<IProject, AjCompiler>();
 	
 	public AjCompiler getCompilerForProject(IProject project) {
 		if (compilerMap.get(project) != null) {
-			return (AjCompiler) compilerMap.get(project);
+			return compilerMap.get(project);
 		}
 		AjCompiler compiler = 
 			new AjCompiler(

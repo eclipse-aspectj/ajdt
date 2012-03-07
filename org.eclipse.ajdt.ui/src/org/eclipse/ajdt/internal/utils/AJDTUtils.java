@@ -17,12 +17,15 @@ package org.eclipse.ajdt.internal.utils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.weaver.ShadowMunger;
 import org.eclipse.ajdt.core.AJLog;
@@ -41,6 +44,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -100,7 +104,7 @@ public class AJDTUtils {
 
     private static final int SMALL_ICONS_MASK = 0x020;
 
-    private static Hashtable imageDescriptorCache = new Hashtable();
+    private static Hashtable<String,ImageDescriptor> imageDescriptorCache = new Hashtable<String,ImageDescriptor>();
 
     private static Job refreshJob;
 
@@ -139,7 +143,7 @@ public class AJDTUtils {
         // "URLImageDescriptor(platform:/plugin/org.eclipse.ui_2.0.2/icons/full/obj16/fldr_obj.gif):::0:::Point
         // {22, 16}"
         if (imageDescriptorCache.get(key) != null) {
-            return (ImageDescriptor) imageDescriptorCache.get(key);
+            return imageDescriptorCache.get(key);
         }
         ImageDescriptor imageDescriptor = new JavaElementImageDescriptor(
                 base, decorations, size);
@@ -309,8 +313,8 @@ public class AJDTUtils {
             return;
         }
         boolean defaultOutputLocationIsSrcFolder = false;
-        List extraOutputLocations = new ArrayList();
-        List srcFolders = new ArrayList();
+        List<IPath> extraOutputLocations = new ArrayList<IPath>();
+        List<IClasspathEntry> srcFolders = new ArrayList<IClasspathEntry>();
         IClasspathEntry[] cpe = jp.getRawClasspath();
         for (int i = 0; i < cpe.length; i++) {
             if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
@@ -321,14 +325,13 @@ public class AJDTUtils {
                 }
             }
         }
-        for (Iterator iter = srcFolders.iterator(); iter.hasNext();) {
-            IClasspathEntry entry = (IClasspathEntry) iter.next();
+        for (IClasspathEntry entry : srcFolders) {
             IPath path = entry.getPath();
             if(path.equals(defaultOutputLocation)) {
                 defaultOutputLocationIsSrcFolder = true;
             }
-            for (Iterator iterator = extraOutputLocations.iterator(); iterator.hasNext();) {
-                IPath outputPath = (IPath) iterator.next();
+            for (Iterator<IPath> iterator = extraOutputLocations.iterator(); iterator.hasNext();) {
+                IPath outputPath = iterator.next();
                 if(outputPath.equals(path)) {
                     iterator.remove();
                 }               
@@ -340,9 +343,7 @@ public class AJDTUtils {
             ajFilesFound = containsAJFiles(folder);
         }
         if(!ajFilesFound && extraOutputLocations.size() > 0) {
-            for (Iterator iter = extraOutputLocations.iterator(); iter.hasNext();) {
-                IPath outputPath = (IPath) iter.next();
-
+            for (IPath outputPath : extraOutputLocations) {
                 IFolder folder = project.getWorkspace().getRoot().getFolder(outputPath);
                 ajFilesFound = ajFilesFound || containsAJFiles(folder);
             }
@@ -359,8 +360,7 @@ public class AJDTUtils {
                 if(!defaultOutputLocationIsSrcFolder) {
                     AJBuilder.cleanAJFilesFromOutputFolder(defaultOutputLocation);
                 }
-                for (Iterator iter = extraOutputLocations.iterator(); iter.hasNext();) {
-                    IPath extraLocationPath = (IPath) iter.next();
+                for (IPath extraLocationPath : extraOutputLocations) {
                     AJBuilder.cleanAJFilesFromOutputFolder(extraLocationPath);
                 }
             }
@@ -709,7 +709,7 @@ public class AJDTUtils {
                 if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
                     IPath[] exc = entry.getExclusionPatterns();
                     if (exc != null) {
-                        List removeList = new ArrayList();
+                        List<IPath> removeList = new ArrayList<IPath>();
                         for (int j = 0; j < exc.length; j++) {
                             String ext = exc[j].getFileExtension();
                             if ((ext != null) && ext.equals("aj")) { //$NON-NLS-1$
@@ -758,7 +758,7 @@ public class AJDTUtils {
             for (int i = 0; i < cpEntry.length; i++) {
                 IClasspathEntry entry = cpEntry[i];
                 if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    List excludeList = new ArrayList();
+                    List<IPath> excludeList = new ArrayList<IPath>();
                     IPackageFragmentRoot[] roots = jp
                             .findPackageFragmentRoots(entry);
                     for (int j = 0; j < roots.length; j++) {
@@ -911,7 +911,7 @@ public class AJDTUtils {
         String ajrtPath = CoreUtils.getAspectjrtClasspath();
         try {
             IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-            ArrayList tempCP = new ArrayList();
+            ArrayList<IClasspathEntry> tempCP = new ArrayList<IClasspathEntry>();
 
             boolean changed = false;
 
@@ -1031,7 +1031,7 @@ public class AJDTUtils {
             IProgramElement pNode) {
         int flags = 0;
         if (pNode != null) {
-            List modifiers = pNode.getModifiers();
+            List<Modifiers> modifiers = pNode.getModifiers();
             if (modifiers != null) {
                 if (modifiers.contains(IProgramElement.Modifiers.ABSTRACT)) {
                     flags = flags | JavaElementImageDescriptor.ABSTRACT;
@@ -1115,7 +1115,7 @@ public class AJDTUtils {
     public static char[][] getEnclosingTypes(IType startType) {
         char[][] enclosingTypes = new char[0][];
         IType type = startType.getDeclaringType();
-        List enclosingTypeList = new ArrayList();
+        List<char[]> enclosingTypeList = new ArrayList<char[]>();
         while(type != null) {
             char[] typeName = type.getElementName().toCharArray();
             enclosingTypeList.add(0, typeName);
@@ -1124,7 +1124,7 @@ public class AJDTUtils {
         if(enclosingTypeList.size() > 0) {
             enclosingTypes = new char[enclosingTypeList.size()][];
             for (int k = 0; k < enclosingTypeList.size(); k++) {
-                char[] typeName = (char[]) enclosingTypeList.get(k);
+                char[] typeName = enclosingTypeList.get(k);
                 enclosingTypes[k] = typeName;
             }
         }
@@ -1175,14 +1175,6 @@ public class AJDTUtils {
         }
     }
 
-    /**
-     * Return the IResource within the workspace that maps to the given File
-     */
-    public static IResource findResource(String fullPath) {
-        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        IPath path = new Path(fullPath);
-        return root.getFileForLocation(path);
-    }
 
     /*
      * Lightweight form of canonical path conversion - only converts
@@ -1211,78 +1203,41 @@ public class AJDTUtils {
     }
 
     /**
+     * Return the IResource within the workspace that maps to the given File
+     * In the case of linked resources, there may be more than one resource for a given
+     * file system location.  In this case, just arbitrarily return the first.
+     * Also, returns null if no resources are mapped to the file system location
+     */
+    public static IResource findResource(String fullPath) {
+        return findResource(fullPath, null);
+    }
+
+    /**
      * Return the IResource within the project that maps to the given File
      */
     public static IResource findResource(String fullPath, IProject p) {
-
-        // full path contains absolute file system paths, we need to undo the
-        // effects of any "symbolic linking" in the workspace to ensure that we
-        // return the correct IResource.
-        String toMatch = toCanonical(fullPath.replace('\\', '/'));
         try {
-            IJavaProject jp = JavaCore.create(p);
-            IClasspathEntry[] cpes = jp.getRawClasspath();
-            for (int i = 0; i < cpes.length; i++) {
-                IClasspathEntry e = cpes[i];
-                if (e.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    IPath pe = e.getPath();
-                    if (pe.segment(0).equals(p.getName())) {
-                        IResource ires = p
-                                .findMember(pe.removeFirstSegments(1));
-                        if (ires instanceof IFolder) {
-                            IFolder f = (IFolder) ires;
-                            // bug 82341 - adding extra check for a match
-                            // regardless of case on windows
-                            if (toMatch.startsWith(toCanonical(f.getLocation().toString()))
-                                    || caseInsensitiveMatch(toMatch,f)) {
-                                // this is what it was all about!
-                                // we have a possible symbolic link within our
-                                // project to the file
-                                String postfix = toMatch.substring(f
-                                        .getLocation().toString().length());
-                                IPath postfixPath = new Path(postfix);
-                                if (f.exists(postfixPath)) {
-                                    return f.findMember(postfixPath);
-                                }
-                            } 
-                        } else if (ires instanceof IProject) {
-                            // I think this is when the project has no src/bin
-                            // dirs
-                            IProject iproj = ((IProject) ires);
-                            // bug 82341 - adding extra check for a match
-                            // regardless of case on windows
-                            if (toMatch.startsWith(toCanonical(iproj.getLocation()
-                                    .toString()))
-                                    || caseInsensitiveMatch(toMatch,iproj)) {
-                                // this is what it was all about!
-                                // we have a possible symbolic link within our
-                                // project to the file
-                                String postfix = toMatch.substring(iproj
-                                        .getLocation().toString().length());
-                                IPath postfixPath = new Path(postfix);
-                                if (iproj.exists(postfixPath)) {
-                                    return iproj.findMember(postfixPath);
-                                }
-                            }
-                        }
+            IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(new URI("file", fullPath, ""));
+            if (files != null) {
+                for (IFile file : files) {
+                    if (p == null || file.getProject().equals(p)) {
+                        return file;
+                    }
+                }
+            } else {
+                // maybe a folder
+                IContainer[] containers = p.getWorkspace().getRoot().findContainersForLocationURI(new URI("file", fullPath, ""));
+                for (IContainer container : containers) {
+                    if (p == null || container.getProject().equals(p)) {
+                        return container;
                     }
                 }
             }
-        } catch (JavaModelException ex) {
+        } catch (URISyntaxException e1) {
         }
-        
-        String projectPathStr = p.getLocation().toString();
-        try {
-            projectPathStr = p.getLocation().toFile().getCanonicalPath();
-        } catch (IOException e) {
-        }
-        IPath projectPath = new Path(projectPathStr);
-        IPath filePath = new Path(fullPath);
-        if (projectPath.isPrefixOf(filePath)) {
-            filePath = filePath.removeFirstSegments(projectPath.segmentCount());
-        }
-        IResource ret = p.findMember(filePath);
-        return ret;
+        return null;
+
+
     }
 
     // Bug 119853

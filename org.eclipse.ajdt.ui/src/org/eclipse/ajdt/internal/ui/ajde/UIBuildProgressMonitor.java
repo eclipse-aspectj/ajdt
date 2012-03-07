@@ -10,6 +10,9 @@
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
@@ -18,9 +21,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -175,23 +176,18 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             IWorkspaceRoot workspaceRoot = AspectJPlugin.getWorkspace()
                     .getRoot();
 
-            if (linked) {
-                IFile[] files = workspaceRoot
-                        .findFilesForLocation(resourcePath);
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].getProject().equals(project)) {
-                        getMessageHandler().addAffectedResource(files[i]);
+            URI location = null;
+            try {
+                location = new URI("file", resourcePath.toPortableString(), "");
+                IFile[] files = workspaceRoot.findFilesForLocationURI(location);
+                if (files != null) {
+                    for (int i = 0; i < files.length; i++) {
+                        if (files[i].getProject().equals(project)) {
+                            getMessageHandler().addAffectedResource(files[i]);
+                        }
                     }
                 }
-            } else {
-                IFile file = 
-                    project.getFile(resourcePath.makeRelativeTo(project.getLocation()));
-                if (file == null) {
-                	AJLog.log(AJLog.COMPILER,"Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
-                                    + text);
-                } else {
-                	getMessageHandler().addAffectedResource(file);
-                }
+            } catch (URISyntaxException e) {
             }
         }
 
@@ -292,11 +288,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     private IProject project;
     
     /**
-     * Determine if a linked folder exists in the buildList
-     */
-    private boolean linked;
-    
-    /**
      * Which Eclipse IProgressMonitor should this CoreCompilerMonitor keep updating?
      */
     private IProgressMonitor monitor = null;
@@ -313,29 +304,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
      */
     public void prepare(IProgressMonitor eclipseMonitor) {
     	buildWasCancelled = false;
-        //check if the folder contains linked resources
-        linked = false;
-        IResource[] res = null;
-
-        try {
-            res = project.members();
-        } catch (CoreException e) {
-            //should not occur but for some reason one of the following it
-            // true:
-            //1. This resource does not exist.
-            //2. includePhantoms is false and resource does not exist.
-            //3. includePhantoms is false and this resource is a project that
-            // is not open.
-        }
-
-        for (int i = 0; (linked == false) && (i < res.length); i++) {
-            if (res[i].getType() == IResource.FOLDER) {
-                linked = res[i].isLinked();
-                if (linked) {
-                    break;
-                }
-            }
-        }
 
         monitor = eclipseMonitor;
         if (monitor != null) {

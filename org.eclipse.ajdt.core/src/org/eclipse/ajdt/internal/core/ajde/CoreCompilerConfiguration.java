@@ -226,60 +226,11 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         return iofiles;
     }
 
+    /**
+     * AJDT handles resource copying for all builds, so always return null here.
+     */
     public Map<String, File> getSourcePathResources() {
-        IJavaProject jProject = JavaCore.create(project);
-        Map<String, File> map = new HashMap<String, File>();
-        try {
-            IClasspathEntry[] classpathEntries = jProject.getResolvedClasspath(false);
-
-            // find the absolute output path
-            String realOutputLocation;
-            IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
-            if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-                // root
-                realOutputLocation = jProject.getResource().getLocation().toOSString();
-            } else {
-                IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(workspaceRelativeOutputPath);
-                realOutputLocation = out.getLocation().toOSString();
-            }
-            for (int i = 0; i < classpathEntries.length; i++) {
-                if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    IClasspathEntry sourceEntry = classpathEntries[i];
-                    IPath sourcePath = sourceEntry.getPath();
-                    List<String> files = new ArrayList<String>();
-                    sourcePath = sourcePath.removeFirstSegments(1);
-                    IResource[] srcContainer = new IResource[] { project.findMember(sourcePath) };
-                    if (srcContainer[0] != null) {
-                        getProjectRelativePaths(srcContainer, files, CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
-                                .segmentCount() - 1, sourceEntry);
-
-                        ArrayList<IResource> linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
-
-                        for (Iterator<String> it = files.iterator(); it.hasNext();) {
-                            String relPath = (String) it.next();
-                            String fullPath = getResourceFullPath(srcContainer[0], relPath, linkedSrcFolders);
-
-                            // put file on list if not in output path
-                            if (!fullPath.startsWith(realOutputLocation) && !relPath.endsWith(".classpath") //$NON-NLS-1$
-                                    && !relPath.endsWith(".project") //$NON-NLS-1$
-                                    && !relPath.endsWith(".ajsym") //$NON-NLS-1$
-                                    && !relPath.endsWith(".lst")) { //$NON-NLS-1$
-                                File file = new File(fullPath);
-                                if (file.exists()) {
-                                    map.put(relPath, file);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (JavaModelException jmEx) {
-            // bug 90094 - removed creating an AspectJ dialog here so
-            // that we behave like the jdt. The error is coming out in the
-            // problems view anyway (which is how jdt behaves)
-        }
-
-        return map;
+        return null;
     }
 
     public void flushClasspathCache() {
