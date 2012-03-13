@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates>
-	<template name="adviceexecution" description="adviceexecution pointcut (AspectJ)" context="java" enabled="true">adviceexecution()</template>
-	<template name="after_returning" description="after returning advice (AspectJ)" context="java" enabled="true">after(${args}) returning() : ${pointcut_expression} {}</template>
-	<template name="after_throwing" description="after throwing advice (AspectJ)" context="java" enabled="true">after(${args}) throwing() : ${pointcut_expression} {}</template>
-	<template name="around" description="around advice (AspectJ)" context="java" enabled="true">around(${args}) : ${pointcut_expression} {}</template>
-	<template name="before" description="before advice (AspectJ)" context="java" enabled="true">before(${args}) : ${pointcut_expression} {}</template>
-	<template name="call_cons" description="call constructor pointcut (AspectJ)" context="java" enabled="true">call(${modifier_pattern} ${type_pattern}.new(..))</template>
-	<template name="call_method" description="call method declaration (AspectJ)" context="java" enabled="true">call(${modifiers_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern}(..))</template>
-	<template name="cflow" description="cflow pointcut (AspectJ)" context="java" enabled="true">cflow(${pointcut_expression})</template>
-	<template name="cflowbelow" description="cflowbelow pointcut (AspectJ)" context="java" enabled="true">cflowbelow(${pointcut_expression})</template>
-	<template name="dece" description="declare error (AspectJ)" context="java" enabled="true">declare error : ${pointcut_expression} : "";</template>
-	<template name="decp_extends" description="declare parents (AspectJ)" context="java" enabled="true">declare parents : ${type_pattern} extends ${type};</template>
-	<template name="decp_implements" description="declare parents (AspectJ)" context="java" enabled="true">declare parents : ${type_pattern} implements ${type};</template>
-	<template name="decs" description="declare soft (AspectJ)" context="java" enabled="true">declare soft : ${exception_type} : ${pointcut_expression};</template>
-	<template name="decw" description="declare warning (AspectJ)" context="java" enabled="true">declare warning : ${pointcut_expression} : "";</template>
-	<template name="execution_cons" description="execution of a constructor pointcut (AspectJ)" context="java" enabled="true">execution(${modifier_pattern} ${type_pattern}.new(..))</template>
-	<template name="execution_method" description="execution of a method pointcut (AspectJ)" context="java" enabled="true">execution(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern}(..))</template>
-	<template name="get" description="get pointcut (AspectJ)" context="java" enabled="true">get(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern})</template>
-	<template name="handler" description="handler pointcut (AspectJ)" context="java" enabled="true">handler(${type_pattern})</template>
-	<template name="initialization" description="initialization pointcut (AspectJ)" context="java" enabled="true">initialization(${modifier_pattern} ${type_pattern}.new(..))</template>
-	<template name="pc" description="pointcut declaration (AspectJ)" context="java" enabled="true">pointcut ${name}() : ${pointcut_expression};</template>
-	<template name="percflow" description="percflow (AspectJ)" context="java" enabled="true">percflow(${pointcut_expression})</template>
-	<template name="percflowbelow" description="percflowbelow (AspectJ)" context="java" enabled="true">percflowbelow(${pointcut_expression})</template>
-	<template name="pertarget" description="pertarget (AspectJ)" context="java" enabled="true">pertarget(${pointcut_expression})</template>
-	<template name="perthis" description="perthis (AspectJ)" context="java" enabled="true">perthis(${pointcut_expression})</template>
-	<template name="pertypewithin" description="pertypewithin (AspectJ)" context="java" enabled="true">pertypewithin(${type_pattern})</template>
-	<template name="pointcut" description="pointcut (AspectJ)" context="java" enabled="true">pointcut ${name}(${args}) : ${pointcut_expression};</template>
-	<template name="preinitialization" description="preinitialization pointcut (AspectJ)" context="java" enabled="true">preinitialization(${modifier_pattern} ${type_pattern}.new(..))</template>
-	<template name="set" description="set pointcut (AspectJ)" context="java" enabled="true">set(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern})</template>
-	<template name="staticinitialization" description="staticinitialization pointcut (AspectJ)" context="java" enabled="true">staticinitialization(${type_pattern})</template>
-	<template name="thisJoinPoint" description="thisJoinPoint (AspectJ)" context="java" enabled="true">thisJoinPoint</template>
-	<template name="thisJoinPointStaticPart" description="thisJoinPointStaticPart (AspectJ)" context="java" enabled="true">thisJoinPointStaticPart</template>
-	<template name="within" description="within pointcut (AspectJ)" context="java" enabled="true">within(${type_pattern})</template>
-	<template name="withincode_cons" description="withincode of a constructor pointcut (AspectJ)" context="java" enabled="true">withincode(${modifier_pattern} ${type_pattern}.new(..))</template>
-	<template name="withincode_method" description="withincode of a method pointcut (AspectJ)" context="java" enabled="true">withincode(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern}(..))</template>
+	<template name="adviceexecution" description="adviceexecution pointcut (AspectJ)" context="aspectj" enabled="true">adviceexecution()</template>
+	<template name="after_returning" description="after returning advice (AspectJ)" context="aspectj" enabled="true">after(${args}) returning() : ${pointcut_expression} {}</template>
+	<template name="after_throwing" description="after throwing advice (AspectJ)" context="aspectj" enabled="true">after(${args}) throwing() : ${pointcut_expression} {}</template>
+	<template name="around" description="around advice (AspectJ)" context="aspectj" enabled="true">around(${args}) : ${pointcut_expression} {}</template>
+	<template name="before" description="before advice (AspectJ)" context="aspectj" enabled="true">before(${args}) : ${pointcut_expression} {}</template>
+	<template name="call_cons" description="call constructor pointcut (AspectJ)" context="aspectj" enabled="true">call(${modifier_pattern} ${type_pattern}.new(..))</template>
+	<template name="call_method" description="call method declaration (AspectJ)" context="aspectj" enabled="true">call(${modifiers_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern}(..))</template>
+	<template name="cflow" description="cflow pointcut (AspectJ)" context="aspectj" enabled="true">cflow(${pointcut_expression})</template>
+	<template name="cflowbelow" description="cflowbelow pointcut (AspectJ)" context="aspectj" enabled="true">cflowbelow(${pointcut_expression})</template>
+	<template name="dece" description="declare error (AspectJ)" context="aspectj" enabled="true">declare error : ${pointcut_expression} : "";</template>
+	<template name="decp_extends" description="declare parents (AspectJ)" context="aspectj" enabled="true">declare parents : ${type_pattern} extends ${type};</template>
+	<template name="decp_implements" description="declare parents (AspectJ)" context="aspectj" enabled="true">declare parents : ${type_pattern} implements ${type};</template>
+	<template name="decs" description="declare soft (AspectJ)" context="aspectj" enabled="true">declare soft : ${exception_type} : ${pointcut_expression};</template>
+	<template name="decw" description="declare warning (AspectJ)" context="aspectj" enabled="true">declare warning : ${pointcut_expression} : "";</template>
+	<template name="execution_cons" description="execution of a constructor pointcut (AspectJ)" context="aspectj" enabled="true">execution(${modifier_pattern} ${type_pattern}.new(..))</template>
+	<template name="execution_method" description="execution of a method pointcut (AspectJ)" context="aspectj" enabled="true">execution(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern}(..))</template>
+	<template name="get" description="get pointcut (AspectJ)" context="aspectj" enabled="true">get(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern})</template>
+	<template name="handler" description="handler pointcut (AspectJ)" context="aspectj" enabled="true">handler(${type_pattern})</template>
+	<template name="initialization" description="initialization pointcut (AspectJ)" context="aspectj" enabled="true">initialization(${modifier_pattern} ${type_pattern}.new(..))</template>
+	<template name="pc" description="pointcut declaration (AspectJ)" context="aspectj" enabled="true">pointcut ${name}() : ${pointcut_expression};</template>
+	<template name="percflow" description="percflow (AspectJ)" context="aspectj" enabled="true">percflow(${pointcut_expression})</template>
+	<template name="percflowbelow" description="percflowbelow (AspectJ)" context="aspectj" enabled="true">percflowbelow(${pointcut_expression})</template>
+	<template name="pertarget" description="pertarget (AspectJ)" context="aspectj" enabled="true">pertarget(${pointcut_expression})</template>
+	<template name="perthis" description="perthis (AspectJ)" context="aspectj" enabled="true">perthis(${pointcut_expression})</template>
+	<template name="pertypewithin" description="pertypewithin (AspectJ)" context="aspectj" enabled="true">pertypewithin(${type_pattern})</template>
+	<template name="pointcut" description="pointcut (AspectJ)" context="aspectj" enabled="true">pointcut ${name}(${args}) : ${pointcut_expression};</template>
+	<template name="preinitialization" description="preinitialization pointcut (AspectJ)" context="aspectj" enabled="true">preinitialization(${modifier_pattern} ${type_pattern}.new(..))</template>
+	<template name="set" description="set pointcut (AspectJ)" context="aspectj" enabled="true">set(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern})</template>
+	<template name="staticinitialization" description="staticinitialization pointcut (AspectJ)" context="aspectj" enabled="true">staticinitialization(${type_pattern})</template>
+	<template name="thisJoinPoint" description="thisJoinPoint (AspectJ)" context="aspectj" enabled="true">thisJoinPoint</template>
+	<template name="thisJoinPointStaticPart" description="thisJoinPointStaticPart (AspectJ)" context="aspectj" enabled="true">thisJoinPointStaticPart</template>
+	<template name="within" description="within pointcut (AspectJ)" context="aspectj" enabled="true">within(${type_pattern})</template>
+	<template name="withincode_cons" description="withincode of a constructor pointcut (AspectJ)" context="aspectj" enabled="true">withincode(${modifier_pattern} ${type_pattern}.new(..))</template>
+	<template name="withincode_method" description="withincode of a method pointcut (AspectJ)" context="aspectj" enabled="true">withincode(${modifier_pattern} ${ret_type_pattern} ${type_pattern}.${id_pattern}(..))</template>
 </templates>

@@ -52,6 +52,7 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.persistence.TemplatePersistenceData;
 import org.eclipse.jface.text.templates.persistence.TemplateReaderWriter;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
@@ -185,28 +186,14 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 				.getPreferenceStore();
 
 		// Version of AJDE now installed.
-		String currentAjdeVersion = UIMessages.ajde_version;
+		String currentAjdeVersion = this.getBundle().getVersion().toString();
 
 		// Version that the projects in this workspace used on the previous
 		// execution of eclipse.
 		String previousAjdeVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
 		if (previousAjdeVersion == null
-				|| !currentAjdeVersion.equals(previousAjdeVersion)) {
-			AJLog.log("New version of AJDE detected (now:" //$NON-NLS-1$
-					+ currentAjdeVersion
-					+ ") - checking aspectjrt.jar for each project."); //$NON-NLS-1$
-
-			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-					.getProjects();
-			for (int i = 0; i < projects.length; i++) {
-				if (projects[i].isOpen()) {
-					IProject current = projects[i];
-					if (AspectJPlugin.isAJProject(current)) {
-						AJDTUtils.verifyAjrtVersion(current);
-					}
-				}
-			}
-
+				|| !currentAjdeVersion.equals(previousAjdeVersion) 
+				|| previousAjdeVersion.equals("@AJDEVERSION@")) {
 			checkTemplatesInstalled();
 			checkProblemMarkersVisible();
 			store.putValue(AJDE_VERSION_KEY_PREVIOUS, currentAjdeVersion);
@@ -249,7 +236,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	    }
 		// bug 90791: don't add templates if they are already there
 		// bug 125998: using pertypewithin because it was the most recently added
-		if (codeTemplates.findTemplate("pertypewithin") == null) { //$NON-NLS-1$
+	    // bug 245265: also look for the the "aspectj" context
+		Template template = codeTemplates.findTemplate("pertypewithin");
+        if (template == null || !template.getContextTypeId().equals("aspectj")) { //$NON-NLS-1$
 			try {
 				URL loc = getBundle().getEntry("/aspectj_code_templates.xml"); //$NON-NLS-1$
 				TemplateReaderWriter trw = new TemplateReaderWriter();
@@ -260,7 +249,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 				} else {
 					for (int i = 0; i < templates.length; i++) {
 						// bug 125998: Check that the individual template has not already been added
-						if (codeTemplates.findTemplate(templates[i].getTemplate().getName()) == null) {
+				        // bug 245265: also look for the the "aspectj" context
+						Template existing = codeTemplates.findTemplate(templates[i].getTemplate().getName());
+                        if (existing == null || !template.getContextTypeId().equals("aspectj")) {
 							codeTemplates.add(templates[i]);
 						}
 					}

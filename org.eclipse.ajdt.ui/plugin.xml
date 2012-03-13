@@ -2087,4 +2087,29 @@ M4 = Platform-specific fourth key
          </adapter>
       </factory>
    </extension>
-</plugin>
+   
+   <!-- Templates -->
+	 <extension
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+         id="ajdtTemplates">
+      <javaCompletionProposalComputer
+            class="org.eclipse.ajdt.internal.ui.editor.contentassist.AJTemplateCompletionProcessor"
+			      categoryId="org.eclipse.ajdt.ui.templateCategory">
+			<partition type="__dftl_partition_content_type"/>
+      </javaCompletionProposalComputer>
+    </extension>
+    <extension point="org.eclipse.ui.editors.templates">
+      <contextType
+            name="AspectJ templates"
+            class="org.eclipse.jdt.internal.corext.template.java.JavaContextType"
+            id="aspectj"
+            registryId="org.eclipse.jdt.ui.CompilationUnitEditor">
+      </contextType>
+    </extension>
+	<extension
+		point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+		id="templateCategory"
+		name="AspectJ templates">
+		<proposalCategory
+			icon="icons/structure/aspect.gif"/>
+	</extension></plugin>
