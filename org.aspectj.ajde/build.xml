@@ -204,7 +204,7 @@ Creates a packaged plug-in jar for AJDE
 				<exclude name="org/aspectj/bridge/**/*.*" />
 				<exclude name="org/aspectj/util/**/*.*" />
 				<exclude name="org/aspectj/weaver/**/*.*" />
-				<exclude name="org/aspectj/org/objectweb/**/*.*" />
+				<exclude name="aj/org/objectweb/**/*.*" />
 			</fileset>
 		</delete>
 	
