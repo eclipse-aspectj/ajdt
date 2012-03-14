@@ -16,6 +16,7 @@ package org.eclipse.ajdt.ui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -242,17 +243,27 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 			try {
 				URL loc = getBundle().getEntry("/aspectj_code_templates.xml"); //$NON-NLS-1$
 				TemplateReaderWriter trw = new TemplateReaderWriter();
-				TemplatePersistenceData[] templates = trw.read(
-						loc.openStream(), null);
+				TemplatePersistenceData[] templates = trw.read(loc.openStream(), null);
 				if ((templates == null) || (templates.length == 0)) {
 					AJLog.log(UIMessages.codeTemplates_couldNotLoad);
 				} else {
+				    TemplatePersistenceData[] existingTemplates = codeTemplates.getTemplateData(true);
 					for (int i = 0; i < templates.length; i++) {
-						// bug 125998: Check that the individual template has not already been added
-				        // bug 245265: also look for the the "aspectj" context
-						Template existing = codeTemplates.findTemplate(templates[i].getTemplate().getName());
-                        if (existing == null || !template.getContextTypeId().equals("aspectj")) {
+						// Check that the individual template has not already been added
+					    // would have been nice if templates used the ID tag, but they don't, so have to iterate through all
+					    TemplatePersistenceData existing = null;
+					    for (TemplatePersistenceData maybeExisting : existingTemplates) {
+                            if (maybeExisting.getTemplate().getName().equals(templates[i].getTemplate().getName())) {
+                                existing = maybeExisting;
+                                break;
+                            }
+                        }
+				        // also look for the the "aspectj" context
+                        if (existing == null || !existing.getTemplate().getContextTypeId().equals("aspectj")) {
 							codeTemplates.add(templates[i]);
+							if (existing != null) {
+							    existing.setDeleted(true);
+							}
 						}
 					}
 					codeTemplates.save();
