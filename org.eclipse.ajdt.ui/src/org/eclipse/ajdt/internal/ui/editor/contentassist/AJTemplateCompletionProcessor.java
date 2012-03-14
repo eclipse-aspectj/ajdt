@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.corext.template.java.JavaContext;
 import org.eclipse.jdt.internal.corext.template.java.JavaContextType;
-import org.eclipse.jdt.internal.corext.template.java.SWTContextType;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.java.AbstractTemplateCompletionProposalComputer;
 import org.eclipse.jdt.internal.ui.text.template.contentassist.TemplateEngine;

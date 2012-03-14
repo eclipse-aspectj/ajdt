@@ -89,20 +89,26 @@ public class ContentAssistTests extends UITestCase {
 	public void testContentAssistD() throws JavaModelException{
 		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java"); //$NON-NLS-1$
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos D*/"); //$NON-NLS-1$
-		if (!contains(props, "decw")) //$NON-NLS-1$
-			fail("AspectJ code template missing."); //$NON-NLS-1$
+		if (contains(props, "decw")) //$NON-NLS-1$
+			fail("AspectJ code template exists in a java file, but it should not."); //$NON-NLS-1$
 	}
 	
-	public void testContentAssistE() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
-		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos E*/"); //$NON-NLS-1$
-		if (!contains(props, "thisJoinPoint")) //$NON-NLS-1$
-			fail("thisJoinPoint not available."); //$NON-NLS-1$
-		if (!contains(props, "meth")) //$NON-NLS-1$
-			fail("Member meth missing."); //$NON-NLS-1$
-		if (contains(props, "interMethod")) //$NON-NLS-1$
-			fail("interMethod should not be visible here."); //$NON-NLS-1$
-	}
+    public void testContentAssistE() throws JavaModelException{
+        IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+        ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos E*/"); //$NON-NLS-1$
+        if (!contains(props, "thisJoinPoint")) //$NON-NLS-1$
+            fail("thisJoinPoint not available."); //$NON-NLS-1$
+        if (!contains(props, "meth")) //$NON-NLS-1$
+            fail("Member meth missing."); //$NON-NLS-1$
+        if (contains(props, "interMethod")) //$NON-NLS-1$
+            fail("interMethod should not be visible here."); //$NON-NLS-1$
+    }
+    public void testContentAssistF() throws JavaModelException{
+        IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+        ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos F*/"); //$NON-NLS-1$
+        if (!contains(props, "decw")) //$NON-NLS-1$
+            fail("AspectJ code template missing."); //$NON-NLS-1$
+    }
 	
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{
 		AspectJEditor editor = (AspectJEditor)openFileInAspectJEditor(file, false);

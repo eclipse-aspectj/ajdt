@@ -32,5 +32,8 @@ public aspect Aspect {
 	after(): execution(* *(..)){
 		/*completion test pos E*/
 	}
+	before(): execution(* *(..)){
+	    d/*completion test pos F*/
+	}
 	
 }
