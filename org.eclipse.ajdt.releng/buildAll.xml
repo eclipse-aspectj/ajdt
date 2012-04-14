@@ -180,6 +180,12 @@
 			updatesite.url="http://download.eclipse.org/tools/ajdt/37/update" 
 			feature.id="org.eclipse.ajdt" />
 
+		<!-- Install Fetach factory for git repos -->
+		<install-bundle 
+			eclipse.loc="${build.dest}/eclipse" 
+			updatesite.url="http://download.eclipse.org/egit/pde/updates-nightly" 
+			feature.id="org.eclipse.egit.fetchfactory" />
+		
 
 		<!-- test framework -->
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
