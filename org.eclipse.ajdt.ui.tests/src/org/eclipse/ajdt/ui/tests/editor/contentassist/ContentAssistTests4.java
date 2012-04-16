@@ -62,7 +62,7 @@ public class ContentAssistTests4 extends UITestCase {
         CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
         assertEquals("Signature of proposal should have been the 'ArrayList' type\n" + completionProposal, 
                 "ArrayList", new String(completionProposal.getCompletion())); 
-        assertEquals("Completion start is wrong", offset - "ArrayLi".length(), completionProposal.getReplaceStart());
+        assertEquals("Completion start is wrong", offset - "ArrayLis".length(), completionProposal.getReplaceStart());
     }    
     public void testInAdvice() throws Exception {
         MockCompletionRequestor requestor = new MockCompletionRequestor();
