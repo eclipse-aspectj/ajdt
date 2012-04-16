@@ -189,9 +189,6 @@
 			feature.id="org.eclipse.egit.fetchfactory" />
 		
 
-		<!-- test framework -->
-		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
-
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/eclipse/.provisioned" />
 	</target>
