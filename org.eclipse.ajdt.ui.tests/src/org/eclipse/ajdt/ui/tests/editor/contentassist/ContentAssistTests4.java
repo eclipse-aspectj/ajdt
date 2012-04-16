@@ -54,7 +54,7 @@ public class ContentAssistTests4 extends UITestCase {
     }    
     public void testInITD() throws Exception {
         MockCompletionRequestor requestor = new MockCompletionRequestor();
-        int offset = aspectsUnitContents.indexOf("= new ArrayLi") + "= new ArrayLi".length();
+        int offset = aspectsUnitContents.indexOf("= new ArrayLis") + "= new ArrayLis".length();
         aspectsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
         assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
