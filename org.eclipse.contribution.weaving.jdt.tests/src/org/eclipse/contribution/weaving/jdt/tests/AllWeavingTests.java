@@ -34,6 +34,13 @@ import org.osgi.framework.BundleException;
 public class AllWeavingTests {
     public static junit.framework.Test suite() {
         // force early loading of the jdt weaving bundle
+        // avoid deadlock when starting tests.
+        // ensure that jdt core is already started before we try
+        // loading the jdt weaving bundle
+        // AJDT UI Tests
+        waitForIt("org.eclipse.contribution.weaving.jdt");
+        waitForIt("org.eclipse.jdt.core");
+
         try {
             Bundle jdtWeavingBundle = Platform.getBundle(JDTWeavingPlugin.ID);
             jdtWeavingBundle.start(Bundle.START_TRANSIENT);
@@ -52,5 +59,19 @@ public class AllWeavingTests {
         suite.addTestSuite(RefactoringHooksTests.class);
         return suite;
     }
+    
+    private static void waitForIt(String jdtCore) {
+        Bundle b = Platform.getBundle(jdtCore);
+        synchronized (AllWeavingTests.class) {
+            while(b.getState() != Bundle.ACTIVE) {
+                try {
+                    System.out.println("Waiting for " + jdtCore + " to activate");
+                    AllWeavingTests.class.wait(1000);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+    }
+
     
 }
