@@ -75,6 +75,7 @@
 			<arg value="-data" />
 			<arg value="${build.dest}/target/build-workspace" />
 			<!--<arg value="-verbose" />-->
+			<arg value="-DfetchCacheLocation=${fetchCacheLocation}" />
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
 			<arg value="-DbaseLocation=${target.eclipse}" />
 			<arg value="-DbuildDirectory=${build.home}" />
@@ -162,6 +163,7 @@
 
 	
 	<!-- for now, only tar files are supported -->
+<!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
 	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar}"/>
@@ -180,9 +182,12 @@
 			updatesite.url="http://download.eclipse.org/tools/ajdt/37/update" 
 			feature.id="org.eclipse.ajdt" />
 
-
-		<!-- test framework -->
-		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}" overwrite="true" />
+		<!-- Install Fetach factory for git repos -->
+		<install-bundle 
+			eclipse.loc="${build.dest}/eclipse" 
+			updatesite.url="http://download.eclipse.org/egit/pde/updates-nightly" 
+			feature.id="org.eclipse.egit.fetchfactory" />
+		
 
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/eclipse/.provisioned" />
