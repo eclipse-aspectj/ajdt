@@ -38,11 +38,16 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		super(editor, assistant, partition);
 	}
 	
-	// Filter out proposals starting with "ajc$" and add a "limited AspectJ Support" message
-	protected List filterAndSortProposals(List proposals, IProgressMonitor monitor, ContentAssistInvocationContext context) {
-		List newProposals = super.filterAndSortProposals(proposals, monitor, context);
-		for (Iterator iter = newProposals.iterator(); iter.hasNext();) {
-			ICompletionProposal proposal = (ICompletionProposal) iter.next();			
+	/**
+	 * Filter out proposals starting with "ajc$" and add a "limited AspectJ Support" message
+	 */
+	@Override
+	protected List<ICompletionProposal> sortProposals(
+	        List<ICompletionProposal> proposals, IProgressMonitor monitor,
+	        ContentAssistInvocationContext context) {
+		List<ICompletionProposal> newProposals = super.sortProposals(proposals, monitor, context);
+		for (Iterator<ICompletionProposal> iter = newProposals.iterator(); iter.hasNext();) {
+			ICompletionProposal proposal = iter.next();			
 			if (proposal.getDisplayString().startsWith(INTERTYPE_MEMBER_TAG)) {
 				iter.remove();
 			}
