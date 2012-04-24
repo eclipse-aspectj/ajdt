@@ -1,5 +1,5 @@
 /**********************************************************************
- Copyright (c) 2002, 2006 IBM Corporation and others.
+ Copyright (c) 2002, 2012 IBM Corporation and others.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -15,10 +15,8 @@
 package org.eclipse.ajdt.internal.utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -51,7 +49,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -1216,28 +1213,24 @@ public class AJDTUtils {
      * Return the IResource within the project that maps to the given File
      */
     public static IResource findResource(String fullPath, IProject p) {
-        try {
-            IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(new URI("file", fullPath, ""));
-            if (files != null) {
-                for (IFile file : files) {
-                    if (p == null || file.getProject().equals(p)) {
-                        return file;
-                    }
-                }
-            } else {
-                // maybe a folder
-                IContainer[] containers = p.getWorkspace().getRoot().findContainersForLocationURI(new URI("file", fullPath, ""));
-                for (IContainer container : containers) {
-                    if (p == null || container.getProject().equals(p)) {
-                        return container;
-                    }
+        URI uri = new File(fullPath).toURI();
+		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(uri);
+        if (files != null) {
+            for (IFile file : files) {
+                if (p == null || file.getProject().equals(p)) {
+                    return file;
                 }
             }
-        } catch (URISyntaxException e1) {
+        } else {
+            // maybe a folder
+            IContainer[] containers = p.getWorkspace().getRoot().findContainersForLocationURI(uri);
+            for (IContainer container : containers) {
+                if (p == null || container.getProject().equals(p)) {
+                    return container;
+                }
+            }
         }
         return null;
-
-
     }
 
     // Bug 119853

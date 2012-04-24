@@ -1,5 +1,5 @@
 /********************************************************************
- * Copyright (c) 2006 Contributors. All rights reserved. 
+ * Copyright (c) 2006, 2012 Contributors. All rights reserved. 
  * This program and the accompanying materials are made available 
  * under the terms of the Eclipse Public License v1.0 
  * which accompanies this distribution and is available at 
@@ -10,8 +10,8 @@
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -176,18 +176,14 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             IWorkspaceRoot workspaceRoot = AspectJPlugin.getWorkspace()
                     .getRoot();
 
-            URI location = null;
-            try {
-                location = new URI("file", resourcePath.toPortableString(), "");
-                IFile[] files = workspaceRoot.findFilesForLocationURI(location);
-                if (files != null) {
-                    for (int i = 0; i < files.length; i++) {
-                        if (files[i].getProject().equals(project)) {
-                            getMessageHandler().addAffectedResource(files[i]);
-                        }
+            URI location = new File(resourcePath.toPortableString()).toURI();
+            IFile[] files = workspaceRoot.findFilesForLocationURI(location);
+            if (files != null) {
+                for (int i = 0; i < files.length; i++) {
+                    if (files[i].getProject().equals(project)) {
+                        getMessageHandler().addAffectedResource(files[i]);
                     }
                 }
-            } catch (URISyntaxException e) {
             }
         }
 
