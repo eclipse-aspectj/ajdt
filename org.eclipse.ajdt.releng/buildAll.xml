@@ -179,7 +179,7 @@
 		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/37/update" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/37/dev/update" 
 			feature.id="org.eclipse.ajdt" />
 
 		<!-- Install Fetach factory for git repos -->
