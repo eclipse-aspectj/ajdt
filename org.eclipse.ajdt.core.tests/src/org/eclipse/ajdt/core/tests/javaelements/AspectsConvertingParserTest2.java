@@ -271,6 +271,10 @@ public class AspectsConvertingParserTest2 extends AbstractTestCase {
             public char[] getContents() {
                 return convertingParser.content;
             }
+            
+            public boolean ignoreOptionalProblems() {
+                return false;
+            }
         };
         CompilerOptions options = new CompilerOptions();
         options.sourceLevel = ClassFileConstants.JDK1_5;
