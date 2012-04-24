@@ -3,7 +3,7 @@
 # Location of org.eclipse.ajdt.releng project.
 # Also, if nofetch is specified (ie- not extracting from cvs),
 # specify the local directory to find the AJDT and EA sources from
-workdir=/opt/bamboo-home/xml-data/build-dir/AJDT-E37-JOB1/
+workdir=/opt/bamboo-home/xml-data/build-dir/AJDT-E42-JOB1
 #workdir=..
 
 # Location of org.eclipse.ajdt.releng project.
@@ -11,11 +11,14 @@ builder=${workdir}/org.eclipse.ajdt.releng
 
 # The directory where the build takes place. This directory WILL BE (mostly) DELETED before every build.
 # The build eclipse will not be deleted
-build.dest=${workdir}/ajdt37build
+build.dest=${workdir}/ajdt42build
 
 # place to download and to find pre-downloaded items
 # consider moving to local.properties
 download.home=/opt/bamboo-home/downloaded-eclipses
+
+# place to cache the git repositories for building equinox aspects
+fetchCacheLocation=${workdir}/git-caches
 
 # set this property if you want to use a different build eclipse
 # from your target eclipse.  This is useful for kicking off the
