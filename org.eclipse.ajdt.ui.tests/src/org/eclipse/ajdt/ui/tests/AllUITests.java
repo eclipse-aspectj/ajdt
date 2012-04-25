@@ -11,10 +11,13 @@
 package org.eclipse.ajdt.ui.tests;
 
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
+import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.ui.JavaUI;
@@ -24,6 +27,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.intro.IIntroPart;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 public class AllUITests {
 
@@ -33,8 +37,17 @@ public class AllUITests {
 	    // ensure that jdt core is already started before we try
 	    // loading the jdt weaving bundle
 	    // AJDT UI Tests
-	    waitForIt("org.eclipse.contribution.weaving.jdt");
-        waitForIt("org.eclipse.jdt.core");
+        try {
+            Bundle jdtBundle = Platform.getBundle(JavaCore.PLUGIN_ID);
+            jdtBundle.start(Bundle.START_TRANSIENT);
+            waitForIt(JavaCore.PLUGIN_ID);
+            Bundle jdtWeavingBundle = Platform.getBundle(JDTWeavingPlugin.ID);
+            jdtWeavingBundle.start(Bundle.START_TRANSIENT);
+            waitForIt(JDTWeavingPlugin.ID);
+        } catch (BundleException e) {
+            e.printStackTrace();
+            TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
+        }
         
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
