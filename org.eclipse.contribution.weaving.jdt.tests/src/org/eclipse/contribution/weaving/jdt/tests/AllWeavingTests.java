@@ -23,6 +23,7 @@ import org.eclipse.contribution.weaving.jdt.tests.preferences.WeavingStateTests;
 import org.eclipse.contribution.weaving.jdt.tests.refactoring.RefactoringHooksTests;
 import org.eclipse.contribution.weaving.jdt.tests.sourceprovider.SourceTransformerTests;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.core.JavaCore;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
@@ -38,12 +39,13 @@ public class AllWeavingTests {
         // ensure that jdt core is already started before we try
         // loading the jdt weaving bundle
         // AJDT UI Tests
-        waitForIt("org.eclipse.contribution.weaving.jdt");
-        waitForIt("org.eclipse.jdt.core");
-
         try {
+            Bundle jdtBundle = Platform.getBundle(JavaCore.PLUGIN_ID);
+            jdtBundle.start(Bundle.START_TRANSIENT);
+            waitForIt(JavaCore.PLUGIN_ID);
             Bundle jdtWeavingBundle = Platform.getBundle(JDTWeavingPlugin.ID);
             jdtWeavingBundle.start(Bundle.START_TRANSIENT);
+            waitForIt(JDTWeavingPlugin.ID);
         } catch (BundleException e) {
             e.printStackTrace();
             TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
