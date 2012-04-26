@@ -304,31 +304,31 @@
 		<replace file="${buildDirectory}/features/org.eclipse.equinox.weaving.sdk/build.properties"
 			token="qualifier=${org.eclipse.equinox.weaving.sdk,0.0.0}" value=""/>
 		<concat append="true" destfile="${buildDirectory}/features/org.eclipse.equinox.weaving.sdk/build.properties">
-			qualifier=${org.eclipse.equinox.weaving.sdk,0.0.0}
+			qualifier=v2011
 		</concat>
 
 		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/build.properties"
 			token="qualifier=${org.eclipse.equinox.weaving.aspectj,0.0.0}" value=""/>
 		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/build.properties">
-			qualifier=${org.eclipse.equinox.weaving.aspectj,0.0.0}
+			qualifier=v2011
 		</concat>
 
 		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook/build.properties"
 			token="qualifier=${org.eclipse.equinox.weaving.hook,0.0.0}" value=""/>
 		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.hook/build.properties">
-			qualifier=${org.eclipse.equinox.weaving.hook,0.0.0}
+			qualifier=v2011
 		</concat>
 
 		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching/build.properties"
 			token="qualifier=${org.eclipse.equinox.weaving.caching,0.0.0}" value=""/>
 		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching/build.properties">
-			qualifier=${org.eclipse.equinox.weaving.caching,0.0.0}
+			qualifier=v2011
 		</concat>
 		
 		<replace file="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching.j9/build.properties"
 			token="qualifier=${org.eclipse.equinox.weaving.caching.j9,0.0.0}" value=""/>
 		<concat append="true" destfile="${buildDirectory}/plugins/org.eclipse.equinox.weaving.caching.j9/build.properties">
-			qualifier=${org.eclipse.equinox.weaving.caching.j9,0.0.0}
+			qualifier=v2011
 		</concat>
 		
 		<!-- workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=369880 can remove when we start building against 4.2 M5 or later.  -->
