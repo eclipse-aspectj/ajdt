@@ -38,33 +38,42 @@ public aspect ErrorsTest {
 	 	&& !this(PluginFFDCTest);
 	
 	void around(): uiTestRun() {
-		IViewPart view;
+		IViewPart view = null;
+		LogView logView = null;
+		AbstractEntry[] logs = null;
+		int numErrors = -1;
 		try {
-			view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
-			LogView logView = (LogView)view;
-			AbstractEntry[] logs = logView.getElements();
-			int numErrors = logs.length;
+		    try {
+		        view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+		        logView = (LogView) view;
+                logs = logView.getElements();
+                numErrors = logs.length;
+	        } catch (NullPointerException e) {
+	            // ignore the npe happens when something is not initialized.
+	        }
 			proceed();
-			logs = logView.getElements();
-			String failureText = ""; //$NON-NLS-1$
-			if(logs.length > numErrors) { // Check for errors or warnings
-				int numAdded = logs.length - numErrors;
-				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
-					LogEntry entry = (LogEntry) logs[i];
-					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-					    // ignore expected exceptions
-						if (entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.unknownProvider") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("One or more bundles are not resolved because the following root constraints are not resolved") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("Could not load repository template extension") == -1 && //$NON-NLS-1$
-						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1) { //$NON-NLS-1$
-							failureText += "The test added errors to the log:\n" + entry.getMessage() + "\n" + entry.getStack() + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						}
-					}
-				}
-				if (failureText.length() > 0) {
-					TestCase.fail(failureText);
-				}
+			if (logView != null) {
+    			logs = logView.getElements();
+    			String failureText = ""; //$NON-NLS-1$
+    			if(logs.length > numErrors) { // Check for errors or warnings
+    				int numAdded = logs.length - numErrors;
+    				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
+    					LogEntry entry = (LogEntry) logs[i];
+    					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
+    					    // ignore expected exceptions
+    						if (entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.unknownProvider") == -1 && //$NON-NLS-1$
+    						        entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
+    						        entry.getMessage().indexOf("One or more bundles are not resolved because the following root constraints are not resolved") == -1 && //$NON-NLS-1$
+    						        entry.getMessage().indexOf("Could not load repository template extension") == -1 && //$NON-NLS-1$
+    						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1) { //$NON-NLS-1$
+    							failureText += "The test added errors to the log:\n" + entry.getMessage() + "\n" + entry.getStack() + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    						}
+    					}
+    				}
+    				if (failureText.length() > 0) {
+    					TestCase.fail(failureText);
+    				}
+    			}
 			}
 		} catch (PartInitException e) {
 			e.printStackTrace();
