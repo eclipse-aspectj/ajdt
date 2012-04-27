@@ -39,17 +39,8 @@ public class AllWeavingTests {
         // ensure that jdt core is already started before we try
         // loading the jdt weaving bundle
         // AJDT UI Tests
-        try {
-            Bundle jdtBundle = Platform.getBundle(JavaCore.PLUGIN_ID);
-            jdtBundle.start(Bundle.START_TRANSIENT);
-            waitForIt(JavaCore.PLUGIN_ID);
-            Bundle jdtWeavingBundle = Platform.getBundle(JDTWeavingPlugin.ID);
-            jdtWeavingBundle.start(Bundle.START_TRANSIENT);
-            waitForIt(JDTWeavingPlugin.ID);
-        } catch (BundleException e) {
-            e.printStackTrace();
-            TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
-        }
+        waitForIt("org.eclipse.contribution.weaving.jdt");
+        waitForIt("org.eclipse.jdt.core");
         
         TestSuite suite = new TestSuite(AllWeavingTests.class.getName());
         suite.addTestSuite(CompilationUnitProviderTests.class);
