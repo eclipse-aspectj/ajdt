@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.eclipse.jdt.internal.core.CompilationUnitElementInfo;
 import org.eclipse.jdt.internal.core.JavaElement;
@@ -607,6 +608,10 @@ public class ITDAwareSourceTypeInfo extends SourceTypeElementInfo {
      */
     private boolean isClass(char[] qualifiedName) {
         try {
+            int genericsIndex = CharOperation.indexOf('<', qualifiedName);
+            if (genericsIndex >= 0) {
+                qualifiedName = CharOperation.subarray(qualifiedName, 0, genericsIndex);
+            }
             IType type = this.handle.getJavaProject().findType(String.valueOf(qualifiedName), (IProgressMonitor) null);
             return type != null && type.isClass();
         } catch (JavaModelException e) {

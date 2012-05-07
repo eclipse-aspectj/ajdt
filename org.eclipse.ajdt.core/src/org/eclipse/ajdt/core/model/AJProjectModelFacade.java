@@ -894,21 +894,19 @@ public class AJProjectModelFacade {
         List<IRelationship> relationships = relationshipMap.get(ipe);
         List<IJavaElement> relatedJavaElements = new ArrayList<IJavaElement>(relationships != null ? relationships.size() : 0);
         if (relationships != null) {
-            if (relationships != null) {
-                for (IRelationship rel : relationships) {
-                    if (relType.getDisplayName().equals(rel.getName())) {
-                        for (String handle : rel.getTargets()) {
-                            IJavaElement targetJe = programElementToJavaElement(handle);
-                            if (targetJe != null && targetJe != ERROR_JAVA_ELEMENT) {
-                                relatedJavaElements.add(targetJe);
-                            } else {
-                                // ignore handles that start with *
-                                // these are handles from ITDs that are created early
-                                if (! handle.startsWith("*")) {
-                                    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
-                                            AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
-                                            "with handle:\n" + handle, new RuntimeException()));
-                                }
+            for (IRelationship rel : relationships) {
+                if (relType.getDisplayName().equals(rel.getName())) {
+                    for (String handle : rel.getTargets()) {
+                        IJavaElement targetJe = programElementToJavaElement(handle);
+                        if (targetJe != null && targetJe != ERROR_JAVA_ELEMENT) {
+                            relatedJavaElements.add(targetJe);
+                        } else {
+                            // ignore handles that start with *
+                            // these are handles from ITDs that are created early
+                            if (! handle.startsWith("*")) {
+                                AspectJPlugin.getDefault().getLog().log(new Status(IStatus.WARNING, 
+                                        AspectJPlugin.PLUGIN_ID, "Could not create a Java element " +
+                                        "with handle:\n" + handle, new RuntimeException()));
                             }
                         }
                     }
