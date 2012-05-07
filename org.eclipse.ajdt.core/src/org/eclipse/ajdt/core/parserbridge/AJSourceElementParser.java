@@ -783,6 +783,7 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
 	pushOnAstStack(impt = new ImportReference(tokens, positions, true, ClassFileConstants.AccDefault));
 	
+	impt.trailingStarPosition = this.intStack[this.intPtr--];
 	if (this.currentToken == TokenNameSEMICOLON){
 		impt.declarationSourceEnd = this.scanner.currentPosition - 1;
 	} else {
@@ -1264,7 +1265,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 			methodInfo.parameterNames = argumentNames;
 			methodInfo.exceptionTypes = thrownExceptionTypes;
 			methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
-			methodInfo.annotationPositions = collectAnnotationPositions(methodDeclaration.annotations);
+			methodInfo.annotations = methodDeclaration.annotations;
 			methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
 			requestor.enterConstructor(methodInfo);
 		}
@@ -1337,7 +1338,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		methodInfo.parameterNames = argumentNames;
 		methodInfo.exceptionTypes = thrownExceptionTypes;
 		methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
-		methodInfo.annotationPositions = collectAnnotationPositions(methodDeclaration.annotations);
+		methodInfo.annotations = methodDeclaration.annotations;
 		methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
 		requestor.enterMethod(methodInfo,methodDeclaration);
 	}		
@@ -1349,11 +1350,11 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 			AnnotationMethodDeclaration annotationMethodDeclaration = (AnnotationMethodDeclaration) methodDeclaration;
 			Expression expression = annotationMethodDeclaration.defaultValue;
 			if (expression != null) {
-				requestor.exitMethod(methodDeclaration.declarationSourceEnd, expression.sourceStart, expression.sourceEnd);
+				requestor.exitMethod(methodDeclaration.declarationSourceEnd, expression);
 				return;
 			}
 		} 
-		requestor.exitMethod(methodDeclaration.declarationSourceEnd, -1, -1);
+		requestor.exitMethod(methodDeclaration.declarationSourceEnd, null);
 	}
 }
 
@@ -1406,7 +1407,7 @@ public void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, Type
 				fieldInfo.type = typeName;
 				fieldInfo.nameSourceStart = fieldDeclaration.sourceStart;
 				fieldInfo.nameSourceEnd = fieldDeclaration.sourceEnd;
-				fieldInfo.annotationPositions = collectAnnotationPositions(fieldDeclaration.annotations);
+				fieldInfo.annotations = fieldDeclaration.annotations;
 				fieldInfo.categories = (char[][]) this.nodesToCategories.get(fieldDeclaration);
 				requestor.enterField(fieldInfo);
 			}
@@ -1449,11 +1450,14 @@ public void notifySourceElementRequestor(
 		// AJDT 1.6 changed to new method
 		requestor.acceptPackage(importReference);
 	} else {
-		requestor.acceptImport(
+		boolean onDemand = (importReference.bits & ASTNode.OnDemand) != 0;
+        requestor.acceptImport(
 			importReference.declarationSourceStart, 
 			importReference.declarationSourceEnd, 
+			importReference.sourceStart,
+			onDemand ? importReference.trailingStarPosition : importReference.sourceEnd,
 			importReference.tokens, 
-			(importReference.bits & ASTNode.OnDemand) != 0,
+			onDemand,
 			importReference.modifiers); 
 	}
 }
@@ -1533,7 +1537,7 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 			typeInfo.superclass = superclassName;
 			typeInfo.superinterfaces = interfaceNames;
 			typeInfo.typeParameters = getTypeParameterInfos(typeDeclaration.typeParameters);
-			typeInfo.annotationPositions = collectAnnotationPositions(typeDeclaration.annotations);
+			typeInfo.annotations = typeDeclaration.annotations;
 			typeInfo.categories = (char[][]) this.nodesToCategories.get(typeDeclaration);
 			typeInfo.secondary = typeDeclaration.isSecondary();
 			typeInfo.anonymousMember = typeDeclaration.allocation != null && typeDeclaration.allocation.enclosingInstance != null;

@@ -17,6 +17,7 @@ import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
@@ -30,6 +31,7 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	protected Accessibility accessibility;
 	protected List modifiers;
 	protected ExtraInformation extra;
+    protected ILocalVariable[] arguments;
 	
 	private char[] name;
 	private char[] returnType;
@@ -181,6 +183,14 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	    } else {
 	        this.annotations = annotations;
 	    }
+	}
+	
+	public void setArguments(ILocalVariable[] arguments) {
+	    this.arguments = arguments;
+	}
+	
+	public ILocalVariable[] getArguments() {
+	    return arguments;
 	}
 	
 	/* AJDT 1.7 */
