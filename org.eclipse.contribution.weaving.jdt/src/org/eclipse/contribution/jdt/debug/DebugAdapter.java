@@ -37,15 +37,6 @@ public class DebugAdapter extends PlatformObject implements IAdaptable {
     
     public IDebugProvider getProvider() {
         if (provider == null) {
-            // probably don't need this any more
-//            try {
-//              Bundle bundle = Platform.getBundle("com.springsource.sts.groovy.debug.core");
-//              if (bundle != null) {
-//                    bundle.start();
-//              }
-//            } catch (BundleException e) {
-//              JDTWeavingPlugin.logException(e);
-//            }
             provider = (IDebugProvider) getAdapter(IDebugProvider.class);
         }
         return provider;

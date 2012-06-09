@@ -33,7 +33,7 @@
             content="intro/rad/radAjdtWebExtensionContent.xml"/>
 
       <!--
-          For STS
+          For old STS
       -->
       <configExtension
             configId="com.springsource.sts.ide.ui.intro.config"
