@@ -389,7 +389,10 @@ public class ITDAccessorRenameParticipant extends RenameParticipant {
     private boolean shouldDisableITDUpdatingForRoo() {
         try {
             return field.getJavaProject().getProject().hasNature("com.springsource.sts.roo.core.nature") && 
-                Platform.getBundle("com.springsource.sts.roo.core") != null;
+                (
+                        Platform.getBundle("com.springsource.sts.roo.core") != null ||
+                        Platform.getBundle("rg.springframework.ide.eclipse.roo.core") != null
+                        );
         } catch (CoreException e) {
             return false;
         }
