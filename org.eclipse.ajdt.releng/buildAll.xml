@@ -23,7 +23,7 @@
     	<property file="local.properties" />
     	<property file="build.properties" />
     	<!-- ===================================================================== -->
-    	<!-- Create the timestamp tp be used for the build                         -->
+    	<!-- Create the timestamp to be used for the build                         -->
     	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
     	<!-- a properties file or from the command line                            -->
     	<!-- ===================================================================== -->
@@ -33,6 +33,8 @@
     	<echo message="tstampQual=${tstampQual}"/>
     	<property name="forceContextQualifier" value="${qualPrefix}-${tstampQual}"/>
     	<property name="buildLabel" value="build-${forceContextQualifier}"/>
+    	<property name="signer" location="${builder}/provisioning_support/sign.sh"/>
+
 
     	<echo message="=============================================="/>
     	<echo message="forceContextQualifier=${forceContextQualifier}"/>
@@ -66,7 +68,7 @@
 		<delete dir="${target.eclipse}" />
 	</target>
 
-	<target name="pdebuild" depends="init,find.pdebuild.home" description="Perform the pde headless build">
+	<target name="pdebuild" depends="init,init-classpaths,find.pdebuild.home" description="Perform the pde headless build">
 		<java fork="true" failonerror="true"
 			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
@@ -113,7 +115,7 @@
 			
 	</target>
 
-	<target name="generateP2metadata" depends="init,find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
+	<target name="generateP2metadata" depends="init,init-classpaths,find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
 		<java fork="true" failonerror="true" classpathref="eclipse.classpath"
 			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
@@ -140,10 +142,13 @@
 	</target>
 
 	
-	<target name="signUpdateSite" depends="generateP2metadata" description="Digitally signs the update site">
+	<target name="signUpdateSite" depends="init,init-classpaths,find.pdebuild.home" description="Digitally signs the update site">
 
-		<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties" >
+			<classpath>
+				<pathelement path="ant_libs/ant-contrib-1.0b3.jar" />
+			</classpath>
+		</taskdef>
 
 		<if>
 			<equals arg1="${p2.sign}" arg2="true" />
@@ -152,21 +157,24 @@
 				<delete file="${updateSite.loc}/content.xml" />
 				<delete file="${updateSite.loc}/artifacts.xml" />
 
-				<java classname="org.eclipse.equinox.internal.p2.jarprocessor.Main" fork="true" classpathref="jarprocessor.classpath" failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
-					<arg line="-verbose -processAll -repack -pack -sign provisioning_support/sign.sh" />
+				<java classname="org.eclipse.equinox.internal.p2.jarprocessor.Main" fork="true" 
+						classpathref="jarprocessor.classpath" failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
+					<arg line="-verbose -processAll -repack -pack -sign ${signer}" />
 					<arg line="-outputDir ${updateSite.loc} ${updateSite.loc}" />
 				</java>
 
-				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
+				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" 
+						failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
 					<arg line="-application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher" />
-					<arg line="-source ${updateSite.loc} -metadataRepository file://${updateSite.loc}" />
-					<arg line="-artifactRepository file://${updateSite.loc} -metadataRepositoryName '${p2.repository.name}'" />
+					<arg line="-source ${updateSite.loc} -metadataRepository file:${updateSite.loc}" />
+					<arg line="-artifactRepository file:${updateSite.loc} -metadataRepositoryName '${p2.repository.name}'" />
 					<arg line="-artifactRepositoryName '${p2.repository.name}' -compress -reusePackedFiles -reusePack200Files -publishArtifacts" />
 				</java>
 
-				<java jvm="${java.home}/bin/java" classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" failonerror="true" maxmemory="256m" dir="${project.build.directory}/repository">
+				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" 
+						failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
 					<arg line="-application org.eclipse.equinox.p2.publisher.CategoryPublisher" />
-					<arg line="-metadataRepository file://${project.build.directory}/repository" />
+					<arg line="-metadataRepository file:${updateSite.loc}" />
 					<arg line="-categoryDefinition file:${updateSite.loc}/site.xml" />
 					<arg line="-categoryQualifier org.eclipse.ajdt" />
 				</java>
@@ -182,7 +190,7 @@
 		some jars are not being properly processed.  As this is not a
 		requirement any longer, it is ok to disable.
 	-->
-	<target name="optimizeUpdateSite" depends="init">
+	<target name="optimizeUpdateSite" depends="init,init-classpaths">
 		<!-- Step 1 - process all the JARs and mark them for packing -->
 		<java fork="true" failonerror="true" classpathref="eclipse.classpath"
 		  classname="org.eclipse.core.launcher.Main">
@@ -225,7 +233,7 @@
 	
 	<!-- for now, only tar files are supported -->
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
-	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
+	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar}"/>
 
@@ -252,11 +260,29 @@
 
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/eclipse/.provisioned" />
+		
+		<!-- Mark as provisioned -->
+		<touch file="${build.dest}/target/eclipse/.provisioned" />
+	</target>		
+
+	<target name="init-classpaths">
+		<!-- paths for use later -->
+		<path id="eclipse.classpath">
+			<fileset dir="${build.dest}/eclipse/plugins">
+				<include name="org.eclipse.equinox.launcher_*.jar" />
+			</fileset>
+		</path>
+		<path id="jarprocessor.classpath">
+			<fileset dir="${build.dest}/eclipse/plugins">
+				<include name="org.eclipse.equinox.p2.jarprocessor_*.jar" />
+			</fileset>
+		</path>
+
 	</target>
 
 	<!-- for now, only tar files are supported -->
 	<!-- Sets up the Target eclipse to build against-->
-	<target name="provision-target-eclipse" depends="init" unless="no.provision.target">
+	<target name="provision-target-eclipse" depends="init,init-classpaths" unless="no.provision.target">
 		<!-- download if not already there -->
 		<!--  disable downloading
 		<mkdir dir="${download.home}"/>
@@ -293,22 +319,6 @@
 			eclipse.loc="${build.dest}/target/eclipse" 
 			updatesite.url="http://download.eclipse.org/tools/mylyn/update/e3.4/" 
 			feature.id="org.eclipse.mylyn.java_feature" />
-
-		<!-- Mark as provisioned -->
-		<touch file="${build.dest}/target/eclipse/.provisioned" />
-		
-		<!-- paths for use later -->
-		<path id="eclipse.classpath">
-			<fileset dir="${build.dest}/eclipse">
-				<include name="*/plugins/org.eclipse.equinox.launcher_*.jar" />
-			</fileset>
-		</path>
-
-		<path id="jarprocessor.classpath">
-			<fileset dir="${build.dest}/eclipse">
-				<include name="*/plugins/org.eclipse.equinox.p2.jarprocessor_*.jar" />
-			</fileset>
-		</path>
 
 	</target>
 
