@@ -11,7 +11,7 @@
           target: upload-build              
   		 ================================= -->
 	<target name="upload-build" description="Uploads an AJDT zip archive to the download server">
-		<scp todir="${upload.userid}:${upload.pwd}@${upload.host}:${upload.dir}" failonerror="true" trust="true" verbose="true">
+		<scp todir="${bamboo.upload.userid}:${bamboo.upload.password}@${upload.host}:${upload.dir}" failonerror="true" trust="true" verbose="true">
 			<fileset dir="${build.dist}">
 				<include name="${zip.name}" />
 			</fileset>
@@ -22,14 +22,14 @@
           target: delete-old              
        ================================= -->
   <target name="delete-old" description="Deletes the old version of the plugin">
-  	<sshexec host="${upload.host}" username="${upload.userid}" password="${upload.pwd}" command="unalias rm ; rm -rf ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
+  	<sshexec host="${upload.host}" username="${bamboo.upload.userid}" password="${bamboo.upload.password}" command="unalias rm ; rm -rf ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
   </target>
 
 	<!-- ================================= 
           target: unzip-build              
        ================================= -->
 	<target name="unzip-build" description="Unzips build on download server">
-		<sshexec host="${upload.host}" username="${upload.userid}" password="${upload.pwd}" command="unzip -o ${upload.dir}/${zip.name} -d ${upload.dir}" failonerror="true" trust="true" />
+		<sshexec host="${upload.host}" username="${bamboo.upload.userid}" password="${bamboo.upload.password}" command="unzip -o ${upload.dir}/${zip.name} -d ${upload.dir}" failonerror="true" trust="true" />
 	</target>
 
 	<!-- ================================= 

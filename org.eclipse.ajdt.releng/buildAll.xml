@@ -482,19 +482,12 @@
 	</target>
 
 
-	<target name="upload">
-		<!--
-		not supported yet
-		<ant antfile="upload-build1.7.xml" inheritAll="false" />
-		-->
-	</target>
-
 <!--	<target name="build" depends="provision-build-eclipse,provision-target-eclipse,pdebuild,optimizeUpdateSite,generateP2metadata,zip-archive" /> -->
 	<!-- Disable optimizeUpdateSite -->
-	<target name="build" depends="init,provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,zip-archive" /> 
+	<target name="build" depends="init,provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,signUpdateSite,zip-archive" /> 
 
 	<target name="tests"
 		depends="init,provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
 
-	<target name="run" depends="init,clean,build,tests,upload" />
+	<target name="run" depends="init,clean,build,tests" />
 </project>
