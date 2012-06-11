@@ -440,12 +440,12 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 			info.resolveBindings = resolveBindings;
 			info.reconcileFlags = reconcileFlags;
 			info.problems = problems;
-			openWhenClosed(info, monitor);
+			openWhenClosed(info,true,  monitor);
 			org.eclipse.jdt.core.dom.CompilationUnit result = info.ast;
 			info.ast = null;
 			return result;
 		} else {
-			openWhenClosed(createElementInfo(), monitor);
+			openWhenClosed(createElementInfo(), true, monitor);
 			return null;
 		}		
 	}

@@ -171,7 +171,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
         if (info.getAJKind() == IProgramElement.Kind.ERROR &&
                 AJProjectModelFactory.getInstance().getModelForJavaElement(this).hasModel()) {
             // we have structure model now, but didn't before
-            info = (IntertypeElementInfo) openWhenClosed(createElementInfo(), null);
+            info = (IntertypeElementInfo) openWhenClosed(createElementInfo(), true, null);
         }
         return info;
     }
