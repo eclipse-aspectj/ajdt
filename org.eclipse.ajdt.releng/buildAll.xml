@@ -114,7 +114,7 @@
 	</target>
 
 	<target name="generateP2metadata" depends="init,find.pdebuild.home" description="Generate p2 metadata for the AJDT update site">
-		<java fork="true" failonerror="true"
+		<java fork="true" failonerror="true" classpathref="eclipse.classpath"
 			dir="${pdebuild.home}"
 			classname="org.eclipse.core.launcher.Main">
 			<arg value="-application" />
@@ -128,22 +128,83 @@
 			<arg value="-metadataRepository" />
 			<arg value="file:${updateSite.loc}" />
 			<arg value="-metadataRepositoryName" />
-			<arg value="AJDT Update Site" />
+			<arg value="${p2.repository.name}" />
 			<arg value="-artifactRepository" />
 			<arg value="file:${updateSite.loc}" />
 			<arg value="-artifactRepositoryName" />
-			<arg value="AJDT Artifacts" />
+			<arg value="${p2.repository.name}" />
 			<arg value="-reusePack200Files" />
 			<arg value="-noDefaultIUs" />
 			<jvmarg value="-Xmx128M" />
-			<classpath>
-				<fileset dir="${build.eclipse}/plugins">
-					<include name="org.eclipse.equinox.launcher_*.jar"/>
-				</fileset>
-			</classpath>
 		</java>
 	</target>
 
+	
+	<target name="signUpdateSite" depends="generateP2metadata" description="Digitally signs the update site">
+
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+
+
+		<if>
+			<equals arg1="${p2.sign}" arg2="true" />
+
+			<then>
+				<delete file="${updateSite.loc}/content.xml" />
+				<delete file="${updateSite.loc}/artifacts.xml" />
+
+				<java classname="org.eclipse.equinox.internal.p2.jarprocessor.Main" fork="true" classpathref="jarprocessor.classpath" failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
+					<arg line="-verbose -processAll -repack -pack -sign provisioning_support/sign.sh" />
+					<arg line="-outputDir ${updateSite.loc} ${updateSite.loc}" />
+				</java>
+
+				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" failonerror="true" maxmemory="256m" dir="${updateSite.loc}">
+					<arg line="-application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher" />
+					<arg line="-source ${updateSite.loc} -metadataRepository file://${updateSite.loc}" />
+					<arg line="-artifactRepository file://${updateSite.loc} -metadataRepositoryName '${p2.repository.name}'" />
+					<arg line="-artifactRepositoryName '${p2.repository.name}' -compress -reusePackedFiles -reusePack200Files -publishArtifacts" />
+				</java>
+
+				<java jvm="${java.home}/bin/java" classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" failonerror="true" maxmemory="256m" dir="${project.build.directory}/repository">
+					<arg line="-application org.eclipse.equinox.p2.publisher.CategoryPublisher" />
+					<arg line="-metadataRepository file://${project.build.directory}/repository" />
+					<arg line="-categoryDefinition file:${updateSite.loc}/site.xml" />
+					<arg line="-categoryQualifier org.eclipse.ajdt" />
+				</java>
+			</then>
+		</if>
+	</target>
+	
+	<!--
+		Run the site optimizer over the update site directory, prior to
+		uploading to the update server - spyoung
+		
+		ADE - this is not working any more, so disable.  It seems that
+		some jars are not being properly processed.  As this is not a
+		requirement any longer, it is ok to disable.
+	-->
+	<target name="optimizeUpdateSite" depends="init">
+		<!-- Step 1 - process all the JARs and mark them for packing -->
+		<java fork="true" failonerror="true" classpathref="eclipse.classpath"
+		  classname="org.eclipse.core.launcher.Main">
+			<arg value="-application" />
+			<arg value="org.eclipse.update.core.siteOptimizer" />
+			<arg line="-jarProcessor -processAll -repack -verbose" />
+			<arg line="-outputDir ${updateSite.loc}" />
+			<arg value="${updateSite.loc}" />
+			</java>
+			
+		<!-- Step 2 - "repack" all the JARs (i.e actaully pack them!) -->
+		<java fork="true" failonerror="true" classpathref="eclipse.classpath" 
+			classname="org.eclipse.core.launcher.Main">
+			<arg value="-application" />
+			<arg value="org.eclipse.update.core.siteOptimizer" />
+			<arg line="-jarProcessor -pack -verbose" />
+			<arg line="-outputDir ${updateSite.loc}" />
+			<arg value="${updateSite.loc}" />
+		</java>
+	</target>
+
+	
 	<target name="check.provision.build" description="Check to see if the build eclipse has already been provisioned">
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
 	</target>
@@ -235,6 +296,20 @@
 
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/target/eclipse/.provisioned" />
+		
+		<!-- paths for use later -->
+		<path id="eclipse.classpath">
+			<fileset dir="${build.dest}/eclipse">
+				<include name="*/plugins/org.eclipse.equinox.launcher_*.jar" />
+			</fileset>
+		</path>
+
+		<path id="jarprocessor.classpath">
+			<fileset dir="${build.dest}/eclipse">
+				<include name="*/plugins/org.eclipse.equinox.p2.jarprocessor_*.jar" />
+			</fileset>
+		</path>
+
 	</target>
 
 	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
@@ -396,46 +471,6 @@
 		<fail>JUnit plugin tests failed: ${ajdt.junit.failed}</fail>
 	</target>
 
-
-	<!--
-		Run the site optimizer over the update site directory, prior to
-		uploading to the update server - spyoung
-		
-		ADE - this is not working any more, so disable.  It seems that
-		some jars are not being properly processed.  As this is not a
-		requirement any longer, it is ok to disable.
-	-->
-	<target name="optimizeUpdateSite" depends="init">
-		<!-- Step 1 - process all the JARs and mark them for packing -->
-		<java fork="true" failonerror="true"
-		  classname="org.eclipse.core.launcher.Main">
-			<arg value="-application" />
-			<arg value="org.eclipse.update.core.siteOptimizer" />
-			<arg line="-jarProcessor -processAll -repack -verbose" />
-			<arg line="-outputDir ${updateSite.loc}" />
-			<arg value="${updateSite.loc}" />
-			<classpath>
-				<fileset dir="${build.eclipse}/plugins">
-					<include name="org.eclipse.equinox.launcher_*.jar"/>
-				</fileset>
-			</classpath>
-		</java>
-
-		<!-- Step 2 - "repack" all the JARs (i.e actaully pack them!) -->
-		<java fork="true" failonerror="true"
-			classname="org.eclipse.core.launcher.Main">
-			<arg value="-application" />
-			<arg value="org.eclipse.update.core.siteOptimizer" />
-			<arg line="-jarProcessor -pack -verbose" />
-			<arg line="-outputDir ${updateSite.loc}" />
-			<arg value="${updateSite.loc}" />
-			<classpath>
-				<fileset dir="${build.eclipse}/plugins">
-					<include name="org.eclipse.equinox.launcher_*.jar"/>
-				</fileset>
-			</classpath>
-		</java>
-	</target>
 
 	<target name="upload">
 		<!--
