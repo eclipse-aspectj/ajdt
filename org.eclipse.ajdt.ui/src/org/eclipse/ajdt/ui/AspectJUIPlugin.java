@@ -16,7 +16,6 @@ package org.eclipse.ajdt.ui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -59,6 +58,7 @@ import org.eclipse.jface.text.templates.persistence.TemplateReaderWriter;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
@@ -113,11 +113,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 */
 	private AspectJTextTools aspectJTextTools;
 
-	/**
-	 * The workbench Display for use by asynchronous UI updates
-	 */
-	private Display display;
-	
 	/**
 	 * Listens for AspectJ builds
 	 */
@@ -281,9 +276,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		buildListener = new UIBuildListener();
         AJBuilder.addAJBuildListener(buildListener);
 		
-		// BUG 23955. getCurrent() returned null if invoked from a menu.
-		display = Display.getDefault();
-		
 		// BUG 249045 and BUG 261045 don't do this any more
 //		if (!AspectJPlugin.USING_CU_PROVIDER) {
 //		    insertAJCompilationUnitDocumentProvider();
@@ -369,7 +361,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 * get the main workbench display
 	 */
 	public Display getDisplay() {
-		return display;
+		return PlatformUI.getWorkbench().getDisplay();
 	}
 
 	/**
