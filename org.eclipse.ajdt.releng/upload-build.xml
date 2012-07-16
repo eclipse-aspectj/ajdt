@@ -23,7 +23,7 @@
           target: delete-old              
        ================================= -->
 	<target name="delete-old" description="Deletes the old version of the plugin">
-		<sshexec host="${upload.host}" username="${env.bamboo_upload_userid}" password="${env.bamboo_upload_password}" command="unalias rm ; rm -rf ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
+		<sshexec host="${upload.host}" username="${env.bamboo_upload_userid}" password="${env.bamboo_upload_password}" command="unalias rm ; rm -rf content.* artifacts.* site.* ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
 	</target>
 
 	<!-- ================================= 
