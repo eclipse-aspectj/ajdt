@@ -105,7 +105,7 @@ public class AspectJBreakpointRulerAction extends Action {
 	 */
 	public void run() {
 		try {
-			List list = getMarkers();
+			List<IMarker> list = getMarkers();
 			if (list.isEmpty()) {
 				// create new markers
 				IDocument document= getDocument();
@@ -123,9 +123,9 @@ public class AspectJBreakpointRulerAction extends Action {
 			} else {
 				// remove existing breakpoints of any type
 				IBreakpointManager manager = DebugPlugin.getDefault().getBreakpointManager();
-				Iterator iterator = list.iterator();
+				Iterator<IMarker> iterator = list.iterator();
 				while (iterator.hasNext()) {
-					IMarker marker = (IMarker) iterator.next();
+					IMarker marker = iterator.next();
 					IBreakpoint breakpoint = manager.getBreakpoint(marker);
 					if (breakpoint != null) {
 						breakpoint.delete();
@@ -151,9 +151,9 @@ public class AspectJBreakpointRulerAction extends Action {
 	 * 
 	 * @return a list of markers that exist at the current ruler location
 	 */
-	protected List getMarkers() {
+	protected List<IMarker> getMarkers() {
 
-		List breakpoints = new ArrayList();
+		List<IMarker> breakpoints = new ArrayList<IMarker>();
 
 		IResource resource = getResource();
 		IDocument document = getDocument();
