@@ -168,7 +168,7 @@
 					<arg line="-application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher" />
 					<arg line="-source ${updateSite.loc} -metadataRepository file:${updateSite.loc}" />
 					<arg line="-artifactRepository file:${updateSite.loc} -metadataRepositoryName '${p2.repository.name}'" />
-					<arg line="-artifactRepositoryName '${p2.repository.name}' -compress -reusePackedFiles -reusePack200Files -publishArtifacts" />
+					<arg line="-artifactRepositoryName '${p2.repository.name}' -reusePackedFiles -reusePack200Files -publishArtifacts" />
 				</java>
 
 				<java classname="org.eclipse.equinox.launcher.Main" fork="true" classpathref="eclipse.classpath" 

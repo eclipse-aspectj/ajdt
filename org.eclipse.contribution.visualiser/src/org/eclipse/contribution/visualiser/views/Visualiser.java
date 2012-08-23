@@ -29,6 +29,7 @@ import org.eclipse.contribution.visualiser.internal.help.IVisualiserHelpContextI
 import org.eclipse.contribution.visualiser.internal.help.VisualiserHelp;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -48,7 +49,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
@@ -58,7 +59,7 @@ import org.eclipse.ui.progress.UIJob;
  */
 public class Visualiser extends ViewPart {
 
-	private VisualiserCanvas visCanvas;
+    private VisualiserCanvas visCanvas;
 
 	protected IContentProvider contentP;
 
@@ -99,7 +100,7 @@ public class Visualiser extends ViewPart {
 	
 	private String zoomString;
 	
-		 private static Job redrawJob;
+	private static Job redrawJob;
 		 
 	public Visualiser() {
 		VisualiserPlugin.getDefault().setVisualiser(this);
@@ -112,10 +113,12 @@ public class Visualiser extends ViewPart {
 	 */
 	public void createPartControl(Composite parent) {
 		try {	
-			getSite().getPage().showView("org.eclipse.contribution.visualiser.views.Menu"); //$NON-NLS-1$
-		} catch (PartInitException pie) {
-			VisualiserPlugin.logException(pie);
-		}
+		    // attempt to open the visualizer menu whenever the visualizer itself is opened.
+	        IViewPart view = getSite().getWorkbenchWindow().getWorkbench().getViewRegistry().find(VisualiserPlugin.VIEWS_MENU).createView();
+	        getSite().getPage().activate(view);
+		} catch (Exception e) {
+		    VisualiserPlugin.logException(e);
+        }
 		visCanvas = new VisualiserCanvas(parent, this);
 		visCanvas.addPaintListener(new PaintListener() {
 			public void paintControl(final PaintEvent event) {
@@ -127,8 +130,7 @@ public class Visualiser extends ViewPart {
 		makeActions();
 		contributeToActionBars();
 		memberViewAction.setChecked(true);
-		String title = ProviderManager.getCurrent().getTitle();
-		refreshTitle(title);
+		refreshTitle(ProviderManager.getCurrent().getTitle());
 		
 		// Add an empty ISelectionProvider so that this view works with dynamic help (bug 104331)
 		getSite().setSelectionProvider(new ISelectionProvider() {

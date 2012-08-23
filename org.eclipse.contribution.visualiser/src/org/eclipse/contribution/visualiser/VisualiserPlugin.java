@@ -42,6 +42,8 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	public static Menu menu;
 	
 	private static VisualiserPlugin plugin;
+
+    public static final String VIEWS_MENU = "org.eclipse.contribution.visualiser.views.Menu";
 	
 	
 	/**

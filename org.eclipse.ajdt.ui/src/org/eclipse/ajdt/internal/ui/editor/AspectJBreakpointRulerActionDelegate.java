@@ -16,6 +16,7 @@ import org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -26,6 +27,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class AspectJBreakpointRulerActionDelegate extends RulerToggleBreakpointActionDelegate {
 
 	private IEditorPart fEditorPart;
+    private AspectJBreakpointRulerAction fDelegate;
 	/**
 	 * @see IEditorActionDelegate#setActiveEditor(bIAction, IEditorPart)
 	 */
@@ -34,19 +36,12 @@ public class AspectJBreakpointRulerActionDelegate extends RulerToggleBreakpointA
 		fEditorPart = targetEditor;
 		if (targetEditor != null) {
 			String id= targetEditor.getSite().getId();
-//			System.err.println("ID="+id);
-//			System.err.println("JavaUI.ID_CU_EDITOR="+JavaUI.ID_CU_EDITOR);
-//			System.err.println("JavaUI.ID_CF_EDITOR="+JavaUI.ID_CF_EDITOR);
 
-// ASC - This is a copy of the JDT internal class, but the if() has been
-// extended to allow for our AJDT CompilationUnitEditor - this CUE is
-// the same as the ID_CU_EDITOR but for Aspects, to ensure breakpoints
-// are handled the same by the AJDT editor as they are by the ID_CU_EDITOR
-// we have to ensure the targetEditor below is not nulled out.
-			if (!id.equals(JavaUI.ID_CU_EDITOR) && !id.equals(JavaUI.ID_CF_EDITOR) 
-			&& 
-			!id.equals(AspectJEditor.ASPECTJ_EDITOR_ID))
+            if (!id.equals(JavaUI.ID_CU_EDITOR)
+                    && !id.equals(JavaUI.ID_CF_EDITOR)
+                    && !id.equals(AspectJEditor.ASPECTJ_EDITOR_ID)) {
 				targetEditor= null;
+			}
 		}
 		super.setActiveEditor(callerAction, targetEditor);
 	}
@@ -63,7 +58,7 @@ public class AspectJBreakpointRulerActionDelegate extends RulerToggleBreakpointA
 			resource = ((IFileEditorInput) editorInput).getFile();
 			if (AspectJPlugin.isAJProject(resource.getProject())) {
 				//it's an AspectJ Project, use our action
-				return new AspectJBreakpointRulerAction(rulerInfo, editor,
+				return fDelegate = new AspectJBreakpointRulerAction(rulerInfo, editor,
 						fEditorPart);
 			}
 		}
@@ -71,4 +66,25 @@ public class AspectJBreakpointRulerActionDelegate extends RulerToggleBreakpointA
 		return super.createAction(editor, rulerInfo);
 	}
 
+	   /* (non-Javadoc)
+     * @see org.eclipse.ui.IActionDelegate2#dispose()
+     */
+    public void dispose() {
+        if (fDelegate != null) {
+            fDelegate.dispose();
+        }
+        fDelegate = null;
+        fEditorPart = null;
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IActionDelegate2#runWithEvent(org.eclipse.jface.action.IAction, org.eclipse.swt.widgets.Event)
+     */
+    public void runWithEvent(IAction action, Event event) {
+        if(fDelegate != null) {
+            fDelegate.runWithEvent(event);
+        } else {
+            super.runWithEvent(action, event);
+        }
+    }
 }

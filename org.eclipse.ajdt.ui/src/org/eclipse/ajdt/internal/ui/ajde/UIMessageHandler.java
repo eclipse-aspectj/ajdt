@@ -419,17 +419,22 @@ public class UIMessageHandler implements IBuildMessageHandler {
                     // following always adds it back in under the covers (doh!) 
                     // and we end up with two first segments otherwise!
                     sourcePath = sourcePath.removeFirstSegments(1);
-                    IResource[] srcContainer = new IResource[] { project
-                            .findMember(sourcePath) };
-                    ret = findFile(srcContainer, toFind);
+                    
+                    IResource memberResource = project.findMember(sourcePath);
+                    if (memberResource != null) {
+                        IResource[] srcContainer = new IResource[] { memberResource };
+                    	ret = findFile(srcContainer, toFind);
+                    }
                 } else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
                     IPath projPath = cpEntry.getPath();
-                    IResource projResource = AspectJPlugin.getWorkspace()
-                            .getRoot().findMember(projPath);
-                    ret = findFile(new IResource[] { projResource }, toFind);
+                    IResource projResource = AspectJPlugin.getWorkspace().getRoot().findMember(projPath);
+                    if (projResource != null) {
+                    	ret = findFile(new IResource[] { projResource }, toFind);
+                    }
                 }
-                if (ret != null)
+                if (ret != null) {
                 	break;
+                }
             }
         } catch (JavaModelException jmEx) {
         	AJDTErrorHandler.handleAJDTError(UIMessages.jmCoreException, jmEx);
@@ -445,14 +450,16 @@ public class UIMessageHandler implements IBuildMessageHandler {
         try {
             for (int i = 0; i < srcContainer.length; i++) {
                 IResource ir = srcContainer[i];
-                if (ir.getFullPath().toString().endsWith(name)) {
-                    ret = ir;
-                    break;
-                }
-                if (ir instanceof IContainer) {
-                    ret = findFile(((IContainer) ir).members(), name);
-                    if (ret != null)
-                        break;
+                if (ir != null) {
+	                if (ir.getFullPath().toString().endsWith(name)) {
+	                    ret = ir;
+	                    break;
+	                }
+	                if (ir instanceof IContainer) {
+	                    ret = findFile(((IContainer) ir).members(), name);
+	                    if (ret != null)
+	                        break;
+	                }
                 }
             }
         } catch (Exception e) {
