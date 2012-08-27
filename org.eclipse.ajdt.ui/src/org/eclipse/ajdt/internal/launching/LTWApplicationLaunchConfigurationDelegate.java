@@ -41,15 +41,15 @@ import org.eclipse.jdt.internal.launching.LaunchingMessages;
 import org.eclipse.jdt.launching.ExecutionArguments;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.IVMInstall2;
 import org.eclipse.jdt.launching.IVMRunner;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.launching.VMRunnerConfiguration;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.Version;
 
-/**
- *
- */
 public class LTWApplicationLaunchConfigurationDelegate 
 		extends JavaLaunchDelegate {
 	
@@ -78,6 +78,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 						
 		String mainTypeName = verifyMainTypeName(configuration);
 		IVMRunner runner = getVMRunner(configuration, mode);
+		boolean isJava5OrLater = isJava5OrLater(configuration);
 
 		File workingDir = verifyWorkingDirectory(configuration);
 		String workingDirName = null;
@@ -90,24 +91,25 @@ public class LTWApplicationLaunchConfigurationDelegate
 		
 		// Classpath
 		String[] classpath = getClasspath(configuration);
-		
+
+		String[] ltwClasspath = null;
+		try {
+		    ltwClasspath = getLTWClasspath(classpath, isJava5OrLater);
+		} catch (MalformedURLException e) {
+		    throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
+		} catch (IOException e) {
+		    throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
+		}
+
 		// Program & VM args
 		String pgmArgs = getProgramArguments(configuration);
 		String vmArgs = getVMArguments(configuration);
-		vmArgs = addExtraVMArgs(vmArgs, classpath);
+		vmArgs = addExtraVMArgs(vmArgs, classpath, ltwClasspath[0], isJava5OrLater);  // weaver is always first entry in ltwclassath arroy
 		ExecutionArguments execArgs = new ExecutionArguments(vmArgs, pgmArgs);
 		
 		// VM-specific attributes
-		Map vmAttributesMap = getVMSpecificAttributesMap(configuration);
+		Map<String, Object> vmAttributesMap = getVMSpecificAttributesMap(configuration);
 		
-		String[] ltwClasspath = null;
-		try {
-			ltwClasspath = getLTWClasspath();
-		} catch (MalformedURLException e) {
-			throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
-		} catch (IOException e) {
-			throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
-		}
 		
 		// Create VM config
 		VMRunnerConfiguration runConfig = new VMRunnerConfiguration(mainTypeName, ltwClasspath);
@@ -146,6 +148,24 @@ public class LTWApplicationLaunchConfigurationDelegate
 		
 		monitor.done();
 	}
+
+    public boolean isJava5OrLater(ILaunchConfiguration configuration) throws CoreException {
+        IVMInstall install = getVMInstall(configuration);
+        if (install instanceof IVMInstall2) {
+            String version = ((IVMInstall2) install).getJavaVersion();
+            if (version != null) {
+                // expecting n.n.n-identifier
+                // see http://java.sun.com/j2se/versioning_naming.html
+                int dashIndex = version.indexOf('-');
+                if (dashIndex >= 0) {
+                    version = version.substring(0, dashIndex);
+                }
+                Version osgiVersion = new Version(version);
+                return osgiVersion.getMinor() > 4;
+            }
+        }
+        return false;
+    }
 
 	/**
 	 * Generate aop-ajc.xml files for any projects on the LTW aspectpath
@@ -191,7 +211,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 				.computeUnresolvedRuntimeClasspath(configuration);
 		IRuntimeClasspathEntry[] aspectPathEntries = getAspectPathEntries(configuration);
 		entries = JavaRuntime.resolveRuntimeClasspath(entries, configuration);
-		List userEntries = new ArrayList(entries.length + aspectPathEntries.length);
+		List<String> userEntries = new ArrayList<String>(entries.length + aspectPathEntries.length);
 		for (int i = 0; i < entries.length; i++) {
 			if (entries[i].getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
 				String location = entries[i].getLocation();
@@ -216,9 +236,9 @@ public class LTWApplicationLaunchConfigurationDelegate
 	 * @throws CoreException
 	 */
 	private IRuntimeClasspathEntry[] getAspectPathEntries(ILaunchConfiguration configuration) throws CoreException {
-		List entries = configuration.getAttribute(LTWAspectPathTab.ATTR_ASPECTPATH, Collections.EMPTY_LIST);
+		List<?> entries = configuration.getAttribute(LTWAspectPathTab.ATTR_ASPECTPATH, Collections.EMPTY_LIST);
 		IRuntimeClasspathEntry[] rtes = new IRuntimeClasspathEntry[entries.size()];
-		Iterator iter = entries.iterator();
+		Iterator<?> iter = entries.iterator();
 		int i = 0;
 		while (iter.hasNext()) {
 			rtes[i] = JavaRuntime.newRuntimeClasspathEntry((String)iter.next());
@@ -227,20 +247,30 @@ public class LTWApplicationLaunchConfigurationDelegate
 		return rtes;
 	}
 
-	private String[] getLTWClasspath() throws IOException {
+	private String[] getLTWClasspath(String[] classpath, boolean isJava5OrLater) throws IOException {
 		URL resolvedaspectjWeaverJar = FileLocator.resolve(new URL(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("/"), "aspectjweaver.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 		URL resolvedaspectjRTJar = FileLocator.resolve(new URL(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID).getEntry("/"), "aspectjrt.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 		String weaverPath = new Path(resolvedaspectjWeaverJar.getFile()).toOSString();
 		String rtPath = new Path(resolvedaspectjRTJar.getFile()).toOSString();
-		return new String[] {weaverPath, rtPath};
+		List<String> fullPath = new ArrayList<String>();
+		fullPath.add(weaverPath);
+		fullPath.add(rtPath);
+		if (isJava5OrLater) {
+    		for (String pathEntry : classpath) {
+                fullPath.add(pathEntry);
+            }
+		}
+		return fullPath.toArray(new String[0]);
 	}
 
-	private String addExtraVMArgs(String vmArgs, String[] ajClasspath) {
+	private String addExtraVMArgs(String vmArgs, String[] ajClasspath, String pathToWeaver, boolean isJava5OrLater) {
 		StringBuffer sb = new StringBuffer(vmArgs);
-		sb.append(' '); 
-		sb.append(classLoaderOption);
-		sb.append('='); 
-		sb.append("org.aspectj.weaver.loadtime.WeavingURLClassLoader"); //$NON-NLS-1$
+		if (!isJava5OrLater) {
+    		sb.append(' '); 
+    		sb.append(classLoaderOption);
+    		sb.append('='); 
+    		sb.append("org.aspectj.weaver.loadtime.WeavingURLClassLoader"); //$NON-NLS-1$
+		}
 		sb.append(' '); 
 		sb.append(ajClasspathOption);
 		sb.append('='); 
@@ -253,6 +283,9 @@ public class LTWApplicationLaunchConfigurationDelegate
 		}
 		sb.append('\"'); 
 		
+		if (isJava5OrLater) {
+		    sb.append(" -javaagent:" + pathToWeaver);
+		}
 		return sb.toString();
 	}
 }
