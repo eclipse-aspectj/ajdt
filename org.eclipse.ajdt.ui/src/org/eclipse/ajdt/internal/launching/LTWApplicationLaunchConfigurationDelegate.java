@@ -284,7 +284,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		sb.append('\"'); 
 		
 		if (isJava5OrLater) {
-		    sb.append(" -javaagent:" + pathToWeaver);
+		    sb.append(" \"-javaagent:" + pathToWeaver + "\"");
 		}
 		return sb.toString();
 	}
