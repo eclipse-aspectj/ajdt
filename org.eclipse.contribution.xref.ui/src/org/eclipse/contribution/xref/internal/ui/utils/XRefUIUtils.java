@@ -215,6 +215,7 @@ public class XRefUIUtils {
 		try {
 			m = r.createMarker(IMarker.MARKER);
 			IDE.openEditor(getActiveWorkbenchWindow().getActivePage(), m, true);
+			m.delete();
 		} catch (CoreException e) {
 		}
 	}

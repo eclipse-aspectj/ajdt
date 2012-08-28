@@ -274,12 +274,11 @@ public class UIMessageHandler implements IBuildMessageHandler {
 												// that quick fix is available
 												marker = ir.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 												marker.setAttribute(IJavaModelMarker.ID,p.id);
-												if ((p.start >= 0)
-														&& (p.end >= 0)) {
-													marker.setAttribute(IMarker.CHAR_START,new Integer(p.start));
-													marker.setAttribute(IMarker.CHAR_END,new Integer(p.end + 1));
-												}
 											}
+										}
+										if ((p.start >= 0) && (p.end >= 0)) {
+										    marker.setAttribute(IMarker.CHAR_START,new Integer(p.start));
+										    marker.setAttribute(IMarker.CHAR_END,new Integer(p.end + 1));
 										}
 										if (!ir.getProject().equals(project)) {
 											addOtherProjectMarker(project,marker);

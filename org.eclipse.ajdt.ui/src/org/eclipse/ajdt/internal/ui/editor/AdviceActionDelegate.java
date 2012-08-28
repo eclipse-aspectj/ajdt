@@ -425,22 +425,32 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                     jumpMarker.setAttribute(IMarker.LINE_NUMBER, new Integer(
                             linenumber).intValue());
 
+                    try {
+                        IDE.openEditor(AspectJUIPlugin.getDefault()
+                                .getActiveWorkbenchWindow().getActivePage(),
+                                jumpMarker, true);
+                    } catch (CoreException e) {
+                        AJDTErrorHandler.handleAJDTError(
+                                UIMessages.AdviceActionDelegate_exception_jumping,
+                                e);
+                    }
+
                 } catch (CoreException ce) {
                     AJDTErrorHandler.handleAJDTError(
                                     UIMessages.AdviceActionDelegate_unable_to_create_marker,
                                     ce);
+                } finally {
+                    if (jumpMarker != null) {
+                        try {
+                            jumpMarker.delete();
+                        } catch (CoreException ce) {
+                            AJDTErrorHandler.handleAJDTError(
+                                    UIMessages.AdviceActionDelegate_unable_to_create_marker,
+                                    ce);
+                        }
+                    }
                 }
 
-                try {
-                    IDE.openEditor(AspectJUIPlugin.getDefault()
-                            .getActiveWorkbenchWindow().getActivePage(),
-                            jumpMarker, true);
-                } catch (CoreException e) {
-                    AJDTErrorHandler.handleAJDTError(
-                            UIMessages.AdviceActionDelegate_exception_jumping,
-                            e);
-
-                }
             } else {
                 report(UIMessages.AdviceActionDelegate_resource_not_found);
             }
