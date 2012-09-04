@@ -619,13 +619,13 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         i++;
         switch (content[i]) {
             case 't':
-                return content[++i] == 'y' && content[++i] == 'p' && content[++i] == 'e';
+                return content.length >= i+"type".length() && content[++i] == 'y' && content[++i] == 'p' && content[++i] == 'e';
             case 'f':
-                return content[++i] == 'i' && content[++i] == 'e' && content[++i] == 'l' && content[++i] == 'd';
+                return content.length >= i+"field".length() && content[++i] == 'i' && content[++i] == 'e' && content[++i] == 'l' && content[++i] == 'd';
             case 'm':
-                return content[++i] == 'e' && content[++i] == 't' && content[++i] == 'h' && content[++i] == 'o' && content[++i] == 'd';
+                return content.length >= i+"method".length() && content[++i] == 'e' && content[++i] == 't' && content[++i] == 'h' && content[++i] == 'o' && content[++i] == 'd';
             case 'c':
-                return content[++i] == 'o' && content[++i] == 'n' && content[++i] == 's' && content[++i] == 't' && content[++i] == 'r' && content[++i] == 'u' && content[++i] == 'c' && content[++i] == 't' && content[++i] == 'o' && content[++i] == 'r';
+                return content.length >= i+"constructor".length() && content[++i] == 'o' && content[++i] == 'n' && content[++i] == 's' && content[++i] == 't' && content[++i] == 'r' && content[++i] == 'u' && content[++i] == 'c' && content[++i] == 't' && content[++i] == 'o' && content[++i] == 'r';
         }
         
         return false;

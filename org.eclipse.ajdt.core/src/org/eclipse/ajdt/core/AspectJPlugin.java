@@ -94,7 +94,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
 		// Associations
 		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin",  
 		// Declare annotation
-		"@type", "@method", "@field",
+		"@type", "@method", "@field", "@constructor",
 		
 		// Optional keywords
 		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=373584
@@ -102,7 +102,7 @@ public class AspectJPlugin extends Plugin implements NoFFDC {
     }; 
     
     
-    public static final String[] declareAnnotationKeywords = { "type", "method", "field" };   
+    public static final String[] declareAnnotationKeywords = { "type", "method", "field", "constructor" };   
     
 	/**
 	 * Folder separator used by Eclipse in paths irrespective if on Windows or
