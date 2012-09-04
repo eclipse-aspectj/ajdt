@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -383,7 +382,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		IJavaColorConstants.JAVA_ANNOTATION,
 	};
 
-	private List fVersionDependentRules= new ArrayList(3);
+	private List<ISourceVersionDependent> fVersionDependentRules= new ArrayList<ISourceVersionDependent>(3);
 
 	/**
 	 * Creates a Java code scanner
@@ -406,9 +405,9 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	/*
 	 * @see AbstractJavaScanner#createRules()
 	 */
-	protected List createRules() {
+	protected List<IRule> createRules() {
 
-		List rules= new ArrayList();
+		List<IRule> rules= new ArrayList<IRule>();
 
 		// Add rule for character constants.
 		Token token= getToken(IJavaColorConstants.JAVA_STRING);
@@ -518,8 +517,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 			if (value instanceof String) {
 				String s= (String) value;
 
-				for (Iterator it= fVersionDependentRules.iterator(); it.hasNext();) {
-					ISourceVersionDependent dependent= (ISourceVersionDependent) it.next();
+				for (ISourceVersionDependent dependent : fVersionDependentRules) {
 					dependent.setSourceVersion(s);
 				}
 			}

@@ -118,13 +118,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 	 */
 	private UIBuildListener buildListener;
 
-	// custom attributes AJDT markers can have
-	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
-
 	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-"; //$NON-NLS-1$
 
-	public static final String ACCKIND_ATTRIBUTE = "acckind"; //$NON-NLS-1$
-	
 	public static final int PROGRESS_MONITOR_MAX = 100;
 
     private EnsureAJBuilder ajProjectListener;
