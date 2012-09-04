@@ -243,6 +243,11 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
         // (ie- question mark count)
         int typeParamDepth = 0;
         
+        // Bug 384422 keep track of being after commas and parens so that we can distinguish between the 'throwing' and 'returning' keywards
+        // and annotation members
+        boolean afterOpenParen = false;
+        boolean afterComma = false;
+        
         char[] currentTypeName = null;
         
         replacements.clear();
@@ -300,11 +305,9 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
                     }
                 }
 
-                if (CharOperation.equals(throwing, name))
+                if (!afterComma && !afterOpenParen && (CharOperation.equals(throwing, name) || CharOperation.equals(returning, name))) {
                     consumeRetOrThrow();
-                else if (CharOperation.equals(returning, name))
-                    consumeRetOrThrow();
-                else if (inPointcutDesignator
+                } else if (inPointcutDesignator
                         && Character.isUpperCase(name[0])  // Assume all types start with upercase
                         && (content[scanner.getCurrentTokenStartPosition()-1]!='.')  // can ignore if looks fully qualified
                         && (content[scanner.getCurrentTokenStartPosition()-1]!='*')) // can ignore if looks like a wild core 
@@ -323,8 +326,13 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             case TokenNameLPAREN:
                 parenLevel++;
                 inCase = false;
+                afterOpenParen = true;
                 break;
                 
+            case TokenNameCOMMA:
+                afterComma = true;
+                break;
+
             case TokenNameRPAREN:
                 inFor = false;
                 inCase = false;
@@ -580,6 +588,12 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             
             if (tok != TokenNameDOT) {
                 afterDot = false;
+            }
+            if (tok != TokenNameLPAREN) {
+                afterOpenParen = false;
+            }
+            if (tok != TokenNameCOMMA) {
+                afterComma = false;
             }
         }
 

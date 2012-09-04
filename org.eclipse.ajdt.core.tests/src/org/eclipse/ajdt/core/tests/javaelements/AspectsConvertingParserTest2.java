@@ -246,7 +246,40 @@ public class AspectsConvertingParserTest2 extends AbstractTestCase {
                 "  before() : none() {}\n" +  
         "}");
     }
+    
+    // Bug 384422
+    public void testAnnotationStylePointcutInAspect1() throws Exception {
+        assertConvertingParse(
+                "import org.aspectj.lang.JoinPoint;\n" + 
+                "import org.aspectj.lang.annotation.AfterThrowing;\n" + 
+                "public aspect Test {\n" + 
+                "        @AfterThrowing(pointcut=\"execution(* *(..))\")\n" + 
+                "        public void bizLoggerWithException(JoinPoint thisJoinPoint) { }\n" + 
+                "}");
+    }
 
+    // Bug 384422
+    public void testAnnotationStylePointcutInAspect2() throws Exception {
+        assertConvertingParse(
+                "import org.aspectj.lang.JoinPoint;\n" + 
+                "import org.aspectj.lang.annotation.AfterThrowing;\n" + 
+                "public aspect Test {\n" + 
+                "        @AfterThrowing(throwing=\"e\", pointcut=\"execution(* *(..))\")\n" + 
+                "        public void bizLoggerWithException(JoinPoint thisJoinPoint) { }\n" + 
+                "}");
+    }
+    
+    // Bug 384422
+    public void testAnnotationStylePointcutInAspect3() throws Exception {
+        assertConvertingParse(
+                "import org.aspectj.lang.JoinPoint;\n" + 
+                "import org.aspectj.lang.annotation.AfterThrowing;\n" + 
+                "public aspect Test {\n" + 
+                "        @AfterThrowing(pointcut=\"execution(* *(..))\", throwing=\"e\")\n" + 
+                "        public void bizLoggerWithException(JoinPoint thisJoinPoint) { }\n" + 
+                "}");
+    }
+    
     // Main type name must be "Test" and must be in default package
     private void assertConvertingParse(String testContentStr) {
         char[] testContent = testContentStr.toCharArray();
