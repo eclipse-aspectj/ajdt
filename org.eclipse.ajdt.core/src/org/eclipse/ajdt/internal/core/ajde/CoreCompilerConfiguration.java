@@ -31,6 +31,8 @@ import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
+import org.eclipse.core.internal.content.ContentTypeManager;
+import org.eclipse.core.internal.content.ContentTypeMatcher;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -635,7 +637,14 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
     public String getProjectEncoding() {
         try {
-            return project.getDefaultCharset();
+            String charset = project.getDefaultCharset(false);
+            if (charset == null) {
+                charset = ContentTypeManager.getInstance().findContentTypeFor("f.java").getDefaultCharset();
+            }
+            if (charset == null) {
+                charset = ResourcesPlugin.getEncoding();
+            }
+            return charset;
         } catch (CoreException e) {
             return ResourcesPlugin.getEncoding();
         }
