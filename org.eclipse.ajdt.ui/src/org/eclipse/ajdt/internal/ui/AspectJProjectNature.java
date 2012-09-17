@@ -37,15 +37,7 @@ public class AspectJProjectNature implements IProjectNature {
 	// the previous builder id, before the builder was moved to the core plugin
 	private static final String OLD_BUILDER = "org.eclipse.ajdt.ui.ajbuilder"; //$NON-NLS-1$
 
-	/**
-	 * 
-	 */
 	private static final String JAVA_BUILDER_GENERATE_CLASSES = "org.eclipse.jdt.core.compiler.generateClassFiles"; //$NON-NLS-1$
-
-	/**
-	 * 
-	 */
-	private static final String FALSE = "false"; //$NON-NLS-1$
 
 	/**
 	 * Driven when this project nature is 'given' to a project, it adds the
@@ -246,7 +238,7 @@ public class AspectJProjectNature implements IProjectNature {
 			ICommand javaBuilderCommand = (ICommand) it.next();
 			Map arguments = javaBuilderCommand.getArguments();
 			String value = (String) arguments.get(JAVA_BUILDER_GENERATE_CLASSES);
-			if (value == null || !value.equals(FALSE)) {
+			if (value == null || !value.equals(Boolean.FALSE.toString())) {
 				return false;
 			}
 		}

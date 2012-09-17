@@ -40,7 +40,7 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
         rule = createSchedulingRule(project, iFiles);
     }
 
-    protected IStatus run(IProgressMonitor monitor) {
+    public IStatus run(IProgressMonitor monitor) {
         try {
             try {
                 manager.beginRule(rule, monitor);
