@@ -108,15 +108,24 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());  // also wrong
             
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
-            info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
-            info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
+            char[][] argumentNames = CoreUtils.listStringsToCharArrays(ipe.getParameterNames());
+            char[][] argumentTypeNames = CoreUtils.listCharsToCharArrays(ipe.getParameterTypes());
+            if (argumentNames.length == 0 && argumentTypeNames.length > 0) {
+            	// argument names not found.  likely coming from binary class file w/p source attachment
+            	// generate argument names
+            	argumentNames = new char[argumentTypeNames.length][];
+            	for (int i = 0; i < argumentNames.length; i++) {
+            		argumentNames[i] = ("arg" + i).toCharArray();
+                }
+            }
+            
+            info.setArgumentNames(argumentNames);
+            info.setArgumentTypeNames(argumentTypeNames);
             info.setReturnType(ipe.getCorrespondingType(false).toCharArray());
             info.setQualifiedReturnType(ipe.getCorrespondingType(true).toCharArray());
 
             info.setTypeParameters(createTypeParameters(project));
             
-            char[][] argumentNames = info.getArgumentNames();
-            char[][] argumentTypeNames = info.getArgumentTypeNames();
             if (argumentNames != null && argumentNames.length > 0) {
                 ILocalVariable[] arguments = new ILocalVariable[argumentNames.length];
                 for (int i = 0; i < argumentNames.length; i++) {
@@ -130,7 +139,6 @@ public abstract class IntertypeElement extends AspectJMemberElement {
                             new Annotation[0], Flags.AccDefault, true);
                 }
                 info.setArguments(arguments);
-                
             }
             
         } else {
