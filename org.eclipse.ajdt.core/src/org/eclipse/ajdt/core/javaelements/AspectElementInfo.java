@@ -15,6 +15,7 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
@@ -26,7 +27,7 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 
 	protected Kind kind;
 	protected Accessibility accessibility;
-	protected List modifiers;
+	protected List<Modifiers> modifiers;
 	protected ExtraInformation extra;
 	
 	protected boolean privileged;
@@ -112,13 +113,13 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElementInfo#setModifiers(java.util.List)
 	 */
-	public void setAJModifiers(List mods) {
+	public void setAJModifiers(List<Modifiers> mods) {
 		modifiers = mods;
 	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElementInfo#getAJModifiers()
 	 */
-	public List getAJModifiers() {
+	public List<Modifiers> getAJModifiers() {
 		return modifiers;
 	}
 	/* (non-Javadoc)

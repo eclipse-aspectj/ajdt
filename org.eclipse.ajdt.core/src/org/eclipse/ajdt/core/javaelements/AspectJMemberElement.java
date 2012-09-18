@@ -11,11 +11,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -288,7 +290,7 @@ public Accessibility getAJAccessibility() throws JavaModelException {
 /* (non-Javadoc)
  * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElement#getAJModifiers()
  */
-public List getAJModifiers() throws JavaModelException {
+public List<Modifiers> getAJModifiers() throws JavaModelException {
 	IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
 	return info.getAJModifiers();
 }

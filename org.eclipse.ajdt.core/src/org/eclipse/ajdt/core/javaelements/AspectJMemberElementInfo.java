@@ -12,6 +12,7 @@ package org.eclipse.ajdt.core.javaelements;
 
 import java.util.List;
 
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
@@ -60,13 +61,13 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElementInfo#setModifiers(java.util.List)
 	 */
-	public void setAJModifiers(List mods) {
+	public void setAJModifiers(List<Modifiers> mods) {
 		modifiers = mods;
 	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.javamodel.javaelements.IAspectJElementInfo#getAJModifiers()
 	 */
-	public List getAJModifiers() {
+	public List<Modifiers> getAJModifiers() {
 		return modifiers;
 	}
 	

@@ -15,6 +15,7 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.aspectj.asm.IProgramElement.Modifiers;
 
 /**
  * @author Luzius Meisser
@@ -26,13 +27,13 @@ public interface IAspectJElementInfo {
 
 	public abstract Accessibility getAJAccessibility();
 	
-	public abstract List getAJModifiers();
+	public abstract List<Modifiers> getAJModifiers();
 
 	public abstract void setAJKind(Kind kind);
 
 	public abstract void setAJAccessibility(Accessibility accessibility);
 	
-	public abstract void setAJModifiers(List mods);
+	public abstract void setAJModifiers(List<Modifiers> mods);
 	
 	public abstract void setAJExtraInfo(IProgramElement.ExtraInformation extra);
 }

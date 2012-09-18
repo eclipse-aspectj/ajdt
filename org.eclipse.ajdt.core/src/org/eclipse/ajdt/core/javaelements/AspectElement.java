@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
@@ -273,7 +274,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
      * @see
      * org.eclipse.ajdt.javamodel.javaelements.IAspectJElement#getAJModifiers()
      */
-    public List getAJModifiers() throws JavaModelException {
+    public List<Modifiers> getAJModifiers() throws JavaModelException {
         IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
         return info.getAJModifiers();
     }
