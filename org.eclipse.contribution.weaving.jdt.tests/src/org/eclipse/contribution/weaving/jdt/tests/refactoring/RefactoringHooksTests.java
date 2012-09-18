@@ -18,11 +18,20 @@ package org.eclipse.contribution.weaving.jdt.tests.refactoring;
 import org.eclipse.contribution.jdt.refactoring.IRefactoringProvider;
 import org.eclipse.contribution.jdt.refactoring.RefactoringAdapter;
 import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractConstantRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractTempRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.code.PromoteTempToFieldRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
+import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
 
 /**
  * 
@@ -32,13 +41,12 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
 
     private IRefactoringProvider orig;
-    private MockRefactoringProvider mock;
+    private MockRefactoringProvider mock = new MockRefactoringProvider();
     
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         orig = RefactoringAdapter.getInstance().getProvider();
-        mock = new MockRefactoringProvider();
         RefactoringAdapter.getInstance().setProvider(mock);
     }
     
@@ -50,6 +58,41 @@ public class RefactoringHooksTests extends AbstractWeavingRefactoringTest {
     }
     
     
+    public void testCreateSourceConvertedAST1() throws Exception {
+        checkRenameLocalRefactoring("Something.mock");
+        assertNotNull("Create Source Converted AST advice not executed", mock.createSourceConvertedAST);
+        assertTrue("Create Source Converted AST advice should be true", mock.createSourceConvertedAST);
+    }
+
+    public void testCreateSourceConvertedAST2() throws Exception {
+        checkRenameLocalRefactoring("Something.java");
+        assertNotNull("Create Source Converted AST advice not executed", mock.createSourceConvertedAST);
+        assertFalse("Create Source Converted AST advice should be false", mock.createSourceConvertedAST);
+    }
+
+    private RefactoringStatus checkRenameLocalRefactoring(String unitName) throws CoreException {
+        String source = "package p; \n class Something { \nvoid f() { int x = 9 + 8; } }";
+        ICompilationUnit unit = createCompilationUnitAndPackage("p", unitName, source, project);
+        String toRefactor = "x";
+        int start = source.indexOf(toRefactor);
+        int end = start;
+        RenameLocalVariableProcessor refactoring = new RenameLocalVariableProcessor(
+                new LocalVariable(extractFirstMethod(unit), toRefactor, start, end, start, end, "I", new Annotation[0], 0, false));
+        refactoring.setNewElementName("other");
+        RefactoringStatus status = refactoring.checkInitialConditions(monitor);
+        assertTrue("Refactoring returns with messages.\n" + status, status.isOK());
+        CheckConditionsContext context = new CheckConditionsContext();
+        ResourceChangeChecker checker = new ResourceChangeChecker();
+        context.add(checker);
+        status = refactoring.checkFinalConditions(new NullProgressMonitor(), context);
+        assertTrue("Refactoring returns with messages.\n" + status, status.isOK());
+        return status;
+    }
+
+    private JavaElement extractFirstMethod(ICompilationUnit unit) {
+        return (JavaElement) unit.getType("Something").getMethod("f", new String[0]);
+    }
+
     /**
      * Ensures that the associated advice is hit when performing local variable extraction
      * @throws Exception

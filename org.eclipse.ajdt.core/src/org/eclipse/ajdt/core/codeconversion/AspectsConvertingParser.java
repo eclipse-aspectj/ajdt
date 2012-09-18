@@ -1504,7 +1504,7 @@ public class AspectsConvertingParser implements TerminalTokens, NoFFDC {
             }
         }
 
-        return posAfter - offset;
+        return Math.max(posAfter - offset, 0);
     }
 
     //translates a position from before to after changes

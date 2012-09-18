@@ -12,8 +12,12 @@
 package org.eclipse.contribution.jdt.refactoring;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.ui.refactoring.actions.RenameJavaElementAction;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
 
 /**
  * This aspect ensures that ITDs are renamed with the proper rename refactoring
@@ -25,7 +29,7 @@ public aspect RenameJavaElementActionAspect {
     /**
      * This will be null if AJDT is not installed (ie- JDT Weaving installed, but no AJDT)
      */
-    IRefactoringProvider provider = RefactoringAdapter.getInstance().getProvider();
+    RefactoringAdapter adapter = RefactoringAdapter.getInstance();
     
     pointcut renameInvoked(IJavaElement element, boolean lightweight) : 
             execution(private void RenameJavaElementAction.run(
@@ -35,6 +39,7 @@ public aspect RenameJavaElementActionAspect {
     
     void around(IJavaElement element, boolean lightweight) throws CoreException : 
             renameInvoked(element, lightweight) {
+        IRefactoringProvider provider = adapter.getProvider();
         if (provider != null && provider.isInterestingElement(element)) {
             provider.performRefactoring(element, lightweight);
         } else {
@@ -46,4 +51,32 @@ public aspect RenameJavaElementActionAspect {
             proceed(element, lightweight);
         }
     }
+    
+    //////////////////////////////////////////////
+    // Refactoring parse
+    //////////////////////////////////////////////
+    /**
+     * Captures calls to a {@link RefactoringASTParser} when it is making an AST to validate
+     * the results of a refactoring
+     * 
+     * @param contents
+     * @param unit
+     * @param resolveBindings
+     * @param statementsRecovery
+     * @param monitor
+     */
+    pointcut refactoringParse(String contents, ICompilationUnit unit, boolean resolveBindings, boolean statementsRecovery, IProgressMonitor monitor) : execution(CompilationUnit RefactoringASTParser.parse(String, 
+            ICompilationUnit, boolean, boolean, IProgressMonitor)) && args(contents, unit, resolveBindings, statementsRecovery, monitor);
+    
+    CompilationUnit around(String contents, ICompilationUnit unit, boolean resolveBindings, boolean statementsRecovery, IProgressMonitor monitor) : refactoringParse(contents, unit, resolveBindings, statementsRecovery, monitor) {
+        IRefactoringProvider provider = adapter.getProvider();
+        if (provider != null && provider.inInterestingProject(unit)) {
+            CompilationUnit ast = provider.createSourceConvertedAST(contents, unit, resolveBindings, statementsRecovery, true, monitor);
+            return ast;
+        } else {
+            return proceed(contents, unit, resolveBindings, statementsRecovery, monitor);
+        }
+        
+    }
+
 }
