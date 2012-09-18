@@ -16,12 +16,14 @@ package org.eclipse.ajdt.core.javaelements;
 import static org.eclipse.ajdt.core.javaelements.AspectElement.JEM_ITD_FIELD;
 import static org.eclipse.ajdt.core.javaelements.AspectElement.JEM_ITD_METHOD;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeFieldDeclaration;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.core.LocalVariable;
@@ -145,6 +147,7 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             // no successful build yet, we don't know the contents
             info.setName(name.toCharArray());
             info.setAJKind(IProgramElement.Kind.ERROR);
+            info.setAJModifiers(Collections.<Modifiers>emptyList());
         }
         return info;
     }

@@ -66,28 +66,29 @@ public class CompilationUnitTools {
 			modifiers |= ClassFileConstants.AccPrivate;
 		}
 
-		if (others.contains(IProgramElement.Modifiers.ABSTRACT)) {
-			modifiers |= ClassFileConstants.AccAbstract;
-		}
-		if (others.contains(IProgramElement.Modifiers.FINAL)) {
-			modifiers |= ClassFileConstants.AccFinal;
-		}
-		if (others.contains(IProgramElement.Modifiers.NATIVE)) {
-			modifiers |= ClassFileConstants.AccNative;
-		}
-		if (others.contains(IProgramElement.Modifiers.STATIC)) {
-			modifiers |= ClassFileConstants.AccStatic;
-		}
-		if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED)) {
-			modifiers |= ClassFileConstants.AccSynchronized;
-		}
-		if (others.contains(IProgramElement.Modifiers.TRANSIENT)) {
-			modifiers |= ClassFileConstants.AccTransient;
-		}
-		if (others.contains(IProgramElement.Modifiers.VOLATILE)) {
-			modifiers |= ClassFileConstants.AccVolatile;
-		}
-		
+		if (others != null) {
+    		if (others.contains(IProgramElement.Modifiers.ABSTRACT)) {
+    			modifiers |= ClassFileConstants.AccAbstract;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.FINAL)) {
+    			modifiers |= ClassFileConstants.AccFinal;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.NATIVE)) {
+    			modifiers |= ClassFileConstants.AccNative;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.STATIC)) {
+    			modifiers |= ClassFileConstants.AccStatic;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED)) {
+    			modifiers |= ClassFileConstants.AccSynchronized;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.TRANSIENT)) {
+    			modifiers |= ClassFileConstants.AccTransient;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.VOLATILE)) {
+    			modifiers |= ClassFileConstants.AccVolatile;
+    		}
+		}		
 		return modifiers;
 	}
 	
@@ -100,6 +101,9 @@ public class CompilationUnitTools {
         int modifiers = ClassFileConstants.AccPublic;
 
         List<Modifiers> others = info.getAJModifiers();
+        if (others == null) {
+            return modifiers;
+        }
         if (others.contains(IProgramElement.Modifiers.ABSTRACT)) {
             modifiers |= ClassFileConstants.AccAbstract;
         }
