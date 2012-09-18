@@ -44,7 +44,7 @@ public aspect ErrorsTest {
 		int numErrors = -1;
 		try {
 		    try {
-		        view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+		        view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView");
 		        logView = (LogView) view;
                 logs = logView.getElements();
                 numErrors = logs.length;
@@ -54,19 +54,20 @@ public aspect ErrorsTest {
 			proceed();
 			if (logView != null) {
     			logs = logView.getElements();
-    			String failureText = ""; //$NON-NLS-1$
+    			String failureText = "";
     			if(logs.length > numErrors) { // Check for errors or warnings
     				int numAdded = logs.length - numErrors;
     				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
     					LogEntry entry = (LogEntry) logs[i];
     					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
     					    // ignore expected exceptions
-    						if (entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.unknownProvider") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("org.eclipse.contribution.xref.core.tests.UnknownProvider") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("One or more bundles are not resolved because the following root constraints are not resolved") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("Could not load repository template extension") == -1 && //$NON-NLS-1$
-    						        entry.getMessage().indexOf("The following is a complete list of bundles which are not resolved") == -1) { //$NON-NLS-1$
-    							failureText += "The test added errors to the log:\n" + entry.getMessage() + "\n" + entry.getStack() + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    						if (!entry.getMessage().contains("org.eclipse.contribution.xref.core.tests.unknownProvider") &&
+    						        !entry.getMessage().contains("org.eclipse.contribution.xref.core.tests.UnknownProvider") &&
+    						        !entry.getMessage().contains("One or more bundles are not resolved because the following root constraints are not resolved") &&
+    						        !entry.getMessage().contains("Could not load repository template extension") &&
+    						        !entry.getMessage().contains("The following is a complete list of bundles which are not resolved") &&
+    						        !entry.getMessage().contains("CleanupAddon")) {
+    							failureText += "The test added errors to the log:\n" + entry.getMessage() + "\nStack: " + entry.getStack() + "\n\n"; //$NON-NLS-2$ //$NON-NLS-3$
     						}
     					}
     				}
@@ -77,7 +78,7 @@ public aspect ErrorsTest {
 			}
 		} catch (PartInitException e) {
 			e.printStackTrace();
-			TestCase.fail("Exception occurred when accessing the log view"); //$NON-NLS-1$
+			TestCase.fail("Exception occurred when accessing the log view");
 		}
 	}
 	

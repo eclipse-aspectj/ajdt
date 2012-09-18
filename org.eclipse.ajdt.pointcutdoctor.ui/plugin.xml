@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+  <extension
+         point="org.eclipse.contribution.xref.core.providers">
+      <xrefProvider
+            label="%ajXRefProvider"
+            enabled="true"
+            class="org.eclipse.ajdt.pointcutdoctor.ui.AlmostMatchedJPSProvider"
+            id="pointcoach.AlmostMatchedJPSProvider">
+      </xrefProvider>
+   </extension>
+  <extension
+        point="org.eclipse.jdt.ui.javaEditorTextHovers">
+     <hover
+           activate="true"
+           class="org.eclipse.ajdt.pointcutdoctor.ui.InPlaceHover"
+           id="pointcoach.ui.inplaceHover"
+           label="in place hover"/>
+  </extension>
+  <extension
+        point="org.eclipse.ui.decorators">
+     <decorator
+           adaptable="false"
+           class="org.eclipse.ajdt.pointcutdoctor.ui.VirtualShadowIconDecorator"
+           id="org.eclipse.ajdt.pointcutdoctor.ui.virtualshadowicon"
+           label="virtual shadow icon"
+           lightweight="false"
+           location="TOP_LEFT"
+           state="true">
+     </decorator>
+  </extension>
+  <extension
+        point="org.eclipse.ui.actionSets">
+     <actionSet
+           id="org.eclipse.ajdt.pointcutdoctor.ui.actionSet"
+           label="PointcutDoctor Action Set"
+           visible="true">
+        <action
+              class="org.eclipse.ajdt.pointcutdoctor.ui.EnableDisablePointcutDoctorAction"
+              icon="icons/toolbarButton.png"
+              id="org.eclipse.ajdt.pointcutdoctor.ui.actions.EnableDisablePointcutDoctorAction"
+              label="Enable Pointcut Doctor"
+              state="false"
+              style="toggle"
+              toolbarPath="PointcutDoctorGroup"
+              tooltip="Enable Pointcut Doctor">
+        </action>
+     </actionSet>
+  </extension>
+
+</plugin>

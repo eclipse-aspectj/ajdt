@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PointcutDoctor Core Plug-in
+Bundle-SymbolicName: org.eclipse.ajdt.pointcutdoctor.core
+Bundle-Version: 0.2.1.qualifier
+Export-Package: org.eclipse.ajdt.pointcutdoctor.core,
+ org.eclipse.ajdt.pointcutdoctor.core.almost,
+ org.eclipse.ajdt.pointcutdoctor.core.explain,
+ org.eclipse.ajdt.pointcutdoctor.core.fpointcut,
+ org.eclipse.ajdt.pointcutdoctor.core.relaxer,
+ org.eclipse.ajdt.pointcutdoctor.core.utils,
+ org.eclipse.ajdt.pointcutdoctor.core.virtual
+Bundle-Vendor: PointcutDoctor
+Require-Bundle: org.aspectj.weaver;bundle-version="1.5.4",
+ org.eclipse.osgi;bundle-version="3.6.0",
+ org.eclipse.core.runtime,
+ org.eclipse.ajdt.core,
+ org.eclipse.core.resources,
+ org.eclipse.jdt.core,
+ org.eclipse.contribution.xref.core
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

@@ -1,0 +1,37 @@
+/*******************************************************************************
+ * Copyright (c) 2007 Linton Ye.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Linton Ye - initial API and implementation
+ ******************************************************************************/
+package org.eclipse.ajdt.pointcutdoctor.core.relaxer;
+
+import java.util.List;
+
+import org.aspectj.weaver.World;
+
+
+
+public class WithincodeRelaxer extends AbstractRelaxer {
+
+	@Override
+	protected void doRelax(World world, List<RelaxData> results) {
+		// simply drop it
+//		results.add(new RelaxData(RelaxOp.Remove,this, affectingPointcut));
+		//TODO maybe we should use other relaxers here...
+//		SignaturePattern signature = ((WithincodePointcut)affectingPointcut).getSignature();
+//		TypePatternList ellipsis = new TypePatternList(new TypePattern[]{TypePattern.ELLIPSIS});
+//		TypePattern newTp = PointcutUtil.cloneTypePatternAndModify(signature.getDeclaringType(), Op.IncludeSubtypes);
+//		SignaturePattern newSig = new SignaturePattern(signature.getKind(), ModifiersPattern.ANY,
+//                TypePattern.ANY, newTp,
+//                signature.getName(), ellipsis,
+//                ThrowsPattern.ANY,
+//				AnnotationTypePattern.ANY);
+		
+	}
+
+}
