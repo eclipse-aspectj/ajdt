@@ -31,9 +31,9 @@ public class ModifiersPart extends SigPart {
 	protected void computeOffsetLengthInSource() {
 		String ms = node.toString();
 		if (ms.length()>0) {
+		    length = ms.length();
 			String sptc = readPointcutSource();
 			offset = pointcut.getStart()+sptc.indexOf(ms);
-			length = ms.length();
 		}
 	}
 

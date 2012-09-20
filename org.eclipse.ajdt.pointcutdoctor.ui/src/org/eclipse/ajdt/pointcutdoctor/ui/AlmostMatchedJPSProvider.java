@@ -74,7 +74,9 @@ public class AlmostMatchedJPSProvider implements IXReferenceProvider {
 		if (o instanceof PointcutElement || o instanceof AdviceElement) {
 			List<IXReference> xrefs = new ArrayList<IXReference>();
 			XRef almostMatchRef = createAlmostMatchedJPSRef((AspectJMemberElement) o);
-			if (almostMatchRef!=null) xrefs.add(almostMatchRef);
+			if (almostMatchRef!=null) {
+			    xrefs.add(almostMatchRef);
+			}
 			if (o instanceof PointcutElement) {
 				XRef matchRef = createMatchedJPSRef((AspectJMemberElement)o);
 				if (matchRef!=null) xrefs.add(matchRef);

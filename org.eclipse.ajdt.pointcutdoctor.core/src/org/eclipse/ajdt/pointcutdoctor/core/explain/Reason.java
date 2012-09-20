@@ -99,9 +99,11 @@ public class Reason {
 		//TODO not optimized
 		List<AtomicPart> allParts = new ArrayList<AtomicPart>();
 		for (ReasonConjunction rs:responsibleParts) 
-			for (AtomicPart p:rs.conParts)
-				if (p.getLength()>0)
-					allParts.add(p);
+			for (AtomicPart p:rs.conParts) {
+                if (p.getLength()>0) {
+                    allParts.add(p);
+                }
+            }
 		Collections.sort(allParts, new Comparator<AtomicPart>() {
 			public int compare(AtomicPart arg0, AtomicPart arg1) {
 				int o0 = arg0.getOffset();

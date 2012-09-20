@@ -111,21 +111,26 @@ public abstract class AtomicPart extends AbstractPart {
 	protected abstract FuzzyBoolean isMatched(Shadow shadow);
 
 	public int getLength() {
-		if (length<0) computeOffsetLengthInSource();
+		if (length<0) {
+		    computeOffsetLengthInSource();
+		}
 		return length;
 	}
 
 	public int getOffset() {
-		if (offset<0) computeOffsetLengthInSource();
+		if (offset<0) {
+		    computeOffsetLengthInSource();
+		}
 		return offset;
 	}
 
 	protected void computeOffsetLengthInSource() {
 		offset = node.getStart();
-		if (offset<=0 && node.getEnd()<=0)
-			length = 0;
-		else
-			length = node.getEnd()-offset+1;
+		if (offset<=0 && node.getEnd()<=0) {
+            length = 0;
+        } else {
+            length = node.getEnd()-offset+1;
+        }
 	}
 
 	public FuzzyBoolean getMatchResult() {
@@ -133,8 +138,9 @@ public abstract class AtomicPart extends AbstractPart {
 	}
 
 	public File getEnclosingFile() {
-		if (pointcut!=null)
-			return pointcut.getSourceLocation().getSourceFile();
+		if (pointcut!=null) {
+            return pointcut.getSourceLocation().getSourceFile();
+        }
 		return null;
 	}
 

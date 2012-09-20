@@ -38,7 +38,7 @@
            visible="true">
         <action
               class="org.eclipse.ajdt.pointcutdoctor.ui.EnableDisablePointcutDoctorAction"
-              icon="icons/toolbarButton.png"
+              icon="icons/pcdoctor_button.png"
               id="org.eclipse.ajdt.pointcutdoctor.ui.actions.EnableDisablePointcutDoctorAction"
               label="Enable Pointcut Doctor"
               state="false"

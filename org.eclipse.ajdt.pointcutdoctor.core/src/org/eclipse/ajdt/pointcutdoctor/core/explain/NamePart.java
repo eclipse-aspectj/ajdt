@@ -57,8 +57,8 @@ public class NamePart extends SigPart {
 
 	@Override
 	protected void computeOffsetLengthInSource() {
+	    length = name.toString().length();
 		offset = pointcut.getStart() + findNameOffsetInSource();
-		length = name.toString().length();
 	}
 
 	@Override

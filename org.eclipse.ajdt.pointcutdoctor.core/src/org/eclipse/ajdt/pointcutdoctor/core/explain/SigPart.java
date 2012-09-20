@@ -38,15 +38,10 @@ public abstract class SigPart extends AtomicPart {
 		Iterator<JoinPointSignature> candidateMatches = jp.getJoinPointSignatures(world);
 		while(candidateMatches.hasNext()) {
 			JoinPointSignature aSig = candidateMatches.next();
-//			FuzzyBoolean matchResult = matchesExactly(aSig,world,allowBridgeMethods,subjectMatch); 
 			FuzzyBoolean matchResult = matchesExactly(aSig,world);
-			if (matchResult.alwaysTrue() || matchResult.alwaysFalse()) return matchResult;
-//			if (matchResult.alwaysTrue()) {
-//				return true;
-//			} else if (matchResult.alwaysFalse()) {
-//				return false;
-//			}
-			// if we got a "MAYBE" it's worth looking at the other signatures
+			if (matchResult.alwaysTrue() || matchResult.alwaysFalse()) {
+			    return matchResult;
+			}
 		}
 		return FuzzyBoolean.NO;
 	}
@@ -55,10 +50,11 @@ public abstract class SigPart extends AtomicPart {
 
 	protected String readPointcutSource() {
 		File file = pointcut.getSourceLocation().getSourceFile();
+		int pLen = pointcut.getEnd() - pointcut.getStart();
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(file));
-			char[] chars = new char[length];
+			char[] chars = new char[pLen];
 			reader.skip(pointcut.getStart());
 			reader.read(chars);
 			return new String(chars);
