@@ -422,8 +422,10 @@
 			<param name="genericTargets" value="${builder}/customTargets.xml"/>
 			<param name="target" value="updateSiteExport"/>
 		</antcall>
-		<!-- add site.xml and update qualifiers -->
-		<copy file="${builder}/site.xml" tofile="${updateSite.loc}/site.xml"/>
+		<!-- add required files for legal and update qualifiers -->
+		<copy file="${builder}/legal/site.xml" tofile="${updateSite.loc}/site.xml"/>
+		<copy file="${builder}/legal/epl-v10.html" tofile="${updateSite.loc}/epl-v10.html"/>
+		<copy file="${builder}/legal/notice.html" tofile="${updateSite.loc}/notice.html"/>
 		<replace file="${updateSite.loc}/site.xml" token="0.0.0.AJFVERSION"
 	       value="${org.eclipse.ajdt}"/>
 		<replace file="${updateSite.loc}/site.xml" token="0.0.0.EAFVERSION"

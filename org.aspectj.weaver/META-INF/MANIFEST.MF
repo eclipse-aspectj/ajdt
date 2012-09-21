@@ -27,3 +27,4 @@ Export-Package: org.aspectj.apache.bcel;version="1.6.4",
  org.aspectj.weaver.patterns;version="1.6.4",
  org.aspectj.weaver.reflect;version="1.6.4",
  org.aspectj.weaver.tools;version="1.6.4"
+Eclipse-BundleShape: dir
