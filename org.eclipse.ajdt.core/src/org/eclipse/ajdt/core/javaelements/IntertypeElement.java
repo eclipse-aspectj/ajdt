@@ -16,12 +16,14 @@ package org.eclipse.ajdt.core.javaelements;
 import static org.eclipse.ajdt.core.javaelements.AspectElement.JEM_ITD_FIELD;
 import static org.eclipse.ajdt.core.javaelements.AspectElement.JEM_ITD_METHOD;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeFieldDeclaration;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.core.LocalVariable;
@@ -108,15 +110,24 @@ public abstract class IntertypeElement extends AspectJMemberElement {
             info.setNameSourceEnd(sourceLocation.getOffset() + ipe.getName().length());  // also wrong
             
             info.setConstructor(info.getAJKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR);
-            info.setArgumentNames(CoreUtils.listStringsToCharArrays(ipe.getParameterNames()));
-            info.setArgumentTypeNames(CoreUtils.listCharsToCharArrays(ipe.getParameterTypes()));  // hmmmm..don't think this is working
+            char[][] argumentNames = CoreUtils.listStringsToCharArrays(ipe.getParameterNames());
+            char[][] argumentTypeNames = CoreUtils.listCharsToCharArrays(ipe.getParameterTypes());
+            if (argumentNames.length == 0 && argumentTypeNames.length > 0) {
+            	// argument names not found.  likely coming from binary class file w/p source attachment
+            	// generate argument names
+            	argumentNames = new char[argumentTypeNames.length][];
+            	for (int i = 0; i < argumentNames.length; i++) {
+            		argumentNames[i] = ("arg" + i).toCharArray();
+                }
+            }
+            
+            info.setArgumentNames(argumentNames);
+            info.setArgumentTypeNames(argumentTypeNames);
             info.setReturnType(ipe.getCorrespondingType(false).toCharArray());
             info.setQualifiedReturnType(ipe.getCorrespondingType(true).toCharArray());
 
             info.setTypeParameters(createTypeParameters(project));
             
-            char[][] argumentNames = info.getArgumentNames();
-            char[][] argumentTypeNames = info.getArgumentTypeNames();
             if (argumentNames != null && argumentNames.length > 0) {
                 ILocalVariable[] arguments = new ILocalVariable[argumentNames.length];
                 for (int i = 0; i < argumentNames.length; i++) {
@@ -130,13 +141,13 @@ public abstract class IntertypeElement extends AspectJMemberElement {
                             new Annotation[0], Flags.AccDefault, true);
                 }
                 info.setArguments(arguments);
-                
             }
             
         } else {
             // no successful build yet, we don't know the contents
             info.setName(name.toCharArray());
             info.setAJKind(IProgramElement.Kind.ERROR);
+            info.setAJModifiers(Collections.<Modifiers>emptyList());
         }
         return info;
     }

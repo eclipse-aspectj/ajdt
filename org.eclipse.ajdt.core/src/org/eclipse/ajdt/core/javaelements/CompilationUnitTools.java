@@ -14,18 +14,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
@@ -59,7 +56,7 @@ public class CompilationUnitTools {
 	
 	public static int getModifierCode(IProgramElement elem){
 		IProgramElement.Accessibility acc = elem.getAccessibility();
-		List others = elem.getModifiers();
+		List<Modifiers> others = elem.getModifiers();
 		int modifiers = 0;
 		if (acc == IProgramElement.Accessibility.PUBLIC){
 			modifiers |= ClassFileConstants.AccPublic;
@@ -69,21 +66,29 @@ public class CompilationUnitTools {
 			modifiers |= ClassFileConstants.AccPrivate;
 		}
 
-		if (others.contains(IProgramElement.Modifiers.ABSTRACT))
-			modifiers |= ClassFileConstants.AccAbstract;
-		if (others.contains(IProgramElement.Modifiers.FINAL))
-			modifiers |= ClassFileConstants.AccFinal;
-		if (others.contains(IProgramElement.Modifiers.NATIVE))
-			modifiers |= ClassFileConstants.AccNative;
-		if (others.contains(IProgramElement.Modifiers.STATIC))
-			modifiers |= ClassFileConstants.AccStatic;
-		if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED))
-			modifiers |= ClassFileConstants.AccSynchronized;
-		if (others.contains(IProgramElement.Modifiers.TRANSIENT))
-			modifiers |= ClassFileConstants.AccTransient;
-		if (others.contains(IProgramElement.Modifiers.VOLATILE))
-			modifiers |= ClassFileConstants.AccVolatile;
-		
+		if (others != null) {
+    		if (others.contains(IProgramElement.Modifiers.ABSTRACT)) {
+    			modifiers |= ClassFileConstants.AccAbstract;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.FINAL)) {
+    			modifiers |= ClassFileConstants.AccFinal;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.NATIVE)) {
+    			modifiers |= ClassFileConstants.AccNative;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.STATIC)) {
+    			modifiers |= ClassFileConstants.AccStatic;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED)) {
+    			modifiers |= ClassFileConstants.AccSynchronized;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.TRANSIENT)) {
+    			modifiers |= ClassFileConstants.AccTransient;
+    		}
+    		if (others.contains(IProgramElement.Modifiers.VOLATILE)) {
+    			modifiers |= ClassFileConstants.AccVolatile;
+    		}
+		}		
 		return modifiers;
 	}
 	
@@ -95,21 +100,31 @@ public class CompilationUnitTools {
 	public static int getPublicModifierCode(IAspectJElementInfo info){
         int modifiers = ClassFileConstants.AccPublic;
 
-        List others = info.getAJModifiers();
-        if (others.contains(IProgramElement.Modifiers.ABSTRACT))
+        List<Modifiers> others = info.getAJModifiers();
+        if (others == null) {
+            return modifiers;
+        }
+        if (others.contains(IProgramElement.Modifiers.ABSTRACT)) {
             modifiers |= ClassFileConstants.AccAbstract;
-        if (others.contains(IProgramElement.Modifiers.FINAL))
+        }
+        if (others.contains(IProgramElement.Modifiers.FINAL)) {
             modifiers |= ClassFileConstants.AccFinal;
-        if (others.contains(IProgramElement.Modifiers.NATIVE))
+        }
+        if (others.contains(IProgramElement.Modifiers.NATIVE)) {
             modifiers |= ClassFileConstants.AccNative;
-        if (others.contains(IProgramElement.Modifiers.STATIC))
+        }
+        if (others.contains(IProgramElement.Modifiers.STATIC)) {
             modifiers |= ClassFileConstants.AccStatic;
-        if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED))
+        }
+        if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED)) {
             modifiers |= ClassFileConstants.AccSynchronized;
-        if (others.contains(IProgramElement.Modifiers.TRANSIENT))
+        }
+        if (others.contains(IProgramElement.Modifiers.TRANSIENT)) {
             modifiers |= ClassFileConstants.AccTransient;
-        if (others.contains(IProgramElement.Modifiers.VOLATILE))
+        }
+        if (others.contains(IProgramElement.Modifiers.VOLATILE)) {
             modifiers |= ClassFileConstants.AccVolatile;
+        }
         
         return modifiers;
     }
@@ -128,8 +143,8 @@ public class CompilationUnitTools {
 		return acc;
 	}
 	
-	public static List getModifiersFromModifierCode(int code){
-		List mods = new ArrayList(2);
+	public static List<Modifiers> getModifiersFromModifierCode(int code){
+		List<Modifiers> mods = new ArrayList<Modifiers>(2);
 		if ((code & ClassFileConstants.AccAbstract) != 0){
 			mods.add(IProgramElement.Modifiers.ABSTRACT);
 		}

@@ -15,11 +15,14 @@ package org.eclipse.ajdt.ui.tests.builder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.markers.DeleteAndUpdateAJMarkersJob;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
  * Tests for advice markers
@@ -100,6 +103,9 @@ public class AdviceMarkersTest2 extends UITestCase {
 
 	public void testMarkers() throws Exception {
 		String filename = "src/tjp/Demo.java"; //$NON-NLS-1$
+		DeleteAndUpdateAJMarkersJob job = new DeleteAndUpdateAJMarkersJob(project);
+		job.run(new NullProgressMonitor());
+		
 		IResource file = project.findMember(filename);
 		if (file == null)
 			fail("Required file not found: " + filename); //$NON-NLS-1$
@@ -110,8 +116,8 @@ public class AdviceMarkersTest2 extends UITestCase {
 			//System.out.println("type=" + markerTypes[i]);
 			
 			// create lists of messages and lines we need to search for
-			List tofindMsg = new ArrayList();
-			List tofindLine = new ArrayList();
+			List<String> tofindMsg = new ArrayList<String>();
+			List<Object> tofindLine = new ArrayList<Object>();
 			for (int j = 0; j < results[i].length; j++) {
 				if (results[i][j].length == 2) {
 					String msg = (String) results[i][j][0];

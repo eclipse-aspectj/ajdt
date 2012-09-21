@@ -167,7 +167,7 @@ public privileged aspect SourceTransformerAspect {
         }
         return "";  //$NON-NLS-1$
     }
-
+    
     private String getExtension(char[] sourceName) {
         int extensionIndex = sourceName.length - 1;
         while (extensionIndex >= 0) {
@@ -180,7 +180,7 @@ public privileged aspect SourceTransformerAspect {
         }
         return "";  //$NON-NLS-1$
     }
-
+    
     private boolean isInterestingProject(IJavaElement elt) {
         return elt != null &&
                 WeavableProjectListener.getInstance().isInWeavableProject(elt);

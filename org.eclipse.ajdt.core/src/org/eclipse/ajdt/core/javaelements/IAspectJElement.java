@@ -10,9 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Modifiers;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.IJavaElement;
@@ -28,7 +30,7 @@ public interface IAspectJElement extends IMember {
 
 	public Accessibility getAJAccessibility() throws JavaModelException;
 	
-	public List getAJModifiers() throws JavaModelException;
+	public List<Modifiers> getAJModifiers() throws JavaModelException;
 	
 	public IProgramElement.ExtraInformation getAJExtraInformation() throws JavaModelException;
 
