@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Visualser Tests
 Bundle-SymbolicName: org.eclipse.contribution.visualiser.tests;singleton:=true
-Bundle-Version: 2.2.1.qualifier
+Bundle-Version: 2.2.2.qualifier
 Bundle-ClassPath: visualisertests.jar
 Export-Package: org.eclipse.contribution.visualiser.tests
 Require-Bundle: org.eclipse.ui,
