@@ -2,4 +2,5 @@
 bin/
 tycho-maven-repository/
 target/
-
+.buildpath
+org.ebayopensource.vjet.eclipse.core.prefs

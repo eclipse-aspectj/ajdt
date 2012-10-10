@@ -49,7 +49,7 @@ public privileged aspect DebugHooksAspect {
     /**
      * will be null when outside of STS (ie- Groovy support not installed)
      */
-    private IDebugProvider provider = DebugAdapter.getInstance().getProvider();
+    private DebugAdapter adapter = DebugAdapter.getInstance();
 
     /**
      * This pointcut is reached when the debugged application stops at a new location.
@@ -78,6 +78,7 @@ public privileged aspect DebugHooksAspect {
             StepRequestImpl request = (StepRequestImpl) ((JDIThread.StepHandler) handler).getStepRequest();
             if (request != null) {
                 IThread thread = target.findThread(request.thread());
+                IDebugProvider provider = adapter.getProvider();
                 if ((provider != null && isInterestingLaunch(thread) && thread.isStepping() && provider
                         .shouldPerformExtraStep(location))) {
                     return true;  // do not proceed
@@ -192,7 +193,8 @@ public privileged aspect DebugHooksAspect {
     String[] around(JDIDebugTarget target) : gettingStepFilters(target) {
         String[] initialFilters = proceed(target);
         try {
-            if (isInterestingLaunch(target)) {
+            IDebugProvider provider = adapter.getProvider();
+            if (provider != null && isInterestingLaunch(target)) {
                 return provider.augmentStepFilters(initialFilters);
             } 
         } catch(Throwable t) {
@@ -207,6 +209,7 @@ public privileged aspect DebugHooksAspect {
     int around(IJavaThread thread, IJavaBreakpoint breakpoint, ConditionalBreakpointHandler handler) :
             conditionalBreakpointHit(thread, breakpoint, handler) {
         try {
+            IDebugProvider provider = adapter.getProvider();
             if (provider != null && 
                     isInterestingLaunch(thread) && provider.shouldPerformEvaluation((IJavaStackFrame) thread.getTopStackFrame())) {
                 return provider.conditionalBreakpointHit(thread, breakpoint, handler);
@@ -230,6 +233,7 @@ public privileged aspect DebugHooksAspect {
             IJavaStackFrame frame, IEvaluationListener listener, int evaluationDetail, boolean hitBreakpoints,
             ASTEvaluationEngine engine) {
         try {
+            IDebugProvider provider = adapter.getProvider();
             if (provider != null && isInterestingLaunch(frame)
                     && provider.shouldPerformEvaluation(frame)) {
                 provider.performEvaluation(snippet, object, frame, listener,
@@ -250,7 +254,10 @@ public privileged aspect DebugHooksAspect {
         try {
             if (thread == null) return false;
             
-            if (provider.isAlwaysInteretingLaunch()) return true;
+            IDebugProvider provider = adapter.getProvider();
+            if (provider != null && provider.isAlwaysInteretingLaunch()) {
+                return true;
+            }
             
             ILaunchConfiguration launchConfig = thread
                     .getLaunch().getLaunchConfiguration();

@@ -18,8 +18,6 @@
 package org.eclipse.ajdt.internal.ui.editor.contentassist;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.jdt.core.CompletionContext;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.corext.template.java.JavaContext;
@@ -37,9 +35,6 @@ import org.eclipse.jface.text.templates.TemplateContextType;
  * @created Mar 13, 2012
  */
 public class AJTemplateCompletionProcessor extends AbstractTemplateCompletionProposalComputer {
-    /**
-     * 
-     */
     private static final String ASPECTJ = "aspectj";
     private final TemplateEngine aspectJTemplateEngine;
     
