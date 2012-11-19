@@ -226,7 +226,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
                     AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
                     IResource ir = null;
                     while (affectedResourceIterator.hasNext()) {
-                        ir = (IResource) affectedResourceIterator.next();
+                        ir = affectedResourceIterator.next();
                         try {
                             if (ir.exists()) {
                                 ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,

@@ -176,15 +176,20 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             IWorkspaceRoot workspaceRoot = AspectJPlugin.getWorkspace()
                     .getRoot();
 
-            URI location = new File(resourcePath.toPortableString()).toURI();
-            IFile[] files = workspaceRoot.findFilesForLocationURI(location);
-            if (files != null) {
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].getProject().equals(project)) {
-                        getMessageHandler().addAffectedResource(files[i]);
-                    }
-                }
+            // bug 394569, do not call findFilesForLocationURI
+            IFile file = workspaceRoot.getFileForLocation(resourcePath);
+            if (file != null) {
+                getMessageHandler().addAffectedResource(file);
             }
+//            URI location = new File(resourcePath.toPortableString()).toURI();
+//            IFile[] files = workspaceRoot.findFilesForLocationURI(location);
+//            if (files != null) {
+//                for (int i = 0; i < files.length; i++) {
+//                    if (files[i].getProject().equals(project)) {
+//                        getMessageHandler().addAffectedResource(files[i]);
+//                    }
+//                }
+//            }
         }
 
         final String amendedText = removePrefix(text);

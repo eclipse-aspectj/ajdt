@@ -294,24 +294,29 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 		
 		// due to linked files, there may be multiple IResource relating to a single File
-		IResource[] resources;
-		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(resource.toURI());
-		if (files != null && files.length > 0) {
-		    resources = new IResource[files.length];
-		    for (int i = 0; i < files.length; i++) {
-                resources[i] = files[i];
-            }
-		} else {
-	        IContainer[] containers = ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(resource.toURI());
-	        if (containers != null && containers.length > 0) {
-	            resources = new IResource[containers.length];
-	            for (int i = 0; i < containers.length; i++) {
-	                resources[i] = containers[i];
-	            }
-	        } else {
-	            resources = null;
-	        }
+		IResource[] resources = null;
+		// bug 394569 do not use findFilesForLocationURI
+		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(resource.toURI().toASCIIString()));
+		if (file != null) {
+		    resources = new IResource[] { file };
 		}
+//		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(resource.toURI());
+//		if (files != null && files.length > 0) {
+//		    resources = new IResource[files.length];
+//		    for (int i = 0; i < files.length; i++) {
+//                resources[i] = files[i];
+//            }
+//		} else {
+//	        IContainer[] containers = ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(resource.toURI());
+//	        if (containers != null && containers.length > 0) {
+//	            resources = new IResource[containers.length];
+//	            for (int i = 0; i < containers.length; i++) {
+//	                resources[i] = containers[i];
+//	            }
+//	        } else {
+//	            resources = null;
+//	        }
+//		}
 		
 		String pathStr = null;
 		if (resources != null && resources.length > 0) {
