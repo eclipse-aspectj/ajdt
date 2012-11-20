@@ -25,7 +25,7 @@ import org.eclipse.core.resources.IProject;
  */ 
 public class CoreCompilerFactory implements ICompilerFactory {
 
-	private Map /* IProject --> AjCompiler */compilerMap = new HashMap();
+	private Map<IProject, AjCompiler> compilerMap = new HashMap<IProject, AjCompiler>();
 	
 	/**
 	 * If have already created an AjCompiler for the given project

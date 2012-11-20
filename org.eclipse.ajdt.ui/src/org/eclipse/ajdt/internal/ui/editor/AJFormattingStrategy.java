@@ -16,6 +16,7 @@ import java.util.LinkedList;
 
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -37,10 +38,10 @@ import org.eclipse.text.edits.TextEdit;
 public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 
 	/** Documents to be formatted by this strategy */
-	private final LinkedList fDocuments = new LinkedList();
+	private final LinkedList<IDocument> fDocuments = new LinkedList<IDocument>();
 
 	/** Partitions to be formatted by this strategy */
-	private final LinkedList fPartitions = new LinkedList();
+	private final LinkedList<TypedPosition> fPartitions = new LinkedList<TypedPosition>();
 
 	/**
 	 * Creates a new java formatting strategy.
@@ -55,8 +56,8 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 	public void format() {
 		super.format();
 
-		final IDocument document = (IDocument) fDocuments.removeFirst();
-		final TypedPosition partition = (TypedPosition) fPartitions
+		final IDocument document = fDocuments.removeFirst();
+		final TypedPosition partition = fPartitions
 				.removeFirst();
 
 		if (document != null && partition != null) {
@@ -67,10 +68,11 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 				String content = document.get();
 				AspectsConvertingParser pars = new AspectsConvertingParser(
 						content.toCharArray());
-				ArrayList changes = pars.convert(ConversionOptions.CONSTANT_SIZE);
+				ArrayList<Replacement> changes = pars.convert(ConversionOptions.CONSTANT_SIZE);
 				content = new String(pars.content);
 				
-				final TextEdit edit = CodeFormatterUtil.reformat(
+				@SuppressWarnings("unchecked")
+                final TextEdit edit = CodeFormatterUtil.reformat(
 						CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS, content, partition
 								.getOffset(), partition.getLength(), 0,
 						TextUtilities.getDefaultLineDelimiter(document),
@@ -114,9 +116,9 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 	public void formatterStarts(final IFormattingContext context) {
 		super.formatterStarts(context);
 
-		fPartitions.addLast(context
+		fPartitions.addLast((TypedPosition) context
 				.getProperty(FormattingContextProperties.CONTEXT_PARTITION));
-		fDocuments.addLast(context
+		fDocuments.addLast((IDocument) context
 				.getProperty(FormattingContextProperties.CONTEXT_MEDIUM));
 	}
 

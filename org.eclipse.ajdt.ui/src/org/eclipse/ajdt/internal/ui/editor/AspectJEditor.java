@@ -95,7 +95,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
     private AnnotationAccessWrapper annotationAccessWrapper;
 
-    private static Map activeEditorList = new HashMap();    
+    private static Map<IEditorInput, AspectJEditor> activeEditorList = new HashMap<IEditorInput, AspectJEditor>();    
 
     private AspectJEditorTitleImageUpdater aspectJEditorErrorTickUpdater;
 
@@ -174,7 +174,7 @@ public class AspectJEditor extends CompilationUnitEditor {
     }
 
     
-    public Object getAdapter(Class key) {
+    public Object getAdapter(@SuppressWarnings("rawtypes") Class key) {
         if (key.equals(ITextOperationTarget.class)) {
             // use our own wrapper around the one returned by the superclass
             return new AJTextOperationTarget((ITextOperationTarget) super
@@ -333,15 +333,15 @@ public class AspectJEditor extends CompilationUnitEditor {
     }
 
     
-    private void replaceRefactoringAction(String actionFieldName, SelectionDispatchAction newAction) {
-        RefactorActionGroup group = getRefactorActionGroup();
-        ISelectionChangedListener action = (ISelectionChangedListener)
-                ReflectionUtils.getPrivateField(RefactorActionGroup.class, actionFieldName, group);
-        if (action != null) {
-            getSite().getSelectionProvider().removeSelectionChangedListener(action);
-        }
-        ReflectionUtils.setPrivateField(RefactorActionGroup.class, actionFieldName, group, newAction);
-    }
+//    private void replaceRefactoringAction(String actionFieldName, SelectionDispatchAction newAction) {
+//        RefactorActionGroup group = getRefactorActionGroup();
+//        ISelectionChangedListener action = (ISelectionChangedListener)
+//                ReflectionUtils.getPrivateField(RefactorActionGroup.class, actionFieldName, group);
+//        if (action != null) {
+//            getSite().getSelectionProvider().removeSelectionChangedListener(action);
+//        }
+//        ReflectionUtils.setPrivateField(RefactorActionGroup.class, actionFieldName, group, newAction);
+//    }
 
 
     //override this function to prevent others from setting the
@@ -538,7 +538,7 @@ public class AspectJEditor extends CompilationUnitEditor {
     /**
      * @return Returns the activeEditorList.
      */
-    public static Collection getActiveEditorList() {
+    public static Collection<AspectJEditor> getActiveEditorList() {
         synchronized(activeEditorList) {
             return activeEditorList.values();
         }

@@ -63,10 +63,10 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	private Action hideWarningsAction;
 	private boolean hideErrors;
 	private boolean hideWarnings;
-	private Map kindMap;
+	private Map<String, IMarkupKind> kindMap;
 	protected static final String aspectJErrorKind = "declare error"; //$NON-NLS-1$
 	protected static final String aspectJWarningKind = "declare warning"; //$NON-NLS-1$
-	protected Map savedColours;
+	protected Map<String, String> savedColours;
 	
 	private static Color aspectJErrorColor = new Color(null, new RGB(228,5,64));
 	private static Color aspectJWarningColor = new Color(null, new RGB(255,206,90));
@@ -78,7 +78,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	/**
 	 * Get a List of Stripes for the given member, which are its markups.
 	 */
-	public List getMemberMarkups(IMember member) {
+	public List<Stripe> getMemberMarkups(IMember member) {
 		if(kindMap == null) {
 			updateModel();
 		}
@@ -96,19 +96,17 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			if( jp != null) {
 		        AJProjectModelFacade model = AJProjectModelFactory.getInstance().getModelForProject(jp.getProject());
 
-				Collection/*List<IRelationship>*/ allRelationships = model.getRelationshipsForProject( 
+				Collection<IRelationship> allRelationships = model.getRelationshipsForProject( 
 				        new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ANNOTATED_BY, 
 				        AJRelationshipManager.ASPECT_DECLARATIONS, AJRelationshipManager.MATCHES_DECLARE});
 				if(allRelationships != null) {
-					for (Iterator iter = allRelationships.iterator(); iter
-							.hasNext();) {
-						List kinds = new ArrayList();
-						IRelationship relationship = (IRelationship) iter.next();
+					for (IRelationship relationship : allRelationships) {
+						List<IMarkupKind> kinds = new ArrayList<IMarkupKind>();
                         IProgramElement sourceIpe = model.getProgramElement(relationship.getSourceHandle());
                         if(sourceIpe != null) {
-                            List/*String*/ targets = relationship.getTargets();
-    						for (Iterator targetIter = targets.iterator(); targetIter.hasNext(); ) {
-    						    IJavaElement target = model.programElementToJavaElement((String) targetIter.next());
+                            List<String> targets = relationship.getTargets();
+    						for (String targetStr : targets) {
+    						    IJavaElement target = model.programElementToJavaElement(targetStr);
     						    String simpleName;
         						String qualifiedName;
         						
@@ -161,20 +159,20 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
         								}
         								IMarkupKind markupKind = null;
         								if(kindMap == null) {
-        									kindMap = new HashMap();
+        									kindMap = new HashMap<String, IMarkupKind>();
         								}
         								if(relationship.getName().equals(AJRelationshipManager.MATCHES_DECLARE.getDisplayName())) {
         									String sourceName = target.getElementName();					
         									boolean errorKind = sourceName.startsWith(aspectJErrorKind);
         									if(kindMap.get(sourceName + ":::" + qualifiedName) instanceof IMarkupKind) { //$NON-NLS-1$
-        										markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + qualifiedName); //$NON-NLS-1$
+        										markupKind = kindMap.get(sourceName + ":::" + qualifiedName); //$NON-NLS-1$
         									} else {
         										markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + simpleName, errorKind); //$NON-NLS-1$
         										kindMap.put(sourceName + ":::" + qualifiedName, markupKind); //$NON-NLS-1$
         									}
         								} else {
         									if(kindMap.get(qualifiedName) instanceof IMarkupKind) {
-        										markupKind = (IMarkupKind)kindMap.get(qualifiedName);
+        										markupKind = kindMap.get(qualifiedName);
         									} else {
         										markupKind = new SimpleMarkupKind(simpleName, qualifiedName);
         										kindMap.put(qualifiedName, markupKind);
@@ -199,13 +197,13 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 * @param kinds
 	 * @return
 	 */
-	private List checkErrorsAndWarnings(List stripes) {
-		List returningStripes = new ArrayList();
+	private List<Stripe> checkErrorsAndWarnings(List stripes) {
+		List<Stripe> returningStripes = new ArrayList<Stripe>();
 		for (Iterator iter = stripes.iterator(); iter.hasNext();) {
 			Stripe stripe = (Stripe) iter.next();
-			List kinds = new ArrayList(stripe.getKinds());
-			for (Iterator iterator = kinds.iterator(); iterator.hasNext();) {
-				IMarkupKind kind = (IMarkupKind) iterator.next();
+			List<IMarkupKind> kinds = new ArrayList<IMarkupKind>(stripe.getKinds());
+			for (Iterator<IMarkupKind> iterator = kinds.iterator(); iterator.hasNext();) {
+				IMarkupKind kind = iterator.next();
 				if(kind instanceof StealthMarkupKind) {
 					String name = kind.getName();
 					String[] parts = name.split(":::"); //$NON-NLS-1$
@@ -272,11 +270,11 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 * Get all the markup kinds.
 	 * @return a Set of IMarkupKinds
 	 */
-	public SortedSet getAllMarkupKinds() {
+	public SortedSet<IMarkupKind> getAllMarkupKinds() {
 		if(kindMap == null) {
 			updateModel();
 		}
-		TreeSet kinds = new TreeSet();
+		TreeSet<IMarkupKind> kinds = new TreeSet<IMarkupKind>();
 		if(kindMap != null) { 
 			kinds.addAll(kindMap.values());
 		}
@@ -329,7 +327,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			String value = r + "," + g + "," + b; //$NON-NLS-1$ //$NON-NLS-2$
 			prefs.setValue(key, value);
 			if(savedColours == null) {
-				savedColours = new HashMap();
+				savedColours = new HashMap<String, String>();
 			}
 			savedColours.remove(key);
 			savedColours.put(key, value);
@@ -349,9 +347,9 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
 			String key = currentProject + ":::" + aspectName; //$NON-NLS-1$
 			if(savedColours == null) {
-				savedColours = new HashMap();
+				savedColours = new HashMap<String, String>();
 			}
-			String value = (String)savedColours.get(key);
+			String value = savedColours.get(key);
 			if(value == null) {
 				IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
 				value = prefs.getString(key); 
@@ -433,7 +431,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			}
 			prefs.setToDefault(allPrefereceKeys);
 		}
-		savedColours = new HashMap();
+		savedColours = new HashMap<String, String>();
 		super.resetColours();
 	}
 

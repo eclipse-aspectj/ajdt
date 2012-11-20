@@ -565,12 +565,12 @@ public class AspectJPreferences {
 		return store.getBoolean(key);
 	}
 	
-	public static void setCheckedFilters(List l) {
+	public static void setCheckedFilters(List<String> l) {
 
 		StringBuffer sb = new StringBuffer();
 		sb.append("set: "); //$NON-NLS-1$
-		for (Iterator iter = l.iterator(); iter.hasNext();) {
-			String name = (String) iter.next();
+		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
+			String name = iter.next();
 			sb.append(name);
 			if (iter.hasNext()) {
 				sb.append(","); //$NON-NLS-1$
@@ -581,7 +581,7 @@ public class AspectJPreferences {
 		pstore.setValue(XREF_CHECKED_FILTERS, sb.toString());
 	}
 
-	public static List getFilterCheckedList() {
+	public static List<String> getFilterCheckedList() {
 		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 		String xRefCheckedFilters = pstore.getString(XREF_CHECKED_FILTERS);
@@ -589,19 +589,19 @@ public class AspectJPreferences {
 			return null;
 		}
 		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
-		List checkedList = new ArrayList();
+		List<String> checkedList = new ArrayList<String>();
 		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
-			checkedList.add(tokenizer.nextElement());
+			checkedList.add(tokenizer.nextToken());
 		}
 		return checkedList;
 	}
 
-	public static void setEventTraceList(List l) {
+	public static void setEventTraceList(List<String> l) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("set: "); //$NON-NLS-1$
-		for (Iterator iter = l.iterator(); iter.hasNext();) {
-			String name = (String) iter.next();
+		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
+			String name = iter.next();
 			sb.append(name);
 			if (iter.hasNext()) {
 				sb.append(","); //$NON-NLS-1$
@@ -612,7 +612,7 @@ public class AspectJPreferences {
 		pstore.setValue(EVENT_CHECKED_FILTERS, sb.toString());
 	}
 
-	public static List getEventTraceCheckedList() {
+	public static List<String> getEventTraceCheckedList() {
 		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 		String eventTraceCheckedFilters = pstore.getString(EVENT_CHECKED_FILTERS);
@@ -620,19 +620,19 @@ public class AspectJPreferences {
 			return null;
 		}
 		eventTraceCheckedFilters = eventTraceCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
-		List checkedList = new ArrayList();
+		List<String> checkedList = new ArrayList<String>();
 		StringTokenizer tokenizer = new StringTokenizer(eventTraceCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
-			checkedList.add(tokenizer.nextElement());
+			checkedList.add(tokenizer.nextToken());
 		}
 		return checkedList;
 	}
 
-	public static void setCheckedInplaceFilters(List l) {
+	public static void setCheckedInplaceFilters(List<String> l) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("set: "); //$NON-NLS-1$
-		for (Iterator iter = l.iterator(); iter.hasNext();) {
-			String name = (String) iter.next();
+		for (Iterator<String> iter = l.iterator(); iter.hasNext();) {
+			String name = iter.next();
 			sb.append(name);
 			if (iter.hasNext()) {
 				sb.append(","); //$NON-NLS-1$
@@ -652,10 +652,10 @@ public class AspectJPreferences {
 			return null;
 		}
 		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
-		List checkedList = new ArrayList();
+		List<String> checkedList = new ArrayList<String>();
 		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
-			checkedList.add(tokenizer.nextElement());
+			checkedList.add(tokenizer.nextToken());
 		}
 		return checkedList;
 	}

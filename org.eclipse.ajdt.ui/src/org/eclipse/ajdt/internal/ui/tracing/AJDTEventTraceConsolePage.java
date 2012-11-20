@@ -76,16 +76,16 @@ public class AJDTEventTraceConsolePage extends TextConsolePage implements EventL
         
         String dlogTitle = UIMessages.eventTrace_filter_dialog_title;
         String dlogMessage = UIMessages.eventTrace_filter_dialog_message;       
-        List populatingList = Arrays.asList(DebugTracing.categoryNames);        
+        List<String> populatingList = Arrays.asList(DebugTracing.categoryNames);        
 
-        List checkedList = AspectJPreferences.getEventTraceCheckedList();
+        List<String> checkedList = AspectJPreferences.getEventTraceCheckedList();
         
-        List defaultList = new ArrayList();
+        List<String> defaultList = new ArrayList<String>();
         defaultList.add(DebugTracing.categoryNames[0]);
         defaultList.add(DebugTracing.categoryNames[3]);
         
         if (checkedList == null){
-            checkedList = new ArrayList(defaultList);
+            checkedList = new ArrayList<String>(defaultList);
         }
         DebugTracing.setDebugCategories(checkedList);
         

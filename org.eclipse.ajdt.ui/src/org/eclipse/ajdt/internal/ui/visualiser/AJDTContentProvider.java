@@ -9,7 +9,6 @@
 package org.eclipse.ajdt.internal.ui.visualiser;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -41,9 +40,9 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class AJDTContentProvider extends JDTContentProvider {
 
-	List currentGroups;
+	List<IGroup> currentGroups;
 
-	List currentMembers;
+	List<IMember> currentMembers;
 
 	// Access this variable via its getter method, which handles initialisation
 	private Set<IFile> includedFiles;
@@ -53,7 +52,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * 
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getAllGroups()
 	 */
-	public List getAllGroups() {
+	public List<IGroup> getAllGroups() {
 		if (currentGroups == null) {
 			updateData();
 		} 
@@ -66,7 +65,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * 
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getAllMembers()
 	 */
-	public List getAllMembers() {
+	public List<IMember> getAllMembers() {
 		if (currentMembers == null) {
 			updateData();
 		} 
@@ -140,8 +139,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 			((AJDTMarkupProvider) ProviderManager.getMarkupProvider()).resetMarkupsAndKinds();
 		}
 		long stime = System.currentTimeMillis();
-		List newGroups = new ArrayList();
-		List newMembers = new ArrayList();
+		List<IGroup> newGroups = new ArrayList<IGroup>();
+		List<IMember> newMembers = new ArrayList<IMember>();
 		if (currentProject != null) {
 
 			try {
@@ -201,8 +200,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 		currentGroups = newGroups;
 	}
 
-	private void addMembersAndGroups(List newGroups, List newMembers, IPackageFragment packageFragment) {
-		List classes = getMembersForPackage(packageFragment);
+	private void addMembersAndGroups(List<IGroup> newGroups, List<IMember> newMembers, IPackageFragment packageFragment) {
+		List<IMember> classes = getMembersForPackage(packageFragment);
 		if (classes.size() > 0) {
 			boolean defaultPackage = packageFragment.isDefaultPackage();
 			IGroup group = new JDTGroup(packageFragment.getElementName());
@@ -211,9 +210,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 				group.setTooltip("(default package)"); //$NON-NLS-1$
 			}
 
-			for (Iterator iter = classes.iterator(); iter.hasNext();) {
-				Object tempObject = iter.next();
-				JDTMember jdtMember = (JDTMember) tempObject;
+			for (IMember jdtMember : classes) {
 				group.add(jdtMember);
 				newMembers.add(jdtMember);
 				if (defaultPackage) {
@@ -279,8 +276,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * @param packageFragment
 	 * @return List of JDTMembers
 	 */
-	public List getMembersForPackage(IPackageFragment packageFragment) {
-		List returningClasses = new ArrayList();
+	public List<IMember> getMembersForPackage(IPackageFragment packageFragment) {
+		List<IMember> returningClasses = new ArrayList<IMember>();
 		try {
 			if (containsUsefulStuff(packageFragment)) {
 				IJavaElement[] javaElements = packageFragment.getChildren();

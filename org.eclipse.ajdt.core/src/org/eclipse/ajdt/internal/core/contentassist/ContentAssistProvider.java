@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareLookupEnvironment;
 import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
@@ -52,7 +53,7 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         char[] transformedContents;
         CompilationUnit orig;
         
-        ArrayList insertionTable;
+        ArrayList<Replacement> insertionTable;
         
         public MockCompilationUnit(CompilationUnit orig) {
             super((PackageFragment) orig.getParent(), orig.getElementName(), orig.owner);
@@ -70,10 +71,6 @@ public class ContentAssistProvider implements IJavaContentAssistProvider {
         
         public char[] getContents() {
             return transformedContents;
-        }
-        
-        int translatePositionToReal(int pos) {
-            return AspectsConvertingParser.translatePositionToBeforeChanges(pos, insertionTable);
         }
         
         int translatePositionToFake(int pos) {
