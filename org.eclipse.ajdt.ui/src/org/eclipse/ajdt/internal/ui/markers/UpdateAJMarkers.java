@@ -84,7 +84,7 @@ public class UpdateAJMarkers {
     public UpdateAJMarkers(IProject project, File[] sourceFiles) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
-        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles);        
+        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles, project);        
     }
     
     /**

@@ -15,6 +15,7 @@ import java.io.File;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -27,10 +28,11 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
+    FileURICache fileCache = new FileURICache();
 
 	public void testOutputLocationManager() throws Exception {
 		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
-		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(project, fileCache);
 		om.buildStarting();
 
 		IFile class1 = (IFile) project.findMember("src/p1/Class1.java"); //$NON-NLS-1$
@@ -58,7 +60,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 
 	public void testOutputLocationManagerBug153682() throws Exception {
 		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
-		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(project, fileCache);
 		om.buildStarting();
 		IFile class1 = (IFile) project.findMember("foo/Test.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
@@ -78,7 +80,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 	
 	public void testOutputLocationManagerBug160846() throws Exception {
 		IProject project = createPredefinedProject("bug160846"); //$NON-NLS-1$
-		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(project, fileCache);
 		om.buildStarting();
 		IFile class1 = (IFile) project.findMember("src/java/org/noco/aj/MainClass.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
@@ -99,7 +101,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 	public void testInpathOutLocation() throws Exception {
 	    IProject project1 = createPredefinedProject("ExportAsJar"); //$NON-NLS-1$
 	    IProject project2 = createPredefinedProject("JarOnInpath"); //$NON-NLS-1$
-	    CoreOutputLocationManager om = new CoreOutputLocationManager(project2);
+	    CoreOutputLocationManager om = new CoreOutputLocationManager(project2, fileCache);
 	    om.buildStarting();
 	    IFile class1 = (IFile) project1.findMember("export.jar"); //$NON-NLS-1$
 	    File file1 = class1.getLocation().toFile();
@@ -114,7 +116,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 	class MockCoreOutputLocationManager extends CoreOutputLocationManager {
 	    
 	    public MockCoreOutputLocationManager(IProject project) {
-            super(project);
+            super(project, fileCache);
         }
 
         // make accessible in this test

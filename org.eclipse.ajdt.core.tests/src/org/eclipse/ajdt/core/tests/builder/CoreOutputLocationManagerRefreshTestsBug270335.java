@@ -20,6 +20,7 @@ import org.eclipse.ajdt.internal.core.ajde.CoreBuildProgressMonitor;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
 import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -37,8 +38,8 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
     
     private class MockCoreOutputLocationManager extends CoreOutputLocationManager {
         private boolean iGotZapped = false;
-        public MockCoreOutputLocationManager(IProject project) {
-            super(project);
+        public MockCoreOutputLocationManager(IProject project, FileURICache fileCache) {
+            super(project, fileCache);
         }
         
         protected void zapBinFolderToProjectMap() {
@@ -63,7 +64,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
 
         public IOutputLocationManager getOutputLocationManager() {
             if (locationManager == null) {
-                locationManager = new MockCoreOutputLocationManager(project);
+                locationManager = new MockCoreOutputLocationManager(project, new FileURICache());
             }
             return locationManager;
         }

@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -34,7 +37,7 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     
     public DeleteAndUpdateAJMarkersJob(IProject project, File[] sourceFiles) {
         super("Delete and update AspectJ markers for " + project.getName());
-        IFile[] iFiles = javaFileToIFile(sourceFiles);
+        IFile[] iFiles = javaFileToIFile(sourceFiles, project);
         update = new UpdateAJMarkers(project, iFiles);
         delete = new DeleteAJMarkers(project, iFiles);
         rule = createSchedulingRule(project, iFiles);
@@ -112,11 +115,11 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     /**
      * converts from an array of java.io.File to an array of IFile
      */
-    static IFile[] javaFileToIFile(File[] files) {
-        IWorkspace workspace= ResourcesPlugin.getWorkspace();
+    static IFile[] javaFileToIFile(File[] files, IProject project) {
+        FileURICache fileCache = ((CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration()).getFileCache();
         List<IFile> iFiles = new ArrayList<IFile>(files.length);
         for (int i = 0; i < files.length; i++) {
-            IFile[] newFiles = workspace.getRoot().findFilesForLocationURI(files[i].toURI());
+            IFile[] newFiles = fileCache.findFilesForURI(files[i].toURI());
             // inner loop---if a single file is mapped to several linked files in the workspace
             for (int j = 0; j < newFiles.length; j++) {
                 iFiles.add(newFiles[j]);

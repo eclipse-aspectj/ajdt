@@ -44,6 +44,7 @@ import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
@@ -118,8 +119,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
         
         CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
-        compiler.getCompilerConfiguration();
-
+                compiler.getCompilerConfiguration();
 
         // 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
         progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
@@ -370,7 +370,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         
         // create the name environment only so that we can get the ClasspathMultiDirectories
         for (int i = 0; i < results.length; i++) {
-            IFile ifile = findWorkspaceFile(allCompiled[i]);
+            IFile ifile = findWorkspaceFile(allCompiled[i], compilerConfig.getFileCache());
             
             if (ifile != null) {
                 results[i] = new AJCompilationParticipantResult(ifile);
@@ -392,10 +392,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
         return results;
     }
 
-    private IFile findWorkspaceFile(File file) {
+    private IFile findWorkspaceFile(File file, FileURICache fileCache) {
         IFile ifile = null;
         try {
-            IFile[] maybeFiles = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
+            IFile[] maybeFiles = fileCache.findFilesForURI(file.toURI());
             if (maybeFiles.length == 0) {
                 // uh oh....shouldn't happen
                 throw new CoreException(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, "File outside of project is being compiled: " + file.getName()));

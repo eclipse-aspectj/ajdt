@@ -28,6 +28,8 @@ import org.aspectj.bridge.IMessage.Kind;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -69,7 +71,7 @@ public class UIMessageHandler implements IBuildMessageHandler {
      * Markers created in projects other than the one under compilation, which
      * should be cleared next time the compiled project is rebuilt
      */
-    private static Map<String, List<?>> otherProjectMarkers = new HashMap<String, List<?>>();
+    private static Map<String, List<IMarker>> otherProjectMarkers = new HashMap<String, List<IMarker>>();
     /**
      * Indicates whether the most recent build was full or incremental
      */
@@ -365,15 +367,15 @@ public class UIMessageHandler implements IBuildMessageHandler {
     /**
      * Try to map a source location in a project to an IResource
      * 
-     * @param isl
+     * @param sloc
      *            the source location
      * @param project
      *            the project to look in first
      * @return the IResource if a match was found, null otherwise
      */
-    private IResource locationToResource(ISourceLocation isl, IProject project) {
-        IResource ir = null;
-		File file = isl.getSourceFile();
+    private IResource locationToResource(ISourceLocation sloc, IProject project) {
+        IResource resource = null;
+		File file = sloc.getSourceFile();
 		String loc = file.getPath();
 		if (!file.exists()) {
 			// 167121: might be a binary file in a directory, which uses ! as a separator
@@ -381,26 +383,29 @@ public class UIMessageHandler implements IBuildMessageHandler {
 			loc = loc.replace('!', File.separatorChar);
 		}
         // try this project
-        ir = AJDTUtils.findResource(loc, project);
+		FileURICache fileCache = ((CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration()).getFileCache();
 
-        if (ir == null) {
+        resource = fileCache.findResource(loc, project);
+
+        if (resource == null) {
             // try any project
-            ir = AJDTUtils.findResource(loc);
-            if (ir == null) {
+            resource = fileCache.findResource(loc);
+            if (resource == null) {
                 // fix for declare
                 // warning/error bug which
                 // returns only file name
                 // (unqualified)
-                ir = tryToFindResource(loc,project);
+                resource = tryToFindResource(loc,project);
             }
             // At least warn that you are going to
             // blow up with an event trace ...
-            if (ir == null)
+            if (resource == null) {
             	AJLog.log(AJLog.COMPILER,"Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
                                 + loc);
+            }
         }
 
-        return ir;
+        return resource;
     }
     
     private IResource tryToFindResource(String fileName, IProject project) {
@@ -521,9 +526,9 @@ public class UIMessageHandler implements IBuildMessageHandler {
     
     private void addOtherProjectMarker(IProject p, IMarker m) {
         if (!otherProjectMarkers.containsKey(p.getName())) {
-            otherProjectMarkers.put(p.getName(), new ArrayList<Object>());
+            otherProjectMarkers.put(p.getName(), new ArrayList<IMarker>());
         }
-        List<IMarker> l = (List<IMarker>) otherProjectMarkers.get(p.getName());
+        List<IMarker> l = otherProjectMarkers.get(p.getName());
         l.add(m);
     }
 

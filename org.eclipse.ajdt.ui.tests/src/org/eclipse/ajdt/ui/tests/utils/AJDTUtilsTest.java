@@ -19,6 +19,7 @@ import junit.framework.AssertionFailedError;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -418,7 +419,7 @@ public class AJDTUtilsTest extends UITestCase {
 	/* bug 82258 */
 	public void testCaseInsensitiveDriveLetters() throws Exception {
 		IProject project = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
-
+		FileURICache fileCache = new FileURICache(project);
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
 		String fullpath1 = project.getLocation().toOSString() + File.separator
@@ -442,11 +443,11 @@ public class AJDTUtilsTest extends UITestCase {
 
 		// now make sure both versions of the path cause the resource to be
 		// found
-		IResource res1 = AJDTUtils.findResource(fullpath1, project);
+		IResource res1 = fileCache.findResource(fullpath1, project);
 		assertNotNull(
 				"Regression of bug 82258: handling of windows-style drive letters", res1); //$NON-NLS-1$
 
-		IResource res2 = AJDTUtils.findResource(fullpath2, project);
+		IResource res2 = fileCache.findResource(fullpath2, project);
 		assertNotNull(
 				"Regression of bug 82258: handling of windows-style drive letters", res2); //$NON-NLS-1$
 
@@ -457,8 +458,9 @@ public class AJDTUtilsTest extends UITestCase {
 	 */
 	public void testCaseInsensitive() throws Exception {
 		IProject project = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
+        FileURICache fileCache = new FileURICache(project);
 
-		// create two paths, one where the drive letter (if there is one) has a
+        // create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
 		String fullpath1 = project.getLocation().toOSString() + File.separator
 				+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -473,15 +475,16 @@ public class AJDTUtilsTest extends UITestCase {
 			fullpath2 = fullpath1;
 		}
 		// now make sure both the resources can be found
-		IResource res1 = AJDTUtils.findResource(fullpath1, project);
+		IResource res1 = fileCache.findResource(fullpath1, project);
 		assertNotNull("Regression of bug 82341", res1); //$NON-NLS-1$
 
-		IResource res2 = AJDTUtils.findResource(fullpath2, project);
+		IResource res2 = fileCache.findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82341", res2); //$NON-NLS-1$
 	}
 
 	public void testCaseInsensitiveNoSrcFolder() throws Exception {
 		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
+        FileURICache fileCache = new FileURICache(project);
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
@@ -497,10 +500,10 @@ public class AJDTUtilsTest extends UITestCase {
 			fullpath2 = fullpath1;
 		}
 		// now make sure both the resources can be found
-		IResource res1 = AJDTUtils.findResource(fullpath1, project);
+		IResource res1 = fileCache.findResource(fullpath1, project);
 		assertNotNull("Regression of bug 82341", res1); //$NON-NLS-1$
 
-		IResource res2 = AJDTUtils.findResource(fullpath2, project);
+		IResource res2 = fileCache.findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82341", res2); //$NON-NLS-1$
 
 	}

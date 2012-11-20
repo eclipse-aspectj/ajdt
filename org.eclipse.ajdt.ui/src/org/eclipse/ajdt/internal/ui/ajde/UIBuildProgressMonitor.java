@@ -17,6 +17,8 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -173,11 +175,9 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
             		resourcePath = new Path(text.substring(fromLoc+5,endLoc));
             	}
             }
-            IWorkspaceRoot workspaceRoot = AspectJPlugin.getWorkspace()
-                    .getRoot();
-
             URI location = new File(resourcePath.toPortableString()).toURI();
-            IFile[] files = workspaceRoot.findFilesForLocationURI(location);
+            
+            IFile[] files = fileCache.findFilesForURI(location);
             if (files != null) {
                 for (int i = 0; i < files.length; i++) {
                     if (files[i].getProject().equals(project)) {
@@ -294,6 +294,8 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     
     private boolean buildWasCancelled = false;
 
+    private FileURICache fileCache;
+
 	
     /**
      * Called from the Builder to set up the compiler for a new build.
@@ -311,7 +313,7 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         AJLog.logStart(TimerLogEvent.FIRST_WOVEN);
         reportedCompiledMessages = false;
         reportedWovenMessages = false;
-
+        fileCache = ((CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration()).getFileCache();
     }
 
 	public boolean buildWasCancelled() {

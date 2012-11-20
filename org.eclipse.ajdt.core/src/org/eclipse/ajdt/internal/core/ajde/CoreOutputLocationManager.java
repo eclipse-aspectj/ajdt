@@ -126,8 +126,11 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
     // Relationship maps updated.
     private Set<File> compiledSourceFiles;
 
-	public CoreOutputLocationManager(IProject project) {
+    private FileURICache fileCache;
+
+	public CoreOutputLocationManager(IProject project, FileURICache fileCache) {
 		this.project = project;
+        this.fileCache = fileCache;
 		this.workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		jProject = JavaCore.create(project);
         initSourceFolders();
@@ -293,16 +296,21 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			return defaultOutput;
 		}
 		
+		File maybeCached = srcFileToOuput.get(resource);
+		if (maybeCached != null) {
+		    return maybeCached;
+		}
+		
 		// due to linked files, there may be multiple IResource relating to a single File
 		IResource[] resources;
-		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(resource.toURI());
+		IFile[] files = fileCache.findFilesForURI(resource.toURI());
 		if (files != null && files.length > 0) {
 		    resources = new IResource[files.length];
 		    for (int i = 0; i < files.length; i++) {
                 resources[i] = files[i];
             }
 		} else {
-	        IContainer[] containers = ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(resource.toURI());
+	        IContainer[] containers = fileCache.findContainersForURI(resource.toURI());
 	        if (containers != null && containers.length > 0) {
 	            resources = new IResource[containers.length];
 	            for (int i = 0; i < containers.length; i++) {

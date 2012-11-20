@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuildJob;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -29,6 +30,8 @@ import org.eclipse.ajdt.core.model.AJProjectModelFacade;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
+import org.eclipse.ajdt.internal.core.ajde.FileURICache;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.markers.AJMarkersDialog;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -396,10 +399,11 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			final String linenumber = s[1];
 			// System.err.println("FilePath=" + filepath);
 			// System.err.println("linenum=" + linenumber);
+	        FileURICache fileCache = ((CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration()).getFileCache();
 
-			IResource r = AJDTUtils.findResource(filepath);
+			IResource r = fileCache.findResource(filepath,project);
 			if (r == null) {
-				r = AJDTUtils.findResource(filepath,project);
+			    r = fileCache.findResource(filepath);
 			}
 			
 			// 159867: not able to navigate to a binary aspect
@@ -471,7 +475,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                         IRegion region = getOffsetOfLine(linenumber, editor);
                         editor.selectAndReveal(region.getOffset(), region.getLength());
                         return;
-                    }
+                    } 
                 } catch (JavaModelException e) {
                 } catch (PartInitException e) {
                 }

@@ -1173,98 +1173,12 @@ public class AJDTUtils {
     }
 
 
-    /*
-     * Lightweight form of canonical path conversion - only converts
-     * windows-style drive letters to uppercase.
-     */
-    private static String toCanonical(String path) {
-        if ((path.charAt(1) == ':')
-                && (((path.charAt(0) >= 'a') && (path.charAt(0) <= 'z')) || ((path
-                        .charAt(0) >= 'A') && (path.charAt(0) <= 'Z')))) {
-            return Character.toUpperCase(path.charAt(0)) + path.substring(1);
-        } else {
-            return path;
-        }
-    }
-    
-    /**
-     * On windows, returns whether or not we have a match regardless of
-     * case - bug 82341
-     */
-    private static boolean caseInsensitiveMatch(String toMatch, IResource resource) {
-        if((toMatch.charAt(1) == ':')) {
-            return toMatch.toLowerCase().startsWith(resource.getLocation()
-                    .toString().toLowerCase());
-        }
-        return false;
-    }
-
-    /**
-     * Return the IResource within the workspace that maps to the given File
-     * In the case of linked resources, there may be more than one resource for a given
-     * file system location.  In this case, just arbitrarily return the first.
-     * Also, returns null if no resources are mapped to the file system location
-     */
-    public static IResource findResource(String fullPath) {
-        return findResource(fullPath, null);
-    }
-
-    /**
-     * Return the IResource within the project that maps to the given File
-     */
-    public static IResource findResource(String fullPath, IProject p) {
-        URI uri = new File(fullPath).toURI();
-		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(uri);
-        if (files != null) {
-            for (IFile file : files) {
-                if (p == null || file.getProject().equals(p)) {
-                    return file;
-                }
-            }
-        } else {
-            // maybe a folder
-            IContainer[] containers = p.getWorkspace().getRoot().findContainersForLocationURI(uri);
-            for (IContainer container : containers) {
-                if (p == null || container.getProject().equals(p)) {
-                    return container;
-                }
-            }
-        }
-        return null;
-    }
 
     // Bug 119853
     // paths are different on Mac
     public static boolean isMacOS() {
         String os = System.getProperty("os.name"); //$NON-NLS-1$
         return os.startsWith("Mac"); //$NON-NLS-1$
-    }
-
-    /**
-     * extracts a project name from a full path of a binary aspect path.
-     * A binary aspect path is like a normal path, but contains a '!' at the 
-     * package root.  Assume that the filename looks like this:<br>
-     * <br>
-     *  <code>/full/path/to/project/<project_folder>/path/to/package/root!qualified/name.class</code>
-     * 
-     * cannot assume that the project name is the same as the project folder.  Cannot assume that
-     * project folder is on the workspace path.
-     * 
-     * @See {@link ShadowMunger.getBinarySourceLocation}
-     */
-    public static IJavaProject extractProject(String filepath) {
-        // remove class name
-        String pathOnly = filepath.substring(0, filepath.lastIndexOf('!'));
-        
-        // find associated resource
-        IResource packageRootRes = findResource(pathOnly);
-        if (packageRootRes != null) {
-            IProject proj = packageRootRes.getProject();
-            if (proj != null) {
-                return JavaCore.create(proj);
-            }
-        }
-        return null;
     }
 
     /**

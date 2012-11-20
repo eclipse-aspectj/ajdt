@@ -12,7 +12,6 @@ package org.eclipse.ajdt.internal.core.ajde;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -32,7 +31,6 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
 import org.eclipse.core.internal.content.ContentTypeManager;
-import org.eclipse.core.internal.content.ContentTypeMatcher;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -41,11 +39,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.util.Util;
@@ -61,6 +57,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     private String cachedClasspath = null;
     protected IProject project;
     protected CoreOutputLocationManager locationManager;
+    protected FileURICache fileCache; 
 
     // fully qualified list of file names that have been touched since
     // last build
@@ -81,6 +78,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         this.project = project;
         AJLog.log(AJLog.BUILDER, "Compiler configuration for project " + project.getName() + " doesn't know previous state, so assuming EVERYTHING has changed.");
         configurationChanges = EVERYTHING;
+        fileCache = new FileURICache(project);
     }
     
     public void buildStarting() {
@@ -186,7 +184,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
     public IOutputLocationManager getOutputLocationManager() {
         if (locationManager == null) {
-            locationManager = new CoreOutputLocationManager(project);
+            locationManager = new CoreOutputLocationManager(project, fileCache);
         }
         return locationManager;
     }
@@ -648,5 +646,9 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         } catch (CoreException e) {
             return ResourcesPlugin.getEncoding();
         }
+    }
+    
+    public FileURICache getFileCache() {
+        return fileCache;
     }
 }

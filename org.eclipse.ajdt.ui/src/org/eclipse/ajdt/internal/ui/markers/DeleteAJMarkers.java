@@ -33,7 +33,7 @@ public class DeleteAJMarkers {
      */
     public DeleteAJMarkers(IProject project, File[] sourceFiles) {
         this.project = project;
-        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles);
+        this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles, project);
     }
     public DeleteAJMarkers(IProject project, IFile[] sourceFiles) {
         this.project = project;
