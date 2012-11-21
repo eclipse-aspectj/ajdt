@@ -296,11 +296,6 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			return defaultOutput;
 		}
 		
-		File maybeCached = srcFileToOuput.get(resource);
-		if (maybeCached != null) {
-		    return maybeCached;
-		}
-		
 		// due to linked files, there may be multiple IResource relating to a single File
 		IResource[] resources;
 		IFile[] files = fileCache.findFilesForURI(resource.toURI());
