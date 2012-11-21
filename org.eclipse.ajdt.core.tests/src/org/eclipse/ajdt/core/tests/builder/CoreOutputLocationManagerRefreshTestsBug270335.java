@@ -64,7 +64,7 @@ public class CoreOutputLocationManagerRefreshTestsBug270335 extends AJDTCoreTest
 
         public IOutputLocationManager getOutputLocationManager() {
             if (locationManager == null) {
-                locationManager = new MockCoreOutputLocationManager(project, new FileURICache());
+                locationManager = new MockCoreOutputLocationManager(project, new FileURICache(project));
             }
             return locationManager;
         }
