@@ -40,6 +40,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaModelManager;
@@ -474,6 +475,25 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 				return sourceFolderMapping.getValue();
 			}
 		}
+		
+		// might be a linked folder in a source folder
+		IFile[] files = fileCache.findFilesForURI(sourceFile.toURI());
+		try {
+            IPackageFragmentRoot[] roots = jProject.getPackageFragmentRoots();
+            for (IPackageFragmentRoot root : roots) {
+                if (!root.isReadOnly()) {
+                    IContainer container = (IContainer) root.getResource();
+            	    for (IFile file : files) {
+                        if (container.getFullPath().isPrefixOf(file.getFullPath())) {
+                            return allSourceFolders.get(container.getLocation().toOSString());
+                        }
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+        }
+		
+		
 		return null;
 	}
 
