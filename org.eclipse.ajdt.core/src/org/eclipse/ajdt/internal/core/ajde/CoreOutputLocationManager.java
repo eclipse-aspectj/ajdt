@@ -416,7 +416,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		} else {
 		    out = workspaceRoot.getFolder(path);
 		}
-		if (out.exists()) {
+		if (out.getProject().exists()) {
 		    outPath = out.getLocation();
 		} else {
 		    // maybe this is a fully qualified path
