@@ -18,6 +18,7 @@ import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser.Replacement;
 import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
+import org.eclipse.ajdt.core.codeconversion.ITDAwareNameEnvironment;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.contribution.jdt.refactoring.IRefactoringProvider;
@@ -28,11 +29,14 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.corext.refactoring.rename.JavaRenameProcessor;
 import org.eclipse.jdt.internal.ui.refactoring.UserInterfaceManager;
 import org.eclipse.jdt.internal.ui.refactoring.reorg.RenameUserInterfaceManager;
@@ -145,8 +149,8 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
         return null;
     }
 
-    public boolean inInterestingProject(ICompilationUnit unit) {
-        IProject project = unit.getJavaProject().getProject();
+    public boolean inInterestingProject(IJavaElement elt) {
+        IProject project = elt.getJavaProject().getProject();
         return AspectJPlugin.isAJProject(project);
     }
     
@@ -180,5 +184,11 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
         	}
         });
         return result;
+    }
+
+    public CancelableNameEnvironment createNameEnvironment(
+            JavaProject project, WorkingCopyOwner owner,
+            IProgressMonitor monitor) throws JavaModelException {
+        return new ITDAwareNameEnvironment(project, owner, monitor);
     }
 }

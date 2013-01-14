@@ -14,10 +14,17 @@ package org.eclipse.contribution.jdt.refactoring;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.ui.refactoring.actions.RenameJavaElementAction;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
+import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.corext.refactoring.rename.JavaRenameProcessor;
+import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
  * This aspect ensures that ITDs are renamed with the proper rename refactoring
@@ -76,7 +83,25 @@ public aspect RenameJavaElementActionAspect {
         } else {
             return proceed(contents, unit, resolveBindings, statementsRecovery, monitor);
         }
-        
     }
-
+    
+    /**
+     * Captures calls to creating a name environment while doing a refactoring parse
+     */
+//    pointcut creatingRefactoringNameEnvironment(String contents, ICompilationUnit unit, boolean resolveBindings, boolean statementsRecovery, IProgressMonitor monitor1,
+//            JavaProject project, WorkingCopyOwner owner, IProgressMonitor monitor2) : cflowbelow(refactoringParse(contents, unit, resolveBindings, statementsRecovery, monitor1)) &&
+//        call(CancelableNameEnvironment.new(JavaProject, WorkingCopyOwner, IProgressMonitor)) && 
+//                args(project, owner, monitor2);
+    pointcut creatingRefactoringNameEnvironment(JavaProject project, WorkingCopyOwner owner, IProgressMonitor monitor2) : 
+        call(CancelableNameEnvironment.new(JavaProject, WorkingCopyOwner, IProgressMonitor)) && 
+                args(project, owner, monitor2) && cflow(execution(public RefactoringStatus JavaRenameProcessor+.checkFinalConditions(IProgressMonitor, CheckConditionsContext)));
+    
+    CancelableNameEnvironment around(JavaProject project, WorkingCopyOwner owner, IProgressMonitor monitor2) throws JavaModelException : creatingRefactoringNameEnvironment(project, owner, monitor2) {
+        IRefactoringProvider provider = adapter.getProvider();
+        if (provider != null && provider.inInterestingProject(project)) {
+            return provider.createNameEnvironment(project, owner, monitor2);
+        } else {
+            return proceed(project, owner, monitor2);
+        }
+    }
 }

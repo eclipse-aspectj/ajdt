@@ -14,14 +14,19 @@ package org.eclipse.contribution.weaving.jdt.tests.refactoring;
 import org.eclipse.contribution.jdt.refactoring.IRefactoringProvider;
 import org.eclipse.contribution.weaving.jdt.tests.MockCompilationUnit;
 import org.eclipse.contribution.weaving.jdt.tests.MockNature;
+import org.eclipse.contribution.weaving.jdt.tests.itdawareness.MockNameEnvironmentProvider;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.corext.refactoring.util.RefactoringASTParser;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 
@@ -71,8 +76,8 @@ public class MockRefactoringProvider implements IRefactoringProvider {
         return null;
     }
 
-    public boolean inInterestingProject(ICompilationUnit unit) {
-        return createSourceConvertedAST = unit.getElementName().endsWith("mock");
+    public boolean inInterestingProject(IJavaElement elt) {
+        return createSourceConvertedAST = elt.getElementName().endsWith("mock");
     }
 
     public CompilationUnit createSourceConvertedAST(String contents, ICompilationUnit unit, boolean resolveBindings, boolean statementsRecovery, boolean bindingsRecovery, IProgressMonitor monitor) {
@@ -87,5 +92,11 @@ public class MockRefactoringProvider implements IRefactoringProvider {
         fParser.setCompilerOptions(unit.getJavaProject().getOptions(true));
         CompilationUnit newCUNode= (CompilationUnit) fParser.createAST(monitor);
         return newCUNode;
+    }
+
+    public CancelableNameEnvironment createNameEnvironment(
+            JavaProject project, WorkingCopyOwner owner,
+            IProgressMonitor monitor2) throws JavaModelException {
+        return null;
     }
 }

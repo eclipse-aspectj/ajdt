@@ -115,9 +115,21 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
                                     if (enclosingType == null) {
                                         // Bug 324706  I don't know why the sloc is null.  Log the bug and
                                         // continue on.
+                                        String handleIdentifier;
+                                        try {
+                                            if (target.getElementName().equals(AJProjectModelFacade.ERROR_JAVA_ELEMENT.getElementName())) {
+                                                handleIdentifier = AJProjectModelFacade.ERROR_JAVA_ELEMENT.getElementName();
+                                            } else {
+                                                handleIdentifier = target.getHandleIdentifier();
+                                            }
+                                        } catch (NullPointerException e) {
+                                            VisualiserPlugin.log(IStatus.WARNING, 
+                                                    "Error computeing handle identifier");
+                                            handleIdentifier = "<CAN'T COMPUTE>";
+                                        }
                                         VisualiserPlugin.log(IStatus.WARNING, 
                                                 "Bug 324706: null containing type found for " + target.getElementName() + 
-                                                "\nHandle identifier is: " + target.getHandleIdentifier());
+                                                "\nHandle identifier is: " + handleIdentifier);
                                         // avoid an npe
                                         continue;
                                     }

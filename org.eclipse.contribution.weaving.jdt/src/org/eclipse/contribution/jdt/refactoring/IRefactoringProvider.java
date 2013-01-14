@@ -16,7 +16,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.internal.core.CancelableNameEnvironment;
+import org.eclipse.jdt.internal.core.JavaProject;
 
 /**
  * @author Andrew Eisenberg
@@ -42,10 +46,10 @@ public interface IRefactoringProvider {
     CompilationUnit createASTForRefactoring(ITypeRoot root);
 
     /**
-     * @param unit
+     * @param elt
      * @return true iff this CU is in a project type that we care about.
      */
-    boolean inInterestingProject(ICompilationUnit unit);
+    boolean inInterestingProject(IJavaElement elt);
     
     /**
      * Creates an AST for the given compilation unit with source code translated.
@@ -61,4 +65,15 @@ public interface IRefactoringProvider {
      * @return
      */
     CompilationUnit createSourceConvertedAST(String contents, ICompilationUnit unit, boolean resolveBindings, boolean statementsRecovery, boolean bindingsRecovery, IProgressMonitor monitor);
+
+    /**
+     * Creates a name environment suitable for refactoring
+     * @param project
+     * @param owner
+     * @param monitor2
+     * @return
+     * @throws JavaModelException 
+     */
+    CancelableNameEnvironment createNameEnvironment(JavaProject project,
+            WorkingCopyOwner owner, IProgressMonitor monitor2) throws JavaModelException;
 }
