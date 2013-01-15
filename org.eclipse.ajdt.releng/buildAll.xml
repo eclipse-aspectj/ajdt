@@ -50,7 +50,6 @@
     		<equals arg1="${target.eclipse.version}" arg2="43"/>
     	</condition>
     	
-    	<!-- downloading has been disabled -->
     	<condition property="target.url" value="${target.url.43}">
     		<equals arg1="${target.eclipse.version}" arg2="43"/>
     	</condition>
@@ -241,7 +240,8 @@
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
-		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar}"/>
+		<!-- the build eeclipse is 3.7 based -->
+		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.37}"/>
 
 		
 		<!-- Unpack eclipse -->
@@ -269,7 +269,7 @@
 		
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/target/eclipse/.provisioned" />
-	</target>		
+	</target>
 
 	<target name="init-classpaths">
 		<!-- paths for use later -->
