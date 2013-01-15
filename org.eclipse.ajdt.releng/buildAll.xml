@@ -267,8 +267,6 @@
 		<!-- Mark as provisioned -->
 		<touch file="${build.dest}/eclipse/.provisioned" />
 		
-		<!-- Mark as provisioned -->
-		<touch file="${build.dest}/target/eclipse/.provisioned" />
 	</target>
 
 	<target name="init-classpaths">
