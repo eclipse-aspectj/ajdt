@@ -11,4 +11,5 @@ feature@org.eclipse.equinox.weaving.sdk=GIT,tag=I20120427-0800,repo=http://git.e
 !!*** OTHER DEPENDENCIES ******
 !! license feature moved to git
 !!feature@org.eclipse.license=v20110121,:pserver:anonymous@dev.eclipse.org:/cvsroot/eclipse,,org.eclipse.sdk-feature/features/org.eclipse.license
-feature@org.eclipse.license=GIT,tag=v20110121-1730,repo=http://git.eclipse.org/gitroot/pde/eclipse.pde.build.git,path=org.eclipse.pde.build.feature
+feature@org.eclipse.license=GIT,tag=v20121210-193814,repo=git://git.eclipse.org/gitroot/platform/eclipse.platform.releng.git,path=features/org.eclipse.license
+
