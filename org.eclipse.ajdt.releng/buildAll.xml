@@ -40,14 +40,20 @@
     	<echo message="forceContextQualifier=${forceContextQualifier}"/>
     	<echo message="=============================================="/>
 
-    	<condition property="target.eclipse.tar" value="${target.eclipse.tar.42}">
-    		<equals arg1="${target.eclipse.version}" arg2="42"/>
-    	</condition>
     	<condition property="target.eclipse.tar" value="${target.eclipse.tar.37}">
     		<equals arg1="${target.eclipse.version}" arg2="37"/>
     	</condition>
+    	<condition property="target.eclipse.tar" value="${target.eclipse.tar.42}">
+    		<equals arg1="${target.eclipse.version}" arg2="42"/>
+    	</condition>
+    	<condition property="target.eclipse.tar" value="${target.eclipse.tar.43}">
+    		<equals arg1="${target.eclipse.version}" arg2="43"/>
+    	</condition>
     	
     	<!-- downloading has been disabled -->
+    	<condition property="target.url" value="${target.url.43}">
+    		<equals arg1="${target.eclipse.version}" arg2="43"/>
+    	</condition>
     	<condition property="target.url" value="${target.url.42}">
     		<equals arg1="${target.eclipse.version}" arg2="42"/>
     	</condition>
