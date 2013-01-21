@@ -1,11 +1,11 @@
 package org.eclipse.ajdt.ui.tests.ras;
 
+import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.ajdt.core.ras.PluginFFDC;
 
 /**
  * Test the FFDC aspect and its usage in AJDT

@@ -12,7 +12,6 @@
 package org.eclipse.ajdt.ui.tests.editor.quickfix;
 
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaQuickFixProcessor;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

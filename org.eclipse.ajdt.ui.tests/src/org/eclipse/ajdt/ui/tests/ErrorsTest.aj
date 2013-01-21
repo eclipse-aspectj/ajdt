@@ -11,10 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
-import org.eclipse.ui.internal.views.log.AbstractEntry;
-
-import org.eclipse.ui.internal.views.log.LogEntry;
-
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
@@ -22,6 +18,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.internal.Workbench;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+import org.eclipse.ui.internal.views.log.LogEntry;
 import org.eclipse.ui.internal.views.log.LogView;
 
 /**

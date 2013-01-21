@@ -14,12 +14,12 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
