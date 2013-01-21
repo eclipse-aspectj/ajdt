@@ -14,11 +14,11 @@ import java.util.Arrays;
 
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.tests.search.AbstractITDSearchTest;
+import org.eclipse.ajdt.internal.ui.refactoring.RippleMethodFinder2;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
-import org.eclipse.ajdt.internal.ui.refactoring.RippleMethodFinder2;
 
 
 

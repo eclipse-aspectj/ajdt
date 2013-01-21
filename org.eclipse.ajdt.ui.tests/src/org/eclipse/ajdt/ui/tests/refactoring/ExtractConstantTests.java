@@ -15,7 +15,6 @@ import org.eclipse.ajdt.core.tests.refactoring.AbstractAJDTRefactoringTest;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.corext.refactoring.code.ExtractConstantRefactoring;
-import org.eclipse.jdt.internal.corext.refactoring.code.ExtractTempRefactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 

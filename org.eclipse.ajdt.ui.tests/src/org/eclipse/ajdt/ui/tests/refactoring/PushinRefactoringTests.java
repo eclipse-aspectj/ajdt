@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
-import org.eclipse.jdt.core.IMember;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoring;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -31,6 +30,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;

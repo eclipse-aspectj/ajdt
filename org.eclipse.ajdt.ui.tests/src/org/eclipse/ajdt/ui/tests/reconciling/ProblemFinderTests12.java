@@ -12,7 +12,6 @@ package org.eclipse.ajdt.ui.tests.reconciling;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCore;

@@ -12,12 +12,10 @@ package org.eclipse.ajdt.ui.tests.debug;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 
 import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.internal.debug.ui.actions.ToggleBreakpointAdapter;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.ajdt.ui.tests.StringInputStream;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;

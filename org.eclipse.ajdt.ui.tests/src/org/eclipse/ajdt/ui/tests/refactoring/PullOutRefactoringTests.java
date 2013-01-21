@@ -11,7 +11,6 @@
 package org.eclipse.ajdt.ui.tests.refactoring;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import junit.framework.Assert;

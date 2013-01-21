@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.refactoring;
 
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -20,6 +19,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportContainer;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.ui.actions.OrganizeImportsAction;
