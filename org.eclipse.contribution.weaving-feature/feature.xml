@@ -17,10 +17,6 @@
       %license
    </license>
 
-   <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
-   </url>
-
    <includes
          id="org.eclipse.contribution.weaving.source"
          version="0.0.0"
