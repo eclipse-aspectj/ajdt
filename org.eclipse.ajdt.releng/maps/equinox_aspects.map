@@ -9,7 +9,4 @@ fragment@org.eclipse.equinox.weaving.hook=GIT,tag=I20130127-2000,repo=http://git
 feature@org.eclipse.equinox.weaving.sdk=GIT,tag=I20130127-2000,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=features/org.eclipse.equinox.weaving.sdk
 
 !!*** OTHER DEPENDENCIES ******
-!! license feature moved to git
-!!feature@org.eclipse.license=v20110121,:pserver:anonymous@dev.eclipse.org:/cvsroot/eclipse,,org.eclipse.sdk-feature/features/org.eclipse.license
-feature@org.eclipse.license=GIT,tag=v20121210-193814,repo=git://git.eclipse.org/gitroot/platform/eclipse.platform.releng.git,path=features/org.eclipse.license
-
+feature@org.eclipse.license=GIT,tag=v20130124-013030,repo=http://git.eclipse.org/gitroot/platform/eclipse.platform.releng.git,path=features/org.eclipse.license
