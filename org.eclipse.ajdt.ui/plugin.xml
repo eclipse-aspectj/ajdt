@@ -1607,14 +1607,13 @@ M4 = Platform-specific fourth key
                   <count
                         value="1">
                   </count>
-               		<iterate>
-                 		<or>
-                   			<test property="org.eclipse.debug.ui.matchesPattern" value="*.java"/>
-                   			<test property="org.eclipse.debug.ui.matchesPattern" value="*.aj"/>
-                   			<test property="org.eclipse.debug.ui.matchesPattern" value="*.class"/>
-                   			<instanceof value="org.eclipse.jdt.core.IJavaElement"/>
-                 		</or>
-               		</iterate>
+              <iterate>
+                  <test
+	                    property="org.eclipse.debug.ui.projectNature"
+                      value="org.eclipse.ajdt.ui.ajnature">
+                  </test>
+              		<adapt type="org.eclipse.jdt.core.IJavaElement"/>
+              </iterate>
                </with>
             </enablement>
          </contextualLaunch>
