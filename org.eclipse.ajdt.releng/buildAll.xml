@@ -47,6 +47,8 @@
     		<equals arg1="${target.eclipse.version}" arg2="37"/>
     	</condition>
     	
+		<property name="build.eclipse.tar" value="target.eclipse.tar.42"/>
+		
     	<!-- downloading has been disabled -->
     	<condition property="target.url" value="${target.url.42}">
     		<equals arg1="${target.eclipse.version}" arg2="42"/>
@@ -235,7 +237,7 @@
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
-		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar}"/>
+		<property name="build.eclipse.tar" value="${download.home}/${build.eclipse.tar}"/>
 
 		
 		<!-- Unpack eclipse -->
