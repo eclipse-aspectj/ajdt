@@ -13,7 +13,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
-import org.eclipse.jdt.internal.compiler.lookup.IQualifiedTypeResolutionListener;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.core.search.matching.PossibleMatch;
 
@@ -25,9 +24,6 @@ public class ITDAwareLookupEnvironment extends LookupEnvironment {
     
     public ITDAwareLookupEnvironment(LookupEnvironment wrapper, INameEnvironment nameEnvironment) {
         super(wrapper.typeRequestor, wrapper.globalOptions, wrapper.problemReporter, nameEnvironment);
-        for (IQualifiedTypeResolutionListener l : wrapper.resolutionListeners) {
-            this.addResolutionListener(l);
-        }
     }
     
     
