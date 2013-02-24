@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ Examples
 Bundle-SymbolicName: org.eclipse.ajdt.examples; singleton:=true
-Bundle-Version: 2.2.1.qualifier
+Bundle-Version: 2.2.3.qualifier
 Bundle-ClassPath: ajdtExamples.jar
 Bundle-Activator: org.eclipse.ajdt.examples.AspectJExamplePlugin
 Bundle-Vendor: %providerName
