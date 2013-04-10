@@ -22,7 +22,6 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.ReflectionUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.ui.editor.actions.AJOpenAction;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
@@ -319,30 +318,7 @@ public class AspectJEditor extends CompilationUnitEditor {
         organizeImports
                 .setActionDefinitionId(IJavaEditorActionDefinitionIds.ORGANIZE_IMPORTS);
         setAction("OrganizeImports", organizeImports); //$NON-NLS-1$
-
-        IAction openDeclaration = new AJOpenAction(this);
-        openDeclaration
-                .setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_EDITOR);
-        setAction("OpenEditor", openDeclaration); //$NON-NLS-1$
-
-//      AJRenameAction renameAction = new AJRenameAction(this);
-//        renameAction
-//                .setActionDefinitionId(IJavaEditorActionDefinitionIds.RENAME_ELEMENT);
-//        setAction("RenameElement", renameAction); //$NON-NLS-1$
-//      replaceRefactoringAction("fRenameAction", renameAction);
     }
-
-    
-//    private void replaceRefactoringAction(String actionFieldName, SelectionDispatchAction newAction) {
-//        RefactorActionGroup group = getRefactorActionGroup();
-//        ISelectionChangedListener action = (ISelectionChangedListener)
-//                ReflectionUtils.getPrivateField(RefactorActionGroup.class, actionFieldName, group);
-//        if (action != null) {
-//            getSite().getSelectionProvider().removeSelectionChangedListener(action);
-//        }
-//        ReflectionUtils.setPrivateField(RefactorActionGroup.class, actionFieldName, group, newAction);
-//    }
-
 
     //override this function to prevent others from setting the
     // SourceViewConfiguration
