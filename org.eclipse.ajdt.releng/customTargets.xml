@@ -188,7 +188,7 @@
 			token="92.2.29" value="${ajde.version}"/>
 		<replace file="${buildDirectory}/plugins/org.aspectj.ajde/META-INF/MANIFEST.MF"
 			token="92.2.29" value="${ajde.version}"/>
-		<replace file="${buildDirectory}/features/org.aspectj/META-INF/MANIFEST.MF"
+		<replace file="${buildDirectory}/features/org.aspectj/feature.xml"
 			token="92.2.29" value="${ajde.version}"/>
 		<!-- 
 		 These property files are not available at this point
