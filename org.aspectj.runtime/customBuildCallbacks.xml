@@ -80,9 +80,6 @@
 	<!--   target.folder - destination folder                                  -->
 	<!-- ===================================================================== -->
 	<target name="post.gather.bin.parts">
-		<copy todir="${target.folder}">
-			<fileset dir="classes" />
-		</copy>
 	</target>
 
 	<!-- ===================================================================== -->

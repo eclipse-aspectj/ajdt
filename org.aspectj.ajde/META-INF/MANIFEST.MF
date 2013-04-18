@@ -72,3 +72,4 @@ Require-Bundle: org.apache.ant,
  org.aspectj.weaver;bundle-version="92.2.29";visibility:=reexport
 Bundle-ActivationPolicy: lazy
 Eclipse-BundleShape: dir
+Bundle-ClassPath: classes/
