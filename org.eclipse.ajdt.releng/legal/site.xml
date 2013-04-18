@@ -25,10 +25,10 @@
    <feature url="features/org.eclipse.equinox.weaving.sdk_0.0.0.EAFVERSION.jar" id="org.eclipse.equinox.weaving.sdk" version="0.0.0.EAFVERSION">
       <category name="org.eclipse.ajdt.other"/>
    </feature>
-   <feature url="features/org.aspectj_0.0.0.AJCVERSION.jar" id="org.aspectj" version="0.0.0.AJCVERSION.jar">
+   <feature url="features/org.aspectj_0.0.0.AJCVERSION.jar" id="org.aspectj" version="0.0.0.AJCVERSION">
       <category name="org.eclipse.ajdt.other"/>
    </feature>
-   <feature url="features/org.aspectj.source_0.0.0.AJCVERSION.jar" id="org.aspectj.source" version="0.0.0.AJCVERSION.jar">
+   <feature url="features/org.aspectj.source_0.0.0.AJCVERSION.jar" id="org.aspectj.source" version="0.0.0.AJCVERSION">
       <category name="org.eclipse.ajdt.source"/>
    </feature>
    <category-def name="org.eclipse.ajdt" label="AspectJ Development Tools (Required)">
