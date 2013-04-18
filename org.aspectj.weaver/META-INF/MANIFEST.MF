@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ Weaver
 Bundle-SymbolicName: org.aspectj.weaver
 Bundle-Version: 92.2.29
-Bundle-ClassPath: aspectjweaver.jar
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Require-Bundle: org.aspectj.runtime;bundle-version="1.7.2";visibility:=reexport
 Export-Package: org.aspectj.apache.bcel;version="1.7.2",
