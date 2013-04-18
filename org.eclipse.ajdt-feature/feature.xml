@@ -34,6 +34,10 @@
          name="Equinox Aspects"
          optional="true"/>
 
+   <includes
+         id="org.aspectj"
+         version="0.0.0"/>
+
    <requires>
       <import plugin="org.apache.ant"/>
       <import plugin="org.eclipse.core.resources"/>
@@ -102,28 +106,10 @@
       <import plugin="org.eclipse.equinox.simpleconfigurator.manipulator"/>
       <import plugin="org.eclipse.equinox.frameworkadmin"/>
       <import plugin="org.eclipse.jdt.debug"/>
-      <import plugin="org.eclipse.jdt.launching" />
+      <import plugin="org.eclipse.jdt.launching"/>
       <import plugin="org.eclipse.core.commands"/>
       <import plugin="org.eclipse.core.expressions"/>
    </requires>
-
-   <plugin
-         id="org.aspectj.ajde"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.aspectj.runtime"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.aspectj.weaver"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
 
    <plugin
          id="org.eclipse.ajdt.core"

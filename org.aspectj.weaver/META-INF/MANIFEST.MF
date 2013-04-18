@@ -1,11 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: %pluginName
+Bundle-Name: AspectJ Weaver
 Bundle-SymbolicName: org.aspectj.weaver
 Bundle-Version: 92.2.29
 Bundle-ClassPath: aspectjweaver.jar
-Bundle-Vendor: %providerName
-Bundle-Localization: plugin
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Require-Bundle: org.aspectj.runtime;bundle-version="1.7.2";visibility:=reexport
 Export-Package: org.aspectj.apache.bcel;version="1.7.2",
  org.aspectj.apache.bcel.classfile;version="1.7.2",
@@ -27,4 +26,5 @@ Export-Package: org.aspectj.apache.bcel;version="1.7.2",
  org.aspectj.weaver.patterns;version="1.7.2",
  org.aspectj.weaver.reflect;version="1.7.2",
  org.aspectj.weaver.tools;version="1.7.2"
-Eclipse-BundleShape: dir
+Eclipse-BundleShape: jar
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

@@ -11,6 +11,10 @@
  	<target name="allElementsDelegator">
  		<ant antfile="${genericTargets}" target="${target}">
 	 		<property name="type" value="feature" />
+	 		<property name="id" value="org.aspectj" />
+ 		</ant>
+ 		<ant antfile="${genericTargets}" target="${target}">
+	 		<property name="type" value="feature" />
 	 		<property name="id" value="org.eclipse.equinox.weaving.sdk" />
  		</ant>
  		<ant antfile="${genericTargets}" target="${target}">
@@ -38,6 +42,9 @@
  	<!-- Add one target for each root element and each configuration           -->
  	<!-- Replace element.id with the id of the top level element being built   -->
  	<!-- ===================================================================== -->
+ 	<target name="assemble.org.aspectj">
+ 		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
+ 	</target>
  	<target name="assemble.org.eclipse.equinox.weaving.sdk">
  		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
  	</target>

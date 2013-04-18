@@ -539,7 +539,6 @@ M4 = Platform-specific fourth key
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<actionSet id="ajrefactoring"/>
 					<newWizardShortcut id="ajaspectwizard"/>					
 					<newWizardShortcut id="ajprojectwizard"/>
@@ -549,7 +548,6 @@ M4 = Platform-specific fourth key
     	<perspectiveExtension 
 			targetID="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
 					<perspectiveShortcut
@@ -558,7 +556,6 @@ M4 = Platform-specific fourth key
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<actionSet id="ajrefactoring"/>					
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
@@ -568,7 +565,6 @@ M4 = Platform-specific fourth key
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>				
 					<actionSet id="ajrefactoring"/>					
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
@@ -576,13 +572,8 @@ M4 = Platform-specific fourth key
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
 		<perspectiveExtension 
-			targetID="org.eclipse.debug.ui.DebugPerspective">
-					<actionSet id="ajnavigation"/>				
-		</perspectiveExtension>
-		<perspectiveExtension 
 			targetID="org.eclipse.pde.ui.PDEPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<actionSet id="ajrefactoring"/>
 		</perspectiveExtension>
 		
