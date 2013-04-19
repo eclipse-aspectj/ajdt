@@ -27,4 +27,5 @@ Export-Package: org.aspectj.apache.bcel;version="1.7.2",
  org.aspectj.weaver.tools;version="1.7.2"
 Eclipse-BundleShape: jar
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Bundle-ClassPath: classes/
+Bundle-ClassPath: .,
+ classes

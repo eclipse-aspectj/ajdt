@@ -80,6 +80,10 @@
 	<!--   target.folder - destination folder                                  -->
 	<!-- ===================================================================== -->
 	<target name="post.gather.bin.parts">
+		<!-- move the classes to the root of the plugin -->
+		<copy todir="${target.folder}">
+			<fileset dir="classes" />
+		</copy>
 	</target>
 
 	<!-- ===================================================================== -->
