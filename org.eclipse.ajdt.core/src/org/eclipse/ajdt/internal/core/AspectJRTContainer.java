@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
@@ -30,17 +31,11 @@ public class AspectJRTContainer implements IClasspathContainer {
 
 	private IClasspathEntry[] fClasspathEntries;
 
-	private static String aspectjrtPath = null;
-
-	private static String aspectjrtSourcePath = null;
-	
-	private static boolean sourceCheckDone = false;
-
 	public IClasspathEntry[] getClasspathEntries() {
 		if (fClasspathEntries == null) {
 			try {
-                String path = getAspectjrtClasspath();
-                String sourcePath = getAspectjrtSourcePath();
+                String path = CoreUtils.getAspectjrtClasspath();
+                String sourcePath = CoreUtils.getAspectjrtSourcePath();
                 fClasspathEntries = new IClasspathEntry[1];
                 IPath p = new Path(path);
                 IPath sp;
@@ -66,46 +61,5 @@ public class AspectJRTContainer implements IClasspathContainer {
 
 	public IPath getPath() {
 		return new Path(AspectJPlugin.ASPECTJRT_CONTAINER);
-	}
-
-	/**
-	 * Get the aspectjrt.jar classpath entry. This is usually in
-	 * plugins/org.aspectj.runtime_<VERSION>.jar
-	 * <p>
-	 * Synchronized method because static field aspectjrtPath is initialized here.
-	 * @throws IOException 
-	 */
-	private synchronized static String getAspectjrtClasspath() throws IOException {
-		if (aspectjrtPath == null) {
-			Bundle runtime = Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
-			if (runtime != null) {
-			    URL location = runtime.getEntry("/");
-			    File file = new File(FileLocator.resolve(location).getFile());
-			    if (file.isDirectory()) {
-			        // in a runtime workbench
-			        file = new File(file, "classes");
-			    }
-			    aspectjrtPath = file.getCanonicalPath();
-			}
-		}
-		return aspectjrtPath;
-	}
-
-	private synchronized static String getAspectjrtSourcePath() throws IOException {
-        if (aspectjrtSourcePath == null && !sourceCheckDone) {
-            sourceCheckDone = true;
-            
-            Bundle runtime = Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID + ".source");
-            if (runtime != null) {
-                URL location = runtime.getEntry("/");
-                File file = new File(FileLocator.resolve(location).getFile());
-                if (file.isDirectory()) {
-                    // in a runtime workbench
-                    file = new File(file, "classes");
-                }
-                aspectjrtSourcePath = file.getCanonicalPath();
-            }
-        }
-        return aspectjrtSourcePath;
 	}
 }

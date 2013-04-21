@@ -31,12 +31,17 @@
    <includes
          id="org.eclipse.equinox.weaving.sdk"
          version="0.0.0.EAVERSION"
-         name="Equinox Aspects"
+         name="Equinox Weaving"
          optional="true"/>
 
    <includes
          id="org.aspectj"
          version="0.0.0"/>
+
+   <includes
+         id="org.aspectj.source"
+         version="0.0.0"
+         optional="true"/>
 
    <requires>
       <import plugin="org.apache.ant"/>

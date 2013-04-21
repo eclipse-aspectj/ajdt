@@ -49,6 +49,10 @@ public class CoreUtils {
 	 */
 	private static String aspectjrtPath = null;
 	
+    private static String aspectjrtSourcePath = null;
+    
+    private static boolean sourceCheckDone = false;
+
 	/**
 	 * Return the fully-qualified name of the root directory for a project.
 	 */
@@ -83,28 +87,10 @@ public class CoreUtils {
 	 * Get the aspectjrt.jar classpath entry. This is usually in
 	 * plugins/org.aspectj.ajde_ <VERSION>/aspectjrt.jar
 	 */
-	public static String getAspectjrtClasspath() {
+	public synchronized static String getAspectjrtClasspath() {
+	    aspectjrtPath = internalGetPath(AspectJPlugin.RUNTIME_PLUGIN_ID, false);
 
 		if (aspectjrtPath == null) {
-			Bundle ajdeBundle = Platform
-					.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
-
-			if (ajdeBundle != null) {
-				URL installLoc = ajdeBundle.getEntry("/"); //$NON-NLS-1$
-				URL resolved = null;
-				try {
-					resolved = FileLocator.resolve(installLoc);
-					File ajrt = new File(resolved.getFile());
-					if (ajrt.exists()) {
-					    if (ajrt.isDirectory()) {
-					        // in a runtime workbench
-					        ajrt = new File(ajrt, "classes");
-					    }
-					}
-					aspectjrtPath = ajrt.getCanonicalPath();
-				} catch (IOException e) {
-				}
-			}
 			if (aspectjrtPath == null) {
 			    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, 
 			            "Could not find AspectJ runtime."));
@@ -113,7 +99,50 @@ public class CoreUtils {
 		return aspectjrtPath;
 	}
 	
-	/**
+	private static String internalGetPath(String bundleId, boolean useSource) {
+        Bundle bundle = Platform
+                .getBundle(bundleId);
+
+        if (bundle != null) {
+            URL installLoc = bundle.getEntry("/"); //$NON-NLS-1$
+            URL resolved = null;
+            try {
+                resolved = FileLocator.resolve(installLoc);
+                String fullPath = resolved.getFile();
+                // !/ indicates a location inside of a jar
+                if (fullPath.endsWith("!/")) {
+                    fullPath = fullPath.substring(0, fullPath.length()-2);
+                }
+                if (fullPath.startsWith("file:")) {
+                    fullPath = new URL(fullPath).getFile();
+                }
+                File ajrt = new File(fullPath);
+                if (ajrt.exists()) {
+                    if (ajrt.isDirectory()) {
+                        // in a runtime workbench
+                        ajrt = new File(ajrt, useSource ? "source" : "classes");
+                    }
+                    return ajrt.getCanonicalPath();
+                }
+            } catch (IOException e) {
+            }
+        }
+        return null;
+	}
+	
+	public synchronized static String getAspectjrtSourcePath() throws IOException {
+        if (aspectjrtSourcePath == null && !sourceCheckDone) {
+            sourceCheckDone = true;
+            aspectjrtSourcePath = internalGetPath(AspectJPlugin.RUNTIME_PLUGIN_ID + ".source", false);
+            if (aspectjrtSourcePath == null) {
+                // try inside the source project
+                aspectjrtSourcePath = internalGetPath(AspectJPlugin.RUNTIME_PLUGIN_ID, true);
+            }
+        }
+        return aspectjrtSourcePath;
+    }
+
+    /**
 	 * Get all projects within the workspace who have a dependency on the given
 	 * project - this can either be a class folder dependency or on a library
 	 * which the project exports.
