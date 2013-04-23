@@ -1,23 +1,14 @@
 <toc label="AspectJ Language Guide">
-	<topic label="AspectJ Home" href="http://www.eclipse.org/aspectj"/>	
-	<topic label="AspectJ Documentation and Resources" href="doc/index.html"/>	
-	<topic label="Programming Guide">
-		<link toc="toc_ajprogguide.xml" />		
+	<topic label="AspectJ Home" href="http://eclipse.org/aspectj"/>	
+	<topic label="AspectJ Documentation and Resources" href="http://eclipse.org/aspectj/docs.php"/>	
+	<topic href="http://eclipse.org/aspectj/doc/released/progguide/index.html" label="Programming Guide">
 	</topic>
-	<topic label="Development Environment Guide">
-		<link toc="toc_ajdevguide.xml" />		
+	<topic href="http://eclipse.org/aspectj/doc/released/devguide/index.html" label="Development Environment Guide">
 	</topic>
-	<topic label="The AspectJ 5 Developer's Notebook">
-		<link toc="toc_adk15notebook.xml" />		
+	<topic href="http://eclipse.org/aspectj/doc/released/adk15notebook/index.html" label="The AspectJ 5 Developer&apos;s Notebook">
 	</topic>
-	<topic label="The AspectJ Problem Diagnosis Guilde">
-		<link toc="toc_ajpdguide.xml" />		
+	<topic href="http://eclipse.org/aspectj/doc/released/pdguide/index.html" label="The AspectJ Problem Diagnosis Guilde">
 	</topic>
-	<topic label="API Documentation" href="doc/api/index.html"/>
-	<topic label="README for v1.5.3" href="doc/README-153.html"/>
-	<topic label="FAQ" href="doc/faq.html"/>
-	<topic label="Porting Notes" href="doc/porting.html"/>
-	<topic label="Changes in AspectJ" href="doc/changes.html"/>
-	<topic label="Quick reference" href="doc/quick5.pdf"/>
-	<topic label="Quick reference (A4 formatted)" href="doc/quick5A4.pdf"/>
+	<topic label="FAQ" href="http://eclipse.org/aspectj/doc/released/faq.php"/>
+	<topic label="Quick reference" href="http://eclipse.org/aspectj/doc/released/quick5.pdf"/>
 </toc>
