@@ -25,7 +25,7 @@
    <includes
          id="org.eclipse.ajdt.source"
          version="0.0.0"
-         name=""
+         name="AJDT Source Code"
          optional="true"/>
 
    <includes
@@ -37,11 +37,6 @@
    <includes
          id="org.aspectj"
          version="0.0.0"/>
-
-   <includes
-         id="org.aspectj.source"
-         version="0.0.0"
-         optional="true"/>
 
    <requires>
       <import plugin="org.apache.ant"/>
