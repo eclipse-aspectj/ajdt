@@ -11,21 +11,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.text.CoreMessages;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
-import org.osgi.framework.Bundle;
 
 public class AspectJRTContainer implements IClasspathContainer {
 
