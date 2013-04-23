@@ -34,7 +34,7 @@ public class AspectJRTContainer implements IClasspathContainer {
                 fClasspathEntries = new IClasspathEntry[1];
                 IPath p = new Path(path);
                 IPath sp;
-                if ((sourcePath != null)) {
+                if (sourcePath != null) {
                 	sp = new Path(sourcePath);
                 } else {
                     sp = null;
