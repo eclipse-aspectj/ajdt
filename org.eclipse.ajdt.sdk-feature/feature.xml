@@ -23,13 +23,28 @@
    </url>
 
    <includes
+         id="org.eclipse.ajdt.source"
+         version="0.0.0"
+         name="AJDT Source Code"/>
+
+   <includes
+         id="org.eclipse.contribution.weaving.jdt.source"
+         version="0.0.0"
+         name="JDT Weaving Source Code"/>
+
+   <includes
+         id="org.eclipse.contribution.xref.source"
+         version="0.0.0"
+         name="Cross References View Source Code"/>
+
+   <includes
          id="org.eclipse.equinox.weaving.sdk"
          version="0.0.0.EAVERSION"
          name="Equinox Weaving"
          optional="true"/>
 
    <includes
-         id="org.aspectj"
+         id="org.aspectj.source"
          version="0.0.0"/>
 
    <requires>

@@ -59,6 +59,9 @@
 		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
 			<fileset dir="${workdir}/org.eclipse.contribution.weaving-feature"/>
 		</copy>
+		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.sdk">
+			<fileset dir="${workdir}/org.eclipse.ajdt.sdk-feature"/>
+		</copy>
 
 		<!-- plugins -->
 		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
