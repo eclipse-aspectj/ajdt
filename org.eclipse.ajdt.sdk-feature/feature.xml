@@ -28,7 +28,7 @@
          name="AJDT Source Code"/>
 
    <includes
-         id="org.eclipse.contribution.weaving.jdt.source"
+         id="org.eclipse.contribution.weaving.source"
          version="0.0.0"
          name="JDT Weaving Source Code"/>
 
