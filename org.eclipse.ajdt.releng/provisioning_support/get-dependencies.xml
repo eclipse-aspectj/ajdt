@@ -38,6 +38,7 @@
 
 
 	<target name="unpack-archive" description="Unpacks a file that is either .zip or .tar.gz">
+		<echo message="Unpacking ${theFile} into ${theDir}"/>
 		<condition property="isAZip">
 			<contains string="${theFile}" substring=".zip" />
 		</condition>
