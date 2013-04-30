@@ -471,35 +471,6 @@
 <!-- Actions contributed by AspectJ to the Java perspective -->
    <extension
          point="org.eclipse.ui.actionSets">
-      <actionSet
-            label="%ajnavigation"
-            visible="false"
-            id="ajnavigation">    
-				<action
-               label="%OpenTypeInHierarchyAction.label"
-               tooltip="%OpenTypeInHierarchyAction.tooltip"
-               definitionId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
-               class="org.eclipse.ajdt.internal.ui.actions.OpenTypeInHierarchyAction"
-               menubarPath="navigate/open.ext2"
-               id="openTypeInHierarchy">
-         </action> 
-         <action
-               label="%OpenTypeAction.label"
-               icon="icons/actions/opentype.gif"
-               tooltip="%OpenTypeAction.tooltip"
-               class="org.eclipse.ajdt.internal.ui.actions.OpenTypeAction"
-               toolbarPath="org.eclipse.search.searchActionSet/Search"
-               id="OpenTypeIncAspects"
-               definitionId="org.eclipse.ajdt.ui.navigate.open.type"
-               menubarPath="navigate/open.ext2">
-         </action>
-         <action
-               label="%generateajdoc"
-               class="org.eclipse.ajdt.internal.ui.actions.GenerateAJdocAction"
-               menubarPath="project/additions"
-               id="generateajdoc">
-         </action>
-      </actionSet>
       
         
        <actionSet
@@ -538,20 +509,6 @@ M4 = Platform-specific fourth key
 -->
    <extension
          point="org.eclipse.ui.commands">
-<!-- Open Types shortcuts -->
-      <command
-            name="%ActionDefinition.openType.name"
-            description="%ActionDefinition.openType.description"
-            categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.ajdt.ui.navigate.open.type">
-      </command>
-      <command
-            name="%ActionDefinition.openTypeInHierarchy.name"
-            description="%ActionDefinition.openTypeInHierarchy.description"
-            categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy">
-      </command>
-      
 <!-- launch shortcuts -->
       <command
             name="%AspectJApplicationShortcut.description.debug"
@@ -582,7 +539,6 @@ M4 = Platform-specific fourth key
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<actionSet id="ajrefactoring"/>
 					<newWizardShortcut id="ajaspectwizard"/>					
 					<newWizardShortcut id="ajprojectwizard"/>
@@ -592,23 +548,14 @@ M4 = Platform-specific fourth key
     	<perspectiveExtension 
 			targetID="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
 					<perspectiveShortcut
                         id="org.eclipse.jdt.ui.JavaPerspective"/>				
-					<!--
-					Below two shortcuts for IBM Rational 6.x tooling.
-					-->                        
-					<perspectiveShortcut
-                        id="com.ibm.etools.j2ee.J2EEPerspective"/>				
-					<perspectiveShortcut
-                        id="com.ibm.etools.webtools.webperspective.WebToolsPerspective"/>				
     	</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<actionSet id="ajrefactoring"/>					
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
@@ -618,7 +565,6 @@ M4 = Platform-specific fourth key
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>				
 					<actionSet id="ajrefactoring"/>					
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>					
@@ -626,13 +572,8 @@ M4 = Platform-specific fourth key
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
 		<perspectiveExtension 
-			targetID="org.eclipse.debug.ui.DebugPerspective">
-					<actionSet id="ajnavigation"/>				
-		</perspectiveExtension>
-		<perspectiveExtension 
 			targetID="org.eclipse.pde.ui.PDEPerspective">
 					<actionSet id="ajelementCreation"/>
-					<actionSet id="ajnavigation"/>
 					<actionSet id="ajrefactoring"/>
 		</perspectiveExtension>
 		
@@ -1474,28 +1415,6 @@ M4 = Platform-specific fourth key
             id="org.eclipse.ajdt.internal.ui.cachedRuntimeClasspathEntryResolver"/>
    </extension>
   
-   <extension point="org.eclipse.ui.actionSetPartAssociations">
-  	<actionSetPartAssociation 
-  		targetID="org.eclipse.jdt.ui.A_OpenActionSet">
-		<part id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor" /> 
-    </actionSetPartAssociation>
-  	<actionSetPartAssociation 
-		targetID="org.eclipse.jdt.ui.CodingActionSet">
-		<part id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor" /> 
-    </actionSetPartAssociation>
-    <actionSetPartAssociation targetID="org.eclipse.jdt.ui.SearchActionSet">
-  		<part id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor" /> 
-  	</actionSetPartAssociation>
-    <actionSetPartAssociation 
-		targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
-		<part id="org.eclipse.ajdt.internalt.ui.editor.CompilationUnitEditor" /> 
-   </actionSetPartAssociation>
-   <actionSetPartAssociation 
-		targetID="org.eclipse.jdt.ui.text.java.actionSet.presentation">
-		<part id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor" /> 
-   </actionSetPartAssociation>
-  </extension>
-  
    <extension
          point="org.eclipse.jdt.ui.quickFixProcessors">
       <quickFixProcessor
@@ -1607,14 +1526,13 @@ M4 = Platform-specific fourth key
                   <count
                         value="1">
                   </count>
-               		<iterate>
-                 		<or>
-                   			<test property="org.eclipse.debug.ui.matchesPattern" value="*.java"/>
-                   			<test property="org.eclipse.debug.ui.matchesPattern" value="*.aj"/>
-                   			<test property="org.eclipse.debug.ui.matchesPattern" value="*.class"/>
-                   			<instanceof value="org.eclipse.jdt.core.IJavaElement"/>
-                 		</or>
-               		</iterate>
+              <iterate>
+                  <test
+	                    property="org.eclipse.debug.ui.projectNature"
+                      value="org.eclipse.ajdt.ui.ajnature">
+                  </test>
+              		<adapt type="org.eclipse.jdt.core.IJavaElement"/>
+              </iterate>
                </with>
             </enablement>
          </contextualLaunch>
@@ -2010,19 +1928,6 @@ M4 = Platform-specific fourth key
               label="AJDT Console">
         </consoleFactory>
      </extension>
-     <!-- No longer needed now that we use weaving to enhance codeSelect, see Bug 273334
-     <extension
-           point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
-        <hyperlinkDetector
-              activate="true"
-              class="org.eclipse.ajdt.internal.ui.text.ITDHyperlinkDetector"
-              description="Hyperlink detector for Intertype Declarations"
-              id="org.eclipse.ajdt.ui.itdHyperlinkDetector"
-              name="ITD Hyperlink Detector"
-              targetId="org.eclipse.jdt.ui.javaCode">
-        </hyperlinkDetector>
-     </extension>
-     -->
 	   <extension
          point="org.eclipse.ui.commands">
       <category

@@ -1,11 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: %pluginName
+Bundle-Name: AspectJ Runtime
 Bundle-SymbolicName: org.aspectj.runtime
 Bundle-Version: 92.2.29
-Bundle-ClassPath: aspectjrt.jar
-Bundle-Vendor: %providerName
-Bundle-Localization: plugin
+Bundle-Vendor: Eclipse AspectJ Development Tools
 Export-Package: org.aspectj.internal.lang.annotation;version="1.7.2",
  org.aspectj.internal.lang.reflect;version="1.7.2",
  org.aspectj.lang;version="1.7.2",
@@ -16,4 +14,6 @@ Export-Package: org.aspectj.internal.lang.annotation;version="1.7.2",
  org.aspectj.runtime.internal;version="1.7.2",
  org.aspectj.runtime.internal.cflowstack;version="1.7.2",
  org.aspectj.runtime.reflect;version="1.7.2"
-Eclipse-BundleShape: dir
+Eclipse-BundleShape: jar
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-ClassPath: .,classes

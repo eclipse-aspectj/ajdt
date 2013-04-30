@@ -44,6 +44,9 @@
 		<mkdir dir="${buildDirectory}/plugins/"/>
 
 		<!-- features -->
+		<copy todir="${buildDirectory}/features/org.aspectj">
+			<fileset dir="${workdir}/org.aspectj-feature"/>
+		</copy>
 		<copy todir="${buildDirectory}/features/org.eclipse.ajdt">
 			<fileset dir="${workdir}/org.eclipse.ajdt-feature"/>
 		</copy>
@@ -56,12 +59,9 @@
 		<copy todir="${buildDirectory}/features/org.eclipse.contribution.weaving">
 			<fileset dir="${workdir}/org.eclipse.contribution.weaving-feature"/>
 		</copy>
-
-		<!-- no longer supported
-  		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.pde.build">
-  			<fileset dir="${workdir}/org.eclipse.ajdt.pde.build-feature"/>
-  		</copy>
-			-->
+		<copy todir="${buildDirectory}/features/org.eclipse.ajdt.sdk">
+			<fileset dir="${workdir}/org.eclipse.ajdt.sdk-feature"/>
+		</copy>
 
 		<!-- plugins -->
 		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
@@ -160,14 +160,6 @@
 			</fileset>
 		</copy>
 
-		<!-- no longer supported
-  	  <copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.pde.build">
-  	  	<fileset dir="${workdir}/org.eclipse.ajdt.pde.build">
-  				<exclude name="bin/**"/>
-  			</fileset>
-    	</copy>
-    	-->
-
 		<!-- Equinox Aspects -->
 		<!-- Retrieved from map file
   	  <copy todir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj">
@@ -189,7 +181,7 @@
 
 		<!-- include proper aspectj version -->
 		<antcall target="replace-aspectj-qualifier" />
-		<antcall target="create-p2-inf-for-equinox-aspects" />
+		<antcall target="create-p2-inf-for-equinox-weavings" />
 	</target>
 
 	<target name="replace-aspectj-qualifier">
@@ -198,6 +190,8 @@
 		<replace file="${buildDirectory}/plugins/org.aspectj.weaver/META-INF/MANIFEST.MF"
 			token="92.2.29" value="${ajde.version}"/>
 		<replace file="${buildDirectory}/plugins/org.aspectj.ajde/META-INF/MANIFEST.MF"
+			token="92.2.29" value="${ajde.version}"/>
+		<replace file="${buildDirectory}/features/org.aspectj/feature.xml"
 			token="92.2.29" value="${ajde.version}"/>
 		<!-- 
 		 These property files are not available at this point
@@ -211,7 +205,7 @@
 			token="@AJVERSION@" value="${ajde.version}"/>
 	</target>
 
-	<target name="create-p2-inf-for-equinox-aspects" description="Creates the p2.inf file for equinox aspects to that it is auto-started">
+	<target name="create-p2-inf-for-equinox-weavings" description="Creates the p2.inf file for equinox aspects to that it is auto-started">
 		<copy file="${workdir}/org.eclipse.ajdt.releng/provisioning_support/p2.inf" 
 			toDir="${buildDirectory}/plugins/org.eclipse.equinox.weaving.aspectj/META-INF" 
 		  failonerror="true" />
@@ -280,7 +274,7 @@
 			<property name="id" value="org.eclipse.equinox.weaving.sdk" />
 		</ant>
 
-		<antcall target="replace-equinox-aspects-qualifier">
+		<antcall target="replace-equinox-weavings-qualifier">
 		</antcall>
 
 
@@ -297,7 +291,7 @@
 			build.properties files for the EA features, plugins, and fragments and add a 'qualifier' entry
 	 -->
 	<!-- ===================================================================== -->
-	<target name="replace-equinox-aspects-qualifier">
+	<target name="replace-equinox-weavings-qualifier">
 		<property file="${buildDirectory}/featureVersions.properties" />
 		<property file="${buildDirectory}/pluginVersions.properties" />
 
@@ -429,7 +423,9 @@
 		<replace file="${updateSite.loc}/site.xml" token="0.0.0.AJFVERSION"
 	       value="${org.eclipse.ajdt}"/>
 		<replace file="${updateSite.loc}/site.xml" token="0.0.0.EAFVERSION"
-	       value="1.0.200.${org.eclipse.equinox.weaving.sdk,0.0.0}"/>
+	       value="${org.eclipse.equinox.weaving.sdk}"/>
+		<replace file="${updateSite.loc}/site.xml" token="0.0.0.AJCVERSION"
+	       value="${ajde.version}"/>
 	</target>
 
 	<target name="updateSiteExport">

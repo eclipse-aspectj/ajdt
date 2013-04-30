@@ -114,6 +114,7 @@ public class AJCompilationUnitInfo extends ASTHolderCUInfo {
 	}
 	
     
+    @SuppressWarnings("rawtypes")
     public HashMap getProblems() {
         try {
             return (HashMap) problemsField.get(this);

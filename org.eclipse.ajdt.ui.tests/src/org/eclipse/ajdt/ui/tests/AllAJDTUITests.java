@@ -50,8 +50,6 @@ import org.eclipse.ajdt.ui.tests.editor.AJOrganizeImportsTests;
 import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
-import org.eclipse.ajdt.ui.tests.editor.ITDHyperlinkTest;
-import org.eclipse.ajdt.ui.tests.editor.ITDHyperlinkTest2;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.Bug273691ContentAssist;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.Bug280508ContentAssist;
@@ -140,8 +138,6 @@ public class AllAJDTUITests {
         suite.addTest(new TestSuite(AspectJEditorTest.class));
         suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
         suite.addTest(new TestSuite(AspectJEditorIconTest.class));
-        suite.addTest(new TestSuite(ITDHyperlinkTest.class));
-        suite.addTest(new TestSuite(ITDHyperlinkTest2.class));
         suite.addTest(new TestSuite(AJOrganizeImportsTests.class));
         
         // code format tests

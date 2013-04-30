@@ -17,6 +17,7 @@ import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.IMessage.Kind;
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.core.runtime.Platform;
 
 /**
  * IBuildMessageHandler which handles messages by calling AJLog.log.
@@ -24,15 +25,21 @@ import org.eclipse.ajdt.core.AJLog;
  */
 public class CoreBuildMessageHandler implements IBuildMessageHandler {
 
-	private List ignoring;
+    // if AJDT is being run headless, then this message handler is active.  Otherwise, ignore any messages from the compiler.
+    private static final boolean USE_LOG = Platform.getBundle("org.eclipse.ajdt.ui") == null;
+    
+	private List<Kind> ignoring;
 	
 	public CoreBuildMessageHandler() {
-        ignoring = new ArrayList();
+        ignoring = new ArrayList<Kind>();
         ignore(IMessage.INFO);
         ignore(IMessage.WEAVEINFO);
 	}	
 
 	public boolean handleMessage(IMessage message) {
+	    if (!USE_LOG) {
+	        return true;
+	    }
         IMessage.Kind kind = message.getKind(); 
         if (kind.equals(IMessage.ABORT)) {
         	AJLog.log(AJLog.COMPILER,"AJC: Compiler error: "+message.getMessage()); //$NON-NLS-1$
@@ -60,5 +67,4 @@ public class CoreBuildMessageHandler implements IBuildMessageHandler {
 	        ignoring.add(kind);
 	    }	
 	}
-
 }

@@ -23,7 +23,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -41,12 +43,18 @@ public class CoreUtils {
     public static final String PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$
     public static final String ID_NATURE = PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
 
-    
-	/**
+    private static final String CLASSES = "classes";
+    private static final String SOURCE = "source";
+    /**
 	 * Computed classpath to aspectjrt.jar
 	 */
 	private static String aspectjrtPath = null;
 	
+    private static String aspectjrtSourcePath = null;
+    
+    private static boolean sourceCheckDone = false;
+    private static boolean rtCheckDone = false;
+
 	/**
 	 * Return the fully-qualified name of the root directory for a project.
 	 */
@@ -81,63 +89,66 @@ public class CoreUtils {
 	 * Get the aspectjrt.jar classpath entry. This is usually in
 	 * plugins/org.aspectj.ajde_ <VERSION>/aspectjrt.jar
 	 */
-	public static String getAspectjrtClasspath() {
-
-		if (aspectjrtPath == null) {
-			StringBuffer cpath = new StringBuffer();
-
-			// This returns the bundle with the highest version or null if none
-			// found
-			// - for Eclipse 3.0 compatibility
-			Bundle ajdeBundle = Platform
-					.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
-
-			String pluginLoc = null;
-			// 3.0 using bundles instead of plugin descriptors
-			if (ajdeBundle != null) {
-				URL installLoc = ajdeBundle.getEntry("/"); //$NON-NLS-1$
-				URL resolved = null;
-				try {
-					resolved = FileLocator.resolve(installLoc);
-					pluginLoc = resolved.toExternalForm();
-				} catch (IOException e) {
-				}
-			}
-			if (pluginLoc != null) {
-				if (pluginLoc.startsWith("file:")) { //$NON-NLS-1$
-					cpath.append(pluginLoc.substring("file:".length())); //$NON-NLS-1$
-					cpath.append("aspectjrt.jar"); //$NON-NLS-1$
-				}
-			}
-
-			// Verify that the file actually exists at the plugins location
-			// derived above. If not then it might be because we are inside
-			// a runtime workbench. Check under the workspace directory.
-			if (new File(cpath.toString()).exists()) {
-				// File does exist under the plugins directory
-				aspectjrtPath = cpath.toString();
-			} else {
-				// File does *not* exist under plugins. Try under workspace...
-				IPath rootPath = AspectJPlugin.getWorkspace().getRoot()
-						.getLocation();
-				IPath installPath = rootPath.removeLastSegments(1);
-				cpath = new StringBuffer().append(installPath.toOSString());
-				cpath.append(File.separator);
-				// TODO: what if the workspace isn't called workspace!!!
-				cpath.append("workspace"); //$NON-NLS-1$
-				cpath.append(File.separator);
-				cpath.append(AspectJPlugin.RUNTIME_PLUGIN_ID);
-				cpath.append(File.separator);
-				cpath.append("aspectjrt.jar"); //$NON-NLS-1$
-
-				// Only set the aspectjrtPath if the jar file exists here.
-				if (new File(cpath.toString()).exists())
-					aspectjrtPath = cpath.toString();
-			}
+	public synchronized static String getAspectjrtClasspath() {
+		if (aspectjrtPath == null && !rtCheckDone) {
+		    rtCheckDone = true;
+		    aspectjrtPath = internalGetPath(AspectJPlugin.RUNTIME_PLUGIN_ID, false);
+		    if (aspectjrtPath == null) {
+    		    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, 
+    		            "Could not find AspectJ runtime."));
+		    }
 		}
 		return aspectjrtPath;
 	}
 	
+	private static String internalGetPath(String bundleId, boolean useSource) {
+        Bundle bundle = Platform
+                .getBundle(bundleId);
+    
+        if (bundle != null) {
+            URL installLoc = bundle.getEntry("/"); //$NON-NLS-1$
+            URL resolved = null;
+            try {
+                resolved = FileLocator.resolve(installLoc);
+                String fullPath = resolved.getFile();
+                // !/ indicates a location inside of a jar
+                if (fullPath.endsWith("!/")) {
+                    fullPath = fullPath.substring(0, fullPath.length()-2);
+                }
+                if (fullPath.startsWith("file:")) {
+                    fullPath = new URL(fullPath).getFile();
+                }
+                File ajrt = new File(fullPath);
+                if (ajrt.exists()) {
+                    if (ajrt.isDirectory()) {
+                        // in a runtime workbench
+                        ajrt = new File(ajrt, useSource ? SOURCE : CLASSES);
+                    }
+                    return ajrt.getCanonicalPath();
+                }
+            } catch (IOException e) {
+            }
+        }
+        return null;
+    }
+
+    public synchronized static String getAspectjrtSourcePath() throws IOException {
+        if (aspectjrtSourcePath == null && !sourceCheckDone) {
+            sourceCheckDone = true;
+            String aspectjrtClasspath = getAspectjrtClasspath();
+            if (aspectjrtClasspath != null) {
+                if (aspectjrtClasspath.endsWith(".jar")) {
+                    int ajrtIndex = aspectjrtClasspath.lastIndexOf(AspectJPlugin.RUNTIME_PLUGIN_ID) + AspectJPlugin.RUNTIME_PLUGIN_ID.length();
+                    aspectjrtSourcePath = aspectjrtClasspath.substring(0, ajrtIndex) + "." + SOURCE + aspectjrtClasspath.substring(ajrtIndex);
+                } else if (aspectjrtClasspath.endsWith(CLASSES)) {
+                    // runtime workbench
+                    aspectjrtSourcePath = aspectjrtClasspath.substring(0, aspectjrtClasspath.length() - CLASSES.length()) + SOURCE;
+                }
+            }
+        }
+        return aspectjrtSourcePath;
+    }
+
 	/**
 	 * Get all projects within the workspace who have a dependency on the given
 	 * project - this can either be a class folder dependency or on a library
@@ -149,15 +160,15 @@ public class CoreUtils {
 	 *         depending projects, and the second is all the exported library
 	 *         dependent projects
 	 */
-	public static List getDependingProjects(IProject project) {
-		List projects = new ArrayList();
+	public static List<IProject[]> getDependingProjects(IProject project) {
+		List<IProject[]> projects = new ArrayList<IProject[]>();
 
 		IProject[] projectsInWorkspace = AspectJPlugin.getWorkspace()
 				.getRoot().getProjects();
-		List outputLocationPaths = getOutputLocationPaths(project);
+		List<IPath> outputLocationPaths = getOutputLocationPaths(project);
 		IClasspathEntry[] exportedEntries = getExportedEntries(project);
-		List classFolderDependingProjects = new ArrayList();
-		List exportedLibraryDependingProjects = new ArrayList();
+		List<IProject> classFolderDependingProjects = new ArrayList<IProject>();
+		List<IProject> exportedLibraryDependingProjects = new ArrayList<IProject>();
 
 		workThroughProjects: for (int i = 0; i < projectsInWorkspace.length; i++) {
 			if (projectsInWorkspace[i].equals(project)
@@ -176,9 +187,9 @@ public class CoreUtils {
 						for (int j = 0; j < cpEntry.length; j++) {
 							IClasspathEntry entry = cpEntry[j];
 							if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-								for (Iterator iter = outputLocationPaths
+								for (Iterator<IPath> iter = outputLocationPaths
 										.iterator(); iter.hasNext();) {
-									IPath path = (IPath) iter.next();
+									IPath path = iter.next();
 									if (entry.getPath().equals(path)) {
 										classFolderDependingProjects
 												.add(projectsInWorkspace[i]);
@@ -209,7 +220,7 @@ public class CoreUtils {
 	}
 
 	private static IClasspathEntry[] getExportedEntries(IProject project) {
-		List exportedEntries = new ArrayList();
+		List<IClasspathEntry> exportedEntries = new ArrayList<IClasspathEntry>();
 
 		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null) {
@@ -241,8 +252,8 @@ public class CoreUtils {
 	 * @param project
 	 * @return list of IPath objects
 	 */
-	public static List getOutputLocationPaths(IProject project) {
-		List outputLocations = new ArrayList();
+	public static List<IPath> getOutputLocationPaths(IProject project) {
+		List<IPath> outputLocations = new ArrayList<IPath>();
 		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null)
 			return outputLocations;
@@ -276,7 +287,7 @@ public class CoreUtils {
 	}
 	
 	public static IPath[] getOutputFolders(IJavaProject project) throws CoreException {
-		List paths = new ArrayList();
+		List<IPath> paths = new ArrayList<IPath>();
 		paths.add(project.getOutputLocation());
 		IClasspathEntry[] cpe = project.getRawClasspath();
 		for (int i = 0; i < cpe.length; i++) {
@@ -308,12 +319,12 @@ public class CoreUtils {
      * 
      * Replace the 'P' for parameterized to 'L' for resolved
      */
-    public static String[] listAJSigToJavaSig(List/*char[]*/ chars) {
+    public static String[] listAJSigToJavaSig(List<char[]> chars) {
         if (chars != null) {
             String[] result = new String[chars.size()];
             int index = 0;
-            for (Iterator charsIter = chars.iterator(); charsIter.hasNext(); index++) {
-                char[] c = (char[]) charsIter.next();
+            for (Iterator<char[]> charsIter = chars.iterator(); charsIter.hasNext(); index++) {
+                char[] c = charsIter.next();
                 if (c == null) {
                     result[index] = "";
                     continue;
@@ -346,12 +357,12 @@ public class CoreUtils {
         return new String[0];
     }
 
-    public static char[][] listStringsToCharArrays(List/*String*/ strings) {
+    public static char[][] listStringsToCharArrays(List<String> strings) {
         if (strings != null) {
     	    char[][] result = new char[strings.size()][];
     	    int index = 0;
-    	    for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
-                String string = (String) stringIter.next();
+    	    for (Iterator<String> stringIter = strings.iterator(); stringIter.hasNext(); index++) {
+                String string = stringIter.next();
                 result[index] = string != null ? string.toCharArray() : "".toCharArray();
             }
     	    return result;
@@ -359,12 +370,12 @@ public class CoreUtils {
         return new char[0][];
     }
 
-    public static char[][] listCharsToCharArrays(List/*char[]*/ strings) {
+    public static char[][] listCharsToCharArrays(List<char[]> strings) {
         if (strings != null) {
             char[][] result = new char[strings.size()][];
             int index = 0;
-            for (Iterator stringIter = strings.iterator(); stringIter.hasNext(); index++) {
-                char[] string = (char[]) stringIter.next();
+            for (Iterator<char[]> stringIter = strings.iterator(); stringIter.hasNext(); index++) {
+                char[] string = stringIter.next();
                 result[index] = string != null ? string : "".toCharArray();
             }
             return result;
