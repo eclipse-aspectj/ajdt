@@ -50,18 +50,7 @@
     		<equals arg1="${target.eclipse.version}" arg2="43"/>
     	</condition>
     	
-    	<condition property="target.url" value="${target.url.43}">
-    		<equals arg1="${target.eclipse.version}" arg2="43"/>
-    	</condition>
-    	<condition property="target.url" value="${target.url.42}">
-    		<equals arg1="${target.eclipse.version}" arg2="42"/>
-    	</condition>
-    	<condition property="target.url" value="${target.url.37}">
-    		<equals arg1="${target.eclipse.version}" arg2="37"/>
-    	</condition>
-    	
     	<echo message="target.eclipse.version=${target.eclipse.version}"/>
-    	<echo message="target.url=${target.url}"/>
     	<echo message="target.eclipse.tar=${target.eclipse.tar}"/>
     	
     </target>
@@ -221,24 +210,10 @@
 	<target name="check.provision.build" description="Check to see if the build eclipse has already been provisioned">
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
 	</target>
-	<target name="check-eclipse-already-downloaded" description="Check to see if the target Eclipse is already downloaded">
-		<available file="${download.home}/${target.eclipse.tar}" property="download.completed"/>
-	</target>
-
-	<target name="download-eclipse" depends="init,check-eclipse-already-downloaded" unless="download.completed" description="Downloads Eclipse if not already downloaded">
-		
-		<mkdir dir="${download.home}"/>
-		<antcall target="downloadFile">
-			<param name="theURL" value="${target.url}"/>
-			<param name="downloadsDir" value="${download.home}"/>
-			<param name="theFile" value="${target.eclipse.tar}"/>
-		</antcall>
-	</target>
-
 	
 	<!-- for now, only tar files are supported -->
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
-	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build,download-eclipse" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
+	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<!-- the build eeclipse is 3.7 based -->
 		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.37}"/>
