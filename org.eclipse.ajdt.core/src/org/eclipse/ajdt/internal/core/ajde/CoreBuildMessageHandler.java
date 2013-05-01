@@ -26,7 +26,7 @@ import org.eclipse.core.runtime.Platform;
 public class CoreBuildMessageHandler implements IBuildMessageHandler {
 
     // if AJDT is being run headless, then this message handler is active.  Otherwise, ignore any messages from the compiler.
-    private static final boolean USE_LOG = Platform.getBundle("org.eclipse.ajdt.ui") == null;
+    private static final boolean USE_LOG = Boolean.parseBoolean(System.getProperty("ajdt.showMessagesInLog", Boolean.FALSE.toString()));
     
 	private List<Kind> ignoring;
 	
