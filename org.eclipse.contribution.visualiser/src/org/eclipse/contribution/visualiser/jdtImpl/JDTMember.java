@@ -42,7 +42,7 @@ public class JDTMember extends SimpleMember {
 	}
 
 	public String toString() {
-		return  VisualiserMessages.JDTMember +  ":["+fullname+"] " + VisualiserMessages.Size + ":[" + size.toString() + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		return  VisualiserMessages.JDTMember +  ":["+getFullname()+"] " + VisualiserMessages.Size + ":[" + size.toString() + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 
 }

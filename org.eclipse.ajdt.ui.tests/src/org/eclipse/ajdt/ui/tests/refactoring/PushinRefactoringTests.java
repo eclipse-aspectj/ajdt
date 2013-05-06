@@ -346,6 +346,7 @@ public class PushinRefactoringTests extends UITestCase {
     protected void executeRefactoring(Refactoring refactoring) throws Exception {
         PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
         waitForJobsToComplete();
+        ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
         // Flush the undo manager to not count any already existing undo objects
         // into the heap consumption
         RefactoringCore.getUndoManager().flush();

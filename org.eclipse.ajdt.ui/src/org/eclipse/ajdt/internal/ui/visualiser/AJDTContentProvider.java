@@ -15,6 +15,7 @@ import java.util.Set;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.contribution.jdt.IsWovenTester;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
@@ -53,11 +54,12 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getAllGroups()
 	 */
 	public List<IGroup> getAllGroups() {
-		if (currentGroups == null) {
-			updateData();
-		} 
-
-		return currentGroups;
+		synchronized (this) {
+            if (currentGroups == null) {
+                updateData();
+            }
+        }
+        return currentGroups;
 	}
 
 	/**
@@ -66,11 +68,12 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getAllMembers()
 	 */
 	public List<IMember> getAllMembers() {
-		if (currentMembers == null) {
-			updateData();
-		} 
-			
-		return currentMembers;
+		synchronized (this) {
+            if (currentMembers == null) {
+                updateData();
+            }
+        }
+        return currentMembers;
 	}
 
 	/**
@@ -144,7 +147,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 		if (currentProject != null) {
 
 			try {
-				if (currentlySelectedJE instanceof IJavaProject) {
+				if (currentlySelectedJE.getElementType() == IJavaElement.JAVA_PROJECT) {
 					// Process contents of a Java project
 					IPackageFragment[] packageFragments = ((IJavaProject) currentlySelectedJE).getPackageFragments();
 					for (int i = 0; i < packageFragments.length; i++) {
@@ -152,11 +155,11 @@ public class AJDTContentProvider extends JDTContentProvider {
 							addMembersAndGroups(newGroups, newMembers, packageFragments[i]);
 						}
 					}
-				} else if (currentlySelectedJE instanceof IPackageFragment) {
+				} else if (currentlySelectedJE.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
 					// Process contents of a Java package(fragment)
 					IPackageFragment packageFragment = (IPackageFragment) currentlySelectedJE;
 					addMembersAndGroups(newGroups, newMembers, packageFragment);
-				} else if (currentlySelectedJE instanceof ICompilationUnit) {
+				} else if (currentlySelectedJE.getElementType() == IJavaElement.COMPILATION_UNIT) {
 					// Process individually selected compilation units
 					JDTMember member = null;
 
@@ -287,7 +290,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 								javaElements[j].getResource())) {
 
 							// Bug 157776: Filter out duplicate compilation units here, not in calling methods
-							if (!(javaElements[j] instanceof AJCompilationUnit)
+							if (!IsWovenTester.isWeavingActive() && !(javaElements[j] instanceof AJCompilationUnit)
 									&& javaElements[j].getElementName() != null
 									&& javaElements[j].getElementName().endsWith(".aj")) { //$NON-NLS-1$
 								// Do nothing

@@ -178,27 +178,6 @@ public class AJDTContentProviderTest extends UITestCase {
 	 * {@link org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)}.
 	 */
 	public void testSelectionChanged() {
-
-		/*
-		 * This is the important method to test as it is the only way of getting
-		 * data in to the content provider via a public method (Cf.
-		 * setCurrentProject, which is protected).
-		 * 
-		 * The current implementation doesn't use the IWorkbenchPart argument,
-		 * so passing null saves creating a mock for this arg.
-		 * 
-		 * Additionally, the implementation only acts on an instance of
-		 * IStructuredSelection, so we need only consern ourselves with that -
-		 * in fact a single method!
-		 * 
-		 * Changing the selection to an IJavaElement of a known package, should
-		 * trigger an update to the new 'currentProject'. It should be null to
-		 * start with, then the expected test project.
-		 * 
-		 * -spyoung
-		 */
-		assertNull("currentProject should be null prior to this test", ajdtContentProvider.getCurrentProject()); //$NON-NLS-1$
-
 		ajdtContentProvider.selectionChanged(null, new AJDTContentProviderTest.MockStructuredSelection(someJavaElement));
 		assertNotNull("currentProject has not been set", ajdtContentProvider.getCurrentProject()); //$NON-NLS-1$
 
@@ -261,9 +240,9 @@ public class AJDTContentProviderTest extends UITestCase {
 		
 		System.out.println("Commented out part of AJDTContentProviderTest.testGetAllMembers() because of sporadic failures on build server.");
 		// Select the first package - should cause getAllMembers to return all elements in that packages
-//		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(defaultPackage));
-//		List packageMembers = ajdtContentProvider.getAllMembers();
-//		assertEquals("Wrong number of package members", DEFAULT_PACKAGE_MEMBER_COUNT, packageMembers.size()); //$NON-NLS-1$
+		ajdtContentProvider.selectionChanged(null, new MockStructuredSelection(defaultPackage));
+		List packageMembers = ajdtContentProvider.getAllMembers();
+		assertEquals("Wrong number of package members", DEFAULT_PACKAGE_MEMBER_COUNT, packageMembers.size()); //$NON-NLS-1$
 	}
 
 	/**

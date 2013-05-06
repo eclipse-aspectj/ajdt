@@ -86,10 +86,12 @@ public class AspectPathTests extends AJDTCoreTestCase {
      * See bug 244300
      */
     public void testProjectWithRootOutFolderOnAspectPath() throws Exception {
-    	final List log = new LinkedList();
+    	final List<String> log = new LinkedList<String>();
     	RuntimeLog.addLogListener(new ILogListener() {
 			public void logging(IStatus status, String plugin) {
-				log.add(plugin.toString() + ": " + status);
+			    if (status.getSeverity() == IStatus.ERROR) {
+			        log.add(plugin + ": " + status);
+			    }
 			}
 		});
     	

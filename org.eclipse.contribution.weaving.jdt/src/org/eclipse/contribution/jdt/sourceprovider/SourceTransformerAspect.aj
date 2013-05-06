@@ -53,7 +53,7 @@ public privileged aspect SourceTransformerAspect {
         // mocking up binary code
         // not sure if this should stay
         // this means that binary aspects look transformed, but they also don't have structure
-        if (! (sourceUnit instanceof BasicCompilationUnit)) {
+        if (! (sourceUnit instanceof BasicCompilationUnit) && sourceString != null) {
             String extension = getExtension(sourceUnit);
             ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
             if (transformer != null) {
@@ -83,7 +83,7 @@ public privileged aspect SourceTransformerAspect {
     void around(IType type, char[] contents, IBinaryType info) : 
             mappingSource(type, contents, info) {
         char[] newContents = contents;
-        if (isInterestingProject(type)) {
+        if (isInterestingProject(type) && newContents != null) {
         
             String extension = getExtension(type, info);
             ISourceTransformer transformer = SourceTransformerRegistry.getInstance().getSelector(extension);
