@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
-import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoring;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
 import org.eclipse.ltk.core.refactoring.PerformRefactoringOperation;
 import org.eclipse.ltk.core.refactoring.Refactoring;
@@ -271,7 +272,14 @@ public class PushinRefactoringTests extends UITestCase {
         int numErrors = logs.length;
         
         // do the refactoring
-        executeRefactoring(refactoring);
+        try {
+            executeRefactoring(refactoring);
+        } catch (CoreException e) {
+            if (e.getStatus().getCode() == IResourceStatus.OUT_OF_SYNC_LOCAL) {
+                pushinJavaProj.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+                executeRefactoring(refactoring);
+            }
+        }
         
         // no errors on log
         logs = logView.getElements();
