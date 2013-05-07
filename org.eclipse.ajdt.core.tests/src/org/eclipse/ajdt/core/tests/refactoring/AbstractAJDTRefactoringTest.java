@@ -181,7 +181,7 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
     }
 
     protected void performDummySearch() throws Exception {
-        performDummySearch(p);
+        performDummySearch(project);
     }
     
     

@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoring;
 import org.eclipse.ajdt.internal.ui.refactoring.PushInRefactoringAction;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -201,7 +202,6 @@ public class PushinRefactoringTests extends UITestCase {
         List<IMember> itds = action.findAllITDs(new IJavaElement[] { petClinic });
         doRefactoringAndInitialCheck(petClinic, itds);
         
-        
         // no aspect files left over
         lookForAJFiles(petClinic.getProject());
     }
@@ -346,7 +346,8 @@ public class PushinRefactoringTests extends UITestCase {
     protected void executeRefactoring(Refactoring refactoring) throws Exception {
         PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
         waitForJobsToComplete();
-        ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+        performDummySearch(JavaModelManager.getJavaModelManager().getJavaModel());
+        pushinJavaProj.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
         // Flush the undo manager to not count any already existing undo objects
         // into the heap consumption
         RefactoringCore.getUndoManager().flush();
