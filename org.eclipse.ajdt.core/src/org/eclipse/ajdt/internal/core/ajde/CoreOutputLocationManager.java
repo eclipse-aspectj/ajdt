@@ -452,7 +452,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
      * @return all source files compiled for this build
      */
     public File[] getCompiledSourceFiles() {
-        return compiledSourceFiles.toArray(new File[compiledSourceFiles.size()]);
+        return compiledSourceFiles == null ? new File[0] : compiledSourceFiles.toArray(new File[compiledSourceFiles.size()]);
     }
 
 

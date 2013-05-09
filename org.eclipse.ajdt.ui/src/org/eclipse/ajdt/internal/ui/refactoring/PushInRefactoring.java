@@ -577,12 +577,11 @@ public class PushInRefactoring extends Refactoring {
         // if this weren't the case, then there would be a compile error
         // and it would not be possible to invoke refactoring
         String newSuper = null;
-        int cnt = 0;
         for (String parent : newParents) {
             if (isClass(parent, targetType)) {
-                newSuper = simpleParents.remove(cnt);
+            	newSuper = convertToSimple(parent);
+                simpleParents.remove(newSuper);
             }
-            cnt++;
         }
         
         // do the rewrite.  Only need to add simple names since imports are already taken care of
