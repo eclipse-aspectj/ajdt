@@ -352,8 +352,8 @@ public class PushinRefactoringTests extends UITestCase {
         System.gc();
         ResourcesPlugin.getWorkspace().run(operation, null);
         waitForJobsToComplete();
-        assertEquals(true, operation.getConditionStatus().getSeverity() == RefactoringStatus.OK);
-        assertEquals(true, operation.getValidationStatus().isOK());
+        assertEquals("Expecting OK status, but found " + operation.getConditionStatus(),  RefactoringStatus.OK, operation.getConditionStatus().getSeverity());
+        assertTrue("Expecting OK status, but found " + operation.getValidationStatus(), operation.getValidationStatus().isOK());
         RefactoringCore.getUndoManager().flush();
         System.gc();
     }
