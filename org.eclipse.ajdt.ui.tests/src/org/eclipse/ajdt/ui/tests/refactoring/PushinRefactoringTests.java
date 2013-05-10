@@ -355,12 +355,20 @@ public class PushinRefactoringTests extends UITestCase {
         PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
         waitForJobsToComplete();
         performDummySearch(JavaModelManager.getJavaModelManager().getJavaModel());
-        pushinJavaProj.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
         // Flush the undo manager to not count any already existing undo objects
         // into the heap consumption
         RefactoringCore.getUndoManager().flush();
         System.gc();
-        ResourcesPlugin.getWorkspace().run(operation, null);
+        pushinJavaProj.getProject().getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+        try {
+            ResourcesPlugin.getWorkspace().run(operation, null);
+        } catch (CoreException ce) {
+            if (ce.getStatus().getCode() == IResourceStatus.OUT_OF_SYNC_LOCAL) {
+                // try again 
+                pushinJavaProj.getProject().getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+                ResourcesPlugin.getWorkspace().run(operation, null);
+            }
+        }
         waitForJobsToComplete();
         assertEquals("Expecting OK status, but found " + operation.getConditionStatus(),  RefactoringStatus.OK, operation.getConditionStatus().getSeverity());
         assertTrue("Expecting OK status, but found " + operation.getValidationStatus(), operation.getValidationStatus().isOK());
