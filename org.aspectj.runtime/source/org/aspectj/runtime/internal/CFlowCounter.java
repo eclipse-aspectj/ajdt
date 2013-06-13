@@ -31,7 +31,6 @@ public class CFlowCounter {
 	
 	public CFlowCounter() {
 		flowHeightHandler = tsFactory.getNewThreadCounter();
-//		System.out.println("CFlowCounter::new counter created::Thread="+Thread.currentThread().getName()+"::"+System.identityHashCode(flowHeightHandler));
 	}
     
     public void inc() {
@@ -41,7 +40,6 @@ public class CFlowCounter {
     public void dec() {
     	flowHeightHandler.dec();
     	if (!flowHeightHandler.isNotZero()) {
-//    		System.out.println("CFlowCounter::counter being removed::Thread="+Thread.currentThread().getName()+"::"+System.identityHashCode(flowHeightHandler));
     		flowHeightHandler.removeThreadCounter();
     	}
     }

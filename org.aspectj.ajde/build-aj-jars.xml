@@ -64,48 +64,58 @@ Creates a packaged plug-in jar for AJDE
 	</target>
 	
 	
-	<target name="ajdejar" description="Construct ajde.jar and ajdesrc.zip for the ajde plugin using an AJ build">
+	<target name="ajdejar" description="Copy the AspectJ compiler components into the org.aspectj.ajde plugin">
+		<property name="src1" value="../org.aspectj.ajde/source"/>
+		<property name="bin1" value="../org.aspectj.ajde/classes"/>
 		
-		<!-- copy and unpack an aspectjtools.jar into a local build directory -->
-		<delete dir="${ajde.build.dir}"/>
-		<copy file="${aspectj.lib.dir}/aspectjtools.jar" tofile="aspectjtools.jar" overwrite="true" />
-		<mkdir dir="${ajde.build.dir}" />
-		<unzip dest="${ajde.build.dir}" src="aspectjtools.jar" />
-		
-		<!-- delete everything that isn't in the org.aspectj package -->
+		<!-- Classes -->
+		<delete dir="${bin1}"/>
+		<unzip dest="${bin1}" src="${aspectj.lib.dir}/aspectjtools.jar"/>	
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${bin1}">
 				<exclude name="org/aspectj/**/*.*" />
 			</fileset>
 		</delete>
-		
-		<!-- delete everything which is going to be in aspectjweaver.jar -->
-		<echo message="Removing files not required in ajde.jar since they're contained in aspectjweaver.jar"/>
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${bin1}">
+				<include name="META-INF/**"/>
+				<include name="*.profile" />
+				<include name="*.html" />
+				<include name="*.properties" />
+				<include name=".api_description"/>
+				<include name=".options"/>
+				<include name="plugin.xml"/>
+				<include name="profile.list"/>
+				<include name="aspectj_1_5_0.dtd"/>
+				<include name="org.eclipse.jdt.core-empty"/>
+				<include name="about_files/**"/>
+				<include name="ant_tasks/**"/>
+				<include name="org/eclipse/**"/>
+				<include name="org/osgi/**"/>
+			</fileset>
+		</delete>
+		<!-- delete these as they are in weaver -->
+		<delete includeemptydirs="true">
+			<fileset dir="${bin1}">
 				<include name="org/aspectj/asm/**" />
 				<include name="org/aspectj/weaver/**" />
 				<include name="org/aspectj/apache/**" />
 				<include name="org/aspectj/bridge/**" />
 				<include name="org/aspectj/util/**" />
-				<include name="org/aspectj/org/objectweb/**" />
+				<include name="aj/org/objectweb/**" />
 			</fileset>
 		</delete>
-		
-		<!-- delete everything which is going to be in aspectjrt.jar -->
-		<echo message="Removing files not required in ajde.jar since they're contained in aspectjrt.jar"/>
+		<!-- delete these as they are in runtime -->
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${bin1}">
 				<include name="org/aspectj/internal/**" />
 				<include name="org/aspectj/runtime/**" />
 				<include name="org/aspectj/lang/**" />
 			</fileset>
 		</delete>
-		
 		<!-- delete everything which is in ajde and ajbrowser -->
-		<echo message="Removing ajde and ajbrowser files as they're not required in ajde.jar"/>
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${bin1}">
 				<include name="org/aspectj/ajde/*" />
 				<include name="org/aspectj/ajde/internal/**" />
 				<include name="org/aspectj/ajde/resources/**" />
@@ -117,28 +127,18 @@ Creates a packaged plug-in jar for AJDE
 			</fileset>
 		</delete>
 	
-		<!-- construct the ajde.jar -->
-		<zip destfile="ajde.jar">
-			<fileset dir="${ajde.build.dir}" />
-		</zip>
-		<delete dir="${ajde.build.dir}" />
-
-		<!-- build a src zip -->
-		
-		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
-		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
-		
-		<!-- delete everything that isn't in the org.aspectj package -->
+		<!-- Sources -->
+		<delete dir="${src1}" />
+		<unzip dest="${src1}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
+		<unzip dest="${src1}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
 		<delete includeemptydirs="true">
-           <fileset dir="${ajde.build.dir}">
-			  <exclude name="org/aspectj/**/*.*"/>
-           	</fileset>
-        </delete>
-		
-		<!-- delete everything which is going to be in aspectjweaversrc.zip -->
-		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjweaversrc.zip"/>
+			<fileset dir="${src1}">
+				<exclude name="org/aspectj/**/*.*" />
+			</fileset>
+		</delete>
+		<!-- delete these as they are in weaver -->
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${src1}">
 				<include name="org/aspectj/asm/**" />
 				<include name="org/aspectj/weaver/**" />
 				<include name="org/aspectj/apache/**" />
@@ -147,21 +147,17 @@ Creates a packaged plug-in jar for AJDE
 				<include name="org/aspectj/org/objectweb/**" />
 			</fileset>
 		</delete>
-		
-		<!-- delete everything which is going to be in aspectjrtsrc.zip -->
-		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjrtsrc.zip"/>
+		<!-- delete these as they are in runtime -->
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${src1}">
 				<include name="org/aspectj/internal/**" />
 				<include name="org/aspectj/runtime/**" />
 				<include name="org/aspectj/lang/**" />
 			</fileset>
 		</delete>
-
 		<!-- delete everything which is in ajde and ajbrowser -->
-		<echo message="Removing ajde and ajbrowser files as they're not required in ajdesrc.zip"/>
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${src1}">
 				<include name="org/aspectj/ajde/*" />
 				<include name="org/aspectj/ajde/internal/**" />
 				<include name="org/aspectj/ajde/resources/**" />
@@ -172,32 +168,23 @@ Creates a packaged plug-in jar for AJDE
 				<include name="org/aspectj/tools/ajbrowser/ui/swing/**" />
 			</fileset>
 		</delete>
-		
 		<!-- delete everything which shouldn't be anywhere at all -->
-		<echo message="Removing other files not required in ajdesrc.zip"/>
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${src1}">
 				<include name="org/aspectj/lib/**" />
 			</fileset>
-		</delete>
-		
-		<zip destfile="ajdesrc.zip">
-		  <fileset dir="${ajde.build.dir}"/>
-		</zip>
-		<delete dir="${ajde.build.dir}" />
+		</delete>		
 	</target>
 	
-	<target name="weaverjar" description="Construct aspectjweaver.jar and aspectjweaversrc.zip for the aspectjweaver plugin using an AJ build">
-		<!-- copy and unpack an aspectjweaver.jar into a local build directory -->
-		<delete dir="${ajde.build.dir}"/>
-		<copy file="${aspectj.lib.dir}/aspectjweaver.jar" tofile="aspectjweaver.jar" overwrite="true" />
-		<mkdir dir="${ajde.build.dir}" />
-		<unzip dest="${ajde.build.dir}" src="aspectjweaver.jar" />
+	<target name="weaverjar" description="Copy the AspectJ weaver components into the org.aspectj.weaver plugin">
+		<property name="src2" value="../org.aspectj.weaver/source"/>
+		<property name="bin2" value="../org.aspectj.weaver/classes"/>
 		
-		<!-- delete everything which shouldn't be included in the aspectjweaver.jar -->
-		<echo message="Removing files not required in aspectjweaver.jar"/>
+		<!-- Classes -->
+		<delete dir="${bin2}"/>
+		<unzip dest="${bin2}" src="${aspectj.lib.dir}/aspectjweaver.jar"/>	
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${bin2}">
 				<exclude name="META-INF/*.*" />
 				<exclude name="org/aspectj/apache/bcel/**/*.*" />
 				<exclude name="org/aspectj/asm/**/*.*" />
@@ -208,26 +195,17 @@ Creates a packaged plug-in jar for AJDE
 			</fileset>
 		</delete>
 	
-		<!-- construct the aspectjweaver.jar directly in the org.aspectj.weaver plugin -->
-		<zip destfile="../org.aspectj.weaver/aspectjweaver.jar">
-			<fileset dir="${ajde.build.dir}" />
-		</zip>
-		<delete dir="${ajde.build.dir}" />
-
-		<!-- build a src zip -->
-		
-		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
-		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
-		<!-- delete everything that isn't in the org.aspectj package -->
+		<!-- Sources -->
+		<delete dir="${src2}" />
+		<unzip dest="${src2}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
+		<unzip dest="${src2}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
 		<delete includeemptydirs="true">
-           <fileset dir="${ajde.build.dir}">
-			  <exclude name="org/aspectj/**/*.*"/>
-           	</fileset>
-        </delete>
-		<!-- delete everything which shouldn't be included in the aspectjweaversrc.zip -->
-		<echo message="Removing files not required in aspectjweaversrc.zip"/>
+			<fileset dir="${src2}">
+				<exclude name="org/aspectj/**/*.*" />
+			</fileset>
+		</delete>
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${src2}">
 				<exclude name="org/aspectj/apache/bcel/**/*.*" />
 				<exclude name="org/aspectj/asm/**/*.*" />
 				<exclude name="org/aspectj/bridge/**/*.*" />
@@ -235,43 +213,37 @@ Creates a packaged plug-in jar for AJDE
 				<exclude name="org/aspectj/weaver/**/*.*" />
 			</fileset>
 		</delete>
-		
-		<zip destfile="../org.aspectj.weaver/aspectjweaversrc.zip">
-		  <fileset dir="${ajde.build.dir}"/>
-		</zip>
-		<delete dir="${ajde.build.dir}" />	
 	</target>
 
-	<target name="runtimejar" description="Copy the aspectjrt.jar from an 
-		AJ build into the runtime plugin containing 
-		the src">
-		<copy file="${aspectj.lib.dir}/aspectjrt.jar" 
-			tofile="../org.aspectj.runtime/aspectjrt.jar" 
-			overwrite="true" />
 	
-		<delete dir="${ajde.build.dir}" />
-		<!-- build a src zip -->
-		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
-		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
-		<!-- delete everything which shouldn't be included in the aspectjrtsrc.zip -->
-		<echo message="Removing files not required in aspectjrtsrc.zip"/>
+	
+	<target name="runtimejar" description="Copy the AspectJ runtime components into the org.aspectj.runtime plugin">
+		<property name="src" value="../org.aspectj.runtime/source"/>
+		<property name="bin" value="../org.aspectj.runtime/classes"/>
+		
+		<!-- Classes -->
+		<delete dir="${bin}"/>
+		<unzip dest="${bin}" src="${aspectj.lib.dir}/aspectjrt.jar"/>	
+		<delete dir="${bin}/META-INF"/>	
+	
+		<!-- Sources -->
+		<delete dir="${src}" />
+		<unzip dest="${src}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
+		<unzip dest="${src}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
 		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
+			<fileset dir="${src}">
 				<exclude name="org/aspectj/internal/lang/annotation/**/*.*" />
 				<exclude name="org/aspectj/internal/lang/reflect/**/*.*" />
 				<exclude name="org/aspectj/runtime/**/*.*" />
 				<exclude name="org/aspectj/lang/**/*.*" />
 			</fileset>
 		</delete>
-		
-		<zip destfile="../org.aspectj.runtime/aspectjrtsrc.zip">
-		  <fileset dir="${ajde.build.dir}"/>
-		</zip>
-		<delete dir="${ajde.build.dir}" />	
 	</target>
 
+	
+	
 	<!-- target name="plugin jars" depends="weaverjar" -->		
-	<target name="plugin jars" depends="copy doc,ajdejar,weaverjar,runtimejar" 
+	<target name="plugin jars" depends="ajdejar,weaverjar,runtimejar" 
 		description="When a new version of AspectJ is released, drop the 
 		aspectjrt.jar and aspectjtools.jar from the AJ lib directory into 
 		the org.aspectj.ajde directory, and then run 'ant ajde.jar' to create an ajde.jar 
