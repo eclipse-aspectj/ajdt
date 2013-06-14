@@ -61,7 +61,6 @@ public class CFlowStack {
 	
 	public CFlowStack() {
 		stackProxy = tsFactory.getNewThreadStack();
-//		System.out.println("CFlowStack::new thread stack created::Thread="+Thread.currentThread().getName()+"::"+System.identityHashCode(stackProxy));
 	}
 	
     private Stack getThreadStack() {
@@ -85,7 +84,6 @@ public class CFlowStack {
         Stack s = getThreadStack();
         s.pop();
         if (s.isEmpty()) {
-//    		System.out.println("CFlowStack::thread stack being removed::Thread="+Thread.currentThread().getName()+"::"+System.identityHashCode(stackProxy));
         	stackProxy.removeThreadStack();
         }
     }

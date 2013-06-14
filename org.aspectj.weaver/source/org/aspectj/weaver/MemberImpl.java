@@ -434,7 +434,6 @@ public class MemberImpl implements Member {
 	}
 
 	public AnnotationAJ[] getAnnotations() {
-		
 		throw new UnsupportedOperationException("You should resolve this member '" + this
 				+ "' and call getAnnotations() on the result...");
 	}
