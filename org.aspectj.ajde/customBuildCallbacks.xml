@@ -85,7 +85,7 @@
 			<fileset dir="classes" />
 		</copy>
 		<!-- just make an empty dir so that the MANIFEST.MF doesn't point to something non-existant -->
-		<mkdir dir="${destination.temp.folder}/classes"/>
+		<mkdir dir="${target.folder}/classes"/>
 	</target>
 
 	<!-- ===================================================================== -->
