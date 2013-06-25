@@ -28,3 +28,7 @@ Export-Package: org.aspectj.apache.bcel;version="1.7.3",
 Eclipse-BundleShape: jar
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ClassPath: .,classes
+Implementation-Version: 1.7.2
+Implementation-Vendor: aspectj.org
+Premain-Class: org.aspectj.weaver.loadtime.Agent
+Can-Redefine-Classes: true

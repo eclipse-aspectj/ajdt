@@ -248,10 +248,18 @@ public class LTWApplicationLaunchConfigurationDelegate
 	}
 
 	private String[] getLTWClasspath(String[] classpath, boolean isJava5OrLater) throws IOException {
-		URL resolvedaspectjWeaverJar = FileLocator.resolve(new URL(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("/"), "aspectjweaver.jar")); //$NON-NLS-1$ //$NON-NLS-2$
-		URL resolvedaspectjRTJar = FileLocator.resolve(new URL(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID).getEntry("/"), "aspectjrt.jar")); //$NON-NLS-1$ //$NON-NLS-2$
-		String weaverPath = new Path(resolvedaspectjWeaverJar.getFile()).toOSString();
-		String rtPath = new Path(resolvedaspectjRTJar.getFile()).toOSString();
+		File resolvedaspectjWeaverJar = FileLocator.getBundleFile(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID));
+		if (!resolvedaspectjWeaverJar.getName().endsWith(".jar")) {
+		    // runtime workbench
+		    resolvedaspectjWeaverJar = new File(resolvedaspectjWeaverJar, "classes");
+		}
+		File resolvedaspectjRTJar = FileLocator.getBundleFile(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID));
+        if (!resolvedaspectjRTJar.getName().endsWith(".jar")) {
+            // runtime workbench
+            resolvedaspectjRTJar = new File(resolvedaspectjRTJar, "classes");
+        }
+		String weaverPath = new Path(resolvedaspectjWeaverJar.getCanonicalPath()).toOSString();
+		String rtPath = new Path(resolvedaspectjRTJar.getCanonicalPath()).toOSString();
 		List<String> fullPath = new ArrayList<String>();
 		fullPath.add(weaverPath);
 		fullPath.add(rtPath);
