@@ -6,7 +6,7 @@
     http://www.eclipse.org/legal/epl-v10.html
    
     Contributors:
-        Andrew Eisenberg - modified for Groovy Eclipse 2.0
+        Andrew Eisenberg - modified for AJDT 2.2.3
  -->
 <!-- ===================================================================== -->
 <!-- Custom targets called from a project's generated build.xml            -->
