@@ -471,8 +471,16 @@
 <!-- Actions contributed by AspectJ to the Java perspective -->
    <extension
          point="org.eclipse.ui.actionSets">
-      
-        
+       <!--
+       this action set is deprecated and not used.
+       It can be removed when the following is fixed:
+       https://bugs.eclipse.org/bugs/show_bug.cgi?id=405296
+       -->
+       <actionSet
+            label="AspectJ Navigation (deprecated)"
+            visible="false"
+             id="ajnavigation">
+       </actionSet>
        <actionSet
             label="%ajelementCreation"
             visible="false"
