@@ -284,19 +284,19 @@
 		<!-- Install Mylyn -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/mylyn/update/e3.4/" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
 			feature.id="org.eclipse.mylyn_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/mylyn/update/e3.4/" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
 			feature.id="org.eclipse.mylyn.context_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/mylyn/update/e3.4/" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
 			feature.id="org.eclipse.mylyn.ide_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/mylyn/update/e3.4/" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
 			feature.id="org.eclipse.mylyn.java_feature" />
 
 	</target>
