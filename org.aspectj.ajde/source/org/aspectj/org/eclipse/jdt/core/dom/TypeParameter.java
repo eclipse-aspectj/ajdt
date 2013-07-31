@@ -1,10 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2010 IBM Corporation and others.
+ * Copyright (c) 2003, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -16,9 +20,10 @@ import java.util.List;
 
 /**
  * Type parameter node (added in JLS3 API).
+ * 
  * <pre>
  * TypeParameter:
- *    TypeVariable [ <b>extends</b> Type { <b>&</b> Type } ]
+ *    { Annotation } TypeVariable [ <b>extends</b> Type { <b>&</b> Type } ]
  * </pre>
  *
  * @since 3.1
@@ -26,6 +31,13 @@ import java.util.List;
  */
 public class TypeParameter extends ASTNode {
 
+	/**
+	 * The "annotations" structural property of this node type (element type: {@link Annotation}) (added in JLS8 API).
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public static final ChildListPropertyDescriptor ANNOTATIONS_PROPERTY =
+			new ChildListPropertyDescriptor(TypeParameter.class, "annotations", Annotation.class, CYCLE_RISK); //$NON-NLS-1$
+	
 	/**
 	 * The "name" structural property of this node type (child type: {@link SimpleName}).
 	 */
@@ -44,6 +56,13 @@ public class TypeParameter extends ASTNode {
 	 * or null if uninitialized.
 	 */
 	private static final List PROPERTY_DESCRIPTORS;
+	/**
+	 * A list of property descriptors (element type:
+	 * {@link StructuralPropertyDescriptor}),
+	 * or null if uninitialized.
+	 * @since 3.9 BETA_JAVA8
+	 */
+	private static final List PROPERTY_DESCRIPTORS_8_0;
 
 	static {
 		List propertyList = new ArrayList(3);
@@ -51,6 +70,13 @@ public class TypeParameter extends ASTNode {
 		addProperty(NAME_PROPERTY, propertyList);
 		addProperty(TYPE_BOUNDS_PROPERTY, propertyList);
 		PROPERTY_DESCRIPTORS = reapPropertyList(propertyList);
+		
+		propertyList = new ArrayList(4);
+		createPropertyList(TypeParameter.class, propertyList);
+		addProperty(ANNOTATIONS_PROPERTY, propertyList);
+		addProperty(NAME_PROPERTY, propertyList);
+		addProperty(TYPE_BOUNDS_PROPERTY, propertyList);
+		PROPERTY_DESCRIPTORS_8_0 = reapPropertyList(propertyList);
 	}
 
 	/**
@@ -64,11 +90,18 @@ public class TypeParameter extends ASTNode {
 	 * {@link StructuralPropertyDescriptor})
 	 */
 	public static List propertyDescriptors(int apiLevel) {
-		return PROPERTY_DESCRIPTORS;
+		switch (apiLevel) {
+			case AST.JLS2_INTERNAL :
+			case AST.JLS3_INTERNAL :
+			case AST.JLS4_INTERNAL:
+				return PROPERTY_DESCRIPTORS;
+			default :
+				return PROPERTY_DESCRIPTORS_8_0;
+		}
 	}
 
 	/**
-	 * The type variable node; lazily initialized; defaults to an unspecfied,
+	 * The type variable node; lazily initialized; defaults to an unspecified,
 	 * but legal, name.
 	 */
 	private SimpleName typeVariableName = null;
@@ -80,6 +113,13 @@ public class TypeParameter extends ASTNode {
 	private ASTNode.NodeList typeBounds =
 		new ASTNode.NodeList(TYPE_BOUNDS_PROPERTY);
 
+	/**
+	 * The type annotations (element type: {@link Annotation}).
+	 * Null in JLS < 8. Added in JLS8; defaults to an empty list
+	 * (see constructor).
+	 */
+	private ASTNode.NodeList annotations = null;
+	
 	/**
 	 * Creates a new unparented node for a parameterized type owned by the
 	 * given AST. By default, an unspecified, but legal, type variable name,
@@ -93,6 +133,9 @@ public class TypeParameter extends ASTNode {
 	TypeParameter(AST ast) {
 		super(ast);
 	    unsupportedIn2();
+	    if (ast.apiLevel >= AST.JLS8) {
+			this.annotations = new ASTNode.NodeList(ANNOTATIONS_PROPERTY);
+		}
 	}
 
 	/* (omit javadoc for this method)
@@ -122,6 +165,9 @@ public class TypeParameter extends ASTNode {
 	 * Method declared on ASTNode.
 	 */
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
+		if (property == ANNOTATIONS_PROPERTY) {
+			return annotations();
+		}
 		if (property == TYPE_BOUNDS_PROPERTY) {
 			return typeBounds();
 		}
@@ -142,6 +188,10 @@ public class TypeParameter extends ASTNode {
 	ASTNode clone0(AST target) {
 		TypeParameter result = new TypeParameter(target);
 		result.setSourceRange(getStartPosition(), getLength());
+		if (this.ast.apiLevel >= AST.JLS8) {
+			result.annotations().addAll(
+					ASTNode.copySubtrees(target, annotations()));
+		}
 		result.setName((SimpleName) ((ASTNode) getName()).clone(target));
 		result.typeBounds().addAll(
 			ASTNode.copySubtrees(target, typeBounds()));
@@ -163,6 +213,9 @@ public class TypeParameter extends ASTNode {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
+			if (this.ast.apiLevel >= AST.JLS8) {
+				acceptChildren(visitor, this.annotations);
+			}
 			acceptChild(visitor, getName());
 			acceptChildren(visitor, this.typeBounds);
 		}
@@ -236,13 +289,29 @@ public class TypeParameter extends ASTNode {
 	public List typeBounds() {
 		return this.typeBounds;
 	}
+	
+	/**
+	 * Returns the live ordered list of annotations for this TypeParameter node (added in JLS8 API).
+	 *
+	 * @return the live list of annotations (element type: {@link Annotation})
+	 * @exception UnsupportedOperationException if this operation is used
+	 *            in a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public List annotations() {
+		// more efficient than just calling unsupportedIn2_3_4() to check
+		if (this.annotations == null) {
+			unsupportedIn2_3_4();
+		}
+		return this.annotations;
+	}
 
 	/* (omit javadoc for this method)
 	 * Method declared on ASTNode.
 	 */
 	int memSize() {
 		// treat Code as free
-		return BASE_NODE_SIZE + 2 * 4;
+		return BASE_NODE_SIZE + 3 * 4;
 	}
 
 	/* (omit javadoc for this method)
@@ -251,6 +320,7 @@ public class TypeParameter extends ASTNode {
 	int treeSize() {
 		return
 			memSize()
+			+ (this.annotations == null ? 0 : this.annotations.listSize())
 			+ (this.typeVariableName == null ? 0 : getName().treeSize())
 			+ this.typeBounds.listSize();
 	}

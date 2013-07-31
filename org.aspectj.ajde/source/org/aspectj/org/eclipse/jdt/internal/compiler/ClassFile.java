@@ -1,13 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Palo Alto Research Center, Incorporated - AspectJ adaptation
+ *     Jesper S Moller - Contributions for
+ *							Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335             
+ *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler;
 
@@ -15,8 +22,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -31,21 +41,31 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FunctionalExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Receiver;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationContext;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AttributeNamesConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.MultiCatchExceptionLabel;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.Opcodes;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.StackMapFrame;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.TypeAnnotationCodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream.ExceptionMarker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream.StackDepthMarker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.StackMapFrameCodeStream.StackMarker;
@@ -73,7 +93,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
-//AspectJ Extension - Added minimal support for extensible attributes
 /**
  * Represents a class file wrapper on bytes, it is aware of its actual
  * type name.
@@ -112,6 +131,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 	// that collection contains all the remaining bytes of the .class file
 	public int headerOffset;
 	public Set innerClassesBindings;
+	public List bootstrapMethods = null;
 	public int methodCount;
 	public int methodCountOffset;
 	// pool managment
@@ -247,7 +267,12 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.isNestedType = typeBinding.isNestedType();
 		if (this.targetJDK >= ClassFileConstants.JDK1_6) {
 			this.produceAttributes |= ClassFileConstants.ATTR_STACK_MAP_TABLE;
-			this.codeStream = new StackMapFrameCodeStream(this);
+			if (this.targetJDK >= ClassFileConstants.JDK1_8) {
+				this.produceAttributes |= ClassFileConstants.ATTR_TYPE_ANNOTATION;
+				this.codeStream = new TypeAnnotationCodeStream(this);
+			} else {
+				this.codeStream = new StackMapFrameCodeStream(this);
+			}
 		} else if (this.targetJDK == ClassFileConstants.CLDC_1_1) {
 			this.targetJDK = ClassFileConstants.JDK1_1; // put back 45.3
 			this.produceAttributes |= ClassFileConstants.ATTR_STACK_MAP;
@@ -348,6 +373,10 @@ public class ClassFile implements TypeConstants, TypeIds {
 			}
 			attributesNumber += generateHierarchyInconsistentAttribute();
 		}
+		// Functional expression and lambda bootstrap methods
+		if (this.bootstrapMethods != null && !this.bootstrapMethods.isEmpty()) {
+			attributesNumber += generateBootstrapMethods(this.bootstrapMethods);
+		}
 		// Inner class attribute
 		int numberOfInnerClasses = this.innerClassesBindings == null ? 0 : this.innerClassesBindings.size();
 		if (numberOfInnerClasses != 0) {
@@ -367,7 +396,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 			attributesNumber++;
 		}
 		
-	    // AspectJ Extension
+		attributesNumber += generateTypeAnnotationAttributeForTypeDeclaration();
+		
+		// AspectJ Extension
 	    // write any "extraAttributes"
 	    if (extraAttributes != null) {
 	        for (int i=0, len=extraAttributes.size(); i < len; i++) {
@@ -378,7 +409,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 	        }
 	    }
 	    //  End AspectJ Extension
-	    
+		
 		// update the number of attributes
 		if (attributeOffset + 2 >= this.contents.length) {
 			resizeContents(2);
@@ -435,6 +466,38 @@ public class ClassFile implements TypeConstants, TypeIds {
 				Annotation[] annotations = fieldDeclaration.annotations;
 				if (annotations != null) {
 					attributesNumber += generateRuntimeAnnotations(annotations);
+				}
+
+				if ((this.produceAttributes & ClassFileConstants.ATTR_TYPE_ANNOTATION) != 0) {
+					List allTypeAnnotationContexts = new ArrayList();
+					if (annotations != null && (fieldDeclaration.bits & ASTNode.HasTypeAnnotations) != 0) {
+						fieldDeclaration.getAllAnnotationContexts(AnnotationTargetTypeConstants.FIELD, allTypeAnnotationContexts);
+					}
+					int invisibleTypeAnnotationsCounter = 0;
+					int visibleTypeAnnotationsCounter = 0;
+					TypeReference fieldType = fieldDeclaration.type;
+					if (fieldType != null && ((fieldType.bits & ASTNode.HasTypeAnnotations) != 0)) {
+						fieldType.getAllAnnotationContexts(AnnotationTargetTypeConstants.FIELD, allTypeAnnotationContexts);
+					}
+					int size = allTypeAnnotationContexts.size();
+					if (size != 0) {
+						AnnotationContext[] allTypeAnnotationContextsArray = new AnnotationContext[size];
+						allTypeAnnotationContexts.toArray(allTypeAnnotationContextsArray);
+						for (int i = 0, max = allTypeAnnotationContextsArray.length; i < max; i++) {
+							AnnotationContext annotationContext = allTypeAnnotationContextsArray[i];
+							if ((annotationContext.visibility & AnnotationContext.INVISIBLE) != 0) {
+								invisibleTypeAnnotationsCounter++;
+								allTypeAnnotationContexts.add(annotationContext);
+							} else {
+								visibleTypeAnnotationsCounter++;
+								allTypeAnnotationContexts.add(annotationContext);
+							}
+						}
+						attributesNumber += generateRuntimeTypeAnnotations(
+								allTypeAnnotationContextsArray,
+								visibleTypeAnnotationsCounter,
+								invisibleTypeAnnotationsCounter);
+					}
 				}
 			}
 		}
@@ -793,6 +856,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 	 * They are:
 	 * - synthetic access methods
 	 * - default abstract methods
+	 * - lambda methods.
 	 */
 	public void addSpecialMethods() {
 
@@ -809,53 +873,144 @@ public class ClassFile implements TypeConstants, TypeIds {
 			int attributeNumber = generateMethodInfoAttributes(methodBinding);
 			completeMethodInfo(methodBinding, methodAttributeOffset, attributeNumber);
 		}
+		
 		// add synthetic methods infos
-		SyntheticMethodBinding[] syntheticMethods = this.referenceBinding.syntheticMethods();
-		if (syntheticMethods != null) {
-			for (int i = 0, max = syntheticMethods.length; i < max; i++) {
-				SyntheticMethodBinding syntheticMethod = syntheticMethods[i];
-				switch (syntheticMethod.purpose) {
-					case SyntheticMethodBinding.FieldReadAccess :
-					case SyntheticMethodBinding.SuperFieldReadAccess :
-						// generate a method info to emulate an reading access to
-						// a non-accessible field
-						addSyntheticFieldReadAccessMethod(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.FieldWriteAccess :
-					case SyntheticMethodBinding.SuperFieldWriteAccess :
-						// generate a method info to emulate an writing access to
-						// a non-accessible field
-						addSyntheticFieldWriteAccessMethod(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.MethodAccess :
-					case SyntheticMethodBinding.SuperMethodAccess :
-					case SyntheticMethodBinding.BridgeMethod :
-						// generate a method info to emulate an access to a non-accessible method / super-method or bridge method
-						addSyntheticMethodAccessMethod(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.ConstructorAccess :
-						// generate a method info to emulate an access to a non-accessible constructor
-						addSyntheticConstructorAccessMethod(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.EnumValues :
-						// generate a method info to define <enum>#values()
-						addSyntheticEnumValuesMethod(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.EnumValueOf :
-						// generate a method info to define <enum>#valueOf(String)
-						addSyntheticEnumValueOfMethod(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.SwitchTable :
-						// generate a method info to define the switch table synthetic method
-						addSyntheticSwitchTable(syntheticMethod);
-						break;
-					case SyntheticMethodBinding.TooManyEnumsConstants :
-						addSyntheticEnumInitializationMethod(syntheticMethod);
+		int emittedSyntheticsCount = 0;
+		boolean continueScanningSynthetics = true;
+		while (continueScanningSynthetics) {
+			continueScanningSynthetics = false;
+			SyntheticMethodBinding[] syntheticMethods = this.referenceBinding.syntheticMethods();
+			int currentSyntheticsCount = syntheticMethods == null ? 0: syntheticMethods.length;
+			if (emittedSyntheticsCount != currentSyntheticsCount) {
+				for (int i = emittedSyntheticsCount, max = currentSyntheticsCount; i < max; i++) {
+					SyntheticMethodBinding syntheticMethod = syntheticMethods[i];
+					switch (syntheticMethod.purpose) {
+						case SyntheticMethodBinding.FieldReadAccess :
+						case SyntheticMethodBinding.SuperFieldReadAccess :
+							// generate a method info to emulate an reading access to
+							// a non-accessible field
+							addSyntheticFieldReadAccessMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.FieldWriteAccess :
+						case SyntheticMethodBinding.SuperFieldWriteAccess :
+							// generate a method info to emulate an writing access to
+							// a non-accessible field
+							addSyntheticFieldWriteAccessMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.MethodAccess :
+						case SyntheticMethodBinding.SuperMethodAccess :
+						case SyntheticMethodBinding.BridgeMethod :
+							// generate a method info to emulate an access to a non-accessible method / super-method or bridge method
+							addSyntheticMethodAccessMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.ConstructorAccess :
+							// generate a method info to emulate an access to a non-accessible constructor
+							addSyntheticConstructorAccessMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.EnumValues :
+							// generate a method info to define <enum>#values()
+							addSyntheticEnumValuesMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.EnumValueOf :
+							// generate a method info to define <enum>#valueOf(String)
+							addSyntheticEnumValueOfMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.SwitchTable :
+							// generate a method info to define the switch table synthetic method
+							addSyntheticSwitchTable(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.TooManyEnumsConstants :
+							addSyntheticEnumInitializationMethod(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.LambdaMethod:
+							syntheticMethod.lambda.generateCode(this.referenceBinding.scope, this);
+							continueScanningSynthetics = true; // lambda code generation could schedule additional nested lambdas for code generation.
+							break;
+						case SyntheticMethodBinding.ArrayConstructor:
+							addSyntheticArrayConstructor(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.ArrayClone:
+							addSyntheticArrayClone(syntheticMethod);
+							break;
+						case SyntheticMethodBinding.FactoryMethod:
+							addSyntheticFactoryMethod(syntheticMethod);
+							break;	
+					}
 				}
+				emittedSyntheticsCount = currentSyntheticsCount;
 			}
 		}
 	}
 
+	public void addSyntheticArrayConstructor(SyntheticMethodBinding methodBinding) {
+		generateMethodInfoHeader(methodBinding);
+		int methodAttributeOffset = this.contentsOffset;
+		// this will add exception attribute, synthetic attribute, deprecated attribute,...
+		int attributeNumber = generateMethodInfoAttributes(methodBinding);
+		// Code attribute
+		int codeAttributeOffset = this.contentsOffset;
+		attributeNumber++; // add code attribute
+		generateCodeAttributeHeader();
+		this.codeStream.init(this);
+		this.codeStream.generateSyntheticBodyForArrayConstructor(methodBinding);
+		completeCodeAttributeForSyntheticMethod(
+			methodBinding,
+			codeAttributeOffset,
+			((SourceTypeBinding) methodBinding.declaringClass)
+				.scope
+				.referenceCompilationUnit()
+				.compilationResult
+				.getLineSeparatorPositions());
+		// update the number of attributes
+		this.contents[methodAttributeOffset++] = (byte) (attributeNumber >> 8);
+		this.contents[methodAttributeOffset] = (byte) attributeNumber;
+	}
+	public void addSyntheticArrayClone(SyntheticMethodBinding methodBinding) {
+		generateMethodInfoHeader(methodBinding);
+		int methodAttributeOffset = this.contentsOffset;
+		// this will add exception attribute, synthetic attribute, deprecated attribute,...
+		int attributeNumber = generateMethodInfoAttributes(methodBinding);
+		// Code attribute
+		int codeAttributeOffset = this.contentsOffset;
+		attributeNumber++; // add code attribute
+		generateCodeAttributeHeader();
+		this.codeStream.init(this);
+		this.codeStream.generateSyntheticBodyForArrayClone(methodBinding);
+		completeCodeAttributeForSyntheticMethod(
+			methodBinding,
+			codeAttributeOffset,
+			((SourceTypeBinding) methodBinding.declaringClass)
+				.scope
+				.referenceCompilationUnit()
+				.compilationResult
+				.getLineSeparatorPositions());
+		// update the number of attributes
+		this.contents[methodAttributeOffset++] = (byte) (attributeNumber >> 8);
+		this.contents[methodAttributeOffset] = (byte) attributeNumber;
+	}
+	public void addSyntheticFactoryMethod(SyntheticMethodBinding methodBinding) {
+		generateMethodInfoHeader(methodBinding);
+		int methodAttributeOffset = this.contentsOffset;
+		// this will add exception attribute, synthetic attribute, deprecated attribute,...
+		int attributeNumber = generateMethodInfoAttributes(methodBinding);
+		// Code attribute
+		int codeAttributeOffset = this.contentsOffset;
+		attributeNumber++; // add code attribute
+		generateCodeAttributeHeader();
+		this.codeStream.init(this);
+		this.codeStream.generateSyntheticBodyForFactoryMethod(methodBinding);
+		completeCodeAttributeForSyntheticMethod(
+			methodBinding,
+			codeAttributeOffset,
+			((SourceTypeBinding) methodBinding.declaringClass)
+				.scope
+				.referenceCompilationUnit()
+				.compilationResult
+				.getLineSeparatorPositions());
+		// update the number of attributes
+		this.contents[methodAttributeOffset++] = (byte) (attributeNumber >> 8);
+		this.contents[methodAttributeOffset] = (byte) attributeNumber;
+	}
 	/**
 	 * INTERNAL USE-ONLY
 	 * Generate the bytes for a synthetic method that provides an access to a private constructor.
@@ -1108,8 +1263,11 @@ public class ClassFile implements TypeConstants, TypeIds {
 		// to get the right position, 6 for the max_stack etc...
 		int code_length = this.codeStream.position;
 		if (code_length > 65535) {
-			this.codeStream.methodDeclaration.scope.problemReporter().bytecodeExceeds64KLimit(
-				this.codeStream.methodDeclaration);
+			if (this.codeStream.methodDeclaration != null) {
+				this.codeStream.methodDeclaration.scope.problemReporter().bytecodeExceeds64KLimit(this.codeStream.methodDeclaration);
+			} else {
+				this.codeStream.lambdaExpression.scope.problemReporter().bytecodeExceeds64KLimit(this.codeStream.lambdaExpression);
+			}
 		}
 		if (localContentsOffset + 20 >= this.contents.length) {
 			resizeContents(20);
@@ -1145,9 +1303,15 @@ public class ClassFile implements TypeConstants, TypeIds {
 			if (exceptionLabel != null) {
 				int iRange = 0, maxRange = exceptionLabel.getCount();
 				if ((maxRange & 1) != 0) {
-					this.codeStream.methodDeclaration.scope.problemReporter().abortDueToInternalError(
-							Messages.bind(Messages.abort_invalidExceptionAttribute, new String(this.codeStream.methodDeclaration.selector)),
-							this.codeStream.methodDeclaration);
+					if (this.codeStream.methodDeclaration != null) {
+						this.codeStream.methodDeclaration.scope.problemReporter().abortDueToInternalError(
+								Messages.bind(Messages.abort_invalidExceptionAttribute, new String(this.codeStream.methodDeclaration.selector)),
+								this.codeStream.methodDeclaration);
+					} else {
+						this.codeStream.lambdaExpression.scope.problemReporter().abortDueToInternalError(
+								Messages.bind(Messages.abort_invalidExceptionAttribute, new String(this.codeStream.lambdaExpression.binding.selector)),
+								this.codeStream.lambdaExpression);
+					}
 				}
 				while (iRange < maxRange) {
 					int start = exceptionLabel.ranges[iRange++]; // even ranges are start positions
@@ -1199,13 +1363,13 @@ public class ClassFile implements TypeConstants, TypeIds {
 		}
 		// then we do the local variable attribute
 		if ((this.produceAttributes & ClassFileConstants.ATTR_VARS) != 0) {
-			final boolean methodDeclarationIsStatic = this.codeStream.methodDeclaration.isStatic();
+			final boolean methodDeclarationIsStatic = this.codeStream.methodDeclaration != null ? this.codeStream.methodDeclaration.isStatic() : this.codeStream.lambdaExpression.binding.isStatic();
 			attributesNumber += generateLocalVariableTableAttribute(code_length, methodDeclarationIsStatic, false);
 		}
 
 		if (addStackMaps) {
 			attributesNumber += generateStackMapTableAttribute(
-					this.codeStream.methodDeclaration.binding,
+					this.codeStream.methodDeclaration != null ? this.codeStream.methodDeclaration.binding : this.codeStream.lambdaExpression.binding,
 					code_length,
 					codeAttributeOffset,
 					max_locals,
@@ -1214,11 +1378,15 @@ public class ClassFile implements TypeConstants, TypeIds {
 
 		if ((this.produceAttributes & ClassFileConstants.ATTR_STACK_MAP) != 0) {
 			attributesNumber += generateStackMapAttribute(
-					this.codeStream.methodDeclaration.binding,
+					this.codeStream.methodDeclaration != null ? this.codeStream.methodDeclaration.binding : this.codeStream.lambdaExpression.binding,
 					code_length,
 					codeAttributeOffset,
 					max_locals,
 					false);
+		}
+		
+		if ((this.produceAttributes & ClassFileConstants.ATTR_TYPE_ANNOTATION) != 0) {
+			attributesNumber += generateTypeAnnotationsOnCodeAttribute();
 		}
 
 		this.contents[codeAttributeAttributeOffset++] = (byte) (attributesNumber >> 8);
@@ -1230,6 +1398,62 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.contents[codeAttributeOffset + 3] = (byte) (codeAttributeLength >> 16);
 		this.contents[codeAttributeOffset + 4] = (byte) (codeAttributeLength >> 8);
 		this.contents[codeAttributeOffset + 5] = (byte) codeAttributeLength;
+	}
+	
+	public int generateTypeAnnotationsOnCodeAttribute() {
+		int attributesNumber = 0;
+		
+		List allTypeAnnotationContexts = ((TypeAnnotationCodeStream) this.codeStream).allTypeAnnotationContexts;
+		int invisibleTypeAnnotationsCounter = 0;
+		int visibleTypeAnnotationsCounter = 0;
+
+		for (int i = 0, max = this.codeStream.allLocalsCounter; i < max; i++) {
+			LocalVariableBinding localVariable = this.codeStream.locals[i];
+			if (localVariable.isCatchParameter()) continue;
+			LocalDeclaration declaration = localVariable.declaration;
+			if (declaration == null
+					|| (declaration.isArgument() && ((declaration.bits & ASTNode.IsUnionType) == 0))
+					|| (localVariable.initializationCount == 0)
+					|| ((declaration.bits & ASTNode.HasTypeAnnotations) == 0)) {
+				continue;
+			}
+			int targetType = ((localVariable.tagBits & TagBits.IsResource) == 0) ? AnnotationTargetTypeConstants.LOCAL_VARIABLE : AnnotationTargetTypeConstants.RESOURCE_VARIABLE;
+			declaration.getAllAnnotationContexts(targetType, localVariable, allTypeAnnotationContexts);
+		}
+		
+		ExceptionLabel[] exceptionLabels = this.codeStream.exceptionLabels;
+		int tableIndex = 0;
+		for (int i = 0, max = this.codeStream.exceptionLabelsCounter; i < max; i++) {
+			ExceptionLabel exceptionLabel = exceptionLabels[i];
+			if (exceptionLabel instanceof MultiCatchExceptionLabel) {
+				MultiCatchExceptionLabel multiCatchExceptionLabel = (MultiCatchExceptionLabel)exceptionLabel;
+				tableIndex += multiCatchExceptionLabel.getAllAnnotationContexts(tableIndex, allTypeAnnotationContexts);
+			} else {
+				if (exceptionLabel.exceptionTypeReference != null) { // ignore those which cannot be annotated
+					exceptionLabel.exceptionTypeReference.getAllAnnotationContexts(AnnotationTargetTypeConstants.EXCEPTION_PARAMETER, tableIndex, allTypeAnnotationContexts);
+				}
+				tableIndex++;
+			}
+		}
+		
+		int size = allTypeAnnotationContexts.size();
+		if (size != 0) {
+			AnnotationContext[] allTypeAnnotationContextsArray = new AnnotationContext[size];
+			allTypeAnnotationContexts.toArray(allTypeAnnotationContextsArray);
+			for (int j = 0, max2 = allTypeAnnotationContextsArray.length; j < max2; j++) {
+				AnnotationContext annotationContext = allTypeAnnotationContextsArray[j];
+				if ((annotationContext.visibility & AnnotationContext.INVISIBLE) != 0) {
+					invisibleTypeAnnotationsCounter++;
+				} else {
+					visibleTypeAnnotationsCounter++;
+				}
+			}
+			attributesNumber += generateRuntimeTypeAnnotations(
+					allTypeAnnotationContextsArray,
+					visibleTypeAnnotationsCounter,
+					invisibleTypeAnnotationsCounter);
+		}
+		return attributesNumber;
 	}
 
 	/**
@@ -1859,10 +2083,199 @@ public class ClassFile implements TypeConstants, TypeIds {
 			MethodBinding binding,
 			int methodAttributeOffset,
 			int attributesNumber) {
+		
+		if ((this.produceAttributes & ClassFileConstants.ATTR_TYPE_ANNOTATION) != 0) {
+			List allTypeAnnotationContexts = new ArrayList();
+			int invisibleTypeAnnotationsCounter = 0;
+			int visibleTypeAnnotationsCounter = 0;
+			AbstractMethodDeclaration methodDeclaration = binding.sourceMethod();
+			if (methodDeclaration != null) {
+				if ((methodDeclaration.bits & ASTNode.HasTypeAnnotations) != 0) {
+					Argument[] arguments = methodDeclaration.arguments;
+					if (arguments != null) {
+						for (int i = 0, max = arguments.length; i < max; i++) {
+							Argument argument = arguments[i];
+							if ((argument.bits & ASTNode.HasTypeAnnotations) != 0) {
+								argument.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_FORMAL_PARAMETER, i, allTypeAnnotationContexts);
+							}
+						}
+					}
+					Receiver receiver = methodDeclaration.receiver;
+					if (receiver != null && (receiver.type.bits & ASTNode.HasTypeAnnotations) != 0) {
+						receiver.type.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_RECEIVER, allTypeAnnotationContexts);
+					}
+				}
+				Annotation[] annotations = methodDeclaration.annotations;
+				if (annotations != null && binding.returnType.id != T_void) {
+					methodDeclaration.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_RETURN, allTypeAnnotationContexts);
+				}
+				if (!methodDeclaration.isConstructor() && !methodDeclaration.isClinit() && binding.returnType.id != T_void) {
+					MethodDeclaration declaration = (MethodDeclaration) methodDeclaration;
+					TypeReference typeReference = declaration.returnType;
+					if ((typeReference.bits & ASTNode.HasTypeAnnotations) != 0) {
+						typeReference.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_RETURN, allTypeAnnotationContexts);
+					}
+				}
+				TypeReference[] thrownExceptions = methodDeclaration.thrownExceptions;
+				if (thrownExceptions != null) {
+					for (int i = 0, max = thrownExceptions.length; i < max; i++) {
+						TypeReference thrownException = thrownExceptions[i];
+						thrownException.getAllAnnotationContexts(AnnotationTargetTypeConstants.THROWS, i, allTypeAnnotationContexts);
+					}
+				}
+				TypeParameter[] typeParameters = methodDeclaration.typeParameters();
+				if (typeParameters != null) {
+					for (int i = 0, max = typeParameters.length; i < max; i++) {
+						TypeParameter typeParameter = typeParameters[i];
+						if ((typeParameter.bits & ASTNode.HasTypeAnnotations) != 0) {
+							typeParameter.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER, i, allTypeAnnotationContexts);
+						}
+					}
+				}
+			}
+			int size = allTypeAnnotationContexts.size();
+			if (size != 0) {
+				AnnotationContext[] allTypeAnnotationContextsArray = new AnnotationContext[size];
+				allTypeAnnotationContexts.toArray(allTypeAnnotationContextsArray);
+				for (int j = 0, max2 = allTypeAnnotationContextsArray.length; j < max2; j++) {
+					AnnotationContext annotationContext = allTypeAnnotationContextsArray[j];
+					if ((annotationContext.visibility & AnnotationContext.INVISIBLE) != 0) {
+						invisibleTypeAnnotationsCounter++;
+					} else {
+						visibleTypeAnnotationsCounter++;
+					}
+				}
+				attributesNumber += generateRuntimeTypeAnnotations(
+						allTypeAnnotationContextsArray,
+						visibleTypeAnnotationsCounter,
+						invisibleTypeAnnotationsCounter);
+			}
+		}
 		// update the number of attributes
 		this.contents[methodAttributeOffset++] = (byte) (attributesNumber >> 8);
 		this.contents[methodAttributeOffset] = (byte) attributesNumber;
 	}
+	
+	private void dumpLocations(int[] locations) {
+		if (locations == null) {
+			// no type path
+			if (this.contentsOffset + 1 >= this.contents.length) {
+				resizeContents(1);
+			}
+			this.contents[this.contentsOffset++] = (byte) 0;
+		} else {
+			int length = locations.length;
+			if (this.contentsOffset + length >= this.contents.length) {
+				resizeContents(length + 1);
+			}
+			this.contents[this.contentsOffset++] = (byte) (locations.length / 2);
+			for (int i = 0; i < length; i++) {
+				this.contents[this.contentsOffset++] = (byte) locations[i];
+			}
+		}
+	}
+	private void dumpTargetTypeContents(int targetType, AnnotationContext annotationContext) {
+		switch(targetType) {
+			case AnnotationTargetTypeConstants.CLASS_TYPE_PARAMETER :
+			case AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER :
+				// parameter index
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				break;
+
+			case AnnotationTargetTypeConstants.CLASS_TYPE_PARAMETER_BOUND :
+				// type_parameter_index
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				// bound_index
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info2;
+				break;				
+			case AnnotationTargetTypeConstants.FIELD :
+			case AnnotationTargetTypeConstants.METHOD_RECEIVER :
+			case AnnotationTargetTypeConstants.METHOD_RETURN :
+				 // target_info is empty_target
+				break;
+			case AnnotationTargetTypeConstants.METHOD_FORMAL_PARAMETER :
+				// target_info is parameter index
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				break;
+				
+			case AnnotationTargetTypeConstants.INSTANCEOF :
+			case AnnotationTargetTypeConstants.NEW :
+			case AnnotationTargetTypeConstants.EXCEPTION_PARAMETER :
+			case AnnotationTargetTypeConstants.CONSTRUCTOR_REFERENCE :
+			case AnnotationTargetTypeConstants.METHOD_REFERENCE :
+				// bytecode offset for new/instanceof/method_reference
+				// exception table entry index for exception_parameter
+				this.contents[this.contentsOffset++] = (byte) (annotationContext.info >> 8);
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				break;
+			case AnnotationTargetTypeConstants.CAST :
+				// bytecode offset
+				this.contents[this.contentsOffset++] = (byte) (annotationContext.info >> 8);
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				// type_argument_index not set for cast
+				this.contents[this.contentsOffset++] = (byte)0;
+				break;
+				
+			case AnnotationTargetTypeConstants.CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT :
+			case AnnotationTargetTypeConstants.METHOD_INVOCATION_TYPE_ARGUMENT :
+			case AnnotationTargetTypeConstants.CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT :
+			case AnnotationTargetTypeConstants.METHOD_REFERENCE_TYPE_ARGUMENT :
+				// bytecode offset
+				this.contents[this.contentsOffset++] = (byte) (annotationContext.info >> 8);
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				// type_argument_index 
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info2;
+				break;
+				
+			case AnnotationTargetTypeConstants.CLASS_EXTENDS :
+			case AnnotationTargetTypeConstants.THROWS :			
+				// For CLASS_EXTENDS - info is supertype index (-1 = superclass)
+				// For THROWS - info is exception table index
+				this.contents[this.contentsOffset++] = (byte) (annotationContext.info >> 8);
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				break;
+				
+			case AnnotationTargetTypeConstants.LOCAL_VARIABLE :
+			case AnnotationTargetTypeConstants.RESOURCE_VARIABLE :
+				int localVariableTableOffset = this.contentsOffset;
+				LocalVariableBinding localVariable = annotationContext.variableBinding;
+				int actualSize = 0;
+				int initializationCount = localVariable.initializationCount;
+				actualSize += 6 * initializationCount;
+				// reserve enough space
+				if (this.contentsOffset + actualSize >= this.contents.length) {
+					resizeContents(actualSize);
+				}
+				this.contentsOffset += 2;
+				int numberOfEntries = 0;
+				for (int j = 0; j < initializationCount; j++) {
+					int startPC = localVariable.initializationPCs[j << 1];
+					int endPC = localVariable.initializationPCs[(j << 1) + 1];
+					if (startPC != endPC) { // only entries for non zero length
+						// now we can safely add the local entry
+						numberOfEntries++;
+						this.contents[this.contentsOffset++] = (byte) (startPC >> 8);
+						this.contents[this.contentsOffset++] = (byte) startPC;
+						int length = endPC - startPC;
+						this.contents[this.contentsOffset++] = (byte) (length >> 8);
+						this.contents[this.contentsOffset++] = (byte) length;
+						int resolvedPosition = localVariable.resolvedPosition;
+						this.contents[this.contentsOffset++] = (byte) (resolvedPosition >> 8);
+						this.contents[this.contentsOffset++] = (byte) resolvedPosition;
+					}
+				}
+				this.contents[localVariableTableOffset++] = (byte) (numberOfEntries >> 8);
+				this.contents[localVariableTableOffset] = (byte) numberOfEntries;
+				break;
+			case AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER_BOUND :
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info;
+				this.contents[this.contentsOffset++] = (byte) annotationContext.info2;
+				break;
+		}
+	}
+
+
+
 	/**
 	 * INTERNAL USE-ONLY
 	 * This methods returns a char[] representing the file name of the receiver
@@ -1882,6 +2295,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		if (annotationTypeBinding == null) {
 			this.contentsOffset = startingContentsOffset;
 			return;
+		}
+		if (annotationTypeBinding.isMemberType()) {
+			this.recordInnerClasses(annotationTypeBinding);
 		}
 		final int typeIndex = this.constantPool.literalIndex(annotationTypeBinding.signature());
 		this.contents[this.contentsOffset++] = (byte) (typeIndex >> 8);
@@ -2096,6 +2512,12 @@ public class ClassFile implements TypeConstants, TypeIds {
 		if (defaultValueBinding == null) {
 			this.contentsOffset = attributeOffset;
 		} else {
+			if (defaultValueBinding.isMemberType()) {
+				this.recordInnerClasses(defaultValueBinding);
+			}
+			if (memberValuePairReturnType.isMemberType()) {
+				this.recordInnerClasses(memberValuePairReturnType);
+			}
 			if (memberValuePairReturnType.isArrayType() && !defaultValueBinding.isArrayType()) {
 				// automatic wrapping
 				if (this.contentsOffset + 3 >= this.contents.length) {
@@ -2403,6 +2825,73 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.contentsOffset = localContentsOffset;
 		return 1;
 	}
+
+	private int generateBootstrapMethods(List functionalExpressionList) {
+		/* See JVM spec 4.7.21
+		   The BootstrapMethods attribute has the following format:
+		   BootstrapMethods_attribute {
+		      u2 attribute_name_index;
+		      u4 attribute_length;
+		      u2 num_bootstrap_methods;
+		      {   u2 bootstrap_method_ref;
+		          u2 num_bootstrap_arguments;
+		          u2 bootstrap_arguments[num_bootstrap_arguments];
+		      } bootstrap_methods[num_bootstrap_methods];
+		 }
+		*/
+		// Record inner classes for MethodHandles$Lookup
+		ReferenceBinding methodHandlesLookup = this.referenceBinding.scope.getJavaLangInvokeMethodHandlesLookup();
+		if (methodHandlesLookup == null) return 0; // skip bootstrap section, class path problem already reported, just avoid NPE.
+		recordInnerClasses(methodHandlesLookup); // Should be done, it's what javac does also
+		ReferenceBinding javaLangInvokeLambdaMetafactory = this.referenceBinding.scope.getJavaLangInvokeLambdaMetafactory(); 
+		int indexForMetaFactory = this.constantPool.literalIndexForMethodHandle(ClassFileConstants.MethodHandleRefKindInvokeStatic, javaLangInvokeLambdaMetafactory, 
+				ConstantPool.METAFACTORY, ConstantPool.JAVA_LANG_INVOKE_LAMBDAMETAFACTORY_METAFACTORY_SIGNATURE, false);
+
+		int numberOfBootstraps = functionalExpressionList.size();
+		int localContentsOffset = this.contentsOffset;
+		// Generate the boot strap attribute - since we are only making lambdas and
+		// functional expressions, we know the size ahead of time - this less general
+		// than the full invokedynamic scope, but fine for Java 8
+		int exSize = 10 * numberOfBootstraps + 8;
+		if (exSize + localContentsOffset >= this.contents.length) {
+			resizeContents(exSize);
+		}
+		this.contentsOffset += exSize;
+		
+		int attributeNameIndex =
+			this.constantPool.literalIndex(AttributeNamesConstants.BootstrapMethodsName);
+		this.contents[localContentsOffset++] = (byte) (attributeNameIndex >> 8);
+		this.contents[localContentsOffset++] = (byte) attributeNameIndex;
+		int value = (numberOfBootstraps * 10) + 2;
+		this.contents[localContentsOffset++] = (byte) (value >> 24);
+		this.contents[localContentsOffset++] = (byte) (value >> 16);
+		this.contents[localContentsOffset++] = (byte) (value >> 8);
+		this.contents[localContentsOffset++] = (byte) value;
+		this.contents[localContentsOffset++] = (byte) (numberOfBootstraps >> 8);
+		this.contents[localContentsOffset++] = (byte) numberOfBootstraps;
+		for (int i = 0; i < numberOfBootstraps; i++) {
+			FunctionalExpression functional = (FunctionalExpression) functionalExpressionList.get(i);
+			this.contents[localContentsOffset++] = (byte) (indexForMetaFactory >> 8);
+			this.contents[localContentsOffset++] = (byte) indexForMetaFactory;
+			
+			this.contents[localContentsOffset++] = 0;
+			this.contents[localContentsOffset++] = (byte) 3;
+			
+			int functionalDescriptorIndex = this.constantPool.literalIndexForMethodHandle(functional.descriptor.original());
+			this.contents[localContentsOffset++] = (byte) (functionalDescriptorIndex >> 8);
+			this.contents[localContentsOffset++] = (byte) functionalDescriptorIndex;
+
+			int methodHandleIndex = this.constantPool.literalIndexForMethodHandle(functional.binding.original()); // Speak of " implementation" (erased) version here, adaptations described below.
+			this.contents[localContentsOffset++] = (byte) (methodHandleIndex >> 8);
+			this.contents[localContentsOffset++] = (byte) methodHandleIndex;
+
+			char [] instantiatedSignature = functional.descriptor.signature();
+			int methodTypeIndex = this.constantPool.literalIndexForMethodType(instantiatedSignature);
+			this.contents[localContentsOffset++] = (byte) (methodTypeIndex >> 8);
+			this.contents[localContentsOffset++] = (byte) methodTypeIndex;
+		}
+		return 1;
+	}
 	private int generateLineNumberAttribute() {
 		int localContentsOffset = this.contentsOffset;
 		int attributesNumber = 0;
@@ -2517,7 +3006,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 			nameIndex = this.constantPool.literalIndex(ConstantPool.This);
 			this.contents[localContentsOffset++] = (byte) (nameIndex >> 8);
 			this.contents[localContentsOffset++] = (byte) nameIndex;
-			declaringClassBinding = (SourceTypeBinding) this.codeStream.methodDeclaration.binding.declaringClass;
+			declaringClassBinding = (SourceTypeBinding) 
+					(this.codeStream.methodDeclaration != null ? this.codeStream.methodDeclaration.binding.declaringClass : this.codeStream.lambdaExpression.binding.declaringClass);
 			descriptorIndex =
 				this.constantPool.literalIndex(
 					declaringClassBinding.signature());
@@ -2666,7 +3156,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 	 * @param methodBinding org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding
 	 * @return <CODE>int</CODE>
 	 */
-	public int generateMethodInfoAttributes(MethodBinding methodBinding, List extraAttributes) {
+	public int generateMethodInfoAttributes(MethodBinding methodBinding, List extraAttributes) { // AspectJ: extra parameter
 		// leave two bytes for the attribute_number
 		this.contentsOffset += 2;
 		if (this.contentsOffset + 2 >= this.contents.length) {
@@ -2717,6 +3207,24 @@ public class ClassFile implements TypeConstants, TypeIds {
 						attributesNumber += generateRuntimeAnnotationsForParameters(arguments);
 					}
 				}
+			} else {
+				LambdaExpression lambda = methodBinding.sourceLambda();
+				if (lambda != null) {
+					if ((methodBinding.tagBits & TagBits.HasParameterAnnotations) != 0) {
+						Argument[] arguments = lambda.arguments;
+						if (arguments != null) {
+							int parameterCount = methodBinding.parameters.length;
+							int argumentCount = arguments.length;
+							if (parameterCount > argumentCount) { // synthetics prefixed 
+								int redShift = parameterCount - argumentCount;
+								System.arraycopy(arguments, 0, arguments = new Argument[parameterCount], redShift, argumentCount);
+								for (int i = 0; i < redShift; i++)
+									arguments[i] = new Argument(CharOperation.NO_CHAR, 0, null, 0);
+							}
+							attributesNumber += generateRuntimeAnnotationsForParameters(arguments);
+						}
+					}	
+				}
 			}
 		}
 		if ((methodBinding.tagBits & TagBits.HasMissingType) != 0) {
@@ -2739,7 +3247,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 	  return generateMethodInfoAttributes(methodBinding,(List)null);
 	}
 	// End AspectJ Extension
-		
 	public int generateMethodInfoAttributes(MethodBinding methodBinding, AnnotationMethodDeclaration declaration) {
 		int attributesNumber = generateMethodInfoAttributes(methodBinding);
 		int attributeOffset = this.contentsOffset;
@@ -3165,6 +3672,116 @@ public class ClassFile implements TypeConstants, TypeIds {
 		}
 		return attributesNumber;
 	}
+	
+	/**
+	 * @param annotationContexts the given annotation contexts
+	 * @param visibleTypeAnnotationsNumber the given number of visible type annotations
+	 * @param invisibleTypeAnnotationsNumber the given number of invisible type annotations
+	 * @return the number of attributes created while dumping the annotations in the .class file
+	 */
+	private int generateRuntimeTypeAnnotations(
+			final AnnotationContext[] annotationContexts, 
+			int visibleTypeAnnotationsNumber, 
+			int invisibleTypeAnnotationsNumber) {
+		int attributesNumber = 0;
+		final int length = annotationContexts.length;
+
+		int visibleTypeAnnotationsCounter = visibleTypeAnnotationsNumber;
+		int invisibleTypeAnnotationsCounter = invisibleTypeAnnotationsNumber;
+		int annotationAttributeOffset = this.contentsOffset;
+		int constantPOffset = this.constantPool.currentOffset;
+		int constantPoolIndex = this.constantPool.currentIndex;
+		if (invisibleTypeAnnotationsCounter != 0) {
+			if (this.contentsOffset + 10 >= this.contents.length) {
+				resizeContents(10);
+			}
+			int runtimeInvisibleAnnotationsAttributeNameIndex =
+				this.constantPool.literalIndex(AttributeNamesConstants.RuntimeInvisibleTypeAnnotationsName);
+			this.contents[this.contentsOffset++] = (byte) (runtimeInvisibleAnnotationsAttributeNameIndex >> 8);
+			this.contents[this.contentsOffset++] = (byte) runtimeInvisibleAnnotationsAttributeNameIndex;
+			int attributeLengthOffset = this.contentsOffset;
+			this.contentsOffset += 4; // leave space for the attribute length
+
+			int annotationsLengthOffset = this.contentsOffset;
+			this.contentsOffset += 2; // leave space for the annotations length
+
+			int counter = 0;
+			loop: for (int i = 0; i < length; i++) {
+				if (invisibleTypeAnnotationsCounter == 0) break loop;
+				AnnotationContext annotationContext = annotationContexts[i];
+				if ((annotationContext.visibility & AnnotationContext.INVISIBLE) != 0) {
+					int currentAnnotationOffset = this.contentsOffset;
+					generateTypeAnnotation(annotationContext, currentAnnotationOffset);
+					invisibleTypeAnnotationsCounter--;
+					if (this.contentsOffset != currentAnnotationOffset) {
+						counter++;
+					}
+				}
+			}
+			if (counter != 0) {
+				this.contents[annotationsLengthOffset++] = (byte) (counter >> 8);
+				this.contents[annotationsLengthOffset++] = (byte) counter;
+
+				int attributeLength = this.contentsOffset - attributeLengthOffset - 4;
+				this.contents[attributeLengthOffset++] = (byte) (attributeLength >> 24);
+				this.contents[attributeLengthOffset++] = (byte) (attributeLength >> 16);
+				this.contents[attributeLengthOffset++] = (byte) (attributeLength >> 8);
+				this.contents[attributeLengthOffset++] = (byte) attributeLength;
+				attributesNumber++;
+			} else {
+				this.contentsOffset = annotationAttributeOffset;
+				// reset the constant pool to its state before the clinit
+				this.constantPool.resetForAttributeName(AttributeNamesConstants.RuntimeInvisibleTypeAnnotationsName, constantPoolIndex, constantPOffset);
+			}
+		}
+
+		annotationAttributeOffset = this.contentsOffset;
+		constantPOffset = this.constantPool.currentOffset;
+		constantPoolIndex = this.constantPool.currentIndex;
+		if (visibleTypeAnnotationsCounter != 0) {
+			if (this.contentsOffset + 10 >= this.contents.length) {
+				resizeContents(10);
+			}
+			int runtimeVisibleAnnotationsAttributeNameIndex =
+				this.constantPool.literalIndex(AttributeNamesConstants.RuntimeVisibleTypeAnnotationsName);
+			this.contents[this.contentsOffset++] = (byte) (runtimeVisibleAnnotationsAttributeNameIndex >> 8);
+			this.contents[this.contentsOffset++] = (byte) runtimeVisibleAnnotationsAttributeNameIndex;
+			int attributeLengthOffset = this.contentsOffset;
+			this.contentsOffset += 4; // leave space for the attribute length
+
+			int annotationsLengthOffset = this.contentsOffset;
+			this.contentsOffset += 2; // leave space for the annotations length
+
+			int counter = 0;
+			loop: for (int i = 0; i < length; i++) {
+				if (visibleTypeAnnotationsCounter == 0) break loop;
+				AnnotationContext annotationContext = annotationContexts[i];
+				if ((annotationContext.visibility & AnnotationContext.VISIBLE) != 0) {
+					visibleTypeAnnotationsCounter--;
+					int currentAnnotationOffset = this.contentsOffset;
+					generateTypeAnnotation(annotationContext, currentAnnotationOffset);
+					if (this.contentsOffset != currentAnnotationOffset) {
+						counter++;
+					}
+				}
+			}
+			if (counter != 0) {
+				this.contents[annotationsLengthOffset++] = (byte) (counter >> 8);
+				this.contents[annotationsLengthOffset++] = (byte) counter;
+
+				int attributeLength = this.contentsOffset - attributeLengthOffset - 4;
+				this.contents[attributeLengthOffset++] = (byte) (attributeLength >> 24);
+				this.contents[attributeLengthOffset++] = (byte) (attributeLength >> 16);
+				this.contents[attributeLengthOffset++] = (byte) (attributeLength >> 8);
+				this.contents[attributeLengthOffset++] = (byte) attributeLength;
+				attributesNumber++;
+			} else {
+				this.contentsOffset = annotationAttributeOffset;
+				this.constantPool.resetForAttributeName(AttributeNamesConstants.RuntimeVisibleTypeAnnotationsName, constantPoolIndex, constantPOffset);
+			}
+		}
+		return attributesNumber;
+	}
 
 	private int generateSignatureAttribute(char[] genericSignature) {
 		int localContentsOffset = this.contentsOffset;
@@ -3223,9 +3840,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		StackMapFrameCodeStream stackMapFrameCodeStream = (StackMapFrameCodeStream) this.codeStream;
 		stackMapFrameCodeStream.removeFramePosition(code_length);
 		if (stackMapFrameCodeStream.hasFramePositions()) {
-			ArrayList frames = new ArrayList();
-			traverse(isClinit ? null : methodBinding, max_locals, this.contents, codeAttributeOffset + 14, code_length, frames, isClinit);
-			int numberOfFrames = frames.size();
+			Map frames = new HashMap();
+			List realFrames = traverse(isClinit ? null : methodBinding, max_locals, this.contents, codeAttributeOffset + 14, code_length, frames, isClinit);
+			int numberOfFrames = realFrames.size();
 			if (numberOfFrames > 1) {
 				int stackMapTableAttributeOffset = localContentsOffset;
 				// add the stack map table attribute
@@ -3248,10 +3865,10 @@ public class ClassFile implements TypeConstants, TypeIds {
 				if (localContentsOffset + 2 >= this.contents.length) {
 					resizeContents(2);
 				}
-				StackMapFrame currentFrame = (StackMapFrame) frames.get(0);
+				StackMapFrame currentFrame = (StackMapFrame) realFrames.get(0);
 				for (int j = 1; j < numberOfFrames; j++) {
 					// select next frame
-					currentFrame = (StackMapFrame) frames.get(j);
+					currentFrame = (StackMapFrame) realFrames.get(j);
 					// generate current frame
 					// need to find differences between the current frame and the previous frame
 					int frameOffset = currentFrame.pc;
@@ -3400,9 +4017,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		StackMapFrameCodeStream stackMapFrameCodeStream = (StackMapFrameCodeStream) this.codeStream;
 		stackMapFrameCodeStream.removeFramePosition(code_length);
 		if (stackMapFrameCodeStream.hasFramePositions()) {
-			ArrayList frames = new ArrayList();
-			traverse(isClinit ? null: methodBinding, max_locals, this.contents, codeAttributeOffset + 14, code_length, frames, isClinit);
-			int numberOfFrames = frames.size();
+			Map frames = new HashMap();
+			List realFrames = traverse(isClinit ? null: methodBinding, max_locals, this.contents, codeAttributeOffset + 14, code_length, frames, isClinit);
+			int numberOfFrames = realFrames.size();
 			if (numberOfFrames > 1) {
 				int stackMapTableAttributeOffset = localContentsOffset;
 				// add the stack map table attribute
@@ -3425,12 +4042,12 @@ public class ClassFile implements TypeConstants, TypeIds {
 				if (localContentsOffset + 2 >= this.contents.length) {
 					resizeContents(2);
 				}
-				StackMapFrame currentFrame = (StackMapFrame) frames.get(0);
+				StackMapFrame currentFrame = (StackMapFrame) realFrames.get(0);
 				StackMapFrame prevFrame = null;
 				for (int j = 1; j < numberOfFrames; j++) {
 					// select next frame
 					prevFrame = currentFrame;
-					currentFrame = (StackMapFrame) frames.get(j);
+					currentFrame = (StackMapFrame) realFrames.get(j);
 					// generate current frame
 					// need to find differences between the current frame and the previous frame
 					int offsetDelta = currentFrame.getOffsetDelta(prevFrame);
@@ -3764,6 +4381,108 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.contentsOffset = localContentsOffset;
 		return 1;
 	}
+	
+	private void generateTypeAnnotation(AnnotationContext annotationContext, int currentOffset) {
+		if (annotationContext.wildcard != null) {
+			generateWildcardTypeAnnotation(annotationContext, currentOffset);
+			return;
+		}
+		
+		int targetType = annotationContext.targetType;
+
+		int[] locations = Annotation.getLocations(
+			annotationContext.typeReference,
+			annotationContext.primaryAnnotations,
+			annotationContext.annotation,
+			annotationContext.annotationsOnDimensions,
+			annotationContext.dimensions);
+
+		if (this.contentsOffset + 5 >= this.contents.length) {
+			resizeContents(5);
+		}
+		this.contents[this.contentsOffset++] = (byte) targetType;
+		dumpTargetTypeContents(targetType, annotationContext);
+		dumpLocations(locations);
+		
+		// common part between type annotation and annotation
+		generateAnnotation(annotationContext.annotation, currentOffset);
+	}
+
+	private void generateWildcardTypeAnnotation(AnnotationContext annotationContext, int currentOffset) {
+		int targetType = annotationContext.targetType;
+
+		int[] locations = Annotation.getLocations(
+				annotationContext.typeReference,
+				null,
+				annotationContext.annotation,
+				null,
+				0);
+		// reserve enough space
+		if (this.contentsOffset + 5 >= this.contents.length) {
+			resizeContents(5);
+		}
+		this.contents[this.contentsOffset++] = (byte) targetType;
+		dumpTargetTypeContents(targetType, annotationContext);
+		dumpLocations(locations);
+		generateAnnotation(annotationContext.annotation, currentOffset);
+	}
+	
+	private int generateTypeAnnotationAttributeForTypeDeclaration() {
+		TypeDeclaration typeDeclaration = this.referenceBinding.scope.referenceContext;
+		if ((typeDeclaration.bits & ASTNode.HasTypeAnnotations) == 0) {
+			return 0;
+		}
+		int attributesNumber = 0;
+		int visibleTypeAnnotationsCounter = 0;
+		int invisibleTypeAnnotationsCounter = 0;
+		TypeReference superclass = typeDeclaration.superclass;
+		List allTypeAnnotationContexts = new ArrayList();
+		if (superclass != null && (superclass.bits & ASTNode.HasTypeAnnotations) != 0) {
+			superclass.getAllAnnotationContexts(AnnotationTargetTypeConstants.CLASS_EXTENDS, -1, allTypeAnnotationContexts);
+		}
+		TypeReference[] superInterfaces = typeDeclaration.superInterfaces;
+		if (superInterfaces != null) {
+			for (int i = 0; i < superInterfaces.length; i++) {
+				TypeReference superInterface = superInterfaces[i];
+				if ((superInterface.bits & ASTNode.HasTypeAnnotations) == 0) {
+					continue;
+				}
+				superInterface.getAllAnnotationContexts(AnnotationTargetTypeConstants.CLASS_EXTENDS, i, allTypeAnnotationContexts);
+			}
+		}
+		TypeParameter[] typeParameters = typeDeclaration.typeParameters;
+		if (typeParameters != null) {
+			for (int i = 0, max = typeParameters.length; i < max; i++) {
+				TypeParameter typeParameter = typeParameters[i];
+				if ((typeParameter.bits & ASTNode.HasTypeAnnotations) != 0) {
+					typeParameter.getAllAnnotationContexts(AnnotationTargetTypeConstants.CLASS_TYPE_PARAMETER, i, allTypeAnnotationContexts);
+				}
+			}
+		}
+		int size = allTypeAnnotationContexts.size();
+		if (size != 0) {
+			AnnotationContext[] allTypeAnnotationContextsArray = new AnnotationContext[size];
+			allTypeAnnotationContexts.toArray(allTypeAnnotationContextsArray);
+			for (int j = 0, max = allTypeAnnotationContextsArray.length; j < max; j++) {
+				AnnotationContext annotationContext = allTypeAnnotationContextsArray[j];
+				if ((annotationContext.visibility & AnnotationContext.INVISIBLE) != 0) {
+					invisibleTypeAnnotationsCounter++;
+					allTypeAnnotationContexts.add(annotationContext);
+				} else {
+					visibleTypeAnnotationsCounter++;
+					allTypeAnnotationContexts.add(annotationContext);
+				}
+			}
+			attributesNumber += generateRuntimeTypeAnnotations(
+					allTypeAnnotationContextsArray,
+					visibleTypeAnnotationsCounter,
+					invisibleTypeAnnotationsCounter);
+		}
+		return attributesNumber;
+	}
+	
+	
+	
 
 	private int generateVarargsAttribute() {
 		int localContentsOffset = this.contentsOffset;
@@ -3867,7 +4586,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 				methodSignature.length);
 	}
 
-
 	private final int i4At(byte[] reference, int relativeOffset,
 			int structOffset) {
 		int position = relativeOffset + structOffset;
@@ -3938,7 +4656,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 		int classNameIndex = this.constantPool.literalIndexForType(aType);
 		this.contents[this.contentsOffset++] = (byte) (classNameIndex >> 8);
 		this.contents[this.contentsOffset++] = (byte) classNameIndex;
-		
 		// AspectJ Extension - don't include result of decp weaving in the class created by compilation
 		/*old{
 		int superclassNameIndex;
@@ -4208,6 +4925,14 @@ public class ClassFile implements TypeConstants, TypeIds {
 		}
 	}
 
+	public int recordBootstrapMethod(FunctionalExpression expression) {
+		if (this.bootstrapMethods == null) {
+			this.bootstrapMethods = new ArrayList();
+		}
+		this.bootstrapMethods.add(expression);
+		return this.bootstrapMethods.size() - 1;
+	}
+
 	public void reset(SourceTypeBinding typeBinding) {
 		// the code stream is reinitialized for each method
 		final CompilerOptions options = typeBinding.scope.compilerOptions();
@@ -4217,6 +4942,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.produceAttributes = options.produceDebugAttributes;
 		if (this.targetJDK >= ClassFileConstants.JDK1_6) {
 			this.produceAttributes |= ClassFileConstants.ATTR_STACK_MAP_TABLE;
+			if (this.targetJDK >= ClassFileConstants.JDK1_8) {
+				this.produceAttributes |= ClassFileConstants.ATTR_TYPE_ANNOTATION;
+			}
 		} else if (this.targetJDK == ClassFileConstants.CLDC_1_1) {
 			this.targetJDK = ClassFileConstants.JDK1_1; // put back 45.3
 			this.produceAttributes |= ClassFileConstants.ATTR_STACK_MAP;
@@ -4233,6 +4961,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.methodCountOffset = 0;
 		if (this.innerClassesBindings != null) {
 			this.innerClassesBindings.clear();
+		}
+		if (this.bootstrapMethods != null) {
+			this.bootstrapMethods.clear();
 		}
 		this.missingTypes = null;
 		this.visitedTypes = null;
@@ -4299,8 +5030,32 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.methodCountOffset = this.contentsOffset;
 		this.contentsOffset += 2;
 	}
+	
+	private List filterFakeFrames(Set realJumpTargets, Map frames, int codeLength) {
+		// no more frame to generate
+		// filter out "fake" frames
+		realJumpTargets.remove(new Integer(codeLength));
+		List result = new ArrayList();
+		for (Iterator iterator = realJumpTargets.iterator(); iterator.hasNext(); ) {
+			Integer jumpTarget = (Integer) iterator.next();
+			StackMapFrame frame = (StackMapFrame) frames.get(jumpTarget);
+			if (frame != null) {
+				result.add(frame);
+			}
+		}
+		Collections.sort(result, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				StackMapFrame frame = (StackMapFrame) o1;
+				StackMapFrame frame2 = (StackMapFrame) o2;
+				return frame.pc - frame2.pc;
+			}
+		});
+		return result;
+	}
 
-	public void traverse(MethodBinding methodBinding, int maxLocals, byte[] bytecodes, int codeOffset, int codeLength, ArrayList frames, boolean isClinit) {
+	public List traverse(MethodBinding methodBinding, int maxLocals, byte[] bytecodes, int codeOffset, int codeLength, Map frames, boolean isClinit) {
+		Set realJumpTarget = new HashSet(); 
+
 		StackMapFrameCodeStream stackMapFrameCodeStream = (StackMapFrameCodeStream) this.codeStream;
 		int[] framePositions = stackMapFrameCodeStream.getFramePositions();
 		int pc = codeOffset;
@@ -4348,7 +5103,14 @@ public class ClassFile implements TypeConstants, TypeIds {
 			initializeDefaultLocals(frame, methodBinding, maxLocals, codeLength);
 		}
 		frame.pc = -1;
-		frames.add(frame.duplicate());
+		add(frames, frame.duplicate());
+		addRealJumpTarget(realJumpTarget, -1);
+		for (int i = 0, max = this.codeStream.exceptionLabelsCounter; i < max; i++) {
+			ExceptionLabel exceptionLabel = this.codeStream.exceptionLabels[i];
+			if (exceptionLabel != null) {
+				addRealJumpTarget(realJumpTarget, exceptionLabel.position);
+			}
+		}
 		while (true) {
 			int currentPC = pc - codeOffset;
 			if (hasStackMarkers && stackMarker.pc == currentPC) {
@@ -4401,8 +5163,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 					if (indexInFramePositions < framePositionsLength) {
 						currentFramePosition = framePositions[indexInFramePositions];
 					} else {
-						// no more frame to generate
-						return;
+						currentFramePosition = Integer.MAX_VALUE;
 					}
 				} while (currentFramePosition < currentPC);
 			}
@@ -4413,13 +5174,12 @@ public class ClassFile implements TypeConstants, TypeIds {
 				// initialize locals
 				initializeLocals(isClinit ? true : methodBinding.isStatic(), currentPC, currentFrame);
 				// insert a new frame
-				frames.add(currentFrame);
+				add(frames, currentFrame);
 				indexInFramePositions++;
 				if (indexInFramePositions < framePositionsLength) {
 					currentFramePosition = framePositions[indexInFramePositions];
 				} else {
-					// no more frame to generate
-					return;
+					currentFramePosition = Integer.MAX_VALUE;
 				}
 			}
 			byte opcode = (byte) u1At(bytecodes, 0, pc);
@@ -4965,6 +5725,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 				case Opcodes.OPC_ifgt:
 				case Opcodes.OPC_ifle:
 					frame.numberOfStackItems--;
+					addRealJumpTarget(realJumpTarget, currentPC + i2At(bytecodes, 1, pc));
 					pc += 3;
 					break;
 				case Opcodes.OPC_if_icmpeq:
@@ -4976,23 +5737,32 @@ public class ClassFile implements TypeConstants, TypeIds {
 				case Opcodes.OPC_if_acmpeq:
 				case Opcodes.OPC_if_acmpne:
 					frame.numberOfStackItems -= 2;
+					addRealJumpTarget(realJumpTarget, currentPC + i2At(bytecodes, 1, pc));
 					pc += 3;
 					break;
 				case Opcodes.OPC_goto:
+					addRealJumpTarget(realJumpTarget, currentPC + i2At(bytecodes, 1, pc));
 					pc += 3;
+					addRealJumpTarget(realJumpTarget, pc - codeOffset);
 					break;
 				case Opcodes.OPC_tableswitch:
 					pc++;
 					while (((pc - codeOffset) & 0x03) != 0) {
 						pc++;
 					}
+					// default offset
+					addRealJumpTarget(realJumpTarget, currentPC + i4At(bytecodes, 0, pc));
 					pc += 4; // default
 					int low = i4At(bytecodes, 0, pc);
 					pc += 4;
 					int high = i4At(bytecodes, 0, pc);
 					pc += 4;
 					int length = high - low + 1;
-					pc += (length * 4);
+					for (int i = 0; i < length; i++) {
+						// pair offset
+						addRealJumpTarget(realJumpTarget, currentPC + i4At(bytecodes, 0, pc));
+						pc += 4;
+					}
 					frame.numberOfStackItems--;
 					break;
 				case Opcodes.OPC_lookupswitch:
@@ -5000,9 +5770,16 @@ public class ClassFile implements TypeConstants, TypeIds {
 					while (((pc - codeOffset) & 0x03) != 0) {
 						pc++;
 					}
-					pc += 4; // default
+					addRealJumpTarget(realJumpTarget, currentPC + i4At(bytecodes, 0, pc));
+					pc += 4; // default offset
 					int npairs = (int) u4At(bytecodes, 0, pc);
-					pc += (4 + npairs * 8);
+					pc += 4; // npair value
+					for (int i = 0; i < npairs; i++) {
+						pc += 4; // case value
+						// pair offset
+						addRealJumpTarget(realJumpTarget, currentPC + i4At(bytecodes, 0, pc));
+						pc += 4;
+					}
 					frame.numberOfStackItems--;
 					break;
 				case Opcodes.OPC_ireturn:
@@ -5012,9 +5789,11 @@ public class ClassFile implements TypeConstants, TypeIds {
 				case Opcodes.OPC_areturn:
 					frame.numberOfStackItems--;
 					pc++;
+					addRealJumpTarget(realJumpTarget, pc - codeOffset);
 					break;
 				case Opcodes.OPC_return:
 					pc++;
+					addRealJumpTarget(realJumpTarget, pc - codeOffset);
 					break;
 				case Opcodes.OPC_getstatic:
 					index = u2At(bytecodes, 1, pc);
@@ -5169,6 +5948,55 @@ public class ClassFile implements TypeConstants, TypeIds {
 						}
 					}
 					pc += 3;
+					break;
+				case Opcodes.OPC_invokedynamic:
+					index = u2At(bytecodes, 1, pc);
+					nameAndTypeIndex = u2At(poolContents, 3,
+							constantPoolOffsets[index]);
+					utf8index = u2At(poolContents, 3,
+							constantPoolOffsets[nameAndTypeIndex]);
+					descriptor = utf8At(poolContents,
+							constantPoolOffsets[utf8index] + 3, u2At(
+									poolContents, 1,
+									constantPoolOffsets[utf8index]));
+					frame.numberOfStackItems -= getParametersCount(descriptor);
+					returnType = getReturnType(descriptor);
+					if (returnType.length == 1) {
+						// base type
+						switch(returnType[0]) {
+							case 'Z':
+								frame.addStackItem(TypeBinding.BOOLEAN);
+								break;
+							case 'B':
+								frame.addStackItem(TypeBinding.BYTE);
+								break;
+							case 'C':
+								frame.addStackItem(TypeBinding.CHAR);
+								break;
+							case 'D':
+								frame.addStackItem(TypeBinding.DOUBLE);
+								break;
+							case 'F':
+								frame.addStackItem(TypeBinding.FLOAT);
+								break;
+							case 'I':
+								frame.addStackItem(TypeBinding.INT);
+								break;
+							case 'J':
+								frame.addStackItem(TypeBinding.LONG);
+								break;
+							case 'S':
+								frame.addStackItem(TypeBinding.SHORT);
+								break;
+						}
+					} else {
+						if (returnType[0] == '[') {
+							frame.addStackItem(new VerificationTypeInfo(0, returnType));
+						} else {
+							frame.addStackItem(new VerificationTypeInfo(0, CharOperation.subarray(returnType, 1, returnType.length - 1)));
+						}
+					}
+					pc += 5;
 					break;
 				case Opcodes.OPC_invokespecial:
 					index = u2At(bytecodes, 1, pc);
@@ -5417,6 +6245,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 				case Opcodes.OPC_athrow:
 					frame.numberOfStackItems--;
 					pc++;
+					addRealJumpTarget(realJumpTarget, pc - codeOffset);
 					break;
 				case Opcodes.OPC_checkcast:
 					index = u2At(bytecodes, 1, pc);
@@ -5511,29 +6340,51 @@ public class ClassFile implements TypeConstants, TypeIds {
 				case Opcodes.OPC_ifnull:
 				case Opcodes.OPC_ifnonnull:
 					frame.numberOfStackItems--;
+					addRealJumpTarget(realJumpTarget, currentPC + i2At(bytecodes, 1, pc));
 					pc += 3;
 					break;
 				case Opcodes.OPC_goto_w:
+					addRealJumpTarget(realJumpTarget, currentPC + i4At(bytecodes, 1, pc));
 					pc += 5;
+					addRealJumpTarget(realJumpTarget, pc - codeOffset); // handle infinite loop
 					break;
 				default: // should not occur
-					this.codeStream.methodDeclaration.scope.problemReporter().abortDueToInternalError(
-							Messages.bind(
-									Messages.abort_invalidOpcode,
-									new Object[] {
-										new Byte(opcode),
-										new Integer(pc),
-										new String(methodBinding.shortReadableName()),
-									}),
-							this.codeStream.methodDeclaration);
+					if (this.codeStream.methodDeclaration != null) {
+						this.codeStream.methodDeclaration.scope.problemReporter().abortDueToInternalError(
+								Messages.bind(
+										Messages.abort_invalidOpcode,
+										new Object[] {
+												new Byte(opcode),
+												new Integer(pc),
+												new String(methodBinding.shortReadableName()),
+										}),
+										this.codeStream.methodDeclaration);
+					} else {
+						this.codeStream.lambdaExpression.scope.problemReporter().abortDueToInternalError(
+								Messages.bind(
+										Messages.abort_invalidOpcode,
+										new Object[] {
+												new Byte(opcode),
+												new Integer(pc),
+												new String(methodBinding.shortReadableName()),
+										}),
+										this.codeStream.lambdaExpression);
+					}
 				break;
 			}
 			if (pc >= (codeLength + codeOffset)) {
 				break;
 			}
 		}
+		return filterFakeFrames(realJumpTarget, frames, codeLength);
 	}
 
+	private void addRealJumpTarget(Set realJumpTarget, int pc) {
+		realJumpTarget.add(new Integer(pc));
+	}
+	private void add(Map frames, StackMapFrame frame) {
+		frames.put(new Integer(frame.pc), frame);
+	}
 	private final int u1At(byte[] reference, int relativeOffset,
 			int structOffset) {
 		return (reference[relativeOffset + structOffset] & 0xFF);
@@ -5563,6 +6414,11 @@ public class ClassFile implements TypeConstants, TypeIds {
       contentsOffset += N;
     }
     // End AspectJ Extension    
+
+	private final int i2At(byte[] reference, int relativeOffset, int structOffset) {
+		int position = relativeOffset + structOffset;
+		return (reference[position++] << 8) + (reference[position] & 0xFF);
+	}
 
 	public char[] utf8At(byte[] reference, int absoluteOffset,
 			int bytesAvailable) {

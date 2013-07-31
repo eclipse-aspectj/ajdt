@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,12 +20,11 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.ReadWriteMonito
 
 /**
  * An <code>Index</code> maps document names to their referenced words in various categories.
- *
+ * <p>
  * Queries can search a single category or several at the same time.
- *
+ * </p>
  * Indexes are not synchronized structures and should only be queried/updated one at a time.
  */
-
 public class Index {
 
 public String containerPath;
@@ -88,12 +87,12 @@ public static boolean isMatch(char[] pattern, char[] word, int matchRule) {
 }
 
 
-public Index(String fileName, String containerPath, boolean reuseExistingFile) throws IOException {
+public Index(IndexLocation location, String containerPath, boolean reuseExistingFile) throws IOException {
 	this.containerPath = containerPath;
 	this.monitor = new ReadWriteMonitor();
 
 	this.memoryIndex = new MemoryIndex();
-	this.diskIndex = new DiskIndex(fileName);
+	this.diskIndex = new DiskIndex(location);
 	this.diskIndex.initialize(reuseExistingFile);
 	if (reuseExistingFile) this.separator = this.diskIndex.separator;
 }
@@ -110,7 +109,13 @@ public String containerRelativePath(String documentPath) {
 	return documentPath.substring(index + 1);
 }
 public File getIndexFile() {
-	return this.diskIndex == null ? null : this.diskIndex.indexFile;
+	return this.diskIndex == null ? null : this.diskIndex.indexLocation.getIndexFile();
+}
+public IndexLocation getIndexLocation() {
+	return this.diskIndex == null ? null : this.diskIndex.indexLocation;
+}
+public long getIndexLastModified() {
+	return this.diskIndex == null? -1 : this.diskIndex.indexLocation.lastModified();
 }
 public boolean hasChanged() {
 	return this.memoryIndex.hasChanged();
@@ -180,7 +185,7 @@ public void remove(String containerRelativePath) {
  */
 public void reset() throws IOException {
 	this.memoryIndex = new MemoryIndex();
-	this.diskIndex = new DiskIndex(this.diskIndex.indexFile.getCanonicalPath());
+	this.diskIndex = new DiskIndex(this.diskIndex.indexLocation);
 	this.diskIndex.initialize(false/*do not reuse the index file*/);
 }
 public void save() throws IOException {

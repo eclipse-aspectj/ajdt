@@ -1,12 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 365531 - [compiler][null] investigate alternative strategy for internally encoding nullness defaults
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -30,6 +36,12 @@ public abstract class Binding {
 	public static final int GENERIC_TYPE = TYPE | ASTNode.Bit12;
 	public static final int TYPE_PARAMETER = TYPE | ASTNode.Bit13;
 	public static final int INTERSECTION_TYPE = TYPE | ASTNode.Bit14;
+	// jsr 308
+	public static final int TYPE_USE = TYPE | ASTNode.Bit15;
+	public static final int INTERSECTION_CAST_TYPE = TYPE | ASTNode.Bit16;
+	public static final int POLY_TYPE = TYPE | ASTNode.Bit17;
+	
+	// In the unlikely event you add a new type binding, remember to update TypeBindingVisitor and Scope.substitute methods. 
 
 	// Shared binding collections
 	public static final TypeBinding[] NO_TYPES = new TypeBinding[0];
@@ -47,6 +59,11 @@ public abstract class Binding {
 	public static final FieldBinding[] UNINITIALIZED_FIELDS = new FieldBinding[0];
 	public static final MethodBinding[] UNINITIALIZED_METHODS = new MethodBinding[0];
 	public static final ReferenceBinding[] UNINITIALIZED_REFERENCE_TYPES = new ReferenceBinding[0];
+
+	// Nullness defaults:
+	public static final int NO_NULL_DEFAULT = 0;
+	public static final int NULL_UNSPECIFIED_BY_DEFAULT = 1;
+	public static final int NONNULL_BY_DEFAULT = 2;
 
 	/*
 	* Answer the receiver's binding type from Binding.BindingID.

@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,6 +16,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.parser.diagnose;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ConflictedParser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ParserBasicInformation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
@@ -20,7 +25,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
-public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
+public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, ConflictedParser {
 	private static final boolean DEBUG = false;
 	private boolean DEBUG_PARSECHECK = false;
 
@@ -193,6 +198,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 			oldRecord = this.recoveryScanner.record;
 			this.recoveryScanner.record = record;
 		}
+		this.parser.scanner.setActiveParser(this);
 		try {
 			this.lexStream.reset();
 
@@ -421,6 +427,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 			if(this.recoveryScanner != null) {
 				this.recoveryScanner.record = oldRecord;
 			}
+			this.parser.scanner.setActiveParser(null);
 		}
 		return;
 	}
@@ -2249,10 +2256,13 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 	            	addedTokens = new int[Parser.scope_rhs.length - Parser.scope_suffix[- nameIndex]];
 	            }
 
+	            int insertedToken = TokenNameNotAToken;
 				for (int i = Parser.scope_suffix[- nameIndex]; Parser.scope_rhs[i] != 0; i++) {
 					buf.append(Parser.readableName[Parser.scope_rhs[i]]);
 					if (Parser.scope_rhs[i + 1] != 0) // any more symbols to print?
 						buf.append(' ');
+					else
+						insertedToken = Parser.reverse_index[Parser.scope_rhs[i]];
 
 					if(addedTokens != null) {
 	                	int tmpAddedToken = Parser.reverse_index[Parser.scope_rhs[i]];
@@ -2291,6 +2301,13 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 	            }
 
 				if (scopeNameIndex != 0) {
+					if (insertedToken == TokenNameElidedSemicolonAndRightBrace) {
+						/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=383046, we should never ever report the diagnostic, "Syntax error, insert ElidedSemicolonAndRightBraceto complete LambdaBody"
+						   as it is a synthetic token. Instead we should simply repair and move on. See how the regular Parser behaves at Parser.consumeElidedLeftBraceAndReturn and Parser.consumeExpression.
+						   See also: point (4) in https://bugs.eclipse.org/bugs/show_bug.cgi?id=380194#c15
+						*/
+						break;
+					}
 					if(this.reportProblem) problemReporter().parseErrorInsertToComplete(
 						errorStart,
 						errorEnd,
@@ -2425,12 +2442,14 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 	            if(this.recoveryScanner != null) {
 	            	addedTokens = new int[Parser.scope_rhs.length - Parser.scope_suffix[- nameIndex]];
 	            }
-
+	            int insertedToken = TokenNameNotAToken;
 	            for (int i = Parser.scope_suffix[- nameIndex]; Parser.scope_rhs[i] != 0; i++) {
 
 	                buf.append(Parser.readableName[Parser.scope_rhs[i]]);
 	                if (Parser.scope_rhs[i+1] != 0)
 	                     buf.append(' ');
+	                else
+	                	insertedToken = Parser.reverse_index[Parser.scope_rhs[i]];
 
 	                if(addedTokens != null) {
 	                	int tmpAddedToken = Parser.reverse_index[Parser.scope_rhs[i]];
@@ -2466,6 +2485,13 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 	            	this.recoveryScanner.insertTokens(addedTokens, completedToken, errorEnd);
 	            }
 	            if (scopeNameIndex != 0) {
+	            	if (insertedToken == TokenNameElidedSemicolonAndRightBrace) {
+						/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=383046, we should never ever report the diagnostic, "Syntax error, insert ElidedSemicolonAndRightBraceto complete LambdaBody"
+						   as it is a synthetic token. Instead we should simply repair and move on. See how the regular Parser behaves at Parser.consumeElidedLeftBraceAndReturn and Parser.consumeExpression.
+						   See also: point (4) in https://bugs.eclipse.org/bugs/show_bug.cgi?id=380194#c15
+						*/
+						break;
+					}
 	                if(this.reportProblem) problemReporter().parseErrorInsertToComplete(
 						errorStart,
 						errorEnd,
@@ -2556,5 +2582,15 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens {
 		res.append(this.lexStream.toString());
 
 		return res.toString();
+	}
+
+	public boolean atConflictScenario(int token) {
+		/* There is too much voodoo that goes on here in DiagnoseParser (multiple machines, lexer stream reset etc.)
+		   So we take a simple minded view that we will always ask for disambiguation, except there is one scenario 
+		   that needs special handling, we let the lexer stream deal with that: In X<String>.Y<Integer>:: the second
+		   '<' should not be tagged for disambiguation. If a synthetic token gets injected there, there will be syntax
+		   error. See that this is not a problem for the regular/normal parser.
+		*/ 
+		return (token == TokenNameLPAREN || token == TokenNameAT || (token == TokenNameLESS && !this.lexStream.awaitingColonColon()));
 	}
 }

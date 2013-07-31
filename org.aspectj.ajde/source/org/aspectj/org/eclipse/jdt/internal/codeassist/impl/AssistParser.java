@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1062,6 +1066,8 @@ protected NameReference getUnspecifiedReferenceOptimized() {
 		return super.getUnspecifiedReferenceOptimized();
 	}
 
+	consumeNonTypeUseName();
+	
 	/* retrieve identifiers subset and whole positions, the completion node positions
 		should include the entire replaced source. */
 	int length = this.identifierLengthStack[this.identifierLengthPtr];
@@ -1627,6 +1633,8 @@ protected boolean resumeAfterRecovery() {
 	this.astLengthPtr = -1;
 	this.expressionPtr = -1;
 	this.expressionLengthPtr = -1;
+	this.typeAnnotationLengthPtr = -1;
+	this.typeAnnotationPtr = -1;
 	this.identifierPtr = -1;
 	this.identifierLengthPtr	= -1;
 	this.intPtr = -1;
@@ -1655,6 +1663,11 @@ protected boolean resumeAfterRecovery() {
 			){
 			prepareForBlockStatements();
 			goForBlockStatementsOrCatchHeader();
+		} else if((isInsideArrayInitializer()) &&
+				isIndirectlyInsideFieldInitialization() &&
+				this.assistNode == null){
+			prepareForBlockStatements();
+			goForBlockStatementsopt();
 		} else {
 			prepareForHeaders();
 			goForHeaders();
@@ -1675,6 +1688,11 @@ protected boolean resumeAfterRecovery() {
 		return true;
 	}
 	// does not know how to restart
+	return false;
+}
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=292087
+// To be implemented in children viz. CompletionParser that are aware of array initializers
+protected boolean isInsideArrayInitializer() {
 	return false;
 }
 public abstract void setAssistIdentifier(char[] assistIdent);

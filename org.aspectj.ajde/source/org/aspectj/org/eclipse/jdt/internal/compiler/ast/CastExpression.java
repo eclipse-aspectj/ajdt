@@ -1,18 +1,29 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Nick Teryaev - fix for bug (https://bugs.eclipse.org/bugs/show_bug.cgi?id=40752)
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     Stephan Herrmann - Contributions for
+ *								bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								bug 401017 - [compiler][null] casted reference to @Nullable field lacks a warning
+ *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
@@ -52,9 +63,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	FlowInfo result = this.expression
 		.analyseCode(currentScope, flowContext, flowInfo)
 		.unconditionalInits();
-	if ((this.expression.implicitConversion & TypeIds.UNBOXING) != 0) {
-		this.expression.checkNPE(currentScope, flowContext, flowInfo);
-	}
+	this.expression.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
+	// account for pot. CCE:
+	flowContext.recordAbruptExit();
 	return result;
 }
 
@@ -69,7 +80,7 @@ public static void checkNeedForAssignedCast(BlockScope scope, TypeBinding expect
 	// double d = (float) n; // cast to float is unnecessary
 	if (castedExpressionType == null || rhs.resolvedType.isBaseType()) return;
 	//if (castedExpressionType.id == T_null) return; // tolerate null expression cast
-	if (castedExpressionType.isCompatibleWith(expectedType)) {
+	if (castedExpressionType.isCompatibleWith(expectedType, scope)) {
 		scope.problemReporter().unnecessaryCast(rhs);
 	}
 }
@@ -240,6 +251,11 @@ public static void checkNeedForArgumentCasts(BlockScope scope, int operator, int
 	}
 }
 
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	checkNPEbyUnboxing(scope, flowContext, flowInfo);
+	return this.expression.checkNPE(scope, flowContext, flowInfo);
+}
+
 private static void checkAlternateBinding(BlockScope scope, Expression receiver, TypeBinding receiverType, MethodBinding binding, Expression[] arguments, TypeBinding[] originalArgumentTypes, TypeBinding[] alternateArgumentTypes, final InvocationSite invocationSite) {
 		InvocationSite fakeInvocationSite = new InvocationSite(){
 			public TypeBinding[] genericTypeArguments() { return null; }
@@ -251,6 +267,7 @@ private static void checkAlternateBinding(BlockScope scope, Expression receiver,
 			public int sourceStart() { return 0; }
 			public int sourceEnd() { return 0; }
 			public TypeBinding expectedType() { return invocationSite.expectedType(); }
+			public boolean receiverIsImplicitThis() { return invocationSite.receiverIsImplicitThis();}
 		};
 		MethodBinding bindingIfNoCast;
 		if (binding.isConstructor()) {
@@ -408,7 +425,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		if (valueRequired || needRuntimeCheckcast) { // Added for: 1F1W9IG: IVJCOM:WINNT - Compiler omits casting check
 			codeStream.generateConstant(this.constant, this.implicitConversion);
 			if (needRuntimeCheckcast) {
-				codeStream.checkcast(this.resolvedType);
+				codeStream.checkcast(this.type, this.resolvedType);
 			}
 			if (!valueRequired) {
 				// the resolveType cannot be double or long
@@ -420,7 +437,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 	}
 	this.expression.generateCode(currentScope, codeStream, valueRequired || needRuntimeCheckcast);
 	if (needRuntimeCheckcast && this.expression.postConversionType(currentScope) != this.resolvedType.erasure()) { // no need to issue a checkcast if already done as genericCast
-		codeStream.checkcast(this.resolvedType);
+		codeStream.checkcast(this.type, this.resolvedType);
 	}
 	if (valueRequired) {
 		codeStream.generateImplicitConversion(this.implicitConversion);
@@ -445,8 +462,8 @@ public LocalVariableBinding localVariableBinding() {
 	return this.expression.localVariableBinding();
 }
 
-public int nullStatus(FlowInfo flowInfo) {
-	return this.expression.nullStatus(flowInfo);
+public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	return this.expression.nullStatus(flowInfo, flowContext);
 }
 
 /**
@@ -462,17 +479,19 @@ public Constant optimizedBooleanConstant() {
 }
 
 public StringBuffer printExpression(int indent, StringBuffer output) {
+	int parenthesesCount = (this.bits & ASTNode.ParenthesizedMASK) >> ASTNode.ParenthesizedSHIFT;
+	String suffix = ""; //$NON-NLS-1$
+	for(int i = 0; i < parenthesesCount; i++) {
+		output.append('(');
+		suffix += ')';
+	}
 	output.append('(');
 	this.type.print(0, output).append(") "); //$NON-NLS-1$
-	return this.expression.printExpression(0, output);
+	return this.expression.printExpression(0, output).append(suffix);
 }
 
 public TypeBinding resolveType(BlockScope scope) {
 	// compute a new constant if the cast is effective
-
-	// due to the fact an expression may start with ( and that a cast can also start with (
-	// the field is an expression....it can be a TypeReference OR a NameReference Or
-	// any kind of Expression <-- this last one is invalid.......
 
 	this.constant = Constant.NotAConstant;
 	this.implicitConversion = TypeIds.T_undefined;
@@ -480,7 +499,13 @@ public TypeBinding resolveType(BlockScope scope) {
 	boolean exprContainCast = false;
 
 	TypeBinding castType = this.resolvedType = this.type.resolveType(scope);
-	//expression.setExpectedType(this.resolvedType); // needed in case of generic method invocation
+	if (scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8) {
+		this.expression.setExpressionContext(CASTING_CONTEXT);
+		if (this.expression instanceof FunctionalExpression) {
+			this.expression.setExpectedType(this.resolvedType);
+			this.bits |= ASTNode.DisableUnnecessaryCastCheck;
+		}
+	}
 	if (this.expression instanceof CastExpression) {
 		this.expression.bits |= ASTNode.DisableUnnecessaryCastCheck;
 		exprContainCast = true;
@@ -491,7 +516,10 @@ public TypeBinding resolveType(BlockScope scope) {
 		MethodBinding methodBinding = messageSend.binding;
 		if (methodBinding != null && methodBinding.isPolymorphic()) {
 			messageSend.binding = scope.environment().updatePolymorphicMethodReturnType((PolymorphicMethodBinding) methodBinding, castType);
-			expressionType = castType;
+			if (expressionType != castType) {
+				expressionType = castType;
+				this.bits |= ASTNode.DisableUnnecessaryCastCheck;
+			}
 		}
 	}
 	if (castType != null) {

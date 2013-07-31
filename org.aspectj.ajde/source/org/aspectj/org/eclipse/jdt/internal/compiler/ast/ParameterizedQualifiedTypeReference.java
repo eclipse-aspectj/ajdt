@@ -1,13 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for Bug 342671 - ClassCastException: org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding cannot be cast to org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding
+ *     Stephan Herrmann - Contributions for
+ *								bug 342671 - ClassCastException: org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding cannot be cast to org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding
+ *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
+ *        Andy Clement - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -34,6 +42,24 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 
 		super(tokens, dim, positions);
 		this.typeArguments = typeArguments;
+		annotationSearch: for (int i = 0, max = typeArguments.length; i < max; i++) {
+			TypeReference[] typeArgumentsOnTypeComponent = typeArguments[i];
+			if (typeArgumentsOnTypeComponent != null) {
+				for (int j = 0, max2 = typeArgumentsOnTypeComponent.length; j < max2; j++) {
+					if ((typeArgumentsOnTypeComponent[j].bits & ASTNode.HasTypeAnnotations) != 0) {
+						this.bits |= ASTNode.HasTypeAnnotations;
+						break annotationSearch;
+					}
+				}
+			}
+		}
+	}
+	public ParameterizedQualifiedTypeReference(char[][] tokens, TypeReference[][] typeArguments, int dim, Annotation[][] annotationsOnDimensions, long[] positions) {
+		this(tokens, typeArguments, dim, positions);
+		this.annotationsOnDimensions = annotationsOnDimensions;
+		if (annotationsOnDimensions != null) {
+			this.bits |= ASTNode.HasTypeAnnotations;
+		}
 	}
 	public void checkBounds(Scope scope) {
 		if (this.resolvedType == null) return;
@@ -59,6 +85,17 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	}
 	public TypeReference copyDims(int dim){
 		return new ParameterizedQualifiedTypeReference(this.tokens, this.typeArguments, dim, this.sourcePositions);
+	}
+	public TypeReference copyDims(int dim, Annotation[][] dimensionAnnotations){
+		ParameterizedQualifiedTypeReference parameterizedQualifiedTypeReference = new ParameterizedQualifiedTypeReference(this.tokens, this.typeArguments, dim, dimensionAnnotations, this.sourcePositions);
+		parameterizedQualifiedTypeReference.bits |= (this.bits & ASTNode.HasTypeAnnotations);
+		if (dimensionAnnotations != null) {
+			parameterizedQualifiedTypeReference.bits |= ASTNode.HasTypeAnnotations;
+		}
+		return parameterizedQualifiedTypeReference;
+	}
+	public boolean isParameterizedTypeReference() {
+		return true;
 	}
 
 	/**
@@ -129,6 +166,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			}
 		}
 		this.bits |= ASTNode.DidResolve;
+		resolveAnnotations(scope);
 		TypeBinding type = internalResolveLeafType(scope, checkBounds);
 		createArrayType(scope);
 		return type == null ? type : this.resolvedType;
@@ -158,6 +196,8 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		}
 
 		PackageBinding packageBinding = binding == null ? null : (PackageBinding) binding;
+		rejectAnnotationsOnPackageQualifiers(scope, packageBinding);
+
 		boolean typeIsConsistent = true;
 		ReferenceBinding qualifyingType = null;
 		for (int i = packageBinding == null ? 0 : packageBinding.compoundName.length, max = this.tokens.length; i < max; i++) {
@@ -191,6 +231,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 						: scope.environment().convertToParameterizedType(qualifyingType);
 				}
 			} else {
+				 rejectAnnotationsOnStaticMemberQualififer(scope, currentType, i);
 				if (typeIsConsistent && currentType.isStatic()
 						&& (qualifyingType.isParameterizedTypeWithActualArguments() || qualifyingType.isGenericType())) {
 					scope.problemReporter().staticMemberOfParameterizedType(this, scope.environment().createParameterizedType((ReferenceBinding)currentType.erasure(), null, qualifyingType), i);
@@ -223,7 +264,10 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 					if (argType == null) {
 						argHasError = true;
 					} else {
-						argTypes[j] = argType;
+						if (arg.annotations != null)
+							argTypes[j] = captureTypeAnnotations(scope, qualifyingType, argType, arg.annotations[0]);
+						else
+							argTypes[j] = argType;
 					}
 				}
 				if (argHasError) {
@@ -260,7 +304,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 						typeIsConsistent = false;
 					}
 				}
-				ParameterizedTypeBinding parameterizedType = scope.environment().createParameterizedType(currentOriginal, argTypes, qualifyingType);
+				ParameterizedTypeBinding parameterizedType = scope.environment().createParameterizedType(currentOriginal, argTypes, currentType.tagBits & TagBits.AnnotationNullMASK, qualifyingType);
 				// check argument type compatibility for non <> cases - <> case needs no bounds check, we will scream foul if needed during inference.
 				if (!isDiamond) {
 					if (checkBounds) // otherwise will do it in Scope.connectTypeVariables() or generic method resolution
@@ -289,6 +333,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			if (isTypeUseDeprecated(qualifyingType, scope))
 				reportDeprecatedType(qualifyingType, scope, i);
 			this.resolvedType = qualifyingType;
+			recordResolution(scope.environment(), this.resolvedType);
 		}
 		return this.resolvedType;
 	}
@@ -303,6 +348,10 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	public StringBuffer printExpression(int indent, StringBuffer output) {
 		int length = this.tokens.length;
 		for (int i = 0; i < length - 1; i++) {
+			if (this.annotations != null && this.annotations[i] != null) {
+				printAnnotations(this.annotations[i], output);
+				output.append(' ');
+			}
 			output.append(this.tokens[i]);
 			TypeReference[] typeArgument = this.typeArguments[i];
 			if (typeArgument != null) {
@@ -319,6 +368,11 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 				output.append('>');
 			}
 			output.append('.');
+		}
+		if (this.annotations != null && this.annotations[length - 1] != null) {
+			output.append(" "); //$NON-NLS-1$
+			printAnnotations(this.annotations[length - 1], output);
+			output.append(' ');
 		}
 		output.append(this.tokens[length - 1]);
 		TypeReference[] typeArgument = this.typeArguments[length - 1];
@@ -337,11 +391,26 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		}
 		if ((this.bits & IsVarArgs) != 0) {
 			for (int i= 0 ; i < this.dimensions - 1; i++) {
+				if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[i] != null) {
+					output.append(" "); //$NON-NLS-1$
+					printAnnotations(this.annotationsOnDimensions[i], output);
+					output.append(" "); //$NON-NLS-1$
+				}
 				output.append("[]"); //$NON-NLS-1$
+			}
+			if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[this.dimensions - 1] != null) {
+				output.append(" "); //$NON-NLS-1$
+				printAnnotations(this.annotationsOnDimensions[this.dimensions - 1], output);
+				output.append(" "); //$NON-NLS-1$
 			}
 			output.append("..."); //$NON-NLS-1$
 		} else {
 			for (int i= 0 ; i < this.dimensions; i++) {
+				if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[i] != null) {
+					output.append(" "); //$NON-NLS-1$
+					printAnnotations(this.annotationsOnDimensions[i], output);
+					output.append(" "); //$NON-NLS-1$
+				}
 				output.append("[]"); //$NON-NLS-1$
 			}
 		}
@@ -356,6 +425,23 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	}
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
+			if (this.annotations != null) {
+				int annotationsLevels = this.annotations.length;
+				for (int i = 0; i < annotationsLevels; i++) {
+					int annotationsLength = this.annotations[i] == null ? 0 : this.annotations[i].length;
+					for (int j = 0; j < annotationsLength; j++)
+						this.annotations[i][j].traverse(visitor, scope);
+				}
+			}
+			if (this.annotationsOnDimensions != null) {
+				for (int i = 0, max = this.annotationsOnDimensions.length; i < max; i++) {
+					Annotation[] annotations2 = this.annotationsOnDimensions[i];
+					for (int j = 0, max2 = annotations2 == null ? 0 : annotations2.length; j < max2; j++) {
+						Annotation annotation = annotations2[j];
+						annotation.traverse(visitor, scope);
+					}
+				}
+			}
 			for (int i = 0, max = this.typeArguments.length; i < max; i++) {
 				if (this.typeArguments[i] != null) {
 					for (int j = 0, max2 = this.typeArguments[i].length; j < max2; j++) {
@@ -369,6 +455,23 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 
 	public void traverse(ASTVisitor visitor, ClassScope scope) {
 		if (visitor.visit(this, scope)) {
+			if (this.annotations != null) {
+				int annotationsLevels = this.annotations.length;
+				for (int i = 0; i < annotationsLevels; i++) {
+					int annotationsLength = this.annotations[i] == null ? 0 : this.annotations[i].length;
+					for (int j = 0; j < annotationsLength; j++)
+						this.annotations[i][j].traverse(visitor, scope);
+				}
+			}
+			if (this.annotationsOnDimensions != null) {
+				for (int i = 0, max = this.annotationsOnDimensions.length; i < max; i++) {
+					Annotation[] annotations2 = this.annotationsOnDimensions[i];
+					for (int j = 0, max2 = annotations2 == null ? 0 : annotations2.length; j < max2; j++) {
+						Annotation annotation = annotations2[j];
+						annotation.traverse(visitor, scope);
+					}
+				}
+			}
 			for (int i = 0, max = this.typeArguments.length; i < max; i++) {
 				if (this.typeArguments[i] != null) {
 					for (int j = 0, max2 = this.typeArguments[i].length; j < max2; j++) {

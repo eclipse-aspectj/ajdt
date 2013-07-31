@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,14 +22,6 @@ import java.util.List;
  * (<code>VariableDeclarationFragment</code>) into a statement
  * (<code>Statement</code>), all sharing the same modifiers and base type.
  * </p>
- * For JLS2:
- * <pre>
- * VariableDeclarationStatement:
- *    { Modifier } Type VariableDeclarationFragment
- *        { <b>,</b> VariableDeclarationFragment } <b>;</b>
- * </pre>
- * For JLS3, the modifier flags were replaced by
- * a list of modifier nodes (intermixed with annotations):
  * <pre>
  * VariableDeclarationStatement:
  *    { ExtendedModifier } Type VariableDeclarationFragment
@@ -50,6 +42,7 @@ public class VariableDeclarationStatement extends Statement {
 	/**
 	 * The "modifiers" structural property of this node type (type: {@link Integer}) (JLS2 API only).
 	 * @since 3.0
+	 * @deprecated In the JLS3 API, this property is replaced by {@link #MODIFIERS2_PROPERTY}.
 	 */
 	public static final SimplePropertyDescriptor MODIFIERS_PROPERTY =
 		new SimplePropertyDescriptor(VariableDeclarationStatement.class, "modifiers", int.class, MANDATORY); //$NON-NLS-1$
@@ -166,7 +159,7 @@ public class VariableDeclarationStatement extends Statement {
 	 */
 	VariableDeclarationStatement(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS3) {
+		if (ast.apiLevel >= AST.JLS3_INTERNAL) {
 			this.modifiers = new ASTNode.NodeList(MODIFIERS2_PROPERTY);
 		}
 	}
@@ -242,7 +235,7 @@ public class VariableDeclarationStatement extends Statement {
 		if (this.ast.apiLevel == AST.JLS2_INTERNAL) {
 			result.setModifiers(getModifiers());
 		}
-		if (this.ast.apiLevel >= AST.JLS3) {
+		if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
 			result.modifiers().addAll(ASTNode.copySubtrees(target, modifiers()));
 		}
 		result.setType((Type) getType().clone(target));
@@ -266,7 +259,7 @@ public class VariableDeclarationStatement extends Statement {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
-			if (this.ast.apiLevel >= AST.JLS3) {
+			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
 				acceptChildren(visitor, this.modifiers);
 			}
 			acceptChild(visitor, getType());

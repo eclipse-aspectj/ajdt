@@ -1,15 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Theodora Yeung (tyeung@bea.com) - ensure that JarPackageFragmentRoot make it into cache
  *                                                           before its contents
  *                                                           (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=102422)
+ *     Stephan Herrmann - Contribution for Bug 346010 - [model] strange initialization dependency in OptionTests
+ *     Terry Parker <tparker@google.com> - DeltaProcessor misses state changes in archive files, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=357425
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -50,6 +56,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProjectElementInfo.ProjectCache;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.SourceRangeVerifier;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
 import org.aspectj.org.eclipse.jdt.internal.core.search.AbstractSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
@@ -220,6 +228,12 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	private static final String RESOLVE_REFERENCED_LIBRARIES_FOR_CONTAINERS = "resolveReferencedLibrariesForContainers"; //$NON-NLS-1$
 	
 	/**
+	 * Name of the JVM parameter to specify how many compilation units must be handled at once by the builder.
+	 * The default value is represented by <code>AbstractImageBuilder#MAX_AT_ONCE</code>.
+	 */
+	public static final String MAX_COMPILED_UNITS_AT_ONCE = "maxCompiledUnitsAtOnce"; //$NON-NLS-1$
+
+	/**
 	 * Special value used for recognizing ongoing initialization and breaking initialization cycles
 	 */
 	public final static IPath VARIABLE_INITIALIZATION_IN_PROGRESS = new Path("Variable Initialization In Progress"); //$NON-NLS-1$
@@ -243,6 +257,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	private static final String ZIP_ACCESS_DEBUG = JavaCore.PLUGIN_ID + "/debug/zipaccess" ; //$NON-NLS-1$
 	private static final String DELTA_DEBUG =JavaCore.PLUGIN_ID + "/debug/javadelta" ; //$NON-NLS-1$
 	private static final String DELTA_DEBUG_VERBOSE =JavaCore.PLUGIN_ID + "/debug/javadelta/verbose" ; //$NON-NLS-1$
+	private static final String DOM_AST_DEBUG = JavaCore.PLUGIN_ID + "/debug/dom/ast" ; //$NON-NLS-1$
+	private static final String DOM_AST_DEBUG_THROW = JavaCore.PLUGIN_ID + "/debug/dom/ast/throw" ; //$NON-NLS-1$
+	private static final String DOM_REWRITE_DEBUG = JavaCore.PLUGIN_ID + "/debug/dom/rewrite" ; //$NON-NLS-1$
 	private static final String HIERARCHY_DEBUG = JavaCore.PLUGIN_ID + "/debug/hierarchy" ; //$NON-NLS-1$
 	private static final String POST_ACTION_DEBUG = JavaCore.PLUGIN_ID + "/debug/postaction" ; //$NON-NLS-1$
 	private static final String BUILDER_DEBUG = JavaCore.PLUGIN_ID + "/debug/builder" ; //$NON-NLS-1$
@@ -287,7 +304,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public static class CompilationParticipants {
 
-		private final static int MAX_SOURCE_LEVEL = 7; // 1.1 to 1.7
+		private final static int MAX_SOURCE_LEVEL = 8; // 1.1 to 1.8
 
 		/*
 		 * The registered compilation participants (a table from int (source level) to Object[])
@@ -431,6 +448,8 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					return 5;
 				case ClassFileConstants.MAJOR_VERSION_1_7:
 					return 6;
+				case ClassFileConstants.MAJOR_VERSION_1_8:
+					return 7;
 				default:
 					// all other cases including ClassFileConstants.MAJOR_VERSION_1_1
 					return 0;
@@ -1411,9 +1430,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	public static boolean CP_RESOLVE_VERBOSE_ADVANCED = false;
 	public static boolean CP_RESOLVE_VERBOSE_FAILURE = false;
 	public static boolean ZIP_ACCESS_VERBOSE = false;
-	// temporary debug flag to track failures of bug 302850
-	public static boolean DEBUG_302850 = false;
-
+	
 	/**
 	 * A cache of opened zip files per thread.
 	 * (for a given thread, the object value is a HashMap from IPath to java.io.ZipFile)
@@ -1481,6 +1498,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					propertyName.equals(JavaCore.CORE_INCOMPLETE_CLASSPATH) ||
 					propertyName.equals(JavaCore.CORE_CIRCULAR_CLASSPATH) ||
 					propertyName.equals(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL) ||
+					propertyName.equals(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM) ||
 					propertyName.equals(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE)) {
 					JavaModelManager manager = JavaModelManager.getJavaModelManager();
 					IJavaModel model = manager.getJavaModel();
@@ -1656,6 +1674,18 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			option = Platform.getDebugOption(DELTA_DEBUG_VERBOSE);
 			if(option != null) DeltaProcessor.VERBOSE = option.equalsIgnoreCase(TRUE) ;
 
+			option = Platform.getDebugOption(DOM_AST_DEBUG);
+			if(option != null) SourceRangeVerifier.DEBUG = option.equalsIgnoreCase(TRUE) ;
+
+			option = Platform.getDebugOption(DOM_AST_DEBUG_THROW);
+			if(option != null) {
+				SourceRangeVerifier.DEBUG_THROW = option.equalsIgnoreCase(TRUE) ;
+				SourceRangeVerifier.DEBUG |= SourceRangeVerifier.DEBUG_THROW;
+			}
+			
+			option = Platform.getDebugOption(DOM_REWRITE_DEBUG);
+			if(option != null) RewriteEventStore.DEBUG = option.equalsIgnoreCase(TRUE) ;
+			
 			option = Platform.getDebugOption(HIERARCHY_DEBUG);
 			if(option != null) TypeHierarchy.DEBUG = option.equalsIgnoreCase(TRUE) ;
 
@@ -2153,13 +2183,10 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		// return cached options if already computed
 		Hashtable cachedOptions; // use a local variable to avoid race condition (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=256329 )
 		if ((cachedOptions = this.optionsCache) != null) {
-			if (DEBUG_302850) checkTaskTags("Retrieving options from optionsCache", this.optionsCache); //$NON-NLS-1$
 			return new Hashtable(cachedOptions);
 		}
-		if (DEBUG_302850) System.out.println("optionsCache was null"); //$NON-NLS-1$
 		if (!Platform.isRunning()) {
 			this.optionsCache = getDefaultOptionsNoInitialization();
-			if (DEBUG_302850) checkTaskTags("Platform is not running", this.optionsCache); //$NON-NLS-1$
 			return new Hashtable(this.optionsCache);
 		}
 		// init
@@ -2175,7 +2202,6 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				options.put(propertyName, propertyValue);
 			}
 		}
-		if (DEBUG_302850) checkTaskTags("Options initialized from preferences", options); //$NON-NLS-1$
 
 		// set deprecated options using preferences service lookup
 		Iterator deprecatedEntries = this.deprecatedOptions.entrySet().iterator();
@@ -2201,28 +2227,10 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		addDeprecatedOptions(options);
 
 		Util.fixTaskTags(options);
-		if (DEBUG_302850) checkTaskTags("Retrieved options from preferences", options); //$NON-NLS-1$
 		// store built map in cache
 		this.optionsCache = new Hashtable(options);
-		if (DEBUG_302850) checkTaskTags("Stored optionsCache", this.optionsCache); //$NON-NLS-1$
-
 		// return built map
 		return options;
-	}
-
-	// debugging bug 302850:
-	private void checkTaskTags(String msg, Hashtable someOptions) {
-		System.out.println(msg);
-		Object taskTags = someOptions.get(JavaCore.COMPILER_TASK_TAGS);
-		System.out.println("	+ Task tags:           " + taskTags); //$NON-NLS-1$
-		if (taskTags == null || "".equals(taskTags)) { //$NON-NLS-1$
-			System.out.println("	- option names: "+this.optionNames); //$NON-NLS-1$
-			System.out.println("	- Call stack:"); //$NON-NLS-1$
-			StackTraceElement[] elements = new Exception().getStackTrace();
-			for (int i=0,n=elements.length; i<n; i++) {
-				System.out.println("		+ "+elements[i]); //$NON-NLS-1$
-			}
-		}
 	}
 
 	// Do not modify without modifying getDefaultOptions()
@@ -2249,7 +2257,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPLETE_CLASSPATH, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_CIRCULAR_CLASSPATH, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL, JavaCore.IGNORE); 
-		defaultOptionsMap.put(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, JavaCore.WARNING);
+		defaultOptionsMap.put(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, JavaCore.ERROR);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, JavaCore.ENABLED);
 
@@ -3087,6 +3095,12 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		return this.invalidArchives != null && this.invalidArchives.contains(path);
 	}
 
+	public void removeFromInvalidArchiveCache(IPath path) {
+		if (this.invalidArchives != null) {
+			this.invalidArchives.remove(path);
+		}
+	}
+
 	public void setClasspathBeingResolved(IJavaProject project, boolean classpathIsResolved) {
 	    if (classpathIsResolved) {
 	        getClasspathBeingResolved().add(project);
@@ -3617,11 +3631,23 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	}
 	/*
 	 * Puts the infos in the given map (keys are IJavaElements and values are JavaElementInfos)
-	 * in the Java model cache in an atomic way.
+	 * in the Java model cache in an atomic way if the info is not already present in the cache. 
+	 * If the info is already present in the cache, it depends upon the forceAdd parameter.
+	 * If forceAdd is false it just returns the existing info and if true, this element and it's children are closed and then 
+	 * this particular info is added to the cache.
 	 */
-	protected synchronized void putInfos(IJavaElement openedElement, Map newElements) {
+	protected synchronized Object putInfos(IJavaElement openedElement, Object newInfo, boolean forceAdd, Map newElements) {
 		// remove existing children as the are replaced with the new children contained in newElements
 		Object existingInfo = this.cache.peekAtInfo(openedElement);
+		if (existingInfo != null && !forceAdd) {
+			// If forceAdd is false, then it could mean that the particular element 
+			// wasn't in cache at that point of time, but would have got added through 
+			// another thread. In that case, removing the children could remove it's own
+			// children. So, we should not remove the children but return the already existing 
+			// info.
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=372687
+			return existingInfo;
+		}
 		if (openedElement instanceof IParent) {
 			closeChildren(existingInfo);
 		}
@@ -3651,6 +3677,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			Map.Entry entry = (Map.Entry) iterator.next();
 			this.cache.putInfo((IJavaElement) entry.getKey(), entry.getValue());
 		}
+		return newInfo;
 	}
 
 	private void closeChildren(Object info) {
@@ -4373,14 +4400,18 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	/**
 	 * Get all secondary types for a project and store result in per project info cache.
-	 *
-	 * This cache is an Hashtable<String, HashMap<String, IType>>:
-	 * 	- key: package name
-	 * 	- value:
-	 * 		+ key: type name
-	 * 		+ value: java model handle for the secondary type
+	 * <p>
+	 * This cache is an <code>Hashtable&lt;String, HashMap&lt;String, IType&gt;&gt;</code>:
+	 *  <ul>
+	 * 	<li>key: package name
+	 * 	<li>value:
+	 * 		<ul>
+	 * 		<li>key: type name
+	 * 		<li>value: java model handle for the secondary type
+	 * 		</ul>
+	 * </ul>
 	 * Hashtable was used to protect callers from possible concurrent access.
-	 *
+	 * </p>
 	 * Note that this map may have a specific entry which key is {@link #INDEXED_SECONDARY_TYPES }
 	 * and value is a map containing all secondary types created during indexing.
 	 * When this key is in cache and indexing is finished, returned map is merged
@@ -4790,10 +4821,11 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	 * @param optionValue The value of the option. If <code>null</code>, then
 	 * 	the option will be removed from the preferences instead.
 	 * @param eclipsePreferences The eclipse preferences to be updated
+	 * @param otherOptions more options being stored, used to avoid conflict between deprecated option and its compatible
 	 * @return <code>true</code> if the preferences have been changed,
 	 * 	<code>false</code> otherwise.
 	 */
-	public boolean storePreference(String optionName, String optionValue, IEclipsePreferences eclipsePreferences) {
+	public boolean storePreference(String optionName, String optionValue, IEclipsePreferences eclipsePreferences, Map otherOptions) {
 		int optionLevel = this.getOptionLevel(optionName);
 		if (optionLevel == UNKNOWN_OPTION) return false; // unrecognized option
 		
@@ -4811,6 +4843,8 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				eclipsePreferences.remove(optionName); // get rid off old preference
 				String[] compatibleOptions = (String[]) this.deprecatedOptions.get(optionName);
 				for (int co=0, length=compatibleOptions.length; co < length; co++) {
+					if (otherOptions != null && otherOptions.containsKey(compatibleOptions[co]))
+						continue; // don't overwrite explicit value of otherOptions at compatibleOptions[co]
 					if (optionValue == null) {
 						eclipsePreferences.remove(compatibleOptions[co]);
 					} else {
@@ -4825,57 +4859,46 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	}
 
 	public void setOptions(Hashtable newOptions) {
-		
-		if (DEBUG_302850) {
-			System.out.println("Entering in JavaModelManager.setOptions():"); //$NON-NLS-1$
-			System.out.println(new CompilerOptions(newOptions).toString());
-			System.out.println("	- Call stack:"); //$NON-NLS-1$
-			StackTraceElement[] elements = new Exception().getStackTrace();
-			for (int i=0,n=elements.length; i<n; i++) {
-				System.out.println("		+ "+elements[i]); //$NON-NLS-1$
+		Hashtable cachedValue = newOptions == null ? null : new Hashtable(newOptions);
+		IEclipsePreferences defaultPreferences = getDefaultPreferences();
+		IEclipsePreferences instancePreferences = getInstancePreferences();
+
+		if (newOptions == null){
+			try {
+				instancePreferences.clear();
+			} catch(BackingStoreException e) {
+				// ignore
+			}
+		} else {
+			Enumeration keys = newOptions.keys();
+			while (keys.hasMoreElements()){
+				String key = (String)keys.nextElement();
+				int optionLevel = getOptionLevel(key);
+				if (optionLevel == UNKNOWN_OPTION) continue; // unrecognized option
+				if (key.equals(JavaCore.CORE_ENCODING)) {
+					if (cachedValue != null) {
+						cachedValue.put(key, JavaCore.getEncoding());
+					}
+					continue; // skipped, contributed by resource prefs
+				}
+				String value = (String) newOptions.get(key);
+				String defaultValue = defaultPreferences.get(key, null);
+				// Store value in preferences
+				if (defaultValue != null && defaultValue.equals(value)) {
+					value = null;
+				}
+				storePreference(key, value, instancePreferences, newOptions);
+			}
+			try {
+				// persist options
+				instancePreferences.flush();
+			} catch(BackingStoreException e) {
+				// ignore
 			}
 		}
-
-			Hashtable cachedValue = newOptions == null ? null : new Hashtable(newOptions);
-			IEclipsePreferences defaultPreferences = getDefaultPreferences();
-			IEclipsePreferences instancePreferences = getInstancePreferences();
-
-			if (newOptions == null){
-				try {
-					instancePreferences.clear();
-				} catch(BackingStoreException e) {
-					// ignore
-				}
-			} else {
-				Enumeration keys = newOptions.keys();
-				while (keys.hasMoreElements()){
-					String key = (String)keys.nextElement();
-					int optionLevel = getOptionLevel(key);
-					if (optionLevel == UNKNOWN_OPTION) continue; // unrecognized option
-					if (key.equals(JavaCore.CORE_ENCODING)) {
-						if (cachedValue != null) {
-							cachedValue.put(key, JavaCore.getEncoding());
-						}
-						continue; // skipped, contributed by resource prefs
-					}
-					String value = (String) newOptions.get(key);
-					String defaultValue = defaultPreferences.get(key, null);
-					// Store value in preferences
-					if (defaultValue != null && defaultValue.equals(value)) {
-						value = null;
-					}
-					storePreference(key, value, instancePreferences);
-				}
-				try {
-					// persist options
-					instancePreferences.flush();
-				} catch(BackingStoreException e) {
-					// ignore
-				}
-			}
-			// update cache
-			Util.fixTaskTags(cachedValue);
-			this.optionsCache = cachedValue;
+		// update cache
+		Util.fixTaskTags(cachedValue);
+		this.optionsCache = cachedValue;
 	}
 
 	public void startup() throws CoreException {

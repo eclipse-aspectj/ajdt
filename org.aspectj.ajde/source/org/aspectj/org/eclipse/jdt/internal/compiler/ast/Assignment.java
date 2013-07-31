@@ -1,23 +1,42 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Genady Beriozkin - added support for reporting assignment with no effect
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for 
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
  * 							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  * 							bug 292478 - Report potentially null across variable assignment
  *     						bug 335093 - [compiler][null] minimal hook for future null annotation support
+ *     						bug 349326 - [1.7] new warning for missing try-with-resources
+ *							bug 186342 - [compiler][null] Using annotations for null checking
+ *							bug 358903 - Filter practically unimportant resource leak warnings
+ *							bug 370639 - [compiler][resource] restore the default for resource leak warnings
+ *							bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
+ *							bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *							bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
+ *							bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
+ *							bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
+ *							bug 331649 - [compiler][null] consider null annotations for fields
+ *							bug 383368 - [compiler][null] syntactic null analysis for field references
+ *							bug 402993 - [null] Follow up of bug 401088: Missing warning about redundant null check
+ *							bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
@@ -41,24 +60,56 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 // a field reference, a blank final field reference, a field of an enclosing instance or
 // just a local variable.
 	LocalVariableBinding local = this.lhs.localVariableBinding();
-	if ((this.expression.implicitConversion & TypeIds.UNBOXING) != 0) {
-		this.expression.checkNPE(currentScope, flowContext, flowInfo);
+	this.expression.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
+	
+	FlowInfo preInitInfo = null;
+	CompilerOptions compilerOptions = currentScope.compilerOptions();
+	boolean shouldAnalyseResource = local != null
+			&& flowInfo.reachMode() == FlowInfo.REACHABLE
+			&& compilerOptions.analyseResourceLeaks
+			&& (FakedTrackingVariable.isAnyCloseable(this.expression.resolvedType)
+					|| this.expression.resolvedType == TypeBinding.NULL);
+	if (shouldAnalyseResource) {
+		preInitInfo = flowInfo.unconditionalCopy();
+		// analysis of resource leaks needs additional context while analyzing the RHS:
+		FakedTrackingVariable.preConnectTrackerAcrossAssignment(this, local, this.expression, flowInfo);
 	}
+	
 	flowInfo = ((Reference) this.lhs)
 		.analyseAssignment(currentScope, flowContext, flowInfo, this, false)
 		.unconditionalInits();
-	int nullStatus = this.expression.nullStatus(flowInfo);
+
+	if (shouldAnalyseResource)
+		FakedTrackingVariable.handleResourceAssignment(currentScope, preInitInfo, flowInfo, flowContext, this, this.expression, local);
+	else
+		FakedTrackingVariable.cleanUpAfterAssignment(currentScope, this.lhs.bits, this.expression);
+
+	int nullStatus = this.expression.nullStatus(flowInfo, flowContext);
 	if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
 		if (nullStatus == FlowInfo.NULL) {
 			flowContext.recordUsingNullReference(currentScope, local, this.lhs,
 				FlowContext.CAN_ONLY_NULL | FlowContext.IN_ASSIGNMENT, flowInfo);
 		}
 	}
-	nullStatus = checkAgainstNullAnnotation(currentScope, local, nullStatus);
+	if (compilerOptions.isAnnotationBasedNullAnalysisEnabled) {
+		VariableBinding var = this.lhs.nullAnnotatedVariableBinding(compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8);
+		if (var != null) {
+			nullStatus = checkAssignmentAgainstNullAnnotation(currentScope, flowContext, var, nullStatus, this.expression, this.expression.resolvedType);
+			if (nullStatus == FlowInfo.NON_NULL
+					&& var instanceof FieldBinding
+					&& this.lhs instanceof Reference
+					&& compilerOptions.enableSyntacticNullAnalysisForFields)
+			{
+				int timeToLive = (this.bits & InsideExpressionStatement) != 0
+									? 2  // assignment is statement: make info survives the end of this statement
+									: 1; // assignment is expression: expire on next event.
+				flowContext.recordNullCheckedFieldReference((Reference) this.lhs, timeToLive);
+			}
+		}
+	}
 	if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
 		flowInfo.markNullStatus(local, nullStatus);
-		if (flowContext.initsOnFinally != null)
-			flowContext.initsOnFinally.markNullStatus(local, nullStatus);
+		flowContext.markFinallyNullStatus(local, nullStatus);
 	}
 	return flowInfo;
 }
@@ -106,8 +157,8 @@ FieldBinding getLastField(Expression someExpression) {
     return null;
 }
 
-public int nullStatus(FlowInfo flowInfo) {
-	return this.expression.nullStatus(flowInfo);
+public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	return this.expression.nullStatus(flowInfo, flowContext);
 }
 
 public StringBuffer print(int indent, StringBuffer output) {
@@ -139,13 +190,14 @@ public TypeBinding resolveType(BlockScope scope) {
 		return null;
 	}
 	TypeBinding lhsType = this.lhs.resolveType(scope);
+	this.expression.setExpressionContext(ASSIGNMENT_CONTEXT);
 	this.expression.setExpectedType(lhsType); // needed in case of generic method invocation
 	if (lhsType != null) {
 		this.resolvedType = lhsType.capture(scope, this.sourceEnd);
 	}
 	LocalVariableBinding localVariableBinding = this.lhs.localVariableBinding();
-	if (localVariableBinding != null) {
-		localVariableBinding.tagBits &= ~TagBits.IsEffectivelyFinal;
+	if (localVariableBinding != null && localVariableBinding.isCatchParameter()) { 
+		localVariableBinding.tagBits &= ~TagBits.IsEffectivelyFinal;  // as it is already definitely assigned, we can conclude already. Also note: catch parameter cannot be compound assigned.
 	}
 	TypeBinding rhsType = this.expression.resolveType(scope);
 	if (lhsType == null || rhsType == null) {
@@ -163,7 +215,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		scope.compilationUnitScope().recordTypeConversion(lhsType, rhsType);
 	}
 	if (this.expression.isConstantValueOfTypeAssignableToType(rhsType, lhsType)
-			|| rhsType.isCompatibleWith(lhsType)) {
+			|| rhsType.isCompatibleWith(lhsType, scope)) {
 		this.expression.computeConversion(scope, lhsType, rhsType);
 		checkAssignment(scope, lhsType, rhsType);
 		if (this.expression instanceof CastExpression
@@ -211,5 +263,8 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
 }
 public LocalVariableBinding localVariableBinding() {
 	return this.lhs.localVariableBinding();
+}
+public boolean statementExpression() {
+	return true;
 }
 }

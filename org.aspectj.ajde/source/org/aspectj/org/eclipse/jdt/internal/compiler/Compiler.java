@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - contribution for bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
+ *     Stephan Herrmann - contributions for 
+ *     							bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
+ *     							bug 186342 - [compiler][null] Using annotations for null checking
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler;
 
@@ -580,7 +582,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 			synchronized (this) {
 				if (this.unitsToProcess != null && this.totalUnits > 0) {
 					// AspectJ Extension - pr242328 - replacing:
-					//  result = this.unitsToProcess[totalUnits - 1].compilationResult;
+					//  result = this.unitsToProcess[this.totalUnits - 1].compilationResult;
 					// with:
 					int i = totalUnits - 1;
 					while (result == null && i>=0) {
@@ -616,7 +618,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 							0, // source end
 							0, // line number
 							0),// column number
-					unit);
+					unit, true);
 
 			/* hand back the compilation result */
 			if (!result.hasBeenAccepted) {
@@ -678,7 +680,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 					if (distantProblem instanceof DefaultProblem) { // fixup filename TODO (philippe) should improve API to make this official
 						((DefaultProblem) distantProblem).setOriginatingFileName(result.getFileName());
 					}
-					result.record(distantProblem, unit);
+					result.record(distantProblem, unit, true);
 				}
 			} else {
 				/* distant internal exception which could not be reported back there */
@@ -711,6 +713,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 
 		// Switch the current policy and compilation result for this unit to the requested one.
 		for (int i = 0; i < maxUnits; i++) {
+			CompilationResult unitResult = null;
 			try {
 				if (this.options.verbose) {
 					this.out.println(
@@ -723,8 +726,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				}
 				// diet parsing for large collection of units
 				CompilationUnitDeclaration parsedUnit;
-				CompilationResult unitResult =
-					new CompilationResult(sourceUnits[i], i, maxUnits, this.options.maxProblemsPerUnit);
+				unitResult = new CompilationResult(sourceUnits[i], i, maxUnits, this.options.maxProblemsPerUnit);
 				long parseStart = System.currentTimeMillis();
 				if (this.totalUnits < this.parseThreshold) {
 					parsedUnit = this.parser.parse(sourceUnits[i], unitResult);
@@ -743,6 +745,11 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				}
 				//} catch (AbortCompilationUnit e) {
 				//	requestor.acceptResult(unitResult.tagAsAccepted());
+			} catch (AbortCompilation a) {
+				// best effort to find a way for reporting this problem:
+				if (a.compilationResult == null)
+					a.compilationResult = unitResult;
+				throw a;
 			} finally {
 				sourceUnits[i] = null; // no longer hold onto the unit
 			}

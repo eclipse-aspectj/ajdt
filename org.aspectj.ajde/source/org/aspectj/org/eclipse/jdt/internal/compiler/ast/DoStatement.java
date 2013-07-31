@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     Stephan Herrmann - Contributions for
+ *								bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -48,7 +51,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			this,
 			this.breakLabel,
 			this.continueLabel,
-			currentScope);
+			currentScope,
+			false);
 
 	Constant cst = this.condition.constant;
 	boolean isConditionTrue = cst != Constant.NotAConstant && cst.booleanValue() == true;
@@ -59,7 +63,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	int previousMode = flowInfo.reachMode();
 
 	FlowInfo initsOnCondition = flowInfo;
-
 	UnconditionalFlowInfo actionInfo = flowInfo.nullInfoLessUnconditionalCopy();
 	// we need to collect the contribution to nulls of the coming paths through the
 	// loop, be they falling through normally or branched to break, continue labels
@@ -81,9 +84,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 										actionInfo.mergedWith(loopingContext.initsOnContinue));
 		}
 	}
-	if ((this.condition.implicitConversion & TypeIds.UNBOXING) != 0) {
-		this.condition.checkNPE(currentScope, flowContext, initsOnCondition);
-	}
+	this.condition.checkNPEbyUnboxing(currentScope, flowContext, initsOnCondition);
 	/* Reset reach mode, to address following scenario.
 	 *   final blank;
 	 *   do { if (true) break; else blank = 0; } while(false);
@@ -97,11 +98,15 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			currentScope,
 			(condLoopContext =
 				new LoopingFlowContext(flowContext,	flowInfo, this, null,
-					null, currentScope)),
+					null, currentScope, true)),
 			(this.action == null
 				? actionInfo
 				: (actionInfo.mergedWith(loopingContext.initsOnContinue))).copy());
-	this.preConditionInitStateIndex = currentScope.methodScope().recordInitializationStates(actionInfo);
+	/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=367023, we reach the condition at the bottom via two arcs, 
+	   one by free fall and another by continuing... Merge initializations propagated through the two pathways,
+	   cf, while and for loops.
+	*/
+	this.preConditionInitStateIndex = currentScope.methodScope().recordInitializationStates(actionInfo.mergedWith(loopingContext.initsOnContinue));
 	if (!isConditionOptimizedFalse && this.continueLabel != null) {
 		loopingContext.complainOnDeferredFinalChecks(currentScope, condInfo);
 		condLoopContext.complainOnDeferredFinalChecks(currentScope, condInfo);
@@ -126,7 +131,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 								// recover upstream null info
 						isConditionOptimizedTrue,
 						(condInfo.tagBits & FlowInfo.UNREACHABLE) == 0
-								? flowInfo.addInitializationsFrom(condInfo.initsWhenFalse()) 
+								? flowInfo.copy().addInitializationsFrom(condInfo.initsWhenFalse()) // https://bugs.eclipse.org/bugs/show_bug.cgi?id=380927
 								: condInfo,
 							// recover null inits from before condition analysis
 						false, // never consider opt false case for DO loop, since break can always occur (47776)

@@ -30,14 +30,14 @@ public class Version {
     public static final long NOTIME = 0L;
     
     /** set by build script */
-    public static final String text = "1.7.3";
+    public static final String text = "1.8.0.M1";
     // VersionUptodate.java scans for "static final String text = "
     
     /** 
       * Time text set by build script using SIMPLE_DATE_FORMAT.
       * (if DEVELOPMENT version, invalid)
       */
-    public static final String time_text = "Thursday Jun 13, 2013 at 19:41:31 GMT";
+    public static final String time_text = "Tuesday Jul 30, 2013 at 15:13:55 GMT";
 
     /** 
       * time in seconds-since-... format, used by programmatic clients.

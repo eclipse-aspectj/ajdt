@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +31,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -84,35 +89,61 @@ public ILocalVariable[] getParameters() throws JavaModelException {
 			argumentNames[j] = ("arg" + j).toCharArray(); //$NON-NLS-1$
 		}
 	}
+	int startIndex = 0;
+	try {
+		if (isConstructor()) {
+			IType declaringType = this.getDeclaringType();
+			if (declaringType.isEnum()) {
+				startIndex = 2;
+			} else if (declaringType.isMember()
+					&& !Flags.isStatic(declaringType.getFlags())) {
+				startIndex = 1;
+			}
+		}
+	} catch(JavaModelException e) {
+		// ignore
+	}
 	for (int i= 0; i < length; i++) {
-		LocalVariable localVariable = new LocalVariable(
-				this,
-				new String(argumentNames[i]),
-				0,
-				-1,
-				0,
-				-1,
-				this.parameterTypes[i],
-				null,
-				-1,
-				true);
-		localVariables[i] = localVariable;
-		IAnnotation[] annotations = getAnnotations(localVariable, info.getParameterAnnotations(i), info.getTagBits());
-		localVariable.annotations = annotations;
+		if (i < startIndex) {
+			LocalVariable localVariable = new LocalVariable(
+					this,
+					new String(argumentNames[i]),
+					0,
+					-1,
+					0,
+					-1,
+					this.parameterTypes[i],
+					null,
+					-1,
+					true);
+			localVariables[i] = localVariable;
+			localVariable.annotations = Annotation.NO_ANNOTATIONS;
+		} else {
+			LocalVariable localVariable = new LocalVariable(
+					this,
+					new String(argumentNames[i]),
+					0,
+					-1,
+					0,
+					-1,
+					this.parameterTypes[i],
+					null,
+					-1,
+					true);
+			localVariables[i] = localVariable;
+			IAnnotation[] annotations = getAnnotations(localVariable, info.getParameterAnnotations(i - startIndex));
+			localVariable.annotations = annotations;
+		}
 	}
 	return localVariables;
 }
-private IAnnotation[] getAnnotations(JavaElement annotationParent, IBinaryAnnotation[] binaryAnnotations, long tagBits) {
-	IAnnotation[] standardAnnotations = getStandardAnnotations(tagBits);
-	if (binaryAnnotations == null)
-		return standardAnnotations;
+private IAnnotation[] getAnnotations(JavaElement annotationParent, IBinaryAnnotation[] binaryAnnotations) {
+	if (binaryAnnotations == null) return Annotation.NO_ANNOTATIONS;
 	int length = binaryAnnotations.length;
-	int standardLength = standardAnnotations.length;
-	IAnnotation[] annotations = new IAnnotation[length + standardLength];
+	IAnnotation[] annotations = new IAnnotation[length];
 	for (int i = 0; i < length; i++) {
 		annotations[i] = Util.getAnnotation(annotationParent, binaryAnnotations[i], null);
 	}
-	System.arraycopy(standardAnnotations, 0, annotations, length, standardLength);
 	return annotations;
 }
 public IMemberValuePair getDefaultValue() throws JavaModelException {
@@ -167,7 +198,10 @@ public int getElementType() {
  */
 public int getFlags() throws JavaModelException {
 	IBinaryMethod info = (IBinaryMethod) getElementInfo();
-	return info.getModifiers();
+	int modifiers = info.getModifiers();
+	if (((IType) this.parent).isInterface() && (modifiers & (ClassFileConstants.AccAbstract | ClassFileConstants.AccStatic)) == 0)
+		modifiers |= ExtraCompilerModifiers.AccDefaultMethod;
+	return modifiers;
 }
 /*
  * @see JavaElement#getHandleMemento(StringBuffer)

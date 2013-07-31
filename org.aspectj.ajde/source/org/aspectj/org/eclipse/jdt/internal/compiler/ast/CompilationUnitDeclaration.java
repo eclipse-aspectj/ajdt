@@ -1,13 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann  - Contribution for bug 295551
+ *     Jesper S Moller   - Contributions for
+ *							  Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335             
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -77,7 +83,7 @@ public class CompilationUnitDeclaration extends ASTNode implements ProblemSeveri
 	long[] suppressWarningScopePositions; // (start << 32) + end
 	int suppressWarningsCount;
 
-public CompilationUnitDeclaration(ProblemReporter problemReporter, CompilationResult compilationResult, 	int sourceLength) {
+public CompilationUnitDeclaration(ProblemReporter problemReporter, CompilationResult compilationResult, int sourceLength) {
 	this.problemReporter = problemReporter;
 	this.compilationResult = compilationResult;
 	//by definition of a compilation unit....
@@ -145,6 +151,7 @@ public void cleanUp() {
 		// null out the classfile backpointer to a type binding
 		classFile.referenceBinding = null;
 		classFile.innerClassesBindings = null;
+		classFile.bootstrapMethods = null;
 		classFile.missingTypes = null;
 		classFile.visitedTypes = null;
 	}
@@ -364,6 +371,10 @@ public void generateCode() {
 	}
 }
 
+public CompilationUnitDeclaration getCompilationUnitDeclaration() {
+	return this;
+}
+
 public char[] getFileName() {
 	return this.compilationResult.getFileName();
 }
@@ -392,6 +403,24 @@ public boolean isEmpty() {
 
 public boolean isPackageInfo() {
 	return CharOperation.equals(getMainTypeName(), TypeConstants.PACKAGE_INFO_NAME);
+}
+
+public boolean isSuppressed(CategorizedProblem problem) {
+	if (this.suppressWarningsCount == 0) return false;
+	int irritant = ProblemReporter.getIrritant(problem.getID());
+	if (irritant == 0) return false;
+	int start = problem.getSourceStart();
+	int end = problem.getSourceEnd();
+	nextSuppress: for (int iSuppress = 0, suppressCount = this.suppressWarningsCount; iSuppress < suppressCount; iSuppress++) {
+		long position = this.suppressWarningScopePositions[iSuppress];
+		int startSuppress = (int) (position >>> 32);
+		int endSuppress = (int) position;
+		if (start < startSuppress) continue nextSuppress;
+		if (end > endSuppress) continue nextSuppress;
+		if (this.suppressWarningIrritants[iSuppress].isSet(irritant))
+			return true;
+	}
+	return false;
 }
 
 public boolean hasErrors() {
@@ -539,7 +568,7 @@ public void resolve() {
 				this.types[i].resolve(this.scope);
 			}
 		}
-		if (!this.compilationResult.hasErrors()) checkUnusedImports();
+		if (!this.compilationResult.hasMandatoryErrors()) checkUnusedImports();
 		reportNLSProblems();
 	} catch (AbortCompilationUnit e) {
 		this.ignoreFurtherInvestigation = true;
@@ -648,6 +677,10 @@ private void reportNLSProblems() {
 
 public void tagAsHavingErrors() {
 	this.ignoreFurtherInvestigation = true;
+}
+
+public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
+	// Nothing to do for this context;
 }
 
 public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope) {

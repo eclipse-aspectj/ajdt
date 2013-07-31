@@ -1,14 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Palo Alto Research Center, Incorporated - AspectJ adaptation
- ******************************************************************************/
+ *     Stephan Herrmann - Contributions for
+ *								bug 186342 - [compiler][null] Using annotations for null checking
+ *								bug 367203 - [compiler][null] detect assigning null to nonnull argument
+ *								bug 365519 - editorial cleanup after bug 186342 and bug 365387
+ *								bug 365662 - [compiler][null] warn on contradictory and redundant null annotations
+ *								bug 365531 - [compiler][null] investigate alternative strategy for internally encoding nullness defaults
+ *								bug 388281 - [compiler][null] inheritance of null annotations as an option
+ *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.List;
@@ -18,25 +28,27 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
-/**
- * AspectJ Extension- hooks for subtypes
- */
 public class MethodBinding extends Binding {
 
 	public int modifiers;
 	public char[] selector;
 	public TypeBinding returnType;
 	public TypeBinding[] parameters;
+	public TypeBinding receiver;  // JSR308 - explicit this parameter
 	public ReferenceBinding[] thrownExceptions;
 	public ReferenceBinding declaringClass;
 	public TypeVariableBinding[] typeVariables = Binding.NO_TYPE_VARIABLES;
 	char[] signature;
 	public long tagBits;
+
+	/** Store nullness information from annotation (incl. applicable default). */
+	public Boolean[] parameterNonNullness;  // TRUE means @NonNull declared, FALSE means @Nullable declared, null means nothing declared
 
 protected MethodBinding() {
 	// for creating problem or synthetic method
@@ -197,7 +209,7 @@ MethodBinding asRawMethod(LookupEnvironment env) {
 //AspectJ Extension - made non-final
 public boolean canBeSeenBy(InvocationSite invocationSite, Scope scope) {
 	if (isPublic()) return true;
-	
+
 	// AspectJ Extension: was
 	/*{
 	SourceTypeBinding invocationType = scope.enclosingSourceType();
@@ -279,9 +291,23 @@ public final boolean canBeSeenBy(PackageBinding invocationPackage) {
 */
 //AspectJ Extension - made non-final
 public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSite, Scope scope) {
-	if (isPublic()) return true;
 
 	SourceTypeBinding invocationType = scope.invocationType(); // AspectJ Extension - was scope.enclosingSourceType()
+
+	if (this.declaringClass.isInterface() && isStatic()) {
+		// Static interface methods can be explicitly invoked only through the type reference of the declaring interface or implicitly in the interface itself.
+		if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8)
+			return false;
+		if (invocationSite.isTypeAccess() && receiverType == this.declaringClass)
+			return true;
+		if (invocationSite.receiverIsImplicitThis() && invocationType == this.declaringClass)
+			return true;
+		return false;
+	}
+	
+	if (isPublic()) return true;
+	
+
 	if (invocationType == this.declaringClass && invocationType == receiverType) return true;
 
 	if (invocationType == null) // static import call
@@ -490,6 +516,39 @@ public final char[] constantPoolName() {
 	return this.selector;
 }
 
+/**
+ * After method verifier has finished, fill in missing @NonNull specification from the applicable default.
+ */
+protected void fillInDefaultNonNullness(AbstractMethodDeclaration sourceMethod) {
+	if (this.parameterNonNullness == null)
+		this.parameterNonNullness = new Boolean[this.parameters.length];
+	boolean added = false;
+	int length = this.parameterNonNullness.length;
+	for (int i = 0; i < length; i++) {
+		if (this.parameters[i].isBaseType())
+			continue;
+		if (this.parameterNonNullness[i] == null) {
+			added = true;
+			this.parameterNonNullness[i] = Boolean.TRUE;
+			if (sourceMethod != null) {
+				sourceMethod.arguments[i].binding.tagBits |= TagBits.AnnotationNonNull;
+			}
+		} else if (sourceMethod != null && this.parameterNonNullness[i].booleanValue()) {
+			sourceMethod.scope.problemReporter().nullAnnotationIsRedundant(sourceMethod, i);
+		}
+	}
+	if (added)
+		this.tagBits |= TagBits.HasParameterAnnotations;
+	if (   this.returnType != null
+		&& !this.returnType.isBaseType()
+		&& (this.tagBits & (TagBits.AnnotationNonNull|TagBits.AnnotationNullable)) == 0)
+	{
+		this.tagBits |= TagBits.AnnotationNonNull;
+	} else if (sourceMethod != null && (this.tagBits & TagBits.AnnotationNonNull) != 0) {
+		sourceMethod.scope.problemReporter().nullAnnotationIsRedundant(sourceMethod, -1/*signifies method return*/);
+	}
+}
+
 public MethodBinding findOriginalInheritedMethod(MethodBinding inheritedMethod) {
 	MethodBinding inheritedOriginal = inheritedMethod.original();
 	TypeBinding superType = this.declaringClass.findSuperTypeOriginatingFrom(inheritedOriginal.declaringClass);
@@ -575,6 +634,13 @@ public long getAnnotationTagBits() {
 			AbstractMethodDeclaration methodDecl = typeDecl.declarationOf(originalMethod);
 			if (methodDecl != null)
 				ASTNode.resolveAnnotations(methodDecl.scope, methodDecl.annotations, originalMethod);
+			long nullDefaultBits = this.tagBits & (TagBits.AnnotationNonNullByDefault|TagBits.AnnotationNullUnspecifiedByDefault);
+			if (nullDefaultBits != 0 && this.declaringClass instanceof SourceTypeBinding) {
+				SourceTypeBinding declaringSourceType = (SourceTypeBinding) this.declaringClass;
+				if (declaringSourceType.checkRedundantNullnessDefaultOne(methodDecl, methodDecl.annotations, nullDefaultBits)) {
+					declaringSourceType.checkRedundantNullnessDefaultRecurse(methodDecl, methodDecl.annotations, nullDefaultBits);
+				}
+			}
 		}
 	}
 	return originalMethod.tagBits;
@@ -695,6 +761,11 @@ public final boolean isDefault() {
 */
 public final boolean isDefaultAbstract() {
 	return (this.modifiers & ExtraCompilerModifiers.AccDefaultAbstract) != 0;
+}
+
+/* Answer true if the receiver is a default method (Java 8 feature) */
+public boolean isDefaultMethod() {
+	return (this.modifiers & ExtraCompilerModifiers.AccDefaultMethod) != 0;
 }
 
 /* Answer true if the receiver is a deprecated method
@@ -1118,12 +1189,15 @@ public AbstractMethodDeclaration sourceMethod() {
 	// guard due to pr154923 - an npe occurs that is probably disguising an underlying problem that will be reported properly
 	if (sourceType.scope==null || sourceType.scope.referenceContext==null || sourceType.scope.referenceContext.methods==null) return null;
 	// End AspectJ Extension
-	AbstractMethodDeclaration[] methods = sourceType.scope.referenceContext.methods;
+	AbstractMethodDeclaration[] methods = sourceType.scope != null ? sourceType.scope.referenceContext.methods : null;
 	if (methods != null) {
 		for (int i = methods.length; --i >= 0;)
 			if (this == methods[i].binding)
 				return methods[i];
 	}
+	return null;
+}
+public LambdaExpression sourceLambda() {
 	return null;
 }
 public final int sourceStart() {
@@ -1199,5 +1273,25 @@ public String toString() {
 }
 public TypeVariableBinding[] typeVariables() {
 	return this.typeVariables;
+}
+public boolean hasNonNullDefault() {
+	if ((this.tagBits & TagBits.AnnotationNonNullByDefault) != 0)
+		return true;
+	if ((this.tagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0)
+		return false;
+	return this.declaringClass.hasNonNullDefault();
+}
+
+public boolean redeclaresPublicObjectMethod(Scope scope) {
+	ReferenceBinding javaLangObject = scope.getJavaLangObject();
+	MethodBinding [] methods = javaLangObject.getMethods(this.selector);
+	for (int i = 0, length = methods == null ? 0 : methods.length; i < length; i++) {
+		final MethodBinding method = methods[i];
+		if (!method.isPublic() || method.isStatic() || method.parameters.length != this.parameters.length) 
+			continue;
+		if (MethodVerifier.doesMethodOverride(this, method, scope.environment())) 
+			return true;
+	}
+	return false;
 }
 }

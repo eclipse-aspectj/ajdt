@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,11 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Nikolay Botev - Bug 348507
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFolder;
@@ -72,13 +73,22 @@ public IPath[] enclosingProjectsAndJars() {
 	long start = BasicSearchEngine.VERBOSE ? System.currentTimeMillis() : -1;
 	try {
 		IJavaProject[] projects = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProjects();
-		Set paths = new HashSet(projects.length * 2);
+		// use a linked set to preserve the order during search: see bug 348507
+		Set paths = new LinkedHashSet(projects.length * 2);
 		for (int i = 0, length = projects.length; i < length; i++) {
 			JavaProject javaProject = (JavaProject) projects[i];
 
 			// Add project full path
 			IPath projectPath = javaProject.getProject().getFullPath();
 			paths.add(projectPath);
+		}
+
+		// add the project source paths first in a separate loop above
+		// to ensure source files always get higher precedence during search.
+		// see bug 348507
+
+		for (int i = 0, length = projects.length; i < length; i++) {
+			JavaProject javaProject = (JavaProject) projects[i];
 
 			// Add project libraries paths
 			IClasspathEntry[] entries = javaProject.getResolvedClasspath();

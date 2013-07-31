@@ -1,13 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Palo Alto Research Center, Incorporated - AspectJ adaptation
+ *     Stephan Herrmann - Contributions for
+ *								Bug 360328 - [compiler][null] detect null problems in nested code (local class inside a loop)
+ *								Bug 388630 - @NonNull diagnostics at line 0
+ *     Keigo Imai - Contribution for  bug 388903 - Cannot extend inner class as an anonymous class when it extends the outer class
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -22,10 +29,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
-/**
- * AspectJ Extension - added extension point for attribute generation,
- * fixed bug in traverse method
- */
 public class TypeDeclaration extends Statement implements ProblemSeverities, ReferenceContext {
 	// Type decl kinds
 	public static final int CLASS_DECL = 1;
@@ -413,6 +416,14 @@ public MethodBinding createDefaultConstructorWithBinding(MethodBinding inherited
 			sourceType); //declaringClass
 	constructor.binding.tagBits |= (inheritedConstructorBinding.tagBits & TagBits.HasMissingType);
 	constructor.binding.modifiers |= ExtraCompilerModifiers.AccIsDefaultConstructor;
+	if (inheritedConstructorBinding.parameterNonNullness != null // this implies that annotation based null analysis is enabled
+			&& argumentsLength > 0) 
+	{
+		// copy nullness info from inherited constructor to the new constructor:
+		int len = inheritedConstructorBinding.parameterNonNullness.length;
+		System.arraycopy(inheritedConstructorBinding.parameterNonNullness, 0, 
+				constructor.binding.parameterNonNullness = new Boolean[len], 0, len);
+	}
 
 	constructor.scope = new MethodScope(this.scope, constructor, true);
 	constructor.bindArguments();
@@ -495,6 +506,13 @@ public TypeDeclaration declarationOfType(char[][] typeName) {
 		if (typeDecl != null) {
 			return typeDecl;
 		}
+	}
+	return null;
+}
+
+public CompilationUnitDeclaration getCompilationUnitDeclaration() {
+	if (this.scope != null) {
+		return this.scope.compilationUnitScope().referenceContext;
 	}
 	return null;
 }
@@ -659,7 +677,23 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 			this.scope.problemReporter().unusedPrivateType(this);
 		}
 	}
-	InitializationFlowContext initializerContext = new InitializationFlowContext(null, this, flowInfo, flowContext, this.initializerScope);
+	
+	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=385780
+	if (this.typeParameters != null && 
+			!this.scope.referenceCompilationUnit().compilationResult.hasSyntaxError) {
+		for (int i = 0, length = this.typeParameters.length; i < length; ++i) {
+			TypeParameter typeParameter = this.typeParameters[i];
+			if ((typeParameter.binding.modifiers & ExtraCompilerModifiers.AccLocallyUsed) == 0) {
+				this.scope.problemReporter().unusedTypeParameter(typeParameter);			
+			}
+		}
+	}
+	
+	// for local classes we use the flowContext as our parent, but never use an initialization context for this purpose
+	// see Bug 360328 - [compiler][null] detect null problems in nested code (local class inside a loop)
+	FlowContext parentContext = (flowContext instanceof InitializationFlowContext) ? null : flowContext;
+	InitializationFlowContext initializerContext = new InitializationFlowContext(parentContext, this, flowInfo, flowContext, this.initializerScope);
+	// no static initializer in local classes, thus no need to set parent:
 	InitializationFlowContext staticInitializerContext = new InitializationFlowContext(null, this, flowInfo, flowContext, this.staticInitializerScope);
 	FlowInfo nonStaticFieldInfo = flowInfo.unconditionalFieldLessCopy();
 	FlowInfo staticFieldInfo = flowInfo.unconditionalFieldLessCopy();
@@ -718,8 +752,9 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 			if (method.ignoreFurtherInvestigation)
 				continue;
 			if (method.isInitializationMethod()) {
+				// pass down the appropriate initializerContext:
 				if (method.isStatic()) { // <clinit>
-					method.analyseCode(
+					((Clinit)method).analyseCode(
 						this.scope,
 						staticInitializerContext,
 						staticFieldInfo.unconditionalInits().discardNonFieldInitializations().addInitializationsFrom(outerInfo));
@@ -727,7 +762,8 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 					((ConstructorDeclaration)method).analyseCode(this.scope, initializerContext, constructorInfo.copy(), flowInfo.reachMode());
 				}
 			} else { // regular method
-				method.analyseCode(this.scope, null, flowInfo.copy());
+				// pass down the parentContext (NOT an initializer context, see above):
+				((MethodDeclaration)method).analyseCode(this.scope, parentContext, flowInfo.copy());
 			}
 		}
 	}
@@ -790,7 +826,7 @@ public void manageEnclosingInstanceAccessIfNecessary(BlockScope currentScope, Fl
 			if (enclosing.isNestedType()) {
 				NestedTypeBinding nestedEnclosing = (NestedTypeBinding)enclosing;
 //					if (nestedEnclosing.findSuperTypeErasingTo(nestedEnclosing.enclosingType()) == null) { // only if not inheriting
-					SyntheticArgumentBinding syntheticEnclosingInstanceArgument = nestedEnclosing.getSyntheticArgument(nestedEnclosing.enclosingType(), true);
+					SyntheticArgumentBinding syntheticEnclosingInstanceArgument = nestedEnclosing.getSyntheticArgument(nestedEnclosing.enclosingType(), true, false);
 					if (syntheticEnclosingInstanceArgument != null) {
 						nestedType.addSyntheticArgumentAndField(syntheticEnclosingInstanceArgument);
 					}
@@ -926,7 +962,10 @@ public StringBuffer printBody(int indent, StringBuffer output) {
 
 public StringBuffer printHeader(int indent, StringBuffer output) {
 	printModifiers(this.modifiers, output);
-	if (this.annotations != null) printAnnotations(this.annotations, output);
+	if (this.annotations != null) {
+		printAnnotations(this.annotations, output);
+		output.append(' ');
+	}
 
 	switch (kind(this.modifiers)) {
 		case TypeDeclaration.CLASS_DECL :
@@ -995,11 +1034,18 @@ public void resolve() {
 			this.staticInitializerScope.insideTypeAnnotation = old;
 		}
 		// check @Deprecated annotation
-		if ((sourceType.getAnnotationTagBits() & TagBits.AnnotationDeprecated) == 0
+		long annotationTagBits = sourceType.getAnnotationTagBits();
+		if ((annotationTagBits & TagBits.AnnotationDeprecated) == 0
 				&& (sourceType.modifiers & ClassFileConstants.AccDeprecated) != 0
 				&& this.scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
 			this.scope.problemReporter().missingDeprecatedAnnotationForType(this);
 		}
+		if ((annotationTagBits & TagBits.AnnotationFunctionalInterface) != 0) {
+			if(!this.binding.isFunctionalInterface(this.scope)) {
+				this.scope.problemReporter().notAFunctionalInterface(this);
+			}
+		}
+
 		if ((this.bits & ASTNode.UndocumentedEmptyBlock) != 0) {
 			this.scope.problemReporter().undocumentedEmptyBlock(this.bodyStart-1, this.bodyEnd);
 		}
@@ -1245,7 +1291,7 @@ checkOuterScope:while (outerScope != null) {
 					outerScope = outerScope.parent;
 				}
 			} else if (existingType instanceof LocalTypeBinding
-						&& ((LocalTypeBinding) existingType).scope.methodScope() == blockScope.methodScope()) {
+						&& (((LocalTypeBinding) existingType).scope.methodScope() == blockScope.methodScope() || blockScope.isLambdaSubscope())) {
 					// dup in same method
 					blockScope.problemReporter().duplicateNestedType(this);
 			} else if (blockScope.isDefinedInType(existingType)) {
@@ -1295,6 +1341,10 @@ public void resolve(CompilationUnitScope upperScope) {
 
 public void tagAsHavingErrors() {
 	this.ignoreFurtherInvestigation = true;
+}
+
+public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
+	// Nothing to do for this context;
 }
 
 /**
@@ -1354,7 +1404,7 @@ public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope) {
 }
 
 /**
- *	Iteration for a local innertype
+ *	Iteration for a local inner type
  */
 public void traverse(ASTVisitor visitor, BlockScope blockScope) {
 	try {
@@ -1388,9 +1438,9 @@ public void traverse(ASTVisitor visitor, BlockScope blockScope) {
 			if (this.fields != null) {
 				int length = this.fields.length;
 				for (int i = 0; i < length; i++) {
-					FieldDeclaration field;
-					if ((field = this.fields[i]).isStatic()) {
-						// local type cannot have static fields
+					FieldDeclaration field = this.fields[i];
+					if (field.isStatic() && !field.isFinal()) {
+						// local type cannot have static fields that are not final, https://bugs.eclipse.org/bugs/show_bug.cgi?id=244544
 					} else {
 						field.traverse(visitor, this.initializerScope);
 					}

@@ -1,12 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -17,6 +26,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
@@ -33,21 +43,43 @@ public ArrayReference(Expression rec, Expression pos) {
 
 public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Assignment assignment, boolean compoundAssignment) {
 	// TODO (maxime) optimization: unconditionalInits is applied to all existing calls
+	// account for potential ArrayIndexOutOfBoundsException:
+	flowContext.recordAbruptExit();
 	if (assignment.expression == null) {
 		return analyseCode(currentScope, flowContext, flowInfo);
 	}
-	return assignment
+	flowInfo = assignment
 		.expression
 		.analyseCode(
 			currentScope,
 			flowContext,
 			analyseCode(currentScope, flowContext, flowInfo).unconditionalInits());
+	if ((this.resolvedType.tagBits & TagBits.AnnotationNonNull) != 0) {
+		int nullStatus = assignment.expression.nullStatus(flowInfo, flowContext);
+		if (nullStatus != FlowInfo.NON_NULL) {
+			currentScope.problemReporter().nullityMismatch(this, assignment.expression.resolvedType, this.resolvedType, nullStatus, currentScope.environment().getNonNullAnnotationName());
+		}
+	}
+	return flowInfo;
 }
 
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	this.receiver.checkNPE(currentScope, flowContext, flowInfo);
 	flowInfo = this.receiver.analyseCode(currentScope, flowContext, flowInfo);
-	return this.position.analyseCode(currentScope, flowContext, flowInfo);
+	flowInfo = this.position.analyseCode(currentScope, flowContext, flowInfo);
+	this.position.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
+	// account for potential ArrayIndexOutOfBoundsException:
+	flowContext.recordAbruptExit();
+	return flowInfo;
+}
+
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	if ((this.resolvedType.tagBits & TagBits.AnnotationNullable) != 0) {
+		scope.problemReporter().arrayReferencePotentialNullReference(this);
+		return true;
+	} else {
+		return super.checkNPE(scope, flowContext, flowInfo);
+	}
 }
 
 public void generateAssignment(BlockScope currentScope, CodeStream codeStream, Assignment assignment, boolean valueRequired) {
@@ -158,10 +190,6 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 	codeStream.generateImplicitConversion(
 		postIncrement.preAssignImplicitConversion);
 	codeStream.arrayAtPut(this.resolvedType.id, false);
-}
-
-public int nullStatus(FlowInfo flowInfo) {
-	return FlowInfo.UNKNOWN;
 }
 
 public StringBuffer printExpression(int indent, StringBuffer output) {

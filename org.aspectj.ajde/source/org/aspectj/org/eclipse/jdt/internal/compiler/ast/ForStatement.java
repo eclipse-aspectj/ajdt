@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,11 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     Stephan Herrmann - Contributions for 
+ *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     							bug 349326 - [1.7] new warning for missing try-with-resources
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -91,11 +95,9 @@ public class ForStatement extends Statement {
 						this.scope,
 						(condLoopContext =
 							new LoopingFlowContext(flowContext, flowInfo, this, null,
-								null, this.scope)),
+								null, this.scope, true)),
 						condInfo);
-				if ((this.condition.implicitConversion & TypeIds.UNBOXING) != 0) {
-					this.condition.checkNPE(currentScope, flowContext, flowInfo);
-				}
+				this.condition.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
 			}
 		}
 
@@ -119,13 +121,15 @@ public class ForStatement extends Statement {
 				actionInfo = condInfo.initsWhenTrue().unconditionalCopy();
 				loopingContext =
 					new LoopingFlowContext(flowContext, flowInfo, this,
-						this.breakLabel, this.continueLabel, this.scope);
+						this.breakLabel, this.continueLabel, this.scope, false);
+						// there is no action guarded by a preTest, so we use preTest=false
+						// to avoid pointless burdens of updating FlowContext.conditionalLevel
 			}
 		}
 		else {
 			loopingContext =
 				new LoopingFlowContext(flowContext, flowInfo, this, this.breakLabel,
-					this.continueLabel, this.scope);
+					this.continueLabel, this.scope, true);
 			FlowInfo initsWhenTrue = condInfo.initsWhenTrue();
 			this.condIfTrueInitStateIndex =
 				currentScope.methodScope().recordInitializationStates(initsWhenTrue);
@@ -138,7 +142,7 @@ public class ForStatement extends Statement {
 						actionInfo.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
 					}
 				}
-			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel) < Statement.COMPLAINED_UNREACHABLE) {
+			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel, true) < Statement.COMPLAINED_UNREACHABLE) {
 				actionInfo = this.action.analyseCode(this.scope, loopingContext, actionInfo).unconditionalInits();
 			}
 
@@ -166,7 +170,7 @@ public class ForStatement extends Statement {
 			if (this.increments != null) {
 				incrementContext =
 					new LoopingFlowContext(flowContext, flowInfo, this, null,
-						null, this.scope);
+						null, this.scope, true);
 				FlowInfo incrementInfo = actionInfo;
 				this.preIncrementsInitStateIndex =
 					currentScope.methodScope().recordInitializationStates(incrementInfo);

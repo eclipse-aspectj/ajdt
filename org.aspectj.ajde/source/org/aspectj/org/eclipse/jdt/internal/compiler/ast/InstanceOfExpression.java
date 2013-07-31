@@ -1,12 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *        Andy Clement - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -37,13 +45,16 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			unconditionalInits();
 		FlowInfo initsWhenTrue = flowInfo.copy();
 		initsWhenTrue.markAsComparedEqualToNonNull(local);
-		if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
-			initsWhenTrue.markedAsNullOrNonNullInAssertExpression(local);
-		}
 		flowContext.recordUsingNullReference(currentScope, local,
 				this.expression, FlowContext.CAN_ONLY_NULL | FlowContext.IN_INSTANCEOF, flowInfo);
 		// no impact upon enclosing try context
 		return FlowInfo.conditional(initsWhenTrue, flowInfo.copy());
+	}
+	if (this.expression instanceof Reference && currentScope.compilerOptions().enableSyntacticNullAnalysisForFields) {
+		FieldBinding field = ((Reference)this.expression).lastFieldBinding();
+		if (field != null && (field.type.tagBits & TagBits.IsBaseType) == 0) {
+			flowContext.recordNullCheckedFieldReference((Reference) this.expression, 1);
+		}
 	}
 	return this.expression.analyseCode(currentScope, flowContext, flowInfo).
 			unconditionalInits();
@@ -59,7 +70,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 	int pc = codeStream.position;
 	this.expression.generateCode(currentScope, codeStream, true);
-	codeStream.instance_of(this.type.resolvedType);
+	codeStream.instance_of(this.type, this.type.resolvedType);
 	if (valueRequired) {
 		codeStream.generateImplicitConversion(this.implicitConversion);
 	} else {
@@ -82,9 +93,12 @@ public TypeBinding resolveType(BlockScope scope) {
 
 	if (!checkedType.isReifiable()) {
 		scope.problemReporter().illegalInstanceOfGenericType(checkedType, this);
-	} else if ((expressionType != TypeBinding.NULL && expressionType.isBaseType()) // disallow autoboxing
-			|| !checkCastTypesCompatibility(scope, checkedType, expressionType, null)) {
-		scope.problemReporter().notCompatibleTypesError(this, expressionType, checkedType);
+	} else if (checkedType.isValidBinding()) {
+		// if not a valid binding, an error has already been reported for unresolved type
+		if ((expressionType != TypeBinding.NULL && expressionType.isBaseType()) // disallow autoboxing
+				|| !checkCastTypesCompatibility(scope, checkedType, expressionType, null)) {
+			scope.problemReporter().notCompatibleTypesError(this, expressionType, checkedType);
+		}
 	}
 	return this.resolvedType = TypeBinding.BOOLEAN;
 }

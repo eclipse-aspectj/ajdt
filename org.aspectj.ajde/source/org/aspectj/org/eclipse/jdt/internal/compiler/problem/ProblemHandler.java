@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,9 +16,12 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.problem;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
@@ -32,7 +39,7 @@ public class ProblemHandler {
 
 	public final static String[] NoArgument = CharOperation.NO_STRINGS;
 
-	final public IErrorHandlingPolicy policy;
+	public IErrorHandlingPolicy policy;
 	public final IProblemFactory problemFactory;
 	public final CompilerOptions options;
 /*
@@ -114,6 +121,25 @@ public void handle(
 	if (severity == ProblemSeverities.Ignore)
 		return;
 
+	 boolean mandatory = (severity & (ProblemSeverities.Error | ProblemSeverities.Optional)) == ProblemSeverities.Error;
+	 if (this.policy.ignoreAllErrors()) { 
+		 // Error is not to be exposed, but clients may need still notification as to whether there are silently-ignored-errors.
+		 if (mandatory)
+			 referenceContext.tagAsHavingIgnoredMandatoryErrors(problemId);
+		 return;
+	 }
+
+	if ((severity & ProblemSeverities.Optional) != 0 && problemId != IProblem.Task  && !this.options.ignoreSourceFolderWarningOption) {
+		ICompilationUnit cu = unitResult.getCompilationUnit();
+		try{
+			if (cu != null && cu.ignoreOptionalProblems())
+				return;
+		// workaround for illegal implementation of ICompilationUnit, see https://bugs.eclipse.org/372351
+		} catch (AbstractMethodError ex) {
+			// continue
+		}
+	}
+
 	// if no reference context, we need to abort from the current compilation process
 	if (referenceContext == null) {
 		if ((severity & ProblemSeverities.Error) != 0) { // non reportable error is fatal
@@ -148,8 +174,15 @@ public void handle(
 
 	switch (severity & ProblemSeverities.Error) {
 		case ProblemSeverities.Error :
-			record(problem, unitResult, referenceContext);
+			record(problem, unitResult, referenceContext, mandatory);
 			if ((severity & ProblemSeverities.Fatal) != 0) {
+				// don't abort or tag as error if the error is suppressed
+				if (!referenceContext.hasErrors() && !mandatory && this.options.suppressOptionalErrors) {
+					CompilationUnitDeclaration unitDecl = referenceContext.getCompilationUnitDeclaration();
+					if (unitDecl != null && unitDecl.isSuppressed(problem)) {
+						return;
+					}
+				}
 				referenceContext.tagAsHavingErrors();
 				// should abort ?
 				int abortLevel;
@@ -159,7 +192,7 @@ public void handle(
 			}
 			break;
 		case ProblemSeverities.Warning :
-			record(problem, unitResult, referenceContext);
+			record(problem, unitResult, referenceContext, false);
 			break;
 	}
 }
@@ -187,7 +220,13 @@ public void handle(
 		referenceContext,
 		unitResult);
 }
-public void record(CategorizedProblem problem, CompilationResult unitResult, ReferenceContext referenceContext) {
-	unitResult.record(problem, referenceContext);
+public void record(CategorizedProblem problem, CompilationResult unitResult, ReferenceContext referenceContext, boolean mandatoryError) {
+	unitResult.record(problem, referenceContext, mandatoryError);
+}
+/** @return old policy. */
+public IErrorHandlingPolicy switchErrorHandlingPolicy(IErrorHandlingPolicy newPolicy) {
+	IErrorHandlingPolicy presentPolicy = this.policy;
+	this.policy = newPolicy;
+	return presentPolicy;
 }
 }

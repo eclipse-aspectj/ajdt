@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 185682 - Increment/decrement operators mark local variables as read
- *     Palo Alto Research Center, Incorporated - AspectJ adaptation
- ******************************************************************************/
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
+ *								bug 185682 - Increment/decrement operators mark local variables as read
+ *								bug 331649 - [compiler][null] consider null annotations for fields
+ *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -19,10 +20,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 
-/**
- * AspectJ Extension added hooks for inter-type field bindings as well as
- * proto-hooks for allowing privileged access
- */
 public class FieldBinding extends VariableBinding {
 	public ReferenceBinding declaringClass;
 	public int compoundUseFlag = 0; // number or accesses via postIncrement or compoundAssignment
@@ -226,6 +223,17 @@ public Constant constant() {
 		this.constant = fieldConstant;
 	}
 	return fieldConstant;
+}
+
+public void fillInDefaultNonNullness(FieldDeclaration sourceField, Scope scope) {
+	if (   this.type != null
+		&& !this.type.isBaseType()
+		&& (this.tagBits & (TagBits.AnnotationNonNull|TagBits.AnnotationNullable)) == 0)
+	{
+		this.tagBits |= TagBits.AnnotationNonNull;
+	} else if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
+		scope.problemReporter().nullAnnotationIsRedundant(sourceField);
+	}
 }
 
 /**

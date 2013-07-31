@@ -9,7 +9,7 @@
  *     PARC       - initial API and implementation
  ******************************************************************************/
 
-package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
+package org.aspectj.org.eclipse.jdt.internal.compiler.lookup; 
 
 //AspectJ Extension
 

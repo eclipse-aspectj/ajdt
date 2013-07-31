@@ -1,18 +1,36 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 335093 - [compiler][null] minimal hook for future null annotation support
+ *     Stephan Herrmann - Contributions for
+ *								bug 335093 - [compiler][null] minimal hook for future null annotation support
+ *								bug 349326 - [1.7] new warning for missing try-with-resources
+ *								bug 186342 - [compiler][null] Using annotations for null checking
+ *								bug 365983 - [compiler][null] AIOOB with null annotation analysis and varargs
+ *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
+ *								bug 370930 - NonNull annotation not considered for enhanced for loops
+ *								bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
+ *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
+ *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *        Andy Clement - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
@@ -55,11 +73,109 @@ public abstract FlowInfo analyseCode(BlockScope currentScope, FlowContext flowCo
 	public static final int COMPLAINED_FAKE_REACHABLE = 1;
 	public static final int COMPLAINED_UNREACHABLE = 2;
 	
-/** Empty hook for checking null status against declaration using null annotations, once this will be supported. */
-protected int checkAgainstNullAnnotation(BlockScope currentScope, LocalVariableBinding local, int nullStatus) {
-	return nullStatus;
+
+/** Analysing arguments of MessageSend, ExplicitConstructorCall, AllocationExpression. */
+protected void analyseArguments(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, MethodBinding methodBinding, Expression[] arguments)
+{
+	// compare actual null-status against parameter annotations of the called method:
+	if (arguments != null) {
+		CompilerOptions compilerOptions = currentScope.compilerOptions();
+		boolean considerTypeAnnotations = compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8
+				&& compilerOptions.isAnnotationBasedNullAnalysisEnabled;
+		boolean hasJDK15NullAnnotations = methodBinding.parameterNonNullness != null;
+		int numParamsToCheck = methodBinding.parameters.length;
+		if (considerTypeAnnotations || hasJDK15NullAnnotations) {
+			// check if varargs need special treatment:
+			boolean passThrough = false;
+			if (methodBinding.isVarargs()) {
+				int varArgPos = numParamsToCheck-1;
+				// this if-block essentially copied from generateArguments(..):
+				if (numParamsToCheck == arguments.length) {
+					TypeBinding varArgsType = methodBinding.parameters[varArgPos];
+					TypeBinding lastType = arguments[varArgPos].resolvedType;
+					if (lastType == TypeBinding.NULL
+							|| (varArgsType.dimensions() == lastType.dimensions()
+							&& lastType.isCompatibleWith(varArgsType)))
+						passThrough = true; // pass directly as-is
+				}
+				if (!passThrough)
+					numParamsToCheck--; // with non-passthrough varargs last param is fed from individual args -> don't check
+			}
+		}
+		if (considerTypeAnnotations) {
+			for (int i=0; i<numParamsToCheck; i++) {
+				TypeBinding expectedType = methodBinding.parameters[i];
+				Expression argument = arguments[i];
+				// prefer check based on type annotations:
+				int severity = findNullTypeAnnotationMismatch(expectedType, argument.resolvedType);
+				if (severity > 0) {
+					// immediate reporting:
+					currentScope.problemReporter().nullityMismatchingTypeAnnotation(argument, argument.resolvedType, expectedType, severity==1, currentScope.environment());
+					// next check flow-based null status against null JDK15-style annotations:
+				} else if (hasJDK15NullAnnotations && methodBinding.parameterNonNullness[i] == Boolean.TRUE) {
+					int nullStatus = argument.nullStatus(flowInfo, flowContext); // slight loss of precision: should also use the null info from the receiver.
+					if (nullStatus != FlowInfo.NON_NULL) // if required non-null is not provided
+						flowContext.recordNullityMismatch(currentScope, argument, argument.resolvedType, expectedType, nullStatus);
+				}
+			}
+		} else if (hasJDK15NullAnnotations) {
+			for (int i = 0; i < numParamsToCheck; i++) {
+				if (methodBinding.parameterNonNullness[i] == Boolean.TRUE) {
+					TypeBinding expectedType = methodBinding.parameters[i];
+					Expression argument = arguments[i];
+					int nullStatus = argument.nullStatus(flowInfo, flowContext); // slight loss of precision: should also use the null info from the receiver.
+					if (nullStatus != FlowInfo.NON_NULL) // if required non-null is not provided
+						flowContext.recordNullityMismatch(currentScope, argument, argument.resolvedType, expectedType, nullStatus);
+				}
+			}
+		} 
+	}
 }
 
+/** Check null-ness of 'var' against a possible null annotation */
+protected int checkAssignmentAgainstNullAnnotation(BlockScope currentScope, FlowContext flowContext,
+												   VariableBinding var, int nullStatus, Expression expression, TypeBinding providedType)
+{
+	int severity = 0;
+	if ((var.tagBits & TagBits.AnnotationNonNull) != 0
+			&& nullStatus != FlowInfo.NON_NULL) {
+		flowContext.recordNullityMismatch(currentScope, expression, providedType, var.type, nullStatus);
+		return FlowInfo.NON_NULL;
+	} else if ((severity = findNullTypeAnnotationMismatch(var.type, providedType)) > 0) {
+		currentScope.problemReporter().nullityMismatchingTypeAnnotation(expression, providedType, var.type, severity==1, currentScope.environment());
+	} else if ((var.tagBits & TagBits.AnnotationNullable) != 0
+			&& nullStatus == FlowInfo.UNKNOWN) {	// provided a legacy type?
+		return FlowInfo.POTENTIALLY_NULL;			// -> use more specific info from the annotation
+	}
+	return nullStatus;
+}
+protected int findNullTypeAnnotationMismatch(TypeBinding requiredType, TypeBinding providedType) {
+	int severity = 0;
+	if (requiredType instanceof ArrayBinding) {
+		long[] requiredDimsTagBits = ((ArrayBinding)requiredType).nullTagBitsPerDimension;
+		if (requiredDimsTagBits != null) {
+			int dims = requiredType.dimensions();
+			if (requiredType.dimensions() == providedType.dimensions()) {
+				long[] providedDimsTagBits = ((ArrayBinding)providedType).nullTagBitsPerDimension;
+				if (providedDimsTagBits == null) {
+					severity = 1; // required is annotated, provided not, need unchecked conversion
+				} else {
+					for (int i=0; i<dims; i++) {
+						long requiredBits = requiredDimsTagBits[i] & TagBits.AnnotationNullMASK;
+						long providedBits = providedDimsTagBits[i] & TagBits.AnnotationNullMASK;
+						if (requiredBits != 0 && requiredBits != providedBits) {
+							if (providedBits == 0)
+								severity = 1; // need unchecked conversion regarding type detail
+							else
+								return 2; // mismatching annotations
+						}
+					}
+				}
+			}
+		}
+	}
+	return severity;
+}
 /**
  * INTERNAL USE ONLY.
  * This is used to redirect inter-statements jumps.
@@ -70,18 +186,22 @@ public void branchChainTo(BranchLabel label) {
 
 // Report an error if necessary (if even more unreachable than previously reported
 // complaintLevel = 0 if was reachable up until now, 1 if fake reachable (deadcode), 2 if fatal unreachable (error)
-public int complainIfUnreachable(FlowInfo flowInfo, BlockScope scope, int previousComplaintLevel) {
+public int complainIfUnreachable(FlowInfo flowInfo, BlockScope scope, int previousComplaintLevel, boolean endOfBlock) {
 	if ((flowInfo.reachMode() & FlowInfo.UNREACHABLE) != 0) {
 		if ((flowInfo.reachMode() & FlowInfo.UNREACHABLE_OR_DEAD) != 0)
 			this.bits &= ~ASTNode.IsReachable;
 		if (flowInfo == FlowInfo.DEAD_END) {
 			if (previousComplaintLevel < COMPLAINED_UNREACHABLE) {
 				scope.problemReporter().unreachableCode(this);
+				if (endOfBlock)
+					scope.checkUnclosedCloseables(flowInfo, null, null, null);
 			}
 			return COMPLAINED_UNREACHABLE;
 		} else {
 			if (previousComplaintLevel < COMPLAINED_FAKE_REACHABLE) {
 				scope.problemReporter().fakeReachable(this);
+				if (endOfBlock)
+					scope.checkUnclosedCloseables(flowInfo, null, null, null);
 			}
 			return COMPLAINED_FAKE_REACHABLE;
 		}
@@ -112,7 +232,7 @@ public void generateArguments(MethodBinding binding, Expression[] arguments, Blo
 			// called with (argLength - lastIndex) elements : foo(1, 2) or foo(1, 2, 3, 4)
 			// need to gen elements into an array, then gen each remaining element into created array
 			codeStream.generateInlinedValue(argLength - varArgIndex);
-			codeStream.newArray(codeGenVarArgsType); // create a mono-dimensional array
+			codeStream.newArray(null, codeGenVarArgsType); // create a mono-dimensional array
 			for (int i = varArgIndex; i < argLength; i++) {
 				codeStream.dup();
 				codeStream.generateInlinedValue(i - varArgIndex);
@@ -131,7 +251,7 @@ public void generateArguments(MethodBinding binding, Expression[] arguments, Blo
 				// right number but not directly compatible or too many arguments - wrap extra into array
 				// need to gen elements into an array, then gen each remaining element into created array
 				codeStream.generateInlinedValue(1);
-				codeStream.newArray(codeGenVarArgsType); // create a mono-dimensional array
+				codeStream.newArray(null, codeGenVarArgsType); // create a mono-dimensional array
 				codeStream.dup();
 				codeStream.generateInlinedValue(0);
 				arguments[varArgIndex].generateCode(currentScope, codeStream, true);
@@ -141,7 +261,7 @@ public void generateArguments(MethodBinding binding, Expression[] arguments, Blo
 			// scenario: foo(1) --> foo(1, new int[0])
 			// generate code for an empty array of parameterType
 			codeStream.generateInlinedValue(0);
-			codeStream.newArray(codeGenVarArgsType); // create a mono-dimensional array
+			codeStream.newArray(null, codeGenVarArgsType); // create a mono-dimensional array
 		}
 	} else if (arguments != null) { // standard generation for method arguments
 		for (int i = 0, max = arguments.length; i < max; i++)
@@ -155,10 +275,11 @@ protected boolean isBoxingCompatible(TypeBinding expressionType, TypeBinding tar
 	if (scope.isBoxingCompatibleWith(expressionType, targetType))
 		return true;
 
-	return expressionType.isBaseType()  // narrowing then boxing ?
+	return expressionType.isBaseType()  // narrowing then boxing ? Only allowed for some target types see 362279
 		&& !targetType.isBaseType()
 		&& !targetType.isTypeVariable()
 		&& scope.compilerOptions().sourceLevel >= org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.JDK1_5 // autoboxing
+		&& (targetType.id == TypeIds.T_JavaLangByte || targetType.id == TypeIds.T_JavaLangShort || targetType.id == TypeIds.T_JavaLangCharacter)
 		&& expression.isConstantValueOfTypeAssignableToType(expressionType, scope.environment().computeBoxingType(targetType));
 }
 

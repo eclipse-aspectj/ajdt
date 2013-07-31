@@ -1,12 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.util;
 
@@ -259,6 +265,9 @@ public final class Messages extends NLS {
 	public static String disassembler_inner_accessflags;
 	public static String disassembler_genericattributeheader;
 	public static String disassembler_signatureattributeheader;
+	public static String disassembler_bootstrapmethodattributesheader;
+	public static String disassembler_bootstrapmethodentry;
+	public static String disassembler_bootstrapmethodentry_argument;
 	public static String disassembler_indentation;
 	public static String disassembler_constantpoolindex;
 	public static String disassembler_space;
@@ -278,6 +287,9 @@ public final class Messages extends NLS {
 	public static String disassembler_constantpool_methodref;
 	public static String disassembler_constantpool_name_and_type;
 	public static String disassembler_constantpool_utf8;
+	public static String disassembler_constantpool_methodhandle;
+	public static String disassembler_constantpool_methodtype;
+	public static String disassembler_constantpool_invokedynamic;
 	public static String disassembler_annotationdefaultheader;
 	public static String disassembler_annotationdefaultvalue;
 	public static String disassembler_annotationenumvalue;
@@ -288,6 +300,29 @@ public final class Messages extends NLS {
 	public static String disassembler_annotationentrystart;
 	public static String disassembler_annotationentryend;
 	public static String disassembler_annotationcomponent;
+	// jsr308
+	public static String disassembler_extendedannotationentrystart;
+	public static String disassembler_extendedannotationentryend;
+	public static String disassembler_runtimevisibletypeannotationsattributeheader;
+	public static String disassembler_runtimeinvisibletypeannotationsattributeheader;
+	public static String disassembler_extendedannotation_classextendsimplements;
+	public static String disassembler_extendedannotation_typepath;
+	public static String disassembler_extendedannotation_method_parameter;
+	public static String disassembler_extendedannotation_offset;
+	public static String disassembler_extendedannotation_throws;
+	public static String disassembler_extendedannotation_type_argument;
+	public static String disassembler_extendedannotation_type_parameter;
+	public static String disassembler_extendedannotation_type_parameter_with_bound;
+	public static String disassembler_extendedannotation_wildcardlocationtype;
+	public static String disassembler_extendedannotation_targetType;
+	public static String disassembler_extendedannotation_wildcardlocations;
+	public static String disassembler_extendedannotation_exception_table_index;
+	public static String disassembler_extendedannotation_typepath_array;
+	public static String disassembler_extendedannotation_typepath_wildcard;
+	public static String disassembler_extendedannotation_typepath_typeargument;
+	public static String disassembler_extendedannotation_typepath_innertype;
+	public static String disassembler_localvariabletargetheader;
+
 	public static String disassembler_runtimevisibleannotationsattributeheader;
 	public static String disassembler_runtimeinvisibleannotationsattributeheader;
 	public static String disassembler_runtimevisibleparameterannotationsattributeheader;
@@ -302,6 +337,9 @@ public final class Messages extends NLS {
 	public static String classfileformat_superflagisnotset;
 	public static String classfileformat_superflagisset;
 	public static String classfileformat_clinitname;
+	// jsr308
+	public static String classfileformat_localvariablereferenceinfoentry;
+
 	public static String classformat_classformatexception;
 	public static String classformat_anewarray;
 	public static String classformat_checkcast;
@@ -348,6 +386,16 @@ public final class Messages extends NLS {
 	public static String disassembler_frame_same_frame;
 	public static String disassembler_frame_same_locals_1_stack_item;
 	public static String code_assist_internal_error;
+	
+	public static String disassembler_method_type_ref_getfield;
+	public static String disassembler_method_type_ref_putfield;
+	public static String disassembler_method_type_ref_getstatic;
+	public static String disassembler_method_type_ref_putstatic;
+	public static String disassembler_method_type_ref_invokestatic;
+	public static String disassembler_method_type_ref_invokevirtual;
+	public static String disassembler_method_type_ref_invokespecial;
+	public static String disassembler_method_type_ref_invokeinterface;
+	public static String disassembler_method_type_ref_newinvokespecial;
 
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

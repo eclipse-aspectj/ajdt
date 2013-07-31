@@ -1,10 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -19,7 +23,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-
 import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
@@ -103,6 +106,7 @@ public class AST {
 
 	/**
 	 * Constant for indicating the AST API that handles JLS2.
+	 * <p>
 	 * This API is capable of handling all constructs
 	 * in the Java language as described in the Java Language
      * Specification, Second Edition (JLS2).
@@ -110,9 +114,10 @@ public class AST {
      * Java language, and the JLS2 API can be used to manipulate
      * programs written in all versions of the Java language
      * up to and including J2SE 1.4.
+     * </p>
      *
 	 * @since 3.0
-	 * @deprecated Clients should use the {@link #JLS4} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS8} AST API instead.
 	 */
 	public static final int JLS2 = 2;
 
@@ -125,6 +130,7 @@ public class AST {
 	
 	/**
 	 * Constant for indicating the AST API that handles JLS3.
+	 * <p>
 	 * This API is capable of handling all constructs in the
 	 * Java language as described in the Java Language
 	 * Specification, Third Edition (JLS3).
@@ -132,25 +138,59 @@ public class AST {
      * Java language, and the JLS3 API can be used to manipulate
      * programs written in all versions of the Java language
      * up to and including J2SE 5 (aka JDK 1.5).
+     * </p>
      *
 	 * @since 3.1
+	 * @deprecated Clients should use the {@link #JLS8} AST API instead.
 	 */
 	public static final int JLS3 = 3;
+	
+	/**
+	 * Internal synonym for {@link #JLS3}. Use to alleviate
+	 * deprecation warnings.
+	 * @since 3.8
+	 */
+	/*package*/ static final int JLS3_INTERNAL = JLS3;
 
 	/**
-	 * Constant for indicating the AST API that handles JLS4.
+	 * Constant for indicating the AST API that handles JLS4 (aka JLS7).
+	 * <p>
 	 * This API is capable of handling all constructs in the
 	 * Java language as described in the Java Language
-	 * Specification, Third Edition (JLS3) plus all the new language
-	 * features described in the JSR334.
+	 * Specification, Java SE 7 Edition (JLS7) as specified by JSR336.
 	 * JLS4 is a superset of all earlier versions of the
 	 * Java language, and the JLS4 API can be used to manipulate
 	 * programs written in all versions of the Java language
-	 * up to and including J2SE 7 (aka JDK 1.7).
+	 * up to and including Java SE 7 (aka JDK 1.7).
+	 * </p>
 	 *
 	 * @since 3.7.1
+	 * @deprecated Clients should use the {@link #JLS8} AST API instead.
 	 */
 	public static final int JLS4 = 4;
+	
+	/**
+	 * Internal synonym for {@link #JLS4}. Use to alleviate
+	 * deprecation warnings.
+	 * @since 3.9 BETA_JAVA8
+	 */
+	/*package*/ static final int JLS4_INTERNAL = JLS4;
+	
+	/**
+	 * Constant for indicating the AST API that handles JLS8.
+	 * <p>
+	 * This API is capable of handling all constructs in the
+	 * Java language as described in the Java Language
+	 * Specification, Java SE 8 Edition (JLS8) as specified by JSR337.
+	 * JLS8 is a superset of all earlier versions of the
+	 * Java language, and the JLS8 API can be used to manipulate
+	 * programs written in all versions of the Java language
+	 * up to and including Java SE 8 (aka JDK 1.8).
+	 * </p>
+	 *
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public static final int JLS8 = 8;
 
 	/*
 	 * Must not collide with a value for ICompilationUnit constants
@@ -164,7 +204,7 @@ public class AST {
 	 * into a compilation unit. This method is not intended to be called by clients.
 	 * </p>
 	 *
- 	 * @param level the API level; one of the LEVEL constants
+ 	 * @param level the API level; one of the <code>JLS*</code> level constants
 	 * @param compilationUnitDeclaration an internal AST node for a compilation unit declaration
 	 * @param source the string of the Java compilation unit
 	 * @param options compiler options
@@ -195,7 +235,7 @@ public class AST {
 	 * into a compilation unit. This method is not intended to be called by clients.
 	 * </p>
 	 *
- 	 * @param level the API level; one of the LEVEL constants
+ 	 * @param level the API level; one of the <code>JLS*</code> level constants
 	 * @param compilationUnitDeclaration an internal AST node for a compilation unit declaration
 	 * @param options compiler options
 	 * @param workingCopy the working copy that the AST is created from
@@ -247,15 +287,15 @@ public class AST {
 	 * Creates a new Java abstract syntax tree
      * (AST) following the specified set of API rules.
      * <p>
-     * Clients should use this method specifying {@link #JLS4} as the
+     * Clients should use this method specifying {@link #JLS8} as the
      * AST level in all cases, even when dealing with source of earlier JDK versions like 1.3 or 1.4.
      * </p>
      *
- 	 * @param level the API level; one of the LEVEL constants
+ 	 * @param level the API level; one of the <code>JLS*</code> level constants
 	 * @return new AST instance following the specified set of API rules.
 	 * @exception IllegalArgumentException if:
 	 * <ul>
-	 * <li>the API level is not one of the LEVEL constants</li>
+	 * <li>the API level is not one of the <code>JLS*</code> level constants</li>
 	 * </ul>
      * @since 3.0
 	 */
@@ -627,8 +667,8 @@ public class AST {
 	 * Creates a new, empty abstract syntax tree using default options.
 	 *
 	 * @see JavaCore#getDefaultOptions()
-	 * @deprecated Clients should port their code to use the new JLS3 AST API and call
-	 *    {@link #newAST(int) AST.newAST(AST.JLS3)} instead of using this constructor.
+	 * @deprecated Clients should port their code to use the new JLS4 AST API and call
+	 *    {@link #newAST(int) AST.newAST(AST.JLS4)} instead of using this constructor.
 	 */
 	public AST() {
 		this(JavaCore.getDefaultOptions());
@@ -638,13 +678,13 @@ public class AST {
 	 * Creates a new Java abstract syntax tree
      * (AST) following the specified set of API rules.
      *
- 	 * @param level the API level; one of the JLS* level constants
+ 	 * @param level the API level; one of the <code>JLS*</code> level constants
      * @since 3.0
 	 */
 	protected AST(int level) {  // AspectJ - raised to protected
 		switch(level) {
 			case JLS2_INTERNAL :
-			case JLS3 :
+			case JLS3_INTERNAL :
 				this.apiLevel = level;
 				// initialize a scanner
 				this.scanner = new Scanner(
@@ -657,7 +697,7 @@ public class AST {
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
 				break;
-			case JLS4 :
+			case JLS4_INTERNAL :
 				this.apiLevel = level;
 				// initialize a scanner
 				this.scanner = new Scanner(
@@ -670,6 +710,19 @@ public class AST {
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
 				break;
+			case JLS8 :
+				this.apiLevel = level;
+				// initialize a scanner
+				this.scanner = new Scanner(
+						true /*comment*/,
+						true /*whitespace*/,
+						false /*nls*/,
+						ClassFileConstants.JDK1_8 /*sourceLevel*/,
+						ClassFileConstants.JDK1_8 /*complianceLevel*/,
+						null/*taskTag*/,
+						null/*taskPriorities*/,
+						true/*taskCaseSensitive*/);
+				break;	
 			default:
 				throw new IllegalArgumentException("Unsupported JLS level"); //$NON-NLS-1$
 		}
@@ -687,6 +740,7 @@ public class AST {
 	 *    (<code>"assert"</code> is now a keyword);
 	 *    <code>"1.5"</code> means the source code is as per JDK 1.5
 	 *    (<code>"enum"</code> is now a keyword);
+	 *    <code>"1.7"</code> means the source code is as per JDK 1.7;
 	 *    additional legal values may be added later. </li>
 	 * </ul>
 	 * Options other than the above are ignored.
@@ -695,8 +749,8 @@ public class AST {
 	 * @param options the table of options (key type: <code>String</code>;
 	 *    value type: <code>String</code>)
 	 * @see JavaCore#getDefaultOptions()
-	 * @deprecated Clients should port their code to use the new JLS3 AST API and call
-	 *    {@link #newAST(int) AST.newAST(AST.JLS3)} instead of using this constructor.
+	 * @deprecated Clients should port their code to use the new JLS4 AST API and call
+	 *    {@link #newAST(int) AST.newAST(AST.JLS4)} instead of using this constructor.
 	 */
 	public AST(Map options) {
 		this(JLS2);
@@ -733,7 +787,7 @@ public class AST {
 	/**
 	 * Return the API level supported by this AST.
 	 *
-	 * @return level the API level; one of the <code>JLS*</code>LEVEL
+	 * @return level the API level; one of the <code>JLS*</code> level constants
      * declared on <code>AST</code>; assume this set is open-ended
      * @since 3.0
 	 */
@@ -749,6 +803,7 @@ public class AST {
 	 * @return a new unparented node owned by this AST
 	 * @exception IllegalArgumentException if <code>nodeClass</code> is
 	 * <code>null</code> or is not a concrete node type class
+	 * or is not supported for this AST's API level
 	 * @since 3.0
 	 */
 	public ASTNode createInstance(Class nodeClass) {
@@ -775,7 +830,9 @@ public class AST {
 		} catch (InvocationTargetException e) {
 			// concrete AST node classes do not die in the constructor
 			// therefore nodeClass is not legit
-			throw new IllegalArgumentException();
+			IllegalArgumentException iae = new IllegalArgumentException();
+			iae.initCause(e.getCause());
+			throw iae;
 		}
 	}
 
@@ -790,7 +847,7 @@ public class AST {
 	 * constants declared on {@link ASTNode}
 	 * @return a new unparented node owned by this AST
 	 * @exception IllegalArgumentException if <code>nodeType</code> is
-	 * not a legal AST node type
+	 * not a legal AST node type or if it's not supported for this AST's API level
 	 * @since 3.0
 	 */
 	public ASTNode createInstance(int nodeType) {
@@ -1066,7 +1123,6 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * </ul>
 	 */
 	public ArrayType newArrayType(Type componentType) {
@@ -1077,28 +1133,26 @@ public class AST {
 
 	/**
 	 * Creates and returns a new unparented array type node with the given
-	 * element type and number of dimensions.
+	 * element type and number of (additional) dimensions.
 	 * <p>
 	 * Note that if the element type passed in is an array type, the
 	 * element type of the result will not be the same as what was passed in.
 	 * </p>
 	 *
-	 * @param elementType the element type (never an array type)
+	 * @param elementType the element type (can be an array type)
 	 * @param dimensions the number of dimensions, a positive number
 	 * @return a new unparented array type node
 	 * @exception IllegalArgumentException if:
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * <li>the element type is null</li>
-	 * <li>the element type is an array type</li>
 	 * <li>the number of dimensions is lower than 1</li>
 	 * <li>the number of dimensions is greater than 1000</li>
 	 * </ul>
 	 */
 	public ArrayType newArrayType(Type elementType, int dimensions) {
-		if (elementType == null || elementType.isArrayType()) {
+		if (elementType == null) {
 			throw new IllegalArgumentException();
 		}
 		if (dimensions < 1 || dimensions > 1000) {
@@ -1298,14 +1352,16 @@ public class AST {
 	}
 
 	/**
-	 * Creates a new unparented union type node owned by this AST.
-	 * By default, the union type has no types.
-	 *
-	 * @return a new unparented do statement node
-	 * @since 3.7.1
+	 * Creates an unparented creation reference node owned by this AST.
+	 * By default, the type is unspecified (but legal), and there are no type arguments.
+	 * 
+	 * @return a new unparented creation reference expression node
+	 * @exception UnsupportedOperationException if this operation is used in a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
 	 */
-	public UnionType newUnionType() {
-		return new UnionType(this);
+	public CreationReference newCreationReference() {
+		CreationReference result = new CreationReference(this);
+		return result;
 	}
 
 	/**
@@ -1376,6 +1432,20 @@ public class AST {
 	}
 
 	/**
+	 * Creates an unparented expression method reference node owned by this AST.
+	 * By default, the expression and method name are unspecified (but legal),
+	 * and there are no type arguments.
+	 * 
+	 * @return a new unparented expression method reference expression node
+	 * @exception UnsupportedOperationException if this operation is used in a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public ExpressionMethodReference newExpressionMethodReference() {
+		ExpressionMethodReference result = new ExpressionMethodReference(this);
+		return result;
+	}
+
+	/**
 	 * Creates a new unparented expression statement node owned by this AST,
 	 * for the given expression.
 	 * <p>
@@ -1392,12 +1462,30 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * </ul>
 	 */
 	public ExpressionStatement newExpressionStatement(Expression expression) {
 		ExpressionStatement result = new ExpressionStatement(this);
 		result.setExpression(expression);
+		return result;
+	}
+
+	/**
+	 * Creates and returns a new unparented annotatable extra dimension node
+	 * (Supported only in JLS8 level).
+	 *
+	 * @return a new unparented annotatable extra dimension node
+	 * @exception IllegalArgumentException if:
+	 * <ul>
+	 * <li>the node belongs to a different AST</li>
+	 * <li>the node already has a parent</li>
+	 * </ul>
+	 * @exception UnsupportedOperationException if this operation is used
+	 *            in a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public ExtraDimension newExtraDimension() {
+		ExtraDimension result = new ExtraDimension(this);
 		return result;
 	}
 
@@ -1432,7 +1520,6 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * <li>the given fragment is null</li>
 	 * </ul>
 	 */
@@ -1537,6 +1624,20 @@ public class AST {
 	 */
 	public LabeledStatement newLabeledStatement() {
 		return new LabeledStatement(this);
+	}
+
+	/**
+	 * Creates an unparented lambda expression node owned by this AST.
+	 * By default, the new lambda expression has parentheses enabled, contains an empty argument
+	 * list, and the body is an empty block.
+	 * 
+	 * @return a new unparented lambda expression node
+	 * @exception UnsupportedOperationException if this operation is used in a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public LambdaExpression newLambdaExpression() {
+		LambdaExpression result = new LambdaExpression(this);
+		return result;
 	}
 
 	/**
@@ -1692,10 +1793,12 @@ public class AST {
 	/**
 	 * Creates and returns a list of new unparented modifier nodes
 	 * for the given modifier flags. When multiple modifiers are
-	 * requested the modifiers nodes will appear in the following order:
-	 * public, protected, private, abstract, static, final, synchronized,
-	 * native, strictfp, transient, volatile. This order is consistent
-	 * with the recommendations in JLS2 8.1.1, 8.3.1, and 8.4.3.
+	 * requested, the modifier nodes will appear in the following order:
+	 * <pre> public protected private
+	 * abstract default static final synchronized native strictfp transient volatile</pre>
+	 * <p>
+	 * This order is consistent with the recommendations in JLS8 ("*Modifier:" rules in chapters 8 and 9).
+	 * </p>
 	 *
 	 * @param flags bitwise or of modifier flags declared on {@link Modifier}
 	 * @return a possibly empty list of new unparented modifier nodes
@@ -1720,6 +1823,9 @@ public class AST {
 		}
 		if (Modifier.isAbstract(flags)) {
 			result.add(newModifier(Modifier.ModifierKeyword.ABSTRACT_KEYWORD));
+		}
+		if (Modifier.isDefault(flags)) {
+			result.add(newModifier(Modifier.ModifierKeyword.DEFAULT_KEYWORD));
 		}
 		if (Modifier.isStatic(flags)) {
 			result.add(newModifier(Modifier.ModifierKeyword.STATIC_KEYWORD));
@@ -1894,6 +2000,29 @@ public class AST {
 	 */
 	public PackageDeclaration newPackageDeclaration() {
 		PackageDeclaration result = new PackageDeclaration(this);
+		return result;
+	}
+
+	/**
+	 * Creates and returns a new unparented package qualified type node with
+	 * the given qualifier and name.
+	 *
+	 * @param qualifier the package qualifier type node
+	 * @param name the simple name being qualified
+	 * @return a new unparented qualified type node
+	 * @exception IllegalArgumentException if:
+	 * <ul>
+	 * <li>the node belongs to a different AST</li>
+	 * <li>the node already has a parent</li>
+	 * </ul>
+	 * @exception UnsupportedOperationException if this operation is used in
+	 * a JLS2, JLS3 and JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public PackageQualifiedType newPackageQualifiedType(Name qualifier, SimpleName name) {
+		PackageQualifiedType result = new PackageQualifiedType(this);
+		result.setQualifier(qualifier);
+		result.setName(name);
 		return result;
 	}
 
@@ -2136,7 +2265,7 @@ public class AST {
 
 	/**
 	 * Creates an unparented "super" method invocation expression node owned by
-	 * this AST. By default, the name of the method is unspecified (but legal)
+	 * this AST. By default, the name of the method is unspecified (but legal),
 	 * there is no qualifier, no type arguments, and the list of arguments is empty.
 	 *
 	 * @return a new unparented  "super" method invocation
@@ -2144,6 +2273,19 @@ public class AST {
 	 */
 	public SuperMethodInvocation newSuperMethodInvocation() {
 		SuperMethodInvocation result = new SuperMethodInvocation(this);
+		return result;
+	}
+
+	/**
+	 * Creates and returns a new unparented super method reference node owned by
+	 * this AST. By default, the name of the method is unspecified (but legal),
+	 * and there is no qualifier and no type arguments.
+	 *
+	 * @return a new unparented super method reference node
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public SuperMethodReference newSuperMethodReference() {
+		SuperMethodReference result = new SuperMethodReference(this);
 		return result;
 	}
 
@@ -2282,7 +2424,6 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * </ul>
 	 * @since 3.0
 	 */
@@ -2313,7 +2454,6 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * </ul>
 	 */
 	public TypeDeclarationStatement
@@ -2335,6 +2475,20 @@ public class AST {
 	}
 
 	/**
+	 * Creates an unparented type method reference node owned by this AST.
+	 * By default, the type and method name are unspecified (but legal),
+	 * and there are no type arguments.
+	 * 
+	 * @return a new unparented type method reference node
+	 * @exception UnsupportedOperationException if this operation is used in a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public TypeMethodReference newTypeMethodReference() {
+		TypeMethodReference result = new TypeMethodReference(this);
+		return result;
+	}
+
+	/**
 	 * Creates and returns a new unparented type parameter type node with an
 	 * unspecified type variable name and an empty list of type bounds.
 	 *
@@ -2346,6 +2500,32 @@ public class AST {
 	public TypeParameter newTypeParameter() {
 		TypeParameter result = new TypeParameter(this);
 		return result;
+	}
+
+	/**
+	 * Creates a new unparented union type node owned by this AST.
+	 * By default, the union type has no types.
+	 *
+	 * @return a new unparented UnionType node
+	 * @exception UnsupportedOperationException if this operation is used in
+	 * a JLS2 or JLS3 AST
+	 * @since 3.7.1
+	 */
+	public UnionType newUnionType() {
+		return new UnionType(this);
+	}
+
+	/**
+	 * Creates a new unparented intersection type node owned by this AST.
+	 * By default, the intersection type has no types.
+	 *
+	 * @return a new unparented IntersectionType node
+	 * @exception UnsupportedOperationException if this operation is used in
+	 * a JLS2, JLS3 or JLS4 AST
+	 * @since 3.9 BETA_JAVA8
+	 */
+	public IntersectionType newIntersectionType() {
+		return new IntersectionType(this);
 	}
 
 	/**
@@ -2366,9 +2546,7 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * <li>the given fragment is null</li>
-	 * <li>a cycle in would be created</li>
 	 * </ul>
 	 */
 	public VariableDeclarationExpression
@@ -2413,7 +2591,6 @@ public class AST {
 	 * <ul>
 	 * <li>the node belongs to a different AST</li>
 	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
 	 * <li>the variable declaration fragment is null</li>
 	 * </ul>
 	 */

@@ -1,14 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 292478 - Report potentially null across variable assignment,
- *     											    Contribution for bug 185682 - Increment/decrement operators mark local variables as read
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
+ *								bug 292478 - Report potentially null across variable assignment,
+ *								bug 185682 - Increment/decrement operators mark local variables as read
+ *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *     Jesper S Moller - <jesper@selskabet.org>   - Contributions for 
+ *     							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
+ *								bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -42,9 +52,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 
-/**
- * AspectJ Extension - support for FieldBinding.alwaysNeedsAccessMethod
- */
 public class SingleNameReference extends NameReference implements OperatorIds {
 
 	public static final int READ = 0;
@@ -73,10 +80,6 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 					if (!fieldInits.isDefinitelyAssigned(fieldBinding)) {
 						currentScope.problemReporter().uninitializedBlankFinalField(fieldBinding, this);
 					}
-				}
-				if (!fieldBinding.isStatic()) {
-					// https://bugs.eclipse.org/bugs/show_bug.cgi?id=318682
-					currentScope.resetEnclosingMethodStaticFlag();
 				}
 				manageSyntheticAccessIfNecessary(currentScope, flowInfo, true /*read-access*/);
 				break;
@@ -121,20 +124,26 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 				} else {
 					currentScope.problemReporter().cannotAssignToFinalField(fieldBinding, this);
 				}
-			}
-			if (!fieldBinding.isStatic()) {
-				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=318682
-				currentScope.resetEnclosingMethodStaticFlag();
+			} else if (!isCompound && fieldBinding.isNonNull()) {
+				// record assignment for detecting uninitialized non-null fields:
+				flowInfo.markAsDefinitelyAssigned(fieldBinding);
 			}
 			break;
 		case Binding.LOCAL : // assigning to a local variable
 			LocalVariableBinding localBinding = (LocalVariableBinding) this.binding;
+			final boolean isFinal = localBinding.isFinal();
 			if (!flowInfo.isDefinitelyAssigned(localBinding)){// for local variable debug attributes
 				this.bits |= ASTNode.FirstAssignmentToLocal;
 			} else {
 				this.bits &= ~ASTNode.FirstAssignmentToLocal;
 			}
-			if (localBinding.isFinal()) {
+			if (flowInfo.isPotentiallyAssigned(localBinding)) {
+				localBinding.tagBits &= ~TagBits.IsEffectivelyFinal;
+				if (!isFinal && (this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
+					currentScope.problemReporter().cannotReferToNonEffectivelyFinalOuterLocal(localBinding, this);
+				}
+			}
+			if (isFinal) {
 				if ((this.bits & ASTNode.DepthMASK) == 0) {
 					// tolerate assignment to final local in unreachable code (45674)
 					if ((isReachable && isCompound) || !localBinding.isBlankFinal()){
@@ -174,10 +183,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				if (!fieldInits.isDefinitelyAssigned(fieldBinding)) {
 					currentScope.problemReporter().uninitializedBlankFinalField(fieldBinding, this);
 				}
-			}
-			if (!fieldBinding.isStatic()) {
-				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=318682
-				currentScope.resetEnclosingMethodStaticFlag();
 			}
 			break;
 		case Binding.LOCAL : // reading a local variable
@@ -224,6 +229,8 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 		if (methodScope.isStatic) {
 			scope.problemReporter().staticFieldAccessToNonStaticVariable(this, fieldBinding);
 			return fieldBinding.type;
+		} else {
+			scope.tagAsAccessingEnclosingInstanceStateOf(fieldBinding.declaringClass, false /* type variable access */);
 		}
 	}
 
@@ -240,6 +247,20 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 	}
 	return fieldBinding.type;
 
+}
+
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	if (!super.checkNPE(scope, flowContext, flowInfo)) {
+		CompilerOptions compilerOptions = scope.compilerOptions();
+		if (compilerOptions.isAnnotationBasedNullAnalysisEnabled) {
+			VariableBinding var = nullAnnotatedVariableBinding(compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8);
+			if (var instanceof FieldBinding) {
+				checkNullableFieldDereference(scope, (FieldBinding) var, ((long)this.sourceStart<<32)+this.sourceEnd);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**
@@ -357,9 +378,8 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 			}
 			// 26903, need extra cast to store null in array local var
 			if (localBinding.type.isArrayType()
-				&& (assignment.expression.resolvedType == TypeBinding.NULL	// arrayLoc = null
-					|| ((assignment.expression instanceof CastExpression)	// arrayLoc = (type[])null
-						&& (((CastExpression)assignment.expression).innermostCastedExpression().resolvedType == TypeBinding.NULL)))){
+				&& ((assignment.expression instanceof CastExpression)	// arrayLoc = (type[])null
+						&& (((CastExpression)assignment.expression).innermostCastedExpression().resolvedType == TypeBinding.NULL))){
 				codeStream.checkcast(localBinding.type);
 			}
 
@@ -455,7 +475,8 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 					return;
 				}
 				// outer local?
-				if ((this.bits & ASTNode.DepthMASK) != 0) {
+				if ((this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
+					checkEffectiveFinality(localBinding, currentScope);
 					// outer local can be reached either through a synthetic arg or a synthetic field
 					VariableBinding[] path = currentScope.getEmulationPath(localBinding);
 					codeStream.generateOuterAccess(path, this, localBinding, currentScope);
@@ -798,6 +819,19 @@ public TypeBinding[] genericTypeArguments() {
 	return null;
 }
 
+public boolean isEquivalent(Reference reference) {
+	char[] otherToken = null;
+	if (reference instanceof SingleNameReference) {
+		otherToken = ((SingleNameReference) reference).token;
+	} else if (reference instanceof FieldReference) {
+		// test for comparison "f1" vs. "this.f1":
+		FieldReference fr = (FieldReference) reference;
+		if (fr.receiver.isThis() && !(fr.receiver instanceof QualifiedThisReference))
+			otherToken = fr.token;
+	}
+	return otherToken != null && CharOperation.equals(this.token, otherToken);
+}
+
 /**
  * Returns the local variable referenced by this node. Can be a direct reference (SingleNameReference)
  * or thru a cast expression etc...
@@ -812,9 +846,28 @@ public LocalVariableBinding localVariableBinding() {
 	return null;
 }
 
+public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotations) {
+	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
+		case Binding.FIELD : // reading a field
+		case Binding.LOCAL : // reading a local variable
+			if (supportTypeAnnotations 
+					|| (((VariableBinding)this.binding).tagBits & (TagBits.AnnotationNonNull|TagBits.AnnotationNullable)) != 0)
+				return (VariableBinding) this.binding;
+	}
+	return null;
+}
+
+public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	LocalVariableBinding local = localVariableBinding();
+	if (local != null) {
+		return flowInfo.nullStatus(local);
+	}
+	return super.nullStatus(flowInfo, flowContext);
+}
+
 public void manageEnclosingInstanceAccessIfNecessary(BlockScope currentScope, FlowInfo flowInfo) {
 	//If inlinable field, forget the access emulation, the code gen will directly target it
-	if (((this.bits & ASTNode.DepthMASK) == 0) || (this.constant != Constant.NotAConstant)) {
+	if (((this.bits & ASTNode.DepthMASK) == 0 && (this.bits & ASTNode.IsCapturedOuterLocal) == 0) || (this.constant != Constant.NotAConstant)) {
 		return;
 	}
 	if ((this.bits & ASTNode.RestrictiveFlagMASK) == Binding.LOCAL) {
@@ -881,22 +934,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 	}
 }
 
-public int nullStatus(FlowInfo flowInfo) {
-	if (this.constant != null && this.constant != Constant.NotAConstant) {
-		return FlowInfo.NON_NULL; // constant expression cannot be null
-	}
-	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
-		case Binding.FIELD : // reading a field
-			return FlowInfo.UNKNOWN;
-		case Binding.LOCAL : // reading a local variable
-			LocalVariableBinding local = (LocalVariableBinding) this.binding;
-			if (local != null)
-				return flowInfo.nullStatus(local);
-	}
-	return FlowInfo.NON_NULL; // never get there
-}
-
-	/**
+/**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression#postConversionType(Scope)
  */
 public TypeBinding postConversionType(Scope scope) {
@@ -972,8 +1010,9 @@ public TypeBinding resolveType(BlockScope scope) {
 					if (this.binding instanceof LocalVariableBinding) {
 						this.bits &= ~ASTNode.RestrictiveFlagMASK;  // clear bits
 						this.bits |= Binding.LOCAL;
-						if (!variable.isFinal() && (this.bits & ASTNode.DepthMASK) != 0) {
-							scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding)variable, this);
+						if (!variable.isFinal() && (this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
+							if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) // for 8, defer till effective finality could be ascertained.
+								scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding)variable, this);
 						}
 						variableType = variable.type;
 						this.constant = (this.bits & ASTNode.IsStrictlyAssigned) == 0 ? variable.constant() : Constant.NotAConstant;
@@ -1011,7 +1050,7 @@ public TypeBinding resolveType(BlockScope scope) {
 				return this.resolvedType = type;
 		}
 	}
-	// error scenarii
+	// error scenario
 	return this.resolvedType = reportError(scope);
 }
 
@@ -1027,5 +1066,9 @@ public void traverse(ASTVisitor visitor, ClassScope scope) {
 
 public String unboundReferenceErrorName(){
 	return new String(this.token);
+}
+
+public char[][] getName() {
+	return new char[][] {this.token};
 }
 }

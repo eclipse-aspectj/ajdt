@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -86,8 +90,8 @@ public SourceElementParser(
 		DefaultErrorHandlingPolicies.exitAfterAllProblems(),
 		options,
 		problemFactory) {
-		public void record(CategorizedProblem problem, CompilationResult unitResult, ReferenceContext context) {
-			unitResult.record(problem, context); // TODO (jerome) clients are trapping problems either through factory or requestor... is result storing needed?
+		public void record(CategorizedProblem problem, CompilationResult unitResult, ReferenceContext context, boolean mandatoryError) {
+			unitResult.record(problem, context, mandatoryError); // TODO (jerome) clients are trapping problems either through factory or requestor... is result storing needed?
 			SourceElementParser.this.requestor.acceptProblem(problem);
 		}
 	};
@@ -403,9 +407,9 @@ protected void consumeMemberValuePair() {
 		this.requestor.acceptMethodReference(memberValuepair.name, 0, memberValuepair.sourceStart);
 	}
 }
-protected void consumeMarkerAnnotation() {
-	super.consumeMarkerAnnotation();
-	Annotation annotation = (Annotation)this.expressionStack[this.expressionPtr];
+protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
+	super.consumeMarkerAnnotation(isTypeAnnotation);
+	Annotation annotation = (Annotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
 	if (this.reportReferenceInfo) { // accept annotation type reference
 		this.requestor.acceptAnnotationTypeReference(annotation.type.getTypeName(), annotation.sourceStart, annotation.sourceEnd);
 	}
@@ -520,16 +524,16 @@ protected void consumeMethodInvocationSuperWithTypeArguments() {
 			(int)(messageSend.nameSourcePosition >>> 32));
 	}
 }
-protected void consumeNormalAnnotation() {
-	super.consumeNormalAnnotation();
-	Annotation annotation = (Annotation)this.expressionStack[this.expressionPtr];
+protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
+	super.consumeNormalAnnotation(isTypeAnnotation);
+	Annotation annotation = (Annotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
 	if (this.reportReferenceInfo) { // accept annotation type reference
 		this.requestor.acceptAnnotationTypeReference(annotation.type.getTypeName(), annotation.sourceStart, annotation.sourceEnd);
 	}
 }
-protected void consumeSingleMemberAnnotation() {
-	super.consumeSingleMemberAnnotation();
-	SingleMemberAnnotation member = (SingleMemberAnnotation) this.expressionStack[this.expressionPtr];
+protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
+	super.consumeSingleMemberAnnotation(isTypeAnnotation);
+	SingleMemberAnnotation member = (SingleMemberAnnotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
 	if (this.reportReferenceInfo) {
 		this.requestor.acceptMethodReference(TypeConstants.VALUE, 0, member.sourceStart);
 	}
@@ -734,9 +738,12 @@ public TypeReference getTypeReference(int dim) {
 	/* build a Reference on a variable that may be qualified or not
 	 * This variable is a type reference and dim will be its dimensions
 	 */
+	Annotation [][] annotationsOnDimensions = null;
+	TypeReference ref;
 	int length = this.identifierLengthStack[this.identifierLengthPtr--];
 	if (length < 0) { //flag for precompiled type reference on base types
-		TypeReference ref = TypeReference.baseTypeReference(-length, dim);
+		annotationsOnDimensions = getAnnotationsOnDimensions(dim);
+		ref = TypeReference.baseTypeReference(-length, dim, annotationsOnDimensions);
 		ref.sourceStart = this.intStack[this.intPtr--];
 		if (dim == 0) {
 			ref.sourceEnd = this.intStack[this.intPtr--];
@@ -747,12 +754,11 @@ public TypeReference getTypeReference(int dim) {
 		if (this.reportReferenceInfo){
 				this.requestor.acceptTypeReference(ref.getParameterizedTypeName(), ref.sourceStart, ref.sourceEnd);
 		}
-		return ref;
 	} else {
 		int numberOfIdentifiers = this.genericsIdentifiersLengthStack[this.genericsIdentifiersLengthPtr--];
 		if (length != numberOfIdentifiers || this.genericsLengthStack[this.genericsLengthPtr] != 0) {
 			// generic type
-			TypeReference ref = getTypeReferenceForGenericType(dim, length, numberOfIdentifiers);
+			ref = getTypeReferenceForGenericType(dim, length, numberOfIdentifiers);
 			if (this.reportReferenceInfo) {
 				if (length == 1 && numberOfIdentifiers == 1) {
 					ParameterizedSingleTypeReference parameterizedSingleTypeReference = (ParameterizedSingleTypeReference) ref;
@@ -762,32 +768,34 @@ public TypeReference getTypeReference(int dim) {
 					this.requestor.acceptTypeReference(parameterizedQualifiedTypeReference.tokens, parameterizedQualifiedTypeReference.sourceStart, parameterizedQualifiedTypeReference.sourceEnd);
 				}
 			}
-			return ref;
 		} else if (length == 1) {
-			// single variable reference
+			// single type reference
 			this.genericsLengthPtr--; // pop the 0
 			if (dim == 0) {
-				SingleTypeReference ref =
+				ref =
 					new SingleTypeReference(
 						this.identifierStack[this.identifierPtr],
 						this.identifierPositionStack[this.identifierPtr--]);
 				if (this.reportReferenceInfo) {
-					this.requestor.acceptTypeReference(ref.token, ref.sourceStart);
+					this.requestor.acceptTypeReference(((SingleTypeReference)ref).token, ref.sourceStart);
 				}
-				return ref;
 			} else {
-				ArrayTypeReference ref =
+				annotationsOnDimensions = getAnnotationsOnDimensions(dim);
+				ref =
 					new ArrayTypeReference(
 						this.identifierStack[this.identifierPtr],
 						dim,
+						annotationsOnDimensions,
 						this.identifierPositionStack[this.identifierPtr--]);
 				ref.sourceEnd = this.endPosition;
-				if (this.reportReferenceInfo) {
-					this.requestor.acceptTypeReference(ref.token, ref.sourceStart);
+				if (annotationsOnDimensions != null) {
+					ref.bits |= ASTNode.HasTypeAnnotations;
 				}
-				return ref;
+				if (this.reportReferenceInfo) {
+					this.requestor.acceptTypeReference(((ArrayTypeReference)ref).token, ref.sourceStart);
+				}
 			}
-		} else {//Qualified variable reference
+		} else { // Qualified type reference
 			this.genericsLengthPtr--;
 			char[][] tokens = new char[length][];
 			this.identifierPtr -= length;
@@ -800,26 +808,48 @@ public TypeReference getTypeReference(int dim) {
 				0,
 				length);
 			if (dim == 0) {
-				QualifiedTypeReference ref = new QualifiedTypeReference(tokens, positions);
+				ref = new QualifiedTypeReference(tokens, positions);
 				if (this.reportReferenceInfo) {
-					this.requestor.acceptTypeReference(ref.tokens, ref.sourceStart, ref.sourceEnd);
+					this.requestor.acceptTypeReference(((QualifiedTypeReference)ref).tokens, ref.sourceStart, ref.sourceEnd);
 				}
-				return ref;
 			} else {
-				ArrayQualifiedTypeReference ref =
-					new ArrayQualifiedTypeReference(tokens, dim, positions);
+				annotationsOnDimensions = getAnnotationsOnDimensions(dim);
+				ref =
+					new ArrayQualifiedTypeReference(tokens, dim, annotationsOnDimensions, positions);
 				ref.sourceEnd = this.endPosition;
-				if (this.reportReferenceInfo) {
-					this.requestor.acceptTypeReference(ref.tokens, ref.sourceStart, ref.sourceEnd);
+				if (annotationsOnDimensions != null) {
+					ref.bits |= ASTNode.HasTypeAnnotations;
 				}
-				return ref;
+				if (this.reportReferenceInfo) {
+					this.requestor.acceptTypeReference(((ArrayQualifiedTypeReference)ref).tokens, ref.sourceStart, ref.sourceEnd);
+				}
 			}
 		}
 	}
+	int levels = ref.getAnnotatableLevels();
+	for (int i = levels - 1; i >= 0; i--) {
+		if ((length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--]) != 0) {
+			if (ref.annotations == null)
+				ref.annotations = new Annotation[levels][];
+			System.arraycopy(
+					this.typeAnnotationStack,
+					(this.typeAnnotationPtr -= length) + 1,
+					ref.annotations[i] = new Annotation[length],
+					0,
+					length);
+			if (i == 0) {
+				ref.sourceStart = ref.annotations[0][0].sourceStart;
+			}
+			ref.bits |= ASTNode.HasTypeAnnotations;
+		}
+	}
+	return ref;
 }
-public NameReference getUnspecifiedReference() {
+public NameReference getUnspecifiedReference(boolean rejectTypeAnnotations) {
 	/* build a (unspecified) NameReference which may be qualified*/
-
+    if (rejectTypeAnnotations) {
+    	consumeNonTypeUseName();
+    }
 	int length;
 	if ((length = this.identifierLengthStack[this.identifierLengthPtr--]) == 1) {
 		// single variable reference
@@ -857,7 +887,7 @@ public NameReference getUnspecifiedReferenceOptimized() {
 	a field access. This optimization is IMPORTANT while it results
 	that when a NameReference is build, the type checker should always
 	look for that it is not a type reference */
-
+	consumeNonTypeUseName();
 	int length;
 	if ((length = this.identifierLengthStack[this.identifierLengthPtr--]) == 1) {
 		// single variable reference

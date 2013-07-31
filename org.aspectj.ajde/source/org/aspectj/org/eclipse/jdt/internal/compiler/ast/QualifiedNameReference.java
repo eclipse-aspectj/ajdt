@@ -1,14 +1,30 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 185682 - Increment/decrement operators mark local variables as read
  *     Palo Alto Research Center, Incorporated - AspectJ adaptation
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
+ *     							bug 185682 - Increment/decrement operators mark local variables as read
+ *								bug 186342 - [compiler][null] Using annotations for null checking
+ *								bug 365519 - editorial cleanup after bug 186342 and bug 365387
+ *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *     Jesper S Moller - Contributions for
+ *								bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
+ *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								bug 402993 - [null] Follow up of bug 401088: Missing warning about redundant null check
+ *     Jesper S Moller <jesper@selskabet.org> - Contributions for
+ *								bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -42,9 +58,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 
-/**
- * AspectJ Extension - support for FieldBinding.alwaysNeedsAccessMethod
- */
 public class QualifiedNameReference extends NameReference {
 
 	public char[][] tokens;
@@ -85,9 +98,6 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 					currentScope.problemReporter().uninitializedBlankFinalField(lastFieldBinding, this);
 				}
 			}
-			if (!lastFieldBinding.isStatic()) {
-				currentScope.resetEnclosingMethodStaticFlag();
-			}
 			break;
 		case Binding.LOCAL :
 			// first binding is a local variable
@@ -102,7 +112,7 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 				localBinding.useFlag = LocalVariableBinding.FAKE_USED;
 			}
 			if (needValue) {
-				checkNPE(currentScope, flowContext, flowInfo, true);
+				checkInternalNPE(currentScope, flowContext, flowInfo, true);
 			}
 	}
 
@@ -163,6 +173,7 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 			}
 		}
 	}
+	// note: not covering def.assign for @NonNull: QNR cannot provably refer to a variable of the current object
 	manageSyntheticAccessIfNecessary(currentScope, lastFieldBinding, -1 /*write-access*/, flowInfo);
 
 	return flowInfo;
@@ -194,9 +205,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 					}
 				}
 			}
-			if (!fieldBinding.isStatic()) {
-				currentScope.resetEnclosingMethodStaticFlag();
-			}
 			break;
 		case Binding.LOCAL : // reading a local variable
 			LocalVariableBinding localBinding;
@@ -208,9 +216,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			} else if (localBinding.useFlag == LocalVariableBinding.UNUSED) {
 				localBinding.useFlag = LocalVariableBinding.FAKE_USED;
 			}
-			if (needValue) {
-				checkNPE(currentScope, flowContext, flowInfo, true);
-			}
+	}
+	if (needValue) {
+		checkInternalNPE(currentScope, flowContext, flowInfo, true);
 	}
 	if (needValue) {
 		manageEnclosingInstanceAccessIfNecessary(currentScope, flowInfo);
@@ -227,9 +235,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	return flowInfo;
 }
 
-public void checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, boolean checkString) {
-	// cannot override localVariableBinding because this would project o.m onto o when
-	// analyzing assignments
+/* check if any dot in this QNR may trigger an NPE. */
+private void checkInternalNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, boolean checkString) {
 	if ((this.bits & ASTNode.RestrictiveFlagMASK) == Binding.LOCAL) {
 		LocalVariableBinding local = (LocalVariableBinding) this.binding;
 		if (local != null &&
@@ -241,17 +248,41 @@ public void checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInf
 			}
 			flowInfo.markAsComparedEqualToNonNull(local);
 			// from thereon it is set
-			if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
-				flowInfo.markedAsNullOrNonNullInAssertExpression(local);
-			}
-			if (flowContext.initsOnFinally != null) {
-				flowContext.initsOnFinally.markAsComparedEqualToNonNull(local);
-				if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
-					flowContext.initsOnFinally.markedAsNullOrNonNullInAssertExpression(local);
-				}
-			}
+			flowContext.markFinallyNullStatus(local, FlowInfo.NON_NULL);
 		}
 	}
+	if (this.otherBindings != null) {
+		if ((this.bits & ASTNode.RestrictiveFlagMASK) == Binding.FIELD) {
+			// is the first field dereferenced annotated Nullable? If so, report immediately
+			checkNullableFieldDereference(scope, (FieldBinding) this.binding, this.sourcePositions[0]);
+		}
+		// look for annotated fields, they do not depend on flow context -> check immediately:
+		int length = this.otherBindings.length - 1; // don't check the last binding
+		for (int i = 0; i < length; i++) {
+			checkNullableFieldDereference(scope, this.otherBindings[i], this.sourcePositions[i+1]);
+		}
+	}
+}
+
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	if (super.checkNPE(scope, flowContext, flowInfo)) {
+		return true;
+	}
+	FieldBinding fieldBinding = null;
+	long position = 0L;
+	if (this.otherBindings == null) {
+		if ((this.bits & RestrictiveFlagMASK) == Binding.FIELD) {
+			fieldBinding = (FieldBinding) this.binding;
+			position = this.sourcePositions[0];
+		}
+	} else {
+		fieldBinding = this.otherBindings[this.otherBindings.length - 1];
+		position = this.sourcePositions[this.sourcePositions.length - 1];
+	}
+	if (fieldBinding != null) {
+		return checkNullableFieldDereference(scope, fieldBinding, position);
+	}
+	return false;
 }
 
 /**
@@ -556,7 +587,8 @@ public FieldBinding generateReadSequence(BlockScope currentScope, CodeStream cod
 				// no implicit conversion
 			} else {
 				// outer local?
-				if ((this.bits & ASTNode.DepthMASK) != 0) {
+				if ((this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
+					checkEffectiveFinality(localBinding, currentScope);
 					// outer local can be reached either through a synthetic arg or a synthetic field
 					VariableBinding[] path = currentScope.getEmulationPath(localBinding);
 					codeStream.generateOuterAccess(path, this, localBinding, currentScope);
@@ -786,9 +818,47 @@ public TypeBinding getOtherFieldBindings(BlockScope scope) {
 			: type;
 }
 
+public boolean isEquivalent(Reference reference) {
+	if (reference instanceof FieldReference) {
+		return reference.isEquivalent(this); // comparison FR <-> QNR is implemented only once
+	}
+	if (!(reference instanceof QualifiedNameReference)) return false;
+	// straight-forward test of equality of two QNRs:
+	QualifiedNameReference qualifiedReference = (QualifiedNameReference) reference;
+	if (this.tokens.length != qualifiedReference.tokens.length) return false;
+	if (this.binding != qualifiedReference.binding) return false;
+	if (this.otherBindings != null) {
+		if (qualifiedReference.otherBindings == null) return false;
+		int len = this.otherBindings.length;
+		if (len != qualifiedReference.otherBindings.length) return false;
+		for (int i=0; i<len; i++) {
+			if (this.otherBindings[i] != qualifiedReference.otherBindings[i]) return false;
+		}
+	} else if (qualifiedReference.otherBindings != null) {
+		return false;
+	}
+	return true;
+}
+
+public boolean isFieldAccess() {
+	if (this.otherBindings != null) {
+		return true;
+	}
+	return (this.bits & ASTNode.RestrictiveFlagMASK) == Binding.FIELD;
+}
+
+public FieldBinding lastFieldBinding() {
+	if (this.otherBindings != null) {
+		return this.otherBindings[this.otherBindings.length - 1];		
+	} else if (this.binding != null && (this.bits & RestrictiveFlagMASK) == Binding.FIELD) {
+		return (FieldBinding) this.binding;
+	}
+	return null;
+}
+
 public void manageEnclosingInstanceAccessIfNecessary(BlockScope currentScope, FlowInfo flowInfo) {
 	//If inlinable field, forget the access emulation, the code gen will directly target it
-	if (((this.bits & ASTNode.DepthMASK) == 0) || (this.constant != Constant.NotAConstant)) {
+	if (((this.bits & ASTNode.DepthMASK) == 0 && (this.bits & ASTNode.IsCapturedOuterLocal) == 0) || (this.constant != Constant.NotAConstant)) {
 		return;
 	}
 	if ((this.bits & ASTNode.RestrictiveFlagMASK) == Binding.LOCAL) {
@@ -868,10 +938,6 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FieldBindi
 			return;
 		}
 	}
-}
-
-public int nullStatus(FlowInfo flowInfo) {
-	return FlowInfo.UNKNOWN;
 }
 
 public Constant optimizedBooleanConstant() {
@@ -971,8 +1037,9 @@ public TypeBinding resolveType(BlockScope scope) {
 					this.bits &= ~ASTNode.RestrictiveFlagMASK; // clear bits
 					this.bits |= Binding.LOCAL;
 					LocalVariableBinding local = (LocalVariableBinding) this.binding;
-					if (!local.isFinal() && ((this.bits & ASTNode.DepthMASK) != 0)) {
-						scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding) this.binding, this);
+					if (!local.isFinal() && (this.bits & ASTNode.IsCapturedOuterLocal) != 0) { 
+						if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) // for 8, defer till effective finality could be ascertained.
+							scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding) this.binding, this);
 					}
 					if (local.type != null && (local.type.tagBits & TagBits.HasMissingType) != 0) {
 						// only complain if field reference (for local, its type got flagged already)
@@ -999,7 +1066,11 @@ public TypeBinding resolveType(BlockScope scope) {
 							&& methodScope.lastVisibleFieldID >= 0
 							&& fieldBinding.id >= methodScope.lastVisibleFieldID
 							&& (!fieldBinding.isStatic() || methodScope.isStatic)) {
-						scope.problemReporter().forwardReference(this, this.indexOfFirstFieldBinding-1, fieldBinding);
+						if (methodScope.insideTypeAnnotation && fieldBinding.id == methodScope.lastVisibleFieldID) {
+							// false alarm, location is NOT a field initializer but the value in a memberValuePair
+						} else {
+							scope.problemReporter().forwardReference(this, this.indexOfFirstFieldBinding-1, fieldBinding);
+						}
 					}
 					if (isFieldUseDeprecated(fieldBinding, scope, this.indexOfFirstFieldBinding == this.tokens.length ? this.bits : 0)) {
 						scope.problemReporter().deprecatedField(fieldBinding, this);	
@@ -1021,12 +1092,18 @@ public TypeBinding resolveType(BlockScope scope) {
 							scope.problemReporter().indirectAccessToStaticField(this, fieldBinding);
 						}						
 					} else {
-						if (this.indexOfFirstFieldBinding == 1 && scope.compilerOptions().getSeverity(CompilerOptions.UnqualifiedFieldAccess) != ProblemSeverities.Ignore) {
-							scope.problemReporter().unqualifiedFieldAccess(this, fieldBinding);
+						boolean inStaticContext = scope.methodScope().isStatic;
+						if (this.indexOfFirstFieldBinding == 1) {
+							if (scope.compilerOptions().getSeverity(CompilerOptions.UnqualifiedFieldAccess) != ProblemSeverities.Ignore) {
+								scope.problemReporter().unqualifiedFieldAccess(this, fieldBinding);
+							}
+							if (!inStaticContext) {
+								scope.tagAsAccessingEnclosingInstanceStateOf(fieldBinding.declaringClass, false /* type variable access */);
+							}
 						}
 						//must check for the static status....
 						if (this.indexOfFirstFieldBinding > 1  //accessing to a field using a type as "receiver" is allowed only with static field
-								 || scope.methodScope().isStatic) { 	// the field is the first token of the qualified reference....
+								 || inStaticContext) { 	// the field is the first token of the qualified reference....
 							scope.problemReporter().staticFieldAccessToNonStaticVariable(this, fieldBinding);
 							return null;
 						 }
@@ -1098,5 +1175,24 @@ public void traverse(ASTVisitor visitor, ClassScope scope) {
 
 public String unboundReferenceErrorName() {
 	return new String(this.tokens[0]);
+}
+
+public char[][] getName() {
+	return this.tokens;
+}
+
+public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotations) {
+	if (this.binding != null && isFieldAccess()) {
+		FieldBinding fieldBinding;
+		if (this.otherBindings == null) {
+			fieldBinding = (FieldBinding) this.binding;
+		} else {
+			fieldBinding = this.otherBindings[this.otherBindings.length - 1];
+		}
+		if (supportTypeAnnotations || fieldBinding.isNullable() || fieldBinding.isNonNull()) {
+			return fieldBinding;
+		}
+	}
+	return null;
 }
 }

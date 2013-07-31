@@ -1,12 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 382350 - [1.8][compiler] Unable to invoke inherited default method via I.super.m() syntax
+ *								bug 404649 - [1.8][compiler] detect illegal reference to indirect or redundant super
+ *								bug 404728 - [1.8]NPE on QualifiedSuperReference error
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -37,6 +45,10 @@ public TypeBinding resolveType(BlockScope scope) {
 		return null;
 	}
 	super.resolveType(scope);
+	if (this.resolvedType != null && !this.resolvedType.isValidBinding()) {
+		scope.problemReporter().illegalSuperAccess(this.qualification.resolvedType, this.resolvedType, this);
+		return null;
+	}
 	if (this.currentCompatibleType == null)
 		return null; // error case
 
@@ -44,7 +56,43 @@ public TypeBinding resolveType(BlockScope scope) {
 		scope.problemReporter().cannotUseSuperInJavaLangObject(this);
 		return null;
 	}
-	return this.resolvedType = this.currentCompatibleType.superclass();
+	return this.resolvedType = (this.currentCompatibleType.isInterface()
+			? this.currentCompatibleType
+			: this.currentCompatibleType.superclass());
+}
+
+int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type) {
+	if (type.isInterface()) {
+		// super call to an overridden default method? (not considering outer enclosings)
+		ReferenceBinding[] supers = enclosingType.superInterfaces();
+		int length = supers.length;
+		boolean isLegal = true; // false => compoundName != null && closestMatch != null
+		char[][] compoundName = null;
+		ReferenceBinding closestMatch = null;
+		for (int i = 0; i < length; i++) {
+			if (supers[i].erasure() == type) {
+				this.currentCompatibleType = closestMatch = supers[i];
+			} else if (supers[i].erasure().isCompatibleWith(type)) {
+				isLegal = false;
+				compoundName = supers[i].compoundName;
+				if (closestMatch == null)
+					closestMatch = supers[i];
+				// keep looking to ensure we always find the referenced type (even if illegal) 
+			}
+		}
+		if (!isLegal) {
+			this.currentCompatibleType = null;
+			// Please note the slightly unconventional use of the ProblemReferenceBinding:
+			// we use the problem's compoundName to report the type being illegally bypassed,
+			// whereas the closestMatch denotes the resolved (though illegal) target type
+			// for downstream resolving.
+			this.resolvedType =  new ProblemReferenceBinding(compoundName, 
+					closestMatch, ProblemReasons.AttemptToBypassDirectSuper);
+		}
+		// AspectJ: remove this line. I think we still want to call the super
+		// return 0; // never an outer enclosing type
+	}
+	return super.findCompatibleEnclosing(enclosingType, type);
 }
 
 public void traverse(

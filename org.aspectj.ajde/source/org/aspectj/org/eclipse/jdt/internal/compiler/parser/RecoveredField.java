@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.Set;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
@@ -76,7 +77,9 @@ public RecoveredElement add(Statement statement, int bracketBalanceValue) {
 	if (this.alreadyCompletedFieldInitialization || !(statement instanceof Expression)) {
 		return super.add(statement, bracketBalanceValue);
 	} else {
-		this.alreadyCompletedFieldInitialization = true;
+		if (statement.sourceEnd > 0)
+				this.alreadyCompletedFieldInitialization = true;
+		// else we may still be inside the initialization, having parsed only a part of it yet
 		this.fieldDeclaration.initialization = (Expression)statement;
 		this.fieldDeclaration.declarationSourceEnd = statement.sourceEnd;
 		this.fieldDeclaration.declarationEnd = statement.sourceEnd;
@@ -196,6 +199,12 @@ public FieldDeclaration updatedFieldDeclaration(int depth, Set knownTypes){
 
 	if (this.anonymousTypes != null) {
 		if(this.fieldDeclaration.initialization == null) {
+			ArrayInitializer recoveredInitializers = null;
+			int recoveredInitializersCount = 0;
+			if (this.anonymousTypeCount > 1) {
+				recoveredInitializers = new ArrayInitializer();
+				recoveredInitializers.expressions = new Expression[this.anonymousTypeCount];
+			}
 			for (int i = 0; i < this.anonymousTypeCount; i++){
 				RecoveredType recoveredType = this.anonymousTypes[i];
 				TypeDeclaration typeDeclaration = recoveredType.typeDeclaration;
@@ -206,7 +215,15 @@ public FieldDeclaration updatedFieldDeclaration(int depth, Set knownTypes){
 				if (recoveredType.preserveContent){
 					TypeDeclaration anonymousType = recoveredType.updatedTypeDeclaration(depth + 1, knownTypes);
 					if (anonymousType != null) {
-						this.fieldDeclaration.initialization = anonymousType.allocation;
+						if (this.anonymousTypeCount > 1) {
+							if (recoveredInitializersCount == 0) {
+								this.fieldDeclaration.initialization = recoveredInitializers;
+							}
+							recoveredInitializers.expressions[recoveredInitializersCount++] = anonymousType.allocation;
+						}
+						else {
+							this.fieldDeclaration.initialization = anonymousType.allocation;							
+						}
 						int end = anonymousType.declarationSourceEnd;
 						if (end > this.fieldDeclaration.declarationSourceEnd) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=307337
 							this.fieldDeclaration.declarationSourceEnd = end;

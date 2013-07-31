@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     Stephan Herrmann - Contributions for 
+ *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     							bug 349326 - [1.7] new warning for missing try-with-resources
+ *								bug 265744 - Enum switch should warn about missing default
+ *								bug 374605 - Unreasonable warning for enum-based switch statements
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import java.util.Arrays;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
@@ -65,7 +68,7 @@ public class SwitchStatement extends Statement {
 				this.expression.checkNPE(currentScope, flowContext, flowInfo);
 			}
 			SwitchFlowContext switchContext =
-				new SwitchFlowContext(flowContext, this, (this.breakLabel = new BranchLabel()));
+				new SwitchFlowContext(flowContext, this, (this.breakLabel = new BranchLabel()), true);
 
 			// analyse the block by considering specially the case/default statements (need to bind them
 			// to the entry point)
@@ -101,7 +104,7 @@ public class SwitchStatement extends Statement {
 					} else {
 						fallThroughState = FALLTHROUGH; // reset below if needed
 					}
-					if ((complaintLevel = statement.complainIfUnreachable(caseInits, this.scope, complaintLevel)) < Statement.COMPLAINED_UNREACHABLE) {
+					if ((complaintLevel = statement.complainIfUnreachable(caseInits, this.scope, complaintLevel, true)) < Statement.COMPLAINED_UNREACHABLE) {
 						caseInits = statement.analyseCode(this.scope, switchContext, caseInits);
 						if (caseInits == FlowInfo.DEAD_END) {
 							fallThroughState = ESCAPING;
@@ -144,8 +147,8 @@ public class SwitchStatement extends Statement {
 	 * Switch on String code generation
 	 * This assumes that hashCode() specification for java.lang.String is API
 	 * and is stable.
-	 * @see "http://java.sun.com/j2se/1.4.2/docs/api/java/lang/String.html"
-	 * @see "http://download.oracle.com/docs/cd/E17409_01/javase/6/docs/api/java/lang/String.html"
+	 *
+	 * @see "http://download.oracle.com/javase/6/docs/api/java/lang/String.html"
 	 *
 	 * @param currentScope org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope
 	 * @param codeStream org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream
@@ -386,7 +389,7 @@ public class SwitchStatement extends Statement {
 				} else {
 					codeStream.lookupswitch(defaultLabel, this.constants, sortedIndexes, caseLabels);
 				}
-				codeStream.updateLastRecordedEndPC(this.scope, codeStream.position);
+				codeStream.recordPositionsFrom(codeStream.position, this.expression.sourceEnd);
 			} else if (valueRequired) {
 				codeStream.pop();
 			}
@@ -457,6 +460,7 @@ public class SwitchStatement extends Statement {
 			boolean isEnumSwitch = false;
 			boolean isStringSwitch = false;
 			TypeBinding expressionType = this.expression.resolveType(upperScope);
+			CompilerOptions compilerOptions = upperScope.compilerOptions();
 			if (expressionType != null) {
 				this.expression.computeConversion(upperScope, expressionType, expressionType);
 				checkType: {
@@ -470,11 +474,14 @@ public class SwitchStatement extends Statement {
 							break checkType;
 					} else if (expressionType.isEnum()) {
 						isEnumSwitch = true;
+						if (compilerOptions.complianceLevel < ClassFileConstants.JDK1_5) {
+							upperScope.problemReporter().incorrectSwitchType(this.expression, expressionType); // https://bugs.eclipse.org/bugs/show_bug.cgi?id=360317
+						}
 						break checkType;
 					} else if (upperScope.isBoxingCompatibleWith(expressionType, TypeBinding.INT)) {
 						this.expression.computeConversion(upperScope, TypeBinding.INT, expressionType);
 						break checkType;
-					} else if (upperScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK1_7 && expressionType.id == TypeIds.T_JavaLangString) {
+					} else if (compilerOptions.complianceLevel >= ClassFileConstants.JDK1_7 && expressionType.id == TypeIds.T_JavaLangString) {
 						isStringSwitch = true;
 						break checkType;
 					}
@@ -539,23 +546,37 @@ public class SwitchStatement extends Statement {
 					upperScope.problemReporter().undocumentedEmptyBlock(this.blockStart, this.sourceEnd);
 				}
 			}
-			// for enum switch, check if all constants are accounted for (if no default)
-			if (isEnumSwitch && this.defaultCase == null
-					&& upperScope.compilerOptions().getSeverity(CompilerOptions.IncompleteEnumSwitch) != ProblemSeverities.Ignore) {
-				int constantCount = this.constants == null ? 0 : this.constants.length; // could be null if no case statement
-				if (constantCount == this.caseCount
-						&& this.caseCount != ((ReferenceBinding)expressionType).enumConstantCount()) {
-					FieldBinding[] enumFields = ((ReferenceBinding)expressionType.erasure()).fields();
-					for (int i = 0, max = enumFields.length; i <max; i++) {
-						FieldBinding enumConstant = enumFields[i];
-						if ((enumConstant.modifiers & ClassFileConstants.AccEnum) == 0) continue;
-						findConstant : {
-							for (int j = 0; j < this.caseCount; j++) {
-								if ((enumConstant.id + 1) == this.constants[j]) // zero should not be returned see bug 141810
-									break findConstant;
+			// check default case for all kinds of switch:
+			if (this.defaultCase == null) {
+				if (compilerOptions.getSeverity(CompilerOptions.MissingDefaultCase) == ProblemSeverities.Ignore) {
+					if (isEnumSwitch) {
+						upperScope.methodScope().hasMissingSwitchDefault = true;
+					}
+				} else {
+					upperScope.problemReporter().missingDefaultCase(this, isEnumSwitch, expressionType);
+				}
+			}
+			// for enum switch, check if all constants are accounted for (perhaps depending on existence of a default case)
+			if (isEnumSwitch && compilerOptions.complianceLevel >= ClassFileConstants.JDK1_5) {
+				if (this.defaultCase == null || compilerOptions.reportMissingEnumCaseDespiteDefault) {
+					int constantCount = this.constants == null ? 0 : this.constants.length; // could be null if no case statement
+					if (constantCount == this.caseCount
+							&& this.caseCount != ((ReferenceBinding)expressionType).enumConstantCount()) {
+						FieldBinding[] enumFields = ((ReferenceBinding)expressionType.erasure()).fields();
+						for (int i = 0, max = enumFields.length; i <max; i++) {
+							FieldBinding enumConstant = enumFields[i];
+							if ((enumConstant.modifiers & ClassFileConstants.AccEnum) == 0) continue;
+							findConstant : {
+								for (int j = 0; j < this.caseCount; j++) {
+									if ((enumConstant.id + 1) == this.constants[j]) // zero should not be returned see bug 141810
+										break findConstant;
+								}
+								// enum constant did not get referenced from switch
+								boolean suppress = (this.defaultCase != null && (this.defaultCase.bits & DocumentedCasesOmitted) != 0);
+								if (!suppress) {
+									upperScope.problemReporter().missingEnumConstantCase(this, enumConstant);
+								}
 							}
-							// enum constant did not get referenced from switch
-							upperScope.problemReporter().missingEnumConstantCase(this, enumConstant);
 						}
 					}
 				}

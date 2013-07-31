@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,6 +29,7 @@ public class JavaCorePreferenceInitializer extends AbstractPreferenceInitializer
 	 */
 	public void initializeDefaultPreferences() {
 		// If modified, also modify the method JavaModelManager#getDefaultOptionsNoInitialization()
+		// and also consider updating org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main#initializeWarnings(String)
 		// Get options names set
 		HashSet optionNames = JavaModelManager.getJavaModelManager().optionNames;
 
@@ -58,7 +59,7 @@ public class JavaCorePreferenceInitializer extends AbstractPreferenceInitializer
 		defaultOptionsMap.put(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL, JavaCore.IGNORE);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, JavaCore.ENABLED);
 		defaultOptionsMap.put(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, JavaCore.ENABLED);
-		defaultOptionsMap.put(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, JavaCore.WARNING);
+		defaultOptionsMap.put(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, JavaCore.ERROR);
 
 		// encoding setting comes from resource plug-in
 		optionNames.add(JavaCore.CORE_ENCODING);

@@ -1,14 +1,31 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
- *******************************************************************************/
+ *     Stephan Herrmann - Contributions for
+ *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     							bug 349326 - [1.7] new warning for missing try-with-resources
+ *								bug 186342 - [compiler][null] Using annotations for null checking
+ *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
+ *								bug 370639 - [compiler][resource] restore the default for resource leak warnings
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
+ *								bug 395977 - [compiler][resource] Resource leak warning behavior possibly incorrect for anonymous inner class
+ *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *     Jesper S Moller <jesper@selskabet.org> - Contributions for
+ *								bug 378674 - "The method can be declared as static" is wrong
+ *        Andy Clement - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ ******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -59,6 +76,17 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 		// analyse the enclosing instance
 		if (this.enclosingInstance != null) {
 			flowInfo = this.enclosingInstance.analyseCode(currentScope, flowContext, flowInfo);
+		} else {
+			if (this.binding != null && this.binding.declaringClass != null) {
+				ReferenceBinding superclass = this.binding.declaringClass.superclass();
+				if (superclass != null && superclass.isMemberType() && !superclass.isStatic()) {
+					// creating an anonymous type of a non-static member type without an enclosing instance of parent type
+					currentScope.tagAsAccessingEnclosingInstanceStateOf(superclass.enclosingType(), false /* type variable access */);
+					// Reviewed for https://bugs.eclipse.org/bugs/show_bug.cgi?id=378674 :
+					// The corresponding problem (when called from static) is not produced until during code generation
+				}
+			}
+			
 		}
 
 		// check captured variables are initialized in current context (26134)
@@ -71,12 +99,19 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 
 		// process arguments
 		if (this.arguments != null) {
+			boolean analyseResources = currentScope.compilerOptions().analyseResourceLeaks;
+			boolean hasResourceWrapperType = analyseResources 
+						&& this.resolvedType instanceof ReferenceBinding 
+						&& ((ReferenceBinding)this.resolvedType).hasTypeBit(TypeIds.BitWrapperCloseable);
 			for (int i = 0, count = this.arguments.length; i < count; i++) {
 				flowInfo = this.arguments[i].analyseCode(currentScope, flowContext, flowInfo);
-				if ((this.arguments[i].implicitConversion & TypeIds.UNBOXING) != 0) {
-					this.arguments[i].checkNPE(currentScope, flowContext, flowInfo);
+				if (analyseResources && !hasResourceWrapperType) { // allocation of wrapped closeables is analyzed specially
+					// if argument is an AutoCloseable insert info that it *may* be closed (by the target method, i.e.)
+					flowInfo = FakedTrackingVariable.markPassedToOutside(currentScope, this.arguments[i], flowInfo, flowContext, false);
 				}
+				this.arguments[i].checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
 			}
+			analyseArguments(currentScope, flowContext, flowInfo, this.binding, this.arguments);
 		}
 
 		// analyse the anonymous nested type
@@ -98,8 +133,18 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				flowInfo.unconditionalCopy(),
 				currentScope);
 		}
+
+		// after having analysed exceptions above start tracking newly allocated resource:
+		if (currentScope.compilerOptions().analyseResourceLeaks && FakedTrackingVariable.isAnyCloseable(this.resolvedType)) {
+			FakedTrackingVariable.analyseCloseableAllocation(currentScope, flowInfo, this);
+		}
+
 		manageEnclosingInstanceAccessIfNecessary(currentScope, flowInfo);
 		manageSyntheticAccessIfNecessary(currentScope, flowInfo);
+
+		// account for possible exceptions thrown by constructor execution:
+		flowContext.recordAbruptExit();
+
 		return flowInfo;
 	}
 
@@ -114,7 +159,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 		int pc = codeStream.position;
 		MethodBinding codegenBinding = this.binding.original();
 		ReferenceBinding allocatedType = codegenBinding.declaringClass;
-		codeStream.new_(allocatedType);
+		codeStream.new_(this.type, allocatedType);
 		boolean isUnboxing = (this.implicitConversion & TypeIds.UNBOXING) != 0;
 		if (valueRequired || isUnboxing) {
 			codeStream.dup();
@@ -147,7 +192,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 
 		// invoke constructor
 		if (this.syntheticAccessor == null) {
-			codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, null /* default declaringClass */);
+			codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, null /* default declaringClass */, this.typeArguments);
 		} else {
 			// synthetic accessor got some extra arguments appended to its signature, which need values
 			for (int i = 0,
@@ -328,18 +373,23 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 
 		// will check for null after args are resolved
 		TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
+		boolean polyExpressionSeen = false;
 		if (this.arguments != null) {
 			int length = this.arguments.length;
 			argumentTypes = new TypeBinding[length];
+			TypeBinding argumentType;
 			for (int i = 0; i < length; i++) {
 				Expression argument = this.arguments[i];
 				if (argument instanceof CastExpression) {
 					argument.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
 					argsContainCast = true;
 				}
-				if ((argumentTypes[i] = argument.resolveType(scope)) == null){
+				argument.setExpressionContext(INVOCATION_CONTEXT);
+				if ((argumentType = argumentTypes[i] = argument.resolveType(scope)) == null){
 					hasError = true;
 				}
+				if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE)
+					polyExpressionSeen = true;
 			}
 		}
 
@@ -403,7 +453,10 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				receiverType = this.type.resolvedType = scope.environment().createParameterizedType(((ParameterizedTypeBinding) receiverType).genericType(), inferredTypes, ((ParameterizedTypeBinding) receiverType).enclosingType());
 			}
 			ReferenceBinding allocationType = (ReferenceBinding) receiverType;
-			if ((this.binding = scope.getConstructor(allocationType, argumentTypes, this)).isValidBinding()) {
+			this.binding = scope.getConstructor(allocationType, argumentTypes, this);
+			if (polyExpressionSeen && polyExpressionsHaveErrors(scope, this.binding, this.arguments, argumentTypes))
+				return null;
+			if (this.binding.isValidBinding()) {	
 				if (isMethodUseDeprecated(this.binding, scope, true)) {
 					scope.problemReporter().deprecatedMethod(this.binding, this);
 				}
@@ -468,6 +521,8 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 			return null; // stop secondary errors
 		}
 		MethodBinding inheritedBinding = scope.getConstructor(anonymousSuperclass, argumentTypes, this);
+		if (polyExpressionSeen && polyExpressionsHaveErrors(scope, inheritedBinding, this.arguments, argumentTypes))
+			return null;
 		if (!inheritedBinding.isValidBinding()) {
 			if (inheritedBinding.declaringClass == null) {
 				inheritedBinding.declaringClass = anonymousSuperclass;

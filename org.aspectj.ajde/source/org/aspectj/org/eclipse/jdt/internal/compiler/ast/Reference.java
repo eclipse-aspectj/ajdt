@@ -1,13 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 185682 - Increment/decrement operators mark local variables as read
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
+ *								bug 185682 - Increment/decrement operators mark local variables as read
+ *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
+ *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								bug 383368 - [compiler][null] syntactic null analysis for field references
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -22,6 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
@@ -36,6 +45,21 @@ public abstract FlowInfo analyseAssignment(BlockScope currentScope, FlowContext 
 
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	return flowInfo;
+}
+
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	if (flowContext.isNullcheckedFieldAccess(this)) {
+		return true; // enough seen
+	}
+	return super.checkNPE(scope, flowContext, flowInfo);
+}
+
+protected boolean checkNullableFieldDereference(Scope scope, FieldBinding field, long sourcePosition) {
+	if ((field.tagBits & TagBits.AnnotationNullable) != 0) {
+		scope.problemReporter().nullableFieldDereference(field, sourcePosition);
+		return true;
+	}
+	return false;
 }
 
 public FieldBinding fieldBinding() {
@@ -92,6 +116,39 @@ public abstract void generateCompoundAssignment(BlockScope currentScope, CodeStr
 
 public abstract void generatePostIncrement(BlockScope currentScope, CodeStream codeStream, CompoundAssignment postIncrement, boolean valueRequired);
 
+/** 
+ * Is the given reference equivalent to the receiver, 
+ * meaning that both denote the same path of field reads?
+ * Used from {@link FlowContext#isNullcheckedFieldAccess(Reference)}.
+ */
+public boolean isEquivalent(Reference reference) {
+	return false;
+}
+
+public FieldBinding lastFieldBinding() {
+	// override to answer the field designated by the entire reference
+	// (as opposed to fieldBinding() which answers the first field in a QNR)
+	return null;
+}
+
+public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	FieldBinding fieldBinding = lastFieldBinding();
+	if (fieldBinding != null) {
+		if (fieldBinding.isNonNull() || flowContext.isNullcheckedFieldAccess(this)) {
+			return FlowInfo.NON_NULL;
+		} else if (fieldBinding.isNullable()) {
+			return FlowInfo.POTENTIALLY_NULL;
+		}
+	}
+	if (this.resolvedType != null) {
+		if ((this.resolvedType.tagBits & TagBits.AnnotationNonNull) != 0)
+			return FlowInfo.NON_NULL;
+		else if ((this.resolvedType.tagBits & TagBits.AnnotationNullable) != 0)
+			return FlowInfo.POTENTIALLY_NULL;
+	}
+	return FlowInfo.UNKNOWN;
+}
+
 /* report if a private field is only read from a 'special operator',
  * i.e., in a postIncrement expression or a compound assignment,
  * where the information is never flowing out off the field. */
@@ -138,7 +195,7 @@ static void reportOnlyUselesslyReadLocal(BlockScope currentScope, LocalVariableB
 	if (localBinding.declaration instanceof Argument) {
 		// check compiler options to report against unused arguments
 		MethodScope methodScope = currentScope.methodScope();
-		if (methodScope != null) {
+		if (methodScope != null && !methodScope.isLambdaScope()) { // lambda must be congruent with the descriptor.
 			MethodBinding method = ((AbstractMethodDeclaration)methodScope.referenceContext()).binding;
 			
 			boolean shouldReport = !method.isMain();

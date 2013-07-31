@@ -1,13 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 185682 - Increment/decrement operators mark local variables as read
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
+ *     							bug 185682 - Increment/decrement operators mark local variables as read
+ *     							bug 349326 - [1.7] new warning for missing try-with-resources
+ *								bug 186342 - [compiler][null] Using annotations for null checking
+ *								bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
+ *								bug 331649 - [compiler][null] consider null annotations for fields
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -15,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FakedTrackingVariable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
@@ -34,6 +44,8 @@ public class LocalVariableBinding extends VariableBinding {
 
 	public int[] initializationPCs;
 	public int initializationCount = 0;
+
+	public FakedTrackingVariable closeTracker; // track closing of instances of type AutoCloseable, maybe null
 
 	// for synthetic local variables
 	// if declaration slot is not positionned, the variable will not be listed in attribute
@@ -153,7 +165,7 @@ public class LocalVariableBinding extends VariableBinding {
 					annotations = new AnnotationBinding[length];
 					for (int i = 0; i < length; i++)
 						annotations[i] = new AnnotationBinding(annotationNodes[i]);
-					setAnnotations(annotations);
+					setAnnotations(annotations, this.declaringScope);
 				}
 			}
 		}
@@ -207,10 +219,12 @@ public class LocalVariableBinding extends VariableBinding {
 		this.initializationCount++;
 	}
 
-	public void setAnnotations(AnnotationBinding[] annotations) {
-		if (this.declaringScope == null) return;
-
-		SourceTypeBinding sourceType = this.declaringScope.enclosingSourceType();
+	public void setAnnotations(AnnotationBinding[] annotations, Scope scope) {
+		// note: we don's use this.declaringScope because we might be called before Scope.addLocalVariable(this)
+		//       which is where this.declaringScope is set.
+		if (scope == null)
+			return;
+		SourceTypeBinding sourceType = scope.enclosingSourceType();
 		if (sourceType != null)
 			sourceType.storeAnnotations(this, annotations);
 	}
@@ -249,5 +263,9 @@ public class LocalVariableBinding extends VariableBinding {
 
 	public boolean isParameter() {
 		return ((this.tagBits & TagBits.IsArgument) != 0);
+	}
+	
+	public boolean isCatchParameter() {
+		return false;
 	}
 }

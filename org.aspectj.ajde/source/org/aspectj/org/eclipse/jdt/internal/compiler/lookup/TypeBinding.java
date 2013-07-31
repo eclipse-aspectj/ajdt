@@ -1,13 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *      Stephen Herrmann <stephan@cs.tu-berlin.de> -  Contribution for bug 317046
+ *      Stephen Herrmann <stephan@cs.tu-berlin.de> -  Contributions for
+ *								bug 317046 - Exception during debugging when hover mouse over a field
+ *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
+ *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
+ *      Jesper S Moller <jesper@selskabet.org> -  Contributions for
+ *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -430,6 +439,26 @@ public final boolean isBaseType() {
 	return (this.tagBits & TagBits.IsBaseType) != 0;
 }
 
+/* Answer true if the receiver is a primitive type or a boxed primitive type
+ */
+public final boolean isPrimitiveOrBoxedPrimitiveType() {
+	if ((this.tagBits & TagBits.IsBaseType) != 0)
+		return true;
+	switch (this.id) {
+		case TypeIds.T_JavaLangBoolean :
+		case TypeIds.T_JavaLangByte :
+		case TypeIds.T_JavaLangCharacter :
+		case TypeIds.T_JavaLangShort :
+		case TypeIds.T_JavaLangDouble :
+		case TypeIds.T_JavaLangFloat :
+		case TypeIds.T_JavaLangInteger :
+		case TypeIds.T_JavaLangLong :
+			return true;
+		default: 
+			return false;
+	}
+}
+
 /**
  *  Returns true if parameterized type AND not of the form List<?>
  */
@@ -450,7 +479,11 @@ public boolean isClass() {
 
 /* Answer true if the receiver type can be assigned to the argument type (right)
  */
-public abstract boolean isCompatibleWith(TypeBinding right);
+public boolean isCompatibleWith(TypeBinding right) {
+	return isCompatibleWith(right, null); // delegate from the old signature to the new implementation:
+}
+// version that allows to capture a type bound using 'scope':
+public abstract boolean isCompatibleWith(TypeBinding right, /*@Nullable*/ Scope scope);
 
 public boolean isEnum() {
 	return false;
@@ -484,6 +517,10 @@ public final boolean isHierarchyInconsistent() {
 }
 
 public boolean isInterface() {
+	return false;
+}
+
+public boolean isFunctionalInterface() {
 	return false;
 }
 
@@ -528,6 +565,10 @@ public final boolean isNumericType() {
  */
 public final boolean isParameterizedType() {
 	return kind() == Binding.PARAMETERIZED_TYPE;
+}
+
+public boolean isIntersectionCastType() {
+	return false;
 }
 
 /**
@@ -1155,6 +1196,14 @@ public boolean needsUncheckedConversion(TypeBinding targetType) {
 	return false;
 }
 
+/** Answer a readable name (for error reporting) that includes nullness type annotations. */
+public char[] nullAnnotatedReadableName(LookupEnvironment env, boolean shortNames) /* e.g.: java.lang.Object @o.e.j.a.NonNull[] */ {
+	if (shortNames)
+		return shortReadableName();
+	else
+		return readableName();
+}
+
 /**
  * Returns the orignal generic type instantiated by the receiver type, or itself if not.
  * This is similar to erasure process, except it doesn't erase type variable, wildcard, intersection types etc...
@@ -1211,4 +1260,19 @@ public void swapUnresolved(UnresolvedReferenceBinding unresolvedType,
 public TypeVariableBinding[] typeVariables() {
 	return Binding.NO_TYPE_VARIABLES;
 }
+
+/**
+ * Return the single abstract method of a functional interface, or null, if the receiver is not a functional interface as defined in JLS 9.8.
+ * @param scope scope
+ *  
+ * @return The single abstract method of a functional interface, or null, if the receiver is not a functional interface. 
+ */
+public MethodBinding getSingleAbstractMethod(Scope scope) {
+	return null;
+}
+
+public ReferenceBinding[] getIntersectingTypes() {
+	return null;
+}
+
 }

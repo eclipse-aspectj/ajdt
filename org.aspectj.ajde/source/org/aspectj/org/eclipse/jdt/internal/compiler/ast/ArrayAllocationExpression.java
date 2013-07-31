@@ -1,13 +1,23 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     Stephan Herrmann - Contributions for
+ *								bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
+ *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
+ *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ *
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -24,6 +34,7 @@ public class ArrayAllocationExpression extends Expression {
 	//dimensions.length gives the number of dimensions, but the
 	// last ones may be nulled as in new int[4][5][][]
 	public Expression[] dimensions;
+	public Annotation [][] annotationsOnDimensions; // jsr308 style annotations.
 	public ArrayInitializer initializer;
 
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
@@ -31,11 +42,11 @@ public class ArrayAllocationExpression extends Expression {
 			Expression dim;
 			if ((dim = this.dimensions[i]) != null) {
 				flowInfo = dim.analyseCode(currentScope, flowContext, flowInfo);
-				if ((dim.implicitConversion & TypeIds.UNBOXING) != 0) {
-					dim.checkNPE(currentScope, flowContext, flowInfo);
-				}
+				dim.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
 			}
 		}
+		// account for potential OutOfMemoryError:
+		flowContext.recordAbruptExit();
 		if (this.initializer != null) {
 			return this.initializer.analyseCode(currentScope, flowContext, flowInfo);
 		}
@@ -50,7 +61,7 @@ public class ArrayAllocationExpression extends Expression {
 		int pc = codeStream.position;
 
 		if (this.initializer != null) {
-			this.initializer.generateCode(currentScope, codeStream, valueRequired);
+			this.initializer.generateCode(this.type, this.annotationsOnDimensions, currentScope, codeStream, valueRequired);
 			return;
 		}
 
@@ -65,10 +76,10 @@ public class ArrayAllocationExpression extends Expression {
 		// array allocation
 		if (explicitDimCount == 1) {
 			// Mono-dimensional array
-			codeStream.newArray((ArrayBinding)this.resolvedType);
+			codeStream.newArray(this.type, this.annotationsOnDimensions, (ArrayBinding)this.resolvedType);
 		} else {
 			// Multi-dimensional array
-			codeStream.multianewarray(this.resolvedType, explicitDimCount);
+			codeStream.multianewarray(this.type, this.resolvedType, this.dimensions.length, this.annotationsOnDimensions);
 		}
 		if (valueRequired) {
 			codeStream.generateImplicitConversion(this.implicitConversion);
@@ -83,6 +94,11 @@ public class ArrayAllocationExpression extends Expression {
 		output.append("new "); //$NON-NLS-1$
 		this.type.print(0, output);
 		for (int i = 0; i < this.dimensions.length; i++) {
+			if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[i] != null) {
+				output.append(' ');
+				printAnnotations(this.annotationsOnDimensions[i], output);
+				output.append(' ');
+			}
 			if (this.dimensions[i] == null)
 				output.append("[]"); //$NON-NLS-1$
 			else {
@@ -161,6 +177,12 @@ public class ArrayAllocationExpression extends Expression {
 			}
 			if ((referenceType.tagBits & TagBits.HasMissingType) != 0) {
 				return null;
+			}
+		}
+		if (this.annotationsOnDimensions != null) {
+			for (int i = 0, max = this.annotationsOnDimensions.length; i < max; i++) {
+				Annotation[] annotations = this.annotationsOnDimensions[i];
+				resolveAnnotations(scope, annotations, new Annotation.TypeUseBinding(Binding.TYPE_USE));
 			}
 		}
 		return this.resolvedType;

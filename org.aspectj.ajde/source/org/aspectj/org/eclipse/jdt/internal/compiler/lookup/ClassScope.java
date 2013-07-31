@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,10 @@
  *     						Bug 328281 - visibility leaks not detected when analyzing unused field in private class
  *     						Bug 300576 - NPE Computing type hierarchy when compliance doesn't match libraries
  *     						Bug 354536 - compiling package-info.java still depends on the order of compilation units
- *     Palo Alto Research Center, Incorporated - AspectJ adaptation
+ *     						Bug 349326 - [1.7] new warning for missing try-with-resources
+ *     						Bug 358903 - Filter practically unimportant resource leak warnings
+ *							Bug 395977 - [compiler][resource] Resource leak warning behavior possibly incorrect for anonymous inner class
+ *							Bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -34,9 +37,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
 
-/**
- * AspectJ Extension - added many hooks
- */
 public class ClassScope extends Scope {
 
 	public TypeDeclaration referenceContext;
@@ -52,6 +52,20 @@ public class ClassScope extends Scope {
 	void buildAnonymousTypeBinding(SourceTypeBinding enclosingType, ReferenceBinding supertype) {
 		LocalTypeBinding anonymousType = buildLocalType(enclosingType, enclosingType.fPackage);
 		anonymousType.modifiers |= ExtraCompilerModifiers.AccLocallyUsed; // tag all anonymous types as used locally
+		int inheritedBits = supertype.typeBits; // for anonymous class assume same properties as its super (as a closeable) ...
+		// ... unless it overrides close():
+		if ((inheritedBits & TypeIds.BitWrapperCloseable) != 0) {
+			AbstractMethodDeclaration[] methods = this.referenceContext.methods;
+			if (methods != null) {
+				for (int i=0; i<methods.length; i++) {
+					if (CharOperation.equals(TypeConstants.CLOSE, methods[i].selector) && methods[i].arguments == null) {
+						inheritedBits &= TypeIds.InheritableBits;
+						break;
+					}
+				}
+			}
+		}
+		anonymousType.typeBits |= inheritedBits;
 		if (supertype.isInterface()) {
 			anonymousType.superclass = getJavaLangObject();
 			anonymousType.superInterfaces = new ReferenceBinding[] { supertype };
@@ -486,6 +500,8 @@ public class ClassScope extends Scope {
 				switch (scope.kind) {
 					case METHOD_SCOPE :
 						MethodScope methodScope = (MethodScope) scope;
+						if (methodScope.isLambdaScope()) 
+							methodScope = methodScope.namedMethodScope();
 						if (methodScope.isInsideInitializer()) {
 							SourceTypeBinding type = ((TypeDeclaration) methodScope.referenceContext).binding;
 
@@ -953,6 +969,10 @@ public class ClassScope extends Scope {
 			} else {
 				// only want to reach here when no errors are reported
 				sourceType.superclass = superclass;
+				sourceType.typeBits |= (superclass.typeBits & TypeIds.InheritableBits);
+				// further analysis against white lists for the unlikely case we are compiling java.io.*:
+				if ((sourceType.typeBits & (TypeIds.BitAutoCloseable|TypeIds.BitCloseable)) != 0)
+					sourceType.typeBits |= sourceType.applyCloseableWhitelists();
 				return true;
 			}
 		}
@@ -994,7 +1014,7 @@ public class ClassScope extends Scope {
 		sourceType.tagBits |= (superType.tagBits & TagBits.HierarchyHasProblems); // propagate if missing supertpye
 		sourceType.superclass = superType;
 		// bound check (in case of bogus definition of Enum type)
-		if (refTypeVariables[0].boundCheck(superType, sourceType) != TypeConstants.OK) {
+		if (refTypeVariables[0].boundCheck(superType, sourceType, this) != TypeConstants.OK) {
 			problemReporter().typeMismatchError(rootEnumType, refTypeVariables[0], sourceType, null);
 		}
 		return !foundCycle;
@@ -1068,6 +1088,7 @@ public class ClassScope extends Scope {
 				noProblems &= superInterfaceRef.resolvedType.isValidBinding();
 			}
 			// only want to reach here when no errors are reported
+			sourceType.typeBits |= (superInterface.typeBits & TypeIds.InheritableBits);
 			interfaceBindings[count++] = superInterface;
 		}
 		// hold onto all correctly resolved superinterfaces

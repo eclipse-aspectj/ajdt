@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2010 IBM Corporation and others.
+ * Copyright (c) 2005, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -58,6 +58,47 @@ public interface IClasspathAttribute {
 	 * @since 3.1
 	 */
 	String JAVADOC_LOCATION_ATTRIBUTE_NAME = "javadoc_location"; //$NON-NLS-1$
+	
+	/**
+	 * Constant for the name of the index location attribute.
+	 * 
+	 * <p>The value for this attribute has to be the string representation of a URL.
+	 * It should point to an existing index file in a folder or a jar. The URL can also be of platform protocol.</p>
+	 * 
+	 * @since 3.8
+	 */
+	String INDEX_LOCATION_ATTRIBUTE_NAME = "index_location"; //$NON-NLS-1$
+
+	/**
+	 * Constant for the name of the encoding to be used for source attachments.
+	 * 
+	 * <p>The value of this attribute has to be a string representation of a valid encoding. The encoding
+	 * for a source attachment is determined in the following order: </p>
+	 *
+	 * <ul>
+	 * <li>	Encoding explicitly set on the source file (java or zip), i.e. <code>org.eclipse.core.resources.IFile#getCharset(false)</code> </li>
+	 * <li>	Encoding set on the corresponding classpath entry </li>
+	 * <li> If the source attachment is a folder, then the encoding determined by the file content if detectable </li>
+	 * <li> If the source attachment is in the workspace, then the encoding of the enclosing resources</li>
+	 * </ul>
+	 *
+	 * @see org.eclipse.core.resources.IFile#getCharset()
+	 * @since 3.8
+	 */
+	String SOURCE_ATTACHMENT_ENCODING = "source_encoding"; //$NON-NLS-1$
+
+	/**
+	 * Constant for the name of the ignore optional compile problems attribute.
+	 * This attribute is valid only for classpath entries describing source folders.
+	 * The possible values for this attribute are <code>"true"</code> or
+	 * <code>"false"</code>. When not present, <code>"false"</code> is assumed.
+	 * If the value of this attribute is <code>"true"</code>, all optional problems
+	 * from the source folder described by this classpath entry will not be reported
+	 * by the compiler.
+	 *
+	 * @since 3.8
+	 */
+	String IGNORE_OPTIONAL_PROBLEMS = "ignore_optional_problems"; //$NON-NLS-1$
 
 	/**
 	 * Constant for the name of the optional attribute. The possible values

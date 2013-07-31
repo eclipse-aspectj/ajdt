@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -940,7 +940,7 @@ public class Util {
 		return lineSeparator;
 	}
 
-	private static IPackageFragment getPackageFragment(char[] fileName, int pkgEnd, int jarSeparator) {
+	public static IPackageFragment getPackageFragment(char[] fileName, int pkgEnd, int jarSeparator) {
 		if (jarSeparator != -1) {
 			String jarMemento = new String(fileName, 0, jarSeparator);
 			PackageFragmentRoot root = (PackageFragmentRoot) JavaCore.create(jarMemento);
@@ -1414,7 +1414,8 @@ public class Util {
 			String selector = original.isConstructor() ? declaringType.getElementName() : new String(original.selector);
 			boolean isBinary = declaringType.isBinary();
 			ReferenceBinding enclosingType = original.declaringClass.enclosingType();
-			boolean isInnerBinaryTypeConstructor = isBinary && original.isConstructor() && enclosingType != null;
+			// Static inner types' constructors don't get receivers (https://bugs.eclipse.org/bugs/show_bug.cgi?id=388137)
+			boolean isInnerBinaryTypeConstructor = isBinary && original.isConstructor() && !original.declaringClass.isStatic() && enclosingType != null;
 			TypeBinding[] parameters = original.parameters;
 			int length = parameters == null ? 0 : parameters.length;
 			int declaringIndex = isInnerBinaryTypeConstructor ? 1 : 0;
@@ -1852,7 +1853,12 @@ public class Util {
 	 * Add a log entry
 	 */
 	public static void log(IStatus status) {
-		JavaCore.getPlugin().getLog().log(status);
+		Plugin plugin = JavaCore.getPlugin();
+		if (plugin == null) {
+			System.err.println(status.toString());
+		} else {
+			plugin.getLog().log(status);
+		}
 	}
 
 	public static void log(Throwable e) {

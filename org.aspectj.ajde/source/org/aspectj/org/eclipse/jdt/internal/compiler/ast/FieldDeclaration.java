@@ -1,18 +1,29 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
+ *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
+
+import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationCollector;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
@@ -75,6 +86,17 @@ public FlowInfo analyseCode(MethodScope initializationScope, FlowContext flowCon
 				.unconditionalInits();
 		flowInfo.markAsDefinitelyAssigned(this.binding);
 	}
+	if (this.initialization != null) {
+		if (this.binding.isNonNull()) {
+			int nullStatus = this.initialization.nullStatus(flowInfo, flowContext);
+			// check against annotation @NonNull:
+			if (nullStatus != FlowInfo.NON_NULL) {
+				char[][] annotationName = initializationScope.environment().getNonNullAnnotationName();
+				initializationScope.problemReporter().nullityMismatch(this.initialization, this.initialization.resolvedType, this.binding.type, nullStatus, annotationName);
+			}
+		}
+		this.initialization.checkNPEbyUnboxing(initializationScope, flowContext, flowInfo);
+	}
 	return flowInfo;
 }
 
@@ -109,7 +131,13 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 	}
 	codeStream.recordPositionsFrom(pc, this.sourceStart);
 }
-
+public void getAllAnnotationContexts(int targetType, List allAnnotationContexts) {
+	AnnotationCollector collector = new AnnotationCollector(this, targetType, allAnnotationContexts);
+	for (int i = 0, max = this.annotations.length; i < max; i++) {
+		Annotation annotation = this.annotations[i];
+		annotation.traverse(collector, (BlockScope) null);
+	}
+}
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration#getKind()
  */
@@ -121,6 +149,12 @@ public boolean isStatic() {
 	if (this.binding != null)
 		return this.binding.isStatic();
 	return (this.modifiers & ClassFileConstants.AccStatic) != 0;
+}
+
+public boolean isFinal() {
+	if (this.binding != null)
+		return this.binding.isFinal();
+	return (this.modifiers & ClassFileConstants.AccFinal) != 0;
 }
 
 public StringBuffer printStatement(int indent, StringBuffer output) {
@@ -206,6 +240,7 @@ public void resolve(MethodScope initializationScope) {
 
 			TypeBinding fieldType = this.binding.type;
 			TypeBinding initializationType;
+			this.initialization.setExpressionContext(ASSIGNMENT_CONTEXT);
 			this.initialization.setExpectedType(fieldType); // needed in case of generic method invocation
 			if (this.initialization instanceof ArrayInitializer) {
 
@@ -218,7 +253,7 @@ public void resolve(MethodScope initializationScope) {
 				if (fieldType != initializationType) // must call before computeConversion() and typeMismatchError()
 					initializationScope.compilationUnitScope().recordTypeConversion(fieldType, initializationType);
 				if (this.initialization.isConstantValueOfTypeAssignableToType(initializationType, fieldType)
-						|| initializationType.isCompatibleWith(fieldType)) {
+						|| initializationType.isCompatibleWith(fieldType, classScope)) {
 					this.initialization.computeConversion(initializationScope, fieldType, initializationType);
 					if (initializationType.needsUncheckedConversion(fieldType)) {
 						    initializationScope.problemReporter().unsafeTypeConversion(this.initialization, initializationType, fieldType);

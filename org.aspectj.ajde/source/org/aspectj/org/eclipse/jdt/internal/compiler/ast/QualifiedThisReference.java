@@ -1,12 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 382350 - [1.8][compiler] Unable to invoke inherited default method via I.super.m() syntax
+ *								bug 404649 - [1.8][compiler] detect illegal reference to indirect or redundant super
+ *     Jesper S Moller <jesper@selskabet.org> - Contributions for
+ *								bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -90,26 +99,35 @@ public class QualifiedThisReference extends ThisReference {
 
 		// the qualification MUST exactly match some enclosing type name
 		// It is possible to qualify 'this' by the name of the current class
-		int depth = 0;
-		this.currentCompatibleType = scope.referenceType().binding;
-		while (this.currentCompatibleType != null && this.currentCompatibleType != type) {
-			depth++;
-			this.currentCompatibleType = this.currentCompatibleType.isStatic() ? null : this.currentCompatibleType.enclosingType();
-		}
+		int depth = findCompatibleEnclosing(scope.referenceType().binding, type);
 		this.bits &= ~DepthMASK; // flush previous depth if any
 		this.bits |= (depth & 0xFF) << DepthSHIFT; // encoded depth into 8 bits
 
 		if (this.currentCompatibleType == null) {
-			scope.problemReporter().noSuchEnclosingInstance(type, this, false);
+			if (this.resolvedType.isValidBinding())
+				scope.problemReporter().noSuchEnclosingInstance(type, this, false);
+			// otherwise problem will be reported by the caller
 			return this.resolvedType;
+		} else {
+			scope.tagAsAccessingEnclosingInstanceStateOf(this.currentCompatibleType, false /* type variable access */);
 		}
 
 		// Ensure one cannot write code like: B() { super(B.this); }
 		if (depth == 0) {
-			checkAccess(scope.methodScope());
+			checkAccess(scope, null);
 		} // if depth>0, path emulation will diagnose bad scenarii
 
 		return this.resolvedType;
+	}
+
+	int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type) {
+		int depth = 0;
+		this.currentCompatibleType = enclosingType;
+		while (this.currentCompatibleType != null && this.currentCompatibleType != type) {
+			depth++;
+			this.currentCompatibleType = this.currentCompatibleType.isStatic() ? null : this.currentCompatibleType.enclosingType();
+		}
+		return depth;
 	}
 
 	public StringBuffer printExpression(int indent, StringBuffer output) {

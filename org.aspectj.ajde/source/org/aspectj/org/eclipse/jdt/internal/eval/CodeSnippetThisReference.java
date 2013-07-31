@@ -1,12 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Jesper S Moller - Contributions for
+ *								Bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.eval;
 
@@ -42,8 +48,9 @@ public class CodeSnippetThisReference extends ThisReference implements Evaluatio
 		this.isImplicit = isImplicit;
 	}
 	
-	public boolean checkAccess(MethodScope methodScope) {
+	public boolean checkAccess(BlockScope scope, ReferenceBinding thisType) {
 		// this/super cannot be used in constructor call
+		MethodScope methodScope = scope.methodScope();
 		if (this.evaluationContext.isConstructorCall) {
 			methodScope.problemReporter().fieldsOrThisBeforeConstructorInvocation(this);
 			return false;
@@ -54,6 +61,7 @@ public class CodeSnippetThisReference extends ThisReference implements Evaluatio
 			methodScope.problemReporter().errorThisSuperInStatic(this);
 			return false;
 		}
+		scope.tagAsAccessingEnclosingInstanceStateOf(thisType, false /* type variable access */);
 		return true;
 	}
 	
@@ -95,12 +103,11 @@ public class CodeSnippetThisReference extends ThisReference implements Evaluatio
 	public TypeBinding resolveType(BlockScope scope) {
 		// implicit this
 		this.constant = Constant.NotAConstant;
-		TypeBinding snippetType = null;
+		ReferenceBinding snippetType = scope.enclosingSourceType();
 		MethodScope methodScope = scope.methodScope();
-		if (!this.isImplicit && !checkAccess(methodScope)) {
+		if (!this.isImplicit && !checkAccess(scope, snippetType)) {
 			return null;
 		}
-		snippetType = scope.enclosingSourceType();
 
 		this.delegateThis = scope.getField(snippetType, DELEGATE_THIS, this);
 		if (this.delegateThis == null || !this.delegateThis.isValidBinding()) {

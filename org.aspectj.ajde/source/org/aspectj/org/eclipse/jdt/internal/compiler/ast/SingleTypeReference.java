@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +37,17 @@ public class SingleTypeReference extends TypeReference {
 
 		return new ArrayTypeReference(this.token, dim,(((long)this.sourceStart)<<32)+this.sourceEnd);
 	}
+	
+	public TypeReference copyDims(int dim, Annotation[][] annotationsOnDimensions){
+		//return a type reference copy of me with some dimensions
+		//warning : the new type ref has a null binding
+		ArrayTypeReference arrayTypeReference = new ArrayTypeReference(this.token, dim, annotationsOnDimensions, (((long)this.sourceStart)<<32)+this.sourceEnd);
+		arrayTypeReference.bits |= (this.bits & ASTNode.HasTypeAnnotations);
+		if (annotationsOnDimensions != null) {
+			arrayTypeReference.bits |= ASTNode.HasTypeAnnotations;
+		}
+		return arrayTypeReference;
+	}
 
 	public char[] getLastToken() {
 		return this.token;
@@ -42,6 +57,13 @@ public class SingleTypeReference extends TypeReference {
 			return this.resolvedType;
 
 		this.resolvedType = scope.getType(this.token);
+		
+		if (this.resolvedType instanceof TypeVariableBinding) {
+			TypeVariableBinding typeVariable = (TypeVariableBinding) this.resolvedType;
+			if (typeVariable.declaringElement instanceof SourceTypeBinding) {
+				scope.tagAsAccessingEnclosingInstanceStateOf((ReferenceBinding) typeVariable.declaringElement, true /* type variable access */);
+			}
+		}
 
 		if (scope.kind == Scope.CLASS_SCOPE && this.resolvedType.isValidBinding())
 			if (((ClassScope) scope).detectHierarchyCycle(this.resolvedType, this))
@@ -54,13 +76,18 @@ public class SingleTypeReference extends TypeReference {
 	}
 
 	public StringBuffer printExpression(int indent, StringBuffer output){
-
+		if (this.annotations != null && this.annotations[0] != null) {
+			printAnnotations(this.annotations[0], output);
+			output.append(' ');
+		}
 		return output.append(this.token);
 	}
 
 	public TypeBinding resolveTypeEnclosing(BlockScope scope, ReferenceBinding enclosingType) {
 		TypeBinding memberType = this.resolvedType = scope.getMemberType(this.token, enclosingType);
 		boolean hasError = false;
+		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=391500
+		resolveAnnotations(scope);
 		if (!memberType.isValidBinding()) {
 			hasError = true;
 			scope.problemReporter().invalidEnclosingType(this, memberType, enclosingType);
@@ -85,12 +112,24 @@ public class SingleTypeReference extends TypeReference {
 	}
 
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
-		visitor.visit(this, scope);
+		if (visitor.visit(this, scope)) {
+			if (this.annotations != null) {
+				Annotation [] typeAnnotations = this.annotations[0];
+				for (int i = 0, length = typeAnnotations == null ? 0 : typeAnnotations.length; i < length; i++)
+					typeAnnotations[i].traverse(visitor, scope);
+			}
+		}
 		visitor.endVisit(this, scope);
 	}
 
 	public void traverse(ASTVisitor visitor, ClassScope scope) {
-		visitor.visit(this, scope);
+		if (visitor.visit(this, scope)) {
+			if (this.annotations != null) {
+				Annotation [] typeAnnotations = this.annotations[0];
+				for (int i = 0, length = typeAnnotations == null ? 0 : typeAnnotations.length; i < length; i++)
+					typeAnnotations[i].traverse(visitor, scope);
+			}
+		}
 		visitor.endVisit(this, scope);
 	}
 }

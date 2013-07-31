@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,8 +8,9 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for 
- *     				bug 292478 - Report potentially null across variable assignment
- *     				bug 332637 - Dead Code detection removing code that isn't dead
+ *			     				bug 292478 - Report potentially null across variable assignment
+ *     							bug 332637 - Dead Code detection removing code that isn't dead
+ *								bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
@@ -194,6 +195,12 @@ public abstract boolean isDefinitelyNull(LocalVariableBinding local);
  */
 public abstract boolean isDefinitelyUnknown(LocalVariableBinding local);
 
+/**
+ * Check if any null info has been recorded for a given local variable.
+ * Here even recording of 'UNKNOWN' is considered as null info.
+ */
+public abstract boolean hasNullInfoFor(LocalVariableBinding local);
+
 	/**
 	 * Check status of potential assignment for a field.
 	 */
@@ -361,6 +368,54 @@ public int nullStatus(LocalVariableBinding local) {
 }
 
 /**
+ * Merge two single bits (NULL, NON_NULL, POTENTIALLY*..) into one.
+ * This method implements a simpler logic than the 4-bit encoding used in FlowInfo instances.
+ */
+public static int mergeNullStatus(int nullStatus1, int nullStatus2) {
+	boolean canBeNull = false;
+	boolean canBeNonNull = false;
+	switch (nullStatus1) {
+		case POTENTIALLY_NULL:
+			canBeNonNull = true;
+			//$FALL-THROUGH$
+		case NULL:
+			canBeNull = true;
+			break;
+		case POTENTIALLY_NON_NULL:
+			canBeNull = true;
+			//$FALL-THROUGH$
+		case NON_NULL:
+			canBeNonNull = true;
+			break;
+	}
+	switch (nullStatus2) {
+		case POTENTIALLY_NULL:
+			canBeNonNull = true;
+			//$FALL-THROUGH$
+		case NULL:
+			canBeNull = true;
+			break;
+		case POTENTIALLY_NON_NULL:
+			canBeNull = true;
+			//$FALL-THROUGH$
+		case NON_NULL:
+			canBeNonNull = true;
+			break;
+	}
+	if (canBeNull) {
+		if (canBeNonNull)
+			return POTENTIALLY_NULL;
+		else
+			return NULL;
+	} else {
+		if (canBeNonNull)
+			return NON_NULL;
+		else
+			return UNKNOWN;
+	}
+}
+
+/**
  * Merge branches using optimized boolean conditions
  */
 public static UnconditionalFlowInfo mergedOptimizedBranches(
@@ -405,12 +460,28 @@ public static UnconditionalFlowInfo mergedOptimizedBranches(
 public static UnconditionalFlowInfo mergedOptimizedBranchesIfElse(
 		FlowInfo initsWhenTrue, boolean isOptimizedTrue,
 		FlowInfo initsWhenFalse, boolean isOptimizedFalse,
-		boolean allowFakeDeadBranch, FlowInfo flowInfo, IfStatement ifStatement) {
+		boolean allowFakeDeadBranch, FlowInfo flowInfo, IfStatement ifStatement,
+		boolean reportDeadCodeInKnownPattern) {
 	UnconditionalFlowInfo mergedInfo;
 	if (isOptimizedTrue){
 		if (initsWhenTrue == FlowInfo.DEAD_END && allowFakeDeadBranch) {
-			mergedInfo = initsWhenFalse.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD).
-				unconditionalInits();
+			if (!reportDeadCodeInKnownPattern) {
+				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=256796
+				// do not report code even after if-else as dead as a consequence of analysis done in known dead code pattern
+				// when the CompilerOptions$reportDeadCodeInTrivialIfStatement option is disabled
+				if (ifStatement.elseStatement == null) {
+					mergedInfo = flowInfo.unconditionalInits();
+				} else {
+					mergedInfo = initsWhenFalse.unconditionalInits();
+					if (initsWhenFalse != FlowInfo.DEAD_END) {
+						// let the definitely true status of known dead code pattern not affect the reachability
+						mergedInfo.setReachMode(flowInfo.reachMode());
+					}
+				}
+			} else {
+				mergedInfo = initsWhenFalse.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD).
+					unconditionalInits();
+			}
 		}
 		else {
 			mergedInfo =
@@ -421,8 +492,23 @@ public static UnconditionalFlowInfo mergedOptimizedBranchesIfElse(
 	}
 	else if (isOptimizedFalse) {
 		if (initsWhenFalse == FlowInfo.DEAD_END && allowFakeDeadBranch) {
-			mergedInfo = initsWhenTrue.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD).
-				unconditionalInits();
+			if (!reportDeadCodeInKnownPattern) {
+				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=256796
+				// do not report code even after if-else as dead as a consequence of analysis done in known dead code pattern
+				// when the CompilerOptions$reportDeadCodeInTrivialIfStatement option is disabled
+				if (ifStatement.thenStatement == null) {
+					mergedInfo = flowInfo.unconditionalInits();
+				} else {
+					mergedInfo = initsWhenTrue.unconditionalInits();
+					if (initsWhenTrue != FlowInfo.DEAD_END) {
+						// let the definitely false status of known dead code pattern not affect the reachability
+						mergedInfo.setReachMode(flowInfo.reachMode());
+					}
+				}
+			} else {
+				mergedInfo = initsWhenTrue.setReachMode(FlowInfo.UNREACHABLE_OR_DEAD).
+					unconditionalInits();
+			}
 		}
 		else {
 			mergedInfo =
@@ -562,22 +648,6 @@ abstract public UnconditionalFlowInfo unconditionalInits();
  * @return a flow info carrying this unconditional flow info
  */
 abstract public UnconditionalFlowInfo unconditionalInitsWithoutSideEffect();
-
-/**
- * Tell the flowInfo that a local variable got marked as non null or null
- * due to comparison with null inside an assert expression.
- * This is to prevent over-aggressive code generation for subsequent if statements
- * where this variable is being checked against null
- */
-// https://bugs.eclipse.org/bugs/show_bug.cgi?id=303448
-abstract public void markedAsNullOrNonNullInAssertExpression(LocalVariableBinding local);
-
-/** 
- * Returns true if the local variable being checked for was marked as null or not null
- * inside an assert expression due to comparison against null.
- */
-//https://bugs.eclipse.org/bugs/show_bug.cgi?id=303448
-abstract public boolean isMarkedAsNullOrNonNullInAssertExpression(LocalVariableBinding local);
 
 /**
  * Resets the definite and potential initialization info for the given local variable

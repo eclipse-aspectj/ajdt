@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for bug 349326 - [1.7] new warning for missing try-with-resources
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -38,6 +39,12 @@ public TypeBinding closestMatch() {
  */
 public ReferenceBinding closestReferenceMatch() {
 	return this.closestMatch;
+}
+
+public boolean hasTypeBit(int bit) {
+	if (this.closestMatch != null)
+		return this.closestMatch.hasTypeBit(bit);
+	return false;
 }
 
 /* API

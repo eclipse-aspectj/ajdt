@@ -1,14 +1,25 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *     Palo Alto Research Center, Incorporated - AspectJ adaptation
+
+ *     Stephan Herrmann - Contributions for
+ *								bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *								bug 186342 - [compiler][null] Using annotations for null checking
+ *								bug 361407 - Resource leak warning when resource is assigned to a field outside of constructor
+ *								bug 370639 - [compiler][resource] restore the default for resource leak warnings
+ *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
+ *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -36,7 +47,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 
-public class ExplicitConstructorCall extends Statement implements InvocationSite {
+public class ExplicitConstructorCall extends Statement implements InvocationSite, ExpressionContext {
 
 	public Expression[] arguments;
 	public Expression qualification;
@@ -74,15 +85,19 @@ public class ExplicitConstructorCall extends Statement implements InvocationSite
 			}
 			// process arguments
 			if (this.arguments != null) {
+				boolean analyseResources = currentScope.compilerOptions().analyseResourceLeaks;
 				for (int i = 0, max = this.arguments.length; i < max; i++) {
 					flowInfo =
 						this.arguments[i]
 							.analyseCode(currentScope, flowContext, flowInfo)
 							.unconditionalInits();
-					if ((this.arguments[i].implicitConversion & TypeIds.UNBOXING) != 0) {
-						this.arguments[i].checkNPE(currentScope, flowContext, flowInfo);
+					if (analyseResources) {
+						// if argument is an AutoCloseable insert info that it *may* be closed (by the target constructor, i.e.)
+						flowInfo = FakedTrackingVariable.markPassedToOutside(currentScope, this.arguments[i], flowInfo, flowContext, false);
 					}
+					this.arguments[i].checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
 				}
+				analyseArguments(currentScope, flowContext, flowInfo, this.binding, this.arguments);
 			}
 
 			ReferenceBinding[] thrownExceptions;
@@ -161,7 +176,7 @@ public class ExplicitConstructorCall extends Statement implements InvocationSite
 				}
 				codeStream.invoke(Opcodes.OPC_invokespecial, this.syntheticAccessor, null /* default declaringClass */);
 			} else {
-				codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, null /* default declaringClass */);
+				codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, null /* default declaringClass */, this.typeArguments);
 			}
 			codeStream.recordPositionsFrom(pc, this.sourceStart);
 		} finally {
@@ -363,19 +378,24 @@ public class ExplicitConstructorCall extends Statement implements InvocationSite
 			// arguments buffering for the method lookup
 			TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
 			boolean argsContainCast = false;
+			boolean polyExpressionSeen = false;
 			if (this.arguments != null) {
 				boolean argHasError = false; // typeChecks all arguments
 				int length = this.arguments.length;
 				argumentTypes = new TypeBinding[length];
+				TypeBinding argumentType;
 				for (int i = 0; i < length; i++) {
 					Expression argument = this.arguments[i];
 					if (argument instanceof CastExpression) {
 						argument.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
 						argsContainCast = true;
 					}
-					if ((argumentTypes[i] = argument.resolveType(scope)) == null) {
+					argument.setExpressionContext(INVOCATION_CONTEXT);
+					if ((argumentType = argumentTypes[i] = argument.resolveType(scope)) == null) {
 						argHasError = true;
 					}
+					if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE)
+						polyExpressionSeen = true;
 				}
 				if (argHasError) {
 					if (receiverType == null) {
@@ -412,7 +432,10 @@ public class ExplicitConstructorCall extends Statement implements InvocationSite
 			if (receiverType == null) {
 				return;
 			}
-			if ((this.binding = scope.getConstructor(receiverType, argumentTypes, this)).isValidBinding()) {
+			this.binding = scope.getConstructor(receiverType, argumentTypes, this);
+			if (polyExpressionSeen && polyExpressionsHaveErrors(scope, this.binding, this.arguments, argumentTypes))
+				return;
+			if (this.binding.isValidBinding()) {
 				if ((this.binding.tagBits & TagBits.HasMissingType) != 0) {
 					if (!methodScope.enclosingSourceType().isAnonymousType()) {
 						scope.problemReporter().missingTypeInConstructor(this, this.binding);
