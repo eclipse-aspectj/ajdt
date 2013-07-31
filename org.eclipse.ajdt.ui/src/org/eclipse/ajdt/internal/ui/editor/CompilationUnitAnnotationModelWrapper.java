@@ -226,6 +226,9 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 						public char[] getFileName() {
 							return ((CompilationUnit)unit).getFileName();
 						}
+						public boolean ignoreOptionalProblems() {
+							return false;
+						}
 					}, true /*full parse to find local elements*/);
 				org.aspectj.org.eclipse.jdt.core.compiler.IProblem[] problems = unitDec.compilationResult.problems;
 				if (problems != null){

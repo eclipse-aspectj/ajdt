@@ -400,6 +400,9 @@ public class AJCompilationUnit extends CompilationUnit implements NoFFDC{
 					public char[] getFileName() {
 						return source.getFileName();
 					}
+					public boolean ignoreOptionalProblems() {
+						return false;
+					}
 				}, true /*full parse to find local elements*/);
             	compilationUnitDeclaration = new AJCompilationUnitDeclarationWrapper(ajDeclaration, source);	
             }

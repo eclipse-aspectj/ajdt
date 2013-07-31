@@ -502,8 +502,8 @@ protected void consumeMemberValuePair() {
 		requestor.acceptMethodReference(memberValuepair.name, 0, memberValuepair.sourceStart);
 	}
 }
-protected void consumeMarkerAnnotation() {
-	super.consumeMarkerAnnotation();
+protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
+	super.consumeMarkerAnnotation(isTypeAnnotation);
 	Annotation annotation = (Annotation)expressionStack[expressionPtr];
 	if (reportReferenceInfo) { // accept annotation type reference
 		this.requestor.acceptTypeReference(annotation.type.getTypeName(), annotation.sourceStart, annotation.sourceEnd);
@@ -619,15 +619,15 @@ protected void consumeMethodInvocationSuperWithTypeArguments() {
 			(int)(messageSend.nameSourcePosition >>> 32));
 	}
 }
-protected void consumeNormalAnnotation() {
-	super.consumeNormalAnnotation();
+protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
+	super.consumeNormalAnnotation(isTypeAnnotation);
 	Annotation annotation = (Annotation)expressionStack[expressionPtr];
 	if (reportReferenceInfo) { // accept annotation type reference
 		this.requestor.acceptTypeReference(annotation.type.getTypeName(), annotation.sourceStart, annotation.sourceEnd);
 	}
 }
-protected void consumeSingleMemberAnnotation() {
-	super.consumeSingleMemberAnnotation();
+protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
+	super.consumeSingleMemberAnnotation(isTypeAnnotation);
 	SingleMemberAnnotation member = (SingleMemberAnnotation) expressionStack[expressionPtr];
 	if (reportReferenceInfo) {
 		requestor.acceptMethodReference(TypeConstants.VALUE, 0, member.sourceStart);
@@ -881,7 +881,7 @@ public TypeReference getTypeReference(int dim) {
 	 */
 	int length = identifierLengthStack[identifierLengthPtr--];
 	if (length < 0) { //flag for precompiled type reference on base types
-		TypeReference ref = TypeReference.baseTypeReference(-length, dim);
+		TypeReference ref = TypeReference.baseTypeReference(-length, dim,null);
 		ref.sourceStart = intStack[intPtr--];
 		if (dim == 0) {
 			ref.sourceEnd = intStack[intPtr--];
