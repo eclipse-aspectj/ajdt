@@ -418,9 +418,14 @@ public class ClassScope extends Scope {
 				CharOperation.concat(className[className.length - 1], this.referenceContext.name, '$');
 			*/// now:
 			if (alternativeName == null) {
-				className[className.length - 1] = CharOperation.concat(className[className.length - 1], referenceContext.name, '$');
+				className[className.length - 1] = CharOperation.concat(className[className.length - 1], this.referenceContext.name, '$');
 			} else {
-				className[className.length - 1] = CharOperation.concat(alternativeName, referenceContext.name, '$');
+				if (CharOperation.contains('.', alternativeName)) {
+					className = CharOperation.splitOn('.', alternativeName);
+					className[className.length - 1] = CharOperation.concat(className[className.length - 1], this.referenceContext.name, '$');
+				} else {
+					className[className.length - 1] = CharOperation.concat(alternativeName, this.referenceContext.name, '$');
+				}
 			}
 			// AspectJ end
 
