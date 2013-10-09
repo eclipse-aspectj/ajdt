@@ -1,18 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2008 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *        Andy Clement - Contributions for
- *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.util;
 
@@ -146,18 +140,6 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 						constantPoolOffsets[i] = readOffset;
 						readOffset += IConstantPoolConstant.CONSTANT_NameAndType_SIZE;
 						break;
-					case IConstantPoolConstant.CONSTANT_MethodHandle :
-						constantPoolOffsets[i] = readOffset;
-						readOffset += IConstantPoolConstant.CONSTANT_MethodHandle_SIZE;
-						break;
-					case IConstantPoolConstant.CONSTANT_MethodType :
-						constantPoolOffsets[i] = readOffset;
-						readOffset += IConstantPoolConstant.CONSTANT_MethodType_SIZE;
-						break;
-					case IConstantPoolConstant.CONSTANT_InvokeDynamic :
-						constantPoolOffsets[i] = readOffset;
-						readOffset += IConstantPoolConstant.CONSTANT_InvokeDynamic_SIZE;
-						break;
 					default:
 						throw new ClassFormatException(ClassFormatException.INVALID_TAG_CONSTANT);
 				}
@@ -279,12 +261,6 @@ public class ClassFileReader extends ClassFileStruct implements IClassFileReader
 							this.attributes[attributesIndex++] = new RuntimeVisibleAnnotationsAttribute(classFileBytes, this.constantPool, readOffset);
 						} else if (equals(attributeName, IAttributeNamesConstants.RUNTIME_INVISIBLE_ANNOTATIONS)) {
 							this.attributes[attributesIndex++] = new RuntimeInvisibleAnnotationsAttribute(classFileBytes, this.constantPool, readOffset);
-						} else if (equals(attributeName, IAttributeNamesConstants.BOOTSTRAP_METHODS)) {
-							this.attributes[attributesIndex++] = new BootstrapMethodsAttribute(classFileBytes, this.constantPool, readOffset);
-						} else if (equals(attributeName, IAttributeNamesConstants.RUNTIME_VISIBLE_TYPE_ANNOTATIONS)) {
-							this.attributes[attributesIndex++] = new RuntimeVisibleTypeAnnotationsAttribute(classFileBytes, this.constantPool, readOffset);
-						} else if (equals(attributeName, IAttributeNamesConstants.RUNTIME_INVISIBLE_TYPE_ANNOTATIONS)) {
-							this.attributes[attributesIndex++] = new RuntimeInvisibleTypeAnnotationsAttribute(classFileBytes, this.constantPool, readOffset);
 						} else {
 							this.attributes[attributesIndex++] = new ClassFileAttribute(classFileBytes, this.constantPool, readOffset);
 						}

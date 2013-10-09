@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Terry Parker <tparker@google.com> - DeltaProcessor misses state changes in archive files, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=357425
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -17,8 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1271,15 +1268,6 @@ public class ClasspathEntry implements IClasspathEntry {
 		return false;
 	}
 
-	public String getSourceAttachmentEncoding() {
-		for (int i = 0, length = this.extraAttributes.length; i < length; i++) {
-			IClasspathAttribute attribute = this.extraAttributes[i];
-			if (IClasspathAttribute.SOURCE_ATTACHMENT_ENCODING.equals(attribute.getName()))
-				return attribute.getValue();
-		}
-		return null;
-	}
-	
 	/**
 	 * Returns the kind of a <code>PackageFragmentRoot</code> from its <code>String</code> form.
 	 */
@@ -1535,45 +1523,6 @@ public class ClasspathEntry implements IClasspathEntry {
 
 		return JavaCore.getResolvedClasspathEntry(this);
 	}
-	
-	/**
-	 * This function computes the URL of the index location for this classpath entry. It returns null if the URL is
-	 * invalid.
-	 */
-	public URL getLibraryIndexLocation() {
-		switch(getEntryKind()) {
-			case IClasspathEntry.CPE_LIBRARY :
-			case IClasspathEntry.CPE_VARIABLE :
-				break;
-			default :
-				return null;
-		}
-		if (this.extraAttributes == null) return null;
-		for (int i= 0; i < this.extraAttributes.length; i++) {
-			IClasspathAttribute attrib= this.extraAttributes[i];
-			if (IClasspathAttribute.INDEX_LOCATION_ATTRIBUTE_NAME.equals(attrib.getName())) {
-				String value = attrib.getValue();
-				try {
-					return new URL(value);
-				} catch (MalformedURLException e) {
-					return null;
-				}
-			}
-		}
-		return null;
-	}
-
-	public boolean ignoreOptionalProblems() {
-		if (this.entryKind == IClasspathEntry.CPE_SOURCE) {
-			for (int i = 0; i < this.extraAttributes.length; i++) {
-				IClasspathAttribute attrib = this.extraAttributes[i];
-				if (IClasspathAttribute.IGNORE_OPTIONAL_PROBLEMS.equals(attrib.getName())) {
-					return "true".equals(attrib.getValue()); //$NON-NLS-1$
-				}
-			}
-		}
-		return false;
-	}
 
 	/**
 	 * Validate a given classpath and output location for a project, using the following rules:
@@ -1582,7 +1531,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 *   <li> The project output location path cannot be null, must be absolute and located inside the project.
 	 *   <li> Specific output locations (specified on source entries) can be null, if not they must be located inside the project,
 	 *   <li> A project entry cannot refer to itself directly (that is, a project cannot prerequisite itself).
-	 *   <li> Classpath entries or output locations cannot coincidate or be nested in each other, except for the following scenario listed below:
+	 *   <li> Classpath entries or output locations cannot coincidate or be nested in each other, except for the following scenarii listed below:
 	 *      <ul><li> A source folder can coincidate with its own output location, in which case this output can then contain library archives.
 	 *                     However, a specific output location cannot coincidate with any library or a distinct source folder than the one referring to it. </li>
 	 *              <li> A source/library folder can be nested in any source folder as long as the nested folder is excluded from the enclosing one. </li>
@@ -1902,9 +1851,6 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * @return a java model status describing the problem related to this classpath entry if any, a status object with code <code>IStatus.OK</code> if the entry is fine
 	 */
 	public static IJavaModelStatus validateClasspathEntry(IJavaProject project, IClasspathEntry entry, boolean checkSourceAttachment, boolean referredByContainer){
-		if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-			JavaModelManager.getJavaModelManager().removeFromInvalidArchiveCache(entry.getPath());
-		}
 		IJavaModelStatus status = validateClasspathEntry(project, entry, null, checkSourceAttachment, referredByContainer);
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=171136 and https://bugs.eclipse.org/bugs/show_bug.cgi?id=300136
 		// Ignore class path errors from optional entries.

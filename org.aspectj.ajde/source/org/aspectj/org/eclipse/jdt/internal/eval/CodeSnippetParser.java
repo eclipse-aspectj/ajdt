@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -111,7 +107,6 @@ protected void consumeClassInstanceCreationExpressionWithTypeArguments() {
 				length);
 		}
 		alloc.type = getTypeReference(0);
-		rejectIllegalLeadingTypeAnnotations(alloc.type);
 
 		length = this.genericsLengthStack[this.genericsLengthPtr--];
 		this.genericsPtr -= length;
@@ -375,17 +370,6 @@ protected void consumeMethodInvocationName() {
 			this.identifierLengthPtr--;
 		} else {
 			this.identifierLengthStack[this.identifierLengthPtr]--;
-			int length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--];
-			Annotation [] typeAnnotations;
-			if (length != 0) {
-				System.arraycopy(
-						this.typeAnnotationStack,
-						(this.typeAnnotationPtr -= length) + 1,
-						typeAnnotations = new Annotation[length],
-						0,
-						length);
-				problemReporter().misplacedTypeAnnotations(typeAnnotations[0], typeAnnotations[typeAnnotations.length - 1]);
-			}
 			m.receiver = getUnspecifiedReference();
 			m.sourceStart = m.receiver.sourceStart;
 		}
@@ -641,11 +625,8 @@ protected CompilationUnitDeclaration endParse(int act) {
 	}
 	return super.endParse(act);
 }
-protected NameReference getUnspecifiedReference(boolean rejectTypeAnnotations) {
+protected NameReference getUnspecifiedReference() {
 	/* build a (unspecified) NameReference which may be qualified*/
-	if (rejectTypeAnnotations) {
-		consumeNonTypeUseName();
-	}
 
 	if (this.scanner.startPosition >= this.codeSnippetStart
 		&& this.scanner.startPosition <= this.codeSnippetEnd+1+this.lineSeparatorLength /*14838*/){
@@ -674,7 +655,7 @@ protected NameReference getUnspecifiedReference(boolean rejectTypeAnnotations) {
 		}
 		return ref;
 	} else {
-		return super.getUnspecifiedReference(rejectTypeAnnotations);
+		return super.getUnspecifiedReference();
 	}
 }
 protected NameReference getUnspecifiedReferenceOptimized() {
@@ -684,7 +665,6 @@ protected NameReference getUnspecifiedReferenceOptimized() {
 	a field access. This optimization is IMPORTANT while it results
 	that when a NameReference is build, the type checker should always
 	look for that it is not a type reference */
-	consumeNonTypeUseName();
 
 	if (this.scanner.startPosition >= this.codeSnippetStart
 		&& this.scanner.startPosition <= this.codeSnippetEnd+1+this.lineSeparatorLength /*14838*/){
@@ -812,13 +792,11 @@ protected boolean resumeOnSyntaxError() {
 
 	// reset stacks in consistent state
 	this.expressionPtr = -1;
-	this.typeAnnotationLengthPtr = -1;
-	this.typeAnnotationPtr = -1;
 	this.identifierPtr = -1;
 	this.identifierLengthPtr = -1;
 
 	// go for the expression
-	goForExpression(true /* record line separators */);
+	goForExpression();
 	this.hasRecoveredOnExpression = true;
 	this.hasReportedError = false;
 	this.hasError = false;

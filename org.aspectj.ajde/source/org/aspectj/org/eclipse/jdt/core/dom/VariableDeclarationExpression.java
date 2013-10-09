@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,6 +25,14 @@ import java.util.List;
  * <code>ForStatement</code>, or wrapped in an <code>ExpressionStatement</code>
  * to form the equivalent of a <code>VariableDeclarationStatement</code>.
  * </p>
+ * For JLS2:
+ * <pre>
+ * VariableDeclarationExpression:
+ *    { Modifier } Type VariableDeclarationFragment
+ *         { <b>,</b> VariableDeclarationFragment }
+ * </pre>
+ * For JLS3, the modifier flags were replaced by
+ * a list of modifier nodes (intermixed with annotations):
  * <pre>
  * VariableDeclarationExpression:
  *    { ExtendedModifier } Type VariableDeclarationFragment
@@ -38,7 +46,6 @@ public class VariableDeclarationExpression extends Expression {
 
 	/**
 	 * The "modifiers" structural property of this node type (type: {@link Integer}) (JLS2 API only).
-	 * @deprecated In the JLS3 API, this property is replaced by {@link #MODIFIERS2_PROPERTY}.
 	 * @since 3.0
 	 */
 	public static final SimplePropertyDescriptor MODIFIERS_PROPERTY =
@@ -156,7 +163,7 @@ public class VariableDeclarationExpression extends Expression {
 	 */
 	VariableDeclarationExpression(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS3_INTERNAL) {
+		if (ast.apiLevel >= AST.JLS3) {
 			this.modifiers = new ASTNode.NodeList(MODIFIERS2_PROPERTY);
 		}
 	}
@@ -231,7 +238,7 @@ public class VariableDeclarationExpression extends Expression {
 		if (this.ast.apiLevel == AST.JLS2_INTERNAL) {
 			result.setModifiers(getModifiers());
 		}
-		if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
+		if (this.ast.apiLevel >= AST.JLS3) {
 			result.modifiers().addAll(ASTNode.copySubtrees(target, modifiers()));
 		}
 		result.setType((Type) getType().clone(target));
@@ -256,7 +263,7 @@ public class VariableDeclarationExpression extends Expression {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
-			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
+			if (this.ast.apiLevel >= AST.JLS3) {
 				acceptChildren(visitor, this.modifiers);
 			}
 			acceptChild(visitor, getType());

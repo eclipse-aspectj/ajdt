@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1970,7 +1970,7 @@ public static final int hashCode(char[] array) {
 }
 
 /**
- * Answers true if c is a whitespace according to the JLS (&#92;u0009, &#92;u000a, &#92;u000c, &#92;u000d, &#92;u0020), otherwise false.
+ * Answers true if c is a whitespace according to the JLS (&#92;u000a, &#92;u000c, &#92;u000d, &#92;u0009), otherwise false.
  * <br>
  * <br>
  * For example:
@@ -2417,14 +2417,15 @@ final static public char[] lastSegment(char[] array, char separator) {
 }
 
 /**
- * <p>Answers true if the pattern matches the given name, false otherwise. This char[] pattern matching
- * accepts wild-cards '*' and '?'.</p>
+ * Answers true if the pattern matches the given name, false otherwise. This char[] pattern matching
+ * accepts wild-cards '*' and '?'.
  *
- * <p>When not case sensitive, the pattern is assumed to already be lowercased, the
- * name will be lowercased character per character as comparing.<br>
- * If name is null, the answer is false.<br>
+ * When not case sensitive, the pattern is assumed to already be lowercased, the
+ * name will be lowercased character per character as comparing.
+ * If name is null, the answer is false.
  * If pattern is null, the answer is true if name is not null.
- * </p>
+ * <br>
+ * <br>
  * For example:
  * <ol>
  * <li><pre>

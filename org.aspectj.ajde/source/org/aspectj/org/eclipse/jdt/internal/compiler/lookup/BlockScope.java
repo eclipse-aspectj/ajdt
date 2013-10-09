@@ -1,43 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *     							bug 349326 - [1.7] new warning for missing try-with-resources
- *								bug 359334 - Analysis for resource leak warnings does not consider exceptions as method exit points
- *								bug 358903 - Filter practically unimportant resource leak warnings
- *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
- *								bug 370639 - [compiler][resource] restore the default for resource leak warnings
- *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
- *								bug 379784 - [compiler] "Method can be static" is not getting reported
- *								bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
- *								bug 404649 - [1.8][compiler] detect illegal reference to indirect or redundant super
- *     Jesper S Moller <jesper@selskabet.org> - Contributions for
- *								bug 378674 - "The method can be declared as static" is wrong
- *     Keigo Imai - Contribution for  bug 388903 - Cannot extend inner class as an anonymous class when it extends the outer class
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
-import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
-import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
@@ -93,20 +69,6 @@ public final void addAnonymousType(TypeDeclaration anonymousType, ReferenceBindi
 	anonymousClassScope.buildAnonymousTypeBinding(
 		enclosingSourceType(),
 		superBinding);
-	
-	/* Tag any enclosing lambdas as instance capturing. Strictly speaking they need not be, unless the local/anonymous type references enclosing instance state.
-	   but the types themselves track enclosing types regardless of whether the state is accessed or not. This creates a mismatch in expectations in code generation
-	   time, if we choose to make the lambda method static. To keep things simple and avoid a messy rollback, we force the lambda to be an instance method under 
-	   this situation. However if per source, the lambda occurs in a static context, we would generate a static synthetic method.
-	*/
-	MethodScope methodScope = methodScope();
-	while (methodScope != null && methodScope.referenceContext instanceof LambdaExpression) {
-		LambdaExpression lambda = (LambdaExpression) methodScope.referenceContext;
-		if (!lambda.scope.isStatic) {
-			lambda.shouldCaptureInstance = true;
-		}
-		methodScope = methodScope.enclosingMethodScope();
-	}
 }
 
 /* Create the class scope & binding for the local type.
@@ -115,16 +77,6 @@ public final void addLocalType(TypeDeclaration localType) {
 	ClassScope localTypeScope = new ClassScope(this, localType);
 	addSubscope(localTypeScope);
 	localTypeScope.buildLocalTypeBinding(enclosingSourceType());
-	
-	// See comment in addAnonymousType.
-	MethodScope methodScope = methodScope();
-	while (methodScope != null && methodScope.referenceContext instanceof LambdaExpression) {
-		LambdaExpression lambda = (LambdaExpression) methodScope.referenceContext;
-		if (!lambda.scope.isStatic) {
-			lambda.shouldCaptureInstance = true;
-		}
-		methodScope = methodScope.enclosingMethodScope();
-	}
 }
 
 /* Insert a local variable into a given scope, updating its position
@@ -299,26 +251,6 @@ public void emulateOuterAccess(LocalVariableBinding outerLocalVariable) {
 	BlockScope outerVariableScope = outerLocalVariable.declaringScope;
 	if (outerVariableScope == null)
 		return; // no need to further emulate as already inserted (val$this$0)
-	
-	int depth = 0;
-	Scope scope = this;
-	while (outerVariableScope != scope) {
-		switch(scope.kind) {
-			case CLASS_SCOPE:
-				depth++;
-				break;
-			case METHOD_SCOPE: 
-				if (scope.isLambdaScope()) {
-					LambdaExpression lambdaExpression = (LambdaExpression) scope.referenceContext();
-					lambdaExpression.addSyntheticArgument(outerLocalVariable);
-				}
-				break;
-		}
-		scope = scope.parent;
-	}
-	if (depth == 0) 
-		return;
-	
 	MethodScope currentMethodScope = methodScope();
 	if (outerVariableScope.methodScope() != currentMethodScope) {
 		NestedTypeBinding currentType = (NestedTypeBinding) enclosingSourceType();
@@ -602,8 +534,6 @@ public Binding getBinding(char[][] compoundName, int mask, InvocationSite invoca
 				field.declaringClass,
 				CharOperation.concatWith(CharOperation.subarray(compoundName, 0, currentIndex), '.'),
 				ProblemReasons.NonStaticReferenceInStaticContext);
-		// Since a qualified reference must be for a static member, it won't affect static-ness of the enclosing method, 
-		// so we don't have to call resetEnclosingMethodStaticFlag() in this case
 		return binding;
 	}
 	if ((mask & Binding.TYPE) != 0 && (binding instanceof ReferenceBinding)) {
@@ -752,13 +682,6 @@ public VariableBinding[] getEmulationPath(LocalVariableBinding outerLocalVariabl
 		return new VariableBinding[] { outerLocalVariable };
 		// implicit this is good enough
 	}
-	if (currentMethodScope.isLambdaScope()) {
-		LambdaExpression lambda = (LambdaExpression) currentMethodScope.referenceContext;
-		SyntheticArgumentBinding syntheticArgument;
-		if ((syntheticArgument = lambda.getSyntheticArgument(outerLocalVariable)) != null) {
-			return new VariableBinding[] { syntheticArgument };
-		}
-	}
 	// use synthetic constructor arguments if possible
 	if (currentMethodScope.isInsideInitializerOrConstructor()
 		&& (sourceType.isNestedType())) {
@@ -810,13 +733,10 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 	// use synthetic constructor arguments if possible
 	if (insideConstructor) {
 		SyntheticArgumentBinding syntheticArg;
-		if ((syntheticArg = ((NestedTypeBinding) sourceType).getSyntheticArgument(targetEnclosingType, onlyExactMatch, currentMethodScope.isConstructorCall)) != null) {
-			boolean isAnonymousAndHasEnclosing = sourceType.isAnonymousType()
-				&& sourceType.scope.referenceContext.allocation.enclosingInstance != null;
+		if ((syntheticArg = ((NestedTypeBinding) sourceType).getSyntheticArgument(targetEnclosingType, onlyExactMatch)) != null) {
 			// reject allocation and super constructor call
 			if (denyEnclosingArgInConstructorCall
 					&& currentMethodScope.isConstructorCall
-					&& !isAnonymousAndHasEnclosing
 					&& (sourceType == targetEnclosingType || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null))) {
 				return BlockScope.NoEnclosingInstanceInConstructorCall;
 			}
@@ -836,7 +756,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 				// AspectJ end
 				) {
 			NestedTypeBinding nestedEnclosingType = (NestedTypeBinding) enclosingType;
-			SyntheticArgumentBinding enclosingArgument = nestedEnclosingType.getSyntheticArgument(nestedEnclosingType.enclosingType(), onlyExactMatch, currentMethodScope.isConstructorCall);
+			SyntheticArgumentBinding enclosingArgument = nestedEnclosingType.getSyntheticArgument(nestedEnclosingType.enclosingType(), onlyExactMatch);
 			if (enclosingArgument != null) {
 				FieldBinding syntheticField = sourceType.getSyntheticField(enclosingArgument);
 				if (syntheticField != null) {
@@ -858,7 +778,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 	Object[] path = new Object[2]; // probably at least 2 of them
 	ReferenceBinding currentType = sourceType.enclosingType();
 	if (insideConstructor) {
-		path[0] = ((NestedTypeBinding) sourceType).getSyntheticArgument(currentType, onlyExactMatch, currentMethodScope.isConstructorCall);
+		path[0] = ((NestedTypeBinding) sourceType).getSyntheticArgument(currentType, onlyExactMatch);
 	} else {
 		if (currentMethodScope.isConstructorCall){
 			return BlockScope.NoEnclosingInstanceInConstructorCall;
@@ -1027,208 +947,18 @@ public String toString(int tab) {
 			s += ((BlockScope) this.subscopes[i]).toString(tab + 1) + "\n"; //$NON-NLS-1$
 	return s;
 }
-
-private List trackingVariables; // can be null if no resources are tracked
-/** Used only during analyseCode and only for checking if a resource was closed in a finallyBlock. */
-public FlowInfo finallyInfo;
-/**
- * Register a tracking variable and compute its id.
- */
-public int registerTrackingVariable(FakedTrackingVariable fakedTrackingVariable) {
-	if (this.trackingVariables == null)
-		this.trackingVariables = new ArrayList(3);
-	this.trackingVariables.add(fakedTrackingVariable);
-	MethodScope outerMethodScope = outerMostMethodScope();
-	return outerMethodScope.analysisIndex++;
-}
-/** When are no longer interested in this tracking variable - remove it. */
-public void removeTrackingVar(FakedTrackingVariable trackingVariable) {
-	if (trackingVariable.innerTracker != null) {
-		removeTrackingVar(trackingVariable.innerTracker);
-		trackingVariable.innerTracker = null;
-	}
-	if (this.trackingVariables != null)
-		if (this.trackingVariables.remove(trackingVariable))
-			return;
-	if (this.parent instanceof BlockScope)
-		((BlockScope)this.parent).removeTrackingVar(trackingVariable);
-}
-/** Unregister a wrapper resource without affecting its inner. */
-public void pruneWrapperTrackingVar(FakedTrackingVariable trackingVariable) {
-	this.trackingVariables.remove(trackingVariable);
-}
-/**
- * At the end of a block check the closing-status of all tracked closeables that are declared in this block.
- * Also invoked when entering unreachable code.
- */
-public void checkUnclosedCloseables(FlowInfo flowInfo, FlowContext flowContext, ASTNode location, BlockScope locationScope) {
-	if (!compilerOptions().analyseResourceLeaks) return;
-	if (this.trackingVariables == null) {
-		// at a method return we also consider enclosing scopes
-		if (location != null && this.parent instanceof BlockScope)
-			((BlockScope) this.parent).checkUnclosedCloseables(flowInfo, flowContext, location, locationScope);
-		return;
-	}
-	if (location != null && flowInfo.reachMode() != 0) return;
-
-	FakedTrackingVariable returnVar = (location instanceof ReturnStatement) ?
-			FakedTrackingVariable.getCloseTrackingVariable(((ReturnStatement)location).expression, flowInfo, flowContext) : null;
-
-	Set varSet = new HashSet(this.trackingVariables);
-	FakedTrackingVariable trackingVar;
-	// pick one outer-most variable from the set at a time
-	while ((trackingVar = FakedTrackingVariable.pickVarForReporting(varSet, this, location != null)) != null) {
-
-		if (returnVar != null && trackingVar.isResourceBeingReturned(returnVar)) {
-			continue;
-		}
-
-		if (location != null && trackingVar.hasDefinitelyNoResource(flowInfo)) {
-			continue; // reporting against a specific location, there is no resource at this flow, don't complain
-		}
-
-		if (location != null && flowContext != null && flowContext.recordExitAgainstResource(this, flowInfo, trackingVar, location)) {
-			continue; // handled by the flow context
-		}
-
-		// compute the most specific null status for this resource,
-		int status = trackingVar.findMostSpecificStatus(flowInfo, this, locationScope);
-		
-		if (status == FlowInfo.NULL) {
-			// definitely unclosed: highest priority
-			reportResourceLeak(trackingVar, location, status);
-			continue;
-		}
-		if (location == null) // at end of block and not definitely unclosed
-		{
-			// problems at specific locations: medium priority
-			if (trackingVar.reportRecordedErrors(this, status)) // ... report previously recorded errors
-				continue;
-		} 
-		if (status == FlowInfo.POTENTIALLY_NULL) {
-			// potentially unclosed: lower priority
-			reportResourceLeak(trackingVar, location, status);
-		} else if (status == FlowInfo.NON_NULL) {
-			// properly closed but not managed by t-w-r: lowest priority 
-			if (environment().globalOptions.complianceLevel >= ClassFileConstants.JDK1_7)
-				trackingVar.reportExplicitClosing(problemReporter());
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=318682
+public void resetEnclosingMethodStaticFlag() {
+	MethodScope methodScope = methodScope();
+	while (methodScope != null && methodScope.referenceContext instanceof MethodDeclaration) {
+		MethodDeclaration methodDeclaration= (MethodDeclaration) methodScope.referenceContext;
+		methodDeclaration.bits &= ~ASTNode.CanBeStatic;
+		ClassScope enclosingClassScope = methodScope.enclosingClassScope();
+		if (enclosingClassScope != null) {
+			methodScope = enclosingClassScope.methodScope();
+		} else {
+			break;
 		}
 	}
-	if (location == null) {
-		// when leaving this block dispose off all tracking variables:
-		for (int i=0; i<this.localIndex; i++)
-			this.locals[i].closeTracker = null;		
-		this.trackingVariables = null;
-	} else {
-		int size = this.trackingVariables.size();
-		for (int i=0; i<size; i++) {
-			FakedTrackingVariable tracker = (FakedTrackingVariable) this.trackingVariables.get(i);
-			tracker.resetReportingBits();
-		}
-	}
-}
-
-private void reportResourceLeak(FakedTrackingVariable trackingVar, ASTNode location, int nullStatus) {
-	if (location != null)
-		trackingVar.recordErrorLocation(location, nullStatus);
-	else
-		trackingVar.reportError(problemReporter(), null, nullStatus);
-}
-
-/** 
- * If one branch of an if-else closes any AutoCloseable resource, and if the same
- * resource is known to be null on the other branch mark it as closed, too,
- * so that merging both branches indicates that the resource is always closed.
- * Example:
- *	FileReader fr1 = null;
- *	try {\n" +
- *      fr1 = new FileReader(someFile);" + 
- *		fr1.read(buf);\n" + 
- *	} finally {\n" + 
- *		if (fr1 != null)\n" +
- *           try {\n" +
- *               fr1.close();\n" +
- *           } catch (IOException e) {
- *              // do nothing 
- *           }
- *      // after this if statement fr1 is definitely not leaked 
- *	}
- */
-public void correlateTrackingVarsIfElse(FlowInfo thenFlowInfo, FlowInfo elseFlowInfo) {
-	if (this.trackingVariables != null) {
-		int trackVarCount = this.trackingVariables.size();
-		for (int i=0; i<trackVarCount; i++) {
-			FakedTrackingVariable trackingVar = (FakedTrackingVariable) this.trackingVariables.get(i);
-			if (trackingVar.originalBinding == null)
-				continue;
-			if (   thenFlowInfo.isDefinitelyNonNull(trackingVar.binding)			// closed in then branch
-				&& elseFlowInfo.isDefinitelyNull(trackingVar.originalBinding))		// null in else branch
-			{
-				elseFlowInfo.markAsDefinitelyNonNull(trackingVar.binding);			// -> always closed
-			}
-			else if (   elseFlowInfo.isDefinitelyNonNull(trackingVar.binding)		// closed in else branch
-					 && thenFlowInfo.isDefinitelyNull(trackingVar.originalBinding))	// null in then branch
-			{
-				thenFlowInfo.markAsDefinitelyNonNull(trackingVar.binding);			// -> always closed
-			}
-			else {
-				if (thenFlowInfo == FlowInfo.DEAD_END || elseFlowInfo == FlowInfo.DEAD_END)
-					continue; // short cut
-
-				for (int j=i+1; j<trackVarCount; j++) {
-					FakedTrackingVariable var2 = ((FakedTrackingVariable) this.trackingVariables.get(j));
-					if (trackingVar.originalBinding == var2.originalBinding) {
-						// two tracking variables for the same original, merge info from both branches now:
-						boolean var1SeenInThen = thenFlowInfo.hasNullInfoFor(trackingVar.binding);
-						boolean var1SeenInElse = elseFlowInfo.hasNullInfoFor(trackingVar.binding);
-						boolean var2SeenInThen = thenFlowInfo.hasNullInfoFor(var2.binding);
-						boolean var2SeenInElse = elseFlowInfo.hasNullInfoFor(var2.binding);
-						int newStatus;
-						if (!var1SeenInThen && var1SeenInElse && var2SeenInThen && !var2SeenInElse) {
-							newStatus = FlowInfo.mergeNullStatus(thenFlowInfo.nullStatus(var2.binding), elseFlowInfo.nullStatus(trackingVar.binding));
-						} else if (var1SeenInThen && !var1SeenInElse && !var2SeenInThen && var2SeenInElse) {
-							newStatus = FlowInfo.mergeNullStatus(thenFlowInfo.nullStatus(trackingVar.binding), elseFlowInfo.nullStatus(var2.binding)); 
-						} else {
-							continue;
-						}
-						thenFlowInfo.markNullStatus(trackingVar.binding, newStatus);
-						elseFlowInfo.markNullStatus(trackingVar.binding, newStatus);
-						trackingVar.originalBinding.closeTracker = trackingVar; // avoid further use of var2
-						thenFlowInfo.markNullStatus(var2.binding, FlowInfo.NON_NULL);
-						elseFlowInfo.markNullStatus(var2.binding, FlowInfo.NON_NULL);
-					}
-				}
-			}
-		}
-	}
-	if (this.parent instanceof BlockScope)
-		((BlockScope) this.parent).correlateTrackingVarsIfElse(thenFlowInfo, elseFlowInfo);
-}
-
-/** 15.12.3 (Java 8) "Compile-Time Step 3: Is the Chosen Method Appropriate?" */
-public void checkAppropriateMethodAgainstSupers(char[] selector, MethodBinding compileTimeMethod,
-		TypeBinding[] parameters, InvocationSite site)
-{
-	ReferenceBinding enclosingType = enclosingReceiverType();
-	MethodBinding otherMethod = getMethod(enclosingType.superclass(), selector, parameters, site);
-	if (checkAppropriate(compileTimeMethod, otherMethod, site)) {
-		ReferenceBinding[] superInterfaces = enclosingType.superInterfaces();
-		if (superInterfaces != null) {
-			for (int i = 0; i < superInterfaces.length; i++) {
-				otherMethod = getMethod(superInterfaces[i], selector, parameters, site);
-				if (!checkAppropriate(compileTimeMethod, otherMethod, site))
-					break;
-			}
-		}
-	}
-}
-private boolean checkAppropriate(MethodBinding compileTimeDeclaration, MethodBinding otherMethod, InvocationSite location) {
-	if (otherMethod == null || !otherMethod.isValidBinding() || otherMethod == compileTimeDeclaration)
-		return true;
-	if (MethodVerifier.doesMethodOverride(otherMethod, compileTimeDeclaration, this.environment())) {
-		problemReporter().illegalSuperCallBypassingOverride(location, compileTimeDeclaration, otherMethod.declaringClass);
-		return false; 
-	}
-	return true;
 }
 }

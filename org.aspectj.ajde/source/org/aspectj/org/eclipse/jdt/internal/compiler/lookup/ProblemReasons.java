@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,10 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Jesper S Moller - Contributions for
- *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
- *	   Stephan Herrmann - Contribution for
- *								bug 404649 - [1.8][compiler] detect illegal reference to indirect or redundant super
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -31,10 +27,4 @@ public interface ProblemReasons {
 	final int TypeArgumentsForRawGenericMethod = 13; // for generic method
 	final int InvalidTypeForStaticImport = 14;
 	final int InvalidTypeForAutoManagedResource = 15;
-	final int VarargsElementTypeNotVisible = 16;
-	final int NoSuchSingleAbstractMethod = 17;
-	final int NotAWellFormedParameterizedType = 18;
-	final int IntersectionHasMultipleFunctionalInterfaces = 19;
-	final int NonStaticOrAlienTypeReceiver = 20;
-	final int AttemptToBypassDirectSuper = 21; // super access within default method
 }

@@ -1,20 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
- *								bug 388281 - [compiler][null] inheritance of null annotations as an option
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -68,9 +60,6 @@ public interface TagBits {
 	long MultiCatchParameter = ASTNode.Bit13; // local
 	long IsResource = ASTNode.Bit14; // local
 
-	// have implicit null annotations been collected (inherited(?) & default)?
-	long IsNullnessKnown = ASTNode.Bit13; // method
-
 	// test bits to see if parts of binary types are faulted
 	long AreFieldsSorted = ASTNode.Bit13;
 	long AreFieldsComplete = ASTNode.Bit14; // sorted and all resolved
@@ -119,13 +108,11 @@ public interface TagBits {
 	long AnnotationForLocalVariable = ASTNode.Bit42L;
 	long AnnotationForAnnotationType = ASTNode.Bit43L;
 	long AnnotationForPackage = ASTNode.Bit44L;
-	long AnnotationForTypeUse = ASTNode.Bit54L;
-	long AnnotationForTypeParameter = ASTNode.Bit55L;
-	long SE7AnnotationTargetMASK = AnnotationForType | AnnotationForField | AnnotationForMethod
-				| AnnotationForParameter | AnnotationForConstructor | AnnotationForLocalVariable
+	long AnnotationTargetMASK = AnnotationTarget
+				| AnnotationForType | AnnotationForField
+				| AnnotationForMethod | AnnotationForParameter
+				| AnnotationForConstructor | AnnotationForLocalVariable
 				| AnnotationForAnnotationType | AnnotationForPackage;
-	long AnnotationTargetMASK = SE7AnnotationTargetMASK | AnnotationTarget
-				| AnnotationForTypeUse | AnnotationForTypeParameter;
 	// 2-bits for retention (should check (tagBits & RetentionMask) == RuntimeRetention
 	long AnnotationSourceRetention = ASTNode.Bit45L;
 	long AnnotationClassRetention = ASTNode.Bit46L;
@@ -141,20 +128,8 @@ public interface TagBits {
 	long AnnotationSafeVarargs = ASTNode.Bit52L;
 	/** @since 3.7 - java 7 MethodHandle.invokeExact(..)/invokeGeneric(..)*/
 	long AnnotationPolymorphicSignature = ASTNode.Bit53L;
-	/** @since 3.8 null annotation for MethodBinding or LocalVariableBinding (argument): */
-	long AnnotationNullable = ASTNode.Bit56L;
-	/** @since 3.8 null annotation for MethodBinding or LocalVariableBinding (argument): */
-	long AnnotationNonNull = ASTNode.Bit57L;
-	/** @since 3.8 null-default annotation for PackageBinding or TypeBinding or MethodBinding: */
-	long AnnotationNonNullByDefault = ASTNode.Bit58L;
-	/** @since 3.8 canceling null-default annotation for PackageBinding or TypeBinding or MethodBinding: */
-	long AnnotationNullUnspecifiedByDefault = ASTNode.Bit59L;
-	/** From Java 8 */
-	long AnnotationFunctionalInterface = ASTNode.Bit60L;
 
-
-	long AllStandardAnnotationsMask =
-				  AnnotationTargetMASK
+	long AllStandardAnnotationsMask = AnnotationTargetMASK
 				| AnnotationRetentionMASK
 				| AnnotationDeprecated
 				| AnnotationDocumented
@@ -162,15 +137,10 @@ public interface TagBits {
 				| AnnotationOverride
 				| AnnotationSuppressWarnings
 				| AnnotationSafeVarargs
-				| AnnotationPolymorphicSignature
-				| AnnotationNullable
-				| AnnotationNonNull
-				| AnnotationNonNullByDefault
-				| AnnotationNullUnspecifiedByDefault;
-	long AnnotationNullMASK = AnnotationNullable | AnnotationNonNull;
+				| AnnotationPolymorphicSignature;
 
-	long DefaultValueResolved = ASTNode.Bit60L;
+	long DefaultValueResolved = ASTNode.Bit54L;
 
 	// set when type contains non-private constructor(s)
-	long HasNonPrivateConstructor = ASTNode.Bit61L;
+	long HasNonPrivateConstructor = ASTNode.Bit55L;
 }

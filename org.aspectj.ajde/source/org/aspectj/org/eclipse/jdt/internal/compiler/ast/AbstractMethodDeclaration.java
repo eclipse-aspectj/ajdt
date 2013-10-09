@@ -1,34 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Palo Alto Research Center, Incorporated - AspectJ adaptation
- *     Stephan Herrmann - Contributions for
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 367203 - [compiler][null] detect assigning null to nonnull argument
- *								bug 365519 - editorial cleanup after bug 186342 and bug 365387
- *								bug 365531 - [compiler][null] investigate alternative strategy for internally encoding nullness defaults
- *								bug 382353 - [1.8][compiler] Implementation property modifiers should be accepted on default methods.
- *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
- *								bug 388281 - [compiler][null] inheritance of null annotations as an option
- *								bug 401030 - [1.8][null] Null analysis support for lambda methods.
- *******************************************************************************/
+ ******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
-
-import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.InitializationFlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
@@ -53,8 +39,6 @@ public abstract class AbstractMethodDeclaration
 	public int modifiers;
 	public int modifiersSourceStart;
 	public Annotation[] annotations;
-	// jsr 308
-	public Receiver receiver;
 	public Argument[] arguments;
 	public TypeReference[] thrownExceptions;
 	public Statement[] statements;
@@ -89,36 +73,7 @@ public abstract class AbstractMethodDeclaration
 		}
 	}
 
-	/**
-	 * When a method is accessed via SourceTypeBinding.resolveTypesFor(MethodBinding)
-	 * we create the argument binding and resolve annotations in order to compute null annotation tagbits.
-	 */
-	public void createArgumentBindings() {
-		createArgumentBindings(this.arguments, this.binding, this.scope);
-	}
-	// version for invocation from LambdaExpression:
-	static void createArgumentBindings(Argument[] arguments, MethodBinding binding, MethodScope scope) {
-		if (arguments != null && binding != null) {
-			for (int i = 0, length = arguments.length; i < length; i++) {
-				Argument argument = arguments[i];
-				argument.createBinding(scope, binding.parameters[i]);
-				// createBinding() has resolved annotations, now transfer nullness info from the argument to the method:
-				// prefer type annotation:
-				long argTypeTagBits = (argument.type.resolvedType.tagBits & TagBits.AnnotationNullMASK);
-				// if none found try SE7 annotation:
-				if (argTypeTagBits == 0) {
-					argTypeTagBits = (argument.binding.tagBits & TagBits.AnnotationNullMASK);
-				}
-				if (argTypeTagBits != 0) {
-					if (binding.parameterNonNullness == null) {
-						binding.parameterNonNullness = new Boolean[arguments.length];
-						binding.tagBits |= TagBits.IsNullnessKnown;
-					}
-					binding.parameterNonNullness[i] = Boolean.valueOf(argTypeTagBits == TagBits.AnnotationNonNull);
-				}
-			}
-		}
-	}
+	public abstract void analyseCode(ClassScope classScope, InitializationFlowContext initializationContext, FlowInfo info);
 
 	/**
 	 * Bind and add argument's binding into the scope of the method
@@ -196,28 +151,6 @@ public abstract class AbstractMethodDeclaration
 		}
 	}
 
-	/**
-	 * Feed null information from argument annotations into the analysis and mark arguments as assigned.
-	 */
-	static void analyseArguments(FlowInfo flowInfo, Argument[] methodArguments, MethodBinding methodBinding) {
-		if (methodArguments != null) {
-			for (int i = 0, count = methodArguments.length; i < count; i++) {
-				if (methodBinding.parameterNonNullness != null) {
-					// leverage null-info from parameter annotations:
-					Boolean nonNullNess = methodBinding.parameterNonNullness[i];
-					if (nonNullNess != null) {
-						if (nonNullNess.booleanValue())
-							flowInfo.markAsDefinitelyNonNull(methodArguments[i].binding);
-						else
-							flowInfo.markPotentiallyNullBit(methodArguments[i].binding);
-					}
-				}
-				// tag parameters as being set:
-				flowInfo.markAsDefinitelyAssigned(methodArguments[i].binding);
-			}
-		}
-	}
-
 	public CompilationResult compilationResult() {
 
 		return this.compilationResult;
@@ -256,10 +189,17 @@ public abstract class AbstractMethodDeclaration
 				// a fatal error was detected during code generation, need to restart code gen if possible
 				if (e.compilationResult == CodeStream.RESTART_IN_WIDE_MODE) {
 					// a branch target required a goto_w, restart code gen in wide mode.
-					classFile.contentsOffset = problemResetPC;
-					classFile.methodCount--;
-					classFile.codeStream.resetInWideMode(); // request wide mode
-					restart = true;
+					if (!restart) {
+						classFile.contentsOffset = problemResetPC;
+						classFile.methodCount--;
+						classFile.codeStream.resetInWideMode(); // request wide mode
+						restart = true;
+					} else {
+						// after restarting in wide mode, code generation failed again
+						// report a problem
+						restart = false;
+						abort = true;
+					}
 				} else if (e.compilationResult == CodeStream.RESTART_CODE_GEN_FOR_UNUSED_LOCALS_MODE) {
 					classFile.contentsOffset = problemResetPC;
 					classFile.methodCount--;
@@ -329,10 +269,6 @@ public abstract class AbstractMethodDeclaration
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 	}
 
-	public void getAllAnnotationContexts(int targetType, List allAnnotationContexts) {
-		// do nothing
-	}
-
 	private void checkArgumentsSize() {
 		TypeBinding[] parameters = this.binding.parameters;
 		int size = 1; // an abstract method or a native method cannot be static
@@ -350,13 +286,6 @@ public abstract class AbstractMethodDeclaration
 				this.scope.problemReporter().noMoreAvailableSpaceForArgument(this.scope.locals[i], this.scope.locals[i].declaration);
 			}
 		}
-	}
-
-	public CompilationUnitDeclaration getCompilationUnitDeclaration() {
-		if (this.scope != null) {
-			return this.scope.compilationUnitScope().referenceContext;
-		}
-		return null;
 	}
 
 	public boolean hasErrors() {
@@ -387,10 +316,6 @@ public abstract class AbstractMethodDeclaration
 
 	public boolean isDefaultConstructor() {
 
-		return false;
-	}
-
-	public boolean isDefaultMethod() {
 		return false;
 	}
 
@@ -432,10 +357,7 @@ public abstract class AbstractMethodDeclaration
 		}
 		printIndent(tab, output);
 		printModifiers(this.modifiers, output);
-		if (this.annotations != null) {
-			printAnnotations(this.annotations, output);
-			output.append(' ');
-		}
+		if (this.annotations != null) printAnnotations(this.annotations, output);
 
 		TypeParameter[] typeParams = typeParameters();
 		if (typeParams != null) {
@@ -450,12 +372,9 @@ public abstract class AbstractMethodDeclaration
 		}
 
 		printReturnType(0, output).append(this.selector).append('(');
-		if (this.receiver != null) {
-			this.receiver.print(0, output);
-		}
 		if (this.arguments != null) {
 			for (int i = 0; i < this.arguments.length; i++) {
-				if (i > 0 || this.receiver != null) output.append(", "); //$NON-NLS-1$
+				if (i > 0) output.append(", "); //$NON-NLS-1$
 				this.arguments[i].print(0, output);
 			}
 		}
@@ -501,11 +420,9 @@ public abstract class AbstractMethodDeclaration
 
 		try {
 			bindArguments();
-			resolveReceiver();
 			bindThrownExceptions();
 			resolveJavadoc();
 			resolveAnnotations(this.scope, this.annotations, this.binding);
-			validateNullAnnotations();
 			resolveStatements();
 			// check @Deprecated annotation presence
 			if (this.binding != null
@@ -520,54 +437,6 @@ public abstract class AbstractMethodDeclaration
 		}
 	}
 
-	public void resolveReceiver() {
-		if (this.receiver == null) return;
-
-		if (this.receiver.modifiers != 0) {
-			this.scope.problemReporter().illegalModifiers(this.receiver.declarationSourceStart, this.receiver.declarationSourceEnd);
-		}
-
-		TypeBinding resolvedReceiverType = this.receiver.type.resolvedType;
-		if (this.binding == null || resolvedReceiverType == null || !resolvedReceiverType.isValidBinding()) {
-			return;
-		}
-
-		ReferenceBinding declaringClass = this.binding.declaringClass;
-		/* neither static methods nor methods in anonymous types can have explicit 'this' */
-		if (this.isStatic() || declaringClass.isAnonymousType()) {
-			this.scope.problemReporter().disallowedThisParameter(this.receiver);
-			this.receiver = null;
-			return; // No need to do further validation
-		}
-
-		ReferenceBinding enclosingReceiver = this.scope.enclosingReceiverType();
-		if (this.isConstructor()) {
-			/* Only non static member types or local types can declare explicit 'this' params in constructors */
-			if (declaringClass.isStatic()
-					|| (declaringClass.tagBits & (TagBits.IsLocalType | TagBits.IsMemberType)) == 0) { /* neither member nor local type */
-				this.scope.problemReporter().disallowedThisParameter(this.receiver);
-				this.receiver = null;
-				return; // No need to do further validation
-			}
-			enclosingReceiver = enclosingReceiver.enclosingType();
-		}
-
-		char[][] tokens = (this.receiver.qualifyingName == null) ? null : this.receiver.qualifyingName.getName();
-		if (this.isConstructor()) {
-			if (tokens == null || tokens.length > 1 || !CharOperation.equals(enclosingReceiver.sourceName(), tokens[0])) {
-				this.scope.problemReporter().illegalQualifierForExplicitThis(this.receiver, enclosingReceiver);
-				this.receiver.qualifyingName = null;
-			}
-		} else if (tokens != null && tokens.length > 0) {
-			this.scope.problemReporter().illegalQualifierForExplicitThis2(this.receiver);
-			this.receiver.qualifyingName = null;
-		}
-
-		if (enclosingReceiver != resolvedReceiverType) {
-			this.scope.problemReporter().illegalTypeForExplicitThis(this.receiver, enclosingReceiver);
-			this.receiver = null;
-		}
-	}
 	public void resolveJavadoc() {
 
 		if (this.binding == null) return;
@@ -607,10 +476,6 @@ public abstract class AbstractMethodDeclaration
 	public void tagAsHavingErrors() {
 		this.ignoreFurtherInvestigation = true;
 	}
-	
-	public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
-		// Nothing to do for this context;
-	}
 
 	public void traverse(
 		ASTVisitor visitor,
@@ -621,21 +486,7 @@ public abstract class AbstractMethodDeclaration
 	public TypeParameter[] typeParameters() {
 	    return null;
 	}
-
-	void validateNullAnnotations() {
-		// null annotations on parameters?
-		if (this.binding != null && this.binding.parameterNonNullness != null) {
-			int length = this.binding.parameters.length;
-			for (int i=0; i<length; i++) {
-				if (this.binding.parameterNonNullness[i] != null) {
-					long nullAnnotationTagBit =  this.binding.parameterNonNullness[i].booleanValue()
-							? TagBits.AnnotationNonNull : TagBits.AnnotationNullable;
-					this.scope.validateNullAnnotation(nullAnnotationTagBit, this.arguments[i].type, this.arguments[i].annotations);
-				}
-			}
-		}
-	}
-	//*********************************************************************
+		//*********************************************************************
 	// AspectJ Extension
 	/**
 	 * Called at the end of resolving types
@@ -643,7 +494,7 @@ public abstract class AbstractMethodDeclaration
 	 */
 	public boolean finishResolveTypes(SourceTypeBinding sourceTypeBinding) {
 		return true;
-	}
+}
 	/**
 	 * Just before building bindings, hook for subclasses
 	 */

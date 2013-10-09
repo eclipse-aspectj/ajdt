@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,7 +32,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the name index for a CONSTANT_Class type entry
-	 * @see IConstantPoolConstant#CONSTANT_Class
 	 */
 	int getClassInfoNameIndex();
 
@@ -43,25 +42,16 @@ public interface IConstantPoolEntry {
 	 *
 	 * @return the class index for a CONSTANT_Fieldref,
 	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref type entry
-	 * @see IConstantPoolConstant#CONSTANT_Fieldref
-	 * @see IConstantPoolConstant#CONSTANT_Methodref
-	 * @see IConstantPoolConstant#CONSTANT_InterfaceMethodref
 	 */
 	int getClassIndex();
 
 	/**
 	 * Returns the nameAndType index for a CONSTANT_Fieldref,
-	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref,
-	 * CONSTANT_InvokeDynamic type entry.
+	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref type entry.
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the nameAndType index for a CONSTANT_Fieldref,
-	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref,
-	 * CONSTANT_InvokeDynamic type entry
-	 * @see IConstantPoolConstant#CONSTANT_Fieldref
-	 * @see IConstantPoolConstant#CONSTANT_Methodref
-	 * @see IConstantPoolConstant#CONSTANT_InterfaceMethodref
-	 * @see IConstantPoolConstant#CONSTANT_InvokeDynamic
+	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref type entry
 	 */
 	int getNameAndTypeIndex();
 
@@ -70,7 +60,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the string index for a CONSTANT_String type entry
-	 * @see IConstantPoolConstant#CONSTANT_String
 	 */
 	int getStringIndex();
 
@@ -79,7 +68,6 @@ public interface IConstantPoolEntry {
 	 * Returns null otherwise.
 	 *
 	 * @return the string value for a CONSTANT_String type entry
-	 * @see IConstantPoolConstant#CONSTANT_String
 	 */
 	String getStringValue();
 
@@ -88,7 +76,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the integer value for a CONSTANT_Integer type entry
-	 * @see IConstantPoolConstant#CONSTANT_Integer
 	 */
 	int getIntegerValue();
 
@@ -97,7 +84,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the float value for a CONSTANT_Float type entry
-	 * @see IConstantPoolConstant#CONSTANT_Float
 	 */
 	float getFloatValue();
 
@@ -106,7 +92,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the double value for a CONSTANT_Double type entry
-	 * @see IConstantPoolConstant#CONSTANT_Double
 	 */
 	double getDoubleValue();
 
@@ -115,7 +100,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the long value for a CONSTANT_Long type entry
-	 * @see IConstantPoolConstant#CONSTANT_Long
 	 */
 	long getLongValue();
 
@@ -124,7 +108,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the descriptor index for a CONSTANT_NameAndType type entry
-	 * @see IConstantPoolConstant#CONSTANT_NameAndType
 	 */
 	int getNameAndTypeInfoDescriptorIndex();
 
@@ -133,7 +116,6 @@ public interface IConstantPoolEntry {
 	 * The value is unspecified otherwise.
 	 *
 	 * @return the name index for a CONSTANT_NameAndType type entry
-	 * @see IConstantPoolConstant#CONSTANT_NameAndType
 	 */
 	int getNameAndTypeInfoNameIndex();
 
@@ -142,7 +124,6 @@ public interface IConstantPoolEntry {
 	 * Returns null otherwise.
 	 *
 	 * @return the class name for a CONSTANT_Class type entry
-	 * @see IConstantPoolConstant#CONSTANT_Class
 	 */
 	char[] getClassInfoName();
 
@@ -153,9 +134,6 @@ public interface IConstantPoolEntry {
 	 *
 	 * @return the class name for a CONSTANT_Fieldref,
 	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref type entry
-	 * @see IConstantPoolConstant#CONSTANT_Fieldref
-	 * @see IConstantPoolConstant#CONSTANT_Methodref
-	 * @see IConstantPoolConstant#CONSTANT_InterfaceMethodref
 	 */
 	char[] getClassName();
 
@@ -164,20 +142,16 @@ public interface IConstantPoolEntry {
 	 * Returns null otherwise.
 	 *
 	 * @return the field name for a CONSTANT_Fieldref type entry
-	 * @see IConstantPoolConstant#CONSTANT_Fieldref
 	 */
 	char[] getFieldName();
 
 	/**
-	 * Returns the field name for a CONSTANT_Methodref, CONSTANT_InterfaceMethodref
-	 * or CONSTANT_InvokeDynamic type entry.
+	 * Returns the field name for a CONSTANT_Methodref or CONSTANT_InterfaceMethodred
+	 * type entry.
 	 * Returns null otherwise.
 	 *
-	 * @return the method name for a CONSTANT_Methodref, CONSTANT_InterfaceMethodref
-	 * or CONSTANT_InvokeDynamic type entry
-	 * @see IConstantPoolConstant#CONSTANT_Methodref
-	 * @see IConstantPoolConstant#CONSTANT_InterfaceMethodref
-	 * @see IConstantPoolConstant#CONSTANT_InvokeDynamic
+	 * @return the field name for a CONSTANT_Methodref or CONSTANT_InterfaceMethodred
+	 * type entry
 	 */
 	char[] getMethodName();
 
@@ -188,27 +162,18 @@ public interface IConstantPoolEntry {
 	 *
 	 * @return the field descriptor value for a CONSTANT_Fieldref type entry. This value
 	 * is set only when decoding the CONSTANT_Fieldref entry
-	 * @see IConstantPoolConstant#CONSTANT_Fieldref
 	 */
 	char[] getFieldDescriptor();
 
 	/**
 	 * Returns the method descriptor value for a CONSTANT_Methodref or
 	 * CONSTANT_InterfaceMethodref type entry. This value is set only when decoding the
-	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref, CONSTANT_MethodType
-	 * or CONSTANT_InvokeDynamic entry.
-	 * 
+	 * CONSTANT_Methodref or CONSTANT_InterfaceMethodref entry.
 	 * Returns null otherwise.
 	 *
-	 * @return the method descriptor value for a CONSTANT_Methodref,
+	 * @return the method descriptor value for a CONSTANT_Methodref or
 	 * CONSTANT_InterfaceMethodref type entry. This value is set only when decoding the
-	 * CONSTANT_Methodref, CONSTANT_InterfaceMethodref, CONSTANT_MethodType
-	 * or CONSTANT_InvokeDynamic entry
-	 *
-	 * @see IConstantPoolConstant#CONSTANT_Methodref
-	 * @see IConstantPoolConstant#CONSTANT_InterfaceMethodref
-	 * @see IConstantPoolConstant#CONSTANT_MethodType
-	 * @see IConstantPoolConstant#CONSTANT_InvokeDynamic
+	 * CONSTANT_Methodref or CONSTANT_InterfaceMethodref entry
 	 */
 	char[] getMethodDescriptor();
 
@@ -219,7 +184,6 @@ public interface IConstantPoolEntry {
 	 *
 	 * @return the utf8 value for a CONSTANT_Utf8 type entry. This value is set only when
 	 * decoding a UTF8 entry
-	 * @see IConstantPoolConstant#CONSTANT_Utf8
 	 */
 	char[] getUtf8Value();
 
@@ -230,7 +194,6 @@ public interface IConstantPoolEntry {
 	 *
 	 * @return the utf8 length for a CONSTANT_Utf8 type entry. This value is set only when
 	 * decoding a UTF8 entry
-	 * @see IConstantPoolConstant#CONSTANT_Utf8
 	 */
 	int getUtf8Length();
 }

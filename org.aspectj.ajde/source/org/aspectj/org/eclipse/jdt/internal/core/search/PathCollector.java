@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.aspectj.org.eclipse.jdt.internal.core.search;
 
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.aspectj.org.eclipse.jdt.core.search.SearchParticipant;
 import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
@@ -25,7 +26,7 @@ public class PathCollector extends IndexQueryRequestor {
 	public HashSet paths = new HashSet(5);
 
 	/* (non-Javadoc)
-	 * @see IndexQueryRequestor#acceptIndexMatch(String, SearchPattern, SearchParticipant, AccessRuleSet)
+	 * @seeIndexQueryRequestor#acceptIndexMatch(IndexRecord, SearchParticipant, SearchPattern)
 	 */
 	public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 		this.paths.add(documentPath);
@@ -36,6 +37,11 @@ public class PathCollector extends IndexQueryRequestor {
 	 * Returns the paths that have been collected.
 	 */
 	public String[] getPaths() {
-		return (String[]) this.paths.toArray(new String[this.paths.size()]);
+		String[] result = new String[this.paths.size()];
+		int i = 0;
+		for (Iterator iter = this.paths.iterator(); iter.hasNext();) {
+			result[i++] = (String)iter.next();
+		}
+		return result;
 	}
 }

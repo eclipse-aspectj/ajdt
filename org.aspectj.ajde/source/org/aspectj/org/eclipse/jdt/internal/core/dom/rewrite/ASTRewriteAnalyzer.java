@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -63,6 +59,7 @@ import org.eclipse.text.edits.TextEditGroup;
  * (text manipulation API) that describe the required code changes.
  */
 public final class ASTRewriteAnalyzer extends ASTVisitor {
+
 	// AspectJ Extension start - might not be needed anymore - AJDT may override it with its variant...
 	// We use a factory to build the AST rewrite analyzer, so we can plugin in alternatives...
 	private static final String AJ_ASTREWRITEANALYZER_FACTORY = "org.aspectj.ajdt.core.dom.rewrite.AjASTRewriteAnalyzerFactory"; //$NON-NLS-1$
@@ -99,63 +96,13 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	}
 
 	// AspectJ Extension end
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_FIELD_MODIFIERS_PROPERTY = FieldDeclaration.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_INITIALIZER_MODIFIERS_PROPERTY3 = Initializer.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_METHOD_MODIFIERS_PROPERTY2 = MethodDeclaration.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final ChildPropertyDescriptor INTERNAL_METHOD_RETURN_TYPE_PROPERTY = MethodDeclaration.RETURN_TYPE_PROPERTY;
 	
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_METHOD_EXTRA_DIMENSIONS_PROPERTY = MethodDeclaration.EXTRA_DIMENSIONS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final ChildListPropertyDescriptor INTERNAL_METHOD_THROWN_EXCEPTIONS_PROPERTY = MethodDeclaration.THROWN_EXCEPTIONS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_TYPE_MODIFIERS_PROPERTY = TypeDeclaration.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final ChildPropertyDescriptor INTERNAL_TYPE_SUPERCLASS_PROPERTY = TypeDeclaration.SUPERCLASS_PROPERTY;
-	
-	/** @deprecated using deprecated code */
-	private static final ChildListPropertyDescriptor INTERNAL_TYPE_SUPER_INTERFACES_PROPERTY = TypeDeclaration.SUPER_INTERFACES_PROPERTY;
-	
-	/** @deprecated using deprecated code */
-	private static final ChildPropertyDescriptor INTERNAL_CIC_NAME_PROPERTY = ClassInstanceCreation.NAME_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_FRAGMENT_EXTRA_DIMENSIONS_PROPERTY = VariableDeclarationFragment.EXTRA_DIMENSIONS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final ChildPropertyDescriptor INTERNAL_TDS_TYPE_DECLARATION_PROPERTY = TypeDeclarationStatement.TYPE_DECLARATION_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_VARIABLE_MODIFIERS_PROPERTY = SingleVariableDeclaration.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_VARIABLE_EXTRA_DIMENSIONS_PROPERTY = SingleVariableDeclaration.EXTRA_DIMENSIONS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_VDE_MODIFIERS_PROPERTY = VariableDeclarationExpression.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final SimplePropertyDescriptor INTERNAL_VDS_MODIFIERS_PROPERTY = VariableDeclarationStatement.MODIFIERS_PROPERTY;
-
-	/** @deprecated using deprecated code */
-	private static final int JLS2_INTERNAL = AST.JLS2;
-	
-	/** @deprecated using deprecated code */
-	private static final int JLS3_INTERNAL = AST.JLS3;
-	
-	/** @deprecated using deprecated code */
-	private static final int JLS4_INTERNAL = AST.JLS4;
-
+	/**
+	 * Internal synonym for deprecated constant AST.JLS2
+	 * to alleviate deprecated warnings.
+	 * @deprecated
+	 */
+	/*package*/ static final int JLS2_INTERNAL = AST.JLS2;
 
 	TextEdit currentEdit;
 	final RewriteEventStore eventStore; // used from inner classes
@@ -971,10 +918,10 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 						insertedPrefix = getLineDelimiter() + this.formatter.createIndentString(indent) + insertedPrefix.trim() + ' ';
 					}
 					doTextInsert(offset, insertedPrefix, editGroup);
-					int lineStart= getCurrentLineStart(prefix, prefix.length());
-					if (lineStart != 0) {
+					String lineInPrefix= getCurrentLine(prefix, prefix.length());
+					if (prefix.length() != lineInPrefix.length()) {
 						// prefix contains a new line: update the indent to the one used in the prefix
-						indent= this.formatter.computeIndentUnits(prefix.substring(lineStart));
+						indent= this.formatter.computeIndentUnits(lineInPrefix);
 					}
 					doTextInsert(offset, replacingNode, indent, true, editGroup);
 					doTextInsert(offset, strings[1], editGroup);
@@ -1297,10 +1244,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		voidVisit(parent, MethodDeclaration.BODY_PROPERTY);
 	}
 
-	protected int rewriteExtraDimensionsInfo(ASTNode node, int pos, ChildListPropertyDescriptor property) {
-		return rewriteNodeList(node, property, pos, " ", " "); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
 	private int rewriteExtraDimensions(ASTNode parent, StructuralPropertyDescriptor property, int pos) {
 		RewriteEvent event= getEvent(parent, property);
 		if (event == null || event.getChangeKind() == RewriteEvent.UNCHANGED) {
@@ -1410,12 +1353,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 				}
 				currPos= offset;
 			} else {
-				// If in the first line, there are cases (eg: catch clause) where the line will not be prefixed with 
-				// proper indentation - see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350285
-				int lineOffset = getCurrentLineStart(formatted, offset);
-				String destIndentString = (lineOffset == 0)
-						? this.formatter.createIndentString(initialIndentLevel)
-						: this.formatter.getIndentString(formatted.substring(lineOffset, offset));
+				String destIndentString=  this.formatter.getIndentString(getCurrentLine(formatted, offset));
 				if (data instanceof CopyPlaceholderData) { // replace with a copy/move target
 					CopySourceInfo copySource= ((CopyPlaceholderData) data).copySource;
 					int srcIndentLevel= getIndent(copySource.getNode().getStartPosition());
@@ -1448,16 +1386,17 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return offset < formatted.length() && !IndentManipulation.isLineDelimiterChar(formatted.charAt(offset));
 	}
 
-	private int getCurrentLineStart(String str, int pos) {
+	private String getCurrentLine(String str, int pos) {
 		for (int i= pos - 1; i>= 0; i--) {
 			char ch= str.charAt(i);
 			if (IndentManipulation.isLineDelimiterChar(ch)) {
-				return i+1;
+				return str.substring(i + 1, pos);
 			}
 		}
-		return 0;
+		return str.substring(0, pos);
 	}
-	
+
+
 	private void rewriteModifiers(ASTNode parent, StructuralPropertyDescriptor property, int offset) {
 		RewriteEvent event= getEvent(parent, property);
 		if (event == null || event.getChangeKind() != RewriteEvent.REPLACED) {
@@ -1549,12 +1488,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		RewriteEvent[] children= event.getChildren();
 		boolean isAllInsert= isAllOfKind(children, RewriteEvent.INSERTED);
 		boolean isAllRemove= isAllOfKind(children, RewriteEvent.REMOVED);
-		String keyword= Util.EMPTY_STRING;
-		boolean isAnnotationsProperty = property == SingleVariableDeclaration.VARARGS_ANNOTATIONS_PROPERTY 
-				|| node instanceof AnnotatableType && property == ((AnnotatableType) node).getAnnotationsProperty();
-		if (isAnnotationsProperty) {
-			keyword= " "; //$NON-NLS-1$
-		} else if (isAllInsert || isAllRemove) {
+		if (isAllInsert || isAllRemove) {
 			// update pos
 			try {
 				pos= getScanner().getNextStartOffset(pos, false);
@@ -1564,23 +1498,23 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 
 		Prefix formatterPrefix;
-		if (property == SingleVariableDeclaration.MODIFIERS2_PROPERTY || isAnnotationsProperty)
+		if (property == SingleVariableDeclaration.MODIFIERS2_PROPERTY)
 			formatterPrefix= this.formatter.PARAM_ANNOTATION_SEPARATION;
 		else
 			formatterPrefix= this.formatter.ANNOTATION_SEPARATION;
 
-		int endPos= new ModifierRewriter(formatterPrefix).rewriteList(node, property, pos, keyword, " "); //$NON-NLS-1$ 
+		int endPos= new ModifierRewriter(formatterPrefix).rewriteList(node, property, pos, Util.EMPTY_STRING, " "); //$NON-NLS-1$ 
 
 		try {
 			int nextPos= getScanner().getNextStartOffset(endPos, false);
-			RewriteEvent lastChild = children[children.length - 1];
-			boolean lastUnchanged= lastChild.getChangeKind() != RewriteEvent.UNCHANGED;
+
+			boolean lastUnchanged= children[children.length - 1].getChangeKind() != RewriteEvent.UNCHANGED;
 
 			if (isAllRemove) {
-				doTextRemove(endPos, nextPos - endPos, getEditGroup(lastChild));
+				doTextRemove(endPos, nextPos - endPos, getEditGroup(children[children.length - 1]));
 				return nextPos;
-			} else if ((isAllInsert || (nextPos == endPos && lastUnchanged)) // see bug 165654
-					&& !isAnnotationsProperty) {
+			} else if (isAllInsert || (nextPos == endPos && lastUnchanged)) { // see bug 165654
+				RewriteEvent lastChild= children[children.length - 1];
 				String separator;
 				if (lastChild.getNewValue() instanceof Annotation) {
 					separator= formatterPrefix.getPrefix(getIndent(pos));
@@ -1594,14 +1528,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		return endPos;
 	}
-	
-	private int rewriteTypeAnnotations(ASTNode node, ChildListPropertyDescriptor property, int pos) {
-		return rewriteModifiers2(node, property, pos);
-	}
 
-	private int rewriteVarargsAnnotations(ASTNode node, ChildListPropertyDescriptor property, int pos) {
-		return rewriteModifiers2(node, property, pos);
-	}
 
 	private void replaceOperation(int posBeforeOperation, String newOperation, TextEditGroup editGroup) {
 		try {
@@ -1713,7 +1640,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		boolean isJLS2 = apiLevel == JLS2_INTERNAL;
 		if (isJLS2) {
-			rewriteModifiers(node, INTERNAL_TYPE_MODIFIERS_PROPERTY, pos);
+			rewriteModifiers(node, TypeDeclaration.MODIFIERS_PROPERTY, pos);
 		} else {
 			rewriteModifiers2(node, TypeDeclaration.MODIFIERS2_PROPERTY, pos);
 		}
@@ -1754,7 +1681,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		// superclass
 		if (!isInterface || invertType) {
-			ChildPropertyDescriptor superClassProperty= isJLS2 ? INTERNAL_TYPE_SUPERCLASS_PROPERTY : TypeDeclaration.SUPERCLASS_TYPE_PROPERTY;
+			ChildPropertyDescriptor superClassProperty= isJLS2 ? TypeDeclaration.SUPERCLASS_PROPERTY : TypeDeclaration.SUPERCLASS_TYPE_PROPERTY;
 
 			RewriteEvent superClassEvent= getEvent(node, superClassProperty);
 
@@ -1788,7 +1715,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			}
 		}
 		// extended interfaces
-		ChildListPropertyDescriptor superInterfaceProperty= isJLS2 ? INTERNAL_TYPE_SUPER_INTERFACES_PROPERTY : TypeDeclaration.SUPER_INTERFACE_TYPES_PROPERTY;
+		ChildListPropertyDescriptor superInterfaceProperty= isJLS2 ? TypeDeclaration.SUPER_INTERFACES_PROPERTY : TypeDeclaration.SUPER_INTERFACE_TYPES_PROPERTY;
 
 		RewriteEvent interfaceEvent= getEvent(node, superInterfaceProperty);
 		if (interfaceEvent == null || interfaceEvent.getChangeKind() == RewriteEvent.UNCHANGED) {
@@ -1828,7 +1755,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	}
 
 	private void rewriteReturnType(MethodDeclaration node, boolean isConstructor, boolean isConstructorChange) {
-		ChildPropertyDescriptor property= (node.getAST().apiLevel() == JLS2_INTERNAL) ? INTERNAL_METHOD_RETURN_TYPE_PROPERTY : MethodDeclaration.RETURN_TYPE2_PROPERTY;
+		ChildPropertyDescriptor property= (node.getAST().apiLevel() == JLS2_INTERNAL) ? MethodDeclaration.RETURN_TYPE_PROPERTY : MethodDeclaration.RETURN_TYPE2_PROPERTY;
 
 		// weakness in the AST: return type can exist, even if missing in source
 		ASTNode originalReturnType= (ASTNode) getOriginalValue(node, property);
@@ -1854,104 +1781,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			}
 		}
 	}
-	
-	private int rewriteMethodReceiver(MethodDeclaration method, int offset) throws CoreException {
-		offset= getScanner().getTokenEndOffset(TerminalTokens.TokenNameLPAREN, offset);
-		if (method.getAST().apiLevel() < AST.JLS8) {
-			return offset;
-		}
 
-		int newParamCount = ((List) getNewValue(method, MethodDeclaration.PARAMETERS_PROPERTY)).size();
-		int oldParamCount = method.parameters().size();
-		RewriteEvent event = getEvent(method, MethodDeclaration.RECEIVER_TYPE_PROPERTY);
-		RewriteEvent qualEvent = getEvent(method, MethodDeclaration.RECEIVER_QUALIFIER_PROPERTY);
-
-		boolean rewriteQualifier = false;
-		ASTNode newQual = null;
-		ASTNode oldQual = null;
-		if (qualEvent != null) {
-			newQual = (ASTNode) qualEvent.getNewValue();
-			oldQual = (ASTNode) qualEvent.getOriginalValue();
-		}
-
-		TextEditGroup editGroup= getEditGroup(event);
-		if (event != null && event.getChangeKind() != RewriteEvent.UNCHANGED) {
-			int changeKind= event.getChangeKind();
-			if (changeKind == RewriteEvent.INSERTED) {
-				 doTextInsert(offset, (ASTNode) event.getNewValue(), 0, false, editGroup);
-				doTextInsert(offset, " ", editGroup); //$NON-NLS-1$
-				if (newQual != null ) {
-					doTextInsert(offset, newQual, 0, false, getEditGroup(qualEvent));
-					doTextInsert(offset, ".", editGroup); //$NON-NLS-1$
-				}
-				doTextInsert(offset, "this", editGroup); //$NON-NLS-1$
-				if (newParamCount > 0) {
-					doTextInsert(offset, ", ", editGroup); //$NON-NLS-1$
-				}
-			} else {
-				ASTNode elem= (ASTNode) event.getOriginalValue();
-				SourceRange range= getExtendedRange(elem);
-				int elemOffset= range.getStartPosition();
-				int elemLength= range.getLength();
-				int elemEnd= elemOffset + elemLength;
-				if (changeKind == RewriteEvent.REMOVED) {
-					editGroup= getEditGroup(event);
-					int endPos;
-					if (oldParamCount == 0) {
-						endPos= getScanner().getTokenStartOffset(TerminalTokens.TokenNameRPAREN, elemEnd);
-					} else {
-						endPos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameCOMMA, elemEnd);
-					}
-					doTextRemoveAndVisit(offset, endPos - offset, elem, editGroup);
-					return endPos;
-				} else if (changeKind == RewriteEvent.REPLACED) {
-					editGroup= getEditGroup(event);
-					doTextRemoveAndVisit(elemOffset, elemLength, elem, editGroup);
-					doTextInsert(elemOffset, (ASTNode) event.getNewValue(), 0, false, editGroup);
-					rewriteQualifier = true;
-				}
-			}
-		} else {
-			rewriteRequiredNode(method, MethodDeclaration.RECEIVER_TYPE_PROPERTY);
-			if (method.getReceiverType() != null) {
-				rewriteQualifier = true;
-			}
-		}
-		if (rewriteQualifier) {
-			if (qualEvent != null) {
-				int qualChangeKind = qualEvent.getChangeKind();
-				TextEditGroup qualGroup = getEditGroup(qualEvent);
-				if (qualChangeKind == RewriteEvent.INSERTED) {
-					int pos= getScanner().getTokenStartOffset(TerminalTokens.TokenNamethis, offset);
-					doTextInsert(pos, (ASTNode) qualEvent.getNewValue(), 0, false, qualGroup);
-					doTextInsert(pos, ".", qualGroup); //$NON-NLS-1$
-				} else if (qualChangeKind == RewriteEvent.REMOVED) {
-					int qualOffset = oldQual.getStartPosition();
-					int endPos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT, qualOffset);
-					doTextRemove(qualOffset, endPos - qualOffset, qualGroup);
-				} else if (qualChangeKind == RewriteEvent.REPLACED) {
-					SourceRange range= getExtendedRange(oldQual);
-					int elemOffset= range.getStartPosition();
-					int elemLength= range.getLength();
-					doTextRemoveAndVisit(elemOffset, elemLength, oldQual, qualGroup);
-					doTextInsert(elemOffset, newQual, 0, false, qualGroup);
-				}
-			}
-			offset=  getScanner().getTokenEndOffset(TerminalTokens.TokenNamethis, offset);
-			if (newParamCount > 0 && oldParamCount == 0) {
-				doTextInsert(offset, ", ", editGroup); //$NON-NLS-1$
-			}
-		}
-		return offset;
-	}
-
-	public boolean visit(ExtraDimension node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		rewriteNodeList(node, ExtraDimension.ANNOTATIONS_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " "); //$NON-NLS-1$
-		return false;
-	}
 
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(MethodDeclaration)
@@ -1961,9 +1791,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos= rewriteJavadoc(node, MethodDeclaration.JAVADOC_PROPERTY);
-		int apiLevel= node.getAST().apiLevel();
-		if (apiLevel == JLS2_INTERNAL) {
-			rewriteModifiers(node, INTERNAL_METHOD_MODIFIERS_PROPERTY2, pos);
+		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
+			rewriteModifiers(node, MethodDeclaration.MODIFIERS_PROPERTY, pos);
 		} else {
 			pos= rewriteModifiers2(node, MethodDeclaration.MODIFIERS2_PROPERTY, pos);
 			pos= rewriteOptionalTypeParameters(node, MethodDeclaration.TYPE_PARAMETERS_PROPERTY, pos, " ", true, pos != node.getStartPosition()); //$NON-NLS-1$
@@ -1979,32 +1808,30 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		// parameters
 		try {
-			pos= rewriteMethodReceiver(node, pos);
-			pos= rewriteNodeList(node, MethodDeclaration.PARAMETERS_PROPERTY, pos, Util.EMPTY_STRING, ", "); //$NON-NLS-1$ 
-
-			pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRPAREN, pos);
-			ChildListPropertyDescriptor exceptionsProperty = apiLevel < AST.JLS8 ? INTERNAL_METHOD_THROWN_EXCEPTIONS_PROPERTY : MethodDeclaration.THROWN_EXCEPTION_TYPES_PROPERTY;
-
-			if (apiLevel < AST.JLS8) {
-				int extraDims= rewriteExtraDimensions(node, INTERNAL_METHOD_EXTRA_DIMENSIONS_PROPERTY, pos);
-
-				boolean hasExceptionChanges= isChanged(node, exceptionsProperty);
-
-				int bodyChangeKind= getChangeKind(node, MethodDeclaration.BODY_PROPERTY);
-
-				if ((extraDims > 0) && (hasExceptionChanges || bodyChangeKind == RewriteEvent.INSERTED || bodyChangeKind == RewriteEvent.REMOVED)) {
-					int dim= ((Integer) getOriginalValue(node, INTERNAL_METHOD_EXTRA_DIMENSIONS_PROPERTY)).intValue();
-					while (dim > 0) {
-						pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRBRACKET, pos);
-						dim--;
-					}
-				}
+			if (isChanged(node, MethodDeclaration.PARAMETERS_PROPERTY)) {
+				pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameLPAREN, pos);
+				pos= rewriteNodeList(node, MethodDeclaration.PARAMETERS_PROPERTY, pos, Util.EMPTY_STRING, ", "); //$NON-NLS-1$ 
 			} else {
-				pos= rewriteExtraDimensionsInfo(node, pos, MethodDeclaration.EXTRA_DIMENSIONS2_PROPERTY);
+				pos= doVisit(node, MethodDeclaration.PARAMETERS_PROPERTY, pos);
 			}
 
-			pos= rewriteNodeList(node, exceptionsProperty, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			
+			pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRPAREN, pos);
+
+			int extraDims= rewriteExtraDimensions(node, MethodDeclaration.EXTRA_DIMENSIONS_PROPERTY, pos);
+
+			boolean hasExceptionChanges= isChanged(node, MethodDeclaration.THROWN_EXCEPTIONS_PROPERTY);
+
+			int bodyChangeKind= getChangeKind(node, MethodDeclaration.BODY_PROPERTY);
+
+			if ((extraDims > 0) && (hasExceptionChanges || bodyChangeKind == RewriteEvent.INSERTED || bodyChangeKind == RewriteEvent.REMOVED)) {
+				int dim= ((Integer) getOriginalValue(node, MethodDeclaration.EXTRA_DIMENSIONS_PROPERTY)).intValue();
+				while (dim > 0) {
+					pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRBRACKET, pos);
+					dim--;
+				}
+			}
+
+			pos= rewriteNodeList(node, MethodDeclaration.THROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
 			rewriteMethodBody(node, pos);
 		} catch (CoreException e) {
 			// ignore
@@ -2088,13 +1915,13 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 
 		ArrayType arrayType= (ArrayType) getOriginalValue(node, ArrayCreation.TYPE_PROPERTY);
-		ArrayType replacingType= arrayType;
 		int nOldBrackets= getDimensions(arrayType); // number of total brackets
+		int nNewBrackets= nOldBrackets;
 
 		TextEditGroup editGroup= null;
 		RewriteEvent typeEvent= getEvent(node, ArrayCreation.TYPE_PROPERTY);
 		if (typeEvent != null && typeEvent.getChangeKind() == RewriteEvent.REPLACED) { // changed arraytype can have different dimension or type name
-			replacingType= (ArrayType) typeEvent.getNewValue();
+			ArrayType replacingType= (ArrayType) typeEvent.getNewValue();
 			editGroup= getEditGroup(typeEvent);
 			Type newType= replacingType.getElementType();
 			Type oldType= getElementType(arrayType);
@@ -2105,67 +1932,59 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 				doTextRemove(offset, length, editGroup);
 				doTextInsert(offset, newType, 0, false, editGroup);
 			}
+			nNewBrackets= replacingType.getDimensions(); // is replaced type
 		}
+		voidVisit(arrayType);
+
 
 		try {
-			// dimension node with expressions and/or annotations
+			int offset= getScanner().getTokenStartOffset(TerminalTokens.TokenNameLBRACKET, arrayType.getStartPosition());
+			// dimension node with expressions
 			RewriteEvent dimEvent= getEvent(node, ArrayCreation.DIMENSIONS_PROPERTY);
 			boolean hasDimensionChanges= (dimEvent != null && dimEvent.getChangeKind() != RewriteEvent.UNCHANGED);
-			RewriteEvent[] events= hasDimensionChanges ? dimEvent.getChildren() : null;
-			ArrayType currentLevel= (ArrayType) replacingType.getElementType().getParent();
-			int i=0, dimSize= (events == null) ? 0 : events.length;
-			Type elementType= arrayType.getElementType();
-			int offset= elementType.getStartPosition() + elementType.getLength();
-			while(currentLevel != null) {
-				if (node.getAST().apiLevel() >= AST.JLS8) {
-					rewriteTypeAnnotations(currentLevel, ArrayType.ANNOTATIONS_PROPERTY, offset);
-				}
-				if (i < dimSize) {
-					 offset= getScanner().getTokenEndOffset(TerminalTokens.TokenNameLBRACKET, offset);
-					if (hasDimensionChanges) {
-						RewriteEvent event= events[i];
-						int changeKind= event.getChangeKind();
-						if (changeKind == RewriteEvent.INSERTED) { // insert new dimension
-							editGroup= getEditGroup(event);
-							int endPos= getScanner().getTokenStartOffset(TerminalTokens.TokenNameRBRACKET, offset);
-							doTextRemove(offset, endPos - offset, editGroup);
-							doTextInsert(offset, (ASTNode) event.getNewValue(), 0, false, editGroup);
-						} else {
-							ASTNode elem= (ASTNode) event.getOriginalValue();
-							int elemEnd= elem.getStartPosition() + elem.getLength();
-							int endPos= getScanner().getTokenStartOffset(TerminalTokens.TokenNameRBRACKET, elemEnd);
-							if (changeKind == RewriteEvent.REMOVED) {
-								editGroup= getEditGroup(event);
-								doTextRemoveAndVisit(offset, endPos - offset, elem, editGroup);
-							} else if (changeKind == RewriteEvent.REPLACED) {
-								editGroup= getEditGroup(event);
-								SourceRange range= getExtendedRange(elem);
-								int elemOffset= range.getStartPosition();
-								int elemLength= range.getLength();
-								doTextRemoveAndVisit(elemOffset, elemLength, elem, editGroup);
-								doTextInsert(elemOffset, (ASTNode) event.getNewValue(), 0, false, editGroup);
-							} else {
-								voidVisit(elem);
-							}
-						}
-						offset= retrieveRightBracketEndPosition(offset, 1, true);
+			if (hasDimensionChanges) {
+				RewriteEvent[] events= dimEvent.getChildren();
+				// offset on first opening brace
+				for (int i= 0; i < events.length; i++) {
+					RewriteEvent event= events[i];
+					int changeKind= event.getChangeKind();
+					if (changeKind == RewriteEvent.INSERTED) { // insert new dimension
+						editGroup= getEditGroup(event);
+						doTextInsert(offset, "[", editGroup); //$NON-NLS-1$
+						doTextInsert(offset, (ASTNode) event.getNewValue(), 0, false, editGroup);
+						doTextInsert(offset, "]", editGroup); //$NON-NLS-1$
+						nNewBrackets--;
 					} else {
-						ASTNode elem= (ASTNode) node.dimensions().get(i);
-						voidVisit(elem);
-						offset= retrieveRightBracketEndPosition(offset, 1, true);
+						ASTNode elem= (ASTNode) event.getOriginalValue();
+						int elemEnd= elem.getStartPosition() + elem.getLength();
+						int endPos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRBRACKET, elemEnd);
+						if (changeKind == RewriteEvent.REMOVED) {
+							editGroup= getEditGroup(event);
+							doTextRemoveAndVisit(offset, endPos - offset, elem, editGroup);
+						} else if (changeKind == RewriteEvent.REPLACED) {
+							editGroup= getEditGroup(event);
+							SourceRange range= getExtendedRange(elem);
+							int elemOffset= range.getStartPosition();
+							int elemLength= range.getLength();
+							doTextRemoveAndVisit(elemOffset, elemLength, elem, editGroup);
+							doTextInsert(elemOffset, (ASTNode) event.getNewValue(), 0, false, editGroup);
+							nNewBrackets--;
+						} else {
+							voidVisit(elem);
+							nNewBrackets--;
+						}
+						offset= endPos;
+						nOldBrackets--;
 					}
-				} else if (i < nOldBrackets) {
-					offset= retrieveRightBracketEndPosition(offset, 1, false);
-				} else {
-					doTextInsert(offset, "[]", editGroup); //$NON-NLS-1$
 				}
-				i++;
-				if (currentLevel == replacingType) break;
-				currentLevel= (ArrayType) currentLevel.getParent();
+			} else {
+				offset= doVisit(node, ArrayCreation.DIMENSIONS_PROPERTY, offset);
 			}
-			if (i < nOldBrackets) {
-				int endPos= retrieveRightBracketEndPosition(offset, nOldBrackets - i, false);
-				doTextRemove(offset, endPos - offset, editGroup);
+			if (nOldBrackets != nNewBrackets) {
+				if (!hasDimensionChanges) {
+					offset= getScanner().getTokenEndOffset(TerminalTokens.TokenNameRBRACKET, offset);
+				}
+				rewriteExtraDimensions(nOldBrackets, nNewBrackets, offset, editGroup);
 			}
 
 			int kind= getChangeKind(node, ArrayCreation.INITIALIZER_PROPERTY);
@@ -2179,34 +1998,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			handleException(e);
 		}
 		return false;
-	}
-
-	/**
-	 * This method is used to retrieve the position of the right bracket.
-	 * @return int the dimension found, -1 if none
-	 */
-	protected int retrieveRightBracketEndPosition(int offset, int count, boolean isLeftRead) throws CoreException {
-		TokenScanner scanner= getScanner();
-		int token;
-		int balance= 0;
-		if (isLeftRead) balance++;
-		scanner.setOffset(offset);
-		while ((token= scanner.readNext(true)) != TerminalTokens.TokenNameEOF) {
-			switch(token) {
-				case TerminalTokens.TokenNameLBRACKET :
-					balance++;
-					break;
-				case TerminalTokens.TokenNameRBRACKET :
-					balance--;
-					if (balance == 0) {
-						if (--count == 0) {
-							return scanner.getCurrentEndOffset();
-						}
-					}
-					break;
-			}
-		}
-		return -1;
 	}
 
 	private Type getElementType(ArrayType parent) {
@@ -2249,10 +2040,8 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		int pos = rewriteRequiredNode(node, ArrayType.COMPONENT_TYPE_PROPERTY);
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			rewriteTypeAnnotations(node, ArrayType.ANNOTATIONS_PROPERTY, pos);
-		}
+
+		rewriteRequiredNode(node, ArrayType.COMPONENT_TYPE_PROPERTY);
 		return false;
 	}
 
@@ -2372,7 +2161,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		int pos= rewriteOptionalQualifier(node, ClassInstanceCreation.EXPRESSION_PROPERTY, node.getStartPosition());
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			pos= rewriteRequiredNode(node, INTERNAL_CIC_NAME_PROPERTY);
+			pos= rewriteRequiredNode(node, ClassInstanceCreation.NAME_PROPERTY);
 		} else {
 			if (isChanged(node, ClassInstanceCreation.TYPE_ARGUMENTS_PROPERTY)) {
 				try {
@@ -2434,7 +2223,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos= node.getStartPosition();
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			pos= rewriteOptionalTypeParameters(node, ConstructorInvocation.TYPE_ARGUMENTS_PROPERTY, pos, Util.EMPTY_STRING, false, false); 
 		}
 		try {
@@ -2460,29 +2249,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		} catch (CoreException e) {
 			handleException(e);
 		}
-		return false;
-	}
-
-	private void visitReferenceTypeArguments(ASTNode node, StructuralPropertyDescriptor childProperty, int pos) {
-		if (isChanged(node, childProperty)) {
-			try {
-				pos = getScanner().getTokenEndOffset(TerminalTokens.TokenNameCOLON_COLON, pos);
-				rewriteOptionalTypeParameters(node, childProperty, pos, Util.EMPTY_STRING, false, false);
-			} catch (CoreException e) {
-				handleException(e);
-			}
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(CreationReference)
-	 */
-	public boolean visit(CreationReference node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteRequiredNode(node, CreationReference.TYPE_PROPERTY);
-		visitReferenceTypeArguments(node, CreationReference.TYPE_ARGUMENTS_PROPERTY, pos);
 		return false;
 	}
 
@@ -2561,7 +2327,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		int pos= rewriteJavadoc(node, FieldDeclaration.JAVADOC_PROPERTY);
 
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			rewriteModifiers(node, INTERNAL_FIELD_MODIFIERS_PROPERTY, pos);
+			rewriteModifiers(node, FieldDeclaration.MODIFIERS_PROPERTY, pos);
 		} else {
 			rewriteModifiers2(node, FieldDeclaration.MODIFIERS2_PROPERTY, pos);
 		}
@@ -2678,7 +2444,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			RewriteEvent event= getEvent(node, ImportDeclaration.STATIC_PROPERTY);
 			if (event != null && event.getChangeKind() != RewriteEvent.UNCHANGED) {
 				try {
@@ -2777,7 +2543,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 		int pos= rewriteJavadoc(node, Initializer.JAVADOC_PROPERTY);
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			rewriteModifiers(node, INTERNAL_INITIALIZER_MODIFIERS_PROPERTY3, pos);
+			rewriteModifiers(node, Initializer.MODIFIERS_PROPERTY, pos);
 		} else {
 			rewriteModifiers2(node, Initializer.MODIFIERS2_PROPERTY, pos);
 		}
@@ -2799,7 +2565,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 
-	private void ensureSpaceAfterReplace(ASTNode node, ChildPropertyDescriptor desc) {
+	public void ensureSpaceAfterReplace(ASTNode node, ChildPropertyDescriptor desc) {
 		if (getChangeKind(node, desc) == RewriteEvent.REPLACED) {
 			int leftOperandEnd= getExtendedEnd((ASTNode) getOriginalValue(node, desc));
 			try {
@@ -2814,7 +2580,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 	
-	private void ensureSpaceBeforeReplace(ASTNode node) {
+	public void ensureSpaceBeforeReplace(ASTNode node) {
 		if (this.beforeRequiredSpaceIndex  == -1) return;
 		
 		List events = this.eventStore.getChangedPropertieEvents(node);
@@ -2835,17 +2601,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(IntersectionType)
-	 */
-	public boolean visit(IntersectionType node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		rewriteNodeList(node, IntersectionType.TYPES_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " & "); //$NON-NLS-1$
-		return false;
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Javadoc)
 	 */
@@ -2874,80 +2629,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(LambdaExpression)
-	 */
-	public boolean visit(LambdaExpression node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		Boolean newValue = (Boolean) getNewValue(node, LambdaExpression.PARENTHESES_PROPERTY);
-		boolean hasParentheses = newValue.equals(Boolean.TRUE);
-		if (!hasParentheses) {// Parentheses can be absent if and only if there is one and only one type elided parameter.
-			List parameters = (List) getNewValue(node, LambdaExpression.PARAMETERS_PROPERTY);
-			hasParentheses = !(parameters.size() == 1 && parameters.get(0) instanceof VariableDeclarationFragment);
-		}
-
-		boolean deleteParentheses = false;
-		boolean insertParentheses = false;
-		TextEditGroup editGroup = null;
-
-		boolean oldHasParentheses = getOriginalValue(node, LambdaExpression.PARENTHESES_PROPERTY).equals(Boolean.TRUE);
-		RewriteEvent event = getEvent(node, LambdaExpression.PARENTHESES_PROPERTY);
-		if (event != null) {
-			editGroup = getEditGroup(event);
-			if (event.getChangeKind() == RewriteEvent.REPLACED) {
-				if (newValue != Boolean.FALSE) {
-					insertParentheses = true;
-				} else {// apply the stricter check for parentheses deletion
-					deleteParentheses = !hasParentheses;
-				}
-			}
-		} else if (!oldHasParentheses && hasParentheses) {// parameter property changed to effect parentheses insertion
-			if ((event = getEvent(node, LambdaExpression.PARAMETERS_PROPERTY)) != null) {// a null check though event cannot be null here
-				editGroup = getEditGroup(event);
-				insertParentheses = true;
-			}
-		}
-		
-		int pos = node.getStartPosition();
-		if (insertParentheses) {
-			doTextInsert(pos, "(", editGroup); //$NON-NLS-1$
-		} else if (deleteParentheses) {
-			try {
-				int lparensEnd = getScanner().getTokenEndOffset(TerminalTokens.TokenNameLPAREN, pos);
-				doTextRemove(pos, lparensEnd - pos, editGroup);
-				pos = lparensEnd;
-			} catch (CoreException e) {
-				handleException(e);
-			}
-		}
-
-		if (isChanged(node, LambdaExpression.PARAMETERS_PROPERTY)) {
-			try {
-				pos = oldHasParentheses ? getScanner().getTokenEndOffset(TerminalTokens.TokenNameLPAREN, pos) : pos;
-				pos = rewriteNodeList(node, LambdaExpression.PARAMETERS_PROPERTY, pos, Util.EMPTY_STRING, ", "); //$NON-NLS-1$
-			} catch (CoreException e) {
-				handleException(e);
-			}
-		} else {
-			pos = doVisit(node, LambdaExpression.PARAMETERS_PROPERTY, pos);
-		}
-
-		if (insertParentheses) {
-			doTextInsert(pos, ")", editGroup); //$NON-NLS-1$
-		} else if (deleteParentheses) {
-			try {
-				doTextRemove(pos, getScanner().getTokenEndOffset(TerminalTokens.TokenNameRPAREN, pos) - pos, editGroup);
-			} catch (CoreException e) {
-				handleException(e);
-			}
-		}
-		rewriteRequiredNode(node, LambdaExpression.BODY_PROPERTY);
-
-		return false;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(MethodInvocation)
 	 */
 	public boolean visit(MethodInvocation node) {
@@ -2956,7 +2637,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 
 		int pos= rewriteOptionalQualifier(node, MethodInvocation.EXPRESSION_PROPERTY, node.getStartPosition());
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			pos= rewriteOptionalTypeParameters(node, MethodInvocation.TYPE_ARGUMENTS_PROPERTY, pos, Util.EMPTY_STRING, false, false); 
 		}
 
@@ -3008,7 +2689,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			int pos= rewriteJavadoc(node, PackageDeclaration.JAVADOC_PROPERTY);
 			rewriteModifiers2(node, PackageDeclaration.ANNOTATIONS_PROPERTY, pos);
 		}
@@ -3062,9 +2743,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			rewriteTypeAnnotations(node, PrimitiveType.ANNOTATIONS_PROPERTY, node.getStartPosition());
-		}
 		PrimitiveType.Code newCode= (PrimitiveType.Code) getNewValue(node, PrimitiveType.PRIMITIVE_TYPE_CODE_PROPERTY);
 		TextEditGroup group = getEditGroup(node, PrimitiveType.PRIMITIVE_TYPE_CODE_PROPERTY);
 		doTextReplace(node.getStartPosition(), node.getLength(), newCode.toString(), group);
@@ -3104,9 +2782,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			rewriteTypeAnnotations(node, SimpleType.ANNOTATIONS_PROPERTY, node.getStartPosition());
-		}
+
 		rewriteRequiredNode(node, SimpleType.NAME_PROPERTY);
 		return false;
 	}
@@ -3119,43 +2795,23 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos= node.getStartPosition();
-		int apiLevel= node.getAST().apiLevel();
-		if (apiLevel == JLS2_INTERNAL) {
-			rewriteModifiers(node, INTERNAL_VARIABLE_MODIFIERS_PROPERTY, pos);
+		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
+			rewriteModifiers(node, SingleVariableDeclaration.MODIFIERS_PROPERTY, pos);
 		} else {
 			rewriteModifiers2(node, SingleVariableDeclaration.MODIFIERS2_PROPERTY, pos);
 		}
 		pos= rewriteRequiredNode(node, SingleVariableDeclaration.TYPE_PROPERTY);
-		if (apiLevel >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			if (isChanged(node, SingleVariableDeclaration.VARARGS_PROPERTY)) {
-				TextEditGroup editGroup = getEditGroup(node, SingleVariableDeclaration.VARARGS_PROPERTY);
 				if (getNewValue(node, SingleVariableDeclaration.VARARGS_PROPERTY).equals(Boolean.TRUE)) {
-					if (apiLevel >= AST.JLS8) {
-						pos= rewriteVarargsAnnotations(node, SingleVariableDeclaration.VARARGS_ANNOTATIONS_PROPERTY, pos);
-					}
-					int indent= getIndent(node.getStartPosition());
-					String prefix= this.formatter.VARARGS.getPrefix(indent);
-					doTextInsert(pos, prefix, editGroup);
-					doTextInsert(pos, "...", editGroup); //$NON-NLS-1$
+					doTextInsert(pos, "...", getEditGroup(node, SingleVariableDeclaration.VARARGS_PROPERTY)); //$NON-NLS-1$
 				} else {
 					try {
-						int ellipsisEnd;
-						int noOfAnnotations = apiLevel >= AST.JLS8 ? node.varargsAnnotations().size() : 0;
-						if (noOfAnnotations > 0) {
-							Annotation annotation= (Annotation) node.varargsAnnotations().get(noOfAnnotations - 1);
-							int annotationEndPosition= annotation.getStartPosition() + annotation.getLength();
-							ellipsisEnd= getScanner().getNextEndOffset(annotationEndPosition, true);
-						} else {
-							ellipsisEnd= getScanner().getNextEndOffset(pos, true);
-						}
-						doTextRemove(pos, ellipsisEnd - pos, editGroup);
+						int ellipsisEnd= getScanner().getNextEndOffset(pos, true);
+						doTextRemove(pos, ellipsisEnd - pos, getEditGroup(node, SingleVariableDeclaration.VARARGS_PROPERTY));
 					} catch (CoreException e) {
 						handleException(e);
 					}
-				}
-			} else {
-				if (apiLevel >= AST.JLS8 && node.isVarargs()) {
-					pos = rewriteVarargsAnnotations(node, SingleVariableDeclaration.VARARGS_ANNOTATIONS_PROPERTY, pos);
 				}
 			}
 			if (!node.isVarargs()) {
@@ -3166,23 +2822,19 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		}
 
 		pos= rewriteRequiredNode(node, SingleVariableDeclaration.NAME_PROPERTY);
-		if (apiLevel < AST.JLS8) {
-			int extraDims= rewriteExtraDimensions(node, INTERNAL_VARIABLE_EXTRA_DIMENSIONS_PROPERTY, pos);
+		int extraDims= rewriteExtraDimensions(node, SingleVariableDeclaration.EXTRA_DIMENSIONS_PROPERTY, pos);
 
-			if (extraDims > 0) {
-				int kind= getChangeKind(node, SingleVariableDeclaration.INITIALIZER_PROPERTY);
-				if (kind == RewriteEvent.REMOVED) {
-					try {
-						pos= getScanner().getPreviousTokenEndOffset(TerminalTokens.TokenNameEQUAL, pos);
-					} catch (CoreException e) {
-						handleException(e);
-					}
-				} else {
-					pos= node.getStartPosition() + node.getLength(); // insert pos
+		if (extraDims > 0) {
+			int kind= getChangeKind(node, SingleVariableDeclaration.INITIALIZER_PROPERTY);
+			if (kind == RewriteEvent.REMOVED) {
+				try {
+					pos= getScanner().getPreviousTokenEndOffset(TerminalTokens.TokenNameEQUAL, pos);
+				} catch (CoreException e) {
+					handleException(e);
 				}
+			} else {
+				pos= node.getStartPosition() + node.getLength(); // insert pos
 			}
-		} else {
-			pos = rewriteExtraDimensionsInfo(node, pos, SingleVariableDeclaration.EXTRA_DIMENSIONS2_PROPERTY);
 		}
 
 		rewriteNode(node, SingleVariableDeclaration.INITIALIZER_PROPERTY, pos, this.formatter.VAR_INITIALIZER);
@@ -3213,7 +2865,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		int pos= rewriteOptionalQualifier(node, SuperConstructorInvocation.EXPRESSION_PROPERTY, node.getStartPosition());
 
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			pos= rewriteOptionalTypeParameters(node, SuperConstructorInvocation.TYPE_ARGUMENTS_PROPERTY, pos, Util.EMPTY_STRING, false, false); 
 		}
 
@@ -3254,7 +2906,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		int pos= rewriteOptionalQualifier(node, SuperMethodInvocation.QUALIFIER_PROPERTY, node.getStartPosition());
 
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			if (isChanged(node, SuperMethodInvocation.TYPE_ARGUMENTS_PROPERTY)) {
 				try {
 					pos= getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT, pos);
@@ -3471,7 +3123,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos= node.getStartPosition();
-		if (node.getAST().apiLevel() >= JLS4_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS4) {
 			if (isChanged(node, TryStatement.RESOURCES_PROPERTY)) {
 				int indent= getIndent(node.getStartPosition());
 				String prefix= this.formatter.TRY_RESOURCES.getPrefix(indent);
@@ -3505,7 +3157,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			rewriteRequiredNode(node, INTERNAL_TDS_TYPE_DECLARATION_PROPERTY);
+			rewriteRequiredNode(node, TypeDeclarationStatement.TYPE_DECLARATION_PROPERTY);
 		} else {
 			rewriteRequiredNode(node, TypeDeclarationStatement.DECLARATION_PROPERTY);
 		}
@@ -3531,7 +3183,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		rewriteNodeList(node, UnionType.TYPES_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " | "); //$NON-NLS-1$
+		int pos= node.getStartPosition();
+		if (isChanged(node, UnionType.TYPES_PROPERTY)) {
+			pos= rewriteNodeList(node, UnionType.TYPES_PROPERTY, pos, Util.EMPTY_STRING, " | "); //$NON-NLS-1$
+		} else {
+			pos= doVisit(node, UnionType.TYPES_PROPERTY, pos);
+		}
 		return false;
 	}
 	
@@ -3546,7 +3203,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		// same code as FieldDeclaration
 		int pos= node.getStartPosition();
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			rewriteModifiers(node, INTERNAL_VDE_MODIFIERS_PROPERTY, pos);
+			rewriteModifiers(node, VariableDeclarationExpression.MODIFIERS_PROPERTY, pos);
 		} else {
 			rewriteModifiers2(node, VariableDeclarationExpression.MODIFIERS2_PROPERTY, pos);
 		}
@@ -3565,22 +3222,19 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 
 		int pos= rewriteRequiredNode(node, VariableDeclarationFragment.NAME_PROPERTY);
 
-		if (node.getAST().apiLevel() < AST.JLS8) {
-			int extraDims= rewriteExtraDimensions(node, INTERNAL_FRAGMENT_EXTRA_DIMENSIONS_PROPERTY, pos);
-			if (extraDims > 0) {
-				int kind= getChangeKind(node, VariableDeclarationFragment.INITIALIZER_PROPERTY);
-				if (kind == RewriteEvent.REMOVED) {
-					try {
-						pos= getScanner().getPreviousTokenEndOffset(TerminalTokens.TokenNameEQUAL, pos);
-					} catch (CoreException e) {
-						handleException(e);
-					}
-				} else {
-					pos= node.getStartPosition() + node.getLength(); // insert pos
+		int extraDims= rewriteExtraDimensions(node, VariableDeclarationFragment.EXTRA_DIMENSIONS_PROPERTY, pos);
+
+		if (extraDims > 0) {
+			int kind= getChangeKind(node, VariableDeclarationFragment.INITIALIZER_PROPERTY);
+			if (kind == RewriteEvent.REMOVED) {
+				try {
+					pos= getScanner().getPreviousTokenEndOffset(TerminalTokens.TokenNameEQUAL, pos);
+				} catch (CoreException e) {
+					handleException(e);
 				}
+			} else {
+				pos= node.getStartPosition() + node.getLength(); // insert pos
 			}
-		} else {
-			pos = rewriteExtraDimensionsInfo(node, pos, VariableDeclarationFragment.EXTRA_DIMENSIONS2_PROPERTY);
 		}
 		rewriteNode(node, VariableDeclarationFragment.INITIALIZER_PROPERTY, pos, this.formatter.VAR_INITIALIZER);
 		return false;
@@ -3597,7 +3251,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		// same code as FieldDeclaration
 		int pos= node.getStartPosition();
 		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			rewriteModifiers(node, INTERNAL_VDS_MODIFIERS_PROPERTY, pos);
+			rewriteModifiers(node, VariableDeclarationStatement.MODIFIERS_PROPERTY, pos);
 		} else {
 			rewriteModifiers2(node, VariableDeclarationStatement.MODIFIERS2_PROPERTY, pos);
 		}
@@ -3676,7 +3330,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		int pos= rewriteRequiredNode(node, MethodRefParameter.TYPE_PROPERTY);
-		if (node.getAST().apiLevel() >= JLS3_INTERNAL) {
+		if (node.getAST().apiLevel() >= AST.JLS3) {
 			if (isChanged(node, MethodRefParameter.VARARGS_PROPERTY)) {
 				if (getNewValue(node, MethodRefParameter.VARARGS_PROPERTY).equals(Boolean.TRUE)) {
 					doTextInsert(pos, "...", getEditGroup(node, MethodRefParameter.VARARGS_PROPERTY)); //$NON-NLS-1$
@@ -3953,20 +3607,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteParagraphList(node, EnumDeclaration.BODY_DECLARATIONS_PROPERTY, pos, indent, -1, 2);
 		return false;
 	}
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(ExpressionMethodReference)
-	 */
-	public boolean visit(ExpressionMethodReference node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteRequiredNode(node, ExpressionMethodReference.EXPRESSION_PROPERTY);
-		visitReferenceTypeArguments(node, ExpressionMethodReference.TYPE_ARGUMENTS_PROPERTY, pos);
-		rewriteRequiredNode(node, ExpressionMethodReference.NAME_PROPERTY);
-		return false;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.MarkerAnnotation)
 	 */
@@ -4023,23 +3663,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		return false;
 	}
 	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.PackageQualifiedType)
-	 */
-	public boolean visit(PackageQualifiedType node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos = rewriteRequiredNode(node, PackageQualifiedType.QUALIFIER_PROPERTY);
-		try {
-			pos = getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT, pos);
-			rewriteTypeAnnotations(node, PackageQualifiedType.ANNOTATIONS_PROPERTY, pos);
-		} catch (CoreException e) {
-			handleException(e);
-		}
-		rewriteRequiredNode(node, PackageQualifiedType.NAME_PROPERTY);
-		return false;
-	}
-	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.ParameterizedType)
 	 */
 	public boolean visit(ParameterizedType node) {
@@ -4067,15 +3690,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		int pos = rewriteRequiredNode(node, QualifiedType.QUALIFIER_PROPERTY);
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			try {
-				pos = getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT, pos);
-				rewriteTypeAnnotations(node, QualifiedType.ANNOTATIONS_PROPERTY, pos);
-			} catch (CoreException e) {
-				handleException(e);
-			}
-		}
+		rewriteRequiredNode(node, QualifiedType.QUALIFIER_PROPERTY);
 		rewriteRequiredNode(node, QualifiedType.NAME_PROPERTY);
 		return false;
 	}
@@ -4090,33 +3705,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteRequiredNode(node, SingleMemberAnnotation.VALUE_PROPERTY);
 		return false;
 	}
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(SuperMethodReference)
-	 */
-	public boolean visit(SuperMethodReference node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos = rewriteOptionalQualifier(node, SuperMethodReference.QUALIFIER_PROPERTY, node.getStartPosition());
-		visitReferenceTypeArguments(node, SuperMethodReference.TYPE_ARGUMENTS_PROPERTY, pos);
-		rewriteRequiredNode(node, SuperMethodReference.NAME_PROPERTY);
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TypeMethodReference)
-	 */
-	public boolean visit(TypeMethodReference node) {
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteRequiredNode(node, TypeMethodReference.TYPE_PROPERTY);
-		visitReferenceTypeArguments(node, TypeMethodReference.TYPE_ARGUMENTS_PROPERTY, pos);
-		rewriteRequiredNode(node, TypeMethodReference.NAME_PROPERTY);
-		return false;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(org.aspectj.org.eclipse.jdt.core.dom.TypeParameter)
 	 */
@@ -4124,12 +3712,12 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		int pos;
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			pos = rewriteTypeAnnotations(node, TypeParameter.ANNOTATIONS_PROPERTY, node.getStartPosition());
+		int pos= rewriteRequiredNode(node, TypeParameter.NAME_PROPERTY);
+		if (isChanged(node, TypeParameter.TYPE_BOUNDS_PROPERTY)) {
+			rewriteNodeList(node, TypeParameter.TYPE_BOUNDS_PROPERTY, pos, " extends ", " & "); //$NON-NLS-1$ //$NON-NLS-2$
+		} else {
+			voidVisit(node, TypeParameter.TYPE_BOUNDS_PROPERTY);
 		}
-		pos= rewriteRequiredNode(node, TypeParameter.NAME_PROPERTY);
-		rewriteNodeList(node, TypeParameter.TYPE_BOUNDS_PROPERTY, pos, " extends ", " & "); //$NON-NLS-1$ //$NON-NLS-2$
 		return false;
 	}
 	/* (non-Javadoc)
@@ -4138,9 +3726,6 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	public boolean visit(WildcardType node) {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
-		}
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			rewriteTypeAnnotations(node, WildcardType.ANNOTATIONS_PROPERTY, node.getStartPosition());
 		}
 		try {
 			int pos= getScanner().getNextEndOffset(node.getStartPosition(), true); // pos after question mark

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Terry Parker <tparker@google.com> - DeltaProcessor exhibits O(N^2) behavior, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=354332
- *     Terry Parker <tparker@google.com> - DeltaProcessor misses state changes in archive files, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=357425
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.io.File;
-import java.net.URL;
 import java.util.*;
 
 import org.eclipse.core.resources.IContainer;
@@ -956,7 +953,6 @@ public class DeltaProcessor {
 				// project does not exist -> ignore
 				continue;
 			}
-			boolean deltaContainsModifiedJar = false;
 			for (int j = 0; j < entries.length; j++){
 				if (entries[j].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
 					IPath entryPath = entries[j].getPath();
@@ -998,12 +994,8 @@ public class DeltaProcessor {
 									// first remove the index so that it is forced to be re-indexed
 									this.manager.indexManager.removeIndex(entryPath);
 									// then index the jar
-									this.manager.indexManager.indexLibrary(entryPath, project.getProject(), ((ClasspathEntry)entries[j]).getLibraryIndexLocation(), true);
+									this.manager.indexManager.indexLibrary(entryPath, project.getProject());
 								} else {
-									URL indexLocation = ((ClasspathEntry)entries[j]).getLibraryIndexLocation();
-									if (indexLocation != null) { // force reindexing, this could be faster rather than maintaining the list
-										this.manager.indexManager.indexLibrary(entryPath, project.getProject(), indexLocation);
-									}
 									externalArchivesStatus.put(entryPath, EXTERNAL_JAR_UNCHANGED);
 								}
 							} else {
@@ -1014,7 +1006,7 @@ public class DeltaProcessor {
 									this.state.getExternalLibTimeStamps().put(entryPath, new Long(newTimeStamp));
 									// index the new jar
 									this.manager.indexManager.removeIndex(entryPath);
-									this.manager.indexManager.indexLibrary(entryPath, project.getProject(), ((ClasspathEntry)entries[j]).getLibraryIndexLocation());
+									this.manager.indexManager.indexLibrary(entryPath, project.getProject());
 								}
 							}
 						} else { // internal JAR
@@ -1030,7 +1022,7 @@ public class DeltaProcessor {
 								System.out.println("- External JAR ADDED, affecting root: "+root.getElementName()); //$NON-NLS-1$
 							}
 							elementAdded(root, null, null);
-							deltaContainsModifiedJar = true;
+							javaProject.resetResolvedClasspath(); // in case it contains a chained jar
 							this.state.addClasspathValidation(javaProject); // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=185733
 							hasDelta = true;
 						} else if (status == EXTERNAL_JAR_CHANGED) {
@@ -1039,7 +1031,7 @@ public class DeltaProcessor {
 								System.out.println("- External JAR CHANGED, affecting root: "+root.getElementName()); //$NON-NLS-1$
 							}
 							contentChanged(root);
-							deltaContainsModifiedJar = true;
+							javaProject.resetResolvedClasspath(); // in case it contains a chained jar
 							hasDelta = true;
 						} else if (status == EXTERNAL_JAR_REMOVED) {
 							PackageFragmentRoot root = (PackageFragmentRoot) javaProject.getPackageFragmentRoot(entryPath.toString());
@@ -1047,16 +1039,12 @@ public class DeltaProcessor {
 								System.out.println("- External JAR REMOVED, affecting root: "+root.getElementName()); //$NON-NLS-1$
 							}
 							elementRemoved(root, null, null);
-							deltaContainsModifiedJar = true;
+							javaProject.resetResolvedClasspath(); // in case it contains a chained jar
 							this.state.addClasspathValidation(javaProject); // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=185733
 							hasDelta = true;
 						}
 					}
 				}
-			}
-			
-			if (deltaContainsModifiedJar) {
-				javaProject.resetResolvedClasspath();
 			}
 		}
 		// ensure the external file cache is reset so that if a .jar file is deleted but no longer on the classpath, it won't appear as changed next time it is added
@@ -2634,13 +2622,13 @@ public class DeltaProcessor {
 					switch (delta.getKind()) {
 						case IResourceDelta.ADDED:
 							// index the new jar
-							indexManager.indexLibrary(jarPath, root.getJavaProject().getProject(), root.getIndexPath());
+							indexManager.indexLibrary(jarPath, root.getJavaProject().getProject());
 							break;
 						case IResourceDelta.CHANGED:
 							// first remove the index so that it is forced to be re-indexed
 							indexManager.removeIndex(jarPath);
 							// then index the jar
-							indexManager.indexLibrary(jarPath, root.getJavaProject().getProject(), root.getIndexPath());
+							indexManager.indexLibrary(jarPath, root.getJavaProject().getProject());
 							break;
 						case IResourceDelta.REMOVED:
 							// the jar was physically removed: remove the index

@@ -1,40 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
- *							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
- *							bug 292478 - Report potentially null across variable assignment
- *							bug 335093 - [compiler][null] minimal hook for future null annotation support
- *							bug 349326 - [1.7] new warning for missing try-with-resources
- *							bug 186342 - [compiler][null] Using annotations for null checking
- *							bug 358903 - Filter practically unimportant resource leak warnings
- *							bug 370639 - [compiler][resource] restore the default for resource leak warnings
- *							bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
- *							bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
- *							bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
- *							bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
- *							bug 383368 - [compiler][null] syntactic null analysis for field references
- *							bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
- *     Jesper S Moller - Contributions for
- *							Bug 378674 - "The method can be declared as static" is wrong
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for 
+ *     						bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
+ *     						bug 292478 - Report potentially null across variable assignment
+ *     						bug 335093 - [compiler][null] minimal hook for future null annotation support
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
-import java.util.List;
-
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationCollector;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
@@ -60,40 +41,49 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	if ((flowInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) == 0) {
 		this.bits |= ASTNode.IsLocalDeclarationReachable; // only set if actually reached
 	}
+	if (this.binding != null && this.type.resolvedType instanceof TypeVariableBinding) {
+		MethodScope methodScope= this.binding.declaringScope.methodScope();
+		AbstractMethodDeclaration methodDeclaration = methodScope.referenceMethod();
+		if (methodDeclaration != null && ((methodDeclaration.bits & ASTNode.CanBeStatic) != 0) && methodDeclaration.binding != null) {
+			TypeVariableBinding[] typeVariables = methodDeclaration.binding.typeVariables();
+			if (typeVariables == Binding.NO_TYPE_VARIABLES) {
+				// Method declares no type variables.
+				currentScope.resetEnclosingMethodStaticFlag();
+			} else {
+				// to check whether the resolved type for this is declared by enclosing method as a type variable
+				boolean usesEnclosingTypeVar = false; 
+				for (int i = 0; i < typeVariables.length ; i ++) {
+					if (typeVariables[i] == this.type.resolvedType){
+						usesEnclosingTypeVar = true;
+						break;
+					}
+				}
+				if (!usesEnclosingTypeVar) {
+					// uses a type variable not declared by enclosing method
+					currentScope.resetEnclosingMethodStaticFlag();
+				}
+			}
+		}
+	}
 	if (this.initialization == null) {
 		return flowInfo;
 	}
-	this.initialization.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
-	
-	FlowInfo preInitInfo = null;
-	boolean shouldAnalyseResource = this.binding != null 
-			&& flowInfo.reachMode() == FlowInfo.REACHABLE
-			&& currentScope.compilerOptions().analyseResourceLeaks
-			&& FakedTrackingVariable.isAnyCloseable(this.initialization.resolvedType);
-	if (shouldAnalyseResource) {
-		preInitInfo = flowInfo.unconditionalCopy();
-		// analysis of resource leaks needs additional context while analyzing the RHS:
-		FakedTrackingVariable.preConnectTrackerAcrossAssignment(this, this.binding, this.initialization, flowInfo);
+	if ((this.initialization.implicitConversion & TypeIds.UNBOXING) != 0) {
+		this.initialization.checkNPE(currentScope, flowContext, flowInfo);
 	}
-
+	
 	flowInfo =
 		this.initialization
 			.analyseCode(currentScope, flowContext, flowInfo)
 			.unconditionalInits();
-
-	if (shouldAnalyseResource)
-		FakedTrackingVariable.handleResourceAssignment(currentScope, preInitInfo, flowInfo, flowContext, this, this.initialization, this.binding);
-	else
-		FakedTrackingVariable.cleanUpAfterAssignment(currentScope, Binding.LOCAL, this.initialization);
-
-	int nullStatus = this.initialization.nullStatus(flowInfo, flowContext);
+	int nullStatus = this.initialization.nullStatus(flowInfo);
 	if (!flowInfo.isDefinitelyAssigned(this.binding)){// for local variable debug attributes
 		this.bits |= FirstAssignmentToLocal;
 	} else {
 		this.bits &= ~FirstAssignmentToLocal;  // int i = (i = 0);
 	}
 	flowInfo.markAsDefinitelyAssigned(this.binding);
-	nullStatus = checkAssignmentAgainstNullAnnotation(currentScope, flowContext, this.binding, nullStatus, this.initialization, this.initialization.resolvedType);
+	nullStatus = checkAgainstNullAnnotation(currentScope, this.binding, nullStatus);		
 	if ((this.binding.type.tagBits & TagBits.IsBaseType) == 0) {
 		flowInfo.markNullStatus(this.binding, nullStatus);
 		// no need to inform enclosing try block since its locals won't get
@@ -140,21 +130,22 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				//	break generateInit;
 				// same code:
 				// if binding unused generate then discard the value
-				this.initialization.generateCode(currentScope, codeStream, true); // AspectJ: final param needs to be true (was false) 
+				initialization.generateCode(currentScope, codeStream, true); // final param needs to be true (was false) 
 				// new code:
 					if ((binding.type == TypeBinding.LONG) || (binding.type == TypeBinding.DOUBLE)) {
 						codeStream.pop2();
 					} else {
 						codeStream.pop();
 					}
-				// End AspectJ Extension	
+				// End AspectJ Extension					
 				break generateInit;
 			}
 			this.initialization.generateCode(currentScope, codeStream, true);
 			// 26903, need extra cast to store null in array local var
 			if (this.binding.type.isArrayType()
-				&& ((this.initialization instanceof CastExpression)	// arrayLoc = (type[])null
-						&& (((CastExpression)this.initialization).innermostCastedExpression().resolvedType == TypeBinding.NULL))){
+				&& (this.initialization.resolvedType == TypeBinding.NULL	// arrayLoc = null
+					|| ((this.initialization instanceof CastExpression)	// arrayLoc = (type[])null
+						&& (((CastExpression)this.initialization).innermostCastedExpression().resolvedType == TypeBinding.NULL)))){
 				codeStream.checkcast(this.binding.type);
 			}
 			codeStream.store(this.binding, false);
@@ -175,28 +166,11 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		return LOCAL_VARIABLE;
 	}
 
-	// for local variables
-	public void getAllAnnotationContexts(int targetType, LocalVariableBinding localVariable, List allAnnotationContexts) {
-		AnnotationCollector collector = new AnnotationCollector(this, targetType, localVariable, allAnnotationContexts);
-		this.traverse(collector, (BlockScope) null);
-	}
-	// for arguments
-	public void getAllAnnotationContexts(int targetType, int parameterIndex, List allAnnotationContexts) {
-		AnnotationCollector collector = new AnnotationCollector(this, targetType, parameterIndex, allAnnotationContexts);
-		this.traverse(collector, (BlockScope) null);
-	}
-	public boolean isArgument() {
-		return false;
-	}
-	public boolean isReceiver() {
-		return false;
-	}
 	public void resolve(BlockScope scope) {
 
 		// create a binding and add it to the scope
 		TypeBinding variableType = this.type.resolveType(scope, true /* check bounds*/);
 
-		this.bits |= (this.type.bits & ASTNode.HasTypeAnnotations);
 		checkModifiers();
 		if (variableType != null) {
 			if (variableType == TypeBinding.VOID) {
@@ -211,11 +185,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 
 		Binding existingVariable = scope.getBinding(this.name, Binding.VARIABLE, this, false /*do not resolve hidden field*/);
 		if (existingVariable != null && existingVariable.isValidBinding()){
-			boolean localExists = existingVariable instanceof LocalVariableBinding; 
-			if (localExists && (this.bits & ASTNode.ShadowsOuterLocal) != 0 && scope.isLambdaSubscope()) {
-					scope.problemReporter().lambdaRedeclaresLocal(this);
-			} else if (localExists && this.hiddenVariableDepth == 0) {
-					scope.problemReporter().redefineLocal(this);
+			if (existingVariable instanceof LocalVariableBinding && this.hiddenVariableDepth == 0) {
+				scope.problemReporter().redefineLocal(this);
 			} else {
 				scope.problemReporter().localVariableHiding(this, existingVariable, false);
 			}
@@ -224,7 +195,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		if ((this.modifiers & ClassFileConstants.AccFinal)!= 0 && this.initialization == null) {
 			this.modifiers |= ExtraCompilerModifiers.AccBlankFinal;
 		}
-		this.binding = new LocalVariableBinding(this, variableType, this.modifiers, false /*isArgument*/);
+		this.binding = new LocalVariableBinding(this, variableType, this.modifiers, false);
 		scope.addLocalVariable(this.binding);
 		this.binding.setConstant(Constant.NotAConstant);
 		// allow to recursivelly target the binding....
@@ -245,14 +216,13 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 					this.initialization.computeConversion(scope, variableType, initializationType);
 				}
 			} else {
-				this.initialization.setExpressionContext(ASSIGNMENT_CONTEXT);
-				this.initialization.setExpectedType(variableType);
+			    this.initialization.setExpectedType(variableType);
 				TypeBinding initializationType = this.initialization.resolveType(scope);
 				if (initializationType != null) {
 					if (variableType != initializationType) // must call before computeConversion() and typeMismatchError()
 						scope.compilationUnitScope().recordTypeConversion(variableType, initializationType);
 					if (this.initialization.isConstantValueOfTypeAssignableToType(initializationType, variableType)
-						|| initializationType.isCompatibleWith(variableType, scope)) {
+						|| initializationType.isCompatibleWith(variableType)) {
 						this.initialization.computeConversion(scope, variableType, initializationType);
 						if (initializationType.needsUncheckedConversion(variableType)) {
 						    scope.problemReporter().unsafeTypeConversion(this.initialization, initializationType, variableType);
@@ -289,7 +259,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		}
 		// only resolve annotation at the end, for constant to be positioned before (96991)
 		resolveAnnotations(scope, this.annotations, this.binding);
-		scope.validateNullAnnotation(this.binding.tagBits, this.type, this.annotations);
 	}
 
 	public void traverse(ASTVisitor visitor, BlockScope scope) {

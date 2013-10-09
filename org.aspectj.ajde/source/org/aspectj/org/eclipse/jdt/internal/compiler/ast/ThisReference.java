@@ -1,21 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for
- *								bug 331649 - [compiler][null] consider null annotations for fields
- *								bug 383368 - [compiler][null] syntactic null analysis for field references
- *     Jesper S Moller - Contributions for
- *								Bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -49,9 +40,8 @@ public class ThisReference extends Reference {
 		return flowInfo; // this cannot be assigned
 	}
 
-	public boolean checkAccess(BlockScope scope, ReferenceBinding receiverType) {
+	public boolean checkAccess(MethodScope methodScope) {
 
-		MethodScope methodScope = scope.methodScope();
 		// this/super cannot be used in constructor call
 		if (methodScope.isConstructorCall) {
 			methodScope.problemReporter().fieldsOrThisBeforeConstructorInvocation(this);
@@ -63,13 +53,7 @@ public class ThisReference extends Reference {
 			methodScope.problemReporter().errorThisSuperInStatic(this);
 			return false;
 		}
-		if (receiverType != null)
-			scope.tagAsAccessingEnclosingInstanceStateOf(receiverType, false /* type variable access */);
 		return true;
-	}
-
-	public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
-		return true; // never problematic
 	}
 
 	/*
@@ -114,7 +98,7 @@ public class ThisReference extends Reference {
 		return true ;
 	}
 
-	public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	public int nullStatus(FlowInfo flowInfo) {
 		return FlowInfo.NON_NULL;
 	}
 
@@ -127,12 +111,10 @@ public class ThisReference extends Reference {
 	public TypeBinding resolveType(BlockScope scope) {
 
 		this.constant = Constant.NotAConstant;
-		
-		ReferenceBinding enclosingReceiverType = scope.enclosingReceiverType();
-		if (!isImplicitThis() &&!checkAccess(scope, enclosingReceiverType)) {
+		if (!isImplicitThis() &&!checkAccess(scope.methodScope())) {
 			return null;
 		}
-		return this.resolvedType = enclosingReceiverType;
+		return this.resolvedType = scope.enclosingReceiverType();
 	}
 
 	public void traverse(ASTVisitor visitor, BlockScope blockScope) {
@@ -144,5 +126,14 @@ public class ThisReference extends Reference {
 
 		visitor.visit(this, blockScope);
 		visitor.endVisit(this, blockScope);
+	}
+
+	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
+		if (!isImplicitThis()) {
+			// explicit this reference, not allowed in static context
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=335780
+			currentScope.resetEnclosingMethodStaticFlag();
+		}
+		return super.analyseCode(currentScope, flowContext, flowInfo);
 	}
 }

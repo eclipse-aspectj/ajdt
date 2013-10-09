@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *     							bug 349326 - [1.7] new warning for missing try-with-resources
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 370639 - [compiler][resource] restore the default for resource leak warnings
- *								bug 265744 - Enum switch should warn about missing default
- *								bug 374605 - Unreasonable warning for enum-based switch statements
- *								bug 381443 - [compiler][null] Allow parameter widening from @NonNull to unannotated
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.internal.compiler.impl;
@@ -51,7 +44,7 @@ public class IrritantSet {
 	public static final IrritantSet FALLTHROUGH = new IrritantSet(CompilerOptions.FallthroughCase);
 	public static final IrritantSet FINALLY = new IrritantSet(CompilerOptions.FinallyBlockNotCompleting);
 	public static final IrritantSet HIDING = new IrritantSet(CompilerOptions.MaskedCatchBlock);
-	public static final IrritantSet INCOMPLETE_SWITCH = new IrritantSet(CompilerOptions.MissingEnumConstantCase);
+	public static final IrritantSet INCOMPLETE_SWITCH = new IrritantSet(CompilerOptions.IncompleteEnumSwitch);
 	public static final IrritantSet NLS = new IrritantSet(CompilerOptions.NonExternalizedString);
 	public static final IrritantSet NULL = new IrritantSet(CompilerOptions.NullReference);
 	public static final IrritantSet RAW = new IrritantSet(CompilerOptions.RawTypeReference);
@@ -60,12 +53,10 @@ public class IrritantSet {
 	public static final IrritantSet STATIC_ACCESS = new IrritantSet(CompilerOptions.IndirectStaticAccess);
 	public static final IrritantSet STATIC_METHOD = new IrritantSet(CompilerOptions.MethodCanBeStatic);
 	public static final IrritantSet SYNTHETIC_ACCESS = new IrritantSet(CompilerOptions.AccessEmulation);
-	public static final IrritantSet SYNCHRONIZED = new IrritantSet(CompilerOptions.MissingSynchronizedModifierInInheritedMethod);
 	public static final IrritantSet SUPER = new IrritantSet(CompilerOptions.OverridingMethodWithoutSuperInvocation);
 	public static final IrritantSet UNUSED = new IrritantSet(CompilerOptions.UnusedLocalVariable);
 	public static final IrritantSet UNCHECKED = new IrritantSet(CompilerOptions.UncheckedTypeOperation);
 	public static final IrritantSet UNQUALIFIED_FIELD_ACCESS = new IrritantSet(CompilerOptions.UnqualifiedFieldAccess);
-	public static final IrritantSet RESOURCE = new IrritantSet(CompilerOptions.UnclosedCloseable);
 
 	public static final IrritantSet JAVADOC = new IrritantSet(CompilerOptions.InvalidJavadoc);
 	public static final IrritantSet COMPILER_DEFAULT_ERRORS = new IrritantSet(0); // no optional error by default	
@@ -104,21 +95,12 @@ public class IrritantSet {
 				| CompilerOptions.UnusedLabel
 				| CompilerOptions.UnusedTypeArguments
 				| CompilerOptions.UnusedWarningToken
-				| CompilerOptions.ComparingIdentical
-				| CompilerOptions.MissingEnumConstantCase)
+				| CompilerOptions.ComparingIdentical)
 			// group-2 warnings enabled by default
 			.set(
 				CompilerOptions.DeadCode
-				|CompilerOptions.Tasks
-				|CompilerOptions.UnclosedCloseable
-				|CompilerOptions.NullUncheckedConversion
-				|CompilerOptions.RedundantNullAnnotation
-				|CompilerOptions.NonnullParameterAnnotationDropped);
-		// default errors IF AnnotationBasedNullAnalysis is enabled:
-		COMPILER_DEFAULT_ERRORS.set(
-				CompilerOptions.NullSpecViolation
-				|CompilerOptions.NullAnnotationInferenceConflict);
-
+				|CompilerOptions.Tasks);
+			
 		ALL.setAll();
 		HIDING
 			.set(CompilerOptions.FieldHiding)
@@ -126,13 +108,7 @@ public class IrritantSet {
 			.set(CompilerOptions.TypeHiding);
 		NULL
 			.set(CompilerOptions.PotentialNullReference)
-			.set(CompilerOptions.RedundantNullCheck)
-			.set(CompilerOptions.NullSpecViolation)
-			.set(CompilerOptions.NullAnnotationInferenceConflict)
-			.set(CompilerOptions.NullUncheckedConversion)
-			.set(CompilerOptions.RedundantNullAnnotation)
-			.set(CompilerOptions.NonnullParameterAnnotationDropped);
-
+			.set(CompilerOptions.RedundantNullCheck);
 		RESTRICTION.set(CompilerOptions.DiscouragedReference);
 		STATIC_ACCESS.set(CompilerOptions.NonStaticAccessToStatic);
 		UNUSED
@@ -145,14 +121,9 @@ public class IrritantSet {
 			.set(CompilerOptions.RedundantSuperinterface)
 			.set(CompilerOptions.DeadCode)
 			.set(CompilerOptions.UnusedObjectAllocation)
-			.set(CompilerOptions.UnusedTypeParameter)
 			.set(CompilerOptions.RedundantSpecificationOfTypeArguments);
 		STATIC_METHOD
 		    .set(CompilerOptions.MethodCanBePotentiallyStatic);
-		RESOURCE
-			.set(CompilerOptions.PotentiallyUnclosedCloseable)
-			.set(CompilerOptions.ExplicitlyClosedAutoCloseable);
-		INCOMPLETE_SWITCH.set(CompilerOptions.MissingDefaultCase);
 		String suppressRawWhenUnchecked = System.getProperty("suppressRawWhenUnchecked"); //$NON-NLS-1$
 		if (suppressRawWhenUnchecked != null && "true".equalsIgnoreCase(suppressRawWhenUnchecked)) { //$NON-NLS-1$
 			UNCHECKED.set(CompilerOptions.RawTypeReference);

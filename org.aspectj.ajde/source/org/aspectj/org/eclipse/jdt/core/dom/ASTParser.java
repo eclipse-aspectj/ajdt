@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2013 IBM Corporation and others.
+ * Copyright (c) 2004, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -152,8 +148,8 @@ public class ASTParser {
 	 * Creates a new object for creating a Java abstract syntax tree
      * (AST) following the specified set of API rules.
      *
- 	 * @param level the API level; one of the <code>.JLS*</code> level constants
-     * declared on {@link AST}
+ 	 * @param level the API level; one of the LEVEL constants
+     * declared on <code>AST</code>
 	 * @return new ASTParser instance
 	 */
 	public static ASTParser newParser(int level) {
@@ -248,15 +244,14 @@ public class ASTParser {
 	 * N.B. This constructor is package-private.
 	 * </p>
 	 *
-	 * @param level the API level; one of the <code>JLS*</code> level constants
-	 * declared on {@link AST}
+	 * @param level the API level; one of the LEVEL constants
+	 * declared on <code>AST</code>
 	 */
 	ASTParser(int level) {
 		switch(level) {
 			case AST.JLS2_INTERNAL:
-			case AST.JLS3_INTERNAL:
-			case AST.JLS4_INTERNAL:
-			case AST.JLS8:
+			case AST.JLS3:
+			case AST.JLS4:
 				break;
 			default:
 				throw new IllegalArgumentException();

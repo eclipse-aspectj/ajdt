@@ -1,17 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 363858 - [dom] early throwing of AbortCompilation causes NPE in CompilationUnitResolver
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
 
@@ -104,7 +99,6 @@ class CompilationUnitResolver extends Compiler {
 	DefaultBindingResolver.BindingTables bindingTables;
 
 	boolean hasCompilationAborted;
-	CategorizedProblem abortProblem;
 
 	private IProgressMonitor monitor;
 	
@@ -315,7 +309,6 @@ class CompilationUnitResolver extends Compiler {
 		compilerOptions.performStatementsRecovery = statementsRecovery;
 		compilerOptions.parseLiteralExpressionsAsConstants = false;
 		compilerOptions.storeAnnotations = true /*store annotations in the bindings*/;
-		compilerOptions.ignoreSourceFolderWarningOption = true;
 		return compilerOptions;
 	}
 	/*
@@ -330,9 +323,6 @@ class CompilationUnitResolver extends Compiler {
 			}
 			public boolean proceedOnErrors() {
 				return false; // stop if there are some errors
-			}
-			public boolean ignoreAllErrors() {
-				return false;
 			}
 		};
 	}
@@ -384,7 +374,6 @@ class CompilationUnitResolver extends Compiler {
 			removeUnresolvedBindings(unit);
 		}
 		this.hasCompilationAborted = true;
-		this.abortProblem = abortException.problem;
 	}
 
 	public static void parse(ICompilationUnit[] compilationUnits, ASTRequestor astRequestor, int apiLevel, Map options, int flags, IProgressMonitor monitor) {
@@ -710,16 +699,11 @@ class CompilationUnitResolver extends Compiler {
 				// the bindings could not be resolved due to missing types in name environment
 				// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=86541
 				CompilationUnitDeclaration unitDeclaration = parse(sourceUnit, nodeSearcher, options, flags);
-				if (unit != null) {
-					final int problemCount = unit.compilationResult.problemCount;
-					if (problemCount != 0) {
-						unitDeclaration.compilationResult.problems = new CategorizedProblem[problemCount];
-						System.arraycopy(unit.compilationResult.problems, 0, unitDeclaration.compilationResult.problems, 0, problemCount);
-						unitDeclaration.compilationResult.problemCount = problemCount;
-					}
-				} else if (resolver.abortProblem != null) {
-					unitDeclaration.compilationResult.problemCount = 1;
-					unitDeclaration.compilationResult.problems = new CategorizedProblem[] { resolver.abortProblem };
+				final int problemCount = unit.compilationResult.problemCount;
+				if (problemCount != 0) {
+					unitDeclaration.compilationResult.problems = new CategorizedProblem[problemCount];
+					System.arraycopy(unit.compilationResult.problems, 0, unitDeclaration.compilationResult.problems, 0, problemCount);
+					unitDeclaration.compilationResult.problemCount = problemCount;
 				}
 				return unitDeclaration;
 			}

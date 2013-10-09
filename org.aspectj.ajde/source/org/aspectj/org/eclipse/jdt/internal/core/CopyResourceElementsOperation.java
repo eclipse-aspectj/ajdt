@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -86,7 +86,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 		initializeASTParser();
 	}
 	private void initializeASTParser() {
-		this.parser = ASTParser.newParser(AST.JLS8);
+		this.parser = ASTParser.newParser(AST.JLS4);
 	}
 	/**
 	 * Returns the children of <code>source</code> which are affected by this operation.
@@ -266,29 +266,20 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 	 * <li>On a copy, the delta should be rooted in the dest project
 	 * <li>On a move, two deltas are generated<ul>
 	 * 			<li>one rooted in the source project
-	 *			<li>one rooted in the destination project
-	 * <li> When a CU is being overwritten, the delta on the destination will be of type F_CONTENT </ul></ul>
+	 *			<li>one rooted in the destination project</ul></ul>
 	 * If the operation is rooted in a single project, the delta is rooted in that project
 	 *
 	 */
-	protected void prepareDeltas(IJavaElement sourceElement, IJavaElement destinationElement, boolean isMove, boolean overWriteCU) {
+	protected void prepareDeltas(IJavaElement sourceElement, IJavaElement destinationElement, boolean isMove) {
 		if (Util.isExcluded(sourceElement) || Util.isExcluded(destinationElement)) return;
-		
 		IJavaProject destProject = destinationElement.getJavaProject();
 		if (isMove) {
 			IJavaProject sourceProject = sourceElement.getJavaProject();
 			getDeltaFor(sourceProject).movedFrom(sourceElement, destinationElement);
-			if (!overWriteCU) {
-				getDeltaFor(destProject).movedTo(destinationElement, sourceElement);
-				return;
-			}
+			getDeltaFor(destProject).movedTo(destinationElement, sourceElement);
 		} else {
-			if (!overWriteCU) {
-				getDeltaFor(destProject).added(destinationElement);
-				return;
-			}
+			getDeltaFor(destProject).added(destinationElement);
 		}
-		getDeltaFor(destinationElement.getJavaProject()).changed(destinationElement, IJavaElementDelta.F_CONTENT);
 	}
 	/**
 	 * Copies/moves a compilation unit with the name <code>newCUName</code>
@@ -366,14 +357,12 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 			}
 
 			// register the correct change deltas
-			boolean contentChanged = this.force && destFile.exists();
-			prepareDeltas(source, destCU, isMove(), contentChanged);
-			
+			prepareDeltas(source, destCU, isMove());
 			if (newCUName != null) {
 				//the main type has been renamed
 				String oldName = Util.getNameWithoutJavaLikeExtension(source.getElementName());
 				String newName = Util.getNameWithoutJavaLikeExtension(newCUName);
-				prepareDeltas(source.getType(oldName), destCU.getType(newName), isMove(), false);
+				prepareDeltas(source.getType(oldName), destCU.getType(newName), isMove());
 			}
 		} else {
 			if (!this.force) {

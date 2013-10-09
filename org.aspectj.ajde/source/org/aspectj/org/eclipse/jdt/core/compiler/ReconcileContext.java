@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation and others.
+ * Copyright (c) 2005, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,7 +31,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
  * participants while a reconcile operation is running.
  * <p>
  * A reconcile participant can get the AST for the reconcile-operation using
- * {@link #getAST4()}. If the participant modifies in any way the AST
+ * {@link #getAST3()}. If the participant modifies in any way the AST
  * (either by modifying the source of the working copy, or modifying another entity
  * that would result in different bindings for the AST), it is expected to reset the
  * AST in the context using {@link #resetAST()}.
@@ -83,8 +83,6 @@ public ReconcileContext(ReconcileWorkingCopyOperation operation, CompilationUnit
  * <ul>
  * <li> The working copy does not exist (ELEMENT_DOES_NOT_EXIST)</li>
  * </ul>
- * @deprecated JLS3 has been deprecated. This method has been replaced by {@link #getAST4()} which returns an AST
- * with JLS4 level.
  */
 public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST3() throws JavaModelException {
 	if (this.operation.astLevel != AST.JLS3 || !this.operation.resolveBindings) {
@@ -122,8 +120,6 @@ public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST3() throws Jav
  * <ul>
  * <li> The working copy does not exist (ELEMENT_DOES_NOT_EXIST)</li>
  * </ul>
- * @deprecated JLS4 has been deprecated. This method has been replaced by {@link #getAST8()} which returns an AST
- * with JLS8 level.
  * @since 3.7.1
  */
 public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST4() throws JavaModelException {
@@ -141,45 +137,6 @@ public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST4() throws Jav
 	}
 	return this.operation.makeConsistent(this.workingCopy);
 }
-/**
- * Returns a resolved AST with {@link AST#JLS8 JLS8} level.
- * It is created from the current state of the working copy.
- * Creates one if none exists yet.
- * Returns <code>null</code> if the current state of the working copy
- * doesn't allow the AST to be created (e.g. if the working copy's content
- * cannot be parsed).
- * <p>
- * If the AST level requested during reconciling is not {@link AST#JLS8}
- * or if binding resolutions was not requested, then a different AST is created.
- * Note that this AST does not become the current AST and it is only valid for
- * the requestor.
- * </p>
- *
- * @return the AST created from the current state of the working copy,
- *   or <code>null</code> if none could be created
- * @exception JavaModelException  if the contents of the working copy
- *		cannot be accessed. Reasons include:
- * <ul>
- * <li> The working copy does not exist (ELEMENT_DOES_NOT_EXIST)</li>
- * </ul>
- * @since 3.9 BETA_JAVA8
- */
-public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST8() throws JavaModelException {
-	if (this.operation.astLevel != AST.JLS8 || !this.operation.resolveBindings) {
-		// create AST (optionally resolving bindings)
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
-		parser.setCompilerOptions(this.workingCopy.getJavaProject().getOptions(true));
-		if (JavaProject.hasJavaNature(this.workingCopy.getJavaProject().getProject()))
-			parser.setResolveBindings(true);
-		parser.setStatementsRecovery((this.operation.reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0);
-		parser.setBindingsRecovery((this.operation.reconcileFlags & ICompilationUnit.ENABLE_BINDINGS_RECOVERY) != 0);
-		parser.setSource(this.workingCopy);
-		parser.setIgnoreMethodBodies((this.operation.reconcileFlags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0);
-		return (org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit) parser.createAST(this.operation.progressMonitor);
-	}
-	return this.operation.makeConsistent(this.workingCopy);
-}
-
 /**
  * Returns the AST level requested by the reconcile operation.
  * It is either {@link ICompilationUnit#NO_AST}, or one of the JLS constants defined on {@link AST}.
@@ -215,8 +172,9 @@ public int getReconcileFlags() {
 /**
  * Returns the delta describing the change to the working copy being reconciled.
  * Returns <code>null</code> if there is no change.
- * Note that the delta's AST is not yet positioned at this stage. Use {@link #getAST4()}
- * to get the current AST.
+ * Note that the delta's AST is not yet positioned at this stage. Use {@link #getAST3()}
+ * to get the current AST or  {@link #getAST4()} to get the current AST if you are using
+ * {@link AST#JLS4} ast level.
  *
  * @return the delta describing the change, or <code>null</code> if none
  */

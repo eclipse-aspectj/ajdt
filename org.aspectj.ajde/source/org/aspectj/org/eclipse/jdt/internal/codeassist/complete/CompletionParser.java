@@ -1,18 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
- *		IBM Corporation - initial API and implementation
- *		Stephan Herrmann - Contribution for
- *								bug 401035 - [1.8] A few tests have started failing recently
+ *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist.complete;
 
@@ -88,7 +82,6 @@ public class CompletionParser extends AssistParser {
 	protected static final int K_INSIDE_FOR_CONDITIONAL = COMPLETION_PARSER + 40;
 	// added for https://bugs.eclipse.org/bugs/show_bug.cgi?id=261534
 	protected static final int K_BETWEEN_INSTANCEOF_AND_RPAREN = COMPLETION_PARSER + 41;
-	protected static final int K_INSIDE_IMPORT_STATEMENT = COMPLETION_PARSER + 43;
 
 
 	public final static char[] FAKE_TYPE_NAME = new char[]{' '};
@@ -170,7 +163,6 @@ public class CompletionParser extends AssistParser {
 
 	private boolean storeSourceEnds;
 	public HashtableOfObjectToInt sourceEnds;
-	private boolean inReferenceExpression;
 
 public CompletionParser(ProblemReporter problemReporter, boolean storeExtraSourceEnds) {
 	super(problemReporter);
@@ -756,17 +748,6 @@ private void buildMoreCompletionContext(Expression expression) {
 									this.identifierLengthPtr--;
 								} else {
 									this.identifierLengthStack[this.identifierLengthPtr]--;
-									length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--];
-									Annotation [] typeAnnotations;
-									if (length != 0) {
-										System.arraycopy(
-												this.typeAnnotationStack,
-												(this.typeAnnotationPtr -= length) + 1,
-												typeAnnotations = new Annotation[length],
-												0,
-												length);
-										problemReporter().misplacedTypeAnnotations(typeAnnotations[0], typeAnnotations[typeAnnotations.length - 1]);
-									}
 								}
 								// consume the receiver
 								int identifierLength = this.identifierLengthStack[this.identifierLengthPtr];
@@ -1177,7 +1158,7 @@ private void buildMoreGenericsCompletionContext(ASTNode node, boolean consumeTyp
 						if (consumeTypeArguments) consumeTypeArguments();
 						TypeReference ref = this.getTypeReference(0);
 						if(prevKind == K_PARAMETERIZED_CAST) {
-							ref = computeQualifiedGenericsFromRightSide(ref, 0, null);
+							ref = computeQualifiedGenericsFromRightSide(ref, 0);
 						}
 						if(this.currentElement instanceof RecoveredType) {
 							this.currentElement = this.currentElement.add(new CompletionOnFieldType(ref, false), 0);
@@ -1186,8 +1167,7 @@ private void buildMoreGenericsCompletionContext(ASTNode node, boolean consumeTyp
 							if (prevKind == K_BETWEEN_NEW_AND_LEFT_BRACKET) {
 								
 								AllocationExpression exp;
-								if (this.expressionPtr > -1 && this.expressionStack[this.expressionPtr] instanceof AllocationExpression 
-										&& this.invocationType == QUALIFIED_ALLOCATION) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=361963
+								if (this.expressionPtr > -1 && this.expressionStack[this.expressionPtr] instanceof AllocationExpression) {
 									exp = new QualifiedAllocationExpression();
 									exp.type = ref;
 									((QualifiedAllocationExpression)exp).enclosingInstance = this.expressionStack[this.expressionPtr];
@@ -1298,13 +1278,6 @@ protected void checkAndSetModifiers(int flag) {
 		this.hasUnusedModifiers = true;
 	}
 }
-protected void consumePushCombineModifiers() {
-	super.consumePushCombineModifiers();
-
-	if (isInsideMethod()) {
-		this.hasUnusedModifiers = true;
-	}
-}
 /**
  * Checks if the completion is on the type following a 'new'.
  * Returns whether we found a completion node.
@@ -1386,8 +1359,7 @@ private boolean checkClassLiteralAccess() {
 		if ((length = this.identifierLengthStack[this.identifierLengthPtr-1]) < 0) {
 			// build the primitive type node
 			int dim = isAfterArrayType() ? this.intStack[this.intPtr--] : 0;
-			Annotation [][] annotationsOnDimensions = dim == 0 ? null : getAnnotationsOnDimensions(dim);
-			SingleTypeReference typeRef = (SingleTypeReference)TypeReference.baseTypeReference(-length, dim, annotationsOnDimensions);
+			SingleTypeReference typeRef = (SingleTypeReference)TypeReference.baseTypeReference(-length, dim);
 			typeRef.sourceStart = this.intStack[this.intPtr--];
 			if (dim == 0) {
 				typeRef.sourceEnd = this.intStack[this.intPtr--];
@@ -1448,7 +1420,6 @@ private boolean checkKeyword() {
 			char[][] keywords = new char[Keywords.COUNT][];
 			int count = 0;
 			if(unit.typeCount == 0
-				&& (!this.compilationUnit.isPackageInfo() || this.compilationUnit.currentPackage != null)
 				&& this.lastModifiers == ClassFileConstants.AccDefault) {
 				keywords[count++] = Keywords.IMPORT;
 			}
@@ -1458,35 +1429,33 @@ private boolean checkKeyword() {
 				&& this.compilationUnit.currentPackage == null) {
 				keywords[count++] = Keywords.PACKAGE;
 			}
-			if (!this.compilationUnit.isPackageInfo()) {
-				if((this.lastModifiers & ClassFileConstants.AccPublic) == 0) {
-					boolean hasNoPublicType = true;
-					for (int i = 0; i < unit.typeCount; i++) {
-						if((unit.types[i].typeDeclaration.modifiers & ClassFileConstants.AccPublic) != 0) {
-							hasNoPublicType = false;
-						}
-					}
-					if(hasNoPublicType) {
-						keywords[count++] = Keywords.PUBLIC;
+			if((this.lastModifiers & ClassFileConstants.AccPublic) == 0) {
+				boolean hasNoPublicType = true;
+				for (int i = 0; i < unit.typeCount; i++) {
+					if((unit.types[i].typeDeclaration.modifiers & ClassFileConstants.AccPublic) != 0) {
+						hasNoPublicType = false;
 					}
 				}
-				if((this.lastModifiers & ClassFileConstants.AccAbstract) == 0
-					&& (this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
-					keywords[count++] = Keywords.ABSTRACT;
+				if(hasNoPublicType) {
+					keywords[count++] = Keywords.PUBLIC;
 				}
-				if((this.lastModifiers & ClassFileConstants.AccAbstract) == 0
-					&& (this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
-					keywords[count++] = Keywords.FINAL;
-				}
-	
-				keywords[count++] = Keywords.CLASS;
-				if (this.options.complianceLevel >= ClassFileConstants.JDK1_5) {
-					keywords[count++] = Keywords.ENUM;
-				}
-	
-				if((this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
-					keywords[count++] = Keywords.INTERFACE;
-				}
+			}
+			if((this.lastModifiers & ClassFileConstants.AccAbstract) == 0
+				&& (this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
+				keywords[count++] = Keywords.ABSTRACT;
+			}
+			if((this.lastModifiers & ClassFileConstants.AccAbstract) == 0
+				&& (this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
+				keywords[count++] = Keywords.FINAL;
+			}
+
+			keywords[count++] = Keywords.CLASS;
+			if (this.options.complianceLevel >= ClassFileConstants.JDK1_5) {
+				keywords[count++] = Keywords.ENUM;
+			}
+
+			if((this.lastModifiers & ClassFileConstants.AccFinal) == 0) {
+				keywords[count++] = Keywords.INTERFACE;
 			}
 			if(count != 0) {
 				System.arraycopy(keywords, 0, keywords = new char[count][], 0, count);
@@ -1590,17 +1559,6 @@ private boolean checkInvocation() {
 						this.identifierLengthPtr--;
 					} else {
 						this.identifierLengthStack[this.identifierLengthPtr]--;
-						int length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--];
-						Annotation [] typeAnnotations;
-						if (length != 0) {
-							System.arraycopy(
-									this.typeAnnotationStack,
-									(this.typeAnnotationPtr -= length) + 1,
-									typeAnnotations = new Annotation[length],
-									0,
-									length);
-							problemReporter().misplacedTypeAnnotations(typeAnnotations[0], typeAnnotations[typeAnnotations.length - 1]);
-						}
 					}
 					// consume the receiver
 					messageSend.receiver = getUnspecifiedReference();
@@ -1988,6 +1946,7 @@ private void classHeaderExtendsOrImplements(boolean isInterface) {
 							this.identifierStack[ptr],
 							this.identifierPositionStack[ptr],
 							keywords);
+						completionOnKeyword.canCompleteEmptyToken = true;
 						type.superclass = completionOnKeyword;
 						type.superclass.bits |= ASTNode.IsSuperType;
 						this.assistNode = completionOnKeyword;
@@ -1999,6 +1958,7 @@ private void classHeaderExtendsOrImplements(boolean isInterface) {
 							this.identifierStack[ptr],
 							this.identifierPositionStack[ptr],
 							Keywords.EXTENDS);
+						completionOnKeyword.canCompleteEmptyToken = true;
 						type.superInterfaces = new TypeReference[]{completionOnKeyword};
 						type.superInterfaces[0].bits |= ASTNode.IsSuperType;
 						this.assistNode = completionOnKeyword;
@@ -2625,10 +2585,6 @@ protected void consumeForceNoDiet() {
 	}
 }
 protected void consumeFormalParameter(boolean isVarArgs) {
-	
-	this.invocationType = NO_RECEIVER;
-	this.qualifier = -1;
-	
 	if (this.indexOfAssistIdentifier() < 0) {
 		super.consumeFormalParameter(isVarArgs);
 		if (this.pendingAnnotation != null) {
@@ -2636,48 +2592,20 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 			this.pendingAnnotation = null;
 		}
 	} else {
-		boolean isReceiver = this.intStack[this.intPtr--] == 0;
-	    if (isReceiver) {
-	    	this.expressionPtr--;
-	    	this.expressionLengthPtr --;
-	    }
+
 		this.identifierLengthPtr--;
 		char[] identifierName = this.identifierStack[this.identifierPtr];
 		long namePositions = this.identifierPositionStack[this.identifierPtr--];
 		int extendedDimensions = this.intStack[this.intPtr--];
-		Annotation [][] annotationsOnExtendedDimensions = extendedDimensions == 0 ? null : getAnnotationsOnDimensions(extendedDimensions);
-		Annotation [] varArgsAnnotations = null;
-		int length;
 		int endOfEllipsis = 0;
 		if (isVarArgs) {
 			endOfEllipsis = this.intStack[this.intPtr--];
-			if ((length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--]) != 0) {
-				System.arraycopy(
-					this.typeAnnotationStack,
-					(this.typeAnnotationPtr -= length) + 1,
-					varArgsAnnotations = new Annotation[length],
-					0,
-					length);
-			} 
 		}
 		int firstDimensions = this.intStack[this.intPtr--];
-		TypeReference type = getTypeReference(firstDimensions);
-		
-		final int typeDimensions = firstDimensions + extendedDimensions + (isVarArgs ? 1 : 0);
-		if (typeDimensions != firstDimensions) {
-			// jsr308 type annotations management
-			Annotation [][] annotationsOnFirstDimensions = firstDimensions == 0 ? null : type.getAnnotationsOnDimensions();
-			Annotation [][] annotationsOnAllDimensions = annotationsOnFirstDimensions;
-			if (annotationsOnExtendedDimensions != null) {
-				annotationsOnAllDimensions = getMergedAnnotationsOnDimensions(firstDimensions, annotationsOnFirstDimensions, extendedDimensions, annotationsOnExtendedDimensions);
-			}
-			if (varArgsAnnotations != null) {
-				annotationsOnAllDimensions = getMergedAnnotationsOnDimensions(firstDimensions + extendedDimensions, annotationsOnAllDimensions, 1, new Annotation[][]{varArgsAnnotations});
-			}
-			type = copyDims(type, typeDimensions, annotationsOnAllDimensions);
-			type.sourceEnd = type.isParameterizedTypeReference() ? this.endStatementPosition : this.endPosition;
-		}
+		final int typeDimensions = firstDimensions + extendedDimensions;
+		TypeReference type = getTypeReference(typeDimensions);
 		if (isVarArgs) {
+			type = copyDims(type, typeDimensions + 1);
 			if (extendedDimensions == 0) {
 				type.sourceEnd = endOfEllipsis;
 			}
@@ -2691,6 +2619,7 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 				type,
 				this.intStack[this.intPtr + 1] & ~ClassFileConstants.AccDeprecated); // modifiers
 		// consume annotations
+		int length;
 		if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
 			System.arraycopy(
 				this.expressionStack,
@@ -2698,9 +2627,6 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 				arg.annotations = new Annotation[length],
 				0,
 				length);
-			RecoveredType currentRecoveryType = this.currentRecoveryType();
-			if (currentRecoveryType != null)
-				currentRecoveryType.annotationsConsumed(arg.annotations);
 		}
 
 		arg.isCatchArgument = topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_BETWEEN_CATCH_AND_RIGHT_PAREN;
@@ -2745,14 +2671,6 @@ protected void consumeStatementIfWithElse() {
 	}
 }
 protected void consumeInsideCastExpression() {
-	TypeReference[] bounds = null;
-	int additionalBoundsLength = this.genericsLengthStack[this.genericsLengthPtr--];
-	if (additionalBoundsLength > 0) {
-		bounds = new TypeReference[additionalBoundsLength + 1];
-		this.genericsPtr -= additionalBoundsLength;
-		System.arraycopy(this.genericsStack, this.genericsPtr + 1, bounds, 1, additionalBoundsLength);
-	}
-	
 	int end = this.intStack[this.intPtr--];
 	boolean isParameterized =(topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_PARAMETERIZED_CAST);
 	if(isParameterized) {
@@ -2768,10 +2686,6 @@ protected void consumeInsideCastExpression() {
 		}
 	}
 	Expression castType = getTypeReference(this.intStack[this.intPtr--]);
-	if (additionalBoundsLength > 0) {
-		bounds[0] = getTypeReference(this.intStack[this.intPtr--]);
-		castType = createIntersectionCastTypeReference(bounds); 
-	}
 	if(isParameterized) {
 		this.intPtr--;
 	}
@@ -2804,29 +2718,6 @@ protected void consumeInsideCastExpressionLL1() {
 	}
 	pushOnElementStack(K_CAST_STATEMENT);
 }
-protected void consumeInsideCastExpressionLL1WithBounds() {
-	if(topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_PARAMETERIZED_CAST) {
-		popElement(K_PARAMETERIZED_CAST);
-	}
-	if (!this.record) {
-		super.consumeInsideCastExpressionLL1WithBounds();
-	} else {
-		boolean temp = this.skipRecord;
-		try {
-			this.skipRecord = true;
-			super.consumeInsideCastExpressionLL1WithBounds();
-			if (this.record) {
-				Expression typeReference = this.expressionStack[this.expressionPtr];
-				if (!isAlreadyPotentialName(typeReference.sourceStart)) {
-					addPotentialName(null, typeReference.sourceStart, typeReference.sourceEnd);
-				}
-			}
-		} finally {
-			this.skipRecord = temp;
-		}
-	}
-	pushOnElementStack(K_CAST_STATEMENT);
-}
 protected void consumeInsideCastExpressionWithQualifiedGenerics() {
 	popElement(K_PARAMETERIZED_CAST);
 
@@ -2834,23 +2725,9 @@ protected void consumeInsideCastExpressionWithQualifiedGenerics() {
 	int end = this.intStack[this.intPtr--];
 
 	int dim = this.intStack[this.intPtr--];
-	Annotation[][] annotationsOnDimensions = dim == 0 ? null : getAnnotationsOnDimensions(dim);
-	
-	TypeReference[] bounds = null;
-	int additionalBoundsLength = this.genericsLengthStack[this.genericsLengthPtr--];
-	if (additionalBoundsLength > 0) {
-		bounds = new TypeReference[additionalBoundsLength + 1];
-		this.genericsPtr -= additionalBoundsLength;
-		System.arraycopy(this.genericsStack, this.genericsPtr + 1, bounds, 1, additionalBoundsLength);
-	}
-	
 	TypeReference rightSide = getTypeReference(0);
 
-	castType = computeQualifiedGenericsFromRightSide(rightSide, dim, annotationsOnDimensions);
-	if (additionalBoundsLength > 0) {
-		bounds[0] = (TypeReference) castType;
-		castType = createIntersectionCastTypeReference(bounds); 
-	} 
+	castType = computeQualifiedGenericsFromRightSide(rightSide, dim);
 	this.intPtr--;
 	castType.sourceEnd = end - 1;
 	castType.sourceStart = this.intStack[this.intPtr--] + 1;
@@ -3172,9 +3049,6 @@ protected void consumeAnnotationName() {
 		return;
 	}
 
-	if (isInImportStatement()) {
-		return;
-	}
 	MarkerAnnotation markerAnnotation = null;
 	int length = this.identifierLengthStack[this.identifierLengthPtr];
 	TypeReference typeReference;
@@ -3241,14 +3115,14 @@ protected void consumeLabel() {
 	pushOnLabelStack(this.identifierStack[this.identifierPtr]);
 	this.pushOnElementStack(K_LABEL, this.labelPtr);
 }
-protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
+protected void consumeMarkerAnnotation() {
 	if (this.topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_BETWEEN_ANNOTATION_NAME_AND_RPAREN &&
 			(this.topKnownElementInfo(COMPLETION_OR_ASSIST_PARSER) & ANNOTATION_NAME_COMPLETION) != 0 ) {
 		popElement(K_BETWEEN_ANNOTATION_NAME_AND_RPAREN);
 		this.restartRecovery = true;
 	} else {
 		popElement(K_BETWEEN_ANNOTATION_NAME_AND_RPAREN);
-		super.consumeMarkerAnnotation(isTypeAnnotation);
+		super.consumeMarkerAnnotation();
 	}
 }
 protected void consumeMemberValuePair() {
@@ -3323,14 +3197,14 @@ protected void consumeRestoreDiet() {
 		popElement(K_LOCAL_INITIALIZER_DELIMITER);
 	}
 }
-protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
+protected void consumeSingleMemberAnnotation() {
 	if (this.topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_BETWEEN_ANNOTATION_NAME_AND_RPAREN &&
 			(this.topKnownElementInfo(COMPLETION_OR_ASSIST_PARSER) & ANNOTATION_NAME_COMPLETION) != 0 ) {
 		popElement(K_BETWEEN_ANNOTATION_NAME_AND_RPAREN);
 		this.restartRecovery = true;
 	} else {
 		popElement(K_BETWEEN_ANNOTATION_NAME_AND_RPAREN);
-		super.consumeSingleMemberAnnotation(isTypeAnnotation);
+		super.consumeSingleMemberAnnotation();
 	}
 }
 protected void consumeSingleStaticImportDeclarationName() {
@@ -3380,14 +3254,14 @@ protected void consumeNestedMethod() {
 	super.consumeNestedMethod();
 	if(!(topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_BLOCK_DELIMITER)) pushOnElementStack(K_BLOCK_DELIMITER);
 }
-protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
+protected void consumeNormalAnnotation() {
 	if (this.topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_BETWEEN_ANNOTATION_NAME_AND_RPAREN &&
 			(this.topKnownElementInfo(COMPLETION_OR_ASSIST_PARSER) & ANNOTATION_NAME_COMPLETION) != 0 ) {
 		popElement(K_BETWEEN_ANNOTATION_NAME_AND_RPAREN);
 		this.restartRecovery = true;
 	} else {
 		popElement(K_BETWEEN_ANNOTATION_NAME_AND_RPAREN);
-		super.consumeNormalAnnotation(isTypeAnnotation);
+		super.consumeNormalAnnotation();
 	}
 }
 protected void consumePackageDeclarationName() {
@@ -3499,9 +3373,6 @@ protected void consumeToken(int token) {
 			&& isIndirectlyInsideFieldInitialization()) {
 		this.scanner.eofPosition = this.cursorLocation < Integer.MAX_VALUE ? this.cursorLocation+1 : this.cursorLocation;
 	}
-	if (token == TokenNameimport) {
-		pushOnElementStack(K_INSIDE_IMPORT_STATEMENT);
-	}
 
 	// if in a method or if in a field initializer
 	if (isInsideMethod() || isInsideFieldInitialization() || isInsideAttributeValue()) {
@@ -3525,12 +3396,7 @@ protected void consumeToken(int token) {
 						break;
 				}
 				break;
-			case TokenNameCOLON_COLON:
-				this.inReferenceExpression = true;
-				break;
 			case TokenNameIdentifier:
-				if (this.inReferenceExpression)
-					break;
 				if (previous == TokenNameDOT) { // e.g. foo().[fred]()
 					if (this.invocationType != SUPER_RECEIVER // e.g. not super.[fred]()
 						&& this.invocationType != NAME_RECEIVER // e.g. not bar.[fred]()
@@ -3555,8 +3421,6 @@ protected void consumeToken(int token) {
 				}
 				break;
 			case TokenNamenew:
-				if (this.inReferenceExpression)
-					break;
 				pushOnElementStack(K_BETWEEN_NEW_AND_LEFT_BRACKET);
 				this.qualifier = this.expressionPtr; // NB: even if there is no qualification, set it to the expression ptr so that the number of arguments are correctly computed
 				if (previous == TokenNameDOT) { // e.g. fred().[new] X()
@@ -3979,10 +3843,6 @@ protected void consumeToken(int token) {
 		}
 	}
 }
-protected void consumeIdentifierOrNew(boolean newForm) {
-	this.inReferenceExpression = false;
-	super.consumeIdentifierOrNew(newForm);
-}
 protected void consumeOnlySynchronized() {
 	super.consumeOnlySynchronized();
 	this.hasUnusedModifiers = false;
@@ -4042,10 +3902,6 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 	super.consumeTypeImportOnDemandDeclarationName();
 	this.pendingAnnotation = null; // the pending annotation cannot be attached to next nodes
 }
-protected void consumeImportDeclaration() {
-	super.consumeImportDeclaration();
-	popElement(K_INSIDE_IMPORT_STATEMENT);
-}
 protected void consumeTypeParameters() {
 	super.consumeTypeParameters();
 	popElement(K_BINARY_OPERATOR);
@@ -4071,6 +3927,7 @@ protected void consumeTypeParameterHeader() {
 		this.identifierStack[this.identifierPtr],
 		this.identifierPositionStack[this.identifierPtr],
 		Keywords.EXTENDS);
+	keyword.canCompleteEmptyToken = true;
 	typeParameter.type = keyword;
 
 	this.identifierPtr--;
@@ -4147,6 +4004,7 @@ protected void consumeWildcard() {
 		this.identifierStack[this.identifierPtr],
 		this.identifierPositionStack[this.identifierPtr],
 		new char[][]{Keywords.EXTENDS, Keywords.SUPER} );
+	keyword.canCompleteEmptyToken = true;
 	wildcard.kind = Wildcard.EXTENDS;
 	wildcard.bound = keyword;
 
@@ -4519,16 +4377,6 @@ protected TypeReference copyDims(TypeReference typeRef, int dim) {
 	}
 	return result;
 }
-protected TypeReference copyDims(TypeReference typeRef, int dim, Annotation[][] annotationsOnDimensions) {
-	if (this.assistNode == typeRef) {
-		return typeRef;
-	}
-	TypeReference result = super.copyDims(typeRef, dim, annotationsOnDimensions);
-	if (this.assistNodeParent == typeRef) {
-		this.assistNodeParent = result;
-	}
-	return result;
-}
 public CompilationUnitDeclaration dietParse(ICompilationUnit sourceUnit, CompilationResult compilationResult, int cursorLoc) {
 
 	this.cursorLocation = cursorLoc;
@@ -4586,8 +4434,8 @@ protected TypeReference getTypeReferenceForGenericType(int dim,	int identifierLe
 
 	return ref;
 }
-protected NameReference getUnspecifiedReference(boolean rejectTypeAnnotations) {
-	NameReference nameReference = super.getUnspecifiedReference(rejectTypeAnnotations);
+protected NameReference getUnspecifiedReference() {
+	NameReference nameReference = super.getUnspecifiedReference();
 	if (this.record) {
 		recordReference(nameReference);
 	}
@@ -4910,18 +4758,6 @@ public void recoveryExitFromVariable() {
 		if(oldElement != this.currentElement) {
 			popElement(K_LOCAL_INITIALIZER_DELIMITER);
 		}
-	} else if(this.currentElement != null && this.currentElement instanceof RecoveredField) {
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=292087
-		// To make sure the array initializer is popped when the focus is shifted to the parent
-		// in case we're restarting recovery inside an array initializer
-		RecoveredElement oldElement = this.currentElement;
-		super.recoveryExitFromVariable();	
-		if(oldElement != this.currentElement) {	
-			if(topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_ARRAY_INITIALIZER) {	
-				popElement(K_ARRAY_INITIALIZER);	
-				popElement(K_FIELD_INITIALIZER_DELIMITER);	
-			} 	
-		}
 	} else {
 		super.recoveryExitFromVariable();
 	}
@@ -5139,25 +4975,6 @@ private boolean stackHasInstanceOfExpression(Object[] stackToSearch, int startIn
 			return true;
 		}
 		indexInstanceOf--;
-	}
-	return false;
-}
-
-// https://bugs.eclipse.org/bugs/show_bug.cgi?id=292087
-protected boolean isInsideArrayInitializer(){
-	int i = this.elementPtr;
-	if (i > -1 && this.elementKindStack[i] == K_ARRAY_INITIALIZER) {
-		return true;
-	}
-	return false;	
-}
-protected boolean isInImportStatement() {
-	int i = this.elementPtr;
-	while (i > -1) {
-		if (this.elementKindStack[i] == K_INSIDE_IMPORT_STATEMENT) {
-			return true;
-		}
-		i--;
 	}
 	return false;
 }

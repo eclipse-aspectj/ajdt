@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -241,9 +241,8 @@ class VariableBinding implements IVariableBinding {
 		if (!defaultBindingResolver.fromJavaProject) return null;
 		VariableDeclaration localVar = (VariableDeclaration) defaultBindingResolver.bindingsToAstNodes.get(this);
 		if (localVar == null) return null;
-		SimpleName localName = localVar.getName();
-		int nameStart = localName.getStartPosition();
-		int nameLength = localName.getLength();
+		int nameStart;
+		int nameLength;
 		int sourceStart;
 		int sourceLength;
 		int modifiers = 0;
@@ -251,8 +250,13 @@ class VariableBinding implements IVariableBinding {
 			sourceStart = localVar.getStartPosition();
 			sourceLength = localVar.getLength();
 			final SingleVariableDeclaration singleVariableDeclaration = (SingleVariableDeclaration) localVar;
+			SimpleName simpleName = singleVariableDeclaration.getName();
+			nameStart = simpleName.getStartPosition();
+			nameLength = simpleName.getLength();
 			modifiers = singleVariableDeclaration.getModifiers();
 		} else {
+			nameStart =  localVar.getStartPosition();
+			nameLength = localVar.getLength();
 			ASTNode node = localVar.getParent();
 			sourceStart = node.getStartPosition();
 			sourceLength = node.getLength();
@@ -298,7 +302,7 @@ class VariableBinding implements IVariableBinding {
 		if (parent == null) return null;
 		return new LocalVariable(
 				parent,
-				localName.getIdentifier(),
+				localVar.getName().getIdentifier(),
 				sourceStart,
 				sourceEnd,
 				nameStart,

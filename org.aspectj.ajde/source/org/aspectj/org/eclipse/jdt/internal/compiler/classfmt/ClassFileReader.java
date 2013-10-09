@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for bug 365992 - [builder] [null] Change of nullness for a parameter doesn't trigger a build for the files that call the method
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.classfmt;
 
@@ -208,19 +207,6 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 				case ClassFileConstants.NameAndTypeTag :
 					this.constantPoolOffsets[i] = readOffset;
 					readOffset += ClassFileConstants.ConstantNameAndTypeFixedSize;
-					break;
-				case ClassFileConstants.MethodHandleTag :
-					this.constantPoolOffsets[i] = readOffset;
-					readOffset += ClassFileConstants.ConstantMethodHandleFixedSize;
-					break;
-				case ClassFileConstants.MethodTypeTag :
-					this.constantPoolOffsets[i] = readOffset;
-					readOffset += ClassFileConstants.ConstantMethodTypeFixedSize;
-					break;
-				case ClassFileConstants.InvokeDynamicTag :
-					this.constantPoolOffsets[i] = readOffset;
-					readOffset += ClassFileConstants.ConstantInvokeDynamicFixedSize;
-					break;
 			}
 		}
 		// Read and validate access flags
@@ -1082,16 +1068,6 @@ private boolean hasStructuralMethodChanges(MethodInfo currentMethodInfo, MethodI
 		return true;
 	if (hasStructuralAnnotationChanges(currentMethodInfo.getAnnotations(), otherMethodInfo.getAnnotations()))
 		return true;
-	// parameter annotations:
-	int currentAnnotatedParamsCount = currentMethodInfo.getAnnotatedParametersCount();
-	int otherAnnotatedParamsCount = otherMethodInfo.getAnnotatedParametersCount();
-	if (currentAnnotatedParamsCount != otherAnnotatedParamsCount)
-		return true;
-	for (int i=0; i<currentAnnotatedParamsCount; i++) {
-		if (hasStructuralAnnotationChanges(currentMethodInfo.getParameterAnnotations(i), otherMethodInfo.getParameterAnnotations(i)))
-			return true;
-	}
-
 	if (!CharOperation.equals(currentMethodInfo.getSelector(), otherMethodInfo.getSelector()))
 		return true;
 	if (!CharOperation.equals(currentMethodInfo.getMethodDescriptor(), otherMethodInfo.getMethodDescriptor()))

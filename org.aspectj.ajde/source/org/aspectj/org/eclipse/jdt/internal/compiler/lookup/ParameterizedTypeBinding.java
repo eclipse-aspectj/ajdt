@@ -1,20 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation and others.
+ * Copyright (c) 2005, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 349326 - [1.7] new warning for missing try-with-resources
- *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
- *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -79,7 +71,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 			TypeVariableBinding[] typeVariables = this.type.typeVariables();
 			if (this.arguments != null && typeVariables != null) { // arguments may be null in error cases
 				for (int i = 0, length = typeVariables.length; i < length; i++) {
-				    if (typeVariables[i].boundCheck(this, this.arguments[i], scope)  != TypeConstants.OK) {
+				    if (typeVariables[i].boundCheck(this, this.arguments[i])  != TypeConstants.OK) {
 				    	hasErrors = true;
 				    	if ((this.arguments[i].tagBits & TagBits.HasMissingType) == 0) {
 				    		// do not report secondary error, if type reference already got complained against
@@ -165,7 +157,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 			}
 			return;
 		}
-		if (actualType == TypeBinding.NULL || actualType.kind() == POLY_TYPE) return;
+		if (actualType == TypeBinding.NULL) return;
 
 		if (!(actualType instanceof ReferenceBinding)) return;
 		TypeBinding formalEquivalent, actualEquivalent;
@@ -324,22 +316,12 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 	 */
 	public String debugName() {
 	    StringBuffer nameBuffer = new StringBuffer(10);
-	    if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
-	    	// restore applied null annotation from tagBits:
-		    if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
-		    	char[][] nonNullAnnotationName = environment().getNonNullAnnotationName();
-				nameBuffer.append('@').append(nonNullAnnotationName[nonNullAnnotationName.length-1]).append(' ');
-		    } else if ((this.tagBits & TagBits.AnnotationNullable) != 0) {
-		    	char[][] nullableAnnotationName = environment().getNullableAnnotationName();
-				nameBuffer.append('@').append(nullableAnnotationName[nullableAnnotationName.length-1]).append(' ');
-		    }
-	    }
 	    if (this.type instanceof UnresolvedReferenceBinding) {
 	    	nameBuffer.append(this.type);
 	    } else {
 			nameBuffer.append(this.type.sourceName());
 	    }
-		if (this.arguments != null && this.arguments.length > 0) { // empty arguments array happens when PTB has been created just to capture type annotations
+		if (this.arguments != null) {
 			nameBuffer.append('<');
 		    for (int i = 0, length = this.arguments.length; i < length; i++) {
 		        if (i > 0) nameBuffer.append(',');
@@ -647,13 +629,6 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 	    return this.type.hasMemberTypes();
 	}
 
-	public boolean hasTypeBit(int bit) {
-		TypeBinding erasure = erasure();
-		if (erasure instanceof ReferenceBinding)
-			return ((ReferenceBinding) erasure).hasTypeBit(bit);
-		return false;
-	}
-
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding#implementsMethod(MethodBinding)
 	 */
@@ -692,7 +667,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 						}
 						break;
 					case Binding.INTERSECTION_TYPE :
-						this.tagBits |= TagBits.HasDirectWildcard | TagBits.IsBoundParameterizedType; // Surely NOT X<?,?>, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=366131
+						this.tagBits |= TagBits.HasDirectWildcard;
 						break;
 					default :
 						this.tagBits |= TagBits.IsBoundParameterizedType;
@@ -701,7 +676,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 				this.tagBits |= someArgument.tagBits & (TagBits.HasTypeVariable | TagBits.HasMissingType | TagBits.ContainsNestedTypeReferences);
 			}
 		}
-		this.tagBits |= someType.tagBits & (TagBits.IsLocalType| TagBits.IsMemberType | TagBits.IsNestedType | TagBits.HasMissingType | TagBits.ContainsNestedTypeReferences | TagBits.AnnotationNullMASK);
+		this.tagBits |= someType.tagBits & (TagBits.IsLocalType| TagBits.IsMemberType | TagBits.IsNestedType | TagBits.HasMissingType | TagBits.ContainsNestedTypeReferences);
 		this.tagBits &= ~(TagBits.AreFieldsComplete|TagBits.AreMethodsComplete);
 	}
 
@@ -864,7 +839,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 		} else {
 			nameBuffer.append(CharOperation.concatWith(this.type.compoundName, '.'));
 		}
-		if (this.arguments != null && this.arguments.length > 0) { // empty arguments array happens when PTB has been created just to capture type annotations
+		if (this.arguments != null) {
 			nameBuffer.append('<');
 		    for (int i = 0, length = this.arguments.length; i < length; i++) {
 		        if (i > 0) nameBuffer.append(',');
@@ -935,7 +910,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 		} else {
 			nameBuffer.append(this.type.sourceName);
 		}
-		if (this.arguments != null && this.arguments.length > 0) { // empty arguments array happens when PTB has been created just to capture type annotations
+		if (this.arguments != null) {
 			nameBuffer.append('<');
 		    for (int i = 0, length = this.arguments.length; i < length; i++) {
 		        if (i > 0) nameBuffer.append(',');
@@ -1147,73 +1122,6 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 	
 	public FieldBinding[] unResolvedFields() {
 		return this.fields;
-	}
-	public MethodBinding getSingleAbstractMethod(final Scope scope) {
-		if (this.singleAbstractMethod != null) {
-			return this.singleAbstractMethod;
-		}
-		final ReferenceBinding genericType = genericType();
-		MethodBinding theAbstractMethod = genericType.getSingleAbstractMethod(scope);
-		if (theAbstractMethod == null || !theAbstractMethod.isValidBinding())
-			return this.singleAbstractMethod = theAbstractMethod;
-		
-		TypeBinding [] typeArguments = this.arguments; // A1 ... An 
-		TypeVariableBinding [] typeParameters = genericType.typeVariables(); // P1 ... Pn
-		TypeBinding [] types = new TypeBinding[typeArguments.length];  // T1 ... Tn
-		for (int i = 0, length = typeArguments.length; i < length; i++) {
-			TypeBinding typeArgument = typeArguments[i];
-			switch (typeArgument.kind()) {
-				case Binding.WILDCARD_TYPE :
-					WildcardBinding wildcard = (WildcardBinding) typeArgument;
-					switch(wildcard.boundKind) {
-	    				case Wildcard.EXTENDS :
-	    				case Wildcard.SUPER :
-	    					types[i] = wildcard.bound;
-	    					break;
-	    				case Wildcard.UNBOUND :
-	    					// if Pi has upper bound Bi that mentions none of P1...Pn, then Ti = Bi; otherwise, Ti = Object
-	    					final TypeBinding upperBound = typeParameters[i].firstBound;
-							if (upperBound == null || typeParametersMentioned(upperBound)) {
-	    						types[i] = scope.getJavaLangObject();
-	    					} else {
-	    						types[i] = upperBound;
-	    					}
-	    					break;
-					}
-					break;
-				default :
-					types[i] = typeArgument;
-					break;
-			}
-			if (typeParameters[i].boundCheck(null, types[i], scope) != TypeConstants.OK)
-				return this.singleAbstractMethod = new ProblemMethodBinding(TypeConstants.ANONYMOUS_METHOD, null, ProblemReasons.NotAWellFormedParameterizedType);
-		}
-		ReferenceBinding declaringType = scope.environment().createParameterizedType(genericType, types, genericType.enclosingType());
-		declaringType = (ReferenceBinding) declaringType.findSuperTypeOriginatingFrom(theAbstractMethod.declaringClass);
-		MethodBinding [] choices = declaringType.getMethods(theAbstractMethod.selector);
-		for (int i = 0, length = choices.length; i < length; i++) {
-			MethodBinding method = choices[i];
-			if (!method.isAbstract() || method.redeclaresPublicObjectMethod(scope)) continue; // (re)skip statics, defaults, public object methods ...
-			this.singleAbstractMethod = method;
-			break;
-		}
-		return this.singleAbstractMethod;
-	}
-
-	private boolean typeParametersMentioned(TypeBinding upperBound) {
-		class MentionListener extends TypeBindingVisitor {
-			private boolean typeParametersMentioned = false;
-			public boolean visit(TypeVariableBinding typeVariable) {
-				this.typeParametersMentioned = true;
-				return false;
-			}
-			public boolean typeParametersMentioned() {
-				return this.typeParametersMentioned;
-			}
-		}
-		MentionListener mentionListener = new MentionListener();
-		TypeBindingVisitor.visit(mentionListener, upperBound);
-		return mentionListener.typeParametersMentioned();
 	}
 	// AspectJ extension - delegate to the source type (the generic type) as it has a memberFinder for resolving ITDs
 		public FieldBinding getField(char[] fieldName, boolean resolve, InvocationSite site, Scope scope) {

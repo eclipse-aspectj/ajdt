@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,9 +32,6 @@ public class AnnotationBinding {
 public static AnnotationBinding[] addStandardAnnotations(AnnotationBinding[] recordedAnnotations, long annotationTagBits, LookupEnvironment env) {
 	// NOTE: expect annotations to be requested just once so there is no need to store the standard annotations
 	// and all of the standard annotations created by this method are fully resolved since the sender is expected to use them immediately
-	if ((annotationTagBits & TagBits.AllStandardAnnotationsMask) == 0) {
-		return recordedAnnotations;
-	}
 	int count = 0;
 	if ((annotationTagBits & TagBits.AnnotationTargetMASK) != 0)
 		count++;
@@ -54,10 +51,8 @@ public static AnnotationBinding[] addStandardAnnotations(AnnotationBinding[] rec
 		count++;
 	if ((annotationTagBits & TagBits.AnnotationSafeVarargs) != 0)
 		count++;
-	if (count == 0) {
-		// this is possible if bits were set for null annotations
+	if (count == 0)
 		return recordedAnnotations;
-	}
 
 	int index = recordedAnnotations.length;
 	AnnotationBinding[] result = new AnnotationBinding[index + count];

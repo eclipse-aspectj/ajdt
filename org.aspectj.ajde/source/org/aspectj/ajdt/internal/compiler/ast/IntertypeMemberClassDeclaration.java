@@ -18,7 +18,6 @@ import org.aspectj.ajdt.internal.compiler.lookup.EclipseFactory;
 import org.aspectj.ajdt.internal.compiler.lookup.EclipseSourceLocation;
 import org.aspectj.ajdt.internal.compiler.lookup.EclipseTypeMunger;
 import org.aspectj.ajdt.internal.compiler.lookup.InterTypeScope;
-import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -273,6 +272,6 @@ public class IntertypeMemberClassDeclaration extends TypeDeclaration {
 	}
 
 	public char[] alternativeName() {
-		return CharOperation.concatWith(onType.getTypeName(),'.');//onType.getLastToken();
+		return onType.getLastToken();
 	}
 }

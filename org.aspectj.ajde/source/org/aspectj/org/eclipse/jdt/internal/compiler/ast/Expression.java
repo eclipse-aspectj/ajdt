@@ -1,25 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for 
- *								bug 292478 - Report potentially null across variable assignment
- *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
- *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
- *								bug 331649 - [compiler][null] consider null annotations for fields
- *								bug 383368 - [compiler][null] syntactic null analysis for field references
- *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
- *								bug 402993 - [null] Follow up of bug 401088: Missing warning about redundant null check
- *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 292478 - Report potentially null across variable assignment
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -48,12 +36,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Messages;
 
-public abstract class Expression extends Statement implements ExpressionContext {
+public abstract class Expression extends Statement {
 
 	public Constant constant;
 
@@ -295,15 +282,6 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 		return true;
 	}
 
-	if (castType.isIntersectionCastType()) {
-		ReferenceBinding [] intersectingTypes = castType.getIntersectingTypes();
-		for (int i = 0, length = intersectingTypes.length; i < length; i++) {
-			if (!checkCastTypesCompatibility(scope, intersectingTypes[i], expressionType, expression))
-				return false;
-		}
-		return true;
-	}
-	
 	switch(expressionType.kind()) {
 		case Binding.BASE_TYPE :
 			//-----------cast to something which is NOT a base type--------------------------
@@ -373,13 +351,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 			}
 			// recursively on the type variable upper bound
 			return checkCastTypesCompatibility(scope, castType, ((WildcardBinding)expressionType).bound, expression);
-		case Binding.INTERSECTION_CAST_TYPE:
-			ReferenceBinding [] intersectingTypes = expressionType.getIntersectingTypes();
-			for (int i = 0, length = intersectingTypes.length; i < length; i++) {
-				if (checkCastTypesCompatibility(scope, castType, intersectingTypes[i], expression))
-					return true;
-			}
-			return false;
+
 		default:
 			if (expressionType.isInterface()) {
 				switch (castType.kind()) {
@@ -545,58 +517,32 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 }
 
 /**
- * Check this expression against potential NPEs, which may occur:
- * <ul>
- * <li>if the expression is the receiver in a field access, qualified allocation, array reference or message send
- * 		incl. implicit message sends like it happens for the collection in a foreach statement.</li>
- * <li>if the expression is subject to unboxing</li>
- * <li>if the expression is the exception in a throw statement</li>
- * </ul>
- * If a risk of NPE is detected report it to the context.
- * If the expression denotes a local variable, mark it as checked, which affects the flow info.
+ * Check the local variable of this expression, if any, against potential NPEs
+ * given a flow context and an upstream flow info. If so, report the risk to
+ * the context. Marks the local as checked, which affects the flow info.
  * @param scope the scope of the analysis
  * @param flowContext the current flow context
  * @param flowInfo the upstream flow info; caveat: may get modified
- * @return could this expression be checked by the current implementation?
  */
-public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
-	if (this.resolvedType != null) {
-		if ((this.resolvedType.tagBits & TagBits.AnnotationNonNull) != 0) {
-			return true; // no danger
-		} else if ((this.resolvedType.tagBits & TagBits.AnnotationNullable) != 0) {
-			scope.problemReporter().dereferencingNullableExpression(this, scope.environment());
-			return true; // danger is definite.
-			// stopping analysis at this point requires that the above error is not suppressable
-			// unless suppressing all null warnings (otherwise we'd miss a stronger warning below).
-		}
-	}
+public void checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
 	LocalVariableBinding local = localVariableBinding();
 	if (local != null &&
 			(local.type.tagBits & TagBits.IsBaseType) == 0) {
 		if ((this.bits & ASTNode.IsNonNull) == 0) {
 			flowContext.recordUsingNullReference(scope, local, this,
 					FlowContext.MAY_NULL, flowInfo);
-			// account for possible NPE:
-			if (!flowInfo.isDefinitelyNonNull(local)) {
-				flowContext.recordAbruptExit();
-			}
 		}
 		flowInfo.markAsComparedEqualToNonNull(local);
 			// from thereon it is set
-		flowContext.markFinallyNullStatus(local, FlowInfo.NON_NULL);
-		return true;
-	}
-	return false; // not checked
-}
-
-/** If this expression requires unboxing check if that operation can throw NPE. */
-protected void checkNPEbyUnboxing(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
-	int status;
-	if ((this.implicitConversion & UNBOXING) != 0
-			&& (this.bits & ASTNode.IsNonNull) == 0
-			&& (status = nullStatus(flowInfo, flowContext)) != FlowInfo.NON_NULL)
-	{
-		flowContext.recordUnboxing(scope, this, status, flowInfo);
+		if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
+			flowInfo.markedAsNullOrNonNullInAssertExpression(local);
+		}
+		if (flowContext.initsOnFinally != null) {
+			flowContext.initsOnFinally.markAsComparedEqualToNonNull(local);
+			if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
+				flowContext.initsOnFinally.markedAsNullOrNonNullInAssertExpression(local);
+			}
+		}
 	}
 }
 
@@ -623,7 +569,7 @@ public boolean checkUnsafeCast(Scope scope, TypeBinding castType, TypeBinding ex
 public void computeConversion(Scope scope, TypeBinding runtimeType, TypeBinding compileTimeType) {
 	if (runtimeType == null || compileTimeType == null)
 		return;
-	if (this.implicitConversion != 0) return; // already set independently
+	if (this.implicitConversion != 0) return; // already set independantly
 
 	// it is possible for a Byte to be unboxed to a byte & then converted to an int
 	// but it is not possible for a byte to become Byte & then assigned to an Integer,
@@ -764,7 +710,8 @@ public void generateOptimizedBoolean(BlockScope currentScope, CodeStream codeStr
 			}
 		}
 	}
-	codeStream.recordPositionsFrom(position, this.sourceEnd);
+	// reposition the endPC
+	codeStream.updateLastRecordedEndPC(currentScope, position);
 }
 
 /* Optimized (java) code generation for string concatenations that involve StringBuffer
@@ -898,14 +845,6 @@ public boolean isConstantValueOfTypeAssignableToType(TypeBinding constantType, T
 	return false;
 }
 
-public boolean isAssignmentCompatible (TypeBinding left, Scope scope) {
-	if (this.resolvedType == null)
-		return false;
-	return isConstantValueOfTypeAssignableToType(this.resolvedType, left) || 
-				this.resolvedType.isCompatibleWith(left) || 
-				isBoxingCompatible(this.resolvedType, left, this, scope);
-}
-
 public boolean isTypeReference() {
 	return false;
 }
@@ -927,8 +866,15 @@ public void markAsNonNull() {
 	this.bits |= ASTNode.IsNonNull;
 }
 
-public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
-	// many kinds of expression need no analysis / are always non-null, make it the default:
+public int nullStatus(FlowInfo flowInfo) {
+
+	if (/* (this.bits & IsNonNull) != 0 || */
+		this.constant != null && this.constant != Constant.NotAConstant)
+	return FlowInfo.NON_NULL; // constant expression cannot be null
+
+	LocalVariableBinding local = localVariableBinding();
+	if (local != null)
+		return flowInfo.nullStatus(local);
 	return FlowInfo.NON_NULL;
 }
 
@@ -1107,9 +1053,8 @@ public boolean forcedToBeRaw(ReferenceContext referenceContext) {
  * or <code>null</null> if not reusable
  */
 public Object reusableJSRTarget() {
-	if (this.constant != Constant.NotAConstant && (this.implicitConversion & TypeIds.BOXING) == 0) {
+	if (this.constant != Constant.NotAConstant)
 		return this.constant;
-	}
 	return null;
 }
 
@@ -1123,41 +1068,6 @@ public Object reusableJSRTarget() {
  */
 public void setExpectedType(TypeBinding expectedType) {
     // do nothing by default
-}
-
-public void setExpressionContext(ExpressionContext context) {
-	// don't care. Subclasses that are poly expressions in specific contexts should listen in and make note.
-}
-
-public boolean isCompatibleWith(TypeBinding left, Scope scope) {
-	throw new UnsupportedOperationException("Unexpected control flow, should not have reached Expression.isCompatibleWith"); //$NON-NLS-1$
-}
-
-public boolean tIsMoreSpecific(TypeBinding t, TypeBinding s) {
-	TypeBinding expressionType = this.resolvedType;
-	if (expressionType == null || !expressionType.isValidBinding()) // Shouldn't get here, just to play it safe
-		return false; // trigger ambiguity.
-	
-	if (t.findSuperTypeOriginatingFrom(s) == s)
-		return true;
-	
-	final boolean tIsBaseType = t.isBaseType();
-	final boolean sIsBaseType = s.isBaseType();
-	
-	return expressionType.isBaseType() ? tIsBaseType && !sIsBaseType : !tIsBaseType && sIsBaseType;
-}
-
-public void tagAsEllipsisArgument() {
-	// don't care. Subclasses that are poly expressions in specific contexts should listen in and make note.
-}
-
-/* Answer if the receiver is a poly expression in the prevailing context. Caveat emptor: Some constructs (notably method calls)
-   cannot answer this question until after resolution is over and may throw unsupported operation exception if queried ahead of 
-   resolution. Default implementation here returns false which is true for vast majority of AST nodes. The ones that are poly
-   expressions under one or more contexts should override and return suitable value.  
- */
-public boolean isPolyExpression() throws UnsupportedOperationException {
-	return false;
 }
 
 public void tagAsNeedCheckCast() {
@@ -1201,20 +1111,5 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
  */
 public void traverse(ASTVisitor visitor, ClassScope scope) {
 	// nothing to do
-}
-// return true if this expression can be a stand alone statement when terminated with a semicolon
-public boolean statementExpression() {
-	return false;
-}
-
-/**
- * Used on the lhs of an assignment for detecting null spec violation.
- * If this expression represents a null-annotated variable return the variable binding,
- * otherwise null.
- * @param supportTypeAnnotations if true this causes any variable binding to be used
- *   independent of declaration annotations (for in-depth analysis of type annotations)
-*/
-public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotations) {
-	return null;
 }
 }

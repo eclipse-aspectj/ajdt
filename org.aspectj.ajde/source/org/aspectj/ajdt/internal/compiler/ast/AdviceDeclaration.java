@@ -74,7 +74,7 @@ public class AdviceDeclaration extends AjMethodDeclaration {
 
 	public AdviceDeclaration(CompilationResult result, AdviceKind kind) {
 		super(result);
-		this.returnType = TypeReference.baseTypeReference(T_void, 0,null);
+		this.returnType = TypeReference.baseTypeReference(T_void, 0);
 		this.kind = kind;
 	}
 

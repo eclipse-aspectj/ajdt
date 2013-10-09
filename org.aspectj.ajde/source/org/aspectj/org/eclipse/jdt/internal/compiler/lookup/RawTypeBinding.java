@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -172,27 +168,6 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		    typeArguments[i] = this.environment.convertToRawType(typeVariables[i].erasure(), false /*do not force conversion of enclosing types*/);
 		}
 		this.arguments = typeArguments;
-	}
-	
-	public MethodBinding getSingleAbstractMethod(Scope scope) {
-		if (this.singleAbstractMethod != null) {
-			return this.singleAbstractMethod;
-		}
-		final ReferenceBinding genericType = genericType();
-		MethodBinding theAbstractMethod = genericType.getSingleAbstractMethod(scope);
-		if (theAbstractMethod == null || !theAbstractMethod.isValidBinding())
-			return this.singleAbstractMethod = theAbstractMethod;
-		
-		ReferenceBinding declaringType = (ReferenceBinding) scope.environment().convertToRawType(genericType, true);
-		declaringType = (ReferenceBinding) declaringType.findSuperTypeOriginatingFrom(theAbstractMethod.declaringClass);
-		MethodBinding [] choices = declaringType.getMethods(theAbstractMethod.selector);
-		for (int i = 0, length = choices.length; i < length; i++) {
-			MethodBinding method = choices[i];
-			if (!method.isAbstract() || method.redeclaresPublicObjectMethod(scope)) continue; // (re)skip statics, defaults, public object methods ...
-			this.singleAbstractMethod = method;
-			break;
-		}
-		return this.singleAbstractMethod;
 	}
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#readableName()

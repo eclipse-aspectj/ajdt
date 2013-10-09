@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -120,74 +116,7 @@
  *		Benjamin Muskalla - added the following constants
  *									MissingSynchronizedModifierInInheritedMethod
  *		Stephan Herrmann  - added the following constants
- *									UnusedObjectAllocation
- *									PotentiallyUnclosedCloseable
- *									PotentiallyUnclosedCloseableAtExit
- *									UnclosedCloseable
- *									UnclosedCloseableAtExit
- *									ExplicitlyClosedAutoCloseable
- * 								    RequiredNonNullButProvidedNull
- * 									RequiredNonNullButProvidedPotentialNull
- * 									RequiredNonNullButProvidedUnknown
- * 									NullAnnotationNameMustBeQualified
- * 									IllegalReturnNullityRedefinition
- * 									IllegalRedefinitionToNonNullParameter
- * 									IllegalDefinitionToNonNullParameter
- * 									ParameterLackingNonNullAnnotation
- * 									ParameterLackingNullableAnnotation
- * 									PotentialNullMessageSendReference
- * 									RedundantNullCheckOnNonNullMessageSend
- * 									CannotImplementIncompatibleNullness
- * 									RedundantNullAnnotation
- *									RedundantNullDefaultAnnotation
- *									RedundantNullDefaultAnnotationPackage
- *									RedundantNullDefaultAnnotationType
- *									RedundantNullDefaultAnnotationMethod
- *									ContradictoryNullAnnotations
- *									IllegalAnnotationForBaseType
- *									RedundantNullCheckOnSpecdNonNullLocalVariable
- *									SpecdNonNullLocalVariableComparisonYieldsFalse
- *									RequiredNonNullButProvidedSpecdNullable
- *									MissingDefaultCase
- *									MissingEnumConstantCaseDespiteDefault
- *									UninitializedLocalVariableHintMissingDefault
- *									UninitializedBlankFinalFieldHintMissingDefault
- *									ShouldReturnValueHintMissingDefault
- *									IllegalModifierForInterfaceDefaultMethod
- *									InheritedDefaultMethodConflictsWithOtherInherited
- *									ConflictingNullAnnotations
- *									ConflictingInheritedNullAnnotations
- *									UnsafeElementTypeConversion
- *									ArrayReferencePotentialNullReference
- *									DereferencingNullableExpression
- *									NullityMismatchingTypeAnnotation
- *									NullityMismatchingTypeAnnotationUnchecked
- *									NullableFieldReference
- *									UninitializedNonNullField
- *									UninitializedNonNullFieldHintMissingDefault
- *									NonNullMessageSendComparisonYieldsFalse
- *									RedundantNullCheckOnNonNullSpecdField
- *									NonNullSpecdFieldComparisonYieldsFalse
- *									NonNullExpressionComparisonYieldsFalse
- *									RedundantNullCheckOnNonNullExpression
- *									ReferenceExpressionParameterMismatchPromisedNullable
- *									ReferenceExpressionParameterRequiredNonnullUnchecked
- *									ReferenceExpressionReturnNullRedef
- *									ReferenceExpressionReturnNullRedefUnchecked
- *									DuplicateInheritedDefaultMethods
- *									SuperAccessCannotBypassDirectSuper
- *									SuperCallCannotBypassOverride
- *									ConflictingNullAnnotations
- *									ConflictingInheritedNullAnnotations
- *									UnsafeElementTypeConversion
- *									PotentialNullUnboxing
- *									NullUnboxing
- *									NullExpressionReference
- *									PotentialNullExpressionReference
- *      Jesper S Moller  - added the following constants
- *									TargetTypeNotAFunctionalInterface
- *									OuterLocalMustBeEffectivelyFinal
- *									IllegalModifiersForPackage
+ *									UnusedObjectAllocation									
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.compiler;
 
@@ -437,8 +366,7 @@ void setSourceStart(int sourceStart);
 	int DuplicateBlankFinalFieldInitialization = FieldRelated + 82;
 	/** @since 3.6 */
 	int UnresolvedVariable = FieldRelated + 83;
-	/** @since 3.9 BETA_JAVA8 */
-	int NonStaticOrAlienTypeReceiver = MethodRelated + 84;
+
 	// variable hiding
 	/** @since 3.0 */
 	int LocalVariableHidingLocalVariable = Internal + 90;
@@ -454,12 +382,6 @@ void setSourceStart(int sourceStart);
 	int ArgumentHidingField = Internal + 95;
 	/** @since 3.1 */
 	int MissingSerialVersion = Internal + 96;
-	/** @since 3.9 BETA_JAVA8 */
-	int LambdaRedeclaresArgument = Internal + 97;
-	/** @since 3.9 BETA_JAVA8 */
-	int LambdaRedeclaresLocal = Internal + 98;
-	/** @since 3.9 BETA_JAVA8 */
-	int LambdaDescriptorMentionsUnmentionable = 99;
 
 	// methods
 	int UndefinedMethod = MethodRelated + 100;
@@ -490,18 +412,6 @@ void setSourceStart(int sourceStart);
 	int MethodCanBeStatic = Internal + MethodRelated + 121;
 	/** @since 3.7 */
 	int MethodCanBePotentiallyStatic = Internal + MethodRelated + 122;
-	/** @since 3.9 BETA_JAVA8 */
-	int MethodReferenceSwingsBothWays = Internal + MethodRelated + 123;
-	/** @since 3.9 BETA_JAVA8 */
-	int StaticMethodShouldBeAccessedStatically = Internal + MethodRelated + 124;
-	/** @since 3.9 BETA_JAVA8 */
-	int InvalidArrayConstructorReference = Internal + MethodRelated + 125;
-	/** @since 3.9 BETA_JAVA8 */
-	int ConstructedArrayIncompatible = Internal + MethodRelated + 126;
-	/** @since 3.9 BETA_JAVA8 */
-	int DanglingReference = Internal + MethodRelated + 127;
-	/** @since 3.9 BETA_JAVA8 */
-	int IncompatibleMethodReference = Internal + MethodRelated + 128;
 
 	// constructors
 	/** @since 3.4 */
@@ -933,8 +843,6 @@ void setSourceStart(int sourceStart);
 	/** @since 3.2 */
 	int EnumConstantsCannotBeSurroundedByParenthesis = Syntax + Internal + 442;
 
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalUseOfUnderscoreAsAnIdentifier = Syntax + Internal + 443;
 	// detected task
 	/** @since 2.1 */
 	int Task = Internal + 450;
@@ -956,17 +864,13 @@ void setSourceStart(int sourceStart);
 	int RedundantNullCheckOnNonNullLocalVariable = Internal + 457;
 	/** @since 3.3 */
 	int NonNullLocalVariableComparisonYieldsFalse = Internal + 458;
-	/** @since 3.9 */
-	int PotentialNullUnboxing = Internal + 459;
-	/** @since 3.9 */
-	int NullUnboxing = Internal + 461;
 
 	// block
 	/** @since 3.0 */
 	int UndocumentedEmptyBlock = Internal + 460;
-	
+
 	/* AspectJ Extension */
-	int SwallowedExceptionInCatchBlock = Internal + 699; 
+	int SwallowedExceptionInCatchBlock = Internal + 461; 
 	/* End AspectJ Extension */
 	
 	/*
@@ -1258,12 +1162,7 @@ void setSourceStart(int sourceStart);
 
 	/** @since 3.7.1 */
 	int DuplicateInheritedMethods = MethodRelated + 583;
-	/** @since 3.8 */
-	int MethodNameClashHidden = MethodRelated + 584;
-
-	/** @since 3.9 */
-	int UnsafeElementTypeConversion = TypeRelated + 585;
-
+	
 	/**
 	 * 1.5 Syntax errors (when source level < 1.5)
 	 */
@@ -1365,80 +1264,12 @@ void setSourceStart(int sourceStart);
 	int UnusedWarningToken = Internal + 635;
 	/** @since 3.6 */
 	int MissingOverrideAnnotationForInterfaceMethodImplementation = MethodRelated + 636;
-	/** @since 3.9 BETA_JAVA8 */
-    int InvalidUsageOfTypeAnnotations = Syntax + Internal + 637;
-    /** @since 3.9 BETA_JAVA8 */
-    int DisallowedExplicitThisParameter = Syntax + Internal + 638;
-    /** @since 3.9 BETA_JAVA8 */
-    int MisplacedTypeAnnotations = Syntax + Internal + 639;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalTypeAnnotationsInStaticMemberAccess = Internal + Syntax + 640;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalUsageOfTypeAnnotations = Internal + Syntax + 641;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalDeclarationOfThisParameter = Internal + Syntax + 642;
-    /** @since 3.9 BETA_JAVA8 */
-    int ExplicitThisParameterNotBelow18 = Internal + Syntax + 643;
-    /** @since 3.9 BETA_JAVA8 */
-    int DefaultMethodNotBelow18 = Internal + Syntax + 644;
-    /** @since 3.9 BETA_JAVA8 */
-    int LambdaExpressionNotBelow18 = Internal + Syntax + 645;
-    /** @since 3.9 BETA_JAVA8 */
-    int MethodReferenceNotBelow18 = Internal + Syntax + 646;
-    /** @since 3.9 BETA_JAVA8 */
-    int ConstructorReferenceNotBelow18 = Internal + Syntax + 647;
-    /** @since 3.9 BETA_JAVA8 */
-    int ExplicitThisParameterNotInLambda = Internal + Syntax + 648;
-    /** @since 3.9 BETA_JAVA8 */
-    int ExplicitAnnotationTargetRequired = TypeRelated + 649;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalTypeForExplicitThis = Internal + Syntax + 650;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalQualifierForExplicitThis = Internal + Syntax + 651;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalQualifierForExplicitThis2 = Internal + Syntax + 652;
-    /** @since 3.9 BETA_JAVA8 */
-    int TargetTypeNotAFunctionalInterface = Internal + TypeRelated + 653;
-    /** @since 3.9 BETA_JAVA8 */
-    int IllegalVarargInLambda = Internal + TypeRelated + 654;
-    /** @since 3.9 BETA_JAVA8 */
-    int illFormedParameterizationOfFunctionalInterface = Internal + TypeRelated + 655;
-    /** @since 3.9 BETA_JAVA8 */
-    int lambdaSignatureMismatched = Internal + TypeRelated + 656;
-    /** @since 3.9 BETA_JAVA8 */
-    int lambdaParameterTypeMismatched = Internal + TypeRelated + 657;
-    /** @since 3.9 BETA_JAVA8 */
-    int IncompatibleLambdaParameterType = Internal + TypeRelated + 658;
-    /** @since 3.9 BETA_JAVA8 */
-    int NoGenericLambda = Internal + TypeRelated + 659;
-    /**
+
+	/**
 	 * More problems in generics
 	 */
     /** @since 3.4 */
     int UnusedTypeArgumentsForConstructorInvocation = MethodRelated + 660;
-	/** @since 3.9 */
-	int UnusedTypeParameter = TypeRelated + 661;
-	/** @since 3.9 */
-	int IllegalArrayOfUnionType = TypeRelated + 662;
-	/** @since 3.9 BETA_JAVA8 */
-	int OuterLocalMustBeEffectivelyFinal = Internal + 663;
-	/** @since 3.9 BETA_JAVA8 */
-	int InterfaceNotFunctionalInterface = Internal + TypeRelated + 664;
-	/** @since 3.9 BETA_JAVA8 */
-	int ConstructionTypeMismatch = Internal + TypeRelated + 665;
-
-
-	/**
-	 * Null analysis for other kinds of expressions, syntactically nonnull
-	 */
-	/** @since 3.9 */
-	int NonNullExpressionComparisonYieldsFalse = Internal + 670;
-	/** @since 3.9 */
-	int RedundantNullCheckOnNonNullExpression = Internal + 671;
-	/** @since 3.9 */
-	int NullExpressionReference = Internal + 672;
-	/** @since 3.9 */
-	int PotentialNullExpressionReference = Internal + 673;
 
 	/**
 	 * Corrupted binaries
@@ -1497,18 +1328,6 @@ void setSourceStart(int sourceStart);
 	int EnumConstantCannotDefineAbstractMethod = MethodRelated + 764;
 	/** @since 3.5 */
 	int AbstractMethodInEnum = MethodRelated + 765;
-	/** @since 3.8 */
-	int MissingEnumDefaultCase = Internal + 766;
-	/** @since 3.8 */
-	int MissingDefaultCase = Internal + 767;
-	/** @since 3.8 */
-	int MissingEnumConstantCaseDespiteDefault = FieldRelated + 768;
-	/** @since 3.8 */
-	int UninitializedLocalVariableHintMissingDefault = Internal + 769;
-	/** @since 3.8 */
-	int UninitializedBlankFinalFieldHintMissingDefault = FieldRelated + 770;
-	/** @since 3.8 */
-	int ShouldReturnValueHintMissingDefault = MethodRelated + 771;
 
 	/**
 	 * Var args
@@ -1527,10 +1346,6 @@ void setSourceStart(int sourceStart);
 	int SafeVarargsOnNonFinalInstanceMethod = MethodRelated + 805;
 	/** @since 3.7.1 */
 	int PotentialHeapPollutionFromVararg = MethodRelated + 806;
-	/** @since 3.8 */
-	int VarargsElementTypeNotVisible = MethodRelated + 807;
-	/** @since 3.8 */
-	int VarargsElementTypeNotVisibleForConstructor = ConstructorRelated + 808;
 	/**
 	 * Javadoc Generic
 	 */
@@ -1588,142 +1403,6 @@ void setSourceStart(int sourceStart);
 	int DiamondNotBelow17 =  TypeRelated + 883;
 	/** @since 3.7.1 */
 	int RedundantSpecificationOfTypeArguments = TypeRelated + 884;
-	/** @since 3.8 */
-	int PotentiallyUnclosedCloseable = Internal + 885;
-	/** @since 3.8 */
-	int PotentiallyUnclosedCloseableAtExit = Internal + 886;
-	/** @since 3.8 */
-	int UnclosedCloseable = Internal + 887;
-	/** @since 3.8 */
-	int UnclosedCloseableAtExit = Internal + 888;
-	/** @since 3.8 */
-	int ExplicitlyClosedAutoCloseable = Internal + 889;
-	/** @since 3.8 */
-	int SwitchOnEnumNotBelow15 = TypeRelated + 890;	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=360317
-	/** @since 3.9 BETA_JAVA8 */
-	int IntersectionCastNotBelow18 = TypeRelated + 891;
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalBasetypeInIntersectionCast = TypeRelated + 892;
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalArrayTypeInIntersectionCast = TypeRelated + 893;
-	/** @since 3.9 BETA_JAVA8 */
-	int DuplicateBoundInIntersectionCast = TypeRelated + 894;
-	/** @since 3.9 BETA_JAVA8 */
-	int MultipleFunctionalInterfaces = TypeRelated + 895;
-	/** @since 3.9 BETA_JAVA8 */
-	int StaticInterfaceMethodNotBelow18 = Internal + Syntax + 896;
-	
-	/**
-	 * Errors/warnings from annotation based null analysis
-	 */
-	/** @since 3.8 */
-	int RequiredNonNullButProvidedNull = TypeRelated + 910;
-	/** @since 3.8 */
-	int RequiredNonNullButProvidedPotentialNull = TypeRelated + 911;
-	/** @since 3.8 */
-	int RequiredNonNullButProvidedUnknown = TypeRelated + 912;
-	/** @since 3.8 */
-	int MissingNonNullByDefaultAnnotationOnPackage = Internal + 913; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=372012
-	/** @since 3.8 */
-	int IllegalReturnNullityRedefinition = MethodRelated + 914;
-	/** @since 3.8 */
-	int IllegalRedefinitionToNonNullParameter = MethodRelated + 915;
-	/** @since 3.8 */
-	int IllegalDefinitionToNonNullParameter = MethodRelated + 916;
-	/** @since 3.8 */
-	int ParameterLackingNonNullAnnotation = MethodRelated + 917;
-	/** @since 3.8 */
-	int ParameterLackingNullableAnnotation = MethodRelated + 918;
-	/** @since 3.8 */
-	int PotentialNullMessageSendReference = Internal + 919;
-	/** @since 3.8 */
-	int RedundantNullCheckOnNonNullMessageSend = Internal + 920;
-	/** @since 3.8 */
-	int CannotImplementIncompatibleNullness = Internal + 921;
-	/** @since 3.8 */
-	int RedundantNullAnnotation = MethodRelated + 922;
-	/** @since 3.8 */
-	int IllegalAnnotationForBaseType = TypeRelated + 923;
-	/** @since 3.9 */
-	int NullableFieldReference = FieldRelated + 924;
-	/** @since 3.8 */
-	int RedundantNullDefaultAnnotation = Internal + 925; // shouldn't actually occur any more after bug 366063
-	/** @since 3.8 */
-	int RedundantNullDefaultAnnotationPackage = Internal + 926;
-	/** @since 3.8 */
-	int RedundantNullDefaultAnnotationType = Internal + 927;
-	/** @since 3.8 */
-	int RedundantNullDefaultAnnotationMethod = Internal + 928;
-	/** @since 3.8 */
-	int ContradictoryNullAnnotations = Internal + 929;
-	/** @since 3.8 */
-	int MissingNonNullByDefaultAnnotationOnType = Internal + 930; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=372012
-	/** @since 3.8 */
-	int RedundantNullCheckOnSpecdNonNullLocalVariable = Internal + 931;
-	/** @since 3.8 */
-	int SpecdNonNullLocalVariableComparisonYieldsFalse = Internal + 932;
-	/** @since 3.8 */
-	int RequiredNonNullButProvidedSpecdNullable = Internal + 933;
-	/** @since 3.9 */
-	int UninitializedNonNullField = FieldRelated + 934;
-	/** @since 3.9 */
-	int UninitializedNonNullFieldHintMissingDefault = FieldRelated + 935;
-	/** @since 3.9 */
-	int NonNullMessageSendComparisonYieldsFalse = Internal + 936;
-	/** @since 3.9 */
-	int RedundantNullCheckOnNonNullSpecdField = Internal + 937;
-	/** @since 3.9 */
-	int NonNullSpecdFieldComparisonYieldsFalse = Internal + 938;
-	/** @since 3.9 */
-	int ConflictingNullAnnotations = MethodRelated + 939;
-	/** @since 3.9 */
-	int ConflictingInheritedNullAnnotations = MethodRelated + 940;
-	
-	/** @since 3.9 BETA_JAVA8 */
-	int ArrayReferencePotentialNullReference = Internal + 951;
-	/** @since 3.9 BETA_JAVA8 */
-	int DereferencingNullableExpression = Internal + 952;
-	/** @since 3.9 BETA_JAVA8 */
-	int NullityMismatchingTypeAnnotation = Internal + 953;
-	/** @since 3.9 BETA_JAVA8 */
-	int NullityMismatchingTypeAnnotationUnchecked = Internal + 954;
-	/** @since 3.9 BETA_JAVA8 */
-	int ReferenceExpressionParameterMismatchPromisedNullable = MethodRelated + 955;
-	/** @since 3.9 BETA_JAVA8 */
-	int ReferenceExpressionParameterRequiredNonnullUnchecked = MethodRelated + 956;
-	/** @since 3.9 BETA_JAVA8 */
-	int ReferenceExpressionReturnNullRedef = MethodRelated + 957;
-	/** @since 3.9 BETA_JAVA8 */
-	int ReferenceExpressionReturnNullRedefUnchecked = MethodRelated + 958;
-
-	// Java 8 work
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalModifiersForElidedType = Internal + 1001;
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalModifiers = Internal + 1002;
-
-	// default methods:
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalModifierForInterfaceMethod18 = MethodRelated + 1050;
-
-	/** @since 3.9 BETA_JAVA8 */
-	int DefaultMethodOverridesObjectMethod = MethodRelated + 1051;
-	
-	/** @since 3.9 BETA_JAVA8 */
-	int InheritedDefaultMethodConflictsWithOtherInherited = MethodRelated + 1052;
-	
-	/** @since 3.9 BETA_JAVA8 */
-	int DuplicateInheritedDefaultMethods = MethodRelated + 1053;
-
-	/** @since 3.9 BETA_JAVA8 */
-	int SuperAccessCannotBypassDirectSuper = TypeRelated + 1054;
-	/** @since 3.9 BETA_JAVA8 */
-	int SuperCallCannotBypassOverride = MethodRelated + 1055;
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalModifierCombinationForInterfaceMethod = MethodRelated + 1056;
-	/** @since 3.9 BETA_JAVA8 */
-	int IllegalStrictfpForAbstractInterfaceMethod = MethodRelated + 1057;
-
 	/**
 	 * External problems -- These are problems defined by other plugins
 	 */

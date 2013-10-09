@@ -666,7 +666,6 @@ class TypeBinding implements ITypeBinding {
 			case Binding.TYPE_PARAMETER : // includes capture scenario
 			case Binding.WILDCARD_TYPE :
 			case Binding.INTERSECTION_TYPE:
-			case Binding.INTERSECTION_CAST_TYPE:
 				return null;
 		}
 		ReferenceBinding referenceBinding = (ReferenceBinding) this.binding;
@@ -763,7 +762,7 @@ class TypeBinding implements ITypeBinding {
 				}
 				return String.valueOf(buffer);
 			default :
-				if (isAnonymous() || this.binding.isLocalType() || this.binding.isIntersectionCastType()) {
+				if (isAnonymous() || this.binding.isLocalType()) {
 					return NO_NAME;
 				}
 				if (isPrimitive() || isNullType()) {

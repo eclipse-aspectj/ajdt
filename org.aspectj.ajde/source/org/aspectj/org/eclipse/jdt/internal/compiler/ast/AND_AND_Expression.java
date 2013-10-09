@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,10 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
- *								bug 403086 - [compiler][null] include the effect of 'assert' in syntactic null analysis for fields
- *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -50,8 +47,6 @@ public class AND_AND_Expression extends BinaryExpression {
 		}
 
 		FlowInfo leftInfo = this.left.analyseCode(currentScope, flowContext, flowInfo);
-		if ((flowContext.tagBits & FlowContext.INSIDE_NEGATION) != 0)
-			flowContext.expireNullCheckedFieldInfo();
 		// need to be careful of scenario:
 		//  (x && y) && !z, if passing the left info to the right, it would be
 		// swapped by the !
@@ -66,10 +61,12 @@ public class AND_AND_Expression extends BinaryExpression {
 			}
 		}
 		rightInfo = this.right.analyseCode(currentScope, flowContext, rightInfo);
-		if ((flowContext.tagBits & FlowContext.INSIDE_NEGATION) != 0)
-			flowContext.expireNullCheckedFieldInfo();
-		this.left.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
-		this.right.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
+		if ((this.left.implicitConversion & TypeIds.UNBOXING) != 0) {
+			this.left.checkNPE(currentScope, flowContext, flowInfo);
+		}
+		if ((this.right.implicitConversion & TypeIds.UNBOXING) != 0) {
+			this.right.checkNPE(currentScope, flowContext, flowInfo);
+		}
 		FlowInfo mergedInfo = FlowInfo.conditional(
 				rightInfo.safeInitsWhenTrue(),
 				leftInfo.initsWhenFalse().unconditionalInits().mergedWith(
@@ -106,6 +103,7 @@ public class AND_AND_Expression extends BinaryExpression {
 				codeStream.removeNotDefinitelyAssignedVariables(currentScope, this.mergedInitStateIndex);
 			}
 			codeStream.generateImplicitConversion(this.implicitConversion);
+			codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 			codeStream.recordPositionsFrom(pc, this.sourceStart);
 			return;
 		}
@@ -149,9 +147,11 @@ public class AND_AND_Expression extends BinaryExpression {
 		if (valueRequired) {
 			if (leftIsConst && !leftIsTrue) {
 				codeStream.iconst_0();
+				codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 			} else {
 				if (rightIsConst && !rightIsTrue) {
 					codeStream.iconst_0();
+					codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 				} else {
 					codeStream.iconst_1();
 				}
@@ -173,7 +173,7 @@ public class AND_AND_Expression extends BinaryExpression {
 				}
 			}
 			codeStream.generateImplicitConversion(this.implicitConversion);
-			codeStream.recordPositionsFrom(codeStream.position, this.sourceEnd);
+			codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 		} else {
 			falseLabel.place();
 		}
@@ -229,7 +229,7 @@ public class AND_AND_Expression extends BinaryExpression {
 							valueRequired && !rightIsConst);
 					if (valueRequired && rightIsConst && rightIsTrue) {
 						codeStream.goto_(trueLabel);
-						codeStream.recordPositionsFrom(codeStream.position, this.sourceEnd);
+						codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 					}
 					internalFalseLabel.place();
 				}
@@ -238,12 +238,9 @@ public class AND_AND_Expression extends BinaryExpression {
 				if (trueLabel == null) {
 					this.left.generateOptimizedBoolean(currentScope, codeStream, null, falseLabel, !leftIsConst);
 					// need value, e.g. if (a == 1 && ((b = 2) > 0)) {} -> shouldn't initialize 'b' if a!=1
-					int pc = codeStream.position;
 					if (leftIsConst && !leftIsTrue) {
-						if (valueRequired) {
-							codeStream.goto_(falseLabel);
-						}
-						codeStream.recordPositionsFrom(pc, this.sourceEnd);
+						if (valueRequired) codeStream.goto_(falseLabel);
+						codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 						break generateOperands; // no need to generate right operand
 					}
 					if (this.rightInitStateIndex != -1) {
@@ -253,7 +250,7 @@ public class AND_AND_Expression extends BinaryExpression {
 					this.right.generateOptimizedBoolean(currentScope, codeStream, null, falseLabel, valueRequired && !rightIsConst);
 					if (valueRequired && rightIsConst && !rightIsTrue) {
 						codeStream.goto_(falseLabel);
-						codeStream.recordPositionsFrom(pc, this.sourceEnd);
+						codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 					}
 				} else {
 					// no implicit fall through TRUE/FALSE --> should never occur

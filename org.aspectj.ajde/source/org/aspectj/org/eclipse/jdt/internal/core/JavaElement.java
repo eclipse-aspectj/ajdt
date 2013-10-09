@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,12 +46,9 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 //	private static final QualifiedName PROJECT_JAVADOC= new QualifiedName(JavaCore.PLUGIN_ID, "project_javadoc_location"); //$NON-NLS-1$
 
 	private static final byte[] CLOSING_DOUBLE_QUOTE = new byte[] { 34 };
-	/* To handle the pre - HTML 5 format: <META http-equiv="Content-Type" content="text/html; charset=UTF-8">  */
-	private static final byte[] CHARSET = new byte[] { 99, 104, 97, 114, 115, 101, 116, 61 };
-	/* To handle the HTML 5 format: <meta http-equiv="Content-Type" content="text/html" charset="UTF-8"> */
-	private static final byte[] CHARSET_HTML5 = new byte[] { 99, 104, 97, 114, 115, 101, 116, 61, 34 };
-	private static final byte[] META_START = new byte[] { 60, 109, 101, 116, 97 };
-	private static final byte[] META_END = new byte[] { 34, 62 };
+	private static final byte[] CHARSET = new byte[] {99, 104, 97, 114, 115, 101, 116, 61 };
+	private static final byte[] CONTENT_TYPE = new byte[] { 34, 67, 111, 110, 116, 101, 110, 116, 45, 84, 121, 112, 101, 34 };
+	private static final byte[] CONTENT = new byte[] { 99, 111, 110, 116, 101, 110, 116, 61, 34 };
 	public static final char JEM_ESCAPE = '\\';
 	public static final char JEM_JAVAPROJECT = '=';
 	public static final char JEM_PACKAGEFRAGMENTROOT = '/';
@@ -255,7 +252,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		Object info = manager.getInfo(this);
 		if (info != null) return info;
-		return openWhenClosed(createElementInfo(), false, monitor);
+		return openWhenClosed(createElementInfo(), monitor);
 	}
 	/**
 	 * @see IAdaptable
@@ -513,7 +510,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * Opens an <code>Openable</code> that is known to be closed (no check for <code>isOpen()</code>).
 	 * Returns the created element info.
 	 */
-	protected Object openWhenClosed(Object info, boolean forceAdd, IProgressMonitor monitor) throws JavaModelException {
+	protected Object openWhenClosed(Object info, IProgressMonitor monitor) throws JavaModelException {
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		boolean hadTemporaryCache = manager.hasTemporaryCache();
 		try {
@@ -532,7 +529,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 				throw newNotPresentException();
 			}
 			if (!hadTemporaryCache) {
-				info = manager.putInfos(this, info, forceAdd, newElements);
+				manager.putInfos(this, newElements);
 			}
 		} finally {
 			if (!hadTemporaryCache) {
@@ -710,11 +707,11 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		return null;
 	}
 
-	int getIndexOf(byte[] array, byte[] toBeFound, int start, int end) {
+	int getIndexOf(byte[] array, byte[] toBeFound, int start) {
 		if (array == null || toBeFound == null)
 			return -1;
 		final int toBeFoundLength = toBeFound.length;
-		final int arrayLength = (end != -1 && end < array.length) ? end : array.length;
+		final int arrayLength = array.length;
 		if (arrayLength < toBeFoundLength)
 			return -1;
 		loop: for (int i = start, max = arrayLength - toBeFoundLength + 1; i < max; i++) {
@@ -776,22 +773,18 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 			String encoding = connection.getContentEncoding();
 			byte[] contents = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsByteArray(stream, connection.getContentLength());
 			if (encoding == null) {
-				int index = getIndexOf(contents, META_START, 0, -1);
+				int index = getIndexOf(contents, CONTENT_TYPE, 0);
 				if (index != -1) {
-					int end = getIndexOf(contents, META_END, index, -1);
-					if (end != -1) {
-						if ((end + 1) <= contents.length) end++;
-						int charsetIndex = getIndexOf(contents, CHARSET_HTML5, index, end);
-						if (charsetIndex == -1) {
-							charsetIndex = getIndexOf(contents, CHARSET, index, end);
-							if (charsetIndex != -1)
-								charsetIndex = charsetIndex + CHARSET.length;
-						} else {
-							charsetIndex = charsetIndex + CHARSET_HTML5.length;
-						}
-						if (charsetIndex != -1) {
-							end = getIndexOf(contents, CLOSING_DOUBLE_QUOTE, charsetIndex, end);
-							encoding = new String(contents, charsetIndex, end - charsetIndex, org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.UTF_8);
+					index = getIndexOf(contents, CONTENT, index);
+					if (index != -1) {
+						int offset = index + CONTENT.length;
+						int index2 = getIndexOf(contents, CLOSING_DOUBLE_QUOTE, offset);
+						if (index2 != -1) {
+							final int charsetIndex = getIndexOf(contents, CHARSET, offset);
+							if (charsetIndex != -1) {
+								int start = charsetIndex + CHARSET.length;
+								encoding = new String(contents, start, index2 - start, org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.UTF_8);
+							}
 						}
 					}
 				}
@@ -816,21 +809,14 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		} catch (MalformedURLException e) {
 			throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC, this));
 		} catch (FileNotFoundException e) {
-			// Ignore, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=120559 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=403036
-		} catch (SocketException e) {
-			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
-			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
-		} catch (UnknownHostException e) {
-			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
-			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
-		} catch (ProtocolException e) {
-			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
-			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
-		} catch (IOException e) {
+			// ignore. see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=120559
+		} catch(SocketException e) {
+			// ignore. see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845
+		} catch(UnknownHostException e) {
+			// ignore. see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845
+		} catch(ProtocolException e) {
+			// ignore. see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845
+		} catch(IOException e) {
 			throw new JavaModelException(e, IJavaModelStatusConstants.IO_EXCEPTION);
 		} finally {
 			if (stream != null) {

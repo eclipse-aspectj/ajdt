@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,8 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for
- *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
@@ -26,21 +24,21 @@ public class LabelFlowContext extends SwitchFlowContext {
 	public char[] labelName;
 
 public LabelFlowContext(FlowContext parent, ASTNode associatedNode, char[] labelName, BranchLabel breakLabel, BlockScope scope) {
-	super(parent, associatedNode, breakLabel, false);
+	super(parent, associatedNode, breakLabel);
 	this.labelName = labelName;
 	checkLabelValidity(scope);
 }
 
 void checkLabelValidity(BlockScope scope) {
 	// check if label was already defined above
-	FlowContext current = this.getLocalParent();
+	FlowContext current = this.parent;
 	while (current != null) {
 		char[] currentLabelName;
 		if (((currentLabelName = current.labelName()) != null)
 			&& CharOperation.equals(currentLabelName, this.labelName)) {
 			scope.problemReporter().alreadyDefinedLabel(this.labelName, this.associatedNode);
 		}
-		current = current.getLocalParent();
+		current = current.parent;
 	}
 }
 

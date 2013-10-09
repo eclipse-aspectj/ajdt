@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,12 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 331649 - [compiler][null] consider null annotations for fields
- *								bug 383368 - [compiler][null] syntactic null analysis for field references
- *								bug 382069 - [null] Make the null analysis consider JUnit's assertNotNull similarly to assertions
- *								bug 403086 - [compiler][null] include the effect of 'assert' in syntactic null analysis for fields
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -30,69 +24,13 @@ public class EqualExpression extends BinaryExpression {
 	}
 	private void checkNullComparison(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, FlowInfo initsWhenTrue, FlowInfo initsWhenFalse) {
 
-		// collect null status of child nodes:
-		int rightStatus = this.right.nullStatus(flowInfo, flowContext);
-		int leftStatus = this.left.nullStatus(flowInfo, flowContext);
-
-		boolean leftNonNullChecked = false;
-		boolean rightNonNullChecked = false;
-
-		// check if either is a non-local expression known to be nonnull and compared to null, candidates are
-		// - method/field annotated @NonNull
-		// - allocation expression, some literals, this reference (see inside expressionNonNullComparison(..))
-		// these checks do not leverage the flowInfo.
-		boolean checkEquality = ((this.bits & OperatorMASK) >> OperatorSHIFT) == EQUAL_EQUAL;
-		if (leftStatus == FlowInfo.NON_NULL && rightStatus == FlowInfo.NULL) {
-			leftNonNullChecked = scope.problemReporter().expressionNonNullComparison(this.left, checkEquality);
-		} else if (leftStatus == FlowInfo.NULL && rightStatus == FlowInfo.NON_NULL) {
-			rightNonNullChecked = scope.problemReporter().expressionNonNullComparison(this.right, checkEquality);
+		LocalVariableBinding local = this.left.localVariableBinding();
+		if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
+			checkVariableComparison(scope, flowContext, flowInfo, initsWhenTrue, initsWhenFalse, local, this.right.nullStatus(flowInfo), this.left);
 		}
-		
-		boolean contextualCheckEquality = checkEquality ^ ((flowContext.tagBits & FlowContext.INSIDE_NEGATION) != 0);
-		// perform flowInfo-based checks for variables and record info for syntactic null analysis for fields:
-		if (!leftNonNullChecked) {
-			LocalVariableBinding local = this.left.localVariableBinding();
-			if (local != null) {
-				if ((local.type.tagBits & TagBits.IsBaseType) == 0) {
-					checkVariableComparison(scope, flowContext, flowInfo, initsWhenTrue, initsWhenFalse, local, rightStatus, this.left);
-				}
-			} else if (this.left instanceof Reference
-							&& ((!contextualCheckEquality && rightStatus == FlowInfo.NULL) 
-									|| (contextualCheckEquality && rightStatus == FlowInfo.NON_NULL))
-							&& scope.compilerOptions().enableSyntacticNullAnalysisForFields)
-			{
-				FieldBinding field = ((Reference)this.left).lastFieldBinding();
-				if (field != null && (field.type.tagBits & TagBits.IsBaseType) == 0) {
-					flowContext.recordNullCheckedFieldReference((Reference) this.left, 1);
-				}
-			}
-		}
-		if (!rightNonNullChecked) {
-			LocalVariableBinding local = this.right.localVariableBinding();
-			if (local != null) { 
-				if ((local.type.tagBits & TagBits.IsBaseType) == 0) {
-					checkVariableComparison(scope, flowContext, flowInfo, initsWhenTrue, initsWhenFalse, local, leftStatus, this.right);
-				}
-			} else if (this.right instanceof Reference
-							&& ((!contextualCheckEquality && leftStatus == FlowInfo.NULL) 
-									|| (contextualCheckEquality && leftStatus == FlowInfo.NON_NULL))
-							&& scope.compilerOptions().enableSyntacticNullAnalysisForFields) 
-			{
-				FieldBinding field = ((Reference)this.right).lastFieldBinding();
-				if (field != null && (field.type.tagBits & TagBits.IsBaseType) == 0) {
-					flowContext.recordNullCheckedFieldReference((Reference) this.right, 1);
-				}				
-			}
-		}
-
-		// handle reachability:
-		if (leftNonNullChecked || rightNonNullChecked) {
-			// above checks have not propagated unreachable into the corresponding branch, do it now:
-			if (checkEquality) {
-				initsWhenTrue.setReachMode(FlowInfo.UNREACHABLE_BY_NULLANALYSIS);
-			} else {
-				initsWhenFalse.setReachMode(FlowInfo.UNREACHABLE_BY_NULLANALYSIS);
-			}
+		local = this.right.localVariableBinding();
+		if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
+			checkVariableComparison(scope, flowContext, flowInfo, initsWhenTrue, initsWhenFalse, local, this.left.nullStatus(flowInfo), this.right);
 		}
 	}
 	private void checkVariableComparison(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, FlowInfo initsWhenTrue, FlowInfo initsWhenFalse, LocalVariableBinding local, int nullStatus, Expression reference) {
@@ -109,12 +47,18 @@ public class EqualExpression extends BinaryExpression {
 					initsWhenTrue.markAsComparedEqualToNonNull(local); // from thereon it is set
 					initsWhenFalse.markAsComparedEqualToNull(local); // from thereon it is set
 				}
+				if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
+					flowInfo.markedAsNullOrNonNullInAssertExpression(local);
+				}
 				break;
 			case FlowInfo.NON_NULL :
 				if (((this.bits & OperatorMASK) >> OperatorSHIFT) == EQUAL_EQUAL) {
 					flowContext.recordUsingNullReference(scope, local, reference,
 							FlowContext.CAN_ONLY_NULL | FlowContext.IN_COMPARISON_NON_NULL, flowInfo);
 					initsWhenTrue.markAsComparedEqualToNonNull(local); // from thereon it is set
+					if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
+						initsWhenTrue.markedAsNullOrNonNullInAssertExpression(local);
+					}
 				} else {
 					flowContext.recordUsingNullReference(scope, local, reference,
 							FlowContext.CAN_ONLY_NULL | FlowContext.IN_COMPARISON_NULL, flowInfo);
@@ -423,7 +367,6 @@ public class EqualExpression extends BinaryExpression {
 		// default case
 		this.left.generateCode(currentScope, codeStream, valueRequired);
 		this.right.generateCode(currentScope, codeStream, valueRequired);
-		int pc = codeStream.position;
 		if (valueRequired) {
 			if (falseLabel == null) {
 				if (trueLabel != null) {
@@ -439,7 +382,8 @@ public class EqualExpression extends BinaryExpression {
 				}
 			}
 		}
-		codeStream.recordPositionsFrom(pc, this.sourceEnd);
+		// reposition the endPC
+		codeStream.updateLastRecordedEndPC(currentScope, codeStream.position);
 	}
 	/**
 	 * Boolean generation for == with non-boolean operands

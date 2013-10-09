@@ -17,9 +17,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.search.*;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
-import org.aspectj.org.eclipse.jdt.internal.core.index.FileIndexLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.index.Index;
-import org.aspectj.org.eclipse.jdt.internal.core.index.IndexLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.ReadWriteMonitor;
 import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 import org.aspectj.org.eclipse.jdt.internal.core.search.processing.IJob;
@@ -78,19 +76,8 @@ public boolean execute(IProgressMonitor progressMonitor) {
 }
 public Index[] getIndexes(IProgressMonitor progressMonitor) {
 	// acquire the in-memory indexes on the fly
-	IndexLocation[] indexLocations;
-	int length;
-	if (this.participant instanceof JavaSearchParticipant) {
-		indexLocations = ((JavaSearchParticipant)this.participant).selectIndexURLs(this.pattern, this.scope);
-		length = indexLocations.length;
-	} else {
-		IPath[] paths = this.participant.selectIndexes(this.pattern, this.scope);
-		length = paths.length;
-		indexLocations = new IndexLocation[paths.length];
-		for (int i = 0, len = paths.length; i < len; i++) {
-			indexLocations[i] = new FileIndexLocation(paths[i].toFile(), true);
-		}
-	}
+	IPath[] indexLocations = this.participant.selectIndexes(this.pattern, this.scope);
+	int length = indexLocations.length;
 	Index[] indexes = JavaModelManager.getIndexManager().getIndexes(indexLocations, progressMonitor);
 	this.areIndexesReady = indexes.length == length;
 	return indexes;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,10 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Palo Alto Research Center, Incorporated - AspectJ adaptation
- *     Patrick Wienands <pwienands@abit.de> - Contribution for bug 393749
- *     Stephan Herrmann - Contribution for
- *								bug 331649 - [compiler][null] consider null annotations for fields
- *******************************************************************************/
+ ******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -25,6 +22,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowC
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.InitializationFlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
@@ -75,20 +73,14 @@ public class Clinit extends AbstractMethodDeclaration {
 			flowInfo = flowInfo.mergedWith(staticInitializerFlowContext.initsOnReturn);
 			FieldBinding[] fields = this.scope.enclosingSourceType().fields();
 			for (int i = 0, count = fields.length; i < count; i++) {
-				FieldBinding field = fields[i];
-				if (field.isStatic()) {
-					if (!flowInfo.isDefinitelyAssigned(field)) {
-						if (field.isFinal()) {
-							this.scope.problemReporter().uninitializedBlankFinalField(
-									field,
-									this.scope.referenceType().declarationOf(field.original()));
-							// can complain against the field decl, since only one <clinit>
-						} else if (field.isNonNull()) {
-							this.scope.problemReporter().uninitializedNonNullField(
-									field,
-									this.scope.referenceType().declarationOf(field.original()));
-						}
-					}
+				FieldBinding field;
+				if ((field = fields[i]).isStatic()
+					&& field.isFinal()
+					&& (!flowInfo.isDefinitelyAssigned(fields[i]))) {
+					this.scope.problemReporter().uninitializedBlankFinalField(
+						field,
+						this.scope.referenceType().declarationOf(field.original()));
+					// can complain against the field decl, since only one <clinit>
 				}
 			}
 			// check static initializers thrown exceptions
@@ -130,11 +122,16 @@ public class Clinit extends AbstractMethodDeclaration {
 				// cases.
 				if (e.compilationResult == CodeStream.RESTART_IN_WIDE_MODE) {
 					// a branch target required a goto_w, restart code gen in wide mode.
-					classFile.contentsOffset = clinitOffset;
-					classFile.methodCount--;
-					classFile.codeStream.resetInWideMode(); // request wide mode
-					// restart method generation
-					restart = true;
+					if (!restart) {
+						classFile.contentsOffset = clinitOffset;
+						classFile.methodCount--;
+						classFile.codeStream.resetInWideMode(); // request wide mode
+						// restart method generation
+						restart = true;
+					} else {
+						classFile.contentsOffset = clinitOffset;
+						classFile.methodCount--;
+					}
 				} else if (e.compilationResult == CodeStream.RESTART_CODE_GEN_FOR_UNUSED_LOCALS_MODE) {
 					classFile.contentsOffset = clinitOffset;
 					classFile.methodCount--;
@@ -204,7 +201,7 @@ public class Clinit extends AbstractMethodDeclaration {
 		
 		// generate static fields/initializers/enum constants
 		final FieldDeclaration[] fieldDeclarations = declaringType.fields;
-		int sourcePosition = -1;
+		BlockScope lastInitializerScope = null;
 		int remainingFieldCount = 0;
 		if (TypeDeclaration.kind(declaringType.modifiers) == TypeDeclaration.ENUM_DECL) {
 			int enumCount = declaringType.enumConstantsCounter;
@@ -228,8 +225,6 @@ public class Clinit extends AbstractMethodDeclaration {
 									begin = i;
 									count = 1;
 								}
-							} else {
-								remainingFieldCount++;
 							}
 						}
 					}
@@ -282,7 +277,7 @@ public class Clinit extends AbstractMethodDeclaration {
 								break;
 							}
 							remainingFieldCount--;
-							sourcePosition = ((Initializer) fieldDecl).block.sourceEnd;
+							lastInitializerScope = ((Initializer) fieldDecl).block.scope;
 							fieldDecl.generateCode(staticInitializerScope, codeStream);
 							break;
 						case AbstractVariableDeclaration.FIELD :
@@ -290,7 +285,7 @@ public class Clinit extends AbstractMethodDeclaration {
 								break;
 							}
 							remainingFieldCount--;
-							sourcePosition = fieldDecl.declarationEnd;
+							lastInitializerScope = null;
 							fieldDecl.generateCode(staticInitializerScope, codeStream);
 							break;
 					}
@@ -304,13 +299,13 @@ public class Clinit extends AbstractMethodDeclaration {
 						case AbstractVariableDeclaration.INITIALIZER :
 							if (!fieldDecl.isStatic())
 								break;
-							sourcePosition = ((Initializer) fieldDecl).block.sourceEnd;
+							lastInitializerScope = ((Initializer) fieldDecl).block.scope;
 							fieldDecl.generateCode(staticInitializerScope, codeStream);
 							break;
 						case AbstractVariableDeclaration.FIELD :
 							if (!fieldDecl.binding.isStatic())
 								break;
-							sourcePosition = fieldDecl.declarationEnd;
+							lastInitializerScope = null;
 							fieldDecl.generateCode(staticInitializerScope, codeStream);
 							break;
 					}
@@ -334,9 +329,9 @@ public class Clinit extends AbstractMethodDeclaration {
 			if ((this.bits & ASTNode.NeedFreeReturn) != 0) {
 				int before = codeStream.position;
 				codeStream.return_();
-				if (sourcePosition != -1) {
+				if (lastInitializerScope != null) {
 					// expand the last initializer variables to include the trailing return
-					codeStream.recordPositionsFrom(before, sourcePosition);
+					codeStream.updateLastRecordedEndPC(lastInitializerScope, before);
 				}
 			}
 			// Record the end of the clinit: point to the declaration of the class

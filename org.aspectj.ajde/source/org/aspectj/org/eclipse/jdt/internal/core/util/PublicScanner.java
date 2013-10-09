@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1266,8 +1262,6 @@ public int getNextToken() throws InvalidInputException {
 							return TokenNameMINUS_MINUS;
 						if (test > 0)
 							return TokenNameMINUS_EQUAL;
-						if (getNextChar('>'))
-							return TokenNameARROW;
 						return TokenNameMINUS;
 					}
 				case '~' :
@@ -1345,8 +1339,6 @@ public int getNextToken() throws InvalidInputException {
 				case '?' :
 					return TokenNameQUESTION;
 				case ':' :
-					if (getNextChar(':'))
-						return TokenNameCOLON_COLON;
 					return TokenNameCOLON;
 				case '\'' :
 					{
@@ -1825,13 +1817,13 @@ public void getNextUnicodeChar()
 		this.currentPosition += (this.eofPosition - this.currentPosition);
 		throw new InvalidInputException(INVALID_UNICODE_ESCAPE);
 	}
-	if ((c1 = ScannerHelper.getHexadecimalValue(this.source[this.currentPosition++])) > 15
+	if ((c1 = ScannerHelper.getNumericValue(this.source[this.currentPosition++])) > 15
     		|| c1 < 0
-    		|| (c2 = ScannerHelper.getHexadecimalValue(this.source[this.currentPosition++])) > 15
+    		|| (c2 = ScannerHelper.getNumericValue(this.source[this.currentPosition++])) > 15
     		|| c2 < 0
-    		|| (c3 = ScannerHelper.getHexadecimalValue(this.source[this.currentPosition++])) > 15
+    		|| (c3 = ScannerHelper.getNumericValue(this.source[this.currentPosition++])) > 15
     		|| c3 < 0
-    		|| (c4 = ScannerHelper.getHexadecimalValue(this.source[this.currentPosition++])) > 15
+    		|| (c4 = ScannerHelper.getNumericValue(this.source[this.currentPosition++])) > 15
     		|| c4 < 0){
 		throw new InvalidInputException(INVALID_UNICODE_ESCAPE);
 	}
@@ -2731,18 +2723,18 @@ protected final void scanEscapeCharacter() throws InvalidInputException {
 			// OctalDigit OctalDigit
 			// ZeroToThree OctalDigit OctalDigit
 
-			int number = ScannerHelper.getHexadecimalValue(this.currentCharacter);
+			int number = ScannerHelper.getNumericValue(this.currentCharacter);
 			if (number >= 0 && number <= 7) {
 				boolean zeroToThreeNot = number > 3;
 				if (ScannerHelper.isDigit(this.currentCharacter = this.source[this.currentPosition++])) {
-					int digit = ScannerHelper.getHexadecimalValue(this.currentCharacter);
+					int digit = ScannerHelper.getNumericValue(this.currentCharacter);
 					if (digit >= 0 && digit <= 7) {
 						number = (number * 8) + digit;
 						if (ScannerHelper.isDigit(this.currentCharacter = this.source[this.currentPosition++])) {
 							if (zeroToThreeNot) {// has read \NotZeroToThree OctalDigit Digit --> ignore last character
 								this.currentPosition--;
 							} else {
-								digit = ScannerHelper.getHexadecimalValue(this.currentCharacter);
+								digit = ScannerHelper.getNumericValue(this.currentCharacter);
 								if (digit >= 0 && digit <= 7){ // has read \ZeroToThree OctalDigit OctalDigit
 									number = (number * 8) + digit;
 								} else {// has read \ZeroToThree OctalDigit NonOctalDigit --> ignore last character
@@ -3960,8 +3952,6 @@ public String toStringAction(int act) {
 			return "+="; //$NON-NLS-1$
 		case TokenNameMINUS_EQUAL :
 			return "-="; //$NON-NLS-1$
-		case TokenNameARROW :
-			return "->"; //$NON-NLS-1$
 		case TokenNameMULTIPLY_EQUAL :
 			return "*="; //$NON-NLS-1$
 		case TokenNameDIVIDE_EQUAL :
@@ -4026,8 +4016,6 @@ public String toStringAction(int act) {
 			return "?"; //$NON-NLS-1$
 		case TokenNameCOLON :
 			return ":"; //$NON-NLS-1$
-		case TokenNameCOLON_COLON :
-			return "::"; //$NON-NLS-1$
 		case TokenNameCOMMA :
 			return ","; //$NON-NLS-1$
 		case TokenNameDOT :

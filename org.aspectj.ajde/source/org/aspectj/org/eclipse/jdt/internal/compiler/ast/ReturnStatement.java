@@ -1,35 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *     							bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
- *     							bug 349326 - [1.7] new warning for missing try-with-resources
- *     							bug 360328 - [compiler][null] detect null problems in nested code (local class inside a loop)
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 365835 - [compiler][null] inconsistent error reporting.
- *								bug 365519 - editorial cleanup after bug 186342 and bug 365387
- *								bug 358903 - Filter practically unimportant resource leak warnings
- *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
- *								bug 370639 - [compiler][resource] restore the default for resource leak warnings
- *								bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
- *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
- *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
- *								bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
- *								bug 383368 - [compiler][null] syntactic null analysis for field references
- *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
- *								bug 401030 - [1.8][null] Null analysis support for lambda methods. 
- *     Jesper S Moller - Contributions for
- *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
+ *     Stephan Herrmann - Contribution for bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -39,23 +17,17 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
-public class ReturnStatement extends Statement implements ExpressionContext {
+public class ReturnStatement extends Statement {
 
 	public Expression expression;
 	public SubRoutineStatement[] subroutines;
 	public LocalVariableBinding saveValueVariable;
 	public int initStateIndex = -1;
-	private boolean implicitReturn;
 
 public ReturnStatement(Expression expression, int sourceStart, int sourceEnd) {
-	this(expression, sourceStart, sourceEnd, false);
-}
-
-public ReturnStatement(Expression expression, int sourceStart, int sourceEnd, boolean implicitReturn) {
 	this.sourceStart = sourceStart;
 	this.sourceEnd = sourceEnd;
-	this.expression = expression;
-	this.implicitReturn = implicitReturn;
+	this.expression = expression ;
 }
 
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {	// here requires to generate a sequence of finally blocks invocations depending corresponding
@@ -63,30 +35,19 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 
 	// lookup the label, this should answer the returnContext
 
-	MethodScope methodScope = currentScope.methodScope();
 	if (this.expression != null) {
 		flowInfo = this.expression.analyseCode(currentScope, flowContext, flowInfo);
-		this.expression.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
-		if (flowInfo.reachMode() == FlowInfo.REACHABLE)
-			checkAgainstNullAnnotation(currentScope, flowContext, this.expression.nullStatus(flowInfo, flowContext));
-		if (currentScope.compilerOptions().analyseResourceLeaks) {
-			FakedTrackingVariable trackingVariable = FakedTrackingVariable.getCloseTrackingVariable(this.expression, flowInfo, flowContext);
-			if (trackingVariable != null) {
-				if (methodScope != trackingVariable.methodScope)
-					trackingVariable.markClosedInNestedMethod();
-				// by returning the method passes the responsibility to the caller:
-				flowInfo = FakedTrackingVariable.markPassedToOutside(currentScope, this.expression, flowInfo, flowContext, true);
-			}
+		if ((this.expression.implicitConversion & TypeIds.UNBOXING) != 0) {
+			this.expression.checkNPE(currentScope, flowContext, flowInfo);
 		}
 	}
 	this.initStateIndex =
-		methodScope.recordInitializationStates(flowInfo);
+		currentScope.methodScope().recordInitializationStates(flowInfo);
 	// compute the return sequence (running the finally blocks)
 	FlowContext traversedContext = flowContext;
 	int subCount = 0;
 	boolean saveValueNeeded = false;
 	boolean hasValueToSave = needValueStore();
-	boolean noAutoCloseables = true;
 	do {
 		SubRoutineStatement sub;
 		if ((sub = traversedContext.subroutine()) != null) {
@@ -101,11 +62,6 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				saveValueNeeded = false;
 				this.bits |= ASTNode.IsAnySubRoutineEscaping;
 				break;
-			}
-			if (sub instanceof TryStatement) {
-				if (((TryStatement) sub).resources.length > 0) {
-					noAutoCloseables = false;
-				}
 			}
 		}
 		traversedContext.recordReturnFrom(flowInfo.unconditionalInits());
@@ -123,14 +79,14 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 					}
 					saveValueNeeded = true;
 					this.initStateIndex =
-						methodScope.recordInitializationStates(flowInfo);
+						currentScope.methodScope().recordInitializationStates(flowInfo);
 				}
 			}
 		} else if (traversedContext instanceof InitializationFlowContext) {
 				currentScope.problemReporter().cannotReturnInInitializer(this);
 				return FlowInfo.DEAD_END;
 		}
-	} while ((traversedContext = traversedContext.getLocalParent()) != null);
+	} while ((traversedContext = traversedContext.parent) != null);
 
 	// resize subroutines
 	if ((this.subroutines != null) && (subCount != this.subroutines.length)) {
@@ -145,33 +101,10 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	} else {
 		this.saveValueVariable = null;
 		if (((this.bits & ASTNode.IsSynchronized) == 0) && this.expression != null && this.expression.resolvedType == TypeBinding.BOOLEAN) {
-			if (noAutoCloseables) { // can't abruptly return in the presence of autocloseables. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=367566
-				this.expression.bits |= ASTNode.IsReturnedValue;
-			}
+			this.expression.bits |= ASTNode.IsReturnedValue;
 		}
 	}
-	currentScope.checkUnclosedCloseables(flowInfo, flowContext, this, currentScope);
-	// inside conditional structure respect that a finally-block may conditionally be entered directly from here
-	flowContext.recordAbruptExit();
 	return FlowInfo.DEAD_END;
-}
-void checkAgainstNullAnnotation(BlockScope scope, FlowContext flowContext, int nullStatus) {
-	if (nullStatus != FlowInfo.NON_NULL) {
-		// if we can't prove non-null check against declared null-ness of the enclosing method:
-		long tagBits;
-		MethodBinding methodBinding;
-		try {
-			methodBinding = scope.methodScope().referenceMethodBinding();
-			tagBits = methodBinding.tagBits;
-		} catch (NullPointerException npe) {
-			// chain of references in try-block has several potential nulls;
-			// any null means we cannot perform the following check
-			return;			
-		}
-		if ((tagBits & TagBits.AnnotationNonNull) != 0) {
-			flowContext.recordNullityMismatch(scope, this.expression, this.expression.resolvedType, methodBinding.returnType, nullStatus);
-		}
-	}
 }
 
 /**
@@ -209,11 +142,11 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 		}
 	}
 	if (this.saveValueVariable != null) {
+		codeStream.addVariable(this.saveValueVariable);
 		codeStream.load(this.saveValueVariable);
 	}
 	if (this.expression != null && !alreadyGeneratedExpression) {
 		this.expression.generateCode(currentScope, codeStream, true);
-		// hook necessary for Code Snippet
 		generateStoreSaveValueIfNecessary(codeStream);
 	}
 	// output the suitable return bytecode or wrap the value inside a descriptor for doits
@@ -240,8 +173,6 @@ public void generateReturnBytecode(CodeStream codeStream) {
 public void generateStoreSaveValueIfNecessary(CodeStream codeStream){
 	if (this.saveValueVariable != null) {
 		codeStream.store(this.saveValueVariable, false);
-		// the variable is visible as soon as the local is stored
-		codeStream.addVariable(this.saveValueVariable);
 	}
 }
 
@@ -271,49 +202,27 @@ public StringBuffer printStatement(int tab, StringBuffer output){
 public void resolve(BlockScope scope) {
 	MethodScope methodScope = scope.methodScope();
 	MethodBinding methodBinding;
-	LambdaExpression lambda = methodScope.referenceContext instanceof LambdaExpression ? (LambdaExpression) methodScope.referenceContext : null;
 	TypeBinding methodType =
-		lambda != null ? lambda.expectedResultType() :
 		(methodScope.referenceContext instanceof AbstractMethodDeclaration)
 			? ((methodBinding = ((AbstractMethodDeclaration) methodScope.referenceContext).binding) == null
 				? null
 				: methodBinding.returnType)
 			: TypeBinding.VOID;
 	TypeBinding expressionType;
-	
-	if (this.expression != null) {
-		this.expression.setExpressionContext(ASSIGNMENT_CONTEXT);
-		this.expression.setExpectedType(methodType);
-	}
-	
 	if (methodType == TypeBinding.VOID) {
-		// the expression should be null, exceptions exist for lambda expressions.
-		if (this.expression == null) {
-			if (lambda != null)
-				lambda.returnsExpression(null, TypeBinding.VOID);
+		// the expression should be null
+		if (this.expression == null)
 			return;
-		}
-		expressionType = this.expression.resolveType(scope);
-		if (lambda != null && !this.implicitReturn)
-			lambda.returnsExpression(this.expression, expressionType);
-		if (this.implicitReturn && (expressionType == TypeBinding.VOID || this.expression.statementExpression()))
-			return;
-		if (expressionType != null)
+		if ((expressionType = this.expression.resolveType(scope)) != null)
 			scope.problemReporter().attemptToReturnNonVoidExpression(this, expressionType);
 		return;
 	}
 	if (this.expression == null) {
-		if (lambda != null)
-			lambda.returnsExpression(null,  methodType);
 		if (methodType != null) scope.problemReporter().shouldReturn(methodType, this);
 		return;
 	}
-	
-	expressionType = this.expression.resolveType(scope);
-	if (lambda != null)
-		lambda.returnsExpression(this.expression, expressionType);
-	
-	if (expressionType == null) return;
+	this.expression.setExpectedType(methodType); // needed in case of generic method invocation
+	if ((expressionType = this.expression.resolveType(scope)) == null) return;
 	if (expressionType == TypeBinding.VOID) {
 		scope.problemReporter().attemptToReturnVoidValue(this);
 		return;

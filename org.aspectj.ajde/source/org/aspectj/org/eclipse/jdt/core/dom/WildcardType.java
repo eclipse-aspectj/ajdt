@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2013 IBM Corporation and others.
+ * Copyright (c) 2003, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -22,7 +18,7 @@ import java.util.List;
  * Type node for a wildcard type (added in JLS3 API).
  * <pre>
  * WildcardType:
- *    { Annotation } <b>?</b> [ ( <b>extends</b> | <b>super</b>) Type ]
+ *    <b>?</b> [ ( <b>extends</b> | <b>super</b>) Type ]
  * </pre>
  * <p>
  * Not all node arrangements will represent legal Java constructs. In particular,
@@ -33,15 +29,8 @@ import java.util.List;
  * @since 3.1
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
-public class WildcardType extends AnnotatableType {
+public class WildcardType extends Type {
 
-	/**
-	 * The "annotations" structural property of this node type (element type: {@link Annotation}).
-	 * @since 3.9 BETA_JAVA8
-	 */
-	public static final ChildListPropertyDescriptor ANNOTATIONS_PROPERTY =
-			internalAnnotationsPropertyFactory(WildcardType.class);
-	
 	/**
 	 * The "bound" structural property of this node type (child type: {@link Type}).
 	 */
@@ -60,13 +49,6 @@ public class WildcardType extends AnnotatableType {
 	 * or null if uninitialized.
 	 */
 	private static final List PROPERTY_DESCRIPTORS;
-	/**
-	 * A list of property descriptors (element type:
-	 * {@link StructuralPropertyDescriptor}),
-	 * or null if uninitialized.
-	 * @since 3.9 BETA_JAVA8
-	 */
-	private static final List PROPERTY_DESCRIPTORS_8_0;
 
 	static {
 		List propertyList = new ArrayList(3);
@@ -74,13 +56,6 @@ public class WildcardType extends AnnotatableType {
 		addProperty(BOUND_PROPERTY, propertyList);
 		addProperty(UPPER_BOUND_PROPERTY, propertyList);
 		PROPERTY_DESCRIPTORS = reapPropertyList(propertyList);
-		
-		propertyList = new ArrayList(4);
-		createPropertyList(WildcardType.class, propertyList);
-		addProperty(ANNOTATIONS_PROPERTY, propertyList);
-		addProperty(BOUND_PROPERTY, propertyList);
-		addProperty(UPPER_BOUND_PROPERTY, propertyList);
-		PROPERTY_DESCRIPTORS_8_0 = reapPropertyList(propertyList);
 	}
 
 	/**
@@ -94,14 +69,7 @@ public class WildcardType extends AnnotatableType {
 	 * {@link StructuralPropertyDescriptor})
 	 */
 	public static List propertyDescriptors(int apiLevel) {
-		switch (apiLevel) {
-			case AST.JLS2_INTERNAL :
-			case AST.JLS3_INTERNAL :
-			case AST.JLS4_INTERNAL:
-				return PROPERTY_DESCRIPTORS;
-			default :
-				return PROPERTY_DESCRIPTORS_8_0;
-		}
+		return PROPERTY_DESCRIPTORS;
 	}
 
 	/**
@@ -132,14 +100,6 @@ public class WildcardType extends AnnotatableType {
 	}
 
 	/* (omit javadoc for this method)
-	 * Method declared on AnnotatableType.
-	 * @since 3.9 BETA_JAVA8
-	 */
-	final ChildListPropertyDescriptor internalAnnotationsProperty() {
-		return ANNOTATIONS_PROPERTY;
-	}
-
-	/* (omit javadoc for this method)
 	 * Method declared on ASTNode.
 	 */
 	final List internalStructuralPropertiesForType(int apiLevel) {
@@ -162,17 +122,6 @@ public class WildcardType extends AnnotatableType {
 		return super.internalGetSetBooleanProperty(property, get, value);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
-	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
-		if (property == ANNOTATIONS_PROPERTY) {
-			return annotations();
-		}
-		// allow default implementation to flag the error
-		return super.internalGetChildListProperty(property);
-	}
-	
 	/* (omit javadoc for this method)
 	 * Method declared on ASTNode.
 	 */
@@ -202,10 +151,6 @@ public class WildcardType extends AnnotatableType {
 	ASTNode clone0(AST target) {
 		WildcardType result = new WildcardType(target);
 		result.setSourceRange(getStartPosition(), getLength());
-		if (this.ast.apiLevel >= AST.JLS8) {
-			result.annotations().addAll(
-					ASTNode.copySubtrees(target, annotations()));
-		}
 		result.setBound((Type) ASTNode.copySubtree(target, getBound()), isUpperBound());
 		return result;
 	}
@@ -225,9 +170,6 @@ public class WildcardType extends AnnotatableType {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
-			if (this.ast.apiLevel >= AST.JLS8) {
-				acceptChildren(visitor, this.annotations);
-			}
 			acceptChild(visitor, getBound());
 		}
 		visitor.endVisit(this);
@@ -322,7 +264,7 @@ public class WildcardType extends AnnotatableType {
 	 * Method declared on ASTNode.
 	 */
 	int memSize() {
-		return BASE_NODE_SIZE + 3 * 4;
+		return BASE_NODE_SIZE + 2 * 4;
 	}
 
 	/* (omit javadoc for this method)
@@ -331,7 +273,6 @@ public class WildcardType extends AnnotatableType {
 	int treeSize() {
 		return
 		memSize()
-		+ (this.annotations == null ? 0 : this.annotations.listSize())
 		+ (this.optionalBound == null ? 0 : getBound().treeSize());
 	}
 }

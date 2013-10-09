@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,14 @@ import java.util.List;
 
 /**
  * Try statement AST node type.
+ * For JLS2 and JLS3:
+ * <pre>
+ * TryStatement:
+ *     <b>try</b> Block
+ *         [ { CatchClause } ]
+ *         [ <b>finally</b> Block ]
+ * </pre>
+ * For JLS4, resources were added:
  * <pre>
  * TryStatement:
  *     <b>try</b> [ <b>(</b> Resources <b>)</b> ]
@@ -106,7 +114,7 @@ public class TryStatement extends Statement {
 	public static List propertyDescriptors(int apiLevel) {
 		switch (apiLevel) {
 			case AST.JLS2_INTERNAL :
-			case AST.JLS3_INTERNAL :
+			case AST.JLS3 :
 				return PROPERTY_DESCRIPTORS;
 			default :
 				return PROPERTY_DESCRIPTORS_4_0;
@@ -152,7 +160,7 @@ public class TryStatement extends Statement {
 	 */
 	TryStatement(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS4_INTERNAL) {
+		if (ast.apiLevel >= AST.JLS4) {
 			this.resources = new ASTNode.NodeList(RESOURCES_PROPERTY);
 		}
 	}
@@ -216,7 +224,7 @@ public class TryStatement extends Statement {
 		TryStatement result = new TryStatement(target);
 		result.setSourceRange(getStartPosition(), getLength());
 		result.copyLeadingComment(this);
-		if (this.ast.apiLevel >= AST.JLS4_INTERNAL) {
+		if (this.ast.apiLevel >= AST.JLS4) {
 			result.resources().addAll(
 					ASTNode.copySubtrees(target, resources()));
 		}
@@ -243,7 +251,7 @@ public class TryStatement extends Statement {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
 			// visit children in normal left to right reading order
-			if (this.ast.apiLevel >= AST.JLS4_INTERNAL) {
+			if (this.ast.apiLevel >= AST.JLS4) {
 				acceptChildren(visitor, this.resources);
 			}
 			acceptChild(visitor, getBody());
@@ -334,7 +342,7 @@ public class TryStatement extends Statement {
 	}
 
 	/**
-	 * Returns the live ordered list of resources for this try statement (added in JLS4 API).
+	 * Returns the live ordered list of resources for this try statement.
 	 *
 	 * @return the live list of resources
 	 *    (element type: {@link VariableDeclarationExpression})
@@ -344,7 +352,7 @@ public class TryStatement extends Statement {
 	 */
 	public List resources() {
 		// more efficient than just calling unsupportedIn2_3() to check
-		if (this.resources == null) {
+		if (this.resources != null) {
 			unsupportedIn2_3();
 		}
 		return this.resources;

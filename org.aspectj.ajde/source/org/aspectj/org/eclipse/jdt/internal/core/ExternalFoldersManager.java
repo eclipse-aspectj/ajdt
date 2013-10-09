@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
@@ -50,20 +49,13 @@ public class ExternalFoldersManager {
 	private Set pendingFolders; // subset of keys of 'folders', for which linked folders haven't been created yet.
 	private int counter = 0;
 	/* Singleton instance */
-	private static ExternalFoldersManager MANAGER;
+	private static ExternalFoldersManager MANAGER = new ExternalFoldersManager();
 
 	private ExternalFoldersManager() {
 		// Prevent instantiation
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=377806
-		if (Platform.isRunning()) {
-			getFolders();
-		}
 	}
 	
-	public static synchronized ExternalFoldersManager getExternalFoldersManager() {
-		if (MANAGER == null) {
-			 MANAGER = new ExternalFoldersManager();
-		}
+	public static ExternalFoldersManager getExternalFoldersManager() {
 		return MANAGER;
 	}
 	
@@ -129,10 +121,8 @@ public class ExternalFoldersManager {
 			result = externalFoldersProject.getFolder(LINKED_FOLDER_NAME + this.counter++);
 		} while (result.exists());
 		if (scheduleForCreation) {
-			synchronized(this) {
-				if (this.pendingFolders == null)
-					this.pendingFolders = Collections.synchronizedSet(new HashSet());
-			}
+			if (this.pendingFolders == null)
+				this.pendingFolders = new HashSet();
 			this.pendingFolders.add(externalFolderPath);
 		}
 		knownFolders.put(externalFolderPath, result);
@@ -144,7 +134,7 @@ public class ExternalFoldersManager {
 	 * @param externalPath to link to
 	 * @return true if the argument was found in the list of pending folders and could be removed from it.
 	 */
-	public synchronized boolean removePendingFolder(Object externalPath) {
+	public boolean removePendingFolder(Object externalPath) {
 		if (this.pendingFolders == null)
 			return false;
 		return this.pendingFolders.remove(externalPath);
@@ -167,9 +157,7 @@ public class ExternalFoldersManager {
 	}
 
 	public void createPendingFolders(IProgressMonitor monitor) throws JavaModelException{
-		synchronized (this) {
-			if (this.pendingFolders == null || this.pendingFolders.isEmpty()) return;
-		}
+		if (this.pendingFolders == null || this.pendingFolders.isEmpty()) return;
 		
 		IProject externalFoldersProject = null;
 		try {
@@ -178,22 +166,16 @@ public class ExternalFoldersManager {
 		catch(CoreException e) {
 			throw new JavaModelException(e);
 		}
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=368152
-		// To avoid race condition (from addFolder and removeFolder, load the map elements into an array and clear the map immediately.
-		// The createLinkFolder being in the synchronized block can cause a deadlock and hence keep it out of the synchronized block. 
-		Object[] arrayOfFolders = null;
-		synchronized (this.pendingFolders) {
-			arrayOfFolders = this.pendingFolders.toArray();
-			this.pendingFolders.clear();
-		}
-
-		for (int i=0; i < arrayOfFolders.length; i++) {
+		Iterator iterator = this.pendingFolders.iterator();
+		while (iterator.hasNext()) {
+			Object folderPath = iterator.next();
 			try {
-				createLinkFolder((IPath) arrayOfFolders[i], false, externalFoldersProject, monitor);
+				createLinkFolder((IPath) folderPath, false, externalFoldersProject, monitor);
 			} catch (CoreException e) {
-				Util.log(e, "Error while creating a link for external folder :" + arrayOfFolders[i]); //$NON-NLS-1$
+				Util.log(e, "Error while creating a link for external folder :" + folderPath); //$NON-NLS-1$
 			}
 		}
+		this.pendingFolders.clear();
 	}
 	
 	public void cleanUp(IProgressMonitor monitor) throws CoreException {

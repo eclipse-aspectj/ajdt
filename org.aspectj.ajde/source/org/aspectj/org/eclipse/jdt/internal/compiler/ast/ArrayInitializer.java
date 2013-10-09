@@ -1,22 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for 
- *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
- *								bug 370639 - [compiler][resource] restore the default for resource leak warnings
- *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
- *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
- *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -42,32 +32,23 @@ public class ArrayInitializer extends Expression {
 	public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 
 		if (this.expressions != null) {
-			boolean analyseResources = currentScope.compilerOptions().analyseResourceLeaks;
 			for (int i = 0, max = this.expressions.length; i < max; i++) {
 				flowInfo = this.expressions[i].analyseCode(currentScope, flowContext, flowInfo).unconditionalInits();
-
-				if (analyseResources && FakedTrackingVariable.isAnyCloseable(this.expressions[i].resolvedType)) {
-					flowInfo = FakedTrackingVariable.markPassedToOutside(currentScope, this.expressions[i], flowInfo, flowContext, false);
-				}
 			}
 		}
 		return flowInfo;
 	}
 
-	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
-		generateCode(null, null, currentScope, codeStream, valueRequired);
-	}
-	
 	/**
 	 * Code generation for a array initializer
 	 */
-	public void generateCode(TypeReference typeReference, Annotation[][] annotationsOnDimensions, BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
+	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 
 		// Flatten the values and compute the dimensions, by iterating in depth into nested array initializers
 		int pc = codeStream.position;
 		int expressionLength = (this.expressions == null) ? 0: this.expressions.length;
 		codeStream.generateInlinedValue(expressionLength);
-		codeStream.newArray(typeReference, annotationsOnDimensions, this.binding);
+		codeStream.newArray(this.binding);
 		if (this.expressions != null) {
 			// binding is an ArrayType, so I can just deal with the dimension
 			int elementsTypeID = this.binding.dimensions > 1 ? -1 : this.binding.leafComponentType.id;
@@ -172,7 +153,6 @@ public class ArrayInitializer extends Expression {
 			TypeBinding elementType = this.binding.elementsType();
 			for (int i = 0, length = this.expressions.length; i < length; i++) {
 				Expression expression = this.expressions[i];
-				expression.setExpressionContext(ASSIGNMENT_CONTEXT);
 				expression.setExpectedType(elementType);
 				TypeBinding expressionType = expression instanceof ArrayInitializer
 						? expression.resolveTypeExpecting(scope, elementType)

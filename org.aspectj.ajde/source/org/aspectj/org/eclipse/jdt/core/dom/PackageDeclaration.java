@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,13 @@ import java.util.List;
 
 /**
  * Package declaration AST node type.
+ * For JLS2:
+ * <pre>
+ * PackageDeclaration:
+ *    <b>package</b> Name <b>;</b>
+ * </pre>
+ * For JLS3, annotations and doc comment
+ * were added:
  * <pre>
  * PackageDeclaration:
  *    [ Javadoc ] { Annotation } <b>package</b> Name <b>;</b>
@@ -31,7 +38,7 @@ import java.util.List;
 public class PackageDeclaration extends ASTNode {
 
 	/**
-	 * The "javadoc" structural property of this node type (child type: {@link Javadoc}) (added in JLS3 API).
+	 * The "javadoc" structural property of this node type (child type: {@link Javadoc}).
 	 * @since 3.0
 	 */
 	public static final ChildPropertyDescriptor JAVADOC_PROPERTY =
@@ -135,7 +142,7 @@ public class PackageDeclaration extends ASTNode {
 	 */
 	PackageDeclaration(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS3_INTERNAL) {
+		if (ast.apiLevel >= AST.JLS3) {
 			this.annotations = new ASTNode.NodeList(ANNOTATIONS_PROPERTY);
 		}
 	}
@@ -195,7 +202,7 @@ public class PackageDeclaration extends ASTNode {
 	ASTNode clone0(AST target) {
 		PackageDeclaration result = new PackageDeclaration(target);
 		result.setSourceRange(getStartPosition(), getLength());
-		if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
+		if (this.ast.apiLevel >= AST.JLS3) {
 			result.setJavadoc((Javadoc) ASTNode.copySubtree(target, getJavadoc()));
 			result.annotations().addAll(ASTNode.copySubtrees(target, annotations()));
 		}
@@ -217,7 +224,7 @@ public class PackageDeclaration extends ASTNode {
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
-			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
+			if (this.ast.apiLevel >= AST.JLS3) {
 				acceptChild(visitor, getJavadoc());
 				acceptChildren(visitor, this.annotations);
 			}
@@ -245,7 +252,7 @@ public class PackageDeclaration extends ASTNode {
 	}
 
 	/**
-	 * Returns the doc comment node (added in JLS3 API).
+	 * Returns the doc comment node.
 	 *
 	 * @return the doc comment node, or <code>null</code> if none
 	 * @exception UnsupportedOperationException if this operation is used in
@@ -261,7 +268,7 @@ public class PackageDeclaration extends ASTNode {
 	}
 
 	/**
-	 * Sets or clears the doc comment node (added in JLS3 API).
+	 * Sets or clears the doc comment node.
 	 *
 	 * @param docComment the doc comment node, or <code>null</code> if none
 	 * @exception IllegalArgumentException if the doc comment string is invalid

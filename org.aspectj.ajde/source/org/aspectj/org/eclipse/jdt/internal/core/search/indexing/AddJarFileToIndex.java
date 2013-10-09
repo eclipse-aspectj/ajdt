@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,7 +34,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.index.Index;
-import org.aspectj.org.eclipse.jdt.internal.core.index.IndexLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.JavaSearchDocument;
 import org.aspectj.org.eclipse.jdt.internal.core.search.processing.JobManager;
 
@@ -43,26 +42,14 @@ class AddJarFileToIndex extends IndexRequest {
 	private static final char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
 	IFile resource;
 	Scanner scanner;
-	private IndexLocation indexFileURL;
-	private final boolean forceIndexUpdate;
 
-	public AddJarFileToIndex(IFile resource, IndexLocation indexFile, IndexManager manager) {
-		this(resource, indexFile, manager, false);
-	}
-	public AddJarFileToIndex(IFile resource, IndexLocation indexFile, IndexManager manager, final boolean updateIndex) {
+	public AddJarFileToIndex(IFile resource, IndexManager manager) {
 		super(resource.getFullPath(), manager);
 		this.resource = resource;
-		this.indexFileURL = indexFile;
-		this.forceIndexUpdate = updateIndex;
 	}
-	public AddJarFileToIndex(IPath jarPath, IndexLocation indexFile, IndexManager manager) {
-		this(jarPath, indexFile, manager, false);
-	}
-	public AddJarFileToIndex(IPath jarPath, IndexLocation indexFile, IndexManager manager, final boolean updateIndex) {
+	public AddJarFileToIndex(IPath jarPath, IndexManager manager) {
 		// external JAR scenario - no resource
 		super(jarPath, manager);
-		this.indexFileURL = indexFile;
-		this.forceIndexUpdate = updateIndex;
 	}
 	public boolean equals(Object o) {
 		if (o instanceof AddJarFileToIndex) {
@@ -83,12 +70,6 @@ class AddJarFileToIndex extends IndexRequest {
 	public boolean execute(IProgressMonitor progressMonitor) {
 
 		if (this.isCancelled || progressMonitor != null && progressMonitor.isCanceled()) return true;
-
-		if (hasPreBuiltIndex()) {
-			boolean added = this.manager.addIndex(this.containerPath, this.indexFileURL);
-			if (added) return true;	
-			this.indexFileURL = null;
-		}
 
 		try {
 			// if index is already cached, then do not perform any check
@@ -211,11 +192,7 @@ class AddJarFileToIndex extends IndexRequest {
 					return false;
 				}
 				index.separator = JAR_SEPARATOR;
-				IPath indexPath = null;
-				IndexLocation indexLocation;
-				if ((indexLocation = index.getIndexLocation()) != null) {
-					indexPath = new Path(indexLocation.getCanonicalFilePath());
-				}
+
 				for (Enumeration e = zip.entries(); e.hasMoreElements();) {
 					if (this.isCancelled) {
 						if (JobManager.VERBOSE)
@@ -231,7 +208,7 @@ class AddJarFileToIndex extends IndexRequest {
 						// index only classes coming from valid packages - https://bugs.eclipse.org/bugs/show_bug.cgi?id=293861
 						final byte[] classFileBytes = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
 						JavaSearchDocument entryDocument = new JavaSearchDocument(ze, zipFilePath, classFileBytes, participant);
-						this.manager.indexDocument(entryDocument, participant, index, indexPath);
+						this.manager.indexDocument(entryDocument, participant, index, this.containerPath);
 					}
 				}
 				this.manager.saveIndex(index);
@@ -262,35 +239,22 @@ class AddJarFileToIndex extends IndexRequest {
 			return super.getJobFamily();
 		return this.containerPath.toOSString(); // external jar
 	}	
-	private boolean isIdentifier() throws InvalidInputException {
-		switch(this.scanner.scanIdentifier()) {
-			// assert and enum will not be recognized as java identifiers 
-			// in 1.7 mode, which are in 1.3.
-			case TerminalTokens.TokenNameIdentifier:
-			case TerminalTokens.TokenNameassert:
-			case TerminalTokens.TokenNameenum:
-				return true;
-			default:
-				return false;
-		}
-	}
 	private  boolean isValidPackageNameForClass(String className) {
 		char[] classNameArray = className.toCharArray();
-		// use 1.7 as the source level as there are more valid identifiers in 1.7 mode
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=376673
 		if (this.scanner == null)
 			this.scanner = new Scanner(false /* comment */, true /* whitespace */, false /* nls */,
-					ClassFileConstants.JDK1_7/* sourceLevel */, null/* taskTag */, null/* taskPriorities */, true /* taskCaseSensitive */);
-		
+					ClassFileConstants.JDK1_3/* sourceLevel */, null/* taskTag */, null/* taskPriorities */, true /* taskCaseSensitive */);
 		this.scanner.setSource(classNameArray); 
 		this.scanner.eofPosition = classNameArray.length - SuffixConstants.SUFFIX_CLASS.length;
 		try {
-			if (isIdentifier()) {
+			if (this.scanner.scanIdentifier() == TerminalTokens.TokenNameIdentifier) {
 				while (this.scanner.eofPosition > this.scanner.currentPosition) {
 					if (this.scanner.getNextChar() != '/' || this.scanner.eofPosition <= this.scanner.currentPosition) {
 						return false;
 					}
-					if (!isIdentifier()) return false;
+					if (this.scanner.scanIdentifier() != TerminalTokens.TokenNameIdentifier) {
+						return false;
+					}
 				}
 				return true;
 			}
@@ -300,21 +264,9 @@ class AddJarFileToIndex extends IndexRequest {
 		return false;
 	}
 	protected Integer updatedIndexState() {
-
-		Integer updateState = null;
-		if(hasPreBuiltIndex()) {
-			updateState = IndexManager.REUSE_STATE;
-		}
-		else {
-			updateState = IndexManager.REBUILDING_STATE;
-		}
-		return updateState;
+		return IndexManager.REBUILDING_STATE;
 	}
 	public String toString() {
 		return "indexing " + this.containerPath.toString(); //$NON-NLS-1$
-	}
-
-	protected boolean hasPreBuiltIndex() {
-		return !this.forceIndexUpdate && (this.indexFileURL != null && this.indexFileURL.exists());
 	}
 }

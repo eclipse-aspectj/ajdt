@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,6 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for
- *								bug 349326 - [1.7] new warning for missing try-with-resources
- *								bug 370930 - NonNull annotation not considered for enhanced for loops
- *								bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
- *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
- *								bug 393719 - [compiler] inconsistent warnings on iteration variables
- *     Jesper S Moller -  Contribution for
- *								bug 401853 - Eclipse Java compiler creates invalid bytecode (java.lang.VerifyError)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -33,9 +25,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
 public class ForeachStatement extends Statement {
 
@@ -92,42 +82,30 @@ public class ForeachStatement extends Statement {
 		this.collection.checkNPE(currentScope, flowContext, flowInfo);
 		flowInfo = this.elementVariable.analyseCode(this.scope, flowContext, flowInfo);		
 		FlowInfo condInfo = this.collection.analyseCode(this.scope, flowContext, flowInfo.copy());
-		LocalVariableBinding elementVarBinding = this.elementVariable.binding;
 
 		// element variable will be assigned when iterating
-		condInfo.markAsDefinitelyAssigned(elementVarBinding);
+		condInfo.markAsDefinitelyAssigned(this.elementVariable.binding);
 
 		this.postCollectionInitStateIndex = currentScope.methodScope().recordInitializationStates(condInfo);
-
 
 		// process the action
 		LoopingFlowContext loopingContext =
 			new LoopingFlowContext(flowContext, flowInfo, this, this.breakLabel,
-				this.continueLabel, this.scope, true);
+				this.continueLabel, this.scope);
 		UnconditionalFlowInfo actionInfo =
 			condInfo.nullInfoLessUnconditionalCopy();
-		actionInfo.markAsDefinitelyUnknown(elementVarBinding);
-		if (currentScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled) {
-			// this currently produces an unavoidable warning against all @NonNull element vars:
-			int nullStatus = this.elementVariable.checkAssignmentAgainstNullAnnotation(currentScope, flowContext, 
-															elementVarBinding, FlowInfo.UNKNOWN, this.collection, this.collectionElementType);
-			// TODO (stephan): 	once we have JSR 308 fetch nullStatus from the collection element type
-			//              	and feed the result into the above check (instead of FlowInfo.UNKNOWN)
-			if ((elementVarBinding.type.tagBits & TagBits.IsBaseType) == 0) {
-				actionInfo.markNullStatus(elementVarBinding, nullStatus);
-			}
-		}
+		actionInfo.markAsDefinitelyUnknown(this.elementVariable.binding);
 		FlowInfo exitBranch;
 		if (!(this.action == null || (this.action.isEmptyBlock()
 				&& currentScope.compilerOptions().complianceLevel <= ClassFileConstants.JDK1_3))) {
 
-			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel, true) < Statement.COMPLAINED_UNREACHABLE) {
+			if (this.action.complainIfUnreachable(actionInfo, this.scope, initialComplaintLevel) < Statement.COMPLAINED_UNREACHABLE) {
 				actionInfo = this.action.analyseCode(this.scope, loopingContext, actionInfo).unconditionalCopy();
 			}
 
 			// code generation can be optimized when no need to continue in the loop
 			exitBranch = flowInfo.unconditionalCopy().
-					addInitializationsFrom(condInfo.initsWhenFalse());
+					addNullInfoFrom(condInfo.initsWhenFalse());
 			// TODO (maxime) no need to test when false: can optimize (same for action being unreachable above)
 			if ((actionInfo.tagBits & loopingContext.initsOnContinue.tagBits &
 					FlowInfo.UNREACHABLE_OR_DEAD) != 0) {
@@ -150,7 +128,7 @@ public class ForeachStatement extends Statement {
 		switch(this.kind) {
 			case ARRAY :
 				if (!hasEmptyAction
-						|| elementVarBinding.resolvedPosition != -1) {
+						|| this.elementVariable.binding.resolvedPosition != -1) {
 					this.collectionVariable.useFlag = LocalVariableBinding.USED;
 					if (this.continueLabel != null) {
 						this.indexVariable.useFlag = LocalVariableBinding.USED;
@@ -175,7 +153,6 @@ public class ForeachStatement extends Statement {
 									exitBranch,
 									false,
 									true /*for(;;){}while(true); unreachable(); */);
-		mergedInfo.resetAssignmentInfo(this.elementVariable.binding);
 		this.mergedInitStateIndex = currentScope.methodScope().recordInitializationStates(mergedInfo);
 		return mergedInfo;
 	}
@@ -307,15 +284,7 @@ public class ForeachStatement extends Statement {
 					}
 				}
 				if (this.elementVariable.binding.resolvedPosition == -1) {
-					switch (this.elementVariable.binding.type.id) {
-						case TypeIds.T_long :
-						case TypeIds.T_double :
-							codeStream.pop2();
-							break;
-						default:
-							codeStream.pop();
-							break;
-					}
+					codeStream.pop();
 				} else {
 					codeStream.store(this.elementVariable.binding, false);
 					codeStream.addVisibleLocalVariable(this.elementVariable.binding);
@@ -421,7 +390,7 @@ public class ForeachStatement extends Statement {
 						&& !this.scope.isBoxingCompatibleWith(this.collectionElementType, elementType)) {
 					this.scope.problemReporter().notCompatibleTypesErrorInForeach(this.collection, this.collectionElementType, elementType);
 				} else if (this.collectionElementType.needsUncheckedConversion(elementType)) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=321085
-				    this.scope.problemReporter().unsafeElementTypeConversion(this.collection, this.collectionElementType, elementType);
+				    this.scope.problemReporter().unsafeTypeConversion(this.collection, collectionType, upperScope.createArrayType(elementType, 1));
 				}
 				// in case we need to do a conversion
 				int compileTimeTypeID = this.collectionElementType.id;
@@ -501,8 +470,6 @@ public class ForeachStatement extends Statement {
 					if (!this.collectionElementType.isCompatibleWith(elementType)
 							&& !this.scope.isBoxingCompatibleWith(this.collectionElementType, elementType)) {
 						this.scope.problemReporter().notCompatibleTypesErrorInForeach(this.collection, this.collectionElementType, elementType);
-					} else if (this.collectionElementType.needsUncheckedConversion(elementType)) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=393719
-					    this.scope.problemReporter().unsafeElementTypeConversion(this.collection, this.collectionElementType, elementType);
 					}
 					int compileTimeTypeID = this.collectionElementType.id;
 					// no conversion needed as only for reference types

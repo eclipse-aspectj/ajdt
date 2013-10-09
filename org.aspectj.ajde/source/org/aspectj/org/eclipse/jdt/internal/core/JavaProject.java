@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
- *     						Bug 320618 - inconsistent initialization of classpath container backed by external class folder
- *     						Bug 346010 - [model] strange initialization dependency in OptionTests
+ *     Stephan Herrmann <stephan@cs.tu-berlin.de> - inconsistent initialization of classpath container backed by external class folder, see https://bugs.eclipse.org/320618
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -1528,8 +1526,7 @@ public class JavaProject
 						propertyName.equals(JavaCore.CORE_INCOMPLETE_CLASSPATH) ||
 						propertyName.equals(JavaCore.CORE_CIRCULAR_CLASSPATH) ||
 						propertyName.equals(JavaCore.CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE) ||
-						propertyName.equals(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL) ||
-						propertyName.equals(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM))
+						propertyName.equals(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL))
 					{
 						manager.deltaState.addClasspathValidation(JavaProject.this);
 					}
@@ -2946,7 +2943,7 @@ public class JavaProject
 	public void setOption(String optionName, String optionValue) {
 		// Store option value
 		IEclipsePreferences projectPreferences = getEclipsePreferences();
-		boolean modified = JavaModelManager.getJavaModelManager().storePreference(optionName, optionValue, projectPreferences, null);
+		boolean modified = JavaModelManager.getJavaModelManager().storePreference(optionName, optionValue, projectPreferences);
 
 		// Write changes
 		if (modified) {
@@ -2975,7 +2972,7 @@ public class JavaProject
 					Map.Entry entry = (Map.Entry) entries.next();
 					String key = (String) entry.getKey();
 					String value = (String) entry.getValue();
-					javaModelManager.storePreference(key, value, projectPreferences, newOptions);
+					javaModelManager.storePreference(key, value, projectPreferences);
 				}
 
 				// reset to default all options not in new map
@@ -3120,8 +3117,8 @@ public class JavaProject
 	 * Note that it is orthogonal to IResource persistent properties, and client code has to decide
 	 * which form of storage to use appropriately. Shared properties produce real resource files which
 	 * can be shared through a VCM onto a server. Persistent properties are not shareable.
-	 * <p>
-	 * Shared properties end up in resource files, and thus cannot be modified during
+	 *
+	 * shared properties end up in resource files, and thus cannot be modified during
 	 * delta notifications (a CoreException would then be thrown).
 	 *
 	 * @param key String
@@ -3145,7 +3142,7 @@ public class JavaProject
 		if (rscFile.exists()) {
 			if (rscFile.isReadOnly()) {
 				// provide opportunity to checkout read-only .classpath file (23984)
-				ResourcesPlugin.getWorkspace().validateEdit(new IFile[]{rscFile}, IWorkspace.VALIDATE_PROMPT);
+				ResourcesPlugin.getWorkspace().validateEdit(new IFile[]{rscFile}, null);
 			}
 			rscFile.setContents(inputStream, IResource.FORCE, null);
 		} else {

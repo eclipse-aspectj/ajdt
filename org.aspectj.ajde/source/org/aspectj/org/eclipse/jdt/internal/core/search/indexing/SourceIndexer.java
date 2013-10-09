@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2008 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,12 +24,12 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.processing.JobManager;
 
 /**
  * A SourceIndexer indexes java files using a java parser. The following items are indexed:
- * Declarations of:<br>
+ * Declarations of:
  * - Classes<br>
- * - Interfaces;<br>
+ * - Interfaces; <br>
  * - Methods;<br>
  * - Fields;<br>
- * References to:<br>
+ * References to:
  * - Methods (with number of arguments); <br>
  * - Fields;<br>
  * - Types;<br>

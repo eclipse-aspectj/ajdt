@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -270,10 +266,6 @@ protected void consumeCastExpressionLL1() {
 	popElement(K_CAST_STATEMENT);
 	super.consumeCastExpressionLL1();
 }
-protected void consumeCastExpressionLL1WithBounds() {
-	popElement(K_CAST_STATEMENT);
-	super.consumeCastExpressionLL1WithBounds();
-}
 protected void consumeCastExpressionWithGenericsArray() {
 	popElement(K_CAST_STATEMENT);
 	super.consumeCastExpressionWithGenericsArray();
@@ -378,7 +370,6 @@ protected void consumeClassInstanceCreationExpressionQualifiedWithTypeArguments(
 		char [] oldIdent = assistIdentifier();
 		setAssistIdentifier(null);
 		alloc.type = getTypeReference(0);
-		rejectIllegalLeadingTypeAnnotations(alloc.type);
 		checkForDiamond(alloc.type);
 
 		setAssistIdentifier(oldIdent);
@@ -443,7 +434,6 @@ protected void consumeClassInstanceCreationExpressionWithTypeArguments() {
 		char [] oldIdent = assistIdentifier();
 		setAssistIdentifier(null);
 		alloc.type = getTypeReference(0);
-		rejectIllegalLeadingTypeAnnotations(alloc.type);
 		checkForDiamond(alloc.type);
 
 		setAssistIdentifier(oldIdent);
@@ -607,48 +597,19 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 			}
 		}
 	} else {
-		boolean isReceiver = this.intStack[this.intPtr--] == 0;
-	    if (isReceiver) {
-	    	this.expressionPtr--;
-	    	this.expressionLengthPtr --;
-	    }
 		this.identifierLengthPtr--;
 		char[] identifierName = this.identifierStack[this.identifierPtr];
 		long namePositions = this.identifierPositionStack[this.identifierPtr--];
 		int extendedDimensions = this.intStack[this.intPtr--];
-		Annotation [][] annotationsOnExtendedDimensions = extendedDimensions == 0 ? null : getAnnotationsOnDimensions(extendedDimensions);
-		Annotation [] varArgsAnnotations = null;
-		int length;
 		int endOfEllipsis = 0;
 		if (isVarArgs) {
 			endOfEllipsis = this.intStack[this.intPtr--];
-			if ((length = this.typeAnnotationLengthStack[this.typeAnnotationLengthPtr--]) != 0) {
-				System.arraycopy(
-					this.typeAnnotationStack,
-					(this.typeAnnotationPtr -= length) + 1,
-					varArgsAnnotations = new Annotation[length],
-					0,
-					length);
-			} 
 		}
 		int firstDimensions = this.intStack[this.intPtr--];
-		TypeReference type = getTypeReference(firstDimensions);
-
-		final int typeDimensions = firstDimensions + extendedDimensions + (isVarArgs ? 1 : 0);
-		if (typeDimensions != firstDimensions) {
-			// jsr308 type annotations management
-			Annotation [][] annotationsOnFirstDimensions = firstDimensions == 0 ? null : type.getAnnotationsOnDimensions();
-			Annotation [][] annotationsOnAllDimensions = annotationsOnFirstDimensions;
-			if (annotationsOnExtendedDimensions != null) {
-				annotationsOnAllDimensions = getMergedAnnotationsOnDimensions(firstDimensions, annotationsOnFirstDimensions, extendedDimensions, annotationsOnExtendedDimensions);
-			}
-			if (varArgsAnnotations != null) {
-				annotationsOnAllDimensions = getMergedAnnotationsOnDimensions(firstDimensions + extendedDimensions, annotationsOnAllDimensions, 1, new Annotation[][]{varArgsAnnotations});
-			}
-			type = copyDims(type, typeDimensions, annotationsOnAllDimensions);
-			type.sourceEnd = type.isParameterizedTypeReference() ? this.endStatementPosition : this.endPosition;
-		}
+		final int typeDimensions = firstDimensions + extendedDimensions;
+		TypeReference type = getTypeReference(typeDimensions);
 		if (isVarArgs) {
+			type = copyDims(type, typeDimensions + 1);
 			if (extendedDimensions == 0) {
 				type.sourceEnd = endOfEllipsis;
 			}
@@ -665,6 +626,7 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 		arg.declarationSourceStart = modifierPositions;
 
 		// consume annotations
+		int length;
 		if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
 			System.arraycopy(
 				this.expressionStack,
@@ -672,9 +634,6 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 				arg.annotations = new Annotation[length],
 				0,
 				length);
-			RecoveredType currentRecoveryType = this.currentRecoveryType();
-			if (currentRecoveryType != null)
-				currentRecoveryType.annotationsConsumed(arg.annotations);
 		}
 
 		pushOnAstStack(arg);
@@ -699,10 +658,6 @@ protected void consumeInsideCastExpression() {
 }
 protected void consumeInsideCastExpressionLL1() {
 	super.consumeInsideCastExpressionLL1();
-	pushOnElementStack(K_CAST_STATEMENT);
-}
-protected void consumeInsideCastExpressionLL1WithBounds() {
-	super.consumeInsideCastExpressionLL1WithBounds();
 	pushOnElementStack(K_CAST_STATEMENT);
 }
 protected void consumeInsideCastExpressionWithQualifiedGenerics() {
@@ -742,11 +697,11 @@ protected void consumeLocalVariableDeclarationStatement() {
 		}
 	}
 }
-protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
+protected void consumeMarkerAnnotation() {
 	int index;
 
 	if ((index = this.indexOfAssistIdentifier()) < 0) {
-		super.consumeMarkerAnnotation(isTypeAnnotation);
+		super.consumeMarkerAnnotation();
 		return;
 	}
 
@@ -787,11 +742,7 @@ protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
 
 	markerAnnotation = new MarkerAnnotation(typeReference, this.intStack[this.intPtr--]);
 	markerAnnotation.declarationSourceEnd = markerAnnotation.sourceEnd;
-	if (isTypeAnnotation) {
-		pushOnTypeAnnotationStack(markerAnnotation);
-	} else {
-		pushOnExpressionStack(markerAnnotation);
-	}
+	pushOnExpressionStack(markerAnnotation);
 }
 protected void consumeMemberValuePair() {
 	if (this.indexOfAssistIdentifier() < 0) {
@@ -913,11 +864,11 @@ protected void consumeMethodInvocationPrimary() {
 	this.lastCheckPoint = constructorCall.sourceEnd + 1;
 	this.isOrphanCompletionNode = true;
 }
-protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
+protected void consumeNormalAnnotation() {
 	int index;
 
 	if ((index = this.indexOfAssistIdentifier()) < 0) {
-		super.consumeNormalAnnotation(isTypeAnnotation);
+		super.consumeNormalAnnotation();
 		return;
 	}
 
@@ -966,17 +917,13 @@ protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
 			length);
 	}
 	normalAnnotation.declarationSourceEnd = this.rParenPos;
-	if (isTypeAnnotation) {
-		pushOnTypeAnnotationStack(normalAnnotation);
-	} else {
-		pushOnExpressionStack(normalAnnotation);
-	}
+	pushOnExpressionStack(normalAnnotation);
 }
-protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
+protected void consumeSingleMemberAnnotation() {
 	int index;
 
 	if ((index = this.indexOfAssistIdentifier()) < 0) {
-		super.consumeSingleMemberAnnotation(isTypeAnnotation);
+		super.consumeSingleMemberAnnotation();
 		return;
 	}
 
@@ -1019,11 +966,7 @@ protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
 	singleMemberAnnotation.memberValue = this.expressionStack[this.expressionPtr--];
 	this.expressionLengthPtr--;
 	singleMemberAnnotation.declarationSourceEnd = this.rParenPos;
-	if (isTypeAnnotation) {
-		pushOnTypeAnnotationStack(singleMemberAnnotation);
-	} else {
-		pushOnExpressionStack(singleMemberAnnotation);
-	}
+	pushOnExpressionStack(singleMemberAnnotation);
 }
 protected void consumeStaticImportOnDemandDeclarationName() {
 	// TypeImportOnDemandDeclarationName ::= 'import' 'static' Name '.' '*'
@@ -1217,32 +1160,25 @@ public CompilationUnitDeclaration dietParse(ICompilationUnit sourceUnit, Compila
 	selectionScanner.selectionEnd = end;
 	return this.dietParse(sourceUnit, compilationResult);
 }
-protected NameReference getUnspecifiedReference(boolean rejectTypeAnnotations) {
+protected NameReference getUnspecifiedReference() {
 	/* build a (unspecified) NameReference which may be qualified*/
 
 	int completionIndex;
 
 	/* no need to take action if not inside completed identifiers */
 	if ((completionIndex = indexOfAssistIdentifier()) < 0) {
-		return super.getUnspecifiedReference(rejectTypeAnnotations);
+		return super.getUnspecifiedReference();
 	}
 
-	if (rejectTypeAnnotations) {
-		consumeNonTypeUseName();
-	}
 	int length = this.identifierLengthStack[this.identifierLengthPtr];
 	if (CharOperation.equals(assistIdentifier(), SUPER)){
 		Reference reference;
 		if (completionIndex > 0){ // qualified super
 			// discard 'super' from identifier stacks
-			// There is some voodoo going on here in combination with SelectionScanne#scanIdentifierOrKeyword, do in Rome as Romans do and leave the stacks at the right depth.
 			this.identifierLengthStack[this.identifierLengthPtr] = completionIndex;
 			int ptr = this.identifierPtr -= (length - completionIndex);
 			pushOnGenericsLengthStack(0);
 			pushOnGenericsIdentifiersLengthStack(this.identifierLengthStack[this.identifierLengthPtr]);
-			for (int i = 0; i < completionIndex; i++) {
-				pushOnTypeAnnotationLengthStack(0);
-			}
 			reference =
 				new SelectionOnQualifiedSuperReference(
 					getTypeReference(0),

@@ -1,19 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for
- *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
- *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -34,15 +27,7 @@ public final class ArrayBinding extends TypeBinding {
 	char[] constantPoolName;
 	char[] genericTypeSignature;
 
-	// One bitset for each dimension plus one more for the leaf component type at position 'dimensions',
-	// possible bits are TagBits.AnnotationNonNull and TagBits.AnnotationNullable
-	// (only ever set when CompilerOptions.isAnnotationBasedNullAnalysisEnabled == true):
-	public long[] nullTagBitsPerDimension;
-
 public ArrayBinding(TypeBinding type, int dimensions, LookupEnvironment environment) {
-	this(type, dimensions, environment, null);
-}
-public ArrayBinding(TypeBinding type, int dimensions, LookupEnvironment environment, long[] nullTagBitsPerDimension) {
 	this.tagBits |= TagBits.IsArrayType;
 	this.leafComponentType = type;
 	this.dimensions = dimensions;
@@ -51,11 +36,6 @@ public ArrayBinding(TypeBinding type, int dimensions, LookupEnvironment environm
 		((UnresolvedReferenceBinding) type).addWrapper(this, environment);
 	else
 		this.tagBits |= type.tagBits & (TagBits.HasTypeVariable | TagBits.HasDirectWildcard | TagBits.HasMissingType | TagBits.ContainsNestedTypeReferences);
-	
-	if (nullTagBitsPerDimension != null) {
-		this.tagBits |= nullTagBitsPerDimension[0]; // outer-most dimension
-		this.nullTagBitsPerDimension = nullTagBitsPerDimension;
-	}
 }
 
 public TypeBinding closestMatch() {
@@ -90,7 +70,7 @@ public List collectMissingTypes(List missingTypes) {
 public void collectSubstitutes(Scope scope, TypeBinding actualType, InferenceContext inferenceContext, int constraint) {
 
 	if ((this.tagBits & TagBits.HasTypeVariable) == 0) return;
-	if (actualType == TypeBinding.NULL || actualType.kind() == POLY_TYPE) return;
+	if (actualType == TypeBinding.NULL) return;
 
 	switch(actualType.kind()) {
 		case Binding.ARRAY_TYPE :
@@ -148,17 +128,8 @@ public int dimensions() {
 */
 
 public TypeBinding elementsType() {
-	long[] nullTagBitsSub = null;
-	if (this.nullTagBitsPerDimension != null) {
-		int len = this.nullTagBitsPerDimension.length-1;
-		System.arraycopy(this.nullTagBitsPerDimension, 1, nullTagBitsSub = new long[len], 0, len);
-	}
-	if (this.dimensions == 1) {
-		if (nullTagBitsSub != null && nullTagBitsSub[0] != 0L && this.leafComponentType instanceof ReferenceBinding)
-			return this.environment.createParameterizedType((ReferenceBinding) this.leafComponentType, null, nullTagBitsSub[0], null);
-		return this.leafComponentType;
-	}
-	return this.environment.createArrayType(this.leafComponentType, this.dimensions - 1, nullTagBitsSub);
+	if (this.dimensions == 1) return this.leafComponentType;
+	return this.environment.createArrayType(this.leafComponentType, this.dimensions - 1);
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#erasure()
@@ -193,7 +164,7 @@ public int hashCode() {
 
 /* Answer true if the receiver type can be assigned to the argument type (right)
 */
-public boolean isCompatibleWith(TypeBinding otherType, Scope captureScope) {
+public boolean isCompatibleWith(TypeBinding otherType) {
 	if (this == otherType)
 		return true;
 
@@ -220,7 +191,7 @@ public boolean isCompatibleWith(TypeBinding otherType, Scope captureScope) {
 				TypeBinding otherLowerBound;
 				if ((otherLowerBound = otherCapture.lowerBound) != null) {
 					if (!otherLowerBound.isArrayType()) return false;
-					return isCompatibleWith(otherLowerBound, captureScope);
+					return isCompatibleWith(otherLowerBound);
 				}
 			}
 			return false;
@@ -243,35 +214,6 @@ public int kind() {
 
 public TypeBinding leafComponentType(){
 	return this.leafComponentType;
-}
-
-public char[] nullAnnotatedReadableName(LookupEnvironment env, boolean shortNames) /* java.lang.Object @o.e.j.a.NonNull[] */ {
-	if (this.nullTagBitsPerDimension == null)
-		return shortNames ? shortReadableName() : readableName();
-	char[][] brackets = new char[this.dimensions][];
-	for (int i = 0; i < this.dimensions; i++) {
-		if ((this.nullTagBitsPerDimension[i] & TagBits.AnnotationNullMASK) != 0) {
-			char[][] fqAnnotationName;
-			if ((this.nullTagBitsPerDimension[i] & TagBits.AnnotationNonNull) != 0)
-				fqAnnotationName = env.getNonNullAnnotationName();
-			else
-				fqAnnotationName = env.getNullableAnnotationName();
-			char[] annotationName = shortNames 
-										? fqAnnotationName[fqAnnotationName.length-1] 
-										: CharOperation.concatWith(fqAnnotationName, '.');
-			brackets[i] = new char[annotationName.length+3];
-			brackets[i][0] = '@';
-			System.arraycopy(annotationName, 0, brackets[i], 1, annotationName.length);
-			brackets[i][annotationName.length+1] = '[';
-			brackets[i][annotationName.length+2] = ']';
-		} else {
-			brackets[i] = new char[]{'[', ']'}; 
-		}
-	}
-	char[] leafTypeName = shortNames ? this.leafComponentType.shortReadableName() : this.leafComponentType.readableName();
-	return CharOperation.concat(leafTypeName, 
-								 CharOperation.concatWith(brackets, ' '),
-								 ' ');
 }
 
 /* API

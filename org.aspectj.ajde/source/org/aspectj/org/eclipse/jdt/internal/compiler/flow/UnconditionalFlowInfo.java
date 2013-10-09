@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,10 +13,6 @@
  *     						bug 292478 - Report potentially null across variable assignment
  *     						bug 332637 - Dead Code detection removing code that isn't dead
  *     						bug 341499 - [compiler][null] allocate extra bits in all methods of UnconditionalFlowInfo
- *     						bug 349326 - [1.7] new warning for missing try-with-resources
- *							bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
- *							bug 386181 - [compiler][null] wrong transition in UnconditionalFlowInfo.mergedWith()
- *							bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
@@ -93,6 +89,7 @@ public class UnconditionalFlowInfo extends FlowInfo {
 
 	// Constants
 	public static final int BitCacheSize = 64; // 64 bits in a long.
+	public int[] nullStatusChangedInAssert; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=303448
 
 public FlowInfo addInitializationsFrom(FlowInfo inits) {
 	return addInfoFrom(inits, true);
@@ -304,6 +301,7 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
 			}
 		}
 	}
+	combineNullStatusChangeInAssertInfo(otherInits);
 	return this;
 }
 
@@ -511,6 +509,7 @@ public UnconditionalFlowInfo addPotentialNullInfoFrom(
 			}
 		}
 	}
+	combineNullStatusChangeInAssertInfo(otherInits);
 	if (thisHasNulls) {
 		this.tagBits |= NULL_FLAG_MASK;
 	}
@@ -642,6 +641,7 @@ public FlowInfo copy() {
 			}
 		}
 	}
+	copy.nullStatusChangedInAssert = this.nullStatusChangedInAssert;
 	return copy;
 }
 
@@ -770,7 +770,7 @@ final public boolean isDefinitelyNonNull(LocalVariableBinding local) {
 	}
 	int vectorIndex;
 	if ((vectorIndex = (position / BitCacheSize) - 1)
-			>= this.extra[2].length) {
+			>= this.extra[0].length) {
 		return false; // if not enough room in vector, then not initialized
 	}
 	return ((this.extra[2][vectorIndex] & this.extra[4][vectorIndex]
@@ -797,7 +797,7 @@ final public boolean isDefinitelyNull(LocalVariableBinding local) {
 	}
 	int vectorIndex;
 	if ((vectorIndex = (position / BitCacheSize) - 1) >=
-			this.extra[2].length) {
+			this.extra[0].length) {
 		return false; // if not enough room in vector, then not initialized
 	}
 	return ((this.extra[2][vectorIndex] & this.extra[3][vectorIndex]
@@ -822,36 +822,11 @@ final public boolean isDefinitelyUnknown(LocalVariableBinding local) {
 	}
 	int vectorIndex;
 	if ((vectorIndex = (position / BitCacheSize) - 1) >=
-			this.extra[2].length) {
+			this.extra[0].length) {
 		return false; // if not enough room in vector, then not initialized
 	}
 	return ((this.extra[2][vectorIndex] & this.extra[5][vectorIndex]
 	    & ~this.extra[3][vectorIndex] & ~this.extra[4][vectorIndex])
-		    & (1L << (position % BitCacheSize))) != 0;
-}
-
-final public boolean hasNullInfoFor(LocalVariableBinding local) {
-	// do not want to complain in unreachable code
-	if ((this.tagBits & UNREACHABLE) != 0 ||
-			(this.tagBits & NULL_FLAG_MASK) == 0) {
-		return false;
-	}
-	int position = local.id + this.maxFieldCount;
-	if (position < BitCacheSize) { // use bits
-		return ((this.nullBit1 | this.nullBit2
-				| this.nullBit3 | this.nullBit4) & (1L << position)) != 0;
-	}
-	// use extra vector
-	if (this.extra == null) {
-		return false; // if vector not yet allocated, then not initialized
-	}
-	int vectorIndex;
-	if ((vectorIndex = (position / BitCacheSize) - 1) >=
-			this.extra[2].length) {
-		return false; // if not enough room in vector, then not initialized
-	}
-	return ((this.extra[2][vectorIndex] | this.extra[3][vectorIndex]
-	    | this.extra[4][vectorIndex] | this.extra[5][vectorIndex])
 		    & (1L << (position % BitCacheSize))) != 0;
 }
 
@@ -907,7 +882,7 @@ final public boolean isPotentiallyNonNull(LocalVariableBinding local) {
 	}
 	int vectorIndex;
 	if ((vectorIndex = (position / BitCacheSize) - 1) >=
-			this.extra[2].length) {
+			this.extra[0].length) {
 		return false; // if not enough room in vector, then not initialized
 	}
 	return ((this.extra[4][vectorIndex]
@@ -933,7 +908,7 @@ final public boolean isPotentiallyNull(LocalVariableBinding local) {
 	}
 	int vectorIndex;
 	if ((vectorIndex = (position / BitCacheSize) - 1) >=
-			this.extra[2].length) {
+			this.extra[0].length) {
 		return false; // if not enough room in vector, then not initialized
 	}
 	return ((this.extra[3][vectorIndex]
@@ -959,7 +934,7 @@ final public boolean isPotentiallyUnknown(LocalVariableBinding local) {
 	}
 	int vectorIndex;
 	if ((vectorIndex = (position / BitCacheSize) - 1) >=
-			this.extra[2].length) {
+			this.extra[0].length) {
 		return false; // if not enough room in vector, then not initialized
 	}
 	return (this.extra[5][vectorIndex]
@@ -1480,8 +1455,8 @@ public void markPotentiallyUnknownBit(LocalVariableBinding local) {
         	isTrue((this.nullBit1 & mask) == 0, "Adding 'unknown' mark in unexpected state"); //$NON-NLS-1$
             this.nullBit4 |= mask;
             if (COVERAGE_TEST_FLAG) {
-				if(CoverageTestId == 44) {
-				  	this.nullBit4 = 0;
+				if(CoverageTestId == 46) {
+				  	this.nullBit4 = ~0;
 				}
 			}
         } else {
@@ -1508,11 +1483,8 @@ public void markPotentiallyUnknownBit(LocalVariableBinding local) {
     		isTrue((this.extra[2][vectorIndex] & mask) == 0, "Adding 'unknown' mark in unexpected state"); //$NON-NLS-1$
     		this.extra[5][vectorIndex] |= mask;
     		if (COVERAGE_TEST_FLAG) {
-				if(CoverageTestId == 45) {
-					this.extra[2][vectorIndex] = ~0;
-					this.extra[3][vectorIndex] = ~0;
-					this.extra[4][vectorIndex] = 0;
-					this.extra[5][vectorIndex] = 0;
+				if(CoverageTestId == 47) {
+					this.extra[5][vectorIndex] = ~0;
 				}
 			}
     	}
@@ -1531,7 +1503,7 @@ public void markPotentiallyNullBit(LocalVariableBinding local) {
             this.nullBit2 |= mask;
             if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 40) {
-				  	this.nullBit2 = 0;
+				  	this.nullBit4 = ~0;
 				}
 			}
         } else {
@@ -1559,7 +1531,7 @@ public void markPotentiallyNullBit(LocalVariableBinding local) {
     		isTrue((this.extra[2][vectorIndex] & mask) == 0, "Adding 'potentially null' mark in unexpected state"); //$NON-NLS-1$
     		if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 41) {
-					this.extra[3][vectorIndex] = 0;
+					this.extra[5][vectorIndex] = ~0;
 				}
 			}
     	}
@@ -1578,10 +1550,7 @@ public void markPotentiallyNonNullBit(LocalVariableBinding local) {
             this.nullBit3 |= mask;
             if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 42) {
-				  	this.nullBit1 = ~0;
-				  	this.nullBit2 = 0;
-				  	this.nullBit3 = ~0;
-				  	this.nullBit4 = 0;
+				  	this.nullBit4 = ~0;
 				}
 			}
         } else {
@@ -1609,10 +1578,7 @@ public void markPotentiallyNonNullBit(LocalVariableBinding local) {
     		this.extra[4][vectorIndex] |= mask;
     		if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 43) {
-					this.extra[2][vectorIndex] = ~0;
-					this.extra[3][vectorIndex] = 0;
-					this.extra[4][vectorIndex] = ~0;
-					this.extra[5][vectorIndex] = 0;
+					this.extra[5][vectorIndex] = ~0;
 				}
 			}
     	}
@@ -1626,6 +1592,7 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 				throw new AssertionFailedException("COVERAGE 28"); //$NON-NLS-1$
 			}
 		}
+		combineNullStatusChangeInAssertInfo(otherInits);
 		return this;
 	}
 	if ((this.tagBits & UNREACHABLE_OR_DEAD) != 0) {
@@ -1634,6 +1601,7 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 				throw new AssertionFailedException("COVERAGE 29"); //$NON-NLS-1$
 			}
 		}
+		otherInits.combineNullStatusChangeInAssertInfo(this);
 		return (UnconditionalFlowInfo) otherInits.copy(); // make sure otherInits won't be affected
 	}
 
@@ -1664,28 +1632,44 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 		this.tagBits = otherInits.tagBits;
 	} else if (thisHadNulls) {
     	if (otherHasNulls) {
-    		this.nullBit1 = (a1 = this.nullBit1) & (b1 = otherInits.nullBit1) & (
-    				((a2 = this.nullBit2) & (((b2 = otherInits.nullBit2) & 
-    											~(((a3=this.nullBit3) & (a4=this.nullBit4)) ^ ((b3=otherInits.nullBit3) & (b4=otherInits.nullBit4))))
-    										|(a3 & a4 & (nb2 = ~b2))))
-    				|((na2 = ~a2) & ((b2 & b3 & b4)
-    								|(nb2 & ((na3 = ~a3) ^ b3)))));
-    		this.nullBit2 = b2 & ((nb3 = ~b3) | (nb1 = ~b1) | a3 & (a4 | (na1 = ~a1)) & (nb4 = ~b4))
-        			| a2 & (b2 | (na4 = ~a4) & b3 & (b4 | nb1) | na3 | na1);
-    		this.nullBit3 =   a3 & (na1 | a1 & na2 | b3 & (na4 ^ b4))
-    						| b3 & (nb1 | b1 & nb2);
+    		this.nullBit1 = (a2 = this.nullBit2) & (a3 = this.nullBit3)
+    							& (a4 = this.nullBit4) & (b1 = otherInits.nullBit1)
+    							& (nb2 = ~(b2 = otherInits.nullBit2))
+                  			| (a1 = this.nullBit1) & (b1 & (a3 & a4 & (b3 = otherInits.nullBit3)
+                  													& (b4 = otherInits.nullBit4)
+                  												| (na2 = ~a2) & nb2
+                  													& ((nb4 = ~b4) | (na4 = ~a4)
+                  															| (na3 = ~a3) & (nb3 = ~b3))
+                  												| a2 & b2 & ((na4 | na3) & (nb4	| nb3)))
+                  											| na2 & b2 & b3 & b4);
+    		this.nullBit2 = b2 & (nb3 | (nb1 = ~b1) | a3 & (a4 | (na1 = ~a1)) & nb4)
+        			| a2 & (b2 | na4 & b3 & (b4 | nb1) | na3 | na1);
+    		this.nullBit3 = b3 & (nb2 & b4 | nb1 | a3 & (na4 & nb4 | a4 & b4))
+        			| a3 & (na2 & a4 | na1)
+        			| (a2 | na1) & b1 & nb2 & nb4
+        			| a1 & na2 & na4 & (b2 | nb1);
     		this.nullBit4 = na3 & (nb1 & nb3 & b4
               			| b1 & (nb2 & nb3 | a4 & b2 & nb4)
               			| na1 & a4 & (nb3 | b1 & b2))
-        			| a3 & a4 & (b3 & b4 | b1 & nb2 | na1 & a2)
+        			| a3 & a4 & (b3 & b4 | b1 & nb2)
         			| na2 & (nb1 & b4 | b1 & nb3 | na1 & a4) & nb2
         			| a1 & (na3 & (nb3 & b4
                         			| b1 & b2 & b3 & nb4
                         			| na2 & (nb3 | nb2))
                 			| na2 & b3 & b4
-                			| a2 & (nb1 & b4 | a3 & na4 & b1) & nb3)
-                	|nb1 & b2 & b3 & b4;
-
+                			| a2 & (nb1 & b4 | a3 & na4 & b1) & nb3);
+    		// the above formulae do not handle the state 0111, do it now explicitly:
+    		long ax = ~a1 & a2 & a3 & a4;
+    		long bx = ~b1 & b2 & b3 & b4;
+    		long x = ax|bx;
+    		if (x != 0) {
+    			// restore state 0111 for all variable ids in x:
+    			this.nullBit1 &= ~x;
+    			this.nullBit2 |= x;
+    			this.nullBit3 |= x;
+    			this.nullBit4 |= x;
+    		}
+		
     		if (COVERAGE_TEST_FLAG) {
     			if(CoverageTestId == 30) {
 	    		  	this.nullBit4 = ~0;
@@ -1804,27 +1788,43 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 		}
 		// compose nulls
 		for (i = 0; i < mergeLimit; i++) {
-    		this.extra[1 + 1][i] = (a1=this.extra[1+1][i]) & (b1=otherInits.extra[1+1][i]) & (
-    				((a2=this.extra[2+1][i]) & (((b2=otherInits.extra[2+1][i]) & 
-    												~(((a3=this.extra[3+1][i]) & (a4=this.extra[4+1][i])) ^ ((b3=otherInits.extra[3+1][i]) & (b4=otherInits.extra[4+1][i]))))
-    											|(a3 & a4 & (nb2=~b2))))
-    				|((na2=~a2) & ((b2 & b3 & b4)
-    						|(nb2 & ((na3=~a3) ^ b3)))));
-    		this.extra[2 + 1][i] = b2 & ((nb3=~b3) | (nb1 = ~b1) | a3 & (a4 | (na1 = ~a1)) & (nb4=~b4))
-        			| a2 & (b2 | (na4=~a4) & b3 & (b4 | nb1) | na3 | na1);
-    		this.extra[3 + 1][i] =   a3 & (na1 | a1 & na2 | b3 & (na4 ^ b4))
-								   | b3 & (nb1 | b1 & nb2);
+    		this.extra[1 + 1][i] = (a2 = this.extra[2 + 1][i]) & (a3 = this.extra[3 + 1][i])
+    							& (a4 = this.extra[4 + 1][i]) & (b1 = otherInits.extra[1 + 1][i])
+    							& (nb2 = ~(b2 = otherInits.extra[2 + 1][i]))
+                  			| (a1 = this.extra[1 + 1][i]) & (b1 & (a3 & a4 & (b3 = otherInits.extra[3 + 1][i])
+                  													& (b4 = otherInits.extra[4 + 1][i])
+                  												| (na2 = ~a2) & nb2
+                  													& ((nb4 = ~b4) | (na4 = ~a4)
+                  															| (na3 = ~a3) & (nb3 = ~b3))
+                  												| a2 & b2 & ((na4 | na3) & (nb4	| nb3)))
+                  											| na2 & b2 & b3 & b4);
+    		this.extra[2 + 1][i] = b2 & (nb3 | (nb1 = ~b1) | a3 & (a4 | (na1 = ~a1)) & nb4)
+        			| a2 & (b2 | na4 & b3 & (b4 | nb1) | na3 | na1);
+    		this.extra[3 + 1][i] = b3 & (nb2 & b4 | nb1 | a3 & (na4 & nb4 | a4 & b4))
+        			| a3 & (na2 & a4 | na1)
+        			| (a2 | na1) & b1 & nb2 & nb4
+        			| a1 & na2 & na4 & (b2 | nb1);
     		this.extra[4 + 1][i] = na3 & (nb1 & nb3 & b4
               			| b1 & (nb2 & nb3 | a4 & b2 & nb4)
               			| na1 & a4 & (nb3 | b1 & b2))
-        			| a3 & a4 & (b3 & b4 | b1 & nb2 | na1 & a2)
+        			| a3 & a4 & (b3 & b4 | b1 & nb2)
         			| na2 & (nb1 & b4 | b1 & nb3 | na1 & a4) & nb2
         			| a1 & (na3 & (nb3 & b4
                         			| b1 & b2 & b3 & nb4
                         			| na2 & (nb3 | nb2))
                 			| na2 & b3 & b4
-                			| a2 & (nb1 & b4 | a3 & na4 & b1) & nb3)
-                	|nb1 & b2 & b3 & b4;
+                			| a2 & (nb1 & b4 | a3 & na4 & b1) & nb3);
+    		// the above formulae do not handle the state 0111, do it now explicitly:
+    		long ax = ~a1 & a2 & a3 & a4;
+    		long bx = ~b1 & b2 & b3 & b4;
+    		long x = ax|bx;
+    		if (x != 0) {
+    			// restore state 0111 for all variable ids in x:
+    			this.extra[2][i] &= ~x;
+    			this.extra[3][i] |= x;
+    			this.extra[4][i] |= x;
+    			this.extra[5][i] |= x;
+    		}
 			thisHasNulls = thisHasNulls ||
 				this.extra[3][i] != 0 ||
 				this.extra[4][i] != 0 ||
@@ -1867,6 +1867,7 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 			}
 		}
 	}
+	combineNullStatusChangeInAssertInfo(otherInits);
 	if (thisHasNulls) {
 		this.tagBits |= NULL_FLAG_MASK;
 	}
@@ -1898,6 +1899,7 @@ public UnconditionalFlowInfo nullInfoLessUnconditionalCopy() {
 	copy.potentialInits = this.potentialInits;
 	copy.tagBits = this.tagBits & ~NULL_FLAG_MASK;
 	copy.maxFieldCount = this.maxFieldCount;
+	copy.nullStatusChangedInAssert = this.nullStatusChangedInAssert;
 	if (this.extra != null) {
 		int length;
 		copy.extra = new long[extraLength][];
@@ -2030,6 +2032,7 @@ public UnconditionalFlowInfo unconditionalFieldLessCopy() {
 		copy.nullBit3 = this.nullBit3 & mask;
 		copy.nullBit4 = this.nullBit4 & mask;
 	}
+	copy.nullStatusChangedInAssert = this.nullStatusChangedInAssert;
 	// use extra vector
 	if (this.extra == null) {
 		return copy; // if vector not yet allocated, then not initialized
@@ -2071,6 +2074,61 @@ public UnconditionalFlowInfo unconditionalInits() {
 
 public UnconditionalFlowInfo unconditionalInitsWithoutSideEffect() {
 	return this;
+}
+
+public void markedAsNullOrNonNullInAssertExpression(LocalVariableBinding local) {
+	int position = local.id + this.maxFieldCount;
+	int oldLength;
+	if (this.nullStatusChangedInAssert == null) {
+		this.nullStatusChangedInAssert = new int[position + 1];
+	}
+	else {
+		if(position >= (oldLength = this.nullStatusChangedInAssert.length)) {
+			System.arraycopy(this.nullStatusChangedInAssert, 0, (this.nullStatusChangedInAssert = new int[position + 1]), 0, oldLength); 
+		}
+	}
+	this.nullStatusChangedInAssert[position] = 1;
+}
+
+public boolean isMarkedAsNullOrNonNullInAssertExpression(LocalVariableBinding local) {
+	int position = local.id + this.maxFieldCount;
+	if(this.nullStatusChangedInAssert == null || position >= this.nullStatusChangedInAssert.length) {
+		return false;
+	}
+	if(this.nullStatusChangedInAssert[position] == 1) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Combine the null status changes in assert expressions info
+ * @param otherInits
+ */
+// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=303448
+private void combineNullStatusChangeInAssertInfo(UnconditionalFlowInfo otherInits) {
+	if (this.nullStatusChangedInAssert != null || otherInits.nullStatusChangedInAssert != null) {
+		int mergedLength, length;
+		if (this.nullStatusChangedInAssert != null) {
+			if (otherInits.nullStatusChangedInAssert != null) {
+				if(otherInits.nullStatusChangedInAssert.length > this.nullStatusChangedInAssert.length) {
+					mergedLength = otherInits.nullStatusChangedInAssert.length;
+					length = this.nullStatusChangedInAssert.length;
+					System.arraycopy(this.nullStatusChangedInAssert, 0, (this.nullStatusChangedInAssert = new int[mergedLength]), 0, length);
+					for(int i = 0; i < length; i ++) {
+						this.nullStatusChangedInAssert[i] |= otherInits.nullStatusChangedInAssert[i];
+					}
+					System.arraycopy(otherInits.nullStatusChangedInAssert, length, this.nullStatusChangedInAssert, length, mergedLength - length);
+				} else {
+					for(int i = 0; i < otherInits.nullStatusChangedInAssert.length; i ++) {
+						this.nullStatusChangedInAssert[i] |= otherInits.nullStatusChangedInAssert[i];
+					}
+				}
+			}
+		} else if (otherInits.nullStatusChangedInAssert != null) {
+			this.nullStatusChangedInAssert = otherInits.nullStatusChangedInAssert;
+		}
+	}
 }
 
 public void resetAssignmentInfo(LocalVariableBinding local) {

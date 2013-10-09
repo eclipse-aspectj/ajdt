@@ -74,7 +74,7 @@ public class LangUtil {
 				try {
 					String versionString = vm.substring(0, 3);
 					Double temp = new Double(Double.parseDouble(versionString));
-					vmVersion = temp.doubleValue();
+					vmVersion = temp.floatValue();
 				} catch (Exception e) {
 					vmVersion = 1.4;
 				}
@@ -105,10 +105,6 @@ public class LangUtil {
 
 	public static boolean is17VMOrGreater() {
 		return 1.7 <= vmVersion;
-	}
-	
-	public static boolean is18VMOrGreater() {
-		return 1.8 <= vmVersion;
 	}
 
 	/**

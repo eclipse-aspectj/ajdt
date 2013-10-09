@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -77,7 +77,6 @@ public abstract class SearchPattern {
 
 	/**
 	 * Match rule: The search pattern contains a regular expression.
-	 * <p><b>Warning:</b> The support for this rule is <b>not yet implemented</b></p>
 	 */
 	public static final int R_REGEXP_MATCH = 0x0004;
 
@@ -863,9 +862,8 @@ public static SearchPattern createAndPattern(SearchPattern leftPattern, SearchPa
 }
 
 private static SearchPattern createFieldPattern(String patternString, int limitTo, int matchRule) {
-	// use 1.7 as the source level as there are more valid tokens in 1.7 mode
-	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=376673
-	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_7/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
+
+	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_3/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
 	scanner.setSource(patternString.toCharArray());
 	final int InsideDeclaringPart = 1;
 	final int InsideType = 2;
@@ -980,9 +978,8 @@ private static SearchPattern createFieldPattern(String patternString, int limitT
 }
 
 private static SearchPattern createMethodOrConstructorPattern(String patternString, int limitTo, int matchRule, boolean isConstructor) {
-	// use 1.7 as the source level as there are more valid tokens in 1.7 mode
-	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=376673
-	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_7/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
+
+	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_3/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
 	scanner.setSource(patternString.toCharArray());
 	final int InsideSelector = 1;
 	final int InsideTypeArguments = 2;
@@ -1552,6 +1549,7 @@ private static SearchPattern createPackagePattern(String patternString, int limi
  * 		<li>{@link #R_EXACT_MATCH}</li>
  * 		<li>{@link #R_PREFIX_MATCH}</li>
  * 		<li>{@link #R_PATTERN_MATCH}</li>
+ * 		<li>{@link #R_REGEXP_MATCH}</li>
  * 		<li>{@link #R_CAMELCASE_MATCH}</li>
  * 		<li>{@link #R_CAMELCASE_SAME_PART_COUNT_MATCH}</li>
  * 	</ul>
@@ -1838,6 +1836,7 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo) {
  * 		<li>{@link #R_EXACT_MATCH}</li>
  * 		<li>{@link #R_PREFIX_MATCH}</li>
  * 		<li>{@link #R_PATTERN_MATCH}</li>
+ * 		<li>{@link #R_REGEXP_MATCH}</li>
  * 		<li>{@link #R_CAMELCASE_MATCH}</li>
  * 		<li>{@link #R_CAMELCASE_SAME_PART_COUNT_MATCH}</li>
  * 	</ul>
@@ -2145,9 +2144,8 @@ private static SearchPattern createTypePattern(char[] simpleName, char[] package
 }
 
 private static SearchPattern createTypePattern(String patternString, int limitTo, int matchRule, char indexSuffix) {
-	// use 1.7 as the source level as there are more valid tokens in 1.7 mode
-	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=376673
-	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_7/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
+
+	Scanner scanner = new Scanner(false /*comment*/, true /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_3/*sourceLevel*/, null /*taskTags*/, null/*taskPriorities*/, true/*taskCaseSensitive*/);
 	scanner.setSource(patternString.toCharArray());
 	String type = null;
 	int token;
@@ -2502,8 +2500,11 @@ public static int validateMatchRule(String stringPattern, int matchRule) {
 
 	// Verify Regexp match rule
 	if ((matchRule & R_REGEXP_MATCH) != 0) {
-		// regexp is not supported yet
-		return -1;
+		if ((matchRule & R_PATTERN_MATCH) != 0 || (matchRule & R_PREFIX_MATCH) != 0 ||
+			(matchRule & R_CAMELCASE_MATCH) != 0 || (matchRule & R_CAMELCASE_SAME_PART_COUNT_MATCH) != 0) {
+			// regexp is not supported yet
+			return -1;
+		}
 	}
 
 	// Verify Pattern match rule

@@ -1,25 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contribution for
- *								bug 331649 - [compiler][null] consider null annotations for fields
- *     Jesper S Moller - Contributions for
- *							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 
 public abstract class NameReference extends Reference implements InvocationSite {
 
@@ -30,29 +21,18 @@ public abstract class NameReference extends Reference implements InvocationSite 
 	//the error printing
 	//some name reference are build as name reference but
 	//only used as type reference. When it happens, instead of
-	//creating a new object (aTypeReference) we just flag a boolean
-	//This concesion is valuable while there are cases when the NameReference
+	//creating a new objet (aTypeReference) we just flag a boolean
+	//This concesion is valuable while their are cases when the NameReference
 	//will be a TypeReference (static message sends.....) and there is
 	//no changeClass in java.
 public NameReference() {
 	this.bits |= Binding.TYPE | Binding.VARIABLE; // restrictiveFlag
 }
 
-/** 
- * Use this method only when sure that the current reference is <strong>not</strong>
- * a chain of several fields (QualifiedNameReference with more than one field).
- * Otherwise use {@link #lastFieldBinding()}.
- */
 public FieldBinding fieldBinding() {
 	//this method should be sent ONLY after a check against isFieldReference()
 	//check its use doing senders.........
 	return (FieldBinding) this.binding ;
-}
-
-public FieldBinding lastFieldBinding() {
-	if ((this.bits & ASTNode.RestrictiveFlagMASK) == Binding.FIELD)
-		return fieldBinding(); // most subclasses only refer to one field anyway
-	return null;
 }
 
 public boolean isSuperAccess() {
@@ -85,19 +65,4 @@ public void setFieldIndex(int index){
 }
 
 public abstract String unboundReferenceErrorName();
-
-public abstract char[][] getName();
-
-/* Called during code generation to ensure that outer locals's effectively finality is guaranteed. 
-   Aborts if constraints are violated. Due to various complexities, this check is not conveniently
-   implementable in resolve/analyze phases.
-*/
-protected void checkEffectiveFinality(LocalVariableBinding localBinding, Scope scope) {
-	if ((this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
-		if (!localBinding.isFinal() && !localBinding.isEffectivelyFinal()) {
-			scope.problemReporter().cannotReferToNonEffectivelyFinalOuterLocal(localBinding, this);
-			throw new AbortMethod(scope.referenceCompilationUnit().compilationResult, null);
-		}
-	}
-}
 }

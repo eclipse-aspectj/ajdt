@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,6 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Kelly Campbell <kellyc@google.com> - Hangs in SourceMapper during java proposals - https://bugs.eclipse.org/bugs/show_bug.cgi?id=281575
- *     Stephan Herrmann - Contribution for Bug 380048 - error popup when navigating to source files
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -247,11 +246,10 @@ public class SourceMapper
 	int anonymousCounter;
 	int anonymousClassName;
 
-	String encoding;
-	String defaultEncoding;
 	/**
 	 *Options to be used
 	 */
+	String encoding;
 	Map options;
 
 	/**
@@ -263,19 +261,15 @@ public class SourceMapper
 		this.areRootPathsComputed = false;
 	}
 
-	public SourceMapper(IPath sourcePath, String rootPath, Map options) {
-		this(sourcePath, rootPath, options, null);
-	}
 	/**
 	 * Creates a <code>SourceMapper</code> that locates source in the zip file
 	 * at the given location in the specified package fragment root.
 	 */
-	public SourceMapper(IPath sourcePath, String rootPath, Map options, String encoding) {
+	public SourceMapper(IPath sourcePath, String rootPath, Map options) {
 		this.areRootPathsComputed = false;
 		this.options = options;
-		this.encoding = encoding;
 		try {
-			this.defaultEncoding = ResourcesPlugin.getWorkspace().getRoot().getDefaultCharset();
+			this.encoding = ResourcesPlugin.getWorkspace().getRoot().getDefaultCharset();
 		} catch (CoreException e) {
 			// use no encoding
 		}
@@ -370,13 +364,12 @@ public class SourceMapper
 	}
 
 	/**
-	 * NOT API, public only for access by Unit tests.
 	 * Converts these type names to unqualified signatures. This needs to be done in order to be consistent
 	 * with the way the source range is retrieved.
 	 * @see SourceMapper#getUnqualifiedMethodHandle
 	 * @see Signature
 	 */
-	public String[] convertTypeNamesToSigs(char[][] typeNames) {
+	private String[] convertTypeNamesToSigs(char[][] typeNames) {
 		if (typeNames == null)
 			return CharOperation.NO_STRINGS;
 		int n = typeNames.length;
@@ -403,16 +396,6 @@ public class SourceMapper
 						dot = j;
 						break;
 					case Signature.C_GENERIC_START:
-						int matchingEnd = findMatchingGenericEnd(typeSig, j+1);
-						if (matchingEnd > 0 && matchingEnd+1 < length && typeSig[matchingEnd+1] == Signature.C_DOT) {
-							// found Head<Param>.Tail -> discard everything except Tail
-							if (simpleTypeSig == null)
-								simpleTypeSig = new StringBuffer().append(typeSig, 0, start);
-							simpleTypeSig.append(Signature.C_UNRESOLVED);
-							start = j = matchingEnd+2;
-							break;
-						}
-						//$FALL-THROUGH$
 					case Signature.C_NAME_END:
 						if (dot > start) {
 							if (simpleTypeSig == null)
@@ -432,24 +415,6 @@ public class SourceMapper
 			}
 		}
 		return typeSigs;
-	}
-
-	private int findMatchingGenericEnd(char[] sig, int start) {
-		int nesting = 0;
-		int length = sig.length;
-		for (int i=start; i < length; i++) {
-			switch (sig[i]) {
-				case Signature.C_GENERIC_START:
-					nesting++;
-					break;
-				case Signature.C_GENERIC_END:
-					if (nesting == 0)
-						return i;
-					nesting--;
-					break;
-			}
-		}
-		return -1;
 	}
 
 	private synchronized void computeAllRootPaths(IType type) {
@@ -1055,17 +1020,9 @@ public class SourceMapper
 			IResource res = ((IContainer)target).findMember(fullName);
 			if (res instanceof IFile) {
 				try {
-					// Order of preference: charSet supplied, this.encoding or this.defaultEncoding in that order
-					try {
-						// Use the implicit encoding only when the source attachment's encoding hasn't been explicitly set.
-						charSet = ((IFile) res).getCharset(this.encoding == null);
-					} catch (CoreException e) {
-						// Ignore
-					}
-					source = org.aspectj.org.eclipse.jdt.internal.core.util.Util.getResourceContentsAsCharArray((IFile) res,
-									charSet == null ? (this.encoding == null ? this.defaultEncoding : this.encoding) : charSet);
+					source = org.aspectj.org.eclipse.jdt.internal.core.util.Util.getResourceContentsAsCharArray((IFile)res);
 				} catch (JavaModelException e) {
-					// Ignore
+					// ignore
 				}
 			}
 		} else {
@@ -1073,7 +1030,7 @@ public class SourceMapper
 				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=303511
 				// For a resource inside the workspace, use the encoding set on the resource
 				if (target instanceof IFile)
-					charSet = ((IFile)target).getCharset(this.encoding == null);
+					charSet = ((IFile)target).getCharset();
 			} catch (CoreException e) {
 				// Ignore
 			}
@@ -1457,8 +1414,7 @@ public class SourceMapper
 		try {
 			byte[] bytes = Util.getZipEntryByteContent(entry, zip);
 			if (bytes != null) {
-				// Order of preference: charSet supplied, this.encoding or this.defaultEncoding in that order
-				return Util.bytesToChar(bytes, charSet == null ? (this.encoding == null ? this.defaultEncoding : this.encoding) : charSet);
+				return Util.bytesToChar(bytes, charSet == null ? this.encoding : charSet);
 			}
 		} catch (IOException e) {
 			// ignore

@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2013 IBM Corporation and others.
+ * Copyright (c) 2003, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -20,10 +16,9 @@ import java.util.List;
 
 /**
  * Type node for a qualified type (added in JLS3 API).
- * 
  * <pre>
  * QualifiedType:
- *    Type <b>.</b> { Annotation } SimpleName
+ *    Type <b>.</b> SimpleName
  * </pre>
  * <p>
  * Not all node arrangements will represent legal Java constructs. In particular,
@@ -43,28 +38,13 @@ import java.util.List;
  * The first form is preferred when "A" is known to be a type. However, a
  * parser cannot always determine this. Clients should be prepared to handle
  * either rather than make assumptions. (Note also that the first form
- * became possible as of JLS3; only the second form existed in JLS2 API;
- * the ASTParser currently prefers the second form).
+ * became possible as of JLS3; only the second form existed in JLS2 API.)
  * </p>
- * <p>
- * Since JLS8, it's also possible to annotate qualified type names.
- * A type like "a.@X B" cannot be represented in either of
- * the old ways, because "a" is not a type, but a package.
- * Such types are represented as:
- * </p>
- * <ol start="3">
- * <li>
- * <code>PackageQualifiedType(SimpleName("a"),MarkerAnnotation("X"),SimpleName("B"))</code>
- * </li>
- * </ol>
- * 
- * @see SimpleType
- * @see PackageQualifiedType
- * 
+ *
  * @since 3.1
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
-public class QualifiedType extends AnnotatableType {
+public class QualifiedType extends Type {
     /**
      * This index represents the position inside a parameterized qualified type.
      */
@@ -77,31 +57,17 @@ public class QualifiedType extends AnnotatableType {
 		new ChildPropertyDescriptor(QualifiedType.class, "qualifier", Type.class, MANDATORY, CYCLE_RISK); //$NON-NLS-1$
 
 	/**
-	 * The "annotations" structural property of this node type (element type: {@link Annotation}).
-	 * @since 3.9 BETA_JAVA8
-	 */
-	public static final ChildListPropertyDescriptor ANNOTATIONS_PROPERTY =
-			internalAnnotationsPropertyFactory(QualifiedType.class);
-	
-	/**
 	 * The "name" structural property of this node type (child type: {@link SimpleName}).
 	 */
 	public static final ChildPropertyDescriptor NAME_PROPERTY =
 		new ChildPropertyDescriptor(QualifiedType.class, "name", SimpleName.class, MANDATORY, NO_CYCLE_RISK); //$NON-NLS-1$
-	
+
 	/**
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
 	 */
 	private static final List PROPERTY_DESCRIPTORS;
-	/**
-	 * A list of property descriptors (element type:
-	 * {@link StructuralPropertyDescriptor}),
-	 * or null if uninitialized.
-	 * @since 3.9 BETA_JAVA8
-	 */
-	private static final List PROPERTY_DESCRIPTORS_8_0;
 
 	static {
 		List propertyList = new ArrayList(3);
@@ -109,13 +75,6 @@ public class QualifiedType extends AnnotatableType {
 		addProperty(QUALIFIER_PROPERTY, propertyList);
 		addProperty(NAME_PROPERTY, propertyList);
 		PROPERTY_DESCRIPTORS = reapPropertyList(propertyList);
-		
-		propertyList = new ArrayList(4);
-		createPropertyList(QualifiedType.class, propertyList);
-		addProperty(QUALIFIER_PROPERTY, propertyList);
-		addProperty(ANNOTATIONS_PROPERTY, propertyList);
-		addProperty(NAME_PROPERTY, propertyList);
-		PROPERTY_DESCRIPTORS_8_0 = reapPropertyList(propertyList);
 	}
 
 	/**
@@ -128,19 +87,12 @@ public class QualifiedType extends AnnotatableType {
 	 * {@link StructuralPropertyDescriptor})
 	 */
 	public static List propertyDescriptors(int apiLevel) {
-		switch (apiLevel) {
-			case AST.JLS2_INTERNAL :
-			case AST.JLS3_INTERNAL :
-			case AST.JLS4_INTERNAL:
-				return PROPERTY_DESCRIPTORS;
-			default :
-				return PROPERTY_DESCRIPTORS_8_0;
-		}
+		return PROPERTY_DESCRIPTORS;
 	}
 
 	/**
 	 * The type node; lazily initialized; defaults to a type with
-	 * an unspecified, but legal, simple name.
+	 * an unspecfied, but legal, simple name.
 	 */
 	private Type qualifier = null;
 
@@ -165,31 +117,12 @@ public class QualifiedType extends AnnotatableType {
 	}
 
 	/* (omit javadoc for this method)
-	 * Method declared on AnnotatableType.
-	 * @since 3.9 BETA_JAVA8
-	 */
-	final ChildListPropertyDescriptor internalAnnotationsProperty() {
-		return ANNOTATIONS_PROPERTY;
-	}
-
-	/* (omit javadoc for this method)
 	 * Method declared on ASTNode.
 	 */
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
-	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
-		if (property == ANNOTATIONS_PROPERTY) {
-			return annotations();
-		}
-		// allow default implementation to flag the error
-		return super.internalGetChildListProperty(property);
-	}
-	
 	/* (omit javadoc for this method)
 	 * Method declared on ASTNode.
 	 */
@@ -228,10 +161,6 @@ public class QualifiedType extends AnnotatableType {
 		QualifiedType result = new QualifiedType(target);
 		result.setSourceRange(getStartPosition(), getLength());
 		result.setQualifier((Type) ((ASTNode) getQualifier()).clone(target));
-		if (this.ast.apiLevel >= AST.JLS8) {
-			result.annotations().addAll(
-					ASTNode.copySubtrees(target, annotations()));
-		}
 		result.setName((SimpleName) ((ASTNode) getName()).clone(target));
 		return result;
 	}
@@ -252,9 +181,6 @@ public class QualifiedType extends AnnotatableType {
 		if (visitChildren) {
 			// visit children in normal left to right reading order
 			acceptChild(visitor, getQualifier());
-			if (this.ast.apiLevel >= AST.JLS8) {
-				acceptChildren(visitor, this.annotations);
-			}
 			acceptChild(visitor, getName());
 		}
 		visitor.endVisit(this);
@@ -343,7 +269,7 @@ public class QualifiedType extends AnnotatableType {
 	 */
 	int memSize() {
 		// treat Code as free
-		return BASE_NODE_SIZE + 4 * 4;
+		return BASE_NODE_SIZE + 3 * 4;
 	}
 
 	/* (omit javadoc for this method)
@@ -353,7 +279,6 @@ public class QualifiedType extends AnnotatableType {
 		return
 			memSize()
 			+ (this.qualifier == null ? 0 : getQualifier().treeSize())
-			+ (this.annotations == null ? 0 : this.annotations.listSize())
 			+ (this.name == null ? 0 : getName().treeSize());
 	}
 }

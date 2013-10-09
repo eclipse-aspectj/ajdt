@@ -1,19 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 366003 - CCE in ASTNode.resolveAnnotations(ASTNode.java:639)
- *								bug 383973 - [1.8][compiler] syntax recovery in the presence of default methods
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 
@@ -118,7 +111,7 @@ public RecoveredElement add(AbstractMethodDeclaration methodDeclaration, int bra
 		this.pendingTypeParameters = null;
 	}
 
-	if(this.pendingAnnotationCount > 0 || this.pendingModifiers != 0) {
+	if(this.pendingAnnotationCount > 0) {
 		element.attach(
 				this.pendingAnnotations,
 				this.pendingAnnotationCount,
@@ -778,25 +771,6 @@ public void updateSourceEndIfNecessary(int start, int end){
 		this.bodyEnd = 0;
 		this.typeDeclaration.declarationSourceEnd = end;
 		this.typeDeclaration.bodyEnd = end;
-	}
-}
-public void annotationsConsumed(Annotation[] consumedAnnotations) {
-	RecoveredAnnotation[] keep = new RecoveredAnnotation[this.pendingAnnotationCount];
-	int numKeep = 0;
-	int pendingCount = this.pendingAnnotationCount;
-	int consumedLength = consumedAnnotations.length;
-	outerLoop:
-	for (int i = 0; i < pendingCount; i++) {
-		Annotation pendingAnnotationAST = this.pendingAnnotations[i].annotation;
-		for (int j = 0; j < consumedLength; j++) {
-			if (consumedAnnotations[j] == pendingAnnotationAST)
-				continue outerLoop;
-		}
-		keep[numKeep++] = this.pendingAnnotations[i];
-	}
-	if (numKeep != this.pendingAnnotationCount) {
-		this.pendingAnnotations = keep;
-		this.pendingAnnotationCount = numKeep;
 	}
 }
 }

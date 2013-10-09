@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2013 IBM Corporation and others.
+ * Copyright (c) 2004, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,14 +37,14 @@ import org.eclipse.text.edits.TextEditGroup;
 public final class ListRewrite {
 
 	private ASTNode parent;
-	private ChildListPropertyDescriptor childListProperty;
+	private StructuralPropertyDescriptor childProperty;
 	private ASTRewrite rewriter;
 
 
-	/* package*/ ListRewrite(ASTRewrite rewriter, ASTNode parent, ChildListPropertyDescriptor childProperty) {
+	/* package*/ ListRewrite(ASTRewrite rewriter, ASTNode parent, StructuralPropertyDescriptor childProperty) {
 		this.rewriter= rewriter;
 		this.parent= parent;
-		this.childListProperty= childProperty;
+		this.childProperty= childProperty;
 	}
 
 	private RewriteEventStore getRewriteStore() {
@@ -52,7 +52,7 @@ public final class ListRewrite {
 	}
 
 	private ListRewriteEvent getEvent() {
-		return getRewriteStore().getListEvent(this.parent, this.childListProperty, true);
+		return getRewriteStore().getListEvent(this.parent, this.childProperty, true);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public final class ListRewrite {
 	 * @since 3.1
 	 */
 	public StructuralPropertyDescriptor getLocationInParent() {
-		return this.childListProperty;
+		return this.childProperty;
 	}
 
 	/**
@@ -137,7 +137,6 @@ public final class ListRewrite {
 		if (node == null) {
 			throw new IllegalArgumentException();
 		}
-		validatePropertyType(node);
 		RewriteEvent event= getEvent().replaceEntry(node, replacement);
 		if (editGroup != null) {
 			getRewriteStore().setEventEditGroup(event, editGroup);
@@ -146,7 +145,7 @@ public final class ListRewrite {
 
 	/**
 	 * Inserts the given node into the list after the given element.
-	 * The existing node <code>previousElement</code> must be in the list, either as an original or as a new
+	 * The existing node must be in the list, either as an original or as a new
 	 * node that has been inserted.
 	 * The inserted node must either be brand new (not part of the original AST)
 	 * or a placeholder node (for example, one created by
@@ -157,20 +156,20 @@ public final class ListRewrite {
      * a note that this node has been inserted into the list.
 	 *
 	 * @param node the node to insert
-	 * @param previousElement the element after which the given node is to be inserted
+	 * @param element the element after which the given node is to be inserted
 	 * @param editGroup the edit group in which to collect the corresponding
 	 * text edits, or <code>null</code> if ungrouped
 	 * @throws IllegalArgumentException if the node or element is null,
 	 * or if the node is not part of this rewriter's AST, or if the inserted node
-	 * is not a new node (or placeholder), or if <code>previousElement</code> is not a member
+	 * is not a new node (or placeholder), or if <code>element</code> is not a member
 	 * of the list (original or new), or if the described modification is
 	 * otherwise invalid
 	 */
-	public void insertAfter(ASTNode node, ASTNode previousElement, TextEditGroup editGroup) {
-		if (node == null || previousElement == null) {
+	public void insertAfter(ASTNode node, ASTNode element, TextEditGroup editGroup) {
+		if (node == null || element == null) {
 			throw new IllegalArgumentException();
 		}
-		int index= getEvent().getIndex(previousElement, ListRewriteEvent.BOTH);
+		int index= getEvent().getIndex(element, ListRewriteEvent.BOTH);
 		if (index == -1) {
 			throw new IllegalArgumentException("Node does not exist"); //$NON-NLS-1$
 		}
@@ -179,7 +178,7 @@ public final class ListRewrite {
 
 	/**
 	 * Inserts the given node into the list before the given element.
-	 * The existing node <code>nextElement</code> must be in the list, either as an original or as a new
+	 * The existing node must be in the list, either as an original or as a new
 	 * node that has been inserted.
 	 * The inserted node must either be brand new (not part of the original AST)
 	 * or a placeholder node (for example, one created by
@@ -190,20 +189,20 @@ public final class ListRewrite {
      * a note that this node has been inserted into the list.
 	 *
 	 * @param node the node to insert
-	 * @param nextElement the element before which the given node is to be inserted
+	 * @param element the element before which the given node is to be inserted
 	 * @param editGroup the edit group in which to collect the corresponding
 	 * text edits, or <code>null</code> if ungrouped
-	 * @throws IllegalArgumentException if the node or next element is null,
+	 * @throws IllegalArgumentException if the node or element is null,
 	 * or if the node is not part of this rewriter's AST, or if the inserted node
-	 * is not a new node (or placeholder), or if <code>nextElement</code> is not a member
+	 * is not a new node (or placeholder), or if <code>element</code> is not a member
 	 * of the list (original or new), or if the described modification is
 	 * otherwise invalid
 	 */
-	public void insertBefore(ASTNode node, ASTNode nextElement, TextEditGroup editGroup) {
-		if (node == null || nextElement == null) {
+	public void insertBefore(ASTNode node, ASTNode element, TextEditGroup editGroup) {
+		if (node == null || element == null) {
 			throw new IllegalArgumentException();
 		}
-		int index= getEvent().getIndex(nextElement, ListRewriteEvent.BOTH);
+		int index= getEvent().getIndex(element, ListRewriteEvent.BOTH);
 		if (index == -1) {
 			throw new IllegalArgumentException("Node does not exist"); //$NON-NLS-1$
 		}
@@ -282,24 +281,12 @@ public final class ListRewrite {
 	}
 
 	private void internalInsertAt(ASTNode node, int index, boolean boundToPrevious, TextEditGroup editGroup) {
-		validatePropertyType(node);
 		RewriteEvent event= getEvent().insert(node, index);
 		if (boundToPrevious) {
 			getRewriteStore().setInsertBoundToPrevious(node);
 		}
 		if (editGroup != null) {
 			getRewriteStore().setEventEditGroup(event, editGroup);
-		}
-	}
-
-	private void validatePropertyType(ASTNode node) {
-		if (!RewriteEventStore.DEBUG) {
-			return;
-		}
-		if (!this.childListProperty.getElementType().isAssignableFrom(node.getClass())) {
-			String message = node.getClass().getName() + " is not a valid type for " + this.childListProperty.getNodeClass().getName() //$NON-NLS-1$
-					+ " property '" + this.childListProperty.getId() + "'. Must be " + this.childListProperty.getElementType().getName(); //$NON-NLS-1$ //$NON-NLS-2$
-			throw new IllegalArgumentException(message);
 		}
 	}
 
@@ -316,7 +303,7 @@ public final class ListRewrite {
 		}
 
 		Block internalPlaceHolder= nodeStore.createCollapsePlaceholder();
-		CopySourceInfo info= getRewriteStore().createRangeCopy(this.parent, this.childListProperty, first, last, isMove, internalPlaceHolder, replacingNode, editGroup);
+		CopySourceInfo info= getRewriteStore().createRangeCopy(this.parent, this.childProperty, first, last, isMove, internalPlaceHolder, replacingNode, editGroup);
 		nodeStore.markAsCopyTarget(placeholder, info);
 
 		return placeholder;

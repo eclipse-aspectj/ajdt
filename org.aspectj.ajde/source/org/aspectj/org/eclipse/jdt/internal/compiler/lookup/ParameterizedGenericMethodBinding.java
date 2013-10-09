@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,6 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -97,19 +94,9 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 		for (int i = 0, length = typeVariables.length; i < length; i++) {
 		    TypeVariableBinding typeVariable = typeVariables[i];
 		    TypeBinding substitute = methodSubstitute.typeArguments[i]; // retain for diagnostics
-		    /* https://bugs.eclipse.org/bugs/show_bug.cgi?id=375394, To avoid spurious bounds check failures due to circularity in formal bounds, 
-		       we should eliminate only the lingering embedded type variable references after substitution, not alien type variable references
-		       that constitute the inference per se.
-		     */ 
-		    TypeBinding substituteForChecks;
-		    if (substitute instanceof TypeVariableBinding) {
-		    	substituteForChecks = substitute;
-		    } else {
-		    	substituteForChecks = Scope.substitute(new LingeringTypeVariableEliminator(typeVariables, null, scope), substitute); // while using this for bounds check
-		    }
-		    
+		    TypeBinding substituteForChecks = Scope.substitute(new LingeringTypeVariableEliminator(typeVariables, null, scope), substitute); // while using this for bounds check
 		    if (uncheckedArguments != null && uncheckedArguments[i] == null) continue; // only bound check if inferred through 15.12.2.6
-			switch (typeVariable.boundCheck(substitution, substituteForChecks, scope)) {
+			switch (typeVariable.boundCheck(substitution, substituteForChecks)) {
 				case TypeConstants.MISMATCH :
 			        // incompatible due to bound check
 					int argLength = arguments.length;
@@ -261,7 +248,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 					if (substitute != null) continue nextTypeParameter; // already inferred previously
 					TypeBinding [] bounds = inferenceContext.getSubstitutes(current, TypeConstants.CONSTRAINT_EXTENDS);
 					if (bounds == null) continue nextTypeParameter;
-					TypeBinding[] glb = Scope.greaterLowerBound(bounds, scope);
+					TypeBinding[] glb = Scope.greaterLowerBound(bounds);
 					TypeBinding mostSpecificSubstitute = null;
 					// https://bugs.eclipse.org/bugs/show_bug.cgi?id=341795 - Per 15.12.2.8, we should fully apply glb
 					if (glb != null) {
@@ -314,7 +301,6 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	    									? originalMethod.returnType // no substitution if original was static
 	    									: Scope.substitute(rawType, originalMethod.returnType));
 	    this.wasInferred = false; // not resulting from method invocation inferrence
-	    this.parameterNonNullness = originalMethod.parameterNonNullness;
 	}
 
     /**
@@ -356,7 +342,6 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 			}
 		}
 	    this.wasInferred = true;// resulting from method invocation inferrence
-	    this.parameterNonNullness = originalMethod.parameterNonNullness;
 	}
 
 	/*

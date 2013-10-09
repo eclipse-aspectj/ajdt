@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -87,22 +83,6 @@
  *     Benjamin Muskalla - added COMPILER_PB_MISSING_SYNCHRONIZED_ON_INHERITED_METHOD
  *     Stephan Herrmann  - added COMPILER_PB_UNUSED_OBJECT_ALLOCATION
  *     Stephan Herrmann  - added COMPILER_PB_SUPPRESS_OPTIONAL_ERRORS
- *     Stephan Herrmann  - added the following constants:
- *     								COMPILER_PB_UNCLOSED_CLOSEABLE,
- *     								COMPILER_PB_POTENTIALLY_UNCLOSED_CLOSEABLE
- *     								COMPILER_PB_EXPLICITLY_CLOSED_AUTOCLOSEABLE
- *     								COMPILER_ANNOTATION_NULL_ANALYSIS
- *     								COMPILER_NULLABLE_ANNOTATION_NAME
- *     								COMPILER_NONNULL_ANNOTATION_NAME
- *     								COMPILER_PB_NULL_SPECIFICATION_VIOLATION
- *     								COMPILER_PB_POTENTIAL_NULL_SPECIFICATION_VIOLATION
- *     								COMPILER_PB_NULL_SPECIFICATION_INSUFFICIENT_INFO
- *									COMPILER_PB_MISSING_ENUM_CASE_DESPITE_DEFAULT
- *									COMPILER_PB_SWITCH_MISSING_DEFAULT_CASE
- *									COMPILER_INHERIT_NULL_ANNOTATIONS
- *									COMPILER_PB_NONNULL_PARAMETER_ANNOTATION_DROPPED
- *									COMPILER_PB_SYNTACTIC_NULL_ANALYSIS_FOR_FIELDS
- *     Jesper S Moller  - Contributions for bug 381345 : [1.8] Take care of the Java 8 major version
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.core;
@@ -126,6 +106,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -139,6 +120,7 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
+
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -146,6 +128,7 @@ import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.core.search.SearchEngine;
 import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
 import org.aspectj.org.eclipse.jdt.core.search.TypeNameRequestor;
+
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -225,7 +208,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Generating Local Variable Debug Attribute.
 	 * <p>When generated, this attribute will enable local variable names
 	 *    to be displayed in debugger, only in place where variables are
-	 *    definitely assigned (.class file is then bigger).</p>
+	 *    definitely assigned (.class file is then bigger).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.debug.localVariable"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "generate", "do not generate" }</code></dd>
@@ -237,7 +220,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Generating Line Number Debug Attribute.
 	 * <p>When generated, this attribute will enable source code highlighting in debugger
-	 *    (.class file is then bigger).</p>
+	 *    (.class file is then bigger).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.debug.lineNumber"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "generate", "do not generate" }</code></dd>
@@ -249,7 +232,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Generating Source Debug Attribute.
 	 * <p>When generated, this attribute will enable the debugger to present the
-	 *    corresponding source code.</p>
+	 *    corresponding source code.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.debug.sourceFile"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "generate", "do not generate" }</code></dd>
@@ -261,7 +244,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Preserving Unused Local Variables.
 	 * <p>Unless requested to preserve unused local variables (that is, never read), the
-	 *    compiler will optimize them out, potentially altering debugging.</p>
+	 *    compiler will optimize them out, potentially altering debugging.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.unusedLocal"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "preserve", "optimize out" }</code></dd>
@@ -272,11 +255,11 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_CODEGEN_UNUSED_LOCAL = PLUGIN_ID + ".compiler.codegen.unusedLocal"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Defining Target Java Platform.
-	 * <p>For binary compatibility reason, .class files can be tagged to with certain VM versions and later.</p>
+	 * <p>For binary compatibility reason, .class files can be tagged to with certain VM versions and later.
 	 * <p>Note that <code>"1.4"</code> target requires to toggle compliance mode to <code>"1.4"</code>, <code>"1.5"</code> target requires
 	 *    to toggle compliance mode to <code>"1.5"</code>, <code>"1.6"</code> target requires to toggle compliance mode to <code>"1.6"</code> and
 	 *    <code>"1.7"</code> target requires to toggle compliance mode to <code>"1.7"</code>.
-	 *    <code>"cldc1.1"</code> requires the source version to be <code>"1.3"</code> and the compliance version to be <code>"1.4"</code> or lower.</p>
+	 *    <code>"cldc1.1"</code> requires the source version to be <code>"1.3"</code> and the compliance version to be <code>"1.4"</code> or lower.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.targetPlatform"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "cldc1.1" }</code></dd>
@@ -289,10 +272,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Inline JSR Bytecode Instruction.
 	 * <p>When enabled, the compiler will no longer generate JSR instructions, but rather inline corresponding
 	 *    subroutine code sequences (mostly corresponding to try finally blocks). The generated code will thus
-	 *    get bigger, but will load faster on virtual machines since the verification process is then much simpler.</p>
-	 * <p>This mode is anticipating support for the Java Specification Request 202.</p>
+	 *    get bigger, but will load faster on virtual machines since the verification process is then much simpler.
+	 * <p>This mode is anticipating support for the Java Specification Request 202.
 	 * <p>Note that JSR inlining is optional only for target platform lesser than 1.5. From 1.5 on, the JSR
-	 *    inlining is mandatory (also see related setting {@link #COMPILER_CODEGEN_TARGET_PLATFORM}).</p>
+	 *    inlining is mandatory (also see related setting {@link #COMPILER_CODEGEN_TARGET_PLATFORM}).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.inlineJsrBytecode"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -306,7 +289,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Javadoc Comment Support.
 	 * <p>When this support is disabled, the compiler will ignore all javadoc problems options settings
 	 *    and will not report any javadoc problem. It will also not find any reference in javadoc comment and
-	 *    DOM AST Javadoc node will be only a flat text instead of having structured tag elements.</p>
+	 *    DOM AST Javadoc node will be only a flat text instead of having structured tag elements.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.doc.comment.support"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -334,7 +317,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 *    Attempting to override a package visible method from another package
 	 *    introduces a new method that is unrelated to the original one. When
 	 *    enabling this option, the compiler will signal such situations as an
-	 *    error or a warning.</p>
+	 *    error or a warning.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.overridingPackageDefaultMethod"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -347,7 +330,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Method With Constructor Name.
 	 * <p>Naming a method with a constructor name is generally considered poor
 	 *    style programming. When enabling this option, the compiler will signal such
-	 *    scenario either as an error or a warning.</p>
+	 *    scenarii either as an error or a warning.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.methodWithConstructorName"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -359,7 +342,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Deprecation.
 	 * <p>When enabled, the compiler will signal use of deprecated API either as an
-	 *    error or a warning.</p>
+	 *    error or a warning.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.deprecation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -370,8 +353,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_DEPRECATION = PLUGIN_ID + ".compiler.problem.deprecation"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Deprecation Inside Deprecated Code.
-	 * <p>When enabled, the compiler will signal use of deprecated API inside deprecated code.</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_DEPRECATION}.</p>
+	 * <p>When enabled, the compiler will signal use of deprecated API inside deprecated code.
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_DEPRECATION}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.deprecationInDeprecatedCode"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -383,8 +366,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_DEPRECATION_IN_DEPRECATED_CODE = PLUGIN_ID + ".compiler.problem.deprecationInDeprecatedCode"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Deprecation When Overriding Deprecated Method.
-	 * <p>When enabled, the compiler will signal the declaration of a method overriding a deprecated one.</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_DEPRECATION}.</p>
+	 * <p>When enabled, the compiler will signal the declaration of a method overriding a deprecated one.
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_DEPRECATION}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.deprecationWhenOverridingDeprecatedMethod"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -396,14 +379,14 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_DEPRECATION_WHEN_OVERRIDING_DEPRECATED_METHOD = "org.aspectj.org.eclipse.jdt.core.compiler.problem.deprecationWhenOverridingDeprecatedMethod"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Hidden Catch Block.
-	 * <p>Locally to a try statement, some catch blocks may hide others. For example,</p>
+	 * <p>Locally to a try statement, some catch blocks may hide others. For example,
 	 *    <pre>
 	 *      try {  throw new java.io.CharConversionException();
 	 *      } catch (java.io.CharConversionException e) {
 	 *      } catch (java.io.IOException e) {}.
 	 *    </pre>
-	 * <p>When enabling this option, the compiler will issue an error or a warning for hidden
-	 *    catch blocks corresponding to checked exceptions.</p>
+	 *    When enabling this option, the compiler will issue an error or a warning for hidden
+	 *    catch blocks corresponding to checked exceptions.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.hiddenCatchBlock"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -415,7 +398,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unused Local.
 	 * <p>When enabled, the compiler will issue an error or a warning for unused local
-	 *    variables (that is, variables never read from).</p>
+	 *    variables (that is, variables never read from).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedLocal"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -427,7 +410,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unused Parameter.
 	 * <p>When enabled, the compiler will issue an error or a warning for unused method
-	 *    parameters (that is, parameters never read from).</p>
+	 *    parameters (that is, parameters never read from).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedParameter"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -438,8 +421,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_UNUSED_PARAMETER = PLUGIN_ID + ".compiler.problem.unusedParameter"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Unused Parameter if Implementing Abstract Method.
-	 * <p>When enabled, the compiler will signal unused parameters in abstract method implementations.</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_UNUSED_PARAMETER}.</p>
+	 * <p>When enabled, the compiler will signal unused parameters in abstract method implementations.
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_UNUSED_PARAMETER}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedParameterWhenImplementingAbstract"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -451,8 +434,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_UNUSED_PARAMETER_WHEN_IMPLEMENTING_ABSTRACT = PLUGIN_ID + ".compiler.problem.unusedParameterWhenImplementingAbstract"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Unused Parameter if Overriding Concrete Method.
-	 * <p>When enabled, the compiler will signal unused parameters in methods overriding concrete ones.</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_UNUSED_PARAMETER}.</p>
+	 * <p>When enabled, the compiler will signal unused parameters in methods overriding concrete ones.
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_UNUSED_PARAMETER}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedParameterWhenOverridingConcrete"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -465,10 +448,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Consider Reference in Doc Comment for Unused Parameter Check.
 	 * <p>When enabled, the compiler will consider doc comment references to parameters (i.e. <code>@param</code> clauses) for the unused
-	 *    parameter check. Thus, documented parameters will be considered as mandated as per doc contract.</p>
-	 * <p>The severity of the unused parameter problem is controlled with option {@link #COMPILER_PB_UNUSED_PARAMETER}.</p>
+	 *    parameter check. Thus, documented parameters will be considered as mandated as per doc contract.
+	 * <p>The severity of the unused parameter problem is controlled with option {@link #COMPILER_PB_UNUSED_PARAMETER}.
 	 * <p>Note: this option has no effect until the doc comment support is enabled according to the
-	 *    option {@link #COMPILER_DOC_COMMENT_SUPPORT}.</p>
+	 *    option {@link #COMPILER_DOC_COMMENT_SUPPORT}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedParameterIncludeDocCommentReference"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -481,7 +464,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unused Import.
 	 * <p>When enabled, the compiler will issue an error or a warning for unused import
-	 *    reference.</p>
+	 *    reference.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedImport"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -495,7 +478,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Presence of Type Arguments for a Non-Generic Method Invocation.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever type arguments are encountered for a
 	 *    non-generic method invocation. Note that prior to compliance level is <code>"1.7"</code>, this situation would automatically result
-	 *    in an error. From Java7 on, unused type arguments are being tolerated, and optionally warned against.</p>
+	 *    in an error. From Java7 on, unused type arguments are being tolerated, and optionally warned against.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedTypeArgumentsForMethodInvocation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -509,7 +492,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Synthetic Access Emulation.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever it emulates
 	 *    access to a non-accessible member of an enclosing type. Such access can have
-	 *    performance implications.</p>
+	 *    performance implications.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.syntheticAccessEmulation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -518,25 +501,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_SYNTHETIC_ACCESS_EMULATION = PLUGIN_ID + ".compiler.problem.syntheticAccessEmulation"; //$NON-NLS-1$
-
-	/**
-	 * Compiler option ID: Reporting Unused Type Parameter.
-	 * <p>When enabled, the compiler will issue an error or a warning whenever it encounters an 
-	 * unused type parameter. </p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedTypeParameter"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
-	 * </dl>
-	 * @since 3.9
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_UNUSED_TYPE_PARAMETER = PLUGIN_ID + ".compiler.problem.unusedTypeParameter"; //$NON-NLS-1$
-
 	/**
 	 * Compiler option ID: Reporting Non-Externalized String Literal.
 	 * <p>When enabled, the compiler will issue an error or a warning for non externalized
-	 *    String literal (that is, not tagged with <code>//$NON-NLS-&lt;n&gt;$</code>).</p>
+	 *    String literal (that is, not tagged with <code>//$NON-NLS-&lt;n&gt;$</code>).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.nonExternalizedStringLiteral"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -549,7 +517,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Usage of <code>'assert'</code> Identifier.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever <code>'assert'</code> is
-	 *    used as an identifier (reserved keyword in 1.4).</p>
+	 *    used as an identifier (reserved keyword in 1.4).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.assertIdentifier"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -562,7 +530,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Usage of <code>'enum'</code> Identifier.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever <code>'enum'</code> is
-	 *    used as an identifier (reserved keyword in 1.5).</p>
+	 *    used as an identifier (reserved keyword in 1.5).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.enumIdentifier"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -576,7 +544,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Non-Static Reference to a Static Member.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a static field
 	 *    or method is accessed with an expression receiver. A reference to a static member should
-	 *    be qualified with a type name.</p>
+	 *    be qualified with a type name.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.staticAccessReceiver"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -590,7 +558,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Indirect Reference to a Static Member.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a static field
 	 *    or method is accessed in an indirect way. A reference to a static member should
-	 *    preferably be qualified with its declaring type name.</p>
+	 *    preferably be qualified with its declaring type name.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.indirectStaticAccess"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -603,7 +571,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Assignment with no Effect.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever an assignment
-	 *    has no effect (e.g <code>'x = x'</code>).</p>
+	 *    has no effect (e.g <code>'x = x'</code>).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.noEffectAssignment"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -617,7 +585,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Interface Method not Compatible with non-Inherited Methods.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever an interface
 	 *    defines a method incompatible with a non-inherited <code>Object</code> method. Until this conflict
-	 *    is resolved, such an interface cannot be implemented. For example,</p>
+	 *    is resolved, such an interface cannot be implemented, For example,
 	 *    <pre>
 	 *      interface I {
 	 *         int clone();
@@ -635,7 +603,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unused Private Members.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a private
-	 *    method or field is declared but never used within the same unit.</p>
+	 *    method or field is declared but never used within the same unit.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedPrivateMember"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -648,7 +616,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Local Variable Declaration Hiding another Variable.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a local variable
-	 *    declaration is hiding some field or local variable (either locally, inherited or defined in enclosing type).</p>
+	 *    declaration is hiding some field or local variable (either locally, inherited or defined in enclosing type).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.localVariableHiding"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -661,8 +629,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Special Parameter Hiding another Field.
 	 * <p>When enabled, the compiler will signal cases where a constructor or setter method parameter declaration
-	 *    is hiding some field (either locally, inherited or defined in enclosing type).</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_LOCAL_VARIABLE_HIDING}.</p>
+	 *    is hiding some field (either locally, inherited or defined in enclosing type).
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_LOCAL_VARIABLE_HIDING}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.specialParameterHidingField"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -675,7 +643,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Field Declaration Hiding another Variable.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a field
-	 *    declaration is hiding some field or local variable (either locally, inherited or defined in enclosing type).</p>
+	 *    declaration is hiding some field or local variable (either locally, inherited or defined in enclosing type).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.fieldHiding"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -689,7 +657,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Type Declaration Hiding another Type.
 	 * <p>When enabled, the compiler will issue an error or a warning in situations where a type parameter
 	 *    declaration is hiding some type, when a nested type is hiding some type parameter, or when
-	 *    a nested type is hiding another nested type defined in same unit.</p>
+	 *    a nested type is hiding another nested type defined in same unit.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.typeParameterHiding"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -702,7 +670,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Possible Accidental Boolean Assignment.
 	 * <p>When enabled, the compiler will issue an error or a warning if a boolean assignment is acting as the condition
-	 *    of a control statement  (where it probably was meant to be a boolean comparison).</p>
+	 *    of a control statement  (where it probably was meant to be a boolean comparison).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.possibleAccidentalBooleanAssignment"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -715,7 +683,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Switch Fall-Through Case.
 	 * <p>When enabled, the compiler will issue an error or a warning if a case may be
-	 *    entered by falling through previous case. Empty cases are allowed.</p>
+	 *    entered by falling through previous case. Empty cases are allowed.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.fallthroughCase"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -728,7 +696,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Empty Statements and Unnecessary Semicolons.
 	 * <p>When enabled, the compiler will issue an error or a warning if an empty statement or a
-	 *    unnecessary semicolon is encountered.</p>
+	 *    unnecessary semicolon is encountered.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.emptyStatement"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -753,7 +721,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unnecessary Type Check.
 	 * <p>When enabled, the compiler will issue an error or a warning when a cast or an <code>instanceof</code> operation
-	 *    is unnecessary.</p>
+	 *    is unnecessary.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unnecessaryTypeCheck"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -766,7 +734,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unnecessary Else.
 	 * <p>When enabled, the compiler will issue an error or a warning when a statement is unnecessarily
-	 *    nested within an <code>else</code> clause (in situation where then clause is not completing normally).</p>
+	 *    nested within an <code>else</code> clause (in situation where then clause is not completing normally).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unnecessaryElse"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -779,7 +747,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Undocumented Empty Block.
 	 * <p>When enabled, the compiler will issue an error or a warning when an empty block is detected and it is not
-	 *    documented with any comment.</p>
+	 *    documented with any comment.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.undocumentedEmptyBlock"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -791,7 +759,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_UNDOCUMENTED_EMPTY_BLOCK = PLUGIN_ID + ".compiler.problem.undocumentedEmptyBlock"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Finally Blocks Not Completing Normally.
-	 * <p>When enabled, the compiler will issue an error or a warning when a finally block does not complete normally.</p>
+	 * <p>When enabled, the compiler will issue an error or a warning when a finally block does not complete normally.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.finallyBlockNotCompletingNormally"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -806,11 +774,11 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>When enabled, the compiler will issue an error or a warning when a
 	 *    method or a constructor is declaring a checked exception as thrown,
 	 *    but its body actually raises neither that exception, nor any other
-	 *    exception extending it.</p>
+	 *    exception extending it.
 	 * <p>This diagnostic is further tuned by options
 	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_INCLUDE_DOC_COMMENT_REFERENCE},
 	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_EXEMPT_EXCEPTION_AND_THROWABLE},
-	 *    and {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_WHEN_OVERRIDING}.</p>
+	 *    and {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_WHEN_OVERRIDING}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownException"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -823,12 +791,12 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unused Declared Thrown Exception in Overriding Method.
 	 * <p>When disabled, the compiler will report unused declared thrown
-	 *    exceptions neither on overriding methods nor on implementing methods.</p>
+	 *    exceptions neither on overriding methods nor on implementing methods.
 	 * <p>The severity of the unused declared thrown exception problem is
-	 *    controlled with option {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION}.</p>
+	 *    controlled with option {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION}.
 	 * <p>This diagnostic is further tuned by options
 	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_INCLUDE_DOC_COMMENT_REFERENCE} and
-	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_EXEMPT_EXCEPTION_AND_THROWABLE}.</p>
+	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_EXEMPT_EXCEPTION_AND_THROWABLE}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownExceptionWhenOverriding"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -843,13 +811,13 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>When enabled, the compiler will consider doc comment references to
 	 *    exceptions (i.e. <code>@throws</code> clauses) for the unused
 	 *    declared thrown exception check. Thus, documented exceptions will be
-	 *    considered as mandated as per doc contract.</p>
-	 * <p>The severity of the unused declared thrown exception problem is controlled with option {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION}.</p>
+	 *    considered as mandated as per doc contract.
+	 * <p>The severity of the unused declared thrown exception problem is controlled with option {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION}.
 	 * <p>Note: this option has no effect until the doc comment support is enabled according to the
-	 *    option {@link #COMPILER_DOC_COMMENT_SUPPORT}.</p>
+	 *    option {@link #COMPILER_DOC_COMMENT_SUPPORT}.
 	 * <p>This diagnostic is further tuned by options
 	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_EXEMPT_EXCEPTION_AND_THROWABLE}
-	 *    and {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_WHEN_OVERRIDING}.</p>
+	 *    and {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_WHEN_OVERRIDING}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownExceptionIncludeDocCommentReference"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -869,13 +837,13 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 *    error or a warning when a method or a constructor is declaring a
 	 *    checked exception (including {@link java.lang.Throwable} and
 	 *    {@link java.lang.Exception}) as thrown, but its body actually raises
-	 *    neither that exception, nor any other exception extending it.</p>
+	 *    neither that exception, nor any other exception extending it.
 	 * <p>The severity of the unused declared thrown exception problem is
 	 *    controlled with option
-	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION}.</p>
+	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION}.
 	 * <p>This diagnostic is further tuned by options
 	 *    {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_INCLUDE_DOC_COMMENT_REFERENCE}
-	 *    and {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_WHEN_OVERRIDING}.</p>
+	 *    and {@link #COMPILER_PB_UNUSED_DECLARED_THROWN_EXCEPTION_WHEN_OVERRIDING}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownExceptionExemptExceptionAndThrowable"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -888,7 +856,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unqualified Access to Field.
 	 * <p>When enabled, the compiler will issue an error or a warning when a field is access without any qualification.
-	 *    In order to improve code readability, it should be qualified, e.g. <code>'x'</code> should rather be written <code>'this.x'</code>.</p>
+	 *    In order to improve code readability, it should be qualified, e.g. <code>'x'</code> should rather be written <code>'this.x'</code>.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unqualifiedFieldAccess"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -907,7 +875,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unchecked Type Operation.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever an operation involves generic types, and potentially
-	 *    invalidates type safety since involving raw types (e.g. invoking <code>#foo(X&lt;String&gt;)</code> with arguments <code>(X)</code>).</p>
+	 *    invalidates type safety since involving raw types (e.g. invoking <code>#foo(X&lt;String&gt;)</code> with arguments <code>(X)</code>).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -921,7 +889,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Raw Type Reference.
 	 * <p>When enabled, the compiler will issue an error or a warning when detecting references to raw types. Raw types are
 	 *    discouraged, and are intended to help interfacing with legacy code. In the future, the language specification may
-	 *    reject raw references to generic types.</p>
+	 *    reject raw references to generic types.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.rawTypeReference"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -936,7 +904,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p> When enabled, the compiler will issue an error or warning even when it detects a generic type problem
 	 *     that could not have been avoided by the programmer. As an example, a type may be forced to use raw types
 	 *     in its method signatures and return types because the methods it overrides from a super type are declared to
-	 *     use raw types in the first place.</p>
+	 *     use raw types in the first place.  
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unavoidableGenericTypeProblems"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -950,7 +918,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting final Bound for Type Parameter.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a generic type parameter is associated with a
-	 *    bound corresponding to a final type; since final types cannot be further extended, the parameter is pretty useless.</p>
+	 *    bound corresponding to a final type; since final types cannot be further extended, the parameter is pretty useless.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.finalParameterBound"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -963,7 +931,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing Declaration of serialVersionUID Field on Serializable Class.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a serializable class is missing a local declaration
-	 *    of a <code>serialVersionUID</code> field. This field must be declared as static final and be of type <code>long</code>.</p>
+	 *    of a <code>serialVersionUID</code> field. This field must be declared as static final and be of type <code>long</code>.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingSerialVersion"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -977,7 +945,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Varargs Argument Needing a Cast in Method/Constructor Invocation.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a varargs arguments should be cast
 	 *    when passed to a method/constructor invocation. (e.g. <code>Class.getMethod(String name, Class ... args )</code>
-	 *    invoked with arguments <code>("foo", null)</code>).</p>
+	 *    invoked with arguments <code>("foo", null)</code>).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.varargsArgumentNeedCast"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -990,7 +958,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Boxing/Unboxing Conversion.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a boxing or an unboxing
-	 *    conversion is performed.</p>
+	 *    conversion is performed.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.autoboxing"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1003,7 +971,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Use of Annotation Type as Super Interface.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever an annotation type is used
-	 *    as a super-interface. Though legal, this is discouraged.</p>
+	 *    as a super-interface. Though legal, this is discouraged.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.annotationSuperInterface"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1016,7 +984,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing <code>@Override</code> Annotation.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever encountering a method
-	 *    declaration which overrides a superclass method but has no <code>@Override</code> annotation.</p>
+	 *    declaration which overrides a superclass method but has no <code>@Override</code> annotation.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingOverrideAnnotation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1044,7 +1012,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing <code>@Deprecated</code> Annotation.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever encountering a declaration
-	 *    carrying a <code>@deprecated</code> doc tag but having no corresponding <code>@Deprecated</code> annotation.</p>
+	 *    carrying a <code>@deprecated</code> doc tag but having no corresponding <code>@Deprecated</code> annotation.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingDeprecatedAnnotation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1057,7 +1025,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing HashCode Method.
 	 * <p>When enabled, the compiler will issue an error or a warning if a type
-	 * overrides Object.equals(Object) but does not override hashCode().</p>
+	 * overrides Object.equals(Object) but does not override hashCode().
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingHashCodeMethod"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1071,7 +1039,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Dead Code.
 	 * <p>When enabled, the compiler will issue an error or a warning if some non fatal dead code is detected. For instance, <code>if (false) foo();</code>
 	 * is not reported as truly unreachable code by the Java Language Specification. If this diagnostic is enabled, then the invocation of <code>foo()</code> is
-	 * going to be signaled as being dead code.</p>
+	 * going to be signaled as being dead code.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.deadCode"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1083,8 +1051,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_DEAD_CODE = PLUGIN_ID + ".compiler.problem.deadCode"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Dead Code Inside Trivial If Statement.
-	 * <p>When enabled, the compiler will signal presence of dead code inside trivial IF statement, e.g. <code>if (DEBUG)...</code>.</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_DEAD_CODE}.</p>
+	 * <p>When enabled, the compiler will signal presence of dead code inside trivial IF statement, e.g. <code>if (DEBUG)...</code>..
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_DEAD_CODE}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.deadCodeInTrivialIfStatement"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1096,49 +1064,18 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_DEAD_CODE_IN_TRIVIAL_IF_STATEMENT = PLUGIN_ID + ".compiler.problem.deadCodeInTrivialIfStatement"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Incomplete Enum Switch.
-	 * <p>When enabled, the compiler will issue an error or a warning
-	 * 		regarding each enum constant for which a corresponding case label is lacking.
-	 * 		Reporting is further controlled by the option {@link #COMPILER_PB_MISSING_ENUM_CASE_DESPITE_DEFAULT}.</p>
+	 * <p>When enabled, the compiler will issue an error or a warning whenever
+	 *    an enum constant has no corresponding case label in an enum switch
+	 *    statement.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.incompleteEnumSwitch"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
 	 * </dl>
 	 * @since 3.1
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_INCOMPLETE_ENUM_SWITCH = PLUGIN_ID + ".compiler.problem.incompleteEnumSwitch"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting Missing Enum Case In Switch Despite An Existing Default Case.
-	 * <p>This option further controls the option {@link #COMPILER_PB_INCOMPLETE_ENUM_SWITCH}:</p>
-	 * 	<ul>
-	 * 	<li>If enabled the compiler will report problems about missing enum constants even if a default case exists
-	 * 		in the same switch statement.</li>
-	 *  <li>If disabled existence of a default case is considered as sufficient to make a switch statement complete.</li>
-	 *  </ul>
-	 *  This option has no effect if {@link #COMPILER_PB_INCOMPLETE_ENUM_SWITCH} is set to <code>"ignore"</code>.
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingEnumCaseDespiteDefault"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_MISSING_ENUM_CASE_DESPITE_DEFAULT = PLUGIN_ID + ".compiler.problem.missingEnumCaseDespiteDefault"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting Missing Default Case In Switch.
-	 * <p>When enabled, the compiler will issue an error or a warning 
-	 * 		against each switch statement that lacks a default case.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingDefaultCase"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_SWITCH_MISSING_DEFAULT_CASE = PLUGIN_ID + ".compiler.problem.missingDefaultCase"; //$NON-NLS-1$
 	/**
 	 * @since 3.1
 	 * @deprecated Use {@link #COMPILER_PB_NULL_REFERENCE} instead.
@@ -1149,7 +1086,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Unreferenced Label.
 	 * <p>When enabled, the compiler will issue an error or a warning when encountering a labeled statement which label
 	 *    is never explicitly referenced. A label is considered to be referenced if its name explicitly appears behind a break
-	 *    or continue statement; for instance the following label would be considered unreferenced:</p>
+	 *    or continue statement; for instance the following label would be considered unreferenced:
 	 *    <code>LABEL: { break; }</code>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedLabel"</code></dd>
@@ -1163,7 +1100,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Invalid Javadoc Comment.
 	 * <p>This is the generic control for the severity of Javadoc problems.
-	 *    When enabled, the compiler will issue an error or a warning for a problem in Javadoc.</p>
+	 *    When enabled, the compiler will issue an error or a warning for a problem in Javadoc.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.invalidJavadoc"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1176,9 +1113,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Invalid Javadoc Tags.
 	 * <p>When enabled, the compiler will signal unbound or unexpected reference tags in Javadoc.
-	 *    A <code>@throws</code> tag referencing an undeclared exception would be considered as unexpected.</p>
+	 *    A <code>@throws</code> tag referencing an undeclared exception would be considered as unexpected.
 	 * <p>Note that this diagnosis can be enabled based on the visibility of the construct associated with the Javadoc;
-	 *    also see the setting {@link #COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY}.</p>
+	 *    also see the setting {@link #COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.invalidJavadocTags"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1190,9 +1127,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_INVALID_JAVADOC_TAGS = PLUGIN_ID + ".compiler.problem.invalidJavadocTags"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Invalid Javadoc Tags with Deprecated References.
-	 * <p>Specify whether the compiler will report deprecated references used in Javadoc tags.</p>
+	 * <p>Specify whether the compiler will report deprecated references used in Javadoc tags.
 	 * <p>Note that this diagnosis can be enabled based on the visibility of the construct associated with the Javadoc;
-	 *    also see the setting {@link #COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY}.</p>
+	 *    also see the setting {@link #COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.invalidJavadocTagsDeprecatedRef"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1204,9 +1141,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_INVALID_JAVADOC_TAGS__DEPRECATED_REF = PLUGIN_ID + ".compiler.problem.invalidJavadocTagsDeprecatedRef"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Invalid Javadoc Tags with Not Visible References.
-	 * <p>Specify whether the compiler will report non-visible references used in Javadoc tags.</p>
+	 * <p>Specify whether the compiler will report non-visible references used in Javadoc tags.
 	 * <p>Note that this diagnosis can be enabled based on the visibility of the construct associated with the Javadoc;
-	 *    also see the setting {@link #COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY}.</p>
+	 *    also see the setting {@link #COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.invalidJavadocTagsNotVisibleRef"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1218,7 +1155,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_INVALID_JAVADOC_TAGS__NOT_VISIBLE_REF = PLUGIN_ID + ".compiler.problem.invalidJavadocTagsNotVisibleRef"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Visibility Level For Invalid Javadoc Tags.
-	 * <p>Set the minimum visibility level for Javadoc tag problems. Below this level problems will be ignored.</p>
+	 * <p>Set the minimum visibility level for Javadoc tag problems. Below this level problems will be ignored.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.invalidJavadocTagsVisibility"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "public", "protected", "default", "private" }</code></dd>
@@ -1230,12 +1167,12 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_INVALID_JAVADOC_TAGS_VISIBILITY = PLUGIN_ID + ".compiler.problem.invalidJavadocTagsVisibility"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting missing tag description.
-	 * <p>When enabled, the compiler will report a warning or an error for any Javadoc tag missing a required description.</p>
-	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_INVALID_JAVADOC}.</p>
-	 * <p>It does not depend on option {@link #COMPILER_PB_INVALID_JAVADOC_TAGS}.</p>
+	 * <p>When enabled, the compiler will report a warning or an error for any Javadoc tag missing a required description.
+	 * <p>The severity of the problem is controlled with option {@link #COMPILER_PB_INVALID_JAVADOC}.
+	 * <p>It does not depend on option {@link #COMPILER_PB_INVALID_JAVADOC_TAGS}.
 	 * <p>When this option is valued to {@link #COMPILER_PB_MISSING_JAVADOC_TAG_DESCRIPTION_ALL_STANDARD_TAGS},
-	 *       a subset of the standard <a href="http://download.oracle.com/javase/6/docs/technotes/tools/windows/javadoc.html#javadoctags">Javadoc tags</a>
-	 *       that have a description, text or label are checked. While this set may grow in the future, note that user-defined tags are not and will not be checked.</p>
+	 *       a subset of the standard <a href="http://java.sun.com/javase/6/docs/technotes/tools/windows/javadoc.html#javadoctags">Javadoc tags</a>
+	 *       that have a description, text or label are checked. While this set may grow in the future, note that user-defined tags are not and will not be checked.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocTagDescription"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "return_tag", "all_standard_tags", "no_tag" }</code></dd>
@@ -1248,9 +1185,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing Javadoc Tags.
 	 * <p>This is the generic control for the severity of Javadoc missing tag problems.
-	 *    When enabled, the compiler will issue an error or a warning when tags are missing in Javadoc comments.</p>
+	 *    When enabled, the compiler will issue an error or a warning when tags are missing in Javadoc comments.
 	 * <p>Note that this diagnosis can be enabled based on the visibility of the construct associated with the Javadoc;
-	 *    also see the setting {@link #COMPILER_PB_MISSING_JAVADOC_TAGS_VISIBILITY}.</p>
+	 *    also see the setting {@link #COMPILER_PB_MISSING_JAVADOC_TAGS_VISIBILITY}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocTags"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1262,7 +1199,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_MISSING_JAVADOC_TAGS = PLUGIN_ID + ".compiler.problem.missingJavadocTags"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Visibility Level For Missing Javadoc Tags.
-	 * <p>Set the minimum visibility level for Javadoc missing tag problems. Below this level problems will be ignored.</p>
+	 * <p>Set the minimum visibility level for Javadoc missing tag problems. Below this level problems will be ignored.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocTagsVisibility"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "public", "protected", "default", "private" }</code></dd>
@@ -1274,7 +1211,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_MISSING_JAVADOC_TAGS_VISIBILITY = PLUGIN_ID + ".compiler.problem.missingJavadocTagsVisibility"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Missing Javadoc Tags on Overriding Methods.
-	 * <p>Specify whether the compiler will verify overriding methods in order to report Javadoc missing tag problems.</p>
+	 * <p>Specify whether the compiler will verify overriding methods in order to report Javadoc missing tag problems.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocTagsOverriding"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1302,9 +1239,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing Javadoc Comments.
 	 * <p>This is the generic control for the severity of missing Javadoc comment problems.
-	 *    When enabled, the compiler will issue an error or a warning when Javadoc comments are missing.</p>
+	 *    When enabled, the compiler will issue an error or a warning when Javadoc comments are missing.
 	 * <p>Note that this diagnosis can be enabled based on the visibility of the construct associated with the expected Javadoc;
-	 *    also see the setting {@link #COMPILER_PB_MISSING_JAVADOC_COMMENTS_VISIBILITY}.</p>
+	 *    also see the setting {@link #COMPILER_PB_MISSING_JAVADOC_COMMENTS_VISIBILITY}.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocComments"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1316,7 +1253,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_MISSING_JAVADOC_COMMENTS = PLUGIN_ID + ".compiler.problem.missingJavadocComments"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Visibility Level For Missing Javadoc Comments.
-	 * <p>Set the minimum visibility level for missing Javadoc problems. Below this level problems will be ignored.</p>
+	 * <p>Set the minimum visibility level for missing Javadoc problems. Below this level problems will be ignored.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocCommentsVisibility"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "public", "protected", "default", "private" }</code></dd>
@@ -1328,7 +1265,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_MISSING_JAVADOC_COMMENTS_VISIBILITY = PLUGIN_ID + ".compiler.problem.missingJavadocCommentsVisibility"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Missing Javadoc Comments on Overriding Methods.
-	 * <p>Specify whether the compiler will verify overriding methods in order to report missing Javadoc comment problems.</p>
+	 * <p>Specify whether the compiler will verify overriding methods in order to report missing Javadoc comment problems.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingJavadocCommentsOverriding"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1341,7 +1278,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Usage of <code>char[]</code> Expressions in String Concatenations.
 	 * <p>When enabled, the compiler will issue an error or a warning whenever a <code>char[]</code> expression
-	 *    is used in String concatenations (for example, <code>"hello" + new char[]{'w','o','r','l','d'}</code>).</p>
+	 *    is used in String concatenations (for example, <code>"hello" + new char[]{'w','o','r','l','d'}</code>).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.noImplicitStringConversion"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1353,7 +1290,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_CHAR_ARRAY_IN_STRING_CONCATENATION = PLUGIN_ID + ".compiler.problem.noImplicitStringConversion"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Maximum Number of Problems Reported per Compilation Unit.
-	 * <p>Specify the maximum number of problems reported on each compilation unit.</p>
+	 * <p>Specify the maximum number of problems reported on each compilation unit.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.maxProblemPerUnit"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>"&lt;n&gt;"</code> where <code>&lt;n&gt;</code> is zero or a positive integer (if zero then all problems are reported).</dd>
@@ -1382,7 +1319,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Parameter Assignment.
 	 * <p>When enabled, the compiler will issue an error or a warning if a parameter is
-	 *    assigned to.</p>
+	 *    assigned to.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.parameterAssignment"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1395,7 +1332,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting a method that qualifies as static, but not declared static.
 	 * <p>When enabled, the compiler will issue an error or a warning if a method has
-	 *    not been declared as <code>static</code>, even though it qualifies as one.</p>
+	 *    not been declared as <code>static</code>, even though it qualifies as one.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.reportMethodCanBeStatic"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1409,7 +1346,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting a method that may qualify as static, but not declared static.
 	 * <p>When enabled, the compiler will issue an error or a warning if a method has
 	 *    not been declared as <code>static</code>, even though it may qualify as one,
-	 *    when another method doesn't override it.</p>
+	 *    when another method doesn't override it.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.reportMethodCanBePotentiallyStatic"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1420,351 +1357,17 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 */
 	public static final String COMPILER_PB_POTENTIALLY_MISSING_STATIC_ON_METHOD = PLUGIN_ID + ".compiler.problem.reportMethodCanBePotentiallyStatic"; //$NON-NLS-1$
 	/**
-	 * Compiler option ID: Reporting a resource that is not closed properly.
-	 * <p>When enabled, the compiler will issue an error or a warning if
-	 *    a local variable holds a value of type <code>java.lang.AutoCloseable</code> (compliance>=1.7) 
-	 *    or a value of type <code>java.io.Closeable</code> (compliance<=1.6) and if
-	 *    flow analysis shows that the method <code>close()</code> is not invoked locally on that value.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.reportUnclosedCloseable"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_UNCLOSED_CLOSEABLE = PLUGIN_ID + ".compiler.problem.unclosedCloseable"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting a resource that may not be closed properly.
-	 * <p>When enabled, the compiler will issue an error or a warning if
-	 *    a local variable holds a value of type <code>java.lang.AutoCloseable</code> (compliance>=1.7) 
-	 *    or a value of type <code>java.io.Closeable</code> (compliance<=1.6) and if
-	 *    flow analysis shows that the method <code>close()</code> is 
-	 *    not invoked locally on that value for all execution paths.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.reportPotentiallyUnclosedCloseable"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_POTENTIALLY_UNCLOSED_CLOSEABLE = PLUGIN_ID + ".compiler.problem.potentiallyUnclosedCloseable"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting a resource that is not managed by try-with-resources.
-	 * <p>When enabled, the compiler will issue an error or a warning if a local variable 
-	 * 	  holds a value of type <code>java.lang.AutoCloseable</code>, and if the method
-	 *    <code>close()</code> is explicitly invoked on that resource, but the resource is
-	 *    not managed by a try-with-resources block.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.reportPotentiallyUnclosedCloseable"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_EXPLICITLY_CLOSED_AUTOCLOSEABLE = PLUGIN_ID + ".compiler.problem.explicitlyClosedAutoCloseable"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Annotation-based Null Analysis.
-	 * <p>This option controls whether the compiler will use null annotations for
-	 *    improved analysis of (potential) null references.</p>
-	 * <p>When enabled, the compiler will interpret the annotation types defined using
-	 *    {@link #COMPILER_NONNULL_ANNOTATION_NAME} and {@link #COMPILER_NULLABLE_ANNOTATION_NAME}
-	 *    as specifying whether or not a given type includes the value <code>null</code>.</p>
-	 * <p>The effect of these analyses is further controlled by the options
-	 *    {@link #COMPILER_PB_NULL_SPECIFICATION_VIOLATION},
-	 *    {@link #COMPILER_PB_NULL_ANNOTATION_INFERENCE_CONFLICT} and
-	 *    {@link #COMPILER_PB_NULL_UNCHECKED_CONVERSION}.
-	 * </p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.annotation.nullanalysis"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "disabled", "enabled" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_ANNOTATION_NULL_ANALYSIS = PLUGIN_ID + ".compiler.annotation.nullanalysis"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Name of Annotation Type for Nullable Types.
-	 * <p>This option defines a fully qualified Java type name that the compiler may use
-	 *    to perform special null analysis.</p>
-	 * <p>If the annotation specified by this option is applied to a type in a method
-	 *    signature or variable declaration, this will be interpreted as a specification
-	 *    that <code>null</code> is a legal value in that position. Currently supported
-	 *    positions are: method parameters, method return type, fields and local variables.</p>
-	 * <p>If a value whose type
-	 *    is annotated with this annotation is dereferenced without checking for null,
-	 *    the compiler will trigger a diagnostic as further controlled by
-	 *    {@link #COMPILER_PB_POTENTIAL_NULL_REFERENCE}.</p>
-	 * <p>The compiler may furthermore check adherence to the null specification as
-	 *    further controlled by {@link #COMPILER_PB_NULL_SPECIFICATION_VIOLATION},
-	 *    {@link #COMPILER_PB_NULL_ANNOTATION_INFERENCE_CONFLICT} and
-	 *    {@link #COMPILER_PB_NULL_UNCHECKED_CONVERSION}.</p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.annotation.nullable"</code></dd>
-	 * <dt>Possible values:</dt><dd>any legal, fully qualified Java type name; must resolve to an annotation type.</dd>
-	 * <dt>Default:</dt><dd><code>"org.aspectj.org.eclipse.jdt.annotation.Nullable"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_NULLABLE_ANNOTATION_NAME = PLUGIN_ID + ".compiler.annotation.nullable"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Name of Annotation Type for Non-Null Types.
-	 * <p>This option defines a fully qualified Java type name that the compiler may use
-	 *    to perform special null analysis.</p>
-	 * <p>If the annotation specified by this option is applied to a type in a method
-	 *    signature or variable declaration, this will be interpreted as a specification
-	 *    that <code>null</code> is <b>not</b> a legal value in that position. Currently
-	 *    supported positions are: method parameters, method return type, fields and local variables.</p>
-	 * <p>For values declared with this annotation, the compiler will never trigger a null
-	 *    reference diagnostic (as controlled by {@link #COMPILER_PB_POTENTIAL_NULL_REFERENCE}
-	 *    and {@link #COMPILER_PB_NULL_REFERENCE}), because the assumption is made that null
-	 *    will never occur at runtime in these positions.</p>
-	 * <p>The compiler may furthermore check adherence to the null specification as further
-	 *    controlled by {@link #COMPILER_PB_NULL_SPECIFICATION_VIOLATION},
-	 *    {@link #COMPILER_PB_NULL_ANNOTATION_INFERENCE_CONFLICT} and
-	 *    {@link #COMPILER_PB_NULL_UNCHECKED_CONVERSION}.</p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.annotation.nonnull"</code></dd>
-	 * <dt>Possible values:</dt><dd>any legal, fully qualified Java type name; must resolve to an annotation type.</dd>
-	 * <dt>Default:</dt><dd><code>"org.aspectj.org.eclipse.jdt.annotation.NonNull"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_NONNULL_ANNOTATION_NAME = PLUGIN_ID + ".compiler.annotation.nonnull"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Name of Annotation Type to specify a nullness default for unannotated types.
-	 * <p>This option defines a fully qualified Java type name that the compiler may use
-	 *    to perform special null analysis.</p>
-	 * <p>If the annotation is applied without an argument, all unannotated types in method signatures
-	 *    and field declarations within the annotated element will be treated as if they were specified
-	 *    with the non-null annotation (see {@link #COMPILER_NONNULL_ANNOTATION_NAME}).</p>
-	 * <p>If the annotation is applied with the constant <code>false</code> as its argument
-	 *    all corresponding defaults at outer scopes will be canceled for the annotated element.</p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.annotation.nonnullbydefault"</code></dd>
-	 * <dt>Possible values:</dt><dd>any legal, fully qualified Java type name; must resolve to an annotation type.
-	 *     That annotation type should have exactly one boolean parameter.</dd>
-	 * <dt>Default:</dt><dd><code>"org.aspectj.org.eclipse.jdt.annotation.NonNullByDefault"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_NONNULL_BY_DEFAULT_ANNOTATION_NAME = PLUGIN_ID + ".compiler.annotation.nonnullbydefault"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting missing default nullness annotation.
-	 * <p>When enabled, the compiler will issue an error or a warning in the following cases:</p>
-	 * <ul>
-	 * <li> When a package does not contain a default nullness annotation, as a result of missing package-info.java 
-	 * or missing default nullness annotation in package-info.java.</li>
-	 * <li> When a type inside a default package does not contain a default nullness annotation.</li>
-	 * </ul>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.annotation.missingNonNullByDefaultAnnotation"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code>.</dd>
-	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_MISSING_NONNULL_BY_DEFAULT_ANNOTATION = PLUGIN_ID + ".compiler.annotation.missingNonNullByDefaultAnnotation"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting Violations of Null Specifications.
-	 * <p>Depending on this option, the compiler will issue either an error or a warning
-	 *    whenever one of the following situations is detected:</p>
-	 *    <ol>
-	 *    <li>A method declared with a nonnull annotation returns a
-	 *        <em>nullable</em> expression.</li>
-	 *    <li>A <em>nullable</em> expression is passed
-     *        as an argument in a method call where the corresponding parameter of the called
-     *        method is declared with a nonnull annotation.</li>
-	 *    <li>A <em>nullable</em> expression is assigned
-     *        to a local variable that is declared with a nonnull annotation.</li>
-	 *    <li>A method that overrides an inherited method declared with a nonnull annotation
-	 *        tries to relax that contract by specifying a nullable annotation
-	 *        (prohibition of contravariant return).</li>
-	 *    <li>A method that overrides an inherited method which has a nullable declaration
-	 *        for at least one of its parameters, tries to tighten that null contract by
-	 *        specifying a nonnull annotation for its corresponding parameter
-	 *        (prohibition of covariant parameters).</li>
-	 *    <li>A non-static field with a nonnull annotation is not definitely assigned at
-	 *        the end of each constructor.</li>
-	 *    <li>A static field with a nonnull annotation is not definitely assigned in static initializers.</li>
-	 *    </ol>
-	 *    In the above an expression is considered as <em>nullable</em> if
-	 *    either it is statically known to evaluate to the value <code>null</code>, or if it is
-	 *    declared with a nullable annotation.
-	 * <p>The compiler options {@link #COMPILER_NONNULL_ANNOTATION_NAME} and
-	 *    {@link #COMPILER_NULLABLE_ANNOTATION_NAME} control which annotations the compiler
-	 *    shall interpret as nonnull or nullable annotations, respectively.
-	 * </p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.nullSpecViolation"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"error"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_NULL_SPECIFICATION_VIOLATION = PLUGIN_ID + ".compiler.problem.nullSpecViolation"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting conflicts between declared null annotation and inferred null value 
-	 * <p>When enabled, the compiler will issue an error or a warning whenever one of the
-	 *    following situations is detected:</p>
-	 *    <ol>
-	 *    <li>A method declared with a nonnull annotation returns an expression that is
-	 *          statically known to evaluate to a null value on some flow.</li>
-	 *    <li>An expression that is statically known to evaluate to a null value on some flow
-	 *        is passed as an argument in a method call where the corresponding parameter of
-	 *        the called method is declared with a nonnull annotation.</li>
-	 *    <li>An expression that is statically known to evaluate to a null value on some flow
-	 *        is assigned to a local variable that is declared with a nonnull annotation.</li>
-	 *    </ol>
-	 * <p>The compiler options {@link #COMPILER_NONNULL_ANNOTATION_NAME} and
-	 *    {@link #COMPILER_NULLABLE_ANNOTATION_NAME} control which annotations the compiler
-	 *    shall interpret as nonnull or nullable annotations, respectively.
-	 * </p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.nullAnnotationInferenceConflict"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"error"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_NULL_ANNOTATION_INFERENCE_CONFLICT = PLUGIN_ID + ".compiler.problem.nullAnnotationInferenceConflict"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting unchecked conversion from a type with unknown nullness to a null annotated type
-	 * <p>When enabled, the compiler will issue an error or a warning whenever one of the
-	 *    following situations is detected:</p>
-	 *    <ol>
-	 *    <li>A method declared with a nonnull annotation returns an expression for which
-	 *        insufficient nullness information is available for statically proving that no
-	 *        flow will pass a null value at runtime.</li>
-	 *    <li>An expression for which insufficient nullness information is available for
-	 *        statically proving that it will never evaluate to a null value at runtime
-	 *        is passed as an argument in a method call where the corresponding parameter of
-	 *        the called method is declared with a nonnull annotation.</li>
-	 *    <li>An expression for which insufficient nullness information is available for
-	 *        statically proving that it will never evaluate to a null value at runtime
-	 *        is assigned to a local variable that is declared with a nonnull annotation.</li>
-	 *    </ol>
-	 * <p>Unchecked null conversion is usually a consequence of using other unannotated
-	 *    variables or methods.</p>
-	 * <p>The compiler options {@link #COMPILER_NONNULL_ANNOTATION_NAME} and
-	 *    {@link #COMPILER_NULLABLE_ANNOTATION_NAME} control which annotations the compiler
-	 *    shall interpret as nonnull or nullable annotations, respectively.
-	 * </p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.nullUncheckedConversion"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_NULL_UNCHECKED_CONVERSION = PLUGIN_ID + ".compiler.problem.nullUncheckedConversion"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting Redundant Null Annotations.
-	 * <p>When enabled, the compiler will issue an error or a warning when a non-null annotation
-	 *    (see {@link #COMPILER_NONNULL_ANNOTATION_NAME})
-	 *    is applied although the same effect is already achieved by a default applicable at the
-	 *    current location. Such a default may be set by using the annotation specified by the option
-	 *    {@link #COMPILER_NONNULL_BY_DEFAULT_ANNOTATION_NAME}.
-	 * </p>
-	 * <p>This option only has an effect if the option {@link #COMPILER_ANNOTATION_NULL_ANALYSIS} is enabled.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.redundantNullAnnotation"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
-	 * </dl>
-	 * @since 3.8
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_REDUNDANT_NULL_ANNOTATION = PLUGIN_ID + ".compiler.problem.redundantNullAnnotation"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Perform syntactic null analysis for fields.
-	 * <p>When enabled, the compiler will detect certain syntactic constellations where a null
-	 *	  related warning against a field reference would normally be raised but can be suppressed
-	 *    at low risk given that the same field reference was known to be non-null immediately before.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.syntacticNullAnalysisForFields"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "disabled", "enabled" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
-	 * </dl>
-	 * @since 3.9
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_SYNTACTIC_NULL_ANALYSIS_FOR_FIELDS = JavaCore.PLUGIN_ID+".compiler.problem.syntacticNullAnalysisForFields"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Inheritance of null annotations.
-	 * <p>When enabled, the compiler will check for each method without any explicit null annotations:
-	 *    If it overrides a method which has null annotations, it will treat the
-	 *    current method as if it had the same annotations as the overridden method.</p>
-	 * <p>Annotation inheritance will use the <em>effective</em> nullness of the overridden method
-	 *    after transitively applying inheritance and after applying any default nullness
-	 *    (see {@link #COMPILER_NONNULL_BY_DEFAULT_ANNOTATION_NAME}) at the site of the overridden method.</p>
-	 * <p>If different implicit null annotations (from a nonnull default and/or overridden methods) are applicable
-	 *    to the same type in a method signature, this is flagged as an error 
-	 *    and an explicit null annotation must be used to disambiguate.</p>
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.annotation.inheritNullAnnotations"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "disabled", "enabled" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
-	 * </dl>
-	 * @since 3.9
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_INHERIT_NULL_ANNOTATIONS = JavaCore.PLUGIN_ID+".compiler.annotation.inheritNullAnnotations"; //$NON-NLS-1$
-	/**
-	 * Compiler option ID: Reporting Dropped Nonnull Parameter Annotations.
-	 * <p>When enabled, the compiler will issue an error or a warning against a parameter of 
-	 *    a method that overrides an inherited method
-	 *    if all of the following hold:</p>
-	 * <ul>
-	 *    <li>The overridden method declares the corresponding parameter as non-null (see {@link #COMPILER_NONNULL_ANNOTATION_NAME}).</li>
-	 *    <li>The parameter in the overriding method has no null annotation.</li>
-	 *    <li>The overriding method is not affected by a nullness default (see {@link #COMPILER_NONNULL_BY_DEFAULT_ANNOTATION_NAME}).</li>
-	 *    <li>Inheritance of null annotations is disabled (see {@link #COMPILER_INHERIT_NULL_ANNOTATIONS}).</li>
-	 * </ul>
-	 * <p>This particular situation bears the same inherent risk as any unannotated method parameter,
-	 *    because the compiler's null ananysis cannot decide wither <code>null</code> is or is not a legal value for this parameter.
-	 *    However, the annotation in the overridden method <em>suggests</em> that the parameter should also be annotated as non-null.
-	 *    If that is not intended or possible, it is recommended to annotate the parameter as nullable,
-	 *    in order to make this (legal) change of contract explicit.</p>   
-	 * <dl>
-	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.nonnullParameterAnnotationDropped"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
-	 * </dl>
-	 * @since 3.9
-	 * @category CompilerOptionID
-	 */
-	public static final String COMPILER_PB_NONNULL_PARAMETER_ANNOTATION_DROPPED = JavaCore.PLUGIN_ID+".compiler.problem.nonnullParameterAnnotationDropped"; //$NON-NLS-1$
-
-	/**
 	 * Compiler option ID: Setting Source Compatibility Mode.
 	 * <p>Specify whether which source level compatibility is used. From 1.4 on, <code>'assert'</code> is a keyword
 	 *    reserved for assertion support. Also note, than when toggling to 1.4 mode, the target VM
-	 *    level should be set to <code>"1.4"</code> and the compliance mode should be <code>"1.4"</code>.</p>
+	 *    level should be set to <code>"1.4"</code> and the compliance mode should be <code>"1.4"</code>.
 	 * <p>Source level 1.5 is necessary to enable generics, autoboxing, covariance, annotations, enumerations
 	 *    enhanced for loop, static imports and varargs. Once toggled, the target VM level should be set to <code>"1.5"</code>
-	 *    and the compliance mode should be <code>"1.5"</code>.</p>
+	 *    and the compliance mode should be <code>"1.5"</code>.
 	 * <p>Source level 1.6 is necessary to enable the computation of stack map tables. Once toggled, the target
-	 *    VM level should be set to <code>"1.6"</code> and the compliance mode should be <code>"1.6"</code>.</p>
+	 *    VM level should be set to <code>"1.6"</code> and the compliance mode should be <code>"1.6"</code>.
 	 * <p>Once the source level 1.7 is toggled, the target VM level should be set to <code>"1.7"</code> and the compliance mode
-	 *    should be <code>"1.7"</code>.</p>
+	 *    should be <code>"1.7"</code>.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.source"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7" }</code></dd>
@@ -1777,7 +1380,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Setting Compliance Level.
 	 * <p>Select the compliance level for the compiler. In <code>"1.3"</code> mode, source and target settings
-	 *    should not go beyond <code>"1.3"</code> level.</p>
+	 *    should not go beyond <code>"1.3"</code> level.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.compliance"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7" }</code></dd>
@@ -1807,7 +1410,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Defining the Automatic Task Tags.
 	 * <p>When the tag list is not empty, the compiler will issue a task marker whenever it encounters
-	 *    one of the corresponding tags inside any comment in Java source code.</p>
+	 *    one of the corresponding tags inside any comment in Java source code.
 	 * <p>Generated task messages will start with the tag, and range until the next line separator,
 	 *    comment ending, or tag.</p>
 	 * <p>When a given line of code bears multiple tags, each tag will be reported separately.
@@ -1832,7 +1435,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_TASK_TAGS = PLUGIN_ID + ".compiler.taskTags"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Determining whether task tags are case-sensitive.
-	 * <p>When enabled, task tags are considered in a case-sensitive way.</p>
+	 * <p>When enabled, task tags are considered in a case-sensitive way.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.taskCaseSensitive"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1845,7 +1448,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Forbidden Reference to Type with Restricted Access.
 	 * <p>When enabled, the compiler will issue an error or a warning when referring to a type that is non accessible, as defined according
-	 *    to the access rule specifications.</p>
+	 *    to the access rule specifications.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.forbiddenReference"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1858,7 +1461,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Discouraged Reference to Type with Restricted Access.
 	 * <p>When enabled, the compiler will issue an error or a warning when referring to a type with discouraged access, as defined according
-	 *    to the access rule specifications.</p>
+	 *    to the access rule specifications.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.discouragedReference"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1870,8 +1473,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String COMPILER_PB_DISCOURAGED_REFERENCE = PLUGIN_ID + ".compiler.problem.discouragedReference"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Determining Effect of <code>@SuppressWarnings</code>.
-	 * <p>When enabled, the <code>@SuppressWarnings</code> annotation can be used to suppress some compiler warnings.</p>
-	 * <p>When disabled, all <code>@SupressWarnings</code> annotations are ignored; i.e., warnings are reported.</p>
+	 * <p>When enabled, the <code>@SuppressWarnings</code> annotation can be used to suppress some compiler warnings.
+	 * <p>When disabled, all <code>@SupressWarnings</code> annotations are ignored; i.e., warnings are reported.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.suppressWarnings"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1900,8 +1503,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Further Determining the Effect of <code>@SuppressWarnings</code> if also
 	 * {@link #COMPILER_PB_SUPPRESS_WARNINGS} is enabled.
 	 * <p>When enabled, the <code>@SuppressWarnings</code> annotation can additionally be used to suppress 
-	 * optional compiler diagnostics that have been configured as {@link #ERROR}.</p>
-	 * <p>When disabled, all <code>@SuppressWarnings</code> annotations only affects warnings.</p>
+	 * optional compiler diagnostics that have been configured as {@link #ERROR}.
+	 * <p>When disabled, all <code>@SuppressWarnings</code> annotations only affects warnings.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.suppressOptionalErrors"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -1914,7 +1517,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Unhandled Warning Token for <code>@SuppressWarnings</code>.
 	 * <p>When enabled, the compiler will issue an error or a warning when encountering a token
-	 *    it cannot handle inside a <code>@SuppressWarnings</code> annotation.</p>
+	 *    it cannot handle inside a <code>@SuppressWarnings</code> annotation.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unhandledWarningToken"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1929,7 +1532,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>When enabled, the compiler will issue an error or a warning when encountering <code>@SuppressWarnings</code> annotation
 	 *    for which no corresponding warning got detected in the code. This diagnostic is provided to help developers to get
 	 *    rid of transient <code>@SuppressWarnings</code> no longer needed. Note that <code>@SuppressWarnings("all")</code> is still
-	 *    silencing the warning for unnecessary <code>@SuppressWarnings</code>, as it is the master switch to silence ALL warnings.</p>
+	 *    silencing the warning for unnecessary <code>@SuppressWarnings</code>, as it is the master switch to silence ALL warnings.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedWarningToken"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -1991,7 +1594,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Overriding method that doesn't call the super method invocation.
 	 * <p>When enabled, the compiler will issue an error or a warning if a method is overriding a method without calling
-	 *    the super invocation.</p>
+	 *    the super invocation.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.overridingMethodWithoutSuperInvocation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -2005,7 +1608,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Compiler option ID: Reporting Redundant Superinterface.
 	 * <p>When enabled, the compiler will issue an error or a warning if a type
 	 *    explicitly implements an interface that is already implemented by any
-	 *    of its supertypes.</p>
+	 *    of its supertypes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.redundantSuperinterface"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -2018,7 +1621,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Comparison of Identical Expressions.
 	 * <p>When enabled, the compiler will issue an error or a warning if a comparison
-	 * is involving identical operands (e.g <code>'x == x'</code>).</p>
+	 * is involving identical operands (e.g <code>'x == x'</code>).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.comparingIdentical"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -2031,7 +1634,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Missing Synchronized Modifier On Inherited Method.
 	 * <p>When enabled, the compiler will issue an error or a warning if a method
-	 * overrides a synchronized method without having a synchronized modifier.</p>
+	 * overrides a synchronized method without having a synchronized modifier.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.missingSynchronizedOnInheritedMethod"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -2044,7 +1647,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting Allocation of an Unused Object.
 	 * <p>When enabled, the compiler will issue an error or a warning if an object is allocated but never used,
-	 * neither by holding a reference nor by invoking one of the object's methods.</p>
+	 * neither by holding a reference nor by invoking one of the object's methods.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unusedObjectAllocation"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -2057,7 +1660,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Compiler option ID: Reporting redundant specification of type arguments in class instance creation expressions.
 	 * <p>When enabled, the compiler will issue an error or a warning if type arguments are used in a class instance creation,
-	 * when the '&lt;&gt;' operator can be used instead.</p>
+	 * when the '<>' operator can be used instead.
 	 * <p>This option only has an effect if the compiler compliance is 1.7 or greater.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.redundantSpecificationOfTypeArguments"</code></dd>
@@ -2072,7 +1675,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Core option ID: Computing Project Build Order.
 	 * <p>Indicate whether JavaCore should enforce the project build order to be based on
 	 *    the classpath prerequisite chain. When requesting to compute, this takes over
-	 *    the platform default order (based on project references).</p>
+	 *    the platform default order (based on project references).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.computeJavaBuildOrder"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "compute", "ignore" }</code></dd>
@@ -2083,7 +1686,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String CORE_JAVA_BUILD_ORDER = PLUGIN_ID + ".computeJavaBuildOrder"; //$NON-NLS-1$
 	/**
 	 * Core option ID: Specifying Filters for Resource Copying Control.
-	 * <p>Allow to specify some filters to control the resource copy process.</p>
+	 * <p>Allow to specify some filters to control the resource copy process.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.builder.resourceCopyExclusionFilter"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;name&gt;[,&lt;name&gt;]* }</code> where <code>&lt;name&gt;</code> is a file name pattern (* and ? wild-cards allowed)
@@ -2097,7 +1700,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Reporting Duplicate Resources.
 	 * <p>Indicate the severity of the problem reported when more than one occurrence
-	 *    of a resource is to be copied into the output location.</p>
+	 *    of a resource is to be copied into the output location.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.builder.duplicateResourceTask"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning" }</code></dd>
@@ -2110,7 +1713,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Cleaning Output Folder(s).
 	 * <p>Indicate whether the JavaBuilder is allowed to clean the output folders
-	 *    when performing full build operations.</p>
+	 *    when performing full build operations.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.builder.cleanOutputFolder"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "clean", "ignore" }</code></dd>
@@ -2126,7 +1729,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 *    in the output folders while performing incremental build operations. If changes
 	 *    are detected to managed .class files, then a full build is performed, otherwise
 	 *    the changes are left as is. Tools further altering generated .class files, like optimizers,
-	 *    should ensure this option remains set in its default state of ignore.</p>
+	 *    should ensure this option remains set in its default state of ignore.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.builder.recreateModifiedClassFileInOutputFolder"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "ignore" }</code></dd>
@@ -2139,7 +1742,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Reporting Incomplete Classpath.
 	 * <p>Indicate the severity of the problem reported when an entry on the classpath does not exist,
-	 *    is not legitimate or is not visible (for example, a referenced project is closed).</p>
+	 *    is not legite or is not visible (for example, a referenced project is closed).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.incompleteClasspath"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning"}</code></dd>
@@ -2151,7 +1754,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String CORE_INCOMPLETE_CLASSPATH = PLUGIN_ID + ".incompleteClasspath"; //$NON-NLS-1$
 	/**
 	 * Core option ID: Reporting Classpath Cycle.
-	 * <p>Indicate the severity of the problem reported when a project is involved in a cycle.</p>
+	 * <p>Indicate the severity of the problem reported when a project is involved in a cycle.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.circularClasspath"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning" }</code></dd>
@@ -2164,7 +1767,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Reporting Incompatible JDK Level for Required Binaries.
 	 * <p>Indicate the severity of the problem reported when a project prerequisites another project
-	 *    or library with an incompatible target JDK level (e.g. project targeting 1.1 vm, but compiled against 1.4 libraries).</p>
+	 *    or library with an incompatible target JDK level (e.g. project targeting 1.1 vm, but compiled against 1.4 libraries).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.incompatibleJDKLevel"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
@@ -2176,7 +1779,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String CORE_INCOMPATIBLE_JDK_LEVEL = PLUGIN_ID + ".incompatibleJDKLevel"; //$NON-NLS-1$
 	/**
 	 * Core option ID: Abort if Invalid Classpath.
-	 * <p>Allow to toggle the builder to abort if the classpath is invalid.</p>
+	 * <p>Allow to toggle the builder to abort if the classpath is invalid.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.builder.invalidClasspath"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "abort", "ignore" }</code></dd>
@@ -2189,8 +1792,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Default Source Encoding Format.
 	 * <p>Get the default encoding format of source files. This value is
-	 *    immutable and preset to the result of <code>ResourcesPlugin.getEncoding()</code>.</p>
-	 * <p>It is offered as a convenience shortcut only.</p>
+	 *    immutable and preset to the result of <code>ResourcesPlugin.getEncoding()</code>.
+	 * <p>It is offered as a convenience shortcut only.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.encoding"</code></dd>
 	 * <dt>value:</dt><dd><code>&lt;immutable, platform default value&gt;</code></dd>
@@ -2202,7 +1805,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Enabling Usage of Classpath Exclusion Patterns.
 	 * <p>When disabled, no entry on a project classpath can be associated with
-	 *    an exclusion pattern.</p>
+	 *    an exclusion pattern.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.classpath.exclusionPatterns"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2215,7 +1818,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Enabling Usage of Classpath Multiple Output Locations.
 	 * <p>When disabled, no entry on a project classpath can be associated with
-	 *    a specific output location, preventing thus usage of multiple output locations.</p>
+	 *    a specific output location, preventing thus usage of multiple output locations.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.classpath.multipleOutputLocations"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2228,20 +1831,20 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Core option ID: Reporting an output location overlapping another source location.
 	 * <p> Indicate the severity of the problem reported when a source entry's output location overlaps another
-	 * source entry.</p>
+	 * source entry. </p>
 	 * 
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.classpath.outputOverlappingAnotherSource"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
-	 * <dt>Default:</dt><dd><code>"error"</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
 	 * </dl>
 	 * @since 3.6.4
 	 */
 	public static final String CORE_OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE = PLUGIN_ID + ".classpath.outputOverlappingAnotherSource";  //$NON-NLS-1$
 	/**
 	 * Core option ID: Set the timeout value for retrieving the method's parameter names from javadoc.
-	 * <p>Timeout in milliseconds to retrieve the method's parameter names from javadoc.</p>
-	 * <p>If the value is <code>0</code>, the parameter names are not fetched and the raw names are returned.</p>
+	 * <p>Timeout in milliseconds to retrieve the method's parameter names from javadoc.
+	 * <p>If the value is <code>0</code>, the parameter names are not fetched and the raw names are returned.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.timeoutForParameterNameFromAttachedJavadoc"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>"&lt;n&gt;"</code>, where <code>n</code> is an integer greater than or equal to <code>0</code></dd>
@@ -2323,7 +1926,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Activate Visibility Sensitive Completion.
 	 * <p>When active, completion doesn't show that you can not see
-	 *    (for example, you can not see private methods of a super class).</p>
+	 *    (for example, you can not see private methods of a super class).
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.visibilityCheck"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2335,7 +1938,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	public static final String CODEASSIST_VISIBILITY_CHECK = PLUGIN_ID + ".codeComplete.visibilityCheck"; //$NON-NLS-1$
 	/**
 	 * Code assist option ID: Activate Deprecation Sensitive Completion.
-	 * <p>When enabled, completion doesn't propose deprecated members and types.</p>
+	 * <p>When enabled, completion doesn't propose deprecated members and types.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.deprecationCheck"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2348,7 +1951,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Activate Camel Case Sensitive Completion.
 	 * <p>When enabled, completion shows proposals whose name match the CamelCase
-	 *    pattern.</p>
+	 *    pattern.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.camelCaseMatch"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2361,7 +1964,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Automatic Qualification of Implicit Members.
 	 * <p>When active, completion automatically qualifies completion on implicit
-	 *    field references and message expressions.</p>
+	 *    field references and message expressions.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.forceImplicitQualification"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2374,7 +1977,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Prefixes for Field Name.
 	 * <p>When the prefixes is non empty, completion for field name will begin with
-	 *    one of the proposed prefixes.</p>
+	 *    one of the proposed prefixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.fieldPrefixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;prefix&gt;[,&lt;prefix&gt;]*" }</code> where <code>&lt;prefix&gt;</code> is a String without any wild-card</dd>
@@ -2387,7 +1990,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Prefixes for Static Field Name.
 	 * <p>When the prefixes is non empty, completion for static field name will begin with
-	 *    one of the proposed prefixes.</p>
+	 *    one of the proposed prefixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.staticFieldPrefixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;prefix&gt;[,&lt;prefix&gt;]*" }</code> where <code>&lt;prefix&gt;</code> is a String without any wild-card</dd>
@@ -2400,7 +2003,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Prefixes for Static Final Field Name.
 	 * <p>When the prefixes is non empty, completion for static final field name will begin with
-	 *    one of the proposed prefixes.</p>
+	 *    one of the proposed prefixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.staticFinalFieldPrefixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;prefix&gt;[,&lt;prefix&gt;]*" }</code> where <code>&lt;prefix&gt;</code> is a String without any wild-card</dd>
@@ -2413,7 +2016,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Prefixes for Local Variable Name.
 	 * <p>When the prefixes is non empty, completion for local variable name will begin with
-	 *    one of the proposed prefixes.</p>
+	 *    one of the proposed prefixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.localPrefixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;prefix&gt;[,&lt;prefix&gt;]*" }</code> where <code>&lt;prefix&gt;</code> is a String without any wild-card</dd>
@@ -2426,7 +2029,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Prefixes for Argument Name.
 	 * <p>When the prefixes is non empty, completion for argument name will begin with
-	 *    one of the proposed prefixes.</p>
+	 *    one of the proposed prefixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.argumentPrefixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;prefix&gt;[,&lt;prefix&gt;]*" }</code> where <code>&lt;prefix&gt;</code> is a String without any wild-card</dd>
@@ -2439,7 +2042,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Suffixes for Field Name.
 	 * <p>When the suffixes is non empty, completion for field name will end with
-	 *    one of the proposed suffixes.</p>
+	 *    one of the proposed suffixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.fieldSuffixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;suffix&gt;[,&lt;suffix&gt;]*" }</code> where <code>&lt;suffix&gt;</code> is a String without any wild-card</dd>
@@ -2452,7 +2055,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Suffixes for Static Field Name.
 	 * <p>When the suffixes is non empty, completion for static field name will end with
-	 *    one of the proposed suffixes.</p>
+	 *    one of the proposed suffixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.staticFieldSuffixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;suffix&gt;[,&lt;suffix&gt;]*" }</code>< where <code>&lt;suffix&gt;</code> is a String without any wild-card</dd>
@@ -2465,7 +2068,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Suffixes for Static Final Field Name.
 	 * <p>When the suffixes is non empty, completion for static final field name will end with
-	 *    one of the proposed suffixes.</p>
+	 *    one of the proposed suffixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.staticFinalFieldSuffixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;suffix&gt;[,&lt;suffix&gt;]*" }</code>< where <code>&lt;suffix&gt;</code> is a String without any wild-card</dd>
@@ -2478,7 +2081,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Suffixes for Local Variable Name.
 	 * <p>When the suffixes is non empty, completion for local variable name will end with
-	 *    one of the proposed suffixes.</p>
+	 *    one of the proposed suffixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.localSuffixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;suffix&gt;[,&lt;suffix&gt;]*" }</code> where <code>&lt;suffix&gt;</code> is a String without any wild-card</dd>
@@ -2491,7 +2094,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Define the Suffixes for Argument Name.
 	 * <p>When the suffixes is non empty, completion for argument name will end with
-	 *    one of the proposed suffixes.</p>
+	 *    one of the proposed suffixes.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.argumentSuffixes"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "&lt;suffix&gt;[,&lt;suffix&gt;]*" }</code> where <code>&lt;suffix&gt;</code> is a String without any wild-card</dd>
@@ -2504,7 +2107,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Activate Forbidden Reference Sensitive Completion.
 	 * <p>When enabled, completion doesn't propose elements which match a
-	 *    forbidden reference rule.</p>
+  	 *    forbidden reference rule.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.forbiddenReferenceCheck"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2517,7 +2120,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Activate Discouraged Reference Sensitive Completion.
 	 * <p>When enabled, completion doesn't propose elements which match a
-	 *    discouraged reference rule.</p>
+  	 *    discouraged reference rule.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.discouragedReferenceCheck"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2530,7 +2133,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Code assist option ID: Activate Suggestion of Static Import.
 	 * <p>When enabled, completion proposals can contain static import
-	 *    pattern.</p>
+	 *    pattern.
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.codeComplete.suggestStaticImports"</code></dd>
 	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
@@ -2644,12 +2247,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * @category OptionValue
 	 */
 	public static final String VERSION_1_7 = "1.7"; //$NON-NLS-1$
-	/**
-	 * Configurable option value: {@value}.
-	 * @since 3.9 BETA_JAVA8
-	 * @category OptionValue
-	 */
-	public static final String VERSION_1_8 = "1.8"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
 	 * @since 3.4
@@ -2825,14 +2422,11 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Adds the given listener for changes to Java elements.
 	 * Has no effect if an identical listener is already registered.
-	 * <p>
+	 *
 	 * This listener will only be notified during the POST_CHANGE resource change notification
 	 * and any reconcile operation (POST_RECONCILE).
-	 * </p>
-	 * <p>
 	 * For finer control of the notification, use <code>addElementChangedListener(IElementChangedListener,int)</code>,
 	 * which allows to specify a different eventMask.
-	 * </p>
 	 *
 	 * @param listener the listener
 	 * @see ElementChangedEvent
@@ -2943,7 +2537,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * </p>
 	 * <p>
 	 * Supported event types are:
-	 * </p>
 	 * <ul>
 	 * <li>{@link IResourceChangeEvent#PRE_BUILD}</li>
 	 * <li>{@link IResourceChangeEvent#POST_BUILD}</li>
@@ -2952,6 +2545,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <li>{@link IResourceChangeEvent#PRE_CLOSE}</li>
 	 * </ul>
 	 * This list may increase in the future.
+	 * </p>
 	 *
 	 * @param listener the listener
 	 * @param eventMask the bit-wise OR of all event types of interest to the
@@ -3022,8 +2616,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <code>null</code> if unable to associate the given file
 	 * with a Java element.
 	 *
-	 * <p>The file must be one of:</p>
-	 *	<ul>
+	 * <p>The file must be one of:<ul>
 	 *	<li>a file with one of the {@link JavaCore#getJavaLikeExtensions()
 	 *      Java-like extensions} - the element returned is the corresponding <code>ICompilationUnit</code></li>
 	 *	<li>a <code>.class</code> file - the element returned is the corresponding <code>IClassFile</code></li>
@@ -3032,7 +2625,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Creating a Java element has the side effect of creating and opening all of the
 	 * element's parents if they are not yet open.
-	 * </p>
 	 *
 	 * @param file the given file
 	 * @return the Java element corresponding to the given file, or
@@ -3047,11 +2639,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <code>null</code> if unable to associate the given folder with a Java element.
 	 * <p>
 	 * Note that a package fragment root is returned rather than a default package.
-	 * </p>
 	 * <p>
 	 * Creating a Java element has the side effect of creating and opening all of the
 	 * element's parents if they are not yet open.
-	 * </p>
 	 *
 	 * @param folder the given folder
 	 * @return the package fragment or package fragment root corresponding to the given folder, or
@@ -3065,10 +2655,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Creating a Java Project has the side effect of creating and opening all of the
 	 * project's parents if they are not yet open.
-	 * </p>
 	 * <p>
 	 * Note that no check is done at this time on the existence or the java nature of this project.
-	 * </p>
 	 *
 	 * @param project the given project
 	 * @return the Java project corresponding to the given project, null if the given project is null
@@ -3085,9 +2673,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <code>null</code> if unable to associate the given resource
 	 * with a Java element.
 	 * <p>
-	 * The resource must be one of:
-	 * </p>
-	 *	<ul>
+	 * The resource must be one of:<ul>
 	 *	<li>a project - the element returned is the corresponding <code>IJavaProject</code></li>
 	 *	<li>a file with one of the {@link JavaCore#getJavaLikeExtensions()
 	 *      Java-like extensions} - the element returned is the corresponding <code>ICompilationUnit</code></li>
@@ -3100,7 +2686,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Creating a Java element has the side effect of creating and opening all of the
 	 * element's parents if they are not yet open.
-	 * </p>
 	 *
 	 * @param resource the given resource
 	 * @return the Java element corresponding to the given resource, or
@@ -3114,10 +2699,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Returns the Java element corresponding to the given file, its project being the given
 	 * project. Returns <code>null</code> if unable to associate the given resource
 	 * with a Java element.
-	 * <p>
-	 * The resource must be one of:
-	 * </p>
-	 *	<ul>
+	 *<p>
+	 * The resource must be one of:<ul>
 	 *	<li>a project - the element returned is the corresponding <code>IJavaProject</code></li>
 	 *	<li>a file with one of the {@link JavaCore#getJavaLikeExtensions()
 	 *      Java-like extensions} - the element returned is the corresponding <code>ICompilationUnit</code></li>
@@ -3130,7 +2713,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Creating a Java element has the side effect of creating and opening all of the
 	 * element's parents if they are not yet open.
-	 * </p>
 	 *
 	 * @param resource the given resource
 	 * @return the Java element corresponding to the given file, or
@@ -3201,19 +2783,16 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * onto this project (using <code>setClasspathContainer</code>, then a
 	 * <code>ClasspathContainerInitializer</code> will be activated if any was registered for this container
 	 * ID onto the extension point "org.aspectj.org.eclipse.jdt.core.classpathContainerInitializer".
-	 * </p>
 	 * <p>
 	 * There is no assumption that the returned container must answer the exact same containerPath
 	 * when requested <code>IClasspathContainer#getPath</code>.
 	 * Indeed, the containerPath is just an indication for resolving it to an actual container object.
-	 * </p>
 	 * <p>
 	 * Classpath container values are persisted locally to the workspace, but
 	 * are not preserved from a session to another. It is thus highly recommended to register a
 	 * <code>ClasspathContainerInitializer</code> for each referenced container
 	 * (through the extension point "org.aspectj.org.eclipse.jdt.core.ClasspathContainerInitializer").
-	 * </p>
-	 *
+	 * <p>
 	 * @param containerPath the name of the container, which needs to be resolved
 	 * @param project a specific project in which the container is being resolved
 	 * @return the corresponding classpath container or <code>null</code> if unable to find one.
@@ -3242,7 +2821,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * the extension point "org.aspectj.org.eclipse.jdt.core.classpathContainerInitializer".
 	 * <p>
 	 * A containerID is the first segment of any container path, used to identify the registered container initializer.
-	 * </p>
+	 * <p>
 	 * @param containerID - a containerID identifying a registered initializer
 	 * @return ClasspathContainerInitializer - the registered classpath container initializer or <code>null</code> if
 	 * none was found.
@@ -3315,14 +2894,12 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
 	 * <p>
 	 * Note that classpath variables can be contributed registered initializers for,
 	 * using the extension point "org.aspectj.org.eclipse.jdt.core.classpathVariableInitializer".
 	 * If an initializer is registered for a variable, its persisted value will be ignored:
 	 * its initializer will thus get the opportunity to rebind the variable differently on
 	 * each session.
-	 * </p>
 	 *
 	 * @param variableName the name of the classpath variable
 	 * @return the path, or <code>null</code> if none
@@ -3457,7 +3034,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Helper method finding the classpath variable initializer registered for a given classpath variable name
 	 * or <code>null</code> if none was found while iterating over the contributions to extension point to
 	 * the extension point "org.aspectj.org.eclipse.jdt.core.classpathVariableInitializer".
-	 *
+	 * <p>
  	 * @param variable the given variable
  	 * @return ClasspathVariableInitializer - the registered classpath variable initializer or <code>null</code> if
 	 * none was found.
@@ -3527,7 +3104,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
+	 * <p>
 	 *
 	 * @return the list of classpath variable names
 	 * @see #setClasspathVariable(String, IPath)
@@ -3546,10 +3123,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * (categorized in Code assist option ID, Compiler option ID and Core option ID)
 	 * and some of their acceptable values (categorized in Option value). Some
 	 * options accept open value sets beyond the documented constant values.
-	 * </p>
 	 * <p>
 	 * Note: each release may add new options.
-	 * </p>
 	 *
 	 * @return a table of all known configurable options with their default values
 	 */
@@ -3784,10 +3359,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Returns the list of known Java-like extensions.
 	 * Java like extension are defined in the {@link org.eclipse.core.runtime.Platform#getContentTypeManager()
 	 * content type manager} for the {@link #JAVA_SOURCE_CONTENT_TYPE}.
-	 * <p>
 	 * Note that a Java-like extension doesn't include the leading dot ('.').
 	 * Also note that the "java" extension is always defined as a Java-like extension.
-	 * </p>
 	 *
 	 * @return the list of known Java-like extensions.
 	 * @since 3.2
@@ -3804,10 +3377,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * (categorized in Code assist option ID, Compiler option ID and Core option ID)
 	 * and some of their acceptable values (categorized in Option value). Some
 	 * options accept open value sets beyond the documented constant values.
-	 * </p>
 	 * <p>
 	 * Note: each release may add new options.
-	 * </p>
 	 *
 	 * @param optionName the name of an option
 	 * @return the String value of a given option
@@ -3846,10 +3417,8 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * (categorized in Code assist option ID, Compiler option ID and Core option ID)
 	 * and some of their acceptable values (categorized in Option value). Some
 	 * options accept open value sets beyond the documented constant values.
-	 * </p>
 	 * <p>
 	 * Note: each release may add new options.
-	 * </p>
 	 * <p>Returns a default set of options even if the platform is not running.</p>
 	 *
 	 * @return table of current settings of all options
@@ -3883,11 +3452,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * </ul>
 	 * <p>
 	 * Variable source attachment path and root path are also resolved and recorded in the resulting classpath entry.
-	 * </p>
 	 * <p>
 	 * NOTE: This helper method does not handle classpath containers, for which should rather be used
 	 * <code>JavaCore#getClasspathContainer(IPath, IJavaProject)</code>.
-	 * </p>
+	 * <p>
 	 *
 	 * @param entry the given variable entry
 	 * @return the resolved library or project classpath entry, or <code>null</code>
@@ -3965,7 +3533,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * overhead on user actions, if it can be performed before at some
 	 * appropriate moment.
 	 * </p><p>
-	 * This initialization runs across all Java projects in the workspace. Thus the
+	 * This initialization runs accross all Java projects in the workspace. Thus the
 	 * workspace root scheduling rule is used during this operation.
 	 * </p><p>
 	 * This method may return before the initialization is complete. The
@@ -4065,7 +3633,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 			// initialize delta state
 			if (monitor != null)
 				monitor.subTask(Messages.javamodel_initializing_delta_state);
-			manager.deltaState.rootsAreStale = true; // in case it was already initialized before we cleaned up the source attachment properties
+			manager.deltaState.rootsAreStale = true; // in case it was already initialized before we cleaned up the source attachment proprties
 			manager.deltaState.initializeRoots(true/*initAfteLoad*/);
 
 			// dummy query for waiting until the indexes are ready
@@ -4282,7 +3850,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * The rule kind is one of {@link IAccessRule#K_ACCESSIBLE}, {@link IAccessRule#K_DISCOURAGED},
 	 * or {@link IAccessRule#K_NON_ACCESSIBLE}, optionally combined with {@link IAccessRule#IGNORE_IF_BETTER},
-	 * e.g. <code>IAccessRule.K_NON_ACCESSIBLE | IAccessRule.IGNORE_IF_BETTER</code>.
+	 * e..g. <code>IAccessRule.K_NON_ACCESSIBLE | IAccessRule.IGNORE_IF_BETTER</code>.
 	 * </p>
 	 *
 	 * @param filePattern the file pattern this access rule should match
@@ -4291,8 +3859,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 *                     {@link IAccessRule#IGNORE_IF_BETTER}
 	 * @return a new access rule
 	 * @since 3.1
-	 * 
-	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
 	public static IAccessRule newAccessRule(IPath filePattern, int kind) {
 		return new ClasspathAccessRule(filePattern, kind);
@@ -4313,7 +3879,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * for the given path. This method is fully equivalent to calling
 	 * {@link #newContainerEntry(IPath, IAccessRule[], IClasspathAttribute[], boolean)
 	 * newContainerEntry(containerPath, new IAccessRule[0], new IClasspathAttribute[0], false)}.
-	 *
+	 * <p>
 	 * @param containerPath the path identifying the container, it must be formed of two
 	 * 	segments
 	 * @return a new container classpath entry
@@ -4362,15 +3928,11 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * which can be interpreted differently for each Java project where it is used.
 	 * A classpath container entry can be resolved using <code>JavaCore.getResolvedClasspathContainer</code>,
 	 * and updated with <code>JavaCore.classpathContainerChanged</code>
-	 * </p>
 	 * <p>
 	 * A container is exclusively resolved by a <code>ClasspathContainerInitializer</code> registered onto the
 	 * extension point "org.aspectj.org.eclipse.jdt.core.classpathContainerInitializer".
-	 * </p>
 	 * <p>
-	 * A container path must be formed of at least one segment, where:
-	 * </p>
-	 * <ul>
+	 * A container path must be formed of at least one segment, where: <ul>
 	 * <li> the first segment is a unique ID identifying the target container, there must be a container initializer registered
 	 * 	onto this ID through the extension point  "org.aspectj.org.eclipse.jdt.core.classpathContainerInitializer". </li>
 	 * <li> the remaining segments will be passed onto the initializer, and can be used as additional
@@ -4378,7 +3940,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * </ul>
 	 * <p>
 	 * Example of an ClasspathContainerInitializer for a classpath container denoting a default JDK container:
-	 * </p>
 	 * <pre>
 	 * containerEntry = JavaCore.newContainerEntry(new Path("MyProvidedJDK/default"));
 	 *
@@ -4470,7 +4031,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Note that if a working copy is empty, it will be as if the original compilation
 	 * unit had been deleted.
-	 * </p>
+	 * <p>
 	 *
 	 * @param monitor the given progress monitor
 	 * @param region the given region
@@ -4529,11 +4090,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Creates and returns a new classpath entry of kind <code>CPE_LIBRARY</code> for the JAR or folder
 	 * identified by the given absolute path. This specifies that all package fragments within the root
 	 * will have children of type <code>IClassFile</code>.
-	 * <p>
 	 * This method is fully equivalent to calling
 	 * {@link #newLibraryEntry(IPath, IPath, IPath, IAccessRule[], IClasspathAttribute[], boolean)
 	 * newLibraryEntry(path, sourceAttachmentPath, sourceAttachmentRootPath, new IAccessRule[0], new IClasspathAttribute[0], isExported)}.
-	 * </p>
 	 *
 	 * @param path the path to the library
 	 * @param sourceAttachmentPath the absolute path of the corresponding source archive or folder,
@@ -4573,16 +4132,13 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * The target root folder can also be defined internally to the workspace (absolute path relative
 	 * to the workspace root), or - since 3.4 - externally to the workspace (absolute path in the file system).
 	 * Since 3.5, the path to the library can also be relative to the project using ".." as the first segment. 
-	 * </p>
 	 * <p>
-	 * e.g. Here are some examples of binary path usage
-	 * </p>
-	 *	<ul>
+	 * e.g. Here are some examples of binary path usage<ul>
 	 *	<li><code> "c:\jdk1.2.2\jre\lib\rt.jar" </code> - reference to an external JAR on Windows</li>
 	 *	<li><code> "/Project/someLib.jar" </code> - reference to an internal JAR on Windows or Linux</li>
 	 *	<li><code> "/Project/classes/" </code> - reference to an internal binary folder on Windows or Linux</li>
 	 *	<li><code> "/home/usr/classes" </code> - reference to an external binary folder on Linux</li>
-	 *	<li><code> "../../lib/someLib.jar" </code> - reference to an external JAR that is a sibling of the workspace on either platform</li>
+	 *	<li><code> "../../lib/someLib.jar" </code> - reference to an external JAR that is a sibbling of the workspace on either platform</li>
 	 * </ul>
 	 * Note that on non-Windows platform, a path <code>"/some/lib.jar"</code> is ambiguous.
 	 * It can be a path to an external JAR (its file system path being <code>"/some/lib.jar"</code>)
@@ -4612,7 +4168,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * with the non accessible files patterns of the project.
 	 * </p>
 	 * <p>
-	 * Since 3.5, if the library is a ZIP archive, the "Class-Path" clause (if any) in the "META-INF/MANIFEST.MF" is read
+	 * Since 3.5, if the libray is a ZIP archive, the "Class-Path" clause (if any) in the "META-INF/MANIFEST.MF" is read
 	 * and referenced ZIP archives are added to the {@link IJavaProject#getResolvedClasspath(boolean) resolved classpath}.
 	 * </p>
 	 *
@@ -4674,11 +4230,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Creates and returns a new non-exported classpath entry of kind <code>CPE_PROJECT</code>
 	 * for the project identified by the given absolute path.
-	 * <p>
 	 * This method is fully equivalent to calling
 	 * {@link #newProjectEntry(IPath, IAccessRule[], boolean, IClasspathAttribute[], boolean)
 	 * newProjectEntry(path, new IAccessRule[0], true, new IClasspathAttribute[0], false)}.
-	 * </p>
 	 *
 	 * @param path the absolute path of the binary archive
 	 * @return a new project classpath entry
@@ -4690,11 +4244,9 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	/**
 	 * Creates and returns a new classpath entry of kind <code>CPE_PROJECT</code>
 	 * for the project identified by the given absolute path.
-	 * <p>
 	 * This method is fully equivalent to calling
 	 * {@link #newProjectEntry(IPath, IAccessRule[], boolean, IClasspathAttribute[], boolean)
 	 * newProjectEntry(path, new IAccessRule[0], true, new IClasspathAttribute[0], isExported)}.
-	 * </p>
 	 *
 	 * @param path the absolute path of the prerequisite project
 	 * @param isExported indicates whether this entry is contributed to dependent
@@ -4806,10 +4358,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * absolute workspace-relative path.
 	 * <p>
 	 * The convenience method is fully equivalent to:
-	 * </p>
 	 * <pre>
 	 * newSourceEntry(path, new IPath[] {}, new IPath[] {}, null);
 	 * </pre>
+	 * </p>
 	 *
 	 * @param path the absolute workspace-relative path of a source folder
 	 * @return a new source classpath entry
@@ -4827,10 +4379,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * matching any of the given patterns.
 	 * <p>
 	 * The convenience method is fully equivalent to:
-	 * </p>
 	 * <pre>
 	 * newSourceEntry(path, new IPath[] {}, exclusionPatterns, null);
 	 * </pre>
+	 * </p>
 	 *
 	 * @param path the absolute workspace-relative path of a source folder
 	 * @param exclusionPatterns the possibly empty list of exclusion patterns
@@ -4852,15 +4404,15 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * (that is, ".class" files are not going to the project default output location).
 	 * <p>
 	 * The convenience method is fully equivalent to:
-	 * </p>
 	 * <pre>
 	 * newSourceEntry(path, new IPath[] {}, exclusionPatterns, specificOutputLocation);
 	 * </pre>
+	 * </p>
 	 *
 	 * @param path the absolute workspace-relative path of a source folder
 	 * @param exclusionPatterns the possibly empty list of exclusion patterns
 	 *    represented as relative paths
-	 * @param specificOutputLocation the specific output location for this source entry (<code>null</code> if using project default output location)
+	 * @param specificOutputLocation the specific output location for this source entry (<code>null</code> if using project default ouput location)
 	 * @return a new source classpath entry
 	 * @see #newSourceEntry(IPath, IPath[], IPath[], IPath)
 	 * @since 2.1
@@ -4878,17 +4430,17 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * (that is, ".class" files are not going to the project default output location).
 	 * <p>
 	 * The convenience method is fully equivalent to:
-	 * </p>
 	 * <pre>
 	 * newSourceEntry(path, new IPath[] {}, exclusionPatterns, specificOutputLocation, new IClasspathAttribute[] {});
 	 * </pre>
+	 * </p>
 	 *
 	 * @param path the absolute workspace-relative path of a source folder
 	 * @param inclusionPatterns the possibly empty list of inclusion patterns
 	 *    represented as relative paths
 	 * @param exclusionPatterns the possibly empty list of exclusion patterns
 	 *    represented as relative paths
-	 * @param specificOutputLocation the specific output location for this source entry (<code>null</code> if using project default output location)
+	 * @param specificOutputLocation the specific output location for this source entry (<code>null</code> if using project default ouput location)
 	 * @return a new source classpath entry
 	 * @see #newSourceEntry(IPath, IPath[], IPath[], IPath, IClasspathAttribute[])
 	 * @since 3.0
@@ -4914,7 +4466,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * The inclusion patterns determines the initial set of source files that
 	 * are to be included; the exclusion patterns are then used to reduce this
 	 * set. When no inclusion patterns are specified, the initial file set
-	 * includes all relevant files in the resource tree rooted at the source
+	 * includes all relevent files in the resource tree rooted at the source
 	 * entry's path. On the other hand, specifying one or more inclusion
 	 * patterns means that all <b>and only</b> files matching at least one of
 	 * the specified patterns are to be included. If exclusion patterns are
@@ -5067,16 +4619,12 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * A variable entry allows to express indirect references on a classpath to other projects or libraries,
 	 * depending on what the classpath variable is referring.
-	 * </p>
 	 * <p>
-	 * It is possible to register an automatic initializer (<code>ClasspathVariableInitializer</code>),
+	 *	It is possible to register an automatic initializer (<code>ClasspathVariableInitializer</code>),
 	 * which will be invoked through the extension point "org.aspectj.org.eclipse.jdt.core.classpathVariableInitializer".
 	 * After resolution, a classpath variable entry may either correspond to a project or a library entry.
-	 * </p>
 	 * <p>
-	 * e.g. Here are some examples of variable path usage
-	 * </p>
-	 * <ul>
+	 * e.g. Here are some examples of variable path usage<ul>
 	 * <li> "JDTCORE" where variable <code>JDTCORE</code> is
 	 *		bound to "c:/jars/jdtcore.jar". The resolved classpath entry is denoting the library "c:\jars\jdtcore.jar"</li>
 	 * <li> "JDTCORE" where variable <code>JDTCORE</code> is
@@ -5175,7 +4723,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * 
 	 * @param libraryEntry the library entry whose referenced entries are sought 
 	 * @param project project where the persisted referenced entries to be retrieved from. If <code>null</code>
-	 * 			persisted attributes are not attempted to be retrieved.
+	 * 			persisted attributes are not attempted to be retrived.
 	 * @return an array of classpath entries that are referenced directly or indirectly by the given entry. 
 	 * 			If not applicable, returns an empty array.
 	 * @since 3.6
@@ -5184,17 +4732,16 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		return manager.getReferencedClasspathEntries(libraryEntry, project);
 	}
-
+	
 	/**
 	 * Removed the given classpath variable. Does nothing if no value was
 	 * set for this classpath variable.
 	 * <p>
 	 * This functionality cannot be used while the resource tree is locked.
-	 * </p>
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
+	 * <p>
 	 *
 	 * @param variableName the name of the classpath variable
 	 * @see #setClasspathVariable(String, IPath)
@@ -5210,11 +4757,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * set for this classpath variable.
 	 * <p>
 	 * This functionality cannot be used while the resource tree is locked.
-	 * </p>
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
+	 * <p>
 	 *
 	 * @param variableName the name of the classpath variable
 	 * @param monitor the progress monitor to report progress
@@ -5256,7 +4802,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Removes the given pre-processing resource changed listener.
 	 * <p>
 	 * Has no effect if an identical listener is not registered.
-	 * </p>
 	 *
 	 * @param listener the listener
 	 * @since 3.0
@@ -5353,7 +4898,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * is formed by a first ID segment followed with extra segments, which can be used as additional hints
 	 * for the resolution. The container ID is used to identify a <code>ClasspathContainerInitializer</code>
 	 * registered on the extension point "org.aspectj.org.eclipse.jdt.core.classpathContainerInitializer".
-	 * </p>
 	 * <p>
 	 * There is no assumption that each individual container value passed in argument
 	 * (<code>respectiveContainers</code>) must answer the exact same path when requested
@@ -5361,28 +4905,24 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Indeed, the containerPath is just an indication for resolving it to an actual container object. It can be
 	 * delegated to a <code>ClasspathContainerInitializer</code>, which can be activated through the extension
 	 * point "org.aspectj.org.eclipse.jdt.core.ClasspathContainerInitializer").
-	 * </p>
 	 * <p>
 	 * In reaction to changing container values, the JavaModel will be updated to reflect the new
 	 * state of the updated container. A combined Java element delta will be notified to describe the corresponding
 	 * classpath changes resulting from the container update. This operation is batched, and automatically eliminates
 	 * unnecessary updates (new container is same as old one). This operation acquires a lock on the workspace's root.
-	 * </p>
 	 * <p>
 	 * This functionality cannot be used while the workspace is locked, since
 	 * it may create/remove some resource markers.
-	 * </p>
 	 * <p>
 	 * Classpath container values are persisted locally to the workspace, but
 	 * are not preserved from a session to another. It is thus highly recommended to register a
 	 * <code>ClasspathContainerInitializer</code> for each referenced container
 	 * (through the extension point "org.aspectj.org.eclipse.jdt.core.ClasspathContainerInitializer").
-	 * </p>
 	 * <p>
 	 * Note: setting a container to <code>null</code> will cause it to be lazily resolved again whenever
 	 * its value is required. In particular, this will cause a registered initializer to be invoked
 	 * again.
-	 * </p>
+	 * <p>
 	 * @param containerPath - the name of the container reference, which is being updated
 	 * @param affectedProjects - the set of projects for which this container is being bound
 	 * @param respectiveContainers - the set of respective containers for the affected projects
@@ -5417,11 +4957,10 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * The path must have at least one segment.
 	 * <p>
 	 * This functionality cannot be used while the resource tree is locked.
-	 * </p>
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
+	 * <p>
 	 *
 	 * @param variableName the name of the classpath variable
 	 * @param path the path
@@ -5442,14 +4981,11 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Since 3.5, the path to a library can also be relative to the project using ".." as the first segment. 
 	 * <p>
 	 * This functionality cannot be used while the resource tree is locked.
-	 * </p>
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
 	 * <p>
 	 * Updating a variable with the same value has no effect.
-	 * </p>
 	 *
 	 * @param variableName the name of the classpath variable
 	 * @param path the path
@@ -5476,18 +5012,14 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * classpath changes resulting from the variables update. This operation is batched,
 	 * and automatically eliminates unnecessary updates (new variable is same as old one).
 	 * This operation acquires a lock on the workspace's root.
-	 * </p>
 	 * <p>
 	 * This functionality cannot be used while the workspace is locked, since
 	 * it may create/remove some resource markers.
-	 * </p>
 	 * <p>
 	 * Classpath variable values are persisted locally to the workspace, and
 	 * are preserved from session to session.
-	 * </p>
 	 * <p>
 	 * Updating a variable with the same value has no effect.
-	 * </p>
 	 *
 	 * @param variableNames an array of names for the updated classpath variables
 	 * @param paths an array of path updates for the modified classpath variables (null
@@ -5513,7 +5045,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * to the given compliance.
 	 *
 	 * <p>The given compliance must be one of those supported by the compiler,
-	 * that is one of the acceptable values for option {@link #COMPILER_COMPLIANCE}.</p>
+	 * that is one of the acceptable values for option {@link #COMPILER_COMPLIANCE}.
 	 *
 	 * <p>The list of modified options is currently:</p>
 	 * <ul>
@@ -5570,15 +5102,6 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
 				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
 				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
-				break;
-			case ClassFileConstants.MAJOR_VERSION_1_8:
-				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_8);
-				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_8);
-				options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_8);
-				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
-				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
-				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
-				break;
 		}
 	}
 
@@ -5591,7 +5114,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * (categorized in Code assist option ID, Compiler option ID and Core option ID)
 	 * and some of their acceptable values (categorized in Option value). Some
 	 * options accept open value sets beyond the documented constant values.
-	 * </p>
+	 * <p>
 	 * Note: each release may add new options.
 	 *
 	 * @param newOptions
@@ -5609,7 +5132,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * Shutdown the JavaCore plug-in.
 	 * <p>
 	 * De-registers the JavaModelManager as a resource changed listener and save participant.
-	 * </p>
+	 * <p>
 	 * @see org.eclipse.core.runtime.Plugin#stop(BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
@@ -5626,7 +5149,7 @@ public class JavaCore extends Plugin { // AspectJ Extension - made non-final
 	 * <p>
 	 * Registers the JavaModelManager as a resource changed listener and save participant.
 	 * Starts the background indexing, and restore saved classpath variable values.
-	 * </p>
+	 * <p>
 	 * @throws Exception
 	 * @see org.eclipse.core.runtime.Plugin#start(BundleContext)
 	 */

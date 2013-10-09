@@ -7,11 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Nikolay Botev - Bug 348507
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search;
 
-import java.util.LinkedHashSet;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -27,7 +25,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ReferenceCollection;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.State;
-import org.aspectj.org.eclipse.jdt.internal.core.index.IndexLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
 import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MethodPattern;
@@ -39,7 +36,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MethodPattern;
 public class IndexSelector {
 	IJavaSearchScope searchScope;
 	SearchPattern pattern;
-	IndexLocation[] indexLocations; // cache of the keys for looking index up
+	IPath[] indexLocations; // cache of the keys for looking index up
 
 public IndexSelector(
 		IJavaSearchScope searchScope,
@@ -183,8 +180,7 @@ private static IJavaElement[] getFocusedElementsAndTypes(SearchPattern pattern, 
 private void initializeIndexLocations() {
 	IPath[] projectsAndJars = this.searchScope.enclosingProjectsAndJars();
 	IndexManager manager = JavaModelManager.getIndexManager();
-	// use a linked set to preserve the order during search: see bug 348507
-	LinkedHashSet locations = new LinkedHashSet();
+	SimpleSet locations = new SimpleSet();
 	IJavaElement focus = MatchLocator.projectOrJarFocus(this.pattern);
 	if (focus == null) {
 		for (int i = 0; i < projectsAndJars.length; i++) {
@@ -267,11 +263,15 @@ private void initializeIndexLocations() {
 		}
 	}
 
-	locations.remove(null); // Ensure no nulls
-	this.indexLocations = (IndexLocation[]) locations.toArray(new IndexLocation[locations.size()]);
+	this.indexLocations = new IPath[locations.elementSize];
+	Object[] values = locations.values;
+	int count = 0;
+	for (int i = values.length; --i >= 0;)
+		if (values[i] != null)
+			this.indexLocations[count++] = (IPath) values[i];
 }
 
-public IndexLocation[] getIndexLocations() {
+public IPath[] getIndexLocations() {
 	if (this.indexLocations == null) {
 		initializeIndexLocations();
 	}

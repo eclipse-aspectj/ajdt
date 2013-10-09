@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,10 +16,16 @@ import java.util.List;
 
 /**
  * Alternate constructor invocation statement AST node type.
+ * For JLS2:
  * <pre>
  * ConstructorInvocation:
- *    [ <b>&lt;</b> Type { <b>,</b> Type } <b>&gt;</b> ]
- *            <b>this</b> <b>(</b> [ Expression { <b>,</b> Expression } ] <b>)</b> <b>;</b>
+ *		<b>this</b> <b>(</b> [ Expression { <b>,</b> Expression } ] <b>)</b> <b>;</b>
+ * </pre>
+ * For JLS3, type arguments are added:
+ * <pre>
+ * ConstructorInvocation:
+ *      [ <b>&lt;</b> Type { <b>,</b> Type } <b>&gt;</b> ]
+ *		      <b>this</b> <b>(</b> [ Expression { <b>,</b> Expression } ] <b>)</b> <b>;</b>
  * </pre>
  *
  * @since 2.0
@@ -112,7 +118,7 @@ public class ConstructorInvocation extends Statement {
 	 */
 	ConstructorInvocation(AST ast) {
 		super(ast);
-		if (ast.apiLevel >= AST.JLS3_INTERNAL) {
+		if (ast.apiLevel >= AST.JLS3) {
 			this.typeArguments = new ASTNode.NodeList(TYPE_ARGUMENTS_PROPERTY);
 		}
 	}
@@ -152,7 +158,7 @@ public class ConstructorInvocation extends Statement {
 		ConstructorInvocation result = new ConstructorInvocation(target);
 		result.setSourceRange(getStartPosition(), getLength());
 		result.copyLeadingComment(this);
-		if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
+		if (this.ast.apiLevel >= AST.JLS3) {
 			result.typeArguments().addAll(ASTNode.copySubtrees(target, typeArguments()));
 		}
 		result.arguments().addAll(ASTNode.copySubtrees(target, arguments()));
@@ -173,7 +179,7 @@ public class ConstructorInvocation extends Statement {
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
-			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
+			if (this.ast.apiLevel >= AST.JLS3) {
 				acceptChildren(visitor, this.typeArguments);
 			}
 			acceptChildren(visitor, this.arguments);

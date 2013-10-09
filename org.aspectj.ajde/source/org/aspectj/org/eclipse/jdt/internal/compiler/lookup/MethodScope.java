@@ -1,32 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 349326 - [1.7] new warning for missing try-with-resources
- *								bug 374605 - Unreasonable warning for enum-based switch statements
- *								bug 382353 - [1.8][compiler] Implementation property modifiers should be accepted on default methods.
- *								bug 382354 - [1.8][compiler] Compiler silent on conflicting modifier
- *								bug 401030 - [1.8][null] Null analysis support for lambda methods. 
- *     Jesper S Moller - Contributions for
- *							bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
-import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
-import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
@@ -63,10 +49,7 @@ public class MethodScope extends BlockScope {
 	// inner-emulation
 	public SyntheticArgumentBinding[] extraSyntheticArguments;
 
-	// remember suppressed warning re missing 'default:' to give hints on possibly related flow problems
-	public boolean hasMissingSwitchDefault; // TODO(stephan): combine flags to a bitset?
-
-public MethodScope(Scope parent, ReferenceContext context, boolean isStatic) {
+public MethodScope(ClassScope parent, ReferenceContext context, boolean isStatic) {
 	super(METHOD_SCOPE, parent);
 	this.locals = new LocalVariableBinding[5];
 	this.referenceContext = context;
@@ -177,35 +160,11 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 
 	// set the requested modifiers for a method in an interface/annotation
 	if (declaringClass.isInterface()) {
-		int expectedModifiers = ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract;
-		boolean isDefaultMethod = (modifiers & ExtraCompilerModifiers.AccDefaultMethod) != 0; // no need to check validity, is done by the parser
-		boolean reportIllegalModifierCombination = false;
-		boolean isJDK18orGreater = false;
-		if (compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8 && !declaringClass.isAnnotationType()) {
-			expectedModifiers |= ClassFileConstants.AccStrictfp
-					| ExtraCompilerModifiers.AccDefaultMethod | ClassFileConstants.AccStatic;
-			isJDK18orGreater = true;
-			if (!methodBinding.isAbstract()) {
-				reportIllegalModifierCombination = isDefaultMethod && methodBinding.isStatic();
-			} else {
-				reportIllegalModifierCombination = isDefaultMethod || methodBinding.isStatic();
-				if (methodBinding.isStrictfp()) {
-					problemReporter().illegalAbstractModifierCombinationForMethod((AbstractMethodDeclaration) this.referenceContext);
-				}
-			}
-			if (reportIllegalModifierCombination) {
-				problemReporter().illegalModifierCombinationForInterfaceMethod((AbstractMethodDeclaration) this.referenceContext);
-			}
-			// Kludge - The AccDefaultMethod bit is outside the lower 16 bits and got removed earlier. Putting it back.
-			if (isDefaultMethod) {
-				realModifiers |= ExtraCompilerModifiers.AccDefaultMethod;
-			}
-		}
-		if ((realModifiers & ~expectedModifiers) != 0) {
+		if ((realModifiers & ~(ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract)) != 0) {
 			if ((declaringClass.modifiers & ClassFileConstants.AccAnnotation) != 0)
 				problemReporter().illegalModifierForAnnotationMember((AbstractMethodDeclaration) this.referenceContext);
 			else
-				problemReporter().illegalModifierForInterfaceMethod((AbstractMethodDeclaration) this.referenceContext, isJDK18orGreater);
+				problemReporter().illegalModifierForInterfaceMethod((AbstractMethodDeclaration) this.referenceContext);
 		}
 		return;
 	}
@@ -350,13 +309,8 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 		method.binding = new MethodBinding(modifiers, null, null, declaringClass);
 		checkAndSetModifiersForConstructor(method.binding);
 	} else {
-		if (declaringClass.isInterface()) {// interface or annotation type
-			if (method.isDefaultMethod() || method.isStatic()) {
-				modifiers |= ClassFileConstants.AccPublic; // default method is not abstract
-			} else {
-				modifiers |= ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract;
-			}
-		}
+		if (declaringClass.isInterface()) // interface or annotation type
+			modifiers |= ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract;
 		method.binding =
 			new MethodBinding(modifiers, method.selector, null, null, null, declaringClass);
 		checkAndSetModifiersForMethod(method.binding);
@@ -365,29 +319,12 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 
 	Argument[] argTypes = method.arguments;
 	int argLength = argTypes == null ? 0 : argTypes.length;
-	long sourceLevel = compilerOptions().sourceLevel;
-	if (argLength > 0) {
-		Argument argument = argTypes[--argLength];
-		if (argument.isVarArgs() && sourceLevel >= ClassFileConstants.JDK1_5)
+	if (argLength > 0 && compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
+		if (argTypes[--argLength].isVarArgs())
 			method.binding.modifiers |= ClassFileConstants.AccVarargs;
-		if (CharOperation.equals(argument.name, ConstantPool.This)) {
-			problemReporter().illegalThisDeclaration(argument);
-		}
 		while (--argLength >= 0) {
-			argument = argTypes[argLength];
-			if (argument.isVarArgs() && sourceLevel >= ClassFileConstants.JDK1_5)
-				problemReporter().illegalVararg(argument, method);
-			if (CharOperation.equals(argument.name, ConstantPool.This)) {
-				problemReporter().illegalThisDeclaration(argument);
-			}
-		}
-	}
-	if (method.receiver != null) {
-		if (sourceLevel <= ClassFileConstants.JDK1_7) {
-			problemReporter().illegalSourceLevelForThis(method.receiver);
-		}
-		if (method.receiver.annotations != null) {
-			method.bits |= ASTNode.HasTypeAnnotations;
+			if (argTypes[argLength].isVarArgs())
+				problemReporter().illegalVararg(argTypes[argLength], method);
 		}
 	}
 
@@ -451,10 +388,6 @@ public boolean isInsideConstructor() {
 
 public boolean isInsideInitializer() {
 	return (this.referenceContext instanceof TypeDeclaration);
-}
-
-public boolean isLambdaScope() {
-	return this.referenceContext instanceof LambdaExpression;
 }
 
 public boolean isInsideInitializerOrConstructor() {
@@ -532,21 +465,10 @@ public final int recordInitializationStates(FlowInfo flowInfo) {
 }
 
 /**
- *  Answer the reference method of this scope, or null if initialization scope or lambda scope.
+ *  Answer the reference method of this scope, or null if initialization scope.
  */
 public AbstractMethodDeclaration referenceMethod() {
 	if (this.referenceContext instanceof AbstractMethodDeclaration) return (AbstractMethodDeclaration) this.referenceContext;
-	return null;
-}
-
-/**
- * Answers the binding of the reference method or reference lambda expression.
- */
-public MethodBinding referenceMethodBinding() {
-	if (this.referenceContext instanceof LambdaExpression)
-		return ((LambdaExpression)this.referenceContext).binding;
-	if (this.referenceContext instanceof AbstractMethodDeclaration)
-		return ((AbstractMethodDeclaration)this.referenceContext).binding;
 	return null;
 }
 
@@ -555,7 +477,6 @@ public MethodBinding referenceMethodBinding() {
  * It is the nearest enclosing type of this scope.
  */
 public TypeDeclaration referenceType() {
-	ClassScope scope = enclosingClassScope();
-	return scope == null ? null : scope.referenceContext;
+	return ((ClassScope) this.parent).referenceContext;
 }
 }

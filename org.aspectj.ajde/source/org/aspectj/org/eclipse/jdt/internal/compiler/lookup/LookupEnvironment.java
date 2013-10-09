@@ -1,27 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - contributions for
- *     							bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 365531 - [compiler][null] investigate alternative strategy for internally encoding nullness defaults
- *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
- *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
+ *     Stephan Herrmann - contribution for bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
+ *     Palo Alto Research Center, Incorporated - AspectJ adaptation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -73,7 +64,6 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 	public ITypeRequestor typeRequestor;
 
 	private ArrayBinding[][] uniqueArrayBindings;
-	private IntersectionCastTypeBinding[][] uniqueIntersectionCastTypeBindings;
 	private SimpleLookupTable uniqueParameterizedTypeBindings;
 	private SimpleLookupTable uniqueRawTypeBindings;
 	private SimpleLookupTable uniqueWildcardBindings;
@@ -94,11 +84,6 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 	private ArrayList missingTypes;
 	Set typesBeingConnected;
 	public boolean isProcessingAnnotations = false;
-	public boolean mayTolerateMissingType = false;
-
-	PackageBinding nullableAnnotationPackage;			// the package supposed to contain the Nullable annotation type
-	PackageBinding nonnullAnnotationPackage;			// the package supposed to contain the NonNull annotation type
-	PackageBinding nonnullByDefaultAnnotationPackage;	// the package supposed to contain the NonNullByDefault annotation type
 
 	// AspectJ extension - raised visibility to protected on these four fields
 	protected final static int BUILD_FIELDS_AND_METHODS = 4;
@@ -108,7 +93,6 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 
 	static final ProblemPackageBinding TheNotFoundPackage = new ProblemPackageBinding(CharOperation.NO_CHAR, NotFound);
 	static final ProblemReferenceBinding TheNotFoundType = new ProblemReferenceBinding(CharOperation.NO_CHAR_CHAR, null, NotFound);
-
 
 public LookupEnvironment(ITypeRequestor typeRequestor, CompilerOptions globalOptions, ProblemReporter problemReporter, INameEnvironment nameEnvironment) {
 	this.typeRequestor = typeRequestor;
@@ -120,7 +104,6 @@ public LookupEnvironment(ITypeRequestor typeRequestor, CompilerOptions globalOpt
 	this.knownPackages = new HashtableOfPackage();
 	this.uniqueArrayBindings = new ArrayBinding[5][];
 	this.uniqueArrayBindings[0] = new ArrayBinding[50]; // start off the most common 1 dimension array @ 50
-	this.uniqueIntersectionCastTypeBindings = new IntersectionCastTypeBinding[0][0];
 	this.uniqueParameterizedTypeBindings = new SimpleLookupTable(3);
 	this.uniqueRawTypeBindings = new SimpleLookupTable(3);
 	this.uniqueWildcardBindings = new SimpleLookupTable(3);
@@ -654,9 +637,6 @@ public AnnotationBinding createAnnotation(ReferenceBinding annotationType, Eleme
  *  Used to guarantee array type identity.
  */
 public ArrayBinding createArrayType(TypeBinding leafComponentType, int dimensionCount) {
-	return createArrayType(leafComponentType, dimensionCount, null);
-}
-public ArrayBinding createArrayType(TypeBinding leafComponentType, int dimensionCount, long[] nullTagBitsPerDimension) {
 	if (leafComponentType instanceof LocalTypeBinding) // cache local type arrays with the local type itself
 		return ((LocalTypeBinding) leafComponentType).createArrayType(dimensionCount, this);
 
@@ -681,9 +661,8 @@ public ArrayBinding createArrayType(TypeBinding leafComponentType, int dimension
 	while (++index < length) {
 		ArrayBinding currentBinding = arrayBindings[index];
 		if (currentBinding == null) // no matching array, but space left
-			return arrayBindings[index] = new ArrayBinding(leafComponentType, dimensionCount, this, nullTagBitsPerDimension);
-		if (currentBinding.leafComponentType == leafComponentType
-				&& (nullTagBitsPerDimension == null || Arrays.equals(currentBinding.nullTagBitsPerDimension, nullTagBitsPerDimension)))
+			return arrayBindings[index] = new ArrayBinding(leafComponentType, dimensionCount, this);
+		if (currentBinding.leafComponentType == leafComponentType)
 			return currentBinding;
 	}
 
@@ -693,48 +672,7 @@ public ArrayBinding createArrayType(TypeBinding leafComponentType, int dimension
 		(arrayBindings = new ArrayBinding[length * 2]), 0,
 		length);
 	this.uniqueArrayBindings[dimIndex] = arrayBindings;
-	return arrayBindings[length] = new ArrayBinding(leafComponentType, dimensionCount, this, nullTagBitsPerDimension);
-}
-public TypeBinding createIntersectionCastType(ReferenceBinding[] intersectingTypes) {
-	
-	// this is perhaps an overkill, but since what is worth doing is worth doing well ...
-	
-	int count = intersectingTypes.length;
-	int length = this.uniqueIntersectionCastTypeBindings.length;
-	IntersectionCastTypeBinding[] intersectionCastTypeBindings;
-
-	if (count < length) {
-		if ((intersectionCastTypeBindings = this.uniqueIntersectionCastTypeBindings[count]) == null)
-			this.uniqueIntersectionCastTypeBindings[count] = intersectionCastTypeBindings = new IntersectionCastTypeBinding[10];
-	} else {
-		System.arraycopy(
-			this.uniqueIntersectionCastTypeBindings, 0,
-			this.uniqueIntersectionCastTypeBindings = new IntersectionCastTypeBinding[count + 1][], 0,
-			length);
-		this.uniqueIntersectionCastTypeBindings[count] = intersectionCastTypeBindings = new IntersectionCastTypeBinding[10];
-	}
-
-	int index = -1;
-	length = intersectionCastTypeBindings.length;
-	next:while (++index < length) {
-		IntersectionCastTypeBinding priorBinding = intersectionCastTypeBindings[index];
-		if (priorBinding == null) // no matching intersection type, but space left
-			return intersectionCastTypeBindings[index] = new IntersectionCastTypeBinding(intersectingTypes, this);
-		ReferenceBinding [] priorIntersectingTypes = priorBinding.intersectingTypes;
-		for (int i = 0; i < count; i++) {
-			if (intersectingTypes[i] != priorIntersectingTypes[i])
-					continue next;
-		}	
-		return priorBinding;
-	}
-
-	// no matching cached binding & no space left
-	System.arraycopy(
-		intersectionCastTypeBindings, 0,
-		(intersectionCastTypeBindings = new IntersectionCastTypeBinding[length * 2]), 0,
-		length);
-	this.uniqueIntersectionCastTypeBindings[count] = intersectionCastTypeBindings;
-	return intersectionCastTypeBindings[length] = new IntersectionCastTypeBinding(intersectingTypes, this);
+	return arrayBindings[length] = new ArrayBinding(leafComponentType, dimensionCount, this);
 }
 public BinaryTypeBinding createBinaryTypeFrom(IBinaryType binaryType, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 	return createBinaryTypeFrom(binaryType, packageBinding, true, accessRestriction);
@@ -758,9 +696,6 @@ public BinaryTypeBinding createBinaryTypeFrom(IBinaryType binaryType, PackageBin
 	}
 	packageBinding.addType(binaryBinding);
 	setAccessRestriction(binaryBinding, accessRestriction);
-	// need type annotations before processing methods (for @NonNullByDefault)
-	if (this.globalOptions.isAnnotationBasedNullAnalysisEnabled)
-		binaryBinding.scanTypeForNullDefaultAnnotation(binaryType, packageBinding, binaryBinding);
 	binaryBinding.cachePartsFrom(binaryType, needFieldsAndMethods);
 	return binaryBinding;
 }
@@ -1001,10 +936,6 @@ public ParameterizedMethodBinding createGetClassMethod(TypeBinding receiverType,
 }
 
 public ParameterizedTypeBinding createParameterizedType(ReferenceBinding genericType, TypeBinding[] typeArguments, ReferenceBinding enclosingType) {
-	return createParameterizedType(genericType, typeArguments, 0L, enclosingType);
-}
-/* Note: annotationBits are exactly those tagBits from annotations on type parameters that are interpreted by the compiler, currently: null annotations. */
-public ParameterizedTypeBinding createParameterizedType(ReferenceBinding genericType, TypeBinding[] typeArguments, long annotationBits, ReferenceBinding enclosingType) {
 	// cached info is array of already created parameterized types for this type
 	ParameterizedTypeBinding[] cachedInfo = (ParameterizedTypeBinding[])this.uniqueParameterizedTypeBindings.get(genericType);
 	int argLength = typeArguments == null ? 0: typeArguments.length;
@@ -1018,7 +949,6 @@ public ParameterizedTypeBinding createParameterizedType(ReferenceBinding generic
 			    if (cachedType == null) break nextCachedType;
 			    if (cachedType.actualType() != genericType) continue nextCachedType; // remain of unresolved type
 			    if (cachedType.enclosingType() != enclosingType) continue nextCachedType;
-			    if (annotationBits != 0 && ((cachedType.tagBits & annotationBits) != annotationBits)) continue nextCachedType;
 				TypeBinding[] cachedArguments = cachedType.arguments;
 				int cachedArgLength = cachedArguments == null ? 0 : cachedArguments.length;
 				if (argLength != cachedArgLength) continue nextCachedType; // would be an error situation (from unresolved binaries)
@@ -1041,7 +971,6 @@ public ParameterizedTypeBinding createParameterizedType(ReferenceBinding generic
 	}
 	// add new binding
 	ParameterizedTypeBinding parameterizedType = new ParameterizedTypeBinding(genericType,typeArguments, enclosingType, this);
-	parameterizedType.tagBits |= annotationBits;
 	cachedInfo[index] = parameterizedType;
 	return parameterizedType;
 }
@@ -1152,18 +1081,6 @@ public ReferenceBinding getCachedType(char[][] compoundName) {
 		if ((packageBinding = packageBinding.getPackage0(compoundName[i])) == null || packageBinding == TheNotFoundPackage)
 			return null;
 	return packageBinding.getType0(compoundName[compoundName.length - 1]);
-}
-
-public char[][] getNullableAnnotationName() {
-	return this.globalOptions.nullableAnnotationName;
-}
-
-public char[][] getNonNullAnnotationName() {
-	return this.globalOptions.nonNullAnnotationName;
-}
-
-public char[][] getNonNullByDefaultAnnotationName() {
-	return this.globalOptions.nonNullByDefaultAnnotationName;
 }
 
 /* Answer the top level package named name if it exists in the cache.
@@ -1291,13 +1208,7 @@ private ReferenceBinding getTypeFromCompoundName(char[][] compoundName, boolean 
 		packageBinding.addType(binding);
 	} else if (binding == TheNotFoundType) {
 		// report the missing class file first
-		if (!wasMissingType) {
-			/* Since missing types have been already been complained against while producing binaries, there is no class path 
-			 * misconfiguration now that did not also exist in some equivalent form while producing the class files which encode 
-			 * these missing types. So no need to bark again. Note that wasMissingType == true signals a type referenced in a .class 
-			 * file which could not be found when the binary was produced. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=364450 */
-			this.problemReporter.isClassPathCorrect(compoundName, this.unitBeingCompleted, this.missingClassFileLocation);
-		}
+		this.problemReporter.isClassPathCorrect(compoundName, this.unitBeingCompleted, this.missingClassFileLocation);
 		// create a proxy for the missing BinaryType
 		binding = createMissingType(null, compoundName);
 	} else if (!isParameterized) {
@@ -1556,7 +1467,6 @@ public void reset() {
 	this.unitBeingCompleted = null; // in case AbortException occurred
 
 	this.classFilePool.reset();
-
 	// name environment has a longer life cycle, and must be reset in
 	// the code which created it.
 }
@@ -1601,18 +1511,5 @@ void updateCaches(UnresolvedReferenceBinding unresolvedType, ReferenceBinding re
 			}
 		}
 	}
-}
-
-public IQualifiedTypeResolutionListener[] resolutionListeners = new IQualifiedTypeResolutionListener[0];
-
-public void addResolutionListener(IQualifiedTypeResolutionListener resolutionListener) {
-	int length = this.resolutionListeners.length;
-	for (int i = 0; i < length; i++){
-		if (this.resolutionListeners[i].equals(resolutionListener))
-			return;
-	}
-	System.arraycopy(this.resolutionListeners, 0,
-			this.resolutionListeners = new IQualifiedTypeResolutionListener[length + 1], 0, length);
-	this.resolutionListeners[length] = resolutionListener;
 }
 }

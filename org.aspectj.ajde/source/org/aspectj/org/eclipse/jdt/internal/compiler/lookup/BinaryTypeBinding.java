@@ -1,27 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann - Contributions for
- *								bug 349326 - [1.7] new warning for missing try-with-resources
- *								bug 186342 - [compiler][null] Using annotations for null checking
- *								bug 364890 - BinaryTypeBinding should use char constants from Util
- *								bug 365387 - [compiler][null] bug 186342: Issues to follow up post review and verification.
- *								bug 358903 - Filter practically unimportant resource leak warnings
- *								bug 365531 - [compiler][null] investigate alternative strategy for internally encoding nullness defaults
- *								bug 388800 - [1.8][compiler] detect default methods in class files
- *								bug 388281 - [compiler][null] inheritance of null annotations as an option
- *								bug 331649 - [compiler][null] consider null annotations for fields
- *******************************************************************************/
+ *     Palo Alto Research Center, Incorporated - AspectJ adaptation
+ ******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.ArrayList;
@@ -29,11 +16,9 @@ import java.util.ArrayList;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.BooleanConstant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 /*
 Not all fields defined by this type are initialized when it is created.
@@ -173,7 +158,7 @@ public BinaryTypeBinding(PackageBinding packageBinding, IBinaryType binaryType, 
 	   of generics.
 	 */
 	char[] typeSignature = binaryType.getGenericSignature();
-	this.typeVariables = typeSignature != null && typeSignature.length > 0 && typeSignature[0] == Util.C_GENERIC_START
+	this.typeVariables = typeSignature != null && typeSignature.length > 0 && typeSignature[0] == '<'
 		? null // is initialized in cachePartsFrom (called from LookupEnvironment.createBinaryTypeFrom())... must set to null so isGenericType() answers true
 		: Binding.NO_TYPE_VARIABLES;
 
@@ -196,7 +181,7 @@ public BinaryTypeBinding(PackageBinding packageBinding, IBinaryType binaryType, 
 		// attempt to find the enclosing type if it exists in the cache (otherwise - resolve it when requested)
 		this.enclosingType = environment.getTypeFromConstantPoolName(enclosingTypeName, 0, -1, true, null /* could not be missing */); // pretend parameterized to avoid raw
 		this.tagBits |= TagBits.MemberTypeMask;   // must be a member type not a top-level or local type
-		this.tagBits |= TagBits.HasUnresolvedEnclosingType;
+		this.tagBits |= 	TagBits.HasUnresolvedEnclosingType;
 		if (enclosingType().isStrictfp())
 			this.modifiers |= ClassFileConstants.AccStrictfp;
 		if (enclosingType().isDeprecated())
@@ -301,11 +286,10 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 			int size = memberTypeStructures.length;
 			if (size > 0) {
 				this.memberTypes = new ReferenceBinding[size];
-				for (int i = 0; i < size; i++) {
+				for (int i = 0; i < size; i++)
 					// attempt to find each member type if it exists in the cache (otherwise - resolve it when requested)
 					this.memberTypes[i] = this.environment.getTypeFromConstantPoolName(memberTypeStructures[i].getName(), 0, -1, false, null /* could not be missing */);
-				}
-				this.tagBits |= TagBits.HasUnresolvedMemberTypes;
+				this.tagBits |= 	TagBits.HasUnresolvedMemberTypes;
 			}
 		}
 
@@ -323,7 +307,7 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 		if (typeSignature != null) {
 			// ClassSignature = ParameterPart(optional) super_TypeSignature interface_signature
 			wrapper = new SignatureWrapper(typeSignature);
-			if (wrapper.signature[wrapper.start] == Util.C_GENERIC_START) {
+			if (wrapper.signature[wrapper.start] == '<') {
 				// ParameterPart = '<' ParameterSignature(s) '>'
 				wrapper.start++; // skip '<'
 				this.typeVariables = createTypeVariables(wrapper, true, missingTypeNames);
@@ -452,12 +436,6 @@ private void createFields(IBinaryField[] iFields, long sourceLevel, char[][][] m
 					this.fields[i].setAnnotations(createAnnotations(binaryField.getAnnotations(), this.environment, missingTypeNames));
 				}
 			}
-			if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
-				for (int i = 0; i <size; i++) {
-					IBinaryField binaryField = iFields[i];
-					scanFieldForNullAnnotation(binaryField, this.fields[i]);
-				}
-			}
 		}
 	}
 }
@@ -472,13 +450,6 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 	int methodModifiers = method.getModifiers() | ExtraCompilerModifiers.AccUnresolved;
 	if (sourceLevel < ClassFileConstants.JDK1_5)
 		methodModifiers &= ~ClassFileConstants.AccVarargs; // vararg methods are not recognized until 1.5
-	if (isInterface() && (methodModifiers & ClassFileConstants.AccAbstract) == 0) {
-		// see https://bugs.eclipse.org/388954
-		if (sourceLevel >= ClassFileConstants.JDK1_8)
-			methodModifiers |= ExtraCompilerModifiers.AccDefaultMethod;
-		else
-			methodModifiers |= ClassFileConstants.AccAbstract;
-	}
 	ReferenceBinding[] exceptions = Binding.NO_EXCEPTIONS;
 	TypeBinding[] parameters = Binding.NO_PARAMETERS;
 	TypeVariableBinding[] typeVars = Binding.NO_TYPE_VARIABLES;
@@ -497,11 +468,11 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 		int numOfParams = 0;
 		char nextChar;
 		int index = 0; // first character is always '(' so skip it
-		while ((nextChar = methodDescriptor[++index]) != Util.C_PARAM_END) {
-			if (nextChar != Util.C_ARRAY) {
+		while ((nextChar = methodDescriptor[++index]) != ')') {
+			if (nextChar != '[') {
 				numOfParams++;
-				if (nextChar == Util.C_RESOLVED)
-					while ((nextChar = methodDescriptor[++index]) != Util.C_NAME_END){/*empty*/}
+				if (nextChar == 'L')
+					while ((nextChar = methodDescriptor[++index]) != ';'){/*empty*/}
 			}
 		}
 
@@ -525,9 +496,9 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 			index = 1;
 			int end = 0;   // first character is always '(' so skip it
 			for (int i = 0; i < numOfParams; i++) {
-				while ((nextChar = methodDescriptor[++end]) == Util.C_ARRAY){/*empty*/}
-				if (nextChar == Util.C_RESOLVED)
-					while ((nextChar = methodDescriptor[++end]) != Util.C_NAME_END){/*empty*/}
+				while ((nextChar = methodDescriptor[++end]) == '['){/*empty*/}
+				if (nextChar == 'L')
+					while ((nextChar = methodDescriptor[++end]) != ';'){/*empty*/}
 
 				if (i >= startIndex) {   // skip the synthetic arg if necessary
 					parameters[i - startIndex] = this.environment.getTypeFromSignature(methodDescriptor, index, end, false, this, missingTypeNames);
@@ -561,7 +532,7 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 		methodModifiers |= ExtraCompilerModifiers.AccGenericSignature;
 		// MethodTypeSignature = ParameterPart(optional) '(' TypeSignatures ')' return_typeSignature ['^' TypeSignature (optional)]
 		SignatureWrapper wrapper = new SignatureWrapper(methodSignature, use15specifics);
-		if (wrapper.signature[wrapper.start] == Util.C_GENERIC_START) {
+		if (wrapper.signature[wrapper.start] == '<') {
 			// <A::Ljava/lang/annotation/Annotation;>(Ljava/lang/Class<TA;>;)TA;
 			// ParameterPart = '<' ParameterSignature(s) '>'
 			wrapper.start++; // skip '<'
@@ -580,6 +551,7 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
         //   the ITD will fail to use the right type variable.
 		// - due to always replacing _ with / to discover the type name, types with real _ in their name will go wrong
 		
+
 		// had to extend this to also work for ITD fields (see 242797 c41)
 		if (CharOperation.prefixEquals(ajcInterMethod,method.getSelector()) || 
 			CharOperation.prefixEquals(ajcInterField, method.getSelector())) {
@@ -613,14 +585,14 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 			}
 		}
 		// End AspectJ Extension
-		
-		if (wrapper.signature[wrapper.start] == Util.C_PARAM_START) {
+
+		if (wrapper.signature[wrapper.start] == '(') {
 			wrapper.start++; // skip '('
-			if (wrapper.signature[wrapper.start] == Util.C_PARAM_END) {
+			if (wrapper.signature[wrapper.start] == ')') {
 				wrapper.start++; // skip ')'
 			} else {
 				java.util.ArrayList types = new java.util.ArrayList(2);
-				while (wrapper.signature[wrapper.start] != Util.C_PARAM_END)
+				while (wrapper.signature[wrapper.start] != ')')
 					types.add(this.environment.getTypeFromTypeSignature(wrapper, typeVars, this, missingTypeNames));
 				wrapper.start++; // skip ')'
 				int numParam = types.size();
@@ -637,13 +609,13 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 		// always retrieve return type (for constructors, its V for void - will be ignored)
 		returnType = this.environment.getTypeFromTypeSignature(wrapper, typeVars, this, missingTypeNames);
 
-		if (!wrapper.atEnd() && wrapper.signature[wrapper.start] == Util.C_EXCEPTION_START) {
+		if (!wrapper.atEnd() && wrapper.signature[wrapper.start] == '^') {
 			// attempt to find each exception if it exists in the cache (otherwise - resolve it when requested)
 			java.util.ArrayList types = new java.util.ArrayList(2);
 			do {
 				wrapper.start++; // skip '^'
 				types.add(this.environment.getTypeFromTypeSignature(wrapper, typeVars, this, missingTypeNames));
-			} while (!wrapper.atEnd() && wrapper.signature[wrapper.start] == Util.C_EXCEPTION_START);
+			} while (!wrapper.atEnd() && wrapper.signature[wrapper.start] == '^');
 			exceptions = new ReferenceBinding[types.size()];
 			types.toArray(exceptions);
 		} else { // get the exceptions the old way
@@ -675,9 +647,6 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 	// fixup the declaring element of the type variable
 	for (int i = 0, length = typeVars.length; i < length; i++)
 		typeVars[i].declaringElement = result;
-
-	scanMethodForNullAnnotation(method, result);
-
 	return result;
 }
 
@@ -701,7 +670,7 @@ private void createMethods(IBinaryMethod[] iMethods, long sourceLevel, char[][][
 				total--;
 			} else if (iClinit == -1) {
 				char[] methodName = method.getSelector();
-				if (methodName.length == 8 && methodName[0] == Util.C_GENERIC_START) {
+				if (methodName.length == 8 && methodName[0] == '<') {
 					// discard <clinit>
 					iClinit = i;
 					total--;
@@ -746,21 +715,21 @@ private TypeVariableBinding[] createTypeVariables(SignatureWrapper wrapper, bool
 	createVariables: {
 		for (int i = 1; i < length; i++) {
 			switch(typeSignature[i]) {
-				case Util.C_GENERIC_START :
+				case '<' :
 					depth++;
 					break;
-				case Util.C_GENERIC_END :
+				case '>' :
 					if (--depth < 0)
 						break createVariables;
 					break;
-				case Util.C_NAME_END :
-					if ((depth == 0) && (i +1 < length) && (typeSignature[i+1] != Util.C_COLON))
+				case ';' :
+					if ((depth == 0) && (i +1 < length) && (typeSignature[i+1] != ':'))
 						pendingVariable = true;
 					break;
 				default:
 					if (pendingVariable) {
 						pendingVariable = false;
-						int colon = CharOperation.indexOf(Util.C_COLON, typeSignature, i);
+						int colon = CharOperation.indexOf(':', typeSignature, i);
 						char[] variableName = CharOperation.subarray(typeSignature, i, colon);
 						variables.add(new TypeVariableBinding(variableName, this, rank++, this.environment));
 					}
@@ -813,7 +782,7 @@ public FieldBinding[] fields() {
 
 private MethodBinding findMethod(char[] methodDescriptor, char[][][] missingTypeNames) {
 	int index = -1;
-	while (methodDescriptor[++index] != Util.C_PARAM_START) {
+	while (methodDescriptor[++index] != '(') {
 		// empty
 	}
 	char[] selector = new char[index];
@@ -822,11 +791,11 @@ private MethodBinding findMethod(char[] methodDescriptor, char[][][] missingType
 	int numOfParams = 0;
 	char nextChar;
 	int paramStart = index;
-	while ((nextChar = methodDescriptor[++index]) != Util.C_PARAM_END) {
-		if (nextChar != Util.C_ARRAY) {
+	while ((nextChar = methodDescriptor[++index]) != ')') {
+		if (nextChar != '[') {
 			numOfParams++;
-			if (nextChar == Util.C_RESOLVED)
-				while ((nextChar = methodDescriptor[++index]) != Util.C_NAME_END){/*empty*/}
+			if (nextChar == 'L')
+				while ((nextChar = methodDescriptor[++index]) != ';'){/*empty*/}
 		}
 	}
 	if (numOfParams > 0) {
@@ -834,9 +803,9 @@ private MethodBinding findMethod(char[] methodDescriptor, char[][][] missingType
 		index = paramStart + 1;
 		int end = paramStart; // first character is always '(' so skip it
 		for (int i = 0; i < numOfParams; i++) {
-			while ((nextChar = methodDescriptor[++end]) == Util.C_ARRAY){/*empty*/}
-			if (nextChar == Util.C_RESOLVED)
-				while ((nextChar = methodDescriptor[++end]) != Util.C_NAME_END){/*empty*/}
+			while ((nextChar = methodDescriptor[++end]) == '['){/*empty*/}
+			if (nextChar == 'L')
+				while ((nextChar = methodDescriptor[++end]) != ';'){/*empty*/}
 
 			TypeBinding param = this.environment.getTypeFromSignature(methodDescriptor, index, end, false, this, missingTypeNames);
 			if (param instanceof UnresolvedReferenceBinding) {
@@ -1062,26 +1031,14 @@ public TypeVariableBinding getTypeVariable(char[] variableName) {
 	if (variable!=null) variable.resolve(); // AspectJ Extension - guard added
 	return variable;
 }
-public boolean hasTypeBit(int bit) {
-	// ensure hierarchy is resolved, which will propagate bits down to us
-	boolean wasToleratingMissingTypeProcessingAnnotations = this.environment.mayTolerateMissingType;
-	this.environment.mayTolerateMissingType = true;
-	try {
-		superclass();
-		superInterfaces();
-	} finally {
-		this.environment.mayTolerateMissingType = wasToleratingMissingTypeProcessingAnnotations;
-	}
-	return (this.typeBits & bit) != 0;
-}
 private void initializeTypeVariable(TypeVariableBinding variable, TypeVariableBinding[] existingVariables, SignatureWrapper wrapper, char[][][] missingTypeNames) {
 	// ParameterSignature = Identifier ':' TypeSignature
 	//   or Identifier ':' TypeSignature(optional) InterfaceBound(s)
 	// InterfaceBound = ':' TypeSignature
-	int colon = CharOperation.indexOf(Util.C_COLON, wrapper.signature, wrapper.start);
+	int colon = CharOperation.indexOf(':', wrapper.signature, wrapper.start);
 	wrapper.start = colon + 1; // skip name + ':'
 	ReferenceBinding type, firstBound = null;
-	if (wrapper.signature[wrapper.start] == Util.C_COLON) {
+	if (wrapper.signature[wrapper.start] == ':') {
 		type = this.environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null);
 	} else {
 		TypeBinding typeFromTypeSignature = this.environment.getTypeFromTypeSignature(wrapper, existingVariables, this, missingTypeNames);
@@ -1099,12 +1056,12 @@ private void initializeTypeVariable(TypeVariableBinding variable, TypeVariableBi
 	variable.superclass = type;
 
 	ReferenceBinding[] bounds = null;
-	if (wrapper.signature[wrapper.start] == Util.C_COLON) {
+	if (wrapper.signature[wrapper.start] == ':') {
 		java.util.ArrayList types = new java.util.ArrayList(2);
 		do {
 			wrapper.start++; // skip ':'
 			types.add(this.environment.getTypeFromTypeSignature(wrapper, existingVariables, this, missingTypeNames));
-		} while (wrapper.signature[wrapper.start] == Util.C_COLON);
+		} while (wrapper.signature[wrapper.start] == ':');
 		bounds = new ReferenceBinding[types.size()];
 		types.toArray(bounds);
 	}
@@ -1238,181 +1195,6 @@ public void initializeDeprecatedAnnotationTagBits() {
 }
 // End AspectJ Extension
 
-void scanFieldForNullAnnotation(IBinaryField field, FieldBinding fieldBinding) {
-	// global option is checked by caller
-	char[][] nullableAnnotationName = this.environment.getNullableAnnotationName();
-	char[][] nonNullAnnotationName = this.environment.getNonNullAnnotationName();
-	if (nullableAnnotationName == null || nonNullAnnotationName == null)
-		return; // not well-configured to use null annotations
-
-	if (fieldBinding.type == null || fieldBinding.type.isBaseType())
-		return; // null annotations are only applied to reference types
-
-	boolean explicitNullness = false;
-	IBinaryAnnotation[] annotations = field.getAnnotations();
-	if (annotations != null) {
-		for (int i = 0; i < annotations.length; i++) {
-			char[] annotationTypeName = annotations[i].getTypeName();
-			if (annotationTypeName[0] != Util.C_RESOLVED)
-				continue;
-			char[][] typeName = CharOperation.splitOn('/', annotationTypeName, 1, annotationTypeName.length-1); // cut of leading 'L' and trailing ';'
-			if (CharOperation.equals(typeName, nonNullAnnotationName)) {
-				fieldBinding.tagBits |= TagBits.AnnotationNonNull;
-				explicitNullness = true;
-				break;
-			}
-			if (CharOperation.equals(typeName, nullableAnnotationName)) {
-				fieldBinding.tagBits |= TagBits.AnnotationNullable;
-				explicitNullness = true;
-				break;
-			}
-		}
-	}
-	if (!explicitNullness && (this.tagBits & TagBits.AnnotationNonNullByDefault) != 0) {
-		fieldBinding.tagBits |= TagBits.AnnotationNonNull;
-	}
-}
-
-void scanMethodForNullAnnotation(IBinaryMethod method, MethodBinding methodBinding) {
-	if (!this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled)
-		return;
-	char[][] nullableAnnotationName = this.environment.getNullableAnnotationName();
-	char[][] nonNullAnnotationName = this.environment.getNonNullAnnotationName();
-	char[][] nonNullByDefaultAnnotationName = this.environment.getNonNullByDefaultAnnotationName();
-	if (nullableAnnotationName == null || nonNullAnnotationName == null || nonNullByDefaultAnnotationName == null)
-		return; // not well-configured to use null annotations
-
-	// return:
-	IBinaryAnnotation[] annotations = method.getAnnotations();
-	boolean explicitNullness = false;
-	if (annotations != null) {
-		for (int i = 0; i < annotations.length; i++) {
-			char[] annotationTypeName = annotations[i].getTypeName();
-			if (annotationTypeName[0] != Util.C_RESOLVED)
-				continue;
-			char[][] typeName = CharOperation.splitOn('/', annotationTypeName, 1, annotationTypeName.length-1); // cut of leading 'L' and trailing ';'
-			if (CharOperation.equals(typeName, nonNullByDefaultAnnotationName)) {
-				methodBinding.tagBits |= TagBits.AnnotationNonNullByDefault;
-			}
-			if (!explicitNullness && CharOperation.equals(typeName, nonNullAnnotationName)) {
-				methodBinding.tagBits |= TagBits.AnnotationNonNull;
-				explicitNullness = true;
-			}
-			if (!explicitNullness && CharOperation.equals(typeName, nullableAnnotationName)) {
-				methodBinding.tagBits |= TagBits.AnnotationNullable;
-				explicitNullness = true;
-			}
-		}
-	}
-
-	// parameters:
-	TypeBinding[] parameters = methodBinding.parameters;
-	int numVisibleParams = parameters.length;
-	int numParamAnnotations = method.getAnnotatedParametersCount();
-	if (numParamAnnotations > 0) {
-		for (int j = 0; j < numVisibleParams; j++) {
-			if (numParamAnnotations > 0) {
-				int startIndex = numParamAnnotations - numVisibleParams;
-				IBinaryAnnotation[] paramAnnotations = method.getParameterAnnotations(j+startIndex);
-				if (paramAnnotations != null) {
-					for (int i = 0; i < paramAnnotations.length; i++) {
-						char[] annotationTypeName = paramAnnotations[i].getTypeName();
-						if (annotationTypeName[0] != Util.C_RESOLVED)
-							continue;
-						char[][] typeName = CharOperation.splitOn('/', annotationTypeName, 1, annotationTypeName.length-1); // cut of leading 'L' and trailing ';'
-						if (CharOperation.equals(typeName, nonNullAnnotationName)) {
-							if (methodBinding.parameterNonNullness == null)
-								methodBinding.parameterNonNullness = new Boolean[numVisibleParams];
-							methodBinding.parameterNonNullness[j] = Boolean.TRUE;
-							break;
-						} else if (CharOperation.equals(typeName, nullableAnnotationName)) {
-							if (methodBinding.parameterNonNullness == null)
-								methodBinding.parameterNonNullness = new Boolean[numVisibleParams];
-							methodBinding.parameterNonNullness[j] = Boolean.FALSE;
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBinding packageBinding, BinaryTypeBinding binaryBinding) {
-	char[][] nonNullByDefaultAnnotationName = this.environment.getNonNullByDefaultAnnotationName();
-	if (nonNullByDefaultAnnotationName == null)
-		return; // not well-configured to use null annotations
-
-	IBinaryAnnotation[] annotations = binaryType.getAnnotations();
-	boolean isPackageInfo = CharOperation.equals(binaryBinding.sourceName(), TypeConstants.PACKAGE_INFO_NAME);
-	if (annotations != null) {
-		long annotationBit = 0L;
-		int nullness = NO_NULL_DEFAULT;
-		int length = annotations.length;
-		for (int i = 0; i < length; i++) {
-			char[] annotationTypeName = annotations[i].getTypeName();
-			if (annotationTypeName[0] != Util.C_RESOLVED)
-				continue;
-			char[][] typeName = CharOperation.splitOn('/', annotationTypeName, 1, annotationTypeName.length-1); // cut of leading 'L' and trailing ';'
-			if (CharOperation.equals(typeName, nonNullByDefaultAnnotationName)) {
-				IBinaryElementValuePair[] elementValuePairs = annotations[i].getElementValuePairs();
-				if (elementValuePairs != null && elementValuePairs.length == 1) {
-					Object value = elementValuePairs[0].getValue();
-					if (value instanceof BooleanConstant
-						&& !((BooleanConstant)value).booleanValue())
-					{
-						// parameter is 'false': this means we cancel defaults from outer scopes:
-						annotationBit = TagBits.AnnotationNullUnspecifiedByDefault;
-						nullness = NULL_UNSPECIFIED_BY_DEFAULT;
-						break;
-					}
-				}
-				annotationBit = TagBits.AnnotationNonNullByDefault;
-				nullness = NONNULL_BY_DEFAULT;
-				break;
-			}
-		}
-		if (annotationBit != 0L) {
-			binaryBinding.tagBits |= annotationBit;
-			if (isPackageInfo)
-				packageBinding.defaultNullness = nullness;
-			return;
-		}
-	}
-	if (isPackageInfo) {
-		// no default annotations found in package-info
-		packageBinding.defaultNullness = Binding.NULL_UNSPECIFIED_BY_DEFAULT;
-		return;
-	}
-	ReferenceBinding enclosingTypeBinding = binaryBinding.enclosingType;
-	if (enclosingTypeBinding != null) {
-		if ((enclosingTypeBinding.tagBits & TagBits.AnnotationNonNullByDefault) != 0) {
-			binaryBinding.tagBits |= TagBits.AnnotationNonNullByDefault;
-			return;
-		} else if ((enclosingTypeBinding.tagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0) {
-			binaryBinding.tagBits |= TagBits.AnnotationNullUnspecifiedByDefault;
-			return;
-		}
-	}
-	// no annotation found on the type or its enclosing types
-	// check the package-info for default annotation if not already done before
-	if (packageBinding.defaultNullness == Binding.NO_NULL_DEFAULT && !isPackageInfo) {
-		// this will scan the annotations in package-info
-		ReferenceBinding packageInfo = packageBinding.getType(TypeConstants.PACKAGE_INFO_NAME);
-		if (packageInfo == null) {
-			packageBinding.defaultNullness = Binding.NULL_UNSPECIFIED_BY_DEFAULT;
-		}
-	}
-	// no @NonNullByDefault at type level, check containing package:
-	switch (packageBinding.defaultNullness) {
-		case Binding.NONNULL_BY_DEFAULT : 
-			binaryBinding.tagBits |= TagBits.AnnotationNonNullByDefault;
-			break;
-		case Binding.NULL_UNSPECIFIED_BY_DEFAULT :
-			binaryBinding.tagBits |= TagBits.AnnotationNullUnspecifiedByDefault;
-			break;
-	}
-}
-
 /* Answer the receiver's superclass... null if the receiver is Object or an interface.
 *
 * NOTE: superclass of a binary type is resolved when needed
@@ -1424,22 +1206,8 @@ public ReferenceBinding superclass() {
 	// finish resolving the type
 	this.superclass = (ReferenceBinding) resolveType(this.superclass, this.environment, true /* raw conversion */);
 	this.tagBits &= ~TagBits.HasUnresolvedSuperclass;
-	if (this.superclass.problemId() == ProblemReasons.NotFound) {
+	if (this.superclass.problemId() == ProblemReasons.NotFound)
 		this.tagBits |= TagBits.HierarchyHasProblems; // propagate type inconsistency
-	} else {
-		// make super-type resolving recursive for propagating typeBits downwards
-		boolean wasToleratingMissingTypeProcessingAnnotations = this.environment.mayTolerateMissingType;
-		this.environment.mayTolerateMissingType = true; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=360164
-		try {
-			this.superclass.superclass();
-			this.superclass.superInterfaces();
-		} finally {
-			this.environment.mayTolerateMissingType = wasToleratingMissingTypeProcessingAnnotations;
-		}
-	}
-	this.typeBits |= (this.superclass.typeBits & TypeIds.InheritableBits);
-	if ((this.typeBits & (TypeIds.BitAutoCloseable|TypeIds.BitCloseable)) != 0) // avoid the side-effects of hasTypeBit()! 
-		this.typeBits |= applyCloseableWhitelists();
 	return this.superclass;
 }
 // NOTE: superInterfaces of binary types are resolved when needed
@@ -1449,20 +1217,8 @@ public ReferenceBinding[] superInterfaces() {
 
 	for (int i = this.superInterfaces.length; --i >= 0;) {
 		this.superInterfaces[i] = (ReferenceBinding) resolveType(this.superInterfaces[i], this.environment, true /* raw conversion */);
-		if (this.superInterfaces[i].problemId() == ProblemReasons.NotFound) {
+		if (this.superInterfaces[i].problemId() == ProblemReasons.NotFound)
 			this.tagBits |= TagBits.HierarchyHasProblems; // propagate type inconsistency
-		} else {
-			// make super-type resolving recursive for propagating typeBits downwards
-			boolean wasToleratingMissingTypeProcessingAnnotations = this.environment.mayTolerateMissingType;
-			this.environment.mayTolerateMissingType = true; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=360164
-			try {
-				this.superInterfaces[i].superclass();
-				this.superInterfaces[i].superInterfaces();
-			} finally {
-				this.environment.mayTolerateMissingType = wasToleratingMissingTypeProcessingAnnotations;
-			}	
-		}
-		this.typeBits |= (this.superInterfaces[i].typeBits & TypeIds.InheritableBits);
 	}
 	this.tagBits &= ~TagBits.HasUnresolvedSuperinterfaces;
 	return this.superInterfaces;

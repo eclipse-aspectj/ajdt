@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -220,13 +216,6 @@ protected void consumeCastExpressionLL1() {
 		this.patternLocator.match(castExpression.type, this.nodeSet);
 	}
 }
-protected void consumeCastExpressionLL1WithBounds() {
-	super.consumeCastExpressionLL1WithBounds();
-	if ((this.patternFineGrain & IJavaSearchConstants.CAST_TYPE_REFERENCE) != 0) {
-		CastExpression castExpression = (CastExpression) this.expressionStack[this.expressionPtr];
-		this.patternLocator.match(castExpression.type, this.nodeSet);
-	}
-}
 protected void consumeCastExpressionWithGenericsArray() {
 	super.consumeCastExpressionWithGenericsArray();
 	if ((this.patternFineGrain & IJavaSearchConstants.CAST_TYPE_REFERENCE) != 0) {
@@ -364,10 +353,10 @@ protected void consumeLocalVariableDeclaration() {
 	this.patternLocator.match((LocalDeclaration) this.astStack[this.astPtr], this.nodeSet);
 }
 
-protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
-	super.consumeMarkerAnnotation(isTypeAnnotation);
+protected void consumeMarkerAnnotation() {
+	super.consumeMarkerAnnotation();
 	if (this.patternFineGrain == 0 || (this.patternFineGrain & IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE) != 0) {
-		Annotation annotation = (Annotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
+		Annotation annotation = (Annotation) this.expressionStack[this.expressionPtr];
 		this.patternLocator.match(annotation, this.nodeSet);
 	}
 }
@@ -477,11 +466,11 @@ protected void consumeMethodInvocationSuperWithTypeArguments() {
 	}
 }
 
-protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
-	super.consumeNormalAnnotation(isTypeAnnotation);
+protected void consumeNormalAnnotation() {
+	super.consumeNormalAnnotation();
 	if (this.patternFineGrain == 0 || (this.patternFineGrain & IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE) != 0) {
 		// this is always an Annotation
-		Annotation annotation = (Annotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
+		Annotation annotation = (Annotation) this.expressionStack[this.expressionPtr];
 		this.patternLocator.match(annotation, this.nodeSet);
 	}
 }
@@ -515,11 +504,11 @@ protected void consumePrimaryNoNewArrayWithName() {
 	this.intPtr--;
 }
 
-protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
-	super.consumeSingleMemberAnnotation(isTypeAnnotation);
+protected void consumeSingleMemberAnnotation() {
+	super.consumeSingleMemberAnnotation();
 	if (this.patternFineGrain == 0 || (this.patternFineGrain & IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE) != 0) {
 		// this is always an Annotation
-		Annotation annotation = (Annotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
+		Annotation annotation = (Annotation) this.expressionStack[this.expressionPtr];
 		this.patternLocator.match(annotation, this.nodeSet);
 	}
 }
@@ -751,14 +740,6 @@ protected TypeReference copyDims(TypeReference typeRef, int dim) {
 		this.nodeSet.addTrustedMatch(result, true);
 	return result;
 }
-protected TypeReference copyDims(TypeReference typeRef, int dim, Annotation [][] annotationsOnDimensions) {
-	TypeReference result = super.copyDims(typeRef, dim, annotationsOnDimensions);
-	 if (this.nodeSet.removePossibleMatch(typeRef) != null)
-		this.nodeSet.addPossibleMatch(result);
-	 else if (this.nodeSet.removeTrustedMatch(typeRef) != null)
-		this.nodeSet.addTrustedMatch(result, true);
-	return result;
-}
 protected TypeReference getTypeReference(int dim) {
 	TypeReference typeRef = super.getTypeReference(dim);
 	if (this.patternFineGrain == 0) {
@@ -766,8 +747,8 @@ protected TypeReference getTypeReference(int dim) {
 	}
 	return typeRef;
 }
-protected NameReference getUnspecifiedReference(boolean rejectTypeAnnotations) {
-	NameReference nameRef = super.getUnspecifiedReference(rejectTypeAnnotations);
+protected NameReference getUnspecifiedReference() {
+	NameReference nameRef = super.getUnspecifiedReference();
 	if (this.patternFineGrain == 0) {
 		this.patternLocator.match(nameRef, this.nodeSet); // NB: Don't check container since unspecified reference can happen anywhere
 	} else if ((this.patternFineGrain & IJavaSearchConstants.QUALIFIED_REFERENCE) != 0) {
