@@ -14,12 +14,14 @@ package org.aspectj.weaver.loadtime;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.weaver.Dump;
@@ -76,13 +78,21 @@ public class Aj implements ClassPreProcessor {
 	 * @param className
 	 * @param bytes
 	 * @param loader
-	 * @return weaved bytes
+	 * @return woven bytes
 	 */
 	public byte[] preProcess(String className, byte[] bytes, ClassLoader loader, ProtectionDomain protectionDomain) {
 		// TODO AV needs to doc that
 		if (loader == null || className == null || loader.getClass().getName().equals(deleLoader)) {
 			// skip boot loader, null classes (hibernate), or those from a reflection loader
 			return bytes;
+		}
+		
+		if (loadersToSkip != null) {
+			// Check whether to reject it
+			if (loadersToSkip.contains(loader.getClass().getName())) {
+//				System.out.println("debug: no weaver created for loader '"+loader.getClass().getName()+"'");
+				return bytes;
+			}
 		}
 
 		if (trace.isTraceEnabled())
@@ -248,10 +258,28 @@ public class Aj implements ClassPreProcessor {
 			}
 		}
 	}
+	
+	public static List<String> loadersToSkip = null;
 
 	static {
 		// pr271840 - touch the types early and outside the locks
 		new ExplicitlyInitializedClassLoaderWeavingAdaptor(new ClassLoaderWeavingAdaptor());
+		try {
+			String loadersToSkipProperty = System.getProperty("aj.weaving.loadersToSkip","");
+			StringTokenizer st = new StringTokenizer(loadersToSkipProperty, ",");
+			if (loadersToSkipProperty != null && loadersToSkip == null) {
+				if (st.hasMoreTokens()) {
+//					System.out.println("aj.weaving.loadersToSkip is set. Skipping loaders: '"+loadersToSkipProperty+"'");
+					loadersToSkip = new ArrayList<String>();
+				}
+				while (st.hasMoreTokens()) {
+					String nextLoader = st.nextToken();
+					loadersToSkip.add(nextLoader);
+				}
+			}
+		} catch (Exception e) {
+			// Likely security issue related to property access...
+		}
 	}
 
 	/**
@@ -269,10 +297,9 @@ public class Aj implements ClassPreProcessor {
 
 			synchronized (weavingAdaptors) {
 				checkQ();
-                if(loader.equals(myClassLoader)){
-                    adaptor = myClassLoaderAdpator;
-                }
-                else{
+                if (loader.equals(myClassLoader)){
+                    adaptor = myClassLoaderAdaptor;
+                } else {
                 	adaptor = (ExplicitlyInitializedClassLoaderWeavingAdaptor) weavingAdaptors.get(adaptorKey);
                 }
 				if (adaptor == null) {
@@ -280,12 +307,11 @@ public class Aj implements ClassPreProcessor {
 					// within the synchronized block
 					ClassLoaderWeavingAdaptor weavingAdaptor = new ClassLoaderWeavingAdaptor();
 					adaptor = new ExplicitlyInitializedClassLoaderWeavingAdaptor(weavingAdaptor);
-					  if(myClassLoaderAdpator == null){
-	                        myClassLoaderAdpator = adaptor;
-					  }
-	                    else{
+					  if(myClassLoaderAdaptor == null && loader.equals(myClassLoader)){
+	                        myClassLoaderAdaptor = adaptor;
+					  } else {
 	                    	weavingAdaptors.put(adaptorKey, adaptor);
-	                    }
+	                  }
 				}
 			}
 			// perform the initialization
@@ -294,7 +320,7 @@ public class Aj implements ClassPreProcessor {
 
 		}
 		private static final ClassLoader myClassLoader = WeavingAdaptor.class.getClassLoader();
-		private static ExplicitlyInitializedClassLoaderWeavingAdaptor myClassLoaderAdpator;
+		private static ExplicitlyInitializedClassLoaderWeavingAdaptor myClassLoaderAdaptor;
 	}
 
 
