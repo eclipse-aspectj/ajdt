@@ -132,8 +132,8 @@ public class EventTraceView extends ViewPart
 		Calendar calendar = GregorianCalendar.getInstance();
 		calendar.setTime(time);
 		
-		final String txt = calendar.get(Calendar.HOUR_OF_DAY) + ":"  //$NON-NLS-1$
-			+ calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + " " + msg + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		final String txt = to2(calendar.get(Calendar.HOUR_OF_DAY)) + ":"  //$NON-NLS-1$
+			+ to2(calendar.get(Calendar.MINUTE)) + ":" + to2(calendar.get(Calendar.SECOND)) + " " + msg + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {
@@ -141,6 +141,15 @@ public class EventTraceView extends ViewPart
 			}
 		});
 	}
+    
+    public static String to2(int i) {
+    	String n = Integer.toString(i);
+    	if (n.length()==2) {
+    		return n;
+    	} else {
+    		return "0"+n;
+    	}
+    }
 
 	private void appendEventText(String msg, int category) {
 		IViewSite site = getViewSite();

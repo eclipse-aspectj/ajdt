@@ -20,7 +20,7 @@ public class TimerLogEvent {
 	public static final String TIME_IN_BUILD = "Total time spent in AJBuilder.build()"; //$NON-NLS-1$
 	public static final String FIRST_COMPILED = "Time to first compiled message"; //$NON-NLS-1$
 	public static final String FIRST_WOVEN = "Time to first woven message"; //$NON-NLS-1$
-	public static final String TIME_IN_AJDE = "Total time spent in AJDE"; //$NON-NLS-1$
+	public static final String TIME_IN_AJDE = "Compiling in AJDE"; //$NON-NLS-1$
 	public static final String ADD_MARKERS = "Add markers"; //$NON-NLS-1$
 	public static final String UPDATE_TYPES_CACHE_FOR_PROJECT = "Update types cache for project "; //$NON-NLS-1$
 	public static final String UPDATE_TYPES_CACHE_FOR_WORKSPACE = "Update types cache for the workspace"; //$NON-NLS-1$

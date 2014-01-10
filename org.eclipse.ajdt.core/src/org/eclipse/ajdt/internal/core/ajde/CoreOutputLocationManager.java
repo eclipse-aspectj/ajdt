@@ -618,14 +618,14 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 */
 	private void initDeclaringProjectsMap() {
 	    
-	    AJLog.logStart("OutputLocationManager: binary folder to declaring project map creation: " + project);
+	    AJLog.logStart(AJLog.BUILDER_CLASSPATH, "OutputLocationManager: binary folder to declaring project map creation: " + project,false);
 	    binFolderToProject = new HashMap<File, IProject>();
 	    IJavaProject jp = jProject;
         try {
             mapProject(jp);
         } catch (JavaModelException e) {
         }
-        AJLog.logEnd(AJLog.BUILDER_CLASSPATH, "OutputLocationManager: binary folder to declaring project map creation: " + project);
+        AJLog.logEnd(AJLog.BUILDER_CLASSPATH, "OutputLocationManager: binary folder to declaring project map creation: " + project,false);
     }
 
     private void mapProject(IJavaProject jp) throws JavaModelException {

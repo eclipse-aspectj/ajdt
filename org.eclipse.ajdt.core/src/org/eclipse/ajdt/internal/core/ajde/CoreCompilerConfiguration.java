@@ -599,8 +599,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
         classpathElementsWithModifiedContents = null;
     }
     public void setClasspathElementsWithModifiedContents(List<String> modifiedContents) {
-        AJLog.log(AJLog.BUILDER, "Setting list of classpath elements with modified contents:");
-        AJLog.log(AJLog.BUILDER, "      " + (modifiedContents == null ? "NULL" : modifiedContents.toString()));
+        AJLog.log(AJLog.BUILDER, "Setting list of classpath elements with modified contents:" + (modifiedContents == null ? "NULL" : modifiedContents.toString()));
         classpathElementsWithModifiedContents = modifiedContents;
     }
     

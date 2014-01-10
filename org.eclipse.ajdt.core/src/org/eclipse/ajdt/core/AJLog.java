@@ -48,31 +48,57 @@ public class AJLog {
 	}
 	
 	public static void log(int category, String msg) {
+		String formattedMessage = format(msg);
 		if (logger != null) {
-			logger.log(category,msg);
+			logger.log(category,formattedMessage);
 		} else {
-		    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.INFO, AspectJPlugin.PLUGIN_ID, msg));
+		    AspectJPlugin.getDefault().getLog().log(new Status(IStatus.INFO, AspectJPlugin.PLUGIN_ID, formattedMessage));
 		}
 	}
 	
-	public static void logStart(String event) {
+	public static String format(String msg) {
+		StringBuilder buf = new StringBuilder();
+		for (int i=0;i<indent;i++) {
+			buf.append("  ");
+		}
+		buf.append(msg);
+		return buf.toString();
+	}
+	
+	public static int indent = 0;
+
+	public static void logStart(String event, boolean reportAndIndent) {
+		logStart(DEFAULT,event,reportAndIndent);
+	}
+	
+	public static void logStart(int category, String event, boolean reportAndIndent) {
 		Long now = new Long(System.currentTimeMillis());
 		timers.put(event,now);
+		if (reportAndIndent) {
+			log(category, "> "+event);
+			indent++;
+		}
 	}
 	
-	public static void logEnd(int category, String event) {
-		logEnd(category, event, null);
+	public static void logEnd(int category, String event, boolean reportAndIndent) {
+		if (reportAndIndent) {
+			indent--;
+		}
+		logEnd(category, event, null, reportAndIndent);
 	}
-	
-	public static void logEnd(int category, String event, String optional_msg) {
+//	public static void logEnd(int category, String event, String optional_msg) {
+//		
+//	}
+		
+	public static void logEnd(int category, String event, String optional_msg, boolean reportAndIndent) {
 		Long then = (Long)timers.get(event);
 		if (then != null) {
 			long now = System.currentTimeMillis();
 			long elapsed = now - then.longValue();
 			if ((optional_msg != null) && (optional_msg.length() > 0)) {
-				log(category,"Timer event: "+elapsed + "ms: "+event+" ("+optional_msg+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				log(category,(reportAndIndent?"< ":"")+event+" (took "+elapsed + "ms) ("+optional_msg+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			} else {
-				log(category,"Timer event: "+elapsed + "ms: "+event); //$NON-NLS-1$ //$NON-NLS-2$
+				log(category,(reportAndIndent?"< ":"")+event+" (took "+elapsed + "ms)"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			timers.remove(event);
 		}

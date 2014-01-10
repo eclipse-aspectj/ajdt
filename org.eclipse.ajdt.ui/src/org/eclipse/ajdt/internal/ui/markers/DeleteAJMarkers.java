@@ -44,13 +44,13 @@ public class DeleteAJMarkers {
     
     protected IStatus run(IProgressMonitor monitor) {
         try {
-            AJLog.logStart("Delete markers: " + project.getName());
+            AJLog.logStart(AJLog.BUILDER,"Delete markers: " + project.getName(),false);
             if (sourceFiles != null) {
                 deleteMarkersForFiles(monitor);
             } else {
                 deleteAllMarkers(monitor);
             }
-            AJLog.logEnd(AJLog.BUILDER, "Delete markers: " + project.getName(), "Finished deleting markers for " + project.getName());
+            AJLog.logEnd(AJLog.BUILDER, "Delete markers: " + project.getName(), "Finished deleting markers for " + project.getName(),false);
             return Status.OK_STATUS;
         } catch(CoreException e) {
             return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, 

@@ -252,7 +252,7 @@ public class UIBuildListener implements IAJBuildListener {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(
                 new Runnable() {
                     public void run() {
-                        AJLog.logStart("Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
+                        AJLog.logStart(AJLog.BUILDER,"Updated visualizer, xref, advice listeners for (separate thread): " + project.getName(),false);
 
                         // TODO: can we determine whether there were
                         // actually changes to the set of advised elements?
@@ -280,7 +280,7 @@ public class UIBuildListener implements IAJBuildListener {
                                 }
                             }
                         }
-                        AJLog.logEnd(AJLog.BUILDER, "Update visualizer, xref, advice listeners for (separate thread): " + project.getName());
+                        AJLog.logEnd(AJLog.BUILDER, "Update visualizer, xref, advice listeners for (separate thread): " + project.getName(),false);
                     }
                 });
         }

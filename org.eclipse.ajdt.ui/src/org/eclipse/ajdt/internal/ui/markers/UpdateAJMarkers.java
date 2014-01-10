@@ -103,13 +103,13 @@ public class UpdateAJMarkers {
     }
 	
 	protected IStatus run(IProgressMonitor monitor) {
-        AJLog.logStart("Create markers: " + project.getName());
+        AJLog.logStart(AJLog.BUILDER,"Create markers: " + project.getName(),false);
         if (sourceFiles != null) {
             addMarkersForFiles(monitor);
         } else {
             addMarkersForProject(monitor);
         }
-        AJLog.logEnd(AJLog.BUILDER, "Create markers: " + project.getName(), "Finished creating markers for " + project.getName());
+        AJLog.logEnd(AJLog.BUILDER, "Create markers: " + project.getName(), "Finished creating markers for " + project.getName(),false);
         AJLog.log(AJLog.BUILDER, "Created " + markerCount + " markers in " + fileCount + " files");
         return Status.OK_STATUS;
     }

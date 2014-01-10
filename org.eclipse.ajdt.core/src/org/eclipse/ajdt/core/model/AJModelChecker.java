@@ -42,10 +42,10 @@ public class AJModelChecker {
     
     public static void doModelCheckIfRequired(AJProjectModelFacade model) {
         if (shouldCheckModel()) {
-            AJLog.logStart("Model sanity check for: " + model.getProject().getName());
+            AJLog.logStart(AJLog.MODEL, "Model sanity check for: " + model.getProject().getName(),false);
             List<String> problems = internalCheckModel(model);
             logProblems(problems);
-            AJLog.logEnd(AJLog.MODEL, "Model sanity check for: " + model.getProject().getName());
+            AJLog.logEnd(AJLog.MODEL, "Model sanity check for: " + model.getProject().getName(),false);
         }
     }
     

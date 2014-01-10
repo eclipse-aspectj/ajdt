@@ -132,11 +132,11 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
     public void setProgressText(String text) {
         if (!reportedCompiledMessages && text.startsWith("compiled: ")) { //$NON-NLS-1$
             reportedCompiledMessages = true;
-            AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_COMPILED);
+            AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_COMPILED,false);
         }
         if (!reportedWovenMessages && text.startsWith("woven ")) { //$NON-NLS-1$
             reportedWovenMessages = true;
-            AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_WOVEN);
+            AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_WOVEN,false);
         }
         
         // means that a new compile is starting.  ensure that the
@@ -308,8 +308,8 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
                     AspectJUIPlugin.PROGRESS_MONITOR_MAX);
         }
 
-        AJLog.logStart(TimerLogEvent.FIRST_COMPILED);
-        AJLog.logStart(TimerLogEvent.FIRST_WOVEN);
+        AJLog.logStart(TimerLogEvent.FIRST_COMPILED,false);
+        AJLog.logStart(TimerLogEvent.FIRST_WOVEN,false);
         reportedCompiledMessages = false;
         reportedWovenMessages = false;
         fileCache = ((CoreCompilerConfiguration) AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration()).getFileCache();

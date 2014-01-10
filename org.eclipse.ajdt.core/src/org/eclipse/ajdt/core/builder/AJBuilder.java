@@ -124,8 +124,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
         // 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
         progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
         
-        AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
-        AJLog.logStart("Pre compile");
+        AJLog.logStart(TimerLogEvent.TIME_IN_BUILD,true);
+        AJLog.logStart(AJLog.BUILDER,"Pre-compilation checks",true);
         AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
         AJLog.log(AJLog.BUILDER,"Build kind = " + buildKindString(kind)); //$NON-NLS-1$
                 
@@ -151,7 +151,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             postBuild(kind, true, participants, compiler);
             AJLog.log(AJLog.BUILDER,
                     "build: Abort due to missing classpath/inpath/aspectpath entries"); //$NON-NLS-1$
-            AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+            AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD,true);
             progressMonitor.done();
             return requiredProjects;
         }
@@ -164,12 +164,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
         }
         // end of workaround
         
-        AJLog.logStart("Flush included source file cache");
+        AJLog.logStart(AJLog.BUILDER, "Flush included source file cache",false);
         // Flush the list of included source files stored for this project
         BuildConfig.flushIncludedSourceFileCache(project);
-        AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache");
+        AJLog.logEnd(AJLog.BUILDER, "Flush included source file cache",false);
         
-        AJLog.logStart("Check delta");
+        AJLog.logStart(AJLog.BUILDER, "Check delta", true);
         // Check the delta - we only want to proceed if something relevant
         // in this project has changed (a .java file, a .aj file or a 
         // .lst file)
@@ -178,10 +178,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
         if(delta != null) {
             copyResources(javaProject,delta);
         }
-        AJLog.logEnd(AJLog.BUILDER, "Check delta");
+        AJLog.logEnd(AJLog.BUILDER, "Check delta",true);
 
         if (kind != FULL_BUILD) {
-            AJLog.logStart("Look for source/resource changes");
+            AJLog.logStart(AJLog.BUILDER,"change detection",true);
             if (!hasChangesAndMark(delta, project)) {
                 
                 AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file or classpath changes for project "  //$NON-NLS-1$
@@ -203,14 +203,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
                     compilerConfig.flushClasspathCache();
                     compilerConfig.configurationRead();  // reset config
                     postBuild(kind, true, participants, compiler);
-                    AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
-                    AJLog.log(AJLog.BUILDER, "No source/resource changes found, exiting build");
-                    AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+                    AJLog.logEnd(AJLog.BUILDER, "change detection",true);
+                    AJLog.log(AJLog.BUILDER, "No changes found, exiting build");
+                    AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD, true);
                     progressMonitor.done();
                     return requiredProjects;                        
                 }
             }
-            AJLog.logEnd(AJLog.BUILDER, "Look for source/resource changes");
+            AJLog.logEnd(AJLog.BUILDER, "change detection",true);
         }
 
         migrateToRTContainerIfNecessary(javaProject);
@@ -238,6 +238,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         }
         
+        AJLog.logEnd(AJLog.BUILDER,"Pre-compilation checks",true);
         // bug 270335 -- if output locations have changed, then 
         // need a new output location manager.
         compilerConfig.flushOutputLocationManagerIfNecessary(kind);
@@ -246,17 +247,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
         compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
         AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath = " + compilerConfig.getClasspath()); //$NON-NLS-1$
-        AJLog.logEnd(AJLog.BUILDER,"Pre compile");
 
         // ----------------------------------------
         // Do the compilation
-        AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
+        AJLog.logStart(AJLog.BUILDER,TimerLogEvent.TIME_IN_AJDE,true);
         if (kind == FULL_BUILD) {
             compiler.buildFresh();
         } else {
             compiler.build();
         }
-        AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_AJDE);
+        AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_AJDE,true);
         // compilation is done
         // ----------------------------------------
 
@@ -271,7 +271,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         progressMonitor.worked(1);
         progressMonitor.done();
         
-        AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+        AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD, true);
         return requiredProjects;
     }
 
@@ -463,7 +463,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
     private void augmentAspectPath(IProject project, Map args) {
         if (args.containsKey("aspectPath")) {
-            AJLog.logStart("Augmenting aspect path with args from builder");
+            AJLog.logStart(AJLog.BUILDER,"Augmenting aspect path with args from builder",true);
             String toAugment = (String) args.get("aspectPath");
             String[] toAugmentArr = toAugment.split(",");
             for (int i = 0; i < toAugmentArr.length; i++) {
@@ -487,7 +487,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             } catch (CoreException e) {
                 
             }
-            AJLog.logEnd(AJLog.BUILDER, "Augmenting aspect path with args from builder");
+            AJLog.logEnd(AJLog.BUILDER, "Augmenting aspect path with args from builder",true);
 
         }
     }
@@ -507,7 +507,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 isClasspathBroken(JavaCore.create(project).getRawClasspath(), project)) {
             AJLog.log(AJLog.BUILDER,
                     "build: Abort due to missing inpath/aspectpath/classpath entries"); //$NON-NLS-1$
-            AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+            AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD, true);
             removeProblemsAndTasksFor(project); 
             // make this the only problem for this project
             markProject(project, Messages.bind(Messages.build_prereqProjectHasClasspathProblems, 
@@ -726,7 +726,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
     // bug 269604---refresh after build is greatly reduced in scope
     private void doRefreshAfterBuild(IProject project,
             IProject[] dependingProjects, IJavaProject javaProject) {
-        AJLog.logStart("Refresh after build");
+        AJLog.logStart(AJLog.BUILDER,"Refresh after build",true);
         try {
             String outjarStr = AspectJCorePreferences.getProjectOutJar(project);
             if (outjarStr != null && outjarStr.length() > 0) {
@@ -742,7 +742,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             }
         } catch (CoreException e) {
         }
-        AJLog.logEnd(AJLog.BUILDER, "Refresh after build");
+        AJLog.logEnd(AJLog.BUILDER, "Refresh after build",true);
     }
 
     private boolean hasValidPreviousBuildConfig(String configId) {
@@ -1635,13 +1635,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
      * the compiler configuration 
      */
     public boolean hasChangesAndMark(IResourceDelta delta, IProject project) {
-        AJLog.logStart("Looking for and marking configuration changes in " + project.getName());
+        AJLog.logStart(AJLog.BUILDER,"Determining configuration changes (including source file changes) in " + project.getName(),true);
         CoreCompilerConfiguration compilerConfiguration = CoreCompilerConfiguration.getCompilerConfigurationForProject(project);
         boolean hasChanges = sourceFilesChanged(delta, project, compilerConfiguration);
         hasChanges |= classpathChanged(delta, compilerConfiguration);
         hasChanges |= manifestChanged(delta, compilerConfiguration);
         hasChanges |= projectSpecificSettingsChanged(delta, compilerConfiguration);
-        AJLog.logEnd(AJLog.BUILDER, "Looking for and marking configuration changes in " + project.getName());
+        AJLog.logEnd(AJLog.BUILDER, "Determining configuration changes (including source file changes) in " + project.getName(),true);
         AJLog.log(AJLog.BUILDER, "\tConfiguration changes found: " + hasChanges);  
         return hasChanges;
     }
@@ -1705,11 +1705,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
                 return true;
             }           
             try {
+            	AJLog.log(AJLog.BUILDER,"build: Examining resource delta..."); //$NON-NLS-1$ 
                 SourceFilesChangedVisitor visitor = new SourceFilesChangedVisitor(project, includedFileNames);
                 delta.accept(visitor);
                 
                 if (visitor.hasChanges()) {
-                    AJLog.log(AJLog.BUILDER,"build: Examined delta - " + visitor.getNumberChanged() + //$NON-NLS-1$ 
+                    AJLog.log(AJLog.BUILDER,"build: Examined resource delta - " + visitor.getNumberChanged() + //$NON-NLS-1$ 
                             " changed, " + visitor.getNumberAdded() + " added, and " + //$NON-NLS-1$ //$NON-NLS-2$
                             visitor.getNumberRemoved() + " deleted source files in " //$NON-NLS-1$
                             + "required project " + project.getName() ); //$NON-NLS-1$
