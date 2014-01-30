@@ -76,6 +76,7 @@
 			<!--<arg value="-verbose" />-->
 			<arg value="-DfetchCacheLocation=${fetchCacheLocation}" />
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
+			<arg value="-DallowBinaryCycles=true"/>
 			<arg value="-DbaseLocation=${target.eclipse}" />
 			<arg value="-DbuildDirectory=${build.home}" />
 			<arg value="-Dbuild.dest=${build.dest}" />
@@ -218,8 +219,8 @@
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
-		<!-- the build eeclipse is 3.7 based -->
-		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.37}"/>
+		<!-- the build eeclipse is 4.3 based -->
+		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.43}"/>
 
 		
 		<!-- Unpack eclipse -->
@@ -232,7 +233,7 @@
 		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/37/dev/update" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/43/dev/update" 
 			feature.id="org.eclipse.ajdt" />
 
 		<!-- Install Fetach factory for git repos -->
