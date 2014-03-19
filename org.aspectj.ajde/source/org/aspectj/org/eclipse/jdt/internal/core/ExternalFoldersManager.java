@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - inconsistent initialization of classpath container backed by external class folder, see https://bugs.eclipse.org/320618
+ *     Thirumala Reddy Mutchukota <thirumala@google.com> - Contribution to bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=411423
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -43,6 +44,7 @@ import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class ExternalFoldersManager {
 	private static final String EXTERNAL_PROJECT_NAME = ".org.aspectj.org.eclipse.jdt.core.external.folders"; //$NON-NLS-1$
 	private static final String LINKED_FOLDER_NAME = ".link"; //$NON-NLS-1$
@@ -102,11 +104,15 @@ public class ExternalFoldersManager {
 		String firstSegment = externalPath.segment(0);
 		if (firstSegment != null && ResourcesPlugin.getWorkspace().getRoot().getProject(firstSegment).exists())
 			return false;
+		JavaModelManager manager = JavaModelManager.getJavaModelManager();
+		if (manager.isExternalFile(externalPath))
+			return false;
 		File externalFolder = externalPath.toFile();
-		if (externalFolder.isFile())
+		if (externalFolder.isFile()
+			|| (externalPath.getFileExtension() != null/*likely a .jar, .zip, .rar or other file*/ && !externalFolder.exists())) {
+			manager.addExternalFile(externalPath);
 			return false;
-		if (externalPath.getFileExtension() != null/*likely a .jar, .zip, .rar or other file*/ && !externalFolder.exists())
-			return false;
+		}
 		return true;
 	}
 

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -42,7 +38,8 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
-/* package */ final class ASTRewriteFormatter {
+@SuppressWarnings({"rawtypes", "unchecked"})
+public final class ASTRewriteFormatter {
 
 	public static class NodeMarker extends Position {
 		public Object data;
@@ -285,7 +282,8 @@ import org.eclipse.text.edits.TextEdit;
 				case ASTNode.PRIMITIVE_TYPE:
 				case ASTNode.QUALIFIED_TYPE:
 				case ASTNode.SIMPLE_TYPE:
-					suffix= " x;"; //$NON-NLS-1$
+					prefix= "void m(final "; //$NON-NLS-1$
+					suffix= " x);"; //$NON-NLS-1$
 					code= CodeFormatter.K_CLASS_BODY_DECLARATIONS;
 					break;
 				case ASTNode.WILDCARD_TYPE:
@@ -297,9 +295,13 @@ import org.eclipse.text.edits.TextEdit;
 					code= CodeFormatter.K_COMPILATION_UNIT;
 					break;
 				case ASTNode.VARIABLE_DECLARATION_EXPRESSION:
-				case ASTNode.SINGLE_VARIABLE_DECLARATION:
 					suffix= ";"; //$NON-NLS-1$
 					code= CodeFormatter.K_STATEMENTS;
+					break;
+				case ASTNode.SINGLE_VARIABLE_DECLARATION:
+					prefix= "void m("; //$NON-NLS-1$
+					suffix= ");"; //$NON-NLS-1$
+					code= CodeFormatter.K_CLASS_BODY_DECLARATIONS;
 					break;
 				case ASTNode.VARIABLE_DECLARATION_FRAGMENT:
 					prefix= "A "; //$NON-NLS-1$

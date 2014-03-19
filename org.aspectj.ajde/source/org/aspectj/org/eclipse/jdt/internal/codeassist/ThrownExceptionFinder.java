@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 IBM Corporation and others.
+ * Copyright (c) 2007, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,6 +29,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ThrownExceptionFinder extends ASTVisitor {
 
 	private SimpleSet thrownExceptions;
@@ -211,7 +212,7 @@ public class ThrownExceptionFinder extends ASTVisitor {
 		for (int i = 0; i < exceptions.length; i++) {
 			ReferenceBinding exception = (ReferenceBinding)exceptions[i];
 			if (exception != null) {
-				if (exception == caughtException) {
+				if (TypeBinding.equalsEquals(exception, caughtException)) {
 					this.thrownExceptions.remove(exception);
 				} else if (caughtException.isSuperclassOf(exception)) {
 					// catching the sub-exception when super has been caught already will give an error

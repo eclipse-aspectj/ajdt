@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2013 IBM Corporation and others.
+ * Copyright (c) 2003, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -33,11 +29,12 @@ import java.util.List;
  * @since 3.1
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
+@SuppressWarnings("rawtypes")
 public class WildcardType extends AnnotatableType {
 
 	/**
 	 * The "annotations" structural property of this node type (element type: {@link Annotation}).
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final ChildListPropertyDescriptor ANNOTATIONS_PROPERTY =
 			internalAnnotationsPropertyFactory(WildcardType.class);
@@ -64,7 +61,7 @@ public class WildcardType extends AnnotatableType {
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	private static final List PROPERTY_DESCRIPTORS_8_0;
 
@@ -133,7 +130,7 @@ public class WildcardType extends AnnotatableType {
 
 	/* (omit javadoc for this method)
 	 * Method declared on AnnotatableType.
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	final ChildListPropertyDescriptor internalAnnotationsProperty() {
 		return ANNOTATIONS_PROPERTY;

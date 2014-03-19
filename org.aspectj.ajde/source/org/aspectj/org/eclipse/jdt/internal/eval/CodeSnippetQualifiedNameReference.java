@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contribution for bug 185682 - Increment/decrement operators mark local variables as read
@@ -64,7 +60,7 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 	TypeBinding declaringClass = fieldBinding.original().declaringClass;
 	// check for forward references
 	if ((this.indexOfFirstFieldBinding == 1 || declaringClass.isEnum())
-			&& methodScope.enclosingSourceType() == declaringClass
+			&& TypeBinding.equalsEquals(methodScope.enclosingSourceType(), declaringClass)
 			&& methodScope.lastVisibleFieldID >= 0
 			&& fieldBinding.id >= methodScope.lastVisibleFieldID
 			&& (!fieldBinding.isStatic() || methodScope.isStatic)) {
@@ -100,7 +96,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 			}
 		} else {
 			boolean isFirst = lastFieldBinding == this.binding
-											&& (this.indexOfFirstFieldBinding == 1 || lastFieldBinding.declaringClass == currentScope.enclosingReceiverType())
+											&& (this.indexOfFirstFieldBinding == 1 || TypeBinding.equalsEquals(lastFieldBinding.declaringClass, currentScope.enclosingReceiverType()))
 											&& this.otherBindings == null; // could be dup: next.next.next
 			TypeBinding requiredGenericCast = getGenericCast(this.otherBindings == null ? 0 : this.otherBindings.length);
 			if (valueRequired
@@ -256,7 +252,7 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 		}		
 	}
 	codeStream.generateEmulationForField(lastFieldBinding);
-	if ((lastFieldBinding.type == TypeBinding.LONG) || (lastFieldBinding.type == TypeBinding.DOUBLE)) {
+	if ((TypeBinding.equalsEquals(lastFieldBinding.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(lastFieldBinding.type, TypeBinding.DOUBLE))) {
 		codeStream.dup_x2();
 		codeStream.pop();
 		if (lastFieldBinding.isStatic()) {
@@ -405,7 +401,7 @@ public FieldBinding generateReadSequence(BlockScope currentScope, CodeStream cod
 						if (lastFieldBinding == initialFieldBinding) {
 							if (lastFieldBinding.isStatic()){
 								// if no valueRequired, still need possible side-effects of <clinit> invocation, if field belongs to different class
-								if (initialFieldBinding.declaringClass != this.actualReceiverType.erasure()) {
+								if (TypeBinding.notEquals(initialFieldBinding.declaringClass, this.actualReceiverType.erasure())) {
 									if (lastFieldBinding.canBeSeenBy(lastReceiverType, this, currentScope)) {
 										MethodBinding accessor = this.syntheticReadAccessors == null ? null : this.syntheticReadAccessors[i];
 										if (accessor == null) {

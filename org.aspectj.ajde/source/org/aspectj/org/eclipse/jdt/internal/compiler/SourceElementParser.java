@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,6 +43,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
  *
  * Any (parsing) problem encountered is also provided.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class SourceElementParser extends CommentRecorderParser {
 
 	ISourceElementRequestor requestor;
@@ -394,6 +391,10 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 	// the declarationSourceStart to be set
 	flushCommentsDefinedPriorTo(this.scanner.currentPosition);
 }
+protected void consumeTypeElidedLambdaParameter(boolean parenthesized) {
+	super.consumeTypeElidedLambdaParameter(parenthesized);
+	flushCommentsDefinedPriorTo(this.scanner.currentPosition);
+}
 protected void consumeInterfaceHeaderName1() {
 	int currentAstPtr = this.astPtr;
 	super.consumeInterfaceHeaderName1();
@@ -535,6 +536,7 @@ protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
 	super.consumeSingleMemberAnnotation(isTypeAnnotation);
 	SingleMemberAnnotation member = (SingleMemberAnnotation) (isTypeAnnotation ? this.typeAnnotationStack[this.typeAnnotationPtr] : this.expressionStack[this.expressionPtr]);
 	if (this.reportReferenceInfo) {
+		this.requestor.acceptAnnotationTypeReference(member.type.getTypeName(), member.sourceStart, member.sourceEnd);
 		this.requestor.acceptMethodReference(TypeConstants.VALUE, 0, member.sourceStart);
 	}
 }

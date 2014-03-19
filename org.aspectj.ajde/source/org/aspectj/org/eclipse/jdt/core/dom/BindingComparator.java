@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2008 IBM Corporation and others.
+ * Copyright (c) 2004, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
  *
  * @since 3.1
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 class BindingComparator {
 	/**
 	 * @param bindings
@@ -172,7 +173,7 @@ class BindingComparator {
 		return true;
 	}
 	static boolean isEqual(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding typeBinding, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding typeBinding2, HashSet visitedTypes) {
-		if (typeBinding == typeBinding2)
+		if (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.equalsEquals(typeBinding, typeBinding2))
 			return true;
 		if (typeBinding == null || typeBinding2 == null)
 			return false;

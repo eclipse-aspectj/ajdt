@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	public IAnnotation[] annotations;
 	private int flags;
 	private boolean isParameter;
+	public IAnnotation[][] annotationsOnDimensions;
 
 	public LocalVariable(
 			JavaElement parent,
@@ -67,6 +68,30 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 		this.annotations = getAnnotations(astAnnotations);
 		this.flags = flags;
 		this.isParameter = isParameter;
+	}
+	public LocalVariable(
+			JavaElement parent,
+			String name,
+			int declarationSourceStart,
+			int declarationSourceEnd,
+			int nameStart,
+			int nameEnd,
+			String typeSignature,
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[] astAnnotations,
+			int flags,
+			boolean isParameter,
+		org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[][] astAnnotationsOnDimensions) {
+		
+		this(parent, name, declarationSourceStart, declarationSourceEnd, nameStart,
+				nameEnd, typeSignature, astAnnotations, flags, isParameter);
+
+		int noOfDimensions = astAnnotationsOnDimensions == null ? 0 : astAnnotationsOnDimensions.length;
+		if (noOfDimensions > 0) {
+			this.annotationsOnDimensions = new IAnnotation[noOfDimensions][];
+			for (int i = 0; i < noOfDimensions; ++i) {
+				this.annotationsOnDimensions[i] = getAnnotations(astAnnotationsOnDimensions[i]);
+			}
+		}
 	}
 
 	protected void closing(Object info) {
@@ -239,7 +264,12 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 	 * @see JavaElement#getHandleMemento(StringBuffer)
 	 */
 	protected void getHandleMemento(StringBuffer buff) {
-		((JavaElement)getParent()).getHandleMemento(buff);
+		getHandleMemento(buff, true);
+	}
+	
+	protected void getHandleMemento(StringBuffer buff, boolean memoizeParent) {
+		if (memoizeParent) 
+			((JavaElement)getParent()).getHandleMemento(buff);
 		buff.append(getHandleMementoDelimiter());
 		buff.append(this.name);
 		buff.append(JEM_COUNT);

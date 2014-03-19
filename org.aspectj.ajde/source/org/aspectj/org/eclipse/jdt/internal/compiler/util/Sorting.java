@@ -5,17 +5,18 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *		Stephan Herrmann - Initial API and implementation
  **********************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.util;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceVariable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
 /**
@@ -72,7 +73,7 @@ public class Sorting {
 			// search superclass within input:
 			int j = 0;
 			for(j=0; j<input.length; j++)
-				if (input[j] == superclass)
+				if (TypeBinding.equalsEquals(input[j], superclass))
 					break;
 			if (j < input.length)
 				// depth first traversal:
@@ -106,5 +107,15 @@ public class Sorting {
 			if (!methods[i].isAbstract())
 				copy[idx++] = methods[i];
 		return copy;
+	}
+
+	/** Sort inference variables by rank. */
+	public static void sortInferenceVariables(InferenceVariable[] variables) {
+		Arrays.sort(variables, new Comparator<InferenceVariable>() {
+			@Override
+			public int compare(InferenceVariable iv1, InferenceVariable iv2) {
+				return iv1.rank - iv2.rank;
+			}
+		});		
 	}
 }

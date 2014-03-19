@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
 /**
  * Element info for an IType element that originated from source.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class SourceTypeElementInfo extends AnnotatableInfo implements ISourceType {
 
 	protected static final ISourceImport[] NO_IMPORTS = new ISourceImport[0];
@@ -34,7 +35,7 @@ public class SourceTypeElementInfo extends AnnotatableInfo implements ISourceTyp
 	
 	/**
 	 * The name of the superclass for this type. This name
-	 * is fully qualified for binary types and is NOT
+	 * is fully qualified for binary types and is NOT always
 	 * fully qualified for source types.
 	 */
 	protected char[] superclassName;
@@ -42,7 +43,7 @@ public class SourceTypeElementInfo extends AnnotatableInfo implements ISourceTyp
 	/**
 	 * The names of the interfaces this type implements or
 	 * extends. These names are fully qualified in the case
-	 * of a binary type, and are NOT fully qualified in the
+	 * of a binary type, and are NOT always fully qualified in the
 	 * case of a source type
 	 */
 	protected char[][] superInterfaceNames;
@@ -299,13 +300,13 @@ protected void setHandle(IType handle) {
 	this.handle = handle;
 }
 /**
- * Sets the (unqualified) name of this type's superclass
+ * Sets the (unresolved) name of this type's superclass
  */
 protected void setSuperclassName(char[] superclassName) {
 	this.superclassName = superclassName;
 }
 /**
- * Sets the (unqualified) names of the interfaces this type implements or extends
+ * Sets the (unresolved) names of the interfaces this type implements or extends
  */
 protected void setSuperInterfaceNames(char[][] superInterfaceNames) {
 	this.superInterfaceNames = superInterfaceNames;

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -224,7 +220,9 @@ protected void consumeCastExpressionLL1WithBounds() {
 	super.consumeCastExpressionLL1WithBounds();
 	if ((this.patternFineGrain & IJavaSearchConstants.CAST_TYPE_REFERENCE) != 0) {
 		CastExpression castExpression = (CastExpression) this.expressionStack[this.expressionPtr];
-		this.patternLocator.match(castExpression.type, this.nodeSet);
+		TypeReference[] typeReferences = ((IntersectionCastTypeReference) castExpression.type).typeReferences;
+		for (int i = 0, length = typeReferences.length; i < length; i++)
+			this.patternLocator.match(typeReferences[i], this.nodeSet);
 	}
 }
 protected void consumeCastExpressionWithGenericsArray() {
@@ -357,6 +355,12 @@ protected void consumeInterfaceType() {
 		this.patternLocator.match(typeReference, this.nodeSet);
 	}
 	this.patternLocator.setFlavors(PatternLocator.NO_FLAVOR);
+}
+
+@Override
+protected void consumeLambdaExpression() {
+	super.consumeLambdaExpression();
+	this.patternLocator.match((LambdaExpression) this.expressionStack[this.expressionPtr], this.nodeSet);
 }
 
 protected void consumeLocalVariableDeclaration() {
@@ -515,6 +519,26 @@ protected void consumePrimaryNoNewArrayWithName() {
 	this.intPtr--;
 }
 
+@Override
+protected void consumeReferenceExpression(ReferenceExpression referenceExpression) {
+	super.consumeReferenceExpression(referenceExpression);
+	if (this.patternFineGrain == 0) {
+		this.patternLocator.match(referenceExpression, this.nodeSet);
+	} else if (referenceExpression.lhs.isThis()) {
+		if ((this.patternFineGrain & IJavaSearchConstants.THIS_REFERENCE) != 0) {
+			this.patternLocator.match(referenceExpression, this.nodeSet);
+		}
+	} else if (referenceExpression.lhs.isSuper()) {
+		if ((this.patternFineGrain & IJavaSearchConstants.SUPER_REFERENCE) != 0) {
+			this.patternLocator.match(referenceExpression, this.nodeSet);
+		}
+	} else if (referenceExpression.lhs instanceof QualifiedNameReference || referenceExpression.lhs instanceof QualifiedTypeReference) {
+		if ((this.patternFineGrain & IJavaSearchConstants.QUALIFIED_REFERENCE) != 0) {
+			this.patternLocator.match(referenceExpression, this.nodeSet);
+		} 
+	}
+}
+
 protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
 	super.consumeSingleMemberAnnotation(isTypeAnnotation);
 	if (this.patternFineGrain == 0 || (this.patternFineGrain & IJavaSearchConstants.ANNOTATION_TYPE_REFERENCE) != 0) {
@@ -637,6 +661,11 @@ protected void consumeTypeArguments() {
 	}
 }
 
+protected void consumeTypeElidedLambdaParameter(boolean parenthesized) {
+	super.consumeTypeElidedLambdaParameter(parenthesized);
+	this.patternLocator.match((LocalDeclaration) this.astStack[this.astPtr], this.nodeSet);
+}
+
 protected void consumeTypeParameter1WithExtends() {
 	super.consumeTypeParameter1WithExtends();
 	if ((this.patternFineGrain & IJavaSearchConstants.TYPE_VARIABLE_BOUND_TYPE_REFERENCE) != 0) {
@@ -743,16 +772,8 @@ protected void consumeWildcardBoundsSuper() {
 	}
 }
 
-protected TypeReference copyDims(TypeReference typeRef, int dim) {
-	TypeReference result = super.copyDims(typeRef, dim);
-	 if (this.nodeSet.removePossibleMatch(typeRef) != null)
-		this.nodeSet.addPossibleMatch(result);
-	 else if (this.nodeSet.removeTrustedMatch(typeRef) != null)
-		this.nodeSet.addTrustedMatch(result, true);
-	return result;
-}
-protected TypeReference copyDims(TypeReference typeRef, int dim, Annotation [][] annotationsOnDimensions) {
-	TypeReference result = super.copyDims(typeRef, dim, annotationsOnDimensions);
+protected TypeReference augmentTypeWithAdditionalDimensions(TypeReference typeRef, int additionalDimensions, Annotation [][] additionalAnnotations, boolean isVarargs) {
+	TypeReference result = super.augmentTypeWithAdditionalDimensions(typeRef, additionalDimensions, additionalAnnotations, isVarargs);
 	 if (this.nodeSet.removePossibleMatch(typeRef) != null)
 		this.nodeSet.addPossibleMatch(result);
 	 else if (this.nodeSet.removeTrustedMatch(typeRef) != null)

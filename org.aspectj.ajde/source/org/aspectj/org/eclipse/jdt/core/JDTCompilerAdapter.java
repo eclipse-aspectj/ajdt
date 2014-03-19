@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -50,6 +50,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
  *
  * @since 2.0
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 	private static final char[] SEPARATOR_CHARS = new char[] { '/', '\\' };
 	private static final char[] ADAPTER_PREFIX = "#ADAPTER#".toCharArray(); //$NON-NLS-1$
@@ -149,14 +150,14 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 		// This is done to improve the compatibility to ant 1.5
 		Method getSourcepathMethod = null;
 		try {
-			getSourcepathMethod = javacClass.getMethod("getSourcepath", null); //$NON-NLS-1$
+			getSourcepathMethod = javacClass.getMethod("getSourcepath", (Class[]) null); //$NON-NLS-1$
 		} catch(NoSuchMethodException e) {
 			// if not found, then we cannot use this method (ant 1.5)
 		}
 		Path compileSourcePath = null;
 		if (getSourcepathMethod != null) {
 			try {
-				compileSourcePath = (Path) getSourcepathMethod.invoke(this.attributes, null);
+				compileSourcePath = (Path) getSourcepathMethod.invoke(this.attributes, (Object[]) null);
 			} catch (IllegalAccessException e) {
 				// should never happen
 			} catch (InvocationTargetException e) {
@@ -196,7 +197,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 			// This is done to improve the compatibility to ant 1.5
 			Method getDebugLevelMethod = null;
 			try {
-				getDebugLevelMethod = javacClass.getMethod("getDebugLevel", null); //$NON-NLS-1$
+				getDebugLevelMethod = javacClass.getMethod("getDebugLevel", (Class[]) null); //$NON-NLS-1$
 			} catch(NoSuchMethodException e) {
 				// if not found, then we cannot use this method (ant 1.5)
 				// debug level is only available with ant 1.5.x
@@ -204,7 +205,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 			String debugLevel = null;
 			if (getDebugLevelMethod != null) {
 				try {
-					debugLevel = (String) getDebugLevelMethod.invoke(this.attributes, null);
+					debugLevel = (String) getDebugLevelMethod.invoke(this.attributes, (Object[]) null);
 				} catch (IllegalAccessException e) {
 					// should never happen
 				} catch (InvocationTargetException e) {
@@ -349,7 +350,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 		// This is done to improve the compatibility to ant 1.5
 		Method getCurrentCompilerArgsMethod = null;
 		try {
-			getCurrentCompilerArgsMethod = javacClass.getMethod("getCurrentCompilerArgs", null); //$NON-NLS-1$
+			getCurrentCompilerArgsMethod = javacClass.getMethod("getCurrentCompilerArgs", (Class[]) null); //$NON-NLS-1$
 		} catch (NoSuchMethodException e) {
 			// if not found, then we cannot use this method (ant 1.5)
 			// debug level is only available with ant 1.5.x
@@ -357,7 +358,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 		String[] compilerArgs = null;
 		if (getCurrentCompilerArgsMethod != null) {
 			try {
-				compilerArgs = (String[]) getCurrentCompilerArgsMethod.invoke(this.attributes, null);
+				compilerArgs = (String[]) getCurrentCompilerArgsMethod.invoke(this.attributes, (Object[]) null);
 			} catch (IllegalAccessException e) {
 				// should never happen
 			} catch (InvocationTargetException e) {

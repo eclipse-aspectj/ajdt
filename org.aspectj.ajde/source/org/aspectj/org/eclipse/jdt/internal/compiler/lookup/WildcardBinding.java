@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation and others.
+ * Copyright (c) 2005, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,14 +11,22 @@
  *     							bug 349326 - [1.7] new warning for missing try-with-resources
  *     							bug 359362 - FUP of bug 349326: Resource leak on non-Closeable resource
  *								bug 358903 - Filter practically unimportant resource leak warnings
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 423504 - [1.8] Implement "18.5.3 Functional Interface Parameterization Inference"
+ *								Bug 426676 - [1.8][compiler] Wrong generic method type inferred from lambda expression
+ *								Bug 427411 - [1.8][generics] JDT reports type mismatch when using method that returns generic type
+ *								Bug 428019 - [1.8][compiler] Type inference failure with nested generic invocation.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.List;
+import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 
 /*
  * A wildcard acts as an argument for parameterized types, allowing to
@@ -51,12 +55,6 @@ public class WildcardBinding extends ReferenceBinding {
 		this.modifiers = ClassFileConstants.AccPublic | ExtraCompilerModifiers.AccGenericSignature; // treat wildcard as public
 		this.environment = environment;
 		initialize(genericType, bound, otherBounds);
-
-//		if (!genericType.isGenericType() && !(genericType instanceof UnresolvedReferenceBinding)) {
-//			RuntimeException e = new RuntimeException("WILDCARD with NON GENERIC");
-//			e.printStackTrace();
-//			throw e;
-//		}
 		if (genericType instanceof UnresolvedReferenceBinding)
 			((UnresolvedReferenceBinding) genericType).addWrapper(this, environment);
 		if (bound instanceof UnresolvedReferenceBinding)
@@ -65,6 +63,37 @@ public class WildcardBinding extends ReferenceBinding {
 		this.typeBits = TypeIds.BitUninitialized;
 	}
 
+	TypeBinding bound() {
+		return this.bound;
+	}
+	
+	int boundKind() {
+		return this.boundKind;
+	}
+	
+	public TypeBinding allBounds() {
+		if (this.otherBounds == null || this.otherBounds.length == 0)
+			return this.bound;
+		ReferenceBinding[] allBounds = new ReferenceBinding[this.otherBounds.length+1];
+		try {
+			allBounds[0] = (ReferenceBinding) this.bound;
+			System.arraycopy(this.otherBounds, 0, allBounds, 1, this.otherBounds.length);
+		} catch (ClassCastException cce) {
+			return this.bound;
+		} catch (ArrayStoreException ase) {
+			return this.bound;
+		}
+		return new IntersectionCastTypeBinding(allBounds, this.environment);
+	}
+
+	public ReferenceBinding actualType() {
+		return this.genericType;
+	}
+	
+	TypeBinding[] additionalBounds() {
+		return this.otherBounds;
+	}
+	
 	public int kind() {
 		return this.otherBounds == null ? Binding.WILDCARD_TYPE : Binding.INTERSECTION_TYPE;
 	}
@@ -122,6 +151,7 @@ public class WildcardBinding extends ReferenceBinding {
 		if (actualType.isCapture()) {
 			CaptureBinding capture = (CaptureBinding) actualType;
 			actualType = capture.wildcard;
+			// this method should only be called in 1.7- inference, hence we don't expect to see CaptureBinding18 here.
 		}
 
 		switch (constraint) {
@@ -381,6 +411,32 @@ public class WildcardBinding extends ReferenceBinding {
 		return erasure().constantPoolName();
 	}
 
+	public TypeBinding clone(TypeBinding immaterial) {
+		return new WildcardBinding(this.genericType, this.rank, this.bound, this.otherBounds, this.boundKind, this.environment);
+	}
+	
+	public String annotatedDebugName() {
+		StringBuffer buffer = new StringBuffer(16);
+		AnnotationBinding [] annotations = getTypeAnnotations();
+		for (int i = 0, length = annotations == null ? 0 : annotations.length; i < length; i++) {
+			buffer.append(annotations[i]);
+			buffer.append(' ');
+		}
+		switch (this.boundKind) {
+            case Wildcard.UNBOUND :
+                return buffer.append(TypeConstants.WILDCARD_NAME).toString();
+            case Wildcard.EXTENDS :
+            	if (this.otherBounds == null)
+                	return buffer.append(CharOperation.concat(TypeConstants.WILDCARD_NAME, TypeConstants.WILDCARD_EXTENDS, this.bound.annotatedDebugName().toCharArray())).toString();
+            	buffer.append(this.bound.annotatedDebugName());
+            	for (int i = 0, length = this.otherBounds.length; i < length; i++) {
+            		buffer.append(" & ").append(this.otherBounds[i].annotatedDebugName()); //$NON-NLS-1$
+            	}
+            	return buffer.toString();
+			default: // SUPER
+			    return buffer.append(CharOperation.concat(TypeConstants.WILDCARD_NAME, TypeConstants.WILDCARD_SUPER, this.bound.annotatedDebugName().toCharArray())).toString();
+        }
+	}
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#debugName()
 	 */
@@ -451,12 +507,13 @@ public class WildcardBinding extends ReferenceBinding {
 			this.fPackage = someGenericType.getPackage();
 		}
 		if (someBound != null) {
-			this.tagBits |= someBound.tagBits & (TagBits.HasTypeVariable | TagBits.HasMissingType | TagBits.ContainsNestedTypeReferences);
+			this.tagBits |= someBound.tagBits & (TagBits.HasTypeVariable | TagBits.HasMissingType | TagBits.ContainsNestedTypeReferences | 
+					TagBits.HasNullTypeAnnotation | TagBits.HasCapturedWildcard);
 		}
 		if (someOtherBounds != null) {
 			for (int i = 0, max = someOtherBounds.length; i < max; i++) {
 				TypeBinding someOtherBound = someOtherBounds[i];
-				this.tagBits |= someOtherBound.tagBits & TagBits.ContainsNestedTypeReferences;
+				this.tagBits |= someOtherBound.tagBits & (TagBits.ContainsNestedTypeReferences | TagBits.HasNullTypeAnnotation | TagBits.HasCapturedWildcard);
 			}
 		}
 	}
@@ -482,11 +539,81 @@ public class WildcardBinding extends ReferenceBinding {
     	return this.otherBounds != null;
     }
 
+    @Override
+    public ReferenceBinding[] getIntersectingTypes() {
+    	if (isIntersectionType()) {
+    		ReferenceBinding[] allBounds = new ReferenceBinding[this.otherBounds.length+1];
+    		try {
+    			allBounds[0] = (ReferenceBinding) this.bound;
+    			System.arraycopy(this.otherBounds, 0, allBounds, 1, this.otherBounds.length);
+    		} catch (ClassCastException cce) {
+    			return null;
+    		} catch (ArrayStoreException ase) {
+    			return null;
+    		}
+    		return allBounds;
+    	}
+    	return null;
+    }
+
 	public boolean isHierarchyConnected() {
 		return this.superclass != null && this.superInterfaces != null;
 	}
 
-    /**
+	// to prevent infinite recursion when inspecting recursive generics:
+	boolean inRecursiveFunction = false;
+
+	public boolean isProperType(boolean admitCapture18) {
+		if (this.inRecursiveFunction)
+			return true;
+		this.inRecursiveFunction = true;
+		try {
+			if (this.bound != null && !this.bound.isProperType(admitCapture18))
+				return false;
+			if (this.superclass != null && !this.superclass.isProperType(admitCapture18))
+				return false;
+			if (this.superInterfaces != null)
+				for (int i = 0, l = this.superInterfaces.length; i < l; i++)
+					if (!this.superInterfaces[i].isProperType(admitCapture18))
+						return false;
+			return true;
+		} finally {
+			this.inRecursiveFunction = false;
+		}
+	}
+
+	TypeBinding substituteInferenceVariable(InferenceVariable var, TypeBinding substituteType) {
+		boolean haveSubstitution = false;
+		TypeBinding currentBound = this.bound;
+		if (currentBound != null) {
+			currentBound = currentBound.substituteInferenceVariable(var, substituteType);
+			haveSubstitution |= TypeBinding.notEquals(currentBound, this.bound);
+		}
+		TypeBinding[] currentOtherBounds = null;
+		if (this.otherBounds != null) {
+			int length = this.otherBounds.length;
+			if (haveSubstitution)
+				System.arraycopy(this.otherBounds, 0, currentOtherBounds=new ReferenceBinding[length], 0, length);
+			for (int i = 0; i < length; i++) {
+				TypeBinding currentOtherBound = this.otherBounds[i];
+				if (currentOtherBound != null) {
+					currentOtherBound = currentOtherBound.substituteInferenceVariable(var, substituteType);
+					if (TypeBinding.notEquals(currentOtherBound, this.otherBounds[i])) {
+						if (currentOtherBounds == null)
+							System.arraycopy(this.otherBounds, 0, currentOtherBounds=new ReferenceBinding[length], 0, length);
+						currentOtherBounds[i] = currentOtherBound;
+					}
+				}
+			}
+		}
+		haveSubstitution |= currentOtherBounds != null;
+		if (haveSubstitution) {
+			return this.environment.createWildcard(this.genericType, this.rank, currentBound, currentOtherBounds, this.boundKind);
+		}
+		return this;
+	}
+
+	/**
 	 * Returns true if the type is a wildcard
 	 */
 	public boolean isUnboundWildcard() {
@@ -500,6 +627,10 @@ public class WildcardBinding extends ReferenceBinding {
 	    return true;
 	}
 
+	int rank() {
+		return this.rank;
+	}
+	
     /* (non-Javadoc)
      * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#readableName()
      */
@@ -524,6 +655,33 @@ public class WildcardBinding extends ReferenceBinding {
         }
     }
 
+    public char[] nullAnnotatedReadableName(CompilerOptions options, boolean shortNames) {
+    	StringBuffer buffer = new StringBuffer(10);
+    	appendNullAnnotation(buffer, options);
+        switch (this.boundKind) {
+            case Wildcard.UNBOUND :
+                buffer.append(TypeConstants.WILDCARD_NAME);
+                break;
+            case Wildcard.EXTENDS :
+            	if (this.otherBounds == null) {
+            		buffer.append(TypeConstants.WILDCARD_NAME).append(TypeConstants.WILDCARD_EXTENDS);
+            		buffer.append(this.bound.nullAnnotatedReadableName(options, shortNames));
+            	} else {
+	            	buffer.append(this.bound.nullAnnotatedReadableName(options, shortNames));
+	            	for (int i = 0, length = this.otherBounds.length; i < length; i++) {
+	            		buffer.append('&').append(this.otherBounds[i].nullAnnotatedReadableName(options, shortNames));
+	            	}
+            	}
+            	break;
+			default: // SUPER
+			    buffer.append(TypeConstants.WILDCARD_NAME).append(TypeConstants.WILDCARD_SUPER).append(this.bound.nullAnnotatedReadableName(options, shortNames));
+        }
+        int length;
+        char[] result = new char[length = buffer.length()];
+        buffer.getChars(0, length, result, 0);
+        return result;
+    }
+
 	ReferenceBinding resolve() {
 		if ((this.tagBits & TagBits.HasUnresolvedTypeVariables) == 0)
 			return this;
@@ -534,17 +692,17 @@ public class WildcardBinding extends ReferenceBinding {
 			case Wildcard.EXTENDS :
 				TypeBinding resolveType = BinaryTypeBinding.resolveType(this.bound, this.environment, true /* raw conversion */);
 				this.bound = resolveType;
-				this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences;
+				this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences | TagBits.HasCapturedWildcard;
 				for (int i = 0, length = this.otherBounds == null ? 0 : this.otherBounds.length; i < length; i++) {
 					resolveType = BinaryTypeBinding.resolveType(this.otherBounds[i], this.environment, true /* raw conversion */);
 					this.otherBounds[i]= resolveType;
-					this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences;
+					this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences | TagBits.HasCapturedWildcard;
 				}
 				break;
 			case Wildcard.SUPER :
 				resolveType = BinaryTypeBinding.resolveType(this.bound, this.environment, true /* raw conversion */);
 				this.bound = resolveType;
-				this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences;
+				this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences | TagBits.HasCapturedWildcard;
 				break;
 			case Wildcard.UNBOUND :
 		}
@@ -659,17 +817,17 @@ public class WildcardBinding extends ReferenceBinding {
 
 	public void swapUnresolved(UnresolvedReferenceBinding unresolvedType, ReferenceBinding resolvedType, LookupEnvironment env) {
 		boolean affected = false;
-		if (this.genericType == unresolvedType) {
+		if (this.genericType == unresolvedType) { //$IDENTITY-COMPARISON$
 			this.genericType = resolvedType; // no raw conversion
 			affected = true;
 		}
-		if (this.bound == unresolvedType) {
+		if (this.bound == unresolvedType) { //$IDENTITY-COMPARISON$
 			this.bound = env.convertUnresolvedBinaryToRawType(resolvedType);
 			affected = true;
 		}
 		if (this.otherBounds != null) {
 			for (int i = 0, length = this.otherBounds.length; i < length; i++) {
-				if (this.otherBounds[i] == unresolvedType) {
+				if (this.otherBounds[i] == unresolvedType) { //$IDENTITY-COMPARISON$
 					this.otherBounds[i] = env.convertUnresolvedBinaryToRawType(resolvedType);
 					affected = true;
 				}
@@ -683,6 +841,8 @@ public class WildcardBinding extends ReferenceBinding {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
+		if (this.hasTypeAnnotations())
+			return annotatedDebugName();
         switch (this.boundKind) {
             case Wildcard.UNBOUND :
                 return new String(TypeConstants.WILDCARD_NAME);
@@ -708,5 +868,42 @@ public class WildcardBinding extends ReferenceBinding {
 				this.typeVariable = typeVariables[this.rank];
 		}
 		return this.typeVariable;
+	}
+
+	public TypeBinding unannotated() {
+		return this.hasTypeAnnotations() ? this.environment.getUnannotatedType(this) : this;
+	}
+	@Override
+	public TypeBinding uncapture(Scope scope) {
+		if ((this.tagBits & TagBits.HasCapturedWildcard) == 0)
+			return this;
+		TypeBinding freeBound = this.bound != null ? this.bound.uncapture(scope) : null;
+		int length = 0;
+		TypeBinding [] freeOtherBounds = this.otherBounds == null ? null : new TypeBinding[length = this.otherBounds.length];
+		for (int i = 0; i < length; i++) {
+			freeOtherBounds[i] = this.otherBounds[i] == null ? null : this.otherBounds[i].uncapture(scope);
+		}
+		return scope.environment().createWildcard(this.genericType, this.rank, freeBound, freeOtherBounds, this.boundKind, getTypeAnnotations());
+	}
+	@Override
+	void collectInferenceVariables(Set<InferenceVariable> variables) {
+		if (this.bound != null)
+			this.bound.collectInferenceVariables(variables);
+		if (this.otherBounds != null)
+			for (int i = 0, length = this.otherBounds.length; i < length; i++)
+				this.otherBounds[i].collectInferenceVariables(variables);
+	}
+	@Override
+	public boolean mentionsAny(TypeBinding[] parameters, int idx) {
+		if (super.mentionsAny(parameters, idx))
+			return true;
+		if (this.bound != null && 	this.bound.mentionsAny(parameters, -1))
+			return true;
+		if (this.otherBounds != null) {
+			for (int i = 0, length = this.otherBounds.length; i < length; i++)
+				if (this.otherBounds[i].mentionsAny(parameters, -1))
+					return true;
+		}
+		return false;
 	}
 }

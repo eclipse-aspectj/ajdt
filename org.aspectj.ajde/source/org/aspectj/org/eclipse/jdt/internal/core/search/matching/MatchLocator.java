@@ -1,16 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 377883 - NPE on open Call Hierarchy
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 
@@ -83,6 +81,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.ASTNodeFinder;
 import org.aspectj.org.eclipse.jdt.internal.core.util.HandleFactory;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MatchLocator implements ITypeRequestor {
 
 public static final int MAX_AT_ONCE;
@@ -222,7 +221,7 @@ private static HashMap workingCopiesThatCanSeeFocus(org.aspectj.org.eclipse.jdt.
 	for (int i=0, length = copies.length; i<length; i++) {
 		org.aspectj.org.eclipse.jdt.core.ICompilationUnit workingCopy = copies[i];
 		IPath projectOrJar = MatchLocator.getProjectOrJar(workingCopy).getPath();
-		if (pattern.focus == null || IndexSelector.canSeeFocus(pattern, projectOrJar)) {
+		if (pattern.focus == null || IndexSelector.canSeeFocus(pattern, projectOrJar) != IndexSelector.PROJECT_CAN_NOT_SEE_FOCUS) {
 			result.put(
 				workingCopy.getPath().toString(),
 				new WorkingCopyDocument(workingCopy, participant)
@@ -448,6 +447,15 @@ protected char[][][] computeSuperTypeNames(IType focusType) {
 	return this.allSuperTypeNames;
 }
 /**
+ * Creates an IMethod from the given lambda declaration and type.
+ */
+protected IJavaElement createHandle(LambdaExpression lambdaExpression, IJavaElement parent) {
+	org.aspectj.org.eclipse.jdt.internal.core.LambdaExpression lambdaElement = new org.aspectj.org.eclipse.jdt.internal.core.LambdaExpression((JavaElement) parent, lambdaExpression);
+	IMethod lambdaMethodElement = lambdaElement.getMethod();
+	this.methodHandles.add(lambdaMethodElement);
+	return lambdaMethodElement;
+}
+/**
  * Creates an IMethod from the given method declaration and type.
  */
 protected IJavaElement createHandle(AbstractMethodDeclaration method, IJavaElement parent) {
@@ -597,22 +605,11 @@ protected IJavaElement createHandle(FieldDeclaration fieldDeclaration, TypeDecla
  * Create an handle for a local variable declaration (may be a local variable or type parameter).
  */
 protected IJavaElement createHandle(AbstractVariableDeclaration variableDeclaration, IJavaElement parent) {
+	boolean isParameter = true;
 	switch (variableDeclaration.getKind()) {
 		case AbstractVariableDeclaration.LOCAL_VARIABLE:
-			if (variableDeclaration.type.resolvedType != null) {
-				return new LocalVariable((JavaElement)parent,
-					new String(variableDeclaration.name),
-					variableDeclaration.declarationSourceStart,
-					variableDeclaration.declarationSourceEnd,
-					variableDeclaration.sourceStart,
-					variableDeclaration.sourceEnd,
-					new String(variableDeclaration.type.resolvedType.signature()),
-					variableDeclaration.annotations,
-					variableDeclaration.modifiers,
-					false
-				);
-			}
-			break;
+			isParameter = false;
+			//$FALL-THROUGH$
 		case AbstractVariableDeclaration.PARAMETER:
 			if (variableDeclaration.type.resolvedType != null) {
 				return new LocalVariable((JavaElement)parent,
@@ -624,7 +621,8 @@ protected IJavaElement createHandle(AbstractVariableDeclaration variableDeclarat
 					new String(variableDeclaration.type.resolvedType.signature()),
 					variableDeclaration.annotations,
 					variableDeclaration.modifiers,
-					true
+					isParameter,
+					variableDeclaration.type.getAnnotationsOnDimensions()
 				);
 			}
 			break;
@@ -647,6 +645,19 @@ protected IJavaElement createHandle(Annotation annotation, IAnnotatable parent) 
 		for (int i=0; i<length; i++) {
 			if (annotations[i].getElementName().equals(name)) {
 				return annotations[i];
+			}
+		}
+		if (parent instanceof LocalVariable) {
+			LocalVariable localVariable = (LocalVariable) parent;
+			IAnnotation[][] annotationsOnDimensions = localVariable.annotationsOnDimensions;
+			int noOfDimensions = annotationsOnDimensions == null ? 0 : annotationsOnDimensions.length;
+			for (int i = 0; i < noOfDimensions; ++i) {
+				IAnnotation[] dimAnnotations = annotationsOnDimensions[i];
+				int noOfAnnotations = dimAnnotations.length;
+				for (int j = 0; j < noOfAnnotations; ++j) {
+					if (dimAnnotations[j].getElementName().equals(name))
+						return dimAnnotations[j];
+				}
 			}
 		}
 	}
@@ -914,7 +925,7 @@ public MethodBinding getMethodBinding(MethodPattern methodPattern) {
     // special handling for methods of anonymous/local types. Since these cannot be looked up in the environment the usual way ...
     if (methodPattern.focus instanceof SourceMethod) {
     	char[] typeName = PatternLocator.qualifiedPattern(methodPattern.declaringSimpleName, methodPattern.declaringQualification);
-    	if (CharOperation.indexOf(IIndexConstants.ONE_STAR, typeName, true) >= 0) { // See org.aspectj.org.eclipse.jdt.core.search.SearchPattern.enclosingTypeNames(IType)
+    	if (typeName != null && CharOperation.indexOf(IIndexConstants.ONE_STAR, typeName, true) >= 0) { // See org.aspectj.org.eclipse.jdt.core.search.SearchPattern.enclosingTypeNames(IType)
     		IType type = methodPattern.declaringType;
     		IType enclosingType = type.getDeclaringType();
     		while (enclosingType != null) {
@@ -1030,8 +1041,10 @@ protected boolean hasAlreadyDefinedType(CompilationUnitDeclaration parsedUnit) {
 public void initialize(JavaProject project, int possibleMatchSize) throws JavaModelException {
 	// clean up name environment only if there are several possible match as it is reused
 	// when only one possible match (bug 58581)
-	if (this.nameEnvironment != null && possibleMatchSize != 1)
+	if (this.nameEnvironment != null && possibleMatchSize != 1) {
 		this.nameEnvironment.cleanup();
+		this.unitScope = null; // don't leak a reference to the cleaned-up name environment
+	}
 
 	SearchableEnvironment searchableEnvironment = project.newSearchableNameEnvironment(this.workingCopies);
 
@@ -1332,6 +1345,7 @@ public void locateMatches(SearchDocument[] searchDocuments) throws CoreException
 			this.progressMonitor.done();
 		if (this.nameEnvironment != null)
 			this.nameEnvironment.cleanup();
+		this.unitScope = null;
 		manager.flushZipFiles(this);
 		this.bindings = null;
 	}
@@ -2185,6 +2199,54 @@ protected void reportBinaryMemberDeclaration(IResource resource, IMember binaryM
 	SearchMatch match = newDeclarationMatch(binaryMember, binaryMemberBinding, accuracy, range.getOffset(), range.getLength(), getParticipant(), resource);
 	report(match);
 }
+
+protected void reportMatching(LambdaExpression lambdaExpression,  IJavaElement parent, int accuracy, MatchingNodeSet nodeSet, boolean typeInHierarchy) throws CoreException {
+	IJavaElement enclosingElement = null;
+	// Report the lambda declaration itself.
+	if (accuracy > -1) {
+		enclosingElement = createHandle(lambdaExpression, parent);
+		if (enclosingElement != null) { // skip if unable to find method
+			// compute source positions of the selector
+			int nameSourceStart = lambdaExpression.sourceStart;
+			if (encloses(enclosingElement)) {
+				SearchMatch match = null;
+				int length = lambdaExpression.arrowPosition() + 1 - nameSourceStart;
+				match = this.patternLocator.newDeclarationMatch(lambdaExpression, enclosingElement, null, accuracy, length, this);
+				if (match != null) {
+					report(match);
+				}
+			}
+		}
+	}
+	if (enclosingElement == null) {
+		enclosingElement = createHandle(lambdaExpression, parent);
+	}
+	// Traverse the lambda declaration to report matches inside, these matches if any should see the present lambda as the parent model element.
+	ASTNode[] nodes = typeInHierarchy ? nodeSet.matchingNodes(lambdaExpression.sourceStart, lambdaExpression.sourceEnd) : null;
+	boolean report = (this.matchContainer & PatternLocator.METHOD_CONTAINER) != 0 && encloses(enclosingElement);
+	MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this, typeInHierarchy);
+	
+	if (lambdaExpression.arguments != null) {
+		int argumentsLength = lambdaExpression.arguments.length;
+		for (int i = 0; i < argumentsLength; i++)
+			lambdaExpression.arguments[i].traverse(declarationVisitor, (BlockScope) null);
+	}
+
+	if (lambdaExpression.body != null) {
+		lambdaExpression.body.traverse(declarationVisitor, (BlockScope) null);
+	}
+	
+	// Report all nodes and remove them
+	if (nodes != null) {
+		int length = nodes.length;
+		for (int i = 0; i < length; i++) {
+			Integer level = (Integer) nodeSet.matchingNodes.removeKey(nodes[i]);
+			if (report && level != null) {
+				this.patternLocator.matchReportReference(nodes[i], enclosingElement, declarationVisitor.getLocalElement(i), declarationVisitor.getOtherElements(i), lambdaExpression.binding, level.intValue(), this);
+			}
+		}
+	}
+}
 /**
  * Visit the given method declaration and report the nodes that match exactly the
  * search pattern (i.e. the ones in the matching nodes set)
@@ -2233,7 +2295,7 @@ protected void reportMatching(AbstractMethodDeclaration method, TypeDeclaration 
 		// and in local variables declaration
 		ASTNode[] nodes = typeInHierarchy ? nodeSet.matchingNodes(method.declarationSourceStart, method.declarationSourceEnd) : null;
 		boolean report = (this.matchContainer & PatternLocator.METHOD_CONTAINER) != 0 && encloses(enclosingElement);
-		MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this);
+		MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this, typeInHierarchy);
 		try {
 			method.traverse(declarationVisitor, (ClassScope) null);
 		} catch (WrappedCoreException e) {
@@ -2283,7 +2345,7 @@ protected void reportMatching(AbstractMethodDeclaration method, TypeDeclaration 
 				if (encloses(enclosingElement)) {
 					if (this.pattern.mustResolve) {
 						// Visit only if the pattern must resolve
-						MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, nodes, nodeSet, this);
+						MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, nodes, nodeSet, this, typeInHierarchy);
 						method.traverse(declarationVisitor, (ClassScope) null);
 						int length = nodes.length;
 						for (int i = 0; i < length; i++) {
@@ -2316,6 +2378,8 @@ protected void reportMatching(AbstractMethodDeclaration method, TypeDeclaration 
  * @param otherElements TODO
  */
 protected void reportMatching(Annotation[] annotations, IJavaElement enclosingElement, IJavaElement[] otherElements, Binding elementBinding, MatchingNodeSet nodeSet, boolean matchedContainer, boolean enclosesElement) throws CoreException {
+	if (annotations == null)
+		return;
 	for (int i=0, al=annotations.length; i<al; i++) {
 		Annotation annotationType = annotations[i];
 		IJavaElement localAnnotation = null;
@@ -2539,7 +2603,7 @@ protected void reportMatching(FieldDeclaration field, FieldDeclaration[] otherFi
 		int fieldEnd = field.endPart2Position == 0 ? field.declarationSourceEnd : field.endPart2Position;
 		ASTNode[] nodes = typeInHierarchy ? nodeSet.matchingNodes(field.sourceStart, fieldEnd) : null;
 		boolean report = (this.matchContainer & PatternLocator.FIELD_CONTAINER) != 0 && encloses(enclosingElement);
-		MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this);
+		MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this, typeInHierarchy);
 		try {
 			field.traverse(declarationVisitor, (MethodScope) null);
 		} catch (WrappedCoreException e) {
@@ -2615,7 +2679,7 @@ protected void reportMatching(FieldDeclaration field, FieldDeclaration[] otherFi
 					enclosingElement = createHandle(field, type, parent);
 				}
 				if (encloses(enclosingElement)) {
-					MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, nodes, nodeSet, this);
+					MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, nodes, nodeSet, this, typeInHierarchy);
 					field.traverse(declarationVisitor, (MethodScope) null);
 					int length = nodes.length;
 					for (int i = 0; i < length; i++) {
@@ -2711,7 +2775,9 @@ protected void reportMatching(TypeDeclaration type, IJavaElement parent, int acc
 		if (superClass != null) {
 			reportMatchingSuper(superClass, enclosingElement, type.binding, nodeSet, matchedClassContainer);
 			for (int i = 0, length = superClass.annotations == null ? 0 : superClass.annotations.length; i < length; i++) {
-				reportMatching(superClass.annotations[i], enclosingElement, null, type.binding, nodeSet, matchedClassContainer, enclosesElement);	
+				Annotation[] annotations = superClass.annotations[i];
+				if (annotations == null) continue;
+				reportMatching(annotations, enclosingElement, null, type.binding, nodeSet, matchedClassContainer, enclosesElement);	
 			}
 		}
 		TypeReference[] superInterfaces = type.superInterfaces;
@@ -2719,9 +2785,11 @@ protected void reportMatching(TypeDeclaration type, IJavaElement parent, int acc
 			for (int i = 0, l = superInterfaces.length; i < l; i++) {
 				reportMatchingSuper(superInterfaces[i], enclosingElement, type.binding, nodeSet, matchedClassContainer);
 				TypeReference typeReference  = type.superInterfaces[i];
-				if (typeReference != null &&  typeReference.annotations != null) {
-					for (int j = 0, length = typeReference.annotations.length; j < length; j++) {
-						reportMatching(typeReference.annotations[j], enclosingElement, null, type.binding, nodeSet, matchedClassContainer, enclosesElement);	
+				Annotation[][] annotations = typeReference != null ? typeReference.annotations : null;
+				if (annotations != null) {
+					for (int j = 0, length = annotations.length; j < length; j++) {
+						if (annotations[j] == null) continue;
+						reportMatching(annotations[j], enclosingElement, null, type.binding, nodeSet, matchedClassContainer, enclosesElement);	
 					}
 				}			
 			}
@@ -2856,6 +2924,9 @@ protected void reportMatching(TypeParameter[] typeParameters, IJavaElement enclo
 			if (typeParameter.bounds != null) {
 				for (int j=0, b=typeParameter.bounds.length; j<b; j++) {
 					TypeReference typeParameterBound = typeParameter.bounds[j];
+					if (typeParameterBound.annotations != null) {
+						reportMatching(typeParameterBound.annotations, enclosingElement, binding,nodeSet, matchedClassContainer);
+					}
 					level = (Integer) nodeSet.matchingNodes.removeKey(typeParameterBound);
 					if (level != null) {
 						IJavaElement localElement = createHandle(typeParameter, enclosingElement);
@@ -2867,6 +2938,9 @@ protected void reportMatching(TypeParameter[] typeParameters, IJavaElement enclo
 	                    	int length = paramSTR.typeArguments.length;
 	                    	for (int k=0; k<length; k++) {
 								TypeReference typeArgument = paramSTR.typeArguments[k];
+								if (typeArgument.annotations != null) {
+									reportMatching(typeArgument.annotations, enclosingElement, binding,nodeSet, matchedClassContainer);
+								}
 								level = (Integer) nodeSet.matchingNodes.removeKey(typeArgument);
 								if (level != null) {
 									IJavaElement localElement = createHandle(typeParameter, enclosingElement);
@@ -2875,6 +2949,9 @@ protected void reportMatching(TypeParameter[] typeParameters, IJavaElement enclo
 								if (typeArgument instanceof Wildcard) {
 		                            TypeReference wildcardBound = ((Wildcard) typeArgument).bound;
 		                            if (wildcardBound != null) {
+		            					if (wildcardBound.annotations != null) {
+		            						reportMatching(wildcardBound.annotations, enclosingElement, binding,nodeSet, matchedClassContainer);
+		            					}
 										level = (Integer) nodeSet.matchingNodes.removeKey(wildcardBound);
 										if (level != null) {
 											IJavaElement localElement = createHandle(typeParameter, enclosingElement);

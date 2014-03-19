@@ -11,6 +11,7 @@
  *			     				bug 292478 - Report potentially null across variable assignment
  *     							bug 332637 - Dead Code detection removing code that isn't dead
  *								bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
+ *								Bug 411964 - [1.8][null] leverage null type annotation in foreach statement
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
@@ -18,6 +19,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IfStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 
 public abstract class FlowInfo {
 
@@ -532,7 +534,11 @@ public static UnconditionalFlowInfo mergedOptimizedBranchesIfElse(
 		// if a variable is only initialized in one branch and not initialized in the other,
 		// then we need to cast a doubt on its initialization in the merged info
 		mergedInfo.definiteInits &= initsWhenFalse.unconditionalCopy().definiteInits;
-		
+		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=415997, classify unreachability precisely, IsElseStatementUnreachable could be due to null analysis
+		if ((mergedInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) != 0 && (initsWhenFalse.tagBits & FlowInfo.UNREACHABLE) == FlowInfo.UNREACHABLE_BY_NULLANALYSIS) {
+			mergedInfo.tagBits &= ~UNREACHABLE_OR_DEAD;
+			mergedInfo.tagBits |= UNREACHABLE_BY_NULLANALYSIS;
+		}
 	}
 	else if ((flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0 &&
 			(ifStatement.bits & ASTNode.IsThenStatementUnreachable) != 0 && initsWhenTrue != FlowInfo.DEAD_END
@@ -548,6 +554,11 @@ public static UnconditionalFlowInfo mergedOptimizedBranchesIfElse(
 		// if a variable is only initialized in one branch and not initialized in the other,
 		// then we need to cast a doubt on its initialization in the merged info
 		mergedInfo.definiteInits &= initsWhenTrue.unconditionalCopy().definiteInits;
+		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=415997, classify unreachability precisely, IsThenStatementUnreachable could be due to null analysis
+		if ((mergedInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) != 0 && (initsWhenTrue.tagBits & FlowInfo.UNREACHABLE) == FlowInfo.UNREACHABLE_BY_NULLANALYSIS) {
+			mergedInfo.tagBits &= ~UNREACHABLE_OR_DEAD;
+			mergedInfo.tagBits |= UNREACHABLE_BY_NULLANALYSIS;
+		}
 	}
 	else {
 		mergedInfo = initsWhenTrue.
@@ -654,4 +665,16 @@ abstract public UnconditionalFlowInfo unconditionalInitsWithoutSideEffect();
  * @param local
  */
 abstract public void resetAssignmentInfo(LocalVariableBinding local);
+
+/**
+ * Check whether 'tagBits' contains either {@link TagBits#AnnotationNonNull} or {@link TagBits#AnnotationNullable},
+ * and answer the corresponding null status ({@link #NON_NULL} etc.).
+ */
+public static int tagBitsToNullStatus(long tagBits) {
+	if ((tagBits & TagBits.AnnotationNonNull) != 0)
+		return NON_NULL;
+	if ((tagBits & TagBits.AnnotationNullable) != 0)
+		return POTENTIALLY_NULL | POTENTIALLY_NON_NULL;
+	return UNKNOWN;
+}
 }

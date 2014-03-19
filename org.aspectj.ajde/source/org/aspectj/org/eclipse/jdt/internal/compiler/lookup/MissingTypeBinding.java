@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.List;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
+@SuppressWarnings({"rawtypes"})
 public class MissingTypeBinding extends BinaryTypeBinding {
 
 /**
@@ -39,6 +40,10 @@ public MissingTypeBinding(PackageBinding packageBinding, char[][] compoundName, 
 	this.memberTypes = Binding.NO_MEMBER_TYPES;
 	this.fields = Binding.NO_FIELDS;
 	this.methods = Binding.NO_METHODS;
+}
+
+public TypeBinding clone(TypeBinding outerType) {
+	return this; // shouldn't get here.
 }
 
 /**
@@ -69,6 +74,10 @@ public int problemId() {
  */
 void setMissingSuperclass(ReferenceBinding missingSuperclass) {
 	this.superclass = missingSuperclass;
+}
+
+public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
+	return; // reject misguided attempts.
 }
 
 public String toString() {

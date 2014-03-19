@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,7 +15,11 @@ import java.util.List;
 import org.aspectj.org.eclipse.jdt.core.dom.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
+@SuppressWarnings("rawtypes")
 public class ASTRewriteFlattener extends ASTVisitor {
+
+	/** @deprecated using deprecated code */
+	private static final ChildPropertyDescriptor INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY = ArrayType.COMPONENT_TYPE_PROPERTY;
 
 	/** @deprecated using deprecated code */
 	private static final SimplePropertyDescriptor INTERNAL_FIELD_MODIFIERS_PROPERTY = FieldDeclaration.MODIFIERS_PROPERTY;
@@ -236,35 +236,36 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		ArrayType arrayType= (ArrayType) getChildNode(node, ArrayCreation.TYPE_PROPERTY);
 
 		// get the element type and count dimensions
-		Type elementType= (Type) getChildNode(arrayType, ArrayType.COMPONENT_TYPE_PROPERTY);
-		int dimensions= 1; // always include this array type
-		while (elementType.isArrayType()) {
-			dimensions++;
-			elementType = (Type) getChildNode(elementType, ArrayType.COMPONENT_TYPE_PROPERTY);
+		Type elementType;
+		int dimensions;
+		boolean astLevelGTE8 = node.getAST().apiLevel() >= AST.JLS8;
+		if (astLevelGTE8) {
+			elementType = (Type) getChildNode(arrayType, ArrayType.ELEMENT_TYPE_PROPERTY);
+			dimensions = getChildList(arrayType, ArrayType.DIMENSIONS_PROPERTY).size();
+		} else {
+			elementType = (Type) getChildNode(arrayType, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY);
+			dimensions = 1; // always include this array type
+			while (elementType.isArrayType()) {
+				dimensions++;
+				elementType = (Type) getChildNode(elementType, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY);
+			}
 		}
 
 		elementType.accept(this);
 
 		// add "<annotations> [ <dimension> ]" for each dimension expression
-		Type type= arrayType;
 		List list= getChildList(node, ArrayCreation.DIMENSIONS_PROPERTY);
-		for (int i= 0; i < list.size(); i++) {
-			if (node.getAST().apiLevel() >= AST.JLS8 && type instanceof ArrayType) {
-				visitList(type, ArrayType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
-				type = (Type) getChildNode(type, ArrayType.COMPONENT_TYPE_PROPERTY);
-			}
+		int size = list.size();
+		for (int i= 0; i < size; i++) {
+			internalVisitDimensionAnnotations(arrayType, i, astLevelGTE8);
 			this.result.append('[');
 			((ASTNode) list.get(i)).accept(this);
 			this.result.append(']');
-			dimensions--;
 		}
 
 		// add "<annotations> []" for each extra array dimension
-		for (int i= 0; i < dimensions; i++) {
-			if (node.getAST().apiLevel() >= AST.JLS8 && type instanceof ArrayType) {
-				visitList(type, ArrayType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
-				type = (Type) getChildNode(type, ArrayType.COMPONENT_TYPE_PROPERTY);
-			}
+		for (int i= list.size(); i < dimensions; i++) {
+			internalVisitDimensionAnnotations(arrayType, i, astLevelGTE8);
 			this.result.append("[]"); //$NON-NLS-1$
 		}
 
@@ -273,6 +274,13 @@ public class ASTRewriteFlattener extends ASTVisitor {
 			getChildNode(node, ArrayCreation.INITIALIZER_PROPERTY).accept(this);
 		}
 		return false;
+	}
+
+	private void internalVisitDimensionAnnotations(ArrayType arrayType, int index, boolean astLevelGTE8) {
+		if (astLevelGTE8) {
+			Dimension dimension = (Dimension) arrayType.dimensions().get(index);
+			visitList(dimension, Dimension.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
+		}
 	}
 
 	/*
@@ -289,11 +297,13 @@ public class ASTRewriteFlattener extends ASTVisitor {
 	 * @see ASTVisitor#visit(ArrayType)
 	 */
 	public boolean visit(ArrayType node) {
-		getChildNode(node, ArrayType.COMPONENT_TYPE_PROPERTY).accept(this);
-		if (node.getAST().apiLevel() >= AST.JLS8) {
-			visitList(node, ArrayType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
+		if (node.getAST().apiLevel() < AST.JLS8) {
+			getChildNode(node, INTERNAL_ARRAY_COMPONENT_TYPE_PROPERTY).accept(this);
+			this.result.append("[]"); //$NON-NLS-1$
+		} else {
+			getChildNode(node, ArrayType.ELEMENT_TYPE_PROPERTY).accept(this);
+			visitList(node, ArrayType.DIMENSIONS_PROPERTY, Util.EMPTY_STRING, Util.EMPTY_STRING, Util.EMPTY_STRING);
 		}
-		this.result.append("[]"); //$NON-NLS-1$
 		return false;
 	}
 
@@ -481,6 +491,12 @@ public class ASTRewriteFlattener extends ASTVisitor {
 		return false;
 	}
 
+	public boolean visit(Dimension node) {
+		visitList(node, Dimension.ANNOTATIONS_PROPERTY, String.valueOf(' '), String.valueOf(' '), String.valueOf(' '));
+		this.result.append("[]"); //$NON-NLS-1$
+		return false;
+	}
+
 	/*
 	 * @see ASTVisitor#visit(DoStatement)
 	 */
@@ -507,12 +523,6 @@ public class ASTRewriteFlattener extends ASTVisitor {
 	public boolean visit(ExpressionStatement node) {
 		getChildNode(node, ExpressionStatement.EXPRESSION_PROPERTY).accept(this);
 		this.result.append(';');
-		return false;
-	}
-
-	public boolean visit(ExtraDimension node) {
-		visitList(node, ExtraDimension.ANNOTATIONS_PROPERTY, String.valueOf(' '), String.valueOf(' '), String.valueOf(' '));
-		this.result.append("[]"); //$NON-NLS-1$
 		return false;
 	}
 
@@ -1430,16 +1440,16 @@ public class ASTRewriteFlattener extends ASTVisitor {
 	}
 
 	/*
-	 * @see ASTVisitor#visit(PackageQualifiedType)
-	 * @since 3.9 BETA_JAVA8
+	 * @see ASTVisitor#visit(NameQualifiedType)
+	 * @since 3.10
 	 */
-	public boolean visit(PackageQualifiedType node) {
-		getChildNode(node, PackageQualifiedType.QUALIFIER_PROPERTY).accept(this);
+	public boolean visit(NameQualifiedType node) {
+		getChildNode(node, NameQualifiedType.QUALIFIER_PROPERTY).accept(this);
 		this.result.append('.');
 		if (node.getAST().apiLevel() >= AST.JLS8) {
-			visitList(node, PackageQualifiedType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
+			visitList(node, NameQualifiedType.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
-		getChildNode(node, PackageQualifiedType.NAME_PROPERTY).accept(this);
+		getChildNode(node, NameQualifiedType.NAME_PROPERTY).accept(this);
 		return false;
 	}
 
@@ -1512,7 +1522,7 @@ public class ASTRewriteFlattener extends ASTVisitor {
 	 */
 	public boolean visit(TypeParameter node) {
 		if (node.getAST().apiLevel() >= AST.JLS8) {
-			visitList(node, TypeParameter.ANNOTATIONS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
+			visitList(node, TypeParameter.MODIFIERS_PROPERTY, String.valueOf(' '), Util.EMPTY_STRING, String.valueOf(' '));
 		}
 		getChildNode(node, TypeParameter.NAME_PROPERTY).accept(this);
 		visitList(node, TypeParameter.TYPE_BOUNDS_PROPERTY, " & ", " extends ", Util.EMPTY_STRING); //$NON-NLS-1$ //$NON-NLS-2$

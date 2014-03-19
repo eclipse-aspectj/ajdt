@@ -1,23 +1,29 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
+ *                          Bug 409245 - [1.8][compiler] Type annotations dropped when call is routed through a synthetic bridge method
+ *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
+ *        Stephan Herrmann - Contribution for
+ *							Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *							Bug 424415 - [1.8][compiler] Eventual resolution of ReferenceExpression is not seen to be happening.
+ *							Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.eval;
+
+import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.INVOCATION_CONTEXT;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InnerInferenceHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -82,14 +88,14 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		// actual message invocation
 		TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(currentScope, codegenBinding, this.actualReceiverType, this.receiver.isImplicitThis());
 		if (isStatic) {
-			codeStream.invoke(Opcodes.OPC_invokestatic, codegenBinding, constantPoolDeclaringClass);
+			codeStream.invoke(Opcodes.OPC_invokestatic, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 		} else if( (this.receiver.isSuper()) || codegenBinding.isPrivate()){
-			codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, constantPoolDeclaringClass);
+			codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 		} else {
 			if (constantPoolDeclaringClass.isInterface()) { // interface or annotation type
-				codeStream.invoke(Opcodes.OPC_invokeinterface, codegenBinding, constantPoolDeclaringClass);
+				codeStream.invoke(Opcodes.OPC_invokeinterface, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 			} else {
-				codeStream.invoke(Opcodes.OPC_invokevirtual, codegenBinding, constantPoolDeclaringClass);
+				codeStream.invoke(Opcodes.OPC_invokevirtual, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 			}
 		}
 	} else {
@@ -115,7 +121,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		if (this.arguments != null) {
 			int argsLength = this.arguments.length;
 			codeStream.generateInlinedValue(argsLength);
-			codeStream.newArray(null, currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
+			codeStream.newArray(currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
 			codeStream.dup();
 			for (int i = 0; i < argsLength; i++) {
 				codeStream.generateInlinedValue(i);
@@ -131,7 +137,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 			}
 		} else {
 			codeStream.generateInlinedValue(0);
-			codeStream.newArray(null, currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
+			codeStream.newArray(currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
 		}
 		codeStream.invokeJavaLangReflectMethodInvoke();
 
@@ -179,7 +185,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 		    // extra cast needed if method return type was type variable
 		    if (codegenBinding.returnType.isTypeVariable()) {
 		        TypeVariableBinding variableReturnType = (TypeVariableBinding) codegenBinding.returnType;
-		        if (variableReturnType.firstBound != this.binding.returnType) { // no need for extra cast if same as first bound anyway
+		        if (TypeBinding.notEquals(variableReturnType.firstBound, this.binding.returnType)) { // no need for extra cast if same as first bound anyway
 				    this.valueCast = this.binding.returnType;
 		        }
 		    }
@@ -199,7 +205,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	this.actualReceiverType = this.receiver.resolveType(scope);
 	if (receiverCast && this.actualReceiverType != null) {
 		 // due to change of declaring class with receiver type, only identity cast should be notified
-		if (((CastExpression)this.receiver).expression.resolvedType == this.actualReceiverType) {
+		if (TypeBinding.equalsEquals(((CastExpression)this.receiver).expression.resolvedType, this.actualReceiverType)) {
 			scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
 		}
 	}
@@ -219,7 +225,6 @@ public TypeBinding resolveType(BlockScope scope) {
 	}
 	// will check for null after args are resolved
 	TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
-	boolean polyExpressionSeen = false;
 	if (this.arguments != null) {
 		boolean argHasError = false; // typeChecks all arguments
 		int length = this.arguments.length;
@@ -234,13 +239,15 @@ public TypeBinding resolveType(BlockScope scope) {
 			argument.setExpressionContext(INVOCATION_CONTEXT);
 			if ((argumentType = argumentTypes[i] = this.arguments[i].resolveType(scope)) == null)
 				argHasError = true;
-			if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE)
-				polyExpressionSeen = true;
+			if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE) {
+				if (this.innerInferenceHelper == null)
+					this.innerInferenceHelper = new InnerInferenceHelper();
+			}
 		}
 		if (argHasError) {
 			if(this.actualReceiverType instanceof ReferenceBinding) {
 				// record any selector match, for clients who may still need hint about possible method match
-				this.binding = scope.findMethod((ReferenceBinding)this.actualReceiverType, this.selector, new TypeBinding[]{}, this);
+				this.binding = scope.findMethod((ReferenceBinding)this.actualReceiverType, this.selector, new TypeBinding[]{}, this, false);
 			}
 			return null;
 		}
@@ -254,14 +261,8 @@ public TypeBinding resolveType(BlockScope scope) {
 		return null;
 	}
 
-	this.binding =
-		this.receiver.isImplicitThis()
-			? scope.getImplicitMethod(this.selector, argumentTypes, this)
-			: scope.getMethod(this.actualReceiverType, this.selector, argumentTypes, this);
-	
-	if (polyExpressionSeen && polyExpressionsHaveErrors(scope, this.binding, this.arguments, argumentTypes))
-		return null;
-	
+	findMethodBinding(scope, argumentTypes);
+		
 	if (!this.binding.isValidBinding()) {
 		if (this.binding instanceof ProblemMethodBinding
 			&& ((ProblemMethodBinding) this.binding).problemId() == ProblemReasons.NotVisible) {
@@ -320,7 +321,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			TypeBinding oldReceiverType = this.actualReceiverType;
 			this.actualReceiverType = this.actualReceiverType.getErasureCompatibleType(this.binding.declaringClass);
 			this.receiver.computeConversion(scope, this.actualReceiverType, this.actualReceiverType);
-			if (this.actualReceiverType != oldReceiverType && this.receiver.postConversionType(scope) != this.actualReceiverType) { // record need for explicit cast at codegen since receiver could not handle it
+			if (TypeBinding.notEquals(this.actualReceiverType, oldReceiverType) && TypeBinding.notEquals(this.receiver.postConversionType(scope), this.actualReceiverType)) { // record need for explicit cast at codegen since receiver could not handle it
 				this.bits |= NeedReceiverGenericCast;
 			}			
 		}

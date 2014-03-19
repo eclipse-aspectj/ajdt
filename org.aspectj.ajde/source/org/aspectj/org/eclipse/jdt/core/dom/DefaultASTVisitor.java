@@ -95,6 +95,10 @@ class DefaultASTVisitor extends ASTVisitor {
 	public void endVisit(CreationReference node) {
 		endVisitNode(node);
 	}
+	public void endVisit(Dimension node) {
+		endVisitNode(node);
+	}
+
 	public void endVisit(DoStatement node) {
 		endVisitNode(node);
 	}
@@ -114,9 +118,6 @@ class DefaultASTVisitor extends ASTVisitor {
 		endVisitNode(node);
 	}
 	public void endVisit(ExpressionStatement node) {
-		endVisitNode(node);
-	}
-	public void endVisit(ExtraDimension node) {
 		endVisitNode(node);
 	}
 	public void endVisit(FieldAccess node) {
@@ -182,6 +183,10 @@ class DefaultASTVisitor extends ASTVisitor {
 	public void endVisit(Modifier node) {
 		endVisitNode(node);
 	}
+	public void endVisit(NameQualifiedType node) {
+		endVisitNode(node);
+	}
+
 	public void endVisit(NormalAnnotation node) {
 		endVisitNode(node);
 	}
@@ -192,9 +197,6 @@ class DefaultASTVisitor extends ASTVisitor {
 		endVisitNode(node);
 	}
 	public void endVisit(PackageDeclaration node) {
-		endVisitNode(node);
-	}
-	public void endVisit(PackageQualifiedType node) {
 		endVisitNode(node);
 	}
 	public void endVisit(ParameterizedType node) {
@@ -377,6 +379,10 @@ class DefaultASTVisitor extends ASTVisitor {
 	public boolean visit(CreationReference node) {
 		return visitNode(node);
 	}
+	public boolean visit(Dimension node) {
+		return visitNode(node);
+	}
+
 	public boolean visit(DoStatement node) {
 		return visitNode(node);
 	}
@@ -396,9 +402,6 @@ class DefaultASTVisitor extends ASTVisitor {
 		return visitNode(node);
 	}
 	public boolean visit(ExpressionStatement node) {
-		return visitNode(node);
-	}
-	public boolean visit(ExtraDimension node) {
 		return visitNode(node);
 	}
 	public boolean visit(FieldAccess node) {
@@ -468,6 +471,10 @@ class DefaultASTVisitor extends ASTVisitor {
 	public boolean visit(MethodRefParameter node) {
 		return visitNode(node);
 	}
+	public boolean visit(NameQualifiedType node) {
+		return visitNode(node);
+	}
+
 	public boolean visit(NormalAnnotation node) {
 		return visitNode(node);
 	}
@@ -478,9 +485,6 @@ class DefaultASTVisitor extends ASTVisitor {
 		return visitNode(node);
 	}
 	public boolean visit(PackageDeclaration node) {
-		return visitNode(node);
-	}
-	public boolean visit(PackageQualifiedType node) {
 		return visitNode(node);
 	}
 	public boolean visit(ParameterizedType node) {

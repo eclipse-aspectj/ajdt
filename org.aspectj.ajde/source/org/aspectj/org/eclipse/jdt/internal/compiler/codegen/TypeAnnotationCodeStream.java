@@ -1,18 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 IBM Corporation and others.
+ * Copyright (c) 2012, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ *                          Bug 409247 - [1.8][compiler] Verify error with code allocating multidimensional array
+ *                          Bug 409517 - [1.8][compiler] Type annotation problems on more elaborate array references
+ *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.codegen;
 
@@ -21,13 +20,14 @@ import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
+@SuppressWarnings({"rawtypes"})
 public class TypeAnnotationCodeStream extends StackMapFrameCodeStream {
 	public List allTypeAnnotationContexts;
 
@@ -37,8 +37,8 @@ public class TypeAnnotationCodeStream extends StackMapFrameCodeStream {
 		this.allTypeAnnotationContexts = new ArrayList();
 	}
 	
-	private void addAnnotationContext(TypeReference typeReference, int info, int targetType, Annotation[][] annotationsOnDimensions, int dimensions) {
-		typeReference.getAllAnnotationContexts(targetType, info, this.allTypeAnnotationContexts, annotationsOnDimensions, dimensions);
+	private void addAnnotationContext(TypeReference typeReference, int info, int targetType, ArrayAllocationExpression allocationExpression) {
+		allocationExpression.getAllAnnotationContexts(targetType, info, this.allTypeAnnotationContexts);
 	}
 	
 	private void addAnnotationContext(TypeReference typeReference, int info, int targetType) {
@@ -60,11 +60,11 @@ public class TypeAnnotationCodeStream extends StackMapFrameCodeStream {
 			TypeReference typeReference,
 			TypeBinding typeBinding,
 			int dimensions,
-			Annotation [][] annotationsOnDimensions) {
+			ArrayAllocationExpression allocationExpression) {
 		if (typeReference != null && (typeReference.bits & ASTNode.HasTypeAnnotations) != 0) {
-			addAnnotationContext(typeReference, this.position, AnnotationTargetTypeConstants.NEW, annotationsOnDimensions, dimensions);
+			addAnnotationContext(typeReference, this.position, AnnotationTargetTypeConstants.NEW, allocationExpression);
 		}
-		super.multianewarray(typeReference, typeBinding, dimensions, annotationsOnDimensions);
+		super.multianewarray(typeReference, typeBinding, dimensions, allocationExpression);
 	}
 
 	public void new_(TypeReference typeReference, TypeBinding typeBinding) {
@@ -74,18 +74,31 @@ public class TypeAnnotationCodeStream extends StackMapFrameCodeStream {
 		super.new_(typeReference, typeBinding);
 	}
 	
-	public void newArray(TypeReference typeReference, Annotation[][] annotationsOnDimensions, ArrayBinding arrayBinding) {
+	public void newArray(TypeReference typeReference, ArrayAllocationExpression allocationExpression, ArrayBinding arrayBinding) {
 		if (typeReference != null && (typeReference.bits & ASTNode.HasTypeAnnotations) != 0) {
-			addAnnotationContext(typeReference, this.position, AnnotationTargetTypeConstants.NEW, annotationsOnDimensions, 1);
+			addAnnotationContext(typeReference, this.position, AnnotationTargetTypeConstants.NEW, allocationExpression);
 		}
-		super.newArray(typeReference, annotationsOnDimensions, arrayBinding);
+		super.newArray(typeReference, allocationExpression, arrayBinding);
 	}
 	
 	public void checkcast(TypeReference typeReference, TypeBinding typeBinding) {
-		if (typeReference != null && (typeReference.bits & ASTNode.HasTypeAnnotations) != 0) {
-			addAnnotationContext(typeReference, this.position, AnnotationTargetTypeConstants.CAST);
+		/* We use a slightly sub-optimal generation for intersection casts by resorting to a runtime cast for every intersecting type, but in
+		   reality this should not matter. In its intended use form such as (I & Serializable) () -> {}, no cast is emitted at all. Also note
+		   intersection cast type references cannot nest i.e ((X & I) & J) is not valid syntax.
+		*/
+		if (typeReference != null) {
+			TypeReference [] typeReferences = typeReference.getTypeReferences();
+			for (int i = typeReferences.length - 1; i >= 0; i--) {  // need to emit right to left.
+				typeReference = typeReferences[i];
+				if (typeReference != null) {
+					if ((typeReference.bits & ASTNode.HasTypeAnnotations) != 0)
+						addAnnotationContext(typeReference, this.position, i, AnnotationTargetTypeConstants.CAST);
+					super.checkcast(typeReference, typeReference.resolvedType);
+				}
+			}
+		} else {
+			super.checkcast(null, typeBinding);
 		}
-		super.checkcast(typeReference, typeBinding);
 	}
 	
 	public void invoke(byte opcode, MethodBinding methodBinding, TypeBinding declaringClass, TypeReference[] typeArguments) {
@@ -95,7 +108,7 @@ public class TypeAnnotationCodeStream extends StackMapFrameCodeStream {
 					: AnnotationTargetTypeConstants.METHOD_INVOCATION_TYPE_ARGUMENT;
 			for (int i = 0, max = typeArguments.length; i < max; i++) {
 				TypeReference typeArgument = typeArguments[i];
-				if ((typeArgument.bits & ASTNode.HasTypeAnnotations) != 0) { // TODO can check this at a higher level?
+				if ((typeArgument.bits & ASTNode.HasTypeAnnotations) != 0) {
 					addAnnotationContext(typeArgument, this.position, i, targetType);
 				}
 			}

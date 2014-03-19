@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 GK Software AG and others.
+ * Copyright (c) 2011, 2014 GK Software AG and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
+ *     Nikolay Metchev (nikolaymetchev@gmail.com) - Contributions for
+ *								bug 411098 - [compiler][resource] Invalid Resource Leak Warning using ternary operator inside try-with-resource
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -27,6 +29,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
@@ -43,6 +46,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
  * 
  * See bug 349326 - [1.7] new warning for missing try-with-resources
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class FakedTrackingVariable extends LocalDeclaration {
 
 	private static final char[] UNASSIGNED_CLOSEABLE_NAME = "<unassigned Closeable value>".toCharArray(); //$NON-NLS-1$
@@ -160,6 +164,13 @@ public class FakedTrackingVariable extends LocalDeclaration {
 				expression = ((CastExpression) expression).expression;
 			else if (expression instanceof Assignment)
 				expression = ((Assignment) expression).expression;
+			else if (expression instanceof ConditionalExpression) {
+				FakedTrackingVariable falseTrackingVariable = getCloseTrackingVariable(((ConditionalExpression)expression).valueIfFalse, flowInfo, flowContext);
+				if (falseTrackingVariable != null) {
+					return falseTrackingVariable;
+				}
+				return getCloseTrackingVariable(((ConditionalExpression)expression).valueIfTrue, flowInfo, flowContext);
+			}
 			else
 				break;
 		}
@@ -202,7 +213,7 @@ public class FakedTrackingVariable extends LocalDeclaration {
 	 */
 	public static void preConnectTrackerAcrossAssignment(ASTNode location, LocalVariableBinding local, Expression rhs, FlowInfo flowInfo) {
 		FakedTrackingVariable closeTracker = null;
-		if (rhs instanceof AllocationExpression) {
+		if (containsAllocation(rhs)) {
 			closeTracker = local.closeTracker;
 			if (closeTracker == null) {
 				if (rhs.resolvedType != TypeBinding.NULL) { // not NULL means valid closeable as per method precondition
@@ -214,13 +225,42 @@ public class FakedTrackingVariable extends LocalDeclaration {
 			}
 			if (closeTracker != null) {
 				closeTracker.currentAssignment = location;
-				AllocationExpression allocation = (AllocationExpression)rhs;
-				allocation.closeTracker = closeTracker;
-				if (allocation.arguments != null && allocation.arguments.length > 0) {
-					// also push into nested allocations, see https://bugs.eclipse.org/368709
-					preConnectTrackerAcrossAssignment(location, local, allocation.arguments[0], flowInfo);
-				}
+				preConnectTrackerAcrossAssignment(location, local, flowInfo, closeTracker, rhs);
 			}
+		}
+	}
+
+	private static boolean containsAllocation(ASTNode location) {
+		if (location instanceof AllocationExpression)
+			return true;
+		if (location instanceof ConditionalExpression) {
+			ConditionalExpression conditional = (ConditionalExpression) location;
+			return containsAllocation(conditional.valueIfTrue) || containsAllocation(conditional.valueIfFalse);
+		}
+		return false;
+	}
+
+	private static void preConnectTrackerAcrossAssignment(ASTNode location, LocalVariableBinding local, FlowInfo flowInfo,
+			FakedTrackingVariable closeTracker, Expression expression) {
+		if (expression instanceof AllocationExpression) {
+			preConnectTrackerAcrossAssignment(location, local, flowInfo, (AllocationExpression) expression, closeTracker);
+		} else if (expression instanceof ConditionalExpression) {
+			preConnectTrackerAcrossAssignment(location, local, flowInfo, (ConditionalExpression) expression, closeTracker);
+		}
+	}
+
+	private static void preConnectTrackerAcrossAssignment(ASTNode location, LocalVariableBinding local, FlowInfo flowInfo,
+			ConditionalExpression conditional, FakedTrackingVariable closeTracker) {
+		preConnectTrackerAcrossAssignment(location, local, flowInfo, closeTracker, conditional.valueIfFalse);
+		preConnectTrackerAcrossAssignment(location, local, flowInfo, closeTracker, conditional.valueIfTrue);
+	}
+
+	private static void preConnectTrackerAcrossAssignment(ASTNode location, LocalVariableBinding local, FlowInfo flowInfo,
+			AllocationExpression allocationExpression, FakedTrackingVariable closeTracker) {
+		allocationExpression.closeTracker = closeTracker;
+		if (allocationExpression.arguments != null && allocationExpression.arguments.length > 0) {
+			// also push into nested allocations, see https://bugs.eclipse.org/368709
+			preConnectTrackerAcrossAssignment(location, local, allocationExpression.arguments[0], flowInfo);
 		}
 	}
 
@@ -260,6 +300,9 @@ public class FakedTrackingVariable extends LocalDeclaration {
 								newStatus = finallyStatus;
 						}
 					}
+					if (allocation.closeTracker.innerTracker != null) {
+						innerTracker = pickMoreUnsafe(allocation.closeTracker.innerTracker, innerTracker, scope, flowInfo);
+					}
 					allocation.closeTracker.innerTracker = innerTracker;
 					innerTracker.outerTracker = allocation.closeTracker;
 					flowInfo.markNullStatus(allocation.closeTracker.binding, newStatus);
@@ -295,6 +338,23 @@ public class FakedTrackingVariable extends LocalDeclaration {
 		} else { // regular resource
 			handleRegularResource(scope, flowInfo, allocation);
 		}
+	}
+
+	private static FakedTrackingVariable pickMoreUnsafe(FakedTrackingVariable tracker1, FakedTrackingVariable tracker2, BlockScope scope, FlowInfo info) {
+		// whichever of the two trackers has stronger indication to be leaking will be returned,
+		// the other one will be removed from the scope (considered to be merged into the former).
+		int status1 = info.nullStatus(tracker1.binding);
+		int status2 = info.nullStatus(tracker2.binding);
+		if (status1 == FlowInfo.NULL || status2 == FlowInfo.NON_NULL) return pick(tracker1, tracker2, scope);
+		if (status1 == FlowInfo.NON_NULL || status2 == FlowInfo.NULL) return pick(tracker2, tracker1, scope);
+		if ((status1 & FlowInfo.POTENTIALLY_NULL) != 0) return pick(tracker1, tracker2, scope);
+		if ((status2 & FlowInfo.POTENTIALLY_NULL) != 0) return pick(tracker2, tracker1, scope);
+		return pick(tracker1, tracker2, scope);
+	}
+
+	private static FakedTrackingVariable pick(FakedTrackingVariable tracker1, FakedTrackingVariable tracker2, BlockScope scope) {
+		scope.removeTrackingVar(tracker2);
+		return tracker1;
 	}
 
 	private static void handleRegularResource(BlockScope scope, FlowInfo flowInfo, AllocationExpression allocation) {
@@ -341,8 +401,8 @@ public class FakedTrackingVariable extends LocalDeclaration {
 	}
 
 	/** 
-	 * Check if the rhs of an assignment or local declaration is an (Auto)Closeable.
-	 * If so create or re-use a tracking variable, and wire and initialize everything.
+	 * Given the rhs of an assignment or local declaration has a (Auto)Closeable type (or null), setup for leak analysis now:
+	 * Create or re-use a tracking variable, and wire and initialize everything.
 	 * @param scope scope containing the assignment
 	 * @param upstreamInfo info without analysis of the rhs, use this to determine the status of a resource being disconnected
 	 * @param flowInfo info with analysis of the rhs, use this for recording resource status because this will be passed downstream
@@ -380,7 +440,7 @@ public class FakedTrackingVariable extends LocalDeclaration {
 						rhsTrackVar.globalClosingState &= ~(SHARED_WITH_OUTSIDE|OWNED_BY_OUTSIDE);
 					}
 				} else {
-					if (rhs instanceof AllocationExpression) {
+					if (rhs instanceof AllocationExpression || rhs instanceof ConditionalExpression) {
 						if (rhsTrackVar == disconnectedTracker)
 							return;									// 		b.: self wrapper: res = new Wrap(res); -> done!
 						if (local.closeTracker == rhsTrackVar 
@@ -464,6 +524,17 @@ public class FakedTrackingVariable extends LocalDeclaration {
 				break;
 		}
 
+		boolean isResourceProducer = false;
+		if (expression.resolvedType instanceof ReferenceBinding) {
+			ReferenceBinding resourceType = (ReferenceBinding) expression.resolvedType;
+			if (resourceType.hasTypeBit(TypeIds.BitResourceFreeCloseable)) {
+				if (isBlacklistedMethod(expression))
+					isResourceProducer = true;
+				else
+					return null; // (a) resource-free closeable: -> null
+			}
+		}
+
 		// analyze by node type:
 		if (expression instanceof AllocationExpression) {
 			// allocation expressions already have their tracking variables analyzed by analyseCloseableAllocation(..)
@@ -478,7 +549,8 @@ public class FakedTrackingVariable extends LocalDeclaration {
 		{
 			// we *might* be responsible for the resource obtained
 			FakedTrackingVariable tracker = new FakedTrackingVariable(local, location, flowInfo, flowContext, FlowInfo.POTENTIALLY_NULL); // shed some doubt
-			tracker.globalClosingState |= SHARED_WITH_OUTSIDE;
+			if (!isResourceProducer)
+				tracker.globalClosingState |= SHARED_WITH_OUTSIDE;
 			return tracker;
 		} else if (
 				(expression.bits & RestrictiveFlagMASK) == Binding.FIELD
@@ -492,13 +564,6 @@ public class FakedTrackingVariable extends LocalDeclaration {
 			return tracker;			
 		}
 
-		if (expression.resolvedType instanceof ReferenceBinding) {
-			ReferenceBinding resourceType = (ReferenceBinding) expression.resolvedType;
-			if (resourceType.hasTypeBit(TypeIds.BitResourceFreeCloseable)) {
-				// (a) resource-free closeable: -> null
-				return null;
-			}
-		}
 		if (local.closeTracker != null)
 			// (c): inner has already been analyzed: -> re-use track var
 			return local.closeTracker;
@@ -508,6 +573,16 @@ public class FakedTrackingVariable extends LocalDeclaration {
 			newTracker.globalClosingState |= OWNED_BY_OUTSIDE;
 		}
 		return newTracker;
+	}
+
+	private static boolean isBlacklistedMethod(Expression expression) {
+		if (expression instanceof MessageSend) {
+			MethodBinding method = ((MessageSend) expression).binding;
+			if (method != null && method.isValidBinding())
+				// for all methods in java.nio.file.Files that return a resource (Stream) it really needs closing
+				return CharOperation.equals(method.declaringClass.compoundName, TypeConstants.JAVA_NIO_FILE_FILES);
+		}
+		return false;
 	}
 
 	public static void cleanUpAfterAssignment(BlockScope currentScope, int lhsBits, Expression expression) {

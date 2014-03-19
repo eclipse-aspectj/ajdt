@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -111,7 +107,6 @@ protected void consumeClassInstanceCreationExpressionWithTypeArguments() {
 				length);
 		}
 		alloc.type = getTypeReference(0);
-		rejectIllegalLeadingTypeAnnotations(alloc.type);
 
 		length = this.genericsLengthStack[this.genericsLengthPtr--];
 		this.genericsPtr -= length;
@@ -267,11 +262,11 @@ protected void consumeLocalVariableDeclarationStatement() {
  * The CSToCuMapper could not be used, since it could have interfered with
  * the syntax recovery specific to code snippets.
  */
-protected void consumeMethodDeclaration(boolean isNotAbstract) {
+protected void consumeMethodDeclaration(boolean isNotAbstract, boolean isDefaultMethod) {
 	// MethodDeclaration ::= MethodHeader MethodBody
 	// AbstractMethodDeclaration ::= MethodHeader ';'
 
-	super.consumeMethodDeclaration(isNotAbstract);
+	super.consumeMethodDeclaration(isNotAbstract, isDefaultMethod);
 
 	// now we know that we have a method declaration at the top of the ast stack
 	MethodDeclaration methodDecl = (MethodDeclaration) this.astStack[this.astPtr];
@@ -318,7 +313,7 @@ protected void consumeMethodDeclaration(boolean isNotAbstract) {
 			}
 			int dimCount = CharOperation.occurencesOf('[', this.evaluationContext.localVariableTypeNames[i]);
 			if (dimCount > 0) {
-				typeReference = copyDims(typeReference, dimCount);
+				typeReference = augmentTypeWithAdditionalDimensions(typeReference, dimCount, null, false);
 			}
 			NameReference init = new SingleNameReference(
 									CharOperation.concat(LOCAL_VAR_PREFIX, this.evaluationContext.localVariableNames[i]), position);
@@ -592,7 +587,7 @@ protected CompilationUnitDeclaration endParse(int act) {
 			}
 			consumeMethodBody();
 			if (!this.diet) {
-				consumeMethodDeclaration(true);
+				consumeMethodDeclaration(true, false);
 				if (fieldsCount > 0) {
 					consumeClassBodyDeclarations();
 				}
@@ -791,9 +786,9 @@ protected void reportSyntaxErrors(boolean isDietParse, int oldFirstToken) {
  * A syntax error was detected. If a method is being parsed, records the number of errors and
  * attempts to restart from the last statement by going for an expression.
  */
-protected boolean resumeOnSyntaxError() {
+protected int resumeOnSyntaxError() {
 	if (this.diet || this.hasRecoveredOnExpression) { // no reentering inside expression recovery
-		return false;
+		return HALT;
 	}
 
 	// record previous error, in case more accurate than potential one in expression recovery
@@ -822,6 +817,6 @@ protected boolean resumeOnSyntaxError() {
 	this.hasRecoveredOnExpression = true;
 	this.hasReportedError = false;
 	this.hasError = false;
-	return true;
+	return RESTART;
 }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -158,4 +158,14 @@ public interface IVariableBinding extends IBinding {
 	 */
 	public IVariableBinding getVariableDeclaration();
 
+	/**
+	 * Returns whether this binding corresponds to an effectively final local
+	 * variable (JLS8 4.12.4). A variable is said to be effectively final if
+	 * it is not final and never assigned to after its initialization.
+	 *
+	 * @return <code>true</code> if this is an effectively final local variable
+	 * 				and <code>false</code> otherwise
+	 * @since 3.10
+	 */
+	public boolean isEffectivelyFinal();
 }

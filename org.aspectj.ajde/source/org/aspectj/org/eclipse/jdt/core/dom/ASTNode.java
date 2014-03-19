@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -126,6 +122,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.dom.NaiveASTFlattener;
  * @since 2.0
  * @noextend This class is not intended to be subclassed by clients.
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public abstract class ASTNode {
 	/*
 	 * ATTENTION: When doing anything to the ASTNode hierarchy, do not try to
@@ -835,18 +832,18 @@ public abstract class ASTNode {
 
 	/**
 	 * Node type constant indicating a node of type
-	 * <code>ExtraDimension</code>.
+	 * <code>Dimension</code>.
 	 *
-	 * @see ExtraDimension
-	 * @since 3.9 BETA_JAVA8
+	 * @see Dimension
+	 * @since 3.10
 	 */
-	public static final int EXTRA_DIMENSION = 85;
+	public static final int DIMENSION = 85;
 
 	/**
 	 * Node type constant indicating a node of type
 	 * <code>LambdaExpression</code>.
 	 * @see LambdaExpression
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final int LAMBDA_EXPRESSION = 86;
 
@@ -855,23 +852,23 @@ public abstract class ASTNode {
 	 * <code>IntersectionType</code>.
 	 *
 	 * @see IntersectionType
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final int INTERSECTION_TYPE = 87;
 
 	/**
 	 * Node type constant indicating a node of type
-	 * <code>QualifiedType</code>.
-	 * @see QualifiedType
-	 * @since 3.9 BETA_JAV8
+	 * <code>NameQualifiedType</code>.
+	 * @see NameQualifiedType
+	 * @since 3.10
 	 */
-	public static final int PACKAGE_QUALIFIED_TYPE = 88;
+	public static final int NAME_QUALIFIED_TYPE = 88;
 
 	/**
 	 * Node type constant indicating a node of type
 	 * <code>CreationReference</code>.
 	 * @see CreationReference
-	 * @since 3.9 BETA_JAV8
+	 * @since 3.10
 	 */
 	public static final int CREATION_REFERENCE = 89;
 
@@ -879,7 +876,7 @@ public abstract class ASTNode {
 	 * Node type constant indicating a node of type
 	 * <code>ExpressionMethodReference</code>.
 	 * @see ExpressionMethodReference
-	 * @since 3.9 BETA_JAV8
+	 * @since 3.10
 	 */
 	public static final int EXPRESSION_METHOD_REFERENCE = 90;
 
@@ -887,7 +884,7 @@ public abstract class ASTNode {
 	 * Node type constant indicating a node of type
 	 * <code>SuperMethhodReference</code>.
 	 * @see SuperMethodReference
-	 * @since 3.9 BETA_JAV8
+	 * @since 3.10
 	 */
 	public static final int SUPER_METHOD_REFERENCE = 91;
 
@@ -895,7 +892,7 @@ public abstract class ASTNode {
 	 * Node type constant indicating a node of type
 	 * <code>TypeMethodReference</code>.
 	 * @see TypeMethodReference
-	 * @since 3.9 BETA_JAV8
+	 * @since 3.10
 	 */
 	public static final int TYPE_METHOD_REFERENCE = 92;
 
@@ -955,8 +952,8 @@ public abstract class ASTNode {
 				return ContinueStatement.class;
 			case CREATION_REFERENCE :
 				return CreationReference.class;
-			case UNION_TYPE :
-				return UnionType.class;
+			case DIMENSION:
+				return Dimension.class;
 			case DO_STATEMENT :
 				return DoStatement.class;
 			case EMPTY_STATEMENT :
@@ -971,8 +968,6 @@ public abstract class ASTNode {
 				return ExpressionMethodReference.class;
 			case EXPRESSION_STATEMENT :
 				return ExpressionStatement.class;
-			case EXTRA_DIMENSION:
-				return ExtraDimension.class;
 			case FIELD_ACCESS :
 				return FieldAccess.class;
 			case FIELD_DECLARATION :
@@ -1015,6 +1010,8 @@ public abstract class ASTNode {
 				return MethodRefParameter.class;
 			case MODIFIER :
 				return Modifier.class;
+			case NAME_QUALIFIED_TYPE :
+				return NameQualifiedType.class;
 			case NORMAL_ANNOTATION :
 				return NormalAnnotation.class;
 			case NULL_LITERAL :
@@ -1023,8 +1020,6 @@ public abstract class ASTNode {
 				return NumberLiteral.class;
 			case PACKAGE_DECLARATION :
 				return PackageDeclaration.class;
-			case PACKAGE_QUALIFIED_TYPE :
-				return PackageQualifiedType.class;
 			case PARAMETERIZED_TYPE :
 				return ParameterizedType.class;
 			case PARENTHESIZED_EXPRESSION :
@@ -1085,6 +1080,8 @@ public abstract class ASTNode {
 				return TypeLiteral.class;
 			case TYPE_PARAMETER :
 				return TypeParameter.class;
+			case UNION_TYPE :
+				return UnionType.class;
 			case VARIABLE_DECLARATION_EXPRESSION :
 				return VariableDeclarationExpression.class;
 			case VARIABLE_DECLARATION_FRAGMENT :
@@ -1229,11 +1226,15 @@ public abstract class ASTNode {
 	private StructuralPropertyDescriptor location = null;
 
 	/** Internal convenience constant indicating that there is definite risk of cycles.
+	 * @see ChildPropertyDescriptor#cycleRisk()
+	 * @see ChildListPropertyDescriptor#cycleRisk()
 	 * @since 3.0
 	 */
 	static final boolean CYCLE_RISK = true;
 
 	/** Internal convenience constant indicating that there is no risk of cycles.
+	 * @see ChildPropertyDescriptor#cycleRisk()
+	 * @see ChildListPropertyDescriptor#cycleRisk()
 	 * @since 3.0
 	 */
 	static final boolean NO_CYCLE_RISK = false;
@@ -1960,7 +1961,7 @@ public abstract class ASTNode {
      * </p>
      * 
 	 * @exception UnsupportedOperationException if this operation is used below JLS8
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	final void unsupportedIn2_3_4() {
 		if (this.ast.apiLevel < AST.JLS8) {
@@ -1993,7 +1994,7 @@ public abstract class ASTNode {
      * </p>
      * 
 	 * @exception UnsupportedOperationException if this operation is used in an AST later than JLS4
-     * @since 3.9 BETA_JAVA8
+     * @since 3.10
      */
 	// In API Javadocs, add: * @deprecated In the JLS8 API, this method is replaced by {@link #replacement()}.
 	final void supportedOnlyIn2_3_4() {

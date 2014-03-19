@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -31,13 +27,6 @@ public class UnionTypeReference extends TypeReference {
 		this.sourceStart = typeReferences[0].sourceStart;
 		int length = typeReferences.length;
 		this.sourceEnd = typeReferences[length - 1].sourceEnd;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference#copyDims(int)
-	 */
-	public TypeReference copyDims(int dim) {
-		return this; // arrays are not legal as union types.
 	}
 
 	/* (non-Javadoc)
@@ -159,8 +148,10 @@ public class UnionTypeReference extends TypeReference {
 		}
 		return output;
 	}
-
-	public TypeReference copyDims(int dim, Annotation[][] annotationsOnDimensions) {
+	public boolean isUnionType() {
+		return true;
+	}
+	public TypeReference augmentTypeWithAdditionalDimensions(int additionalDimensions, Annotation[][] additionalAnnotations, boolean isVarargs) {
 		return this; // arrays are not legal as union types.
 	}
 

@@ -62,6 +62,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * 		resolved classpath, cycles))</li>
  * </ul>
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaProcessor {
 
 	static class OutputsInfo {

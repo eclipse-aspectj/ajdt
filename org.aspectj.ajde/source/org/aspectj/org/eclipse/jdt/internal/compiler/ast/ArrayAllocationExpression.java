@@ -1,32 +1,34 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
  *								bug 319201 - [null] no warning when unboxing SingleNameReference causes NPE
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *								Bug 417758 - [1.8][null] Null safety compromise during array creation.
+ *								Bug 427163 - [1.8][null] bogus error "Contradictory null specification" on varags
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
- *
+ *                          Bug 409247 - [1.8][compiler] Verify error with code allocating multidimensional array
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import java.util.List;
+
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationCollector;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
+@SuppressWarnings({"rawtypes"})
 public class ArrayAllocationExpression extends Expression {
 
 	public TypeReference type;
@@ -61,7 +63,7 @@ public class ArrayAllocationExpression extends Expression {
 		int pc = codeStream.position;
 
 		if (this.initializer != null) {
-			this.initializer.generateCode(this.type, this.annotationsOnDimensions, currentScope, codeStream, valueRequired);
+			this.initializer.generateCode(this.type, this, currentScope, codeStream, valueRequired);
 			return;
 		}
 
@@ -76,10 +78,10 @@ public class ArrayAllocationExpression extends Expression {
 		// array allocation
 		if (explicitDimCount == 1) {
 			// Mono-dimensional array
-			codeStream.newArray(this.type, this.annotationsOnDimensions, (ArrayBinding)this.resolvedType);
+			codeStream.newArray(this.type, this, (ArrayBinding)this.resolvedType);
 		} else {
 			// Multi-dimensional array
-			codeStream.multianewarray(this.type, this.resolvedType, this.dimensions.length, this.annotationsOnDimensions);
+			codeStream.multianewarray(this.type, this.resolvedType, explicitDimCount, this);
 		}
 		if (valueRequired) {
 			codeStream.generateImplicitConversion(this.implicitConversion);
@@ -168,7 +170,25 @@ public class ArrayAllocationExpression extends Expression {
 			if (this.dimensions.length > 255) {
 				scope.problemReporter().tooManyDimensions(this);
 			}
+			if (this.type.annotations != null
+					&& (referenceType.tagBits & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK)
+			{
+				scope.problemReporter().contradictoryNullAnnotations(this.type.annotations[this.type.annotations.length-1]);
+			}
 			this.resolvedType = scope.createArrayType(referenceType, this.dimensions.length);
+
+			if (this.annotationsOnDimensions != null) {
+				this.resolvedType = resolveAnnotations(scope, this.annotationsOnDimensions, this.resolvedType);
+				long[] nullTagBitsPerDimension = ((ArrayBinding)this.resolvedType).nullTagBitsPerDimension;
+				if (nullTagBitsPerDimension != null) {
+					for (int i = 0; i < this.annotationsOnDimensions.length; i++) {
+						if ((nullTagBitsPerDimension[i] & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK) {
+							scope.problemReporter().contradictoryNullAnnotations(this.annotationsOnDimensions[i]);
+							nullTagBitsPerDimension[i] = 0;
+						}
+					}
+				}
+			}
 
 			// check the initializer
 			if (this.initializer != null) {
@@ -177,12 +197,6 @@ public class ArrayAllocationExpression extends Expression {
 			}
 			if ((referenceType.tagBits & TagBits.HasMissingType) != 0) {
 				return null;
-			}
-		}
-		if (this.annotationsOnDimensions != null) {
-			for (int i = 0, max = this.annotationsOnDimensions.length; i < max; i++) {
-				Annotation[] annotations = this.annotationsOnDimensions[i];
-				resolveAnnotations(scope, annotations, new Annotation.TypeUseBinding(Binding.TYPE_USE));
 			}
 		}
 		return this.resolvedType;
@@ -194,6 +208,11 @@ public class ArrayAllocationExpression extends Expression {
 			int dimensionsLength = this.dimensions.length;
 			this.type.traverse(visitor, scope);
 			for (int i = 0; i < dimensionsLength; i++) {
+				Annotation [] annotations = this.annotationsOnDimensions == null ? null : this.annotationsOnDimensions[i];
+				int annotationsLength = annotations == null ? 0 : annotations.length;
+				for (int j = 0; j < annotationsLength; j++) {
+					annotations[j].traverse(visitor, scope);
+				}
 				if (this.dimensions[i] != null)
 					this.dimensions[i].traverse(visitor, scope);
 			}
@@ -201,5 +220,24 @@ public class ArrayAllocationExpression extends Expression {
 				this.initializer.traverse(visitor, scope);
 		}
 		visitor.endVisit(this, scope);
+	}
+
+	public void getAllAnnotationContexts(int targetType, int info, List allTypeAnnotationContexts) {
+		AnnotationCollector collector = new AnnotationCollector(this, targetType, info, allTypeAnnotationContexts);
+		this.type.traverse(collector, (BlockScope) null);
+		if (this.annotationsOnDimensions != null)  {
+			int dimensionsLength = this.dimensions.length;
+			for (int i = 0; i < dimensionsLength; i++) {
+				Annotation [] annotations = this.annotationsOnDimensions[i];
+				int annotationsLength = annotations == null ? 0 : annotations.length;
+				for (int j = 0; j < annotationsLength; j++) {
+					annotations[j].traverse(collector, (BlockScope) null);
+				}
+			}
+		}
+	}
+
+	public Annotation[][] getAnnotationsOnDimensions() {
+		return this.annotationsOnDimensions;
 	}
 }

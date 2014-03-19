@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2013 IBM Corporation and others.
+ * Copyright (c) 2003, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -28,42 +24,49 @@ import java.util.List;
  * <p>
  * Not all node arrangements will represent legal Java constructs. In particular,
  * it is nonsense if the type is an array type or primitive type. The normal use
- * is when the type is a simple or parameterized type.
+ * is when the type is a ParameterizedType, an annotated QualifiedType, or a
+ * NameQualifiedType.
  * </p>
  * <p>
- * A type like "A.B" can be represented either of two ways:
- * <ol>
- * <li>
- * <code>QualifiedType(SimpleType(SimpleName("A")),SimpleName("B"))</code>
- * </li>
- * <li>
- * <code>SimpleType(QualifiedName(SimpleName("A"),SimpleName("B")))</code>
- * </li>
- * </ol>
- * The first form is preferred when "A" is known to be a type. However, a
- * parser cannot always determine this. Clients should be prepared to handle
- * either rather than make assumptions. (Note also that the first form
- * became possible as of JLS3; only the second form existed in JLS2 API;
- * the ASTParser currently prefers the second form).
+ * A "."-separated type like "A.B" can be represented in three ways:
+ * <pre>
+ * 1.    SimpleType       | 2. NameQualifiedType   | 3.  QualifiedType
+ *     QualifiedName      | SimpleName  SimpleName | SimpleType  SimpleName
+ * SimpleName  SimpleName |     "A"         "B"    | SimpleName      "B"
+ *     "A"         "B"    |                        |     "A"
+ * </pre>
+ * <p>
+ * The ASTParser creates the SimpleType form (wrapping a name) if possible. The
+ * SimpleType form doesn't support any embedded Annotations nor ParameterizedTypes.
+ * The NameQualifiedType form is only available since JLS8 and the
+ * QualifiedType form only since JLS3. The NameQualifiedType and QualifiedType forms
+ * allow Annotations on the last SimpleName. The QualifiedType form cannot be used if
+ * the qualifier represents a package name.
  * </p>
  * <p>
- * Since JLS8, it's also possible to annotate qualified type names.
- * A type like "a.@X B" cannot be represented in either of
- * the old ways, because "a" is not a type, but a package.
- * Such types are represented as:
+ * The part before the last "." is called the <em>qualifier</em> of a type. If
+ * the name after the last "." has annotations or if the qualifier is not a
+ * (possibly qualified) name, then the ASTParser creates either a
+ * NameQualifiedType or a QualifiedType:
  * </p>
- * <ol start="3">
+ * <ul>
  * <li>
- * <code>PackageQualifiedType(SimpleName("a"),MarkerAnnotation("X"),SimpleName("B"))</code>
+ * If the qualifier is a (possibly qualified) name, then a NameQualifiedType is
+ * created.
  * </li>
- * </ol>
+ * <li>
+ * Otherwise, a QualifiedType is created and its qualifier is built using the
+ * same rules.
+ * </li>
+ * </ul>
  * 
  * @see SimpleType
- * @see PackageQualifiedType
+ * @see NameQualifiedType
  * 
  * @since 3.1
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
+@SuppressWarnings("rawtypes")
 public class QualifiedType extends AnnotatableType {
     /**
      * This index represents the position inside a parameterized qualified type.
@@ -78,7 +81,7 @@ public class QualifiedType extends AnnotatableType {
 
 	/**
 	 * The "annotations" structural property of this node type (element type: {@link Annotation}).
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final ChildListPropertyDescriptor ANNOTATIONS_PROPERTY =
 			internalAnnotationsPropertyFactory(QualifiedType.class);
@@ -99,7 +102,7 @@ public class QualifiedType extends AnnotatableType {
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	private static final List PROPERTY_DESCRIPTORS_8_0;
 
@@ -166,7 +169,7 @@ public class QualifiedType extends AnnotatableType {
 
 	/* (omit javadoc for this method)
 	 * Method declared on AnnotatableType.
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	final ChildListPropertyDescriptor internalAnnotationsProperty() {
 		return ANNOTATIONS_PROPERTY;

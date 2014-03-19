@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -65,6 +65,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.HashSetOfCharArrayArray;
  * attempt. If this was the desired behavior, a call to the CompletionEngine should be
  * performed instead.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class SelectionEngine extends Engine implements ISearchRequestor {
 	
 	private static class SelectionTypeNameMatchRequestorWrapper extends TypeNameMatchRequestorWrapper {
@@ -499,7 +500,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				null/*taskPriorities*/,
 				true /*taskCaseSensitive*/);
 		scanner.setSource(source);
-
+		
 		int lastIdentifierStart = -1;
 		int lastIdentifierEnd = -1;
 		char[] lastIdentifier = null;
@@ -574,6 +575,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				switch (token) {
 					case TerminalTokens.TokenNamethis:
 					case TerminalTokens.TokenNamesuper:
+					case TerminalTokens.TokenNamenew:
 					case TerminalTokens.TokenNameIdentifier:
 						if (scanner.startPosition <= selectionStart && selectionStart <= scanner.currentPosition) {
 							if (scanner.currentPosition == scanner.eofPosition) {
@@ -591,6 +593,19 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				}
 			} while (token != TerminalTokens.TokenNameEOF);
 		} else {
+			if (selectionStart == selectionEnd) { // Widen the selection to scan -> || :: if needed. No unicode handling for now.
+				if (selectionStart > 0 && selectionEnd < source.length - 1) {
+					if ((source[selectionStart] == '>' && source[selectionStart - 1] == '-') ||
+							source[selectionStart] == ':' && source[selectionStart - 1] == ':') { 
+						selectionStart--;
+					} else {
+						if ((source[selectionStart] == '-' && source[selectionEnd + 1] == '>') ||
+								source[selectionStart] == ':' && source[selectionEnd + 1] == ':') {
+							selectionEnd++;
+						}
+					}
+				}  
+			} // there could be some innocuous widening, shouldn't matter.
 			scanner.resetTo(selectionStart, selectionEnd);
 
 			boolean expectingIdentifier = true;
@@ -603,6 +618,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				switch (token) {
 					case TerminalTokens.TokenNamethis :
 					case TerminalTokens.TokenNamesuper :
+					case TerminalTokens.TokenNamenew :
 					case TerminalTokens.TokenNameIdentifier :
 						if (!expectingIdentifier)
 							return false;
@@ -615,6 +631,14 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 						}
 						expectingIdentifier = false;
 						break;
+					case TerminalTokens.TokenNameCOLON_COLON:	
+						if (selectionStart >= scanner.startPosition && selectionEnd < scanner.currentPosition) {
+							this.actualSelectionStart = selectionStart;
+							this.actualSelectionEnd = selectionEnd;
+							this.selectedIdentifier = CharOperation.NO_CHAR;
+							return true;		
+						}
+						//$FALL-THROUGH$
 					case TerminalTokens.TokenNameDOT :
 						if (expectingIdentifier)
 							return false;
@@ -632,6 +656,14 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 						if(scanner.startPosition != scanner.initialPosition)
 							return false;
 						break;
+					case TerminalTokens.TokenNameARROW:
+						if (selectionStart >= scanner.startPosition && selectionEnd < scanner.currentPosition) {
+							this.actualSelectionStart = selectionStart;
+							this.actualSelectionEnd = selectionEnd;
+							this.selectedIdentifier = CharOperation.NO_CHAR;
+							return true;		
+						}
+						return false;
 					default :
 						return false;
 				}
@@ -941,7 +973,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 									System.out.println(e.binding.toString());
 								}
 								// if null then we found a problem in the selection node
-								selectFrom(e.binding, parsedUnit, e.isDeclaration);
+								selectFrom(e.binding, parsedUnit, sourceUnit, e.isDeclaration);
 							}
 						}
 					}
@@ -1046,6 +1078,9 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 	}
 
 	private void selectFrom(Binding binding, CompilationUnitDeclaration parsedUnit, boolean isDeclaration) {
+		selectFrom(binding, parsedUnit, null, isDeclaration);
+	}
+	private void selectFrom(Binding binding, CompilationUnitDeclaration parsedUnit, ICompilationUnit unit, boolean isDeclaration) {
 		if(binding instanceof TypeVariableBinding) {
 			TypeVariableBinding typeVariableBinding = (TypeVariableBinding) binding;
 			Binding enclosingElement = typeVariableBinding.declaringElement;
@@ -1145,7 +1180,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					typeParameterNames[i] = typeVariable.sourceName;
 					if (typeVariable.firstBound == null) {
 						typeParameterBoundNames[i] = new char[0][];
-					} else if (typeVariable.firstBound == typeVariable.superclass) {
+					} else if (TypeBinding.equalsEquals(typeVariable.firstBound, typeVariable.superclass)) {
 						int boundCount = 1 + (typeVariable.superInterfaces == null ? 0 : typeVariable.superInterfaces.length);
 						typeParameterBoundNames[i] = new char[boundCount][];
 						typeParameterBoundNames[i][0] = typeVariable.superclass.sourceName;
@@ -1226,7 +1261,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			}
 		} else if (binding instanceof LocalVariableBinding) {
 			if (this.requestor instanceof SelectionRequestor) {
-				((SelectionRequestor)this.requestor).acceptLocalVariable((LocalVariableBinding)binding);
+				((SelectionRequestor)this.requestor).acceptLocalVariable((LocalVariableBinding)binding, unit);
 				this.acceptedAnswer = true;
 			} else {
 				// open on the type of the variable
@@ -1345,15 +1380,6 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				typeName = Signature.toCharArray(typeSig);
 			}
 
-			// find the outer most type
-			IType outerType = context;
-			IType parent = context.getDeclaringType();
-			while (parent != null) {
-				outerType = parent;
-				parent = parent.getDeclaringType();
-			}
-
-			// compute parse tree for this most outer type
 			CompilationUnitDeclaration parsedUnit = null;
 			TypeDeclaration typeDeclaration = null;
 			org.aspectj.org.eclipse.jdt.core.ICompilationUnit cu = context.getCompilationUnit();
@@ -1364,8 +1390,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			 	for (int i = 0; i < length; i++) {
 					topLevelInfos[i] = (SourceTypeElementInfo) ((SourceType)topLevelTypes[i]).getElementInfo();
 				}
-				ISourceType outerTypeInfo = (ISourceType) ((SourceType) outerType).getElementInfo();
-				CompilationResult result = new CompilationResult(outerTypeInfo.getFileName(), 1, 1, this.compilerOptions.maxProblemsPerUnit);
+				CompilationResult result = new CompilationResult((org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit) cu, 1, 1, this.compilerOptions.maxProblemsPerUnit);
 				int flags = SourceTypeConverter.FIELD_AND_METHOD | SourceTypeConverter.MEMBER_TYPE;
 				if (context.isAnonymous() || context.isLocal())
 					flags |= SourceTypeConverter.LOCAL_TYPE;

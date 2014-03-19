@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
  * @see IType
  */
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class SourceType extends NamedMember implements IType {
 
 /*
@@ -335,6 +336,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 			params.toArray(parameters);
 			JavaElement method = (JavaElement)getMethod(selector, parameters);
 			switch (token.charAt(0)) {
+				case JEM_LAMBDA_EXPRESSION:
 				case JEM_TYPE:
 				case JEM_TYPE_PARAMETER:
 				case JEM_LOCALVARIABLE:

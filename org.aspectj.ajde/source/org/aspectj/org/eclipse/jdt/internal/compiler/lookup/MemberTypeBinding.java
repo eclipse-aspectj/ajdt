@@ -11,15 +11,26 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+
 // AspectJ Extension: made non-final 
 public class MemberTypeBinding extends NestedTypeBinding {
 public MemberTypeBinding(char[][] compoundName, ClassScope scope, SourceTypeBinding enclosingType) {
 	super(compoundName, scope, enclosingType);
 	this.tagBits |= TagBits.MemberTypeMask;
 }
+
+public MemberTypeBinding(MemberTypeBinding prototype) {
+	super(prototype);
+}
+
 void checkSyntheticArgsAndFields() {
+	if (!isPrototype()) throw new IllegalStateException();
 	if (isStatic()) return;
 	if (isInterface()) return;
+	if (!isPrototype()) {
+		((MemberTypeBinding) this.prototype).checkSyntheticArgsAndFields();
+		return;
+	}
 	this.addSyntheticArgumentAndField(this.enclosingType);
 }
 /* Answer the receiver's constant pool name.
@@ -28,16 +39,31 @@ void checkSyntheticArgsAndFields() {
 */
 
 public char[] constantPoolName() /* java/lang/Object */ {
+	
 	if (this.constantPoolName != null)
 		return this.constantPoolName;
+	
+	if (!isPrototype()) {
+		return this.prototype.constantPoolName();
+	}
 
 	return this.constantPoolName = CharOperation.concat(enclosingType().constantPoolName(), this.sourceName, '$');
+}
+
+public TypeBinding clone(TypeBinding outerType) {
+	MemberTypeBinding copy = new MemberTypeBinding(this);
+	copy.enclosingType = (SourceTypeBinding) outerType;
+	return copy;
 }
 
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#initializeDeprecatedAnnotationTagBits()
  */
 public void initializeDeprecatedAnnotationTagBits() {
+	if (!isPrototype()) {
+		this.prototype.initializeDeprecatedAnnotationTagBits();
+		return;
+	}
 	if ((this.tagBits & TagBits.DeprecatedAnnotationResolved) == 0) {
 		super.initializeDeprecatedAnnotationTagBits();
 		if ((this.tagBits & TagBits.AnnotationDeprecated) == 0) {
@@ -53,6 +79,10 @@ public void initializeDeprecatedAnnotationTagBits() {
 	}
 }
 public String toString() {
-	return "Member type : " + new String(sourceName()) + " " + super.toString(); //$NON-NLS-2$ //$NON-NLS-1$
+	if (this.hasTypeAnnotations()) {
+		return annotatedDebugName();
+    } else {
+    	return "Member type : " + new String(sourceName()) + " " + super.toString(); //$NON-NLS-2$ //$NON-NLS-1$
+    }
 }
 }

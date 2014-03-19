@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.processing.JobManager;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class IndexManager extends JobManager implements IIndexConstants {
 
 	// key = containerPath, value = indexLocation path
@@ -309,9 +310,14 @@ public synchronized Index getIndex(IPath containerPath, IndexLocation indexLocat
 				// supposed to be in reuse state but error in the index file, so reindex.
 				if (VERBOSE)
 					Util.verbose("-> cannot reuse given index: "+indexLocation+" path: "+containerPathString); //$NON-NLS-1$ //$NON-NLS-2$
-				this.indexLocations.put(containerPath, null);
-				indexLocation = computeIndexLocation(containerPath);
-				rebuildIndex(indexLocation, containerPath);
+				if(!IS_MANAGING_PRODUCT_INDEXES_PROPERTY) {
+					this.indexLocations.put(containerPath, null);
+					indexLocation = computeIndexLocation(containerPath);
+					rebuildIndex(indexLocation, containerPath);
+				}
+				else {
+					rebuildIndex(indexLocation, containerPath, true);
+				}
 				return null;
 			}
 		}
@@ -500,6 +506,20 @@ public void indexDocument(SearchDocument searchDocument, SearchParticipant searc
 		searchDocument.setIndex(null);
 	}
 }
+public void indexResolvedDocument(SearchDocument searchDocument, SearchParticipant searchParticipant, Index index, IPath indexLocation) {
+	searchParticipant.resolveDocument(searchDocument);
+	ReadWriteMonitor monitor = index.monitor;
+	if (monitor == null) 
+		return; // index got deleted since acquired
+	try {
+		monitor.enterWrite(); // ask permission to write
+		searchDocument.setIndex(index);
+		searchParticipant.indexResolvedDocument(searchDocument, indexLocation);	
+	} finally {
+		searchDocument.setIndex(null);
+		monitor.exitWrite();
+	}
+}
 /**
  * Trigger addition of the entire content of a project
  * Note: the actual operation is performed in background
@@ -540,9 +560,16 @@ public void indexLibrary(IPath path, IProject requestingProject, URL indexURL) {
 public void indexLibrary(IPath path, IProject requestingProject, URL indexURL, final boolean updateIndex) {
 	// requestingProject is no longer used to cancel jobs but leave it here just in case
 	IndexLocation indexFile = null;
+	boolean forceIndexUpdate = false;
 	if(indexURL != null) {
 		if(IS_MANAGING_PRODUCT_INDEXES_PROPERTY) {
 			indexFile = computeIndexLocation(path, indexURL);
+			if(!updateIndex && !indexFile.exists()) {
+				forceIndexUpdate = true;
+			}
+			else {
+				forceIndexUpdate = updateIndex;
+			}
 		}
 		else {
 			indexFile = IndexLocation.createIndexLocation(indexURL);
@@ -550,7 +577,6 @@ public void indexLibrary(IPath path, IProject requestingProject, URL indexURL, f
 	}
 	if (JavaCore.getPlugin() == null) return;
 	IndexRequest request = null;
-	boolean forceIndexUpdate = IS_MANAGING_PRODUCT_INDEXES_PROPERTY && updateIndex;
 	Object target = JavaModel.getTarget(path, true);
 	if (target instanceof IFile) {
 		request = new AddJarFileToIndex((IFile) target, indexFile, this, forceIndexUpdate);
@@ -641,6 +667,9 @@ private char[][] readJavaLikeNamesFile() {
 	return null;
 }
 private void rebuildIndex(IndexLocation indexLocation, IPath containerPath) {
+	rebuildIndex(indexLocation, containerPath, false);
+}
+private void rebuildIndex(IndexLocation indexLocation, IPath containerPath, final boolean updateIndex) {
 	Object target = JavaModel.getTarget(containerPath, true);
 	if (target == null) return;
 
@@ -656,9 +685,9 @@ private void rebuildIndex(IndexLocation indexLocation, IPath containerPath) {
 	} else if (target instanceof IFolder) {
 		request = new IndexBinaryFolder((IFolder) target, this);
 	} else if (target instanceof IFile) {
-		request = new AddJarFileToIndex((IFile) target, null, this);
+		request = new AddJarFileToIndex((IFile) target, null, this, updateIndex);
 	} else if (target instanceof File) {
-		request = new AddJarFileToIndex(containerPath, null, this);
+		request = new AddJarFileToIndex(containerPath, null, this, updateIndex);
 	}
 	if (request != null)
 		request(request);
@@ -851,6 +880,23 @@ public synchronized boolean resetIndex(IPath containerPath) {
 		return false;
 	}
 }
+/**
+ * {@link #saveIndex(Index)} will only update the state if there are no other jobs running against the same
+ * underlying resource for this index.  Pre-built indexes must be in a {@link #REUSE_STATE} state even if
+ * there is another job to run against it as the subsequent job will find the index and not save it in the
+ * right state.
+ * Refer to https://bugs.eclipse.org/bugs/show_bug.cgi?id=405932
+ */
+public void savePreBuiltIndex(Index index) throws IOException {
+	if (index.hasChanged()) {
+		if (VERBOSE)
+			Util.verbose("-> saving pre-build index " + index.getIndexLocation()); //$NON-NLS-1$
+		index.save();
+	}
+	synchronized (this) {
+		updateIndexState(index.getIndexLocation(), REUSE_STATE);
+	}
+}
 public void saveIndex(Index index) throws IOException {
 	// must have permission to write from the write monitor
 	if (index.hasChanged()) {
@@ -932,12 +978,15 @@ public void scheduleDocumentIndexing(final SearchDocument searchDocument, IPath 
 			if (index == null) return true;
 			ReadWriteMonitor monitor = index.monitor;
 			if (monitor == null) return true; // index got deleted since acquired
-
+			final Path indexPath = new Path(indexLocation.getCanonicalFilePath());
 			try {
 				monitor.enterWrite(); // ask permission to write
-				indexDocument(searchDocument, searchParticipant, index, new Path(indexLocation.getCanonicalFilePath()));
+				indexDocument(searchDocument, searchParticipant, index, indexPath);
 			} finally {
 				monitor.exitWrite(); // free write lock
+			}
+			if (searchDocument.shouldIndexResolvedDocument()) {
+				indexResolvedDocument(searchDocument, searchParticipant, index, indexPath);
 			}
 			return true;
 		}
@@ -971,6 +1020,7 @@ private void readIndexMap() {
 			if (savedSignature.equals(new String(names[0]))) {
 				for (int i = 1, l = names.length-1 ; i < l ; i+=2) {
 					IndexLocation indexPath = IndexLocation.createIndexLocation(new URL(new String(names[i])));
+					if (indexPath == null) continue;
 					this.indexLocations.put(new Path(new String(names[i+1])), indexPath );
 					this.indexStates.put(indexPath, REUSE_STATE);
 				}

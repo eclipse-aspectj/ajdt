@@ -48,6 +48,7 @@ import java.util.List;
  * @since 2.0
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class TypeDeclaration extends AbstractTypeDeclaration {
 
 	// AspectJ Extension start
@@ -68,11 +69,17 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 			//throw new ExceptionInInitializerError(ex.getMessage());
 		}
 	}
-
+	
+	/**
+	 * @since 3.10
+	 */
 	public interface ITypeDeclFactory {
 		public TypeDeclaration createTypeFor(AST ast);
 	}
 	
+	/**
+	 * @since 3.10
+	 */
 	public static TypeDeclaration getTypeDeclaration(AST ast) {
 		return declarationFactory.createTypeFor(ast);
 	}
@@ -162,7 +169,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
-	 * @since 3.0
+	 * @since 3.10 // Up'd from 3.0 because of @since check due to raising visibility
 	 */
 	// AspectJ extension, modified not to be private or final
 	protected /*private*/ static /*final*/ List PROPERTY_DESCRIPTORS_2_0;
@@ -171,7 +178,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
-	 * @since 3.1
+	 * @since 3.10 // Up'd from 3.1 because of @since check due to raising visibility
 	 */
 	// AspectJ extension, modified not to be private or final
 	protected /*private*/ static /*final*/ List PROPERTY_DESCRIPTORS_3_0;
@@ -230,7 +237,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	 * The type parameters (element type: {@link TypeParameter}).
 	 * Null in JLS2. Added in JLS3; defaults to an empty list
 	 * (see constructor).
-	 * @since 3.1
+	 * @since 3.10 // Up'd from 3.1 because of @since check due to raising visibility
 	 */
     // AspectJ Extension, was private, now protected
 	protected ASTNode.NodeList typeParameters = null;
@@ -246,7 +253,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	 * The superinterface names (element type: {@link Name}).
 	 * JLS2 only; defaults to an empty list. Not used in JLS3.
 	 * (see constructor).
-	 *
+	 * @since 3.10 // Added because of @since check due to raising visibility
 	 */
     // AspectJ Extension, was private, now protected
 	protected ASTNode.NodeList superInterfaceNames = null;
@@ -263,7 +270,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	 * The superinterface types (element type: {@link Type}).
 	 * Null in JLS2. Added in JLS3; defaults to an empty list
 	 * (see constructor).
-	 * @since 3.1
+	 * @since 3.10 // Up'd from 3.1 because of @since check due to raising visibility
 	 */
     // AspectJ Extension, was private, now protected
 	protected ASTNode.NodeList superInterfaceTypes = null;

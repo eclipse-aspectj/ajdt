@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,8 @@
  *								bug 365859 - [compiler][null] distinguish warnings based on flow analysis vs. null annotations
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *								bug 393719 - [compiler] inconsistent warnings on iteration variables
+ *								Bug 411964 - [1.8][null] leverage null type annotation in foreach statement
+ *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
  *     Jesper S Moller -  Contribution for
  *								bug 401853 - Eclipse Java compiler creates invalid bytecode (java.lang.VerifyError)
  *******************************************************************************/
@@ -108,11 +110,9 @@ public class ForeachStatement extends Statement {
 			condInfo.nullInfoLessUnconditionalCopy();
 		actionInfo.markAsDefinitelyUnknown(elementVarBinding);
 		if (currentScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled) {
-			// this currently produces an unavoidable warning against all @NonNull element vars:
-			int nullStatus = this.elementVariable.checkAssignmentAgainstNullAnnotation(currentScope, flowContext, 
-															elementVarBinding, FlowInfo.UNKNOWN, this.collection, this.collectionElementType);
-			// TODO (stephan): 	once we have JSR 308 fetch nullStatus from the collection element type
-			//              	and feed the result into the above check (instead of FlowInfo.UNKNOWN)
+			int elementNullStatus = FlowInfo.tagBitsToNullStatus(this.collectionElementType.tagBits);
+			int nullStatus = NullAnnotationMatching.checkAssignment(currentScope, flowContext, elementVarBinding, elementNullStatus,
+																		this.collection, this.collectionElementType);
 			if ((elementVarBinding.type.tagBits & TagBits.IsBaseType) == 0) {
 				actionInfo.markNullStatus(elementVarBinding, nullStatus);
 			}
@@ -409,7 +409,7 @@ public class ForeachStatement extends Statement {
 		this.scope = new BlockScope(upperScope);
 		this.elementVariable.resolve(this.scope); // collection expression can see itemVariable
 		TypeBinding elementType = this.elementVariable.type.resolvedType;
-		TypeBinding collectionType = this.collection == null ? null : this.collection.resolveType(this.scope);
+		TypeBinding collectionType = this.collection == null ? null : this.collection.resolveType(upperScope);
 
 		TypeBinding expectedCollectionType = null;
 		if (elementType != null && collectionType != null) {

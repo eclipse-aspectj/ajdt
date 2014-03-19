@@ -42,10 +42,12 @@ public class EqualExpression extends BinaryExpression {
 		// - allocation expression, some literals, this reference (see inside expressionNonNullComparison(..))
 		// these checks do not leverage the flowInfo.
 		boolean checkEquality = ((this.bits & OperatorMASK) >> OperatorSHIFT) == EQUAL_EQUAL;
-		if (leftStatus == FlowInfo.NON_NULL && rightStatus == FlowInfo.NULL) {
-			leftNonNullChecked = scope.problemReporter().expressionNonNullComparison(this.left, checkEquality);
-		} else if (leftStatus == FlowInfo.NULL && rightStatus == FlowInfo.NON_NULL) {
-			rightNonNullChecked = scope.problemReporter().expressionNonNullComparison(this.right, checkEquality);
+		if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING_MASK) == 0) {
+			if (leftStatus == FlowInfo.NON_NULL && rightStatus == FlowInfo.NULL) {
+				leftNonNullChecked = scope.problemReporter().expressionNonNullComparison(this.left, checkEquality);
+			} else if (leftStatus == FlowInfo.NULL && rightStatus == FlowInfo.NON_NULL) {
+				rightNonNullChecked = scope.problemReporter().expressionNonNullComparison(this.right, checkEquality);
+			}
 		}
 		
 		boolean contextualCheckEquality = checkEquality ^ ((flowContext.tagBits & FlowContext.INSIDE_NEGATION) != 0);
@@ -833,8 +835,12 @@ public class EqualExpression extends BinaryExpression {
 			return null;
 		}
 
+		final CompilerOptions compilerOptions = scope.compilerOptions();
+		if (compilerOptions.complainOnUninternedIdentityComparison && originalRightType.hasTypeBit(TypeIds.BitUninternedType) && originalLeftType.hasTypeBit(TypeIds.BitUninternedType))
+			scope.problemReporter().uninternedIdentityComparison(this, originalLeftType, originalRightType, scope.referenceCompilationUnit());
+
 		// autoboxing support
-		boolean use15specifics = scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5;
+		boolean use15specifics = compilerOptions.sourceLevel >= ClassFileConstants.JDK1_5;
 		TypeBinding leftType = originalLeftType, rightType = originalRightType;
 		if (use15specifics) {
 			if (leftType != TypeBinding.NULL && leftType.isBaseType()) {

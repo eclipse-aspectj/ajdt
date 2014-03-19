@@ -5,14 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ *                          Bug 409236 - [1.8][compiler] Type annotations on intersection cast types dropped by code generator
+ *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.util;
 
@@ -52,12 +50,13 @@ import org.aspectj.org.eclipse.jdt.core.util.ILocalVariableReferenceInfo;
    } element_value_pairs[num_element_value_pairs];
 */
 /**
- * @since 3.9 BETA_JAVA8
+ * @since 3.10
  */
 public class ExtendedAnnotation extends ClassFileStruct implements IExtendedAnnotation {
 
 	private static final IAnnotationComponent[] NO_ENTRIES = new IAnnotationComponent[0];
 	private final static int[][] NO_TYPEPATH = new int[0][0];
+	private final static ILocalVariableReferenceInfo[] NO_LOCAL_VARIABLE_TABLE_ENTRIES = new ILocalVariableReferenceInfo[0];
 
 	private int targetType;
 	private int annotationTypeIndex;
@@ -73,7 +72,7 @@ public class ExtendedAnnotation extends ClassFileStruct implements IExtendedAnno
 	private int typeParameterBoundIndex;
 	private int parameterIndex;
 	private int exceptionTableIndex;
-	private ILocalVariableReferenceInfo[] localVariableTable;
+	private ILocalVariableReferenceInfo[] localVariableTable = NO_LOCAL_VARIABLE_TABLE_ENTRIES;
 	
 	/**
 	 * Constructor for ExtendedAnnotation, builds an annotation from the supplied bytestream.
@@ -209,7 +208,10 @@ public class ExtendedAnnotation extends ClassFileStruct implements IExtendedAnno
 
 			case IExtendedAnnotationConstants.CAST :
 				this.offset = u2At(classFileBytes, this.readOffset, localOffset);
-				this.readOffset += 3; // skipping the 3rd byte which will be 0 for CAST
+				this.readOffset += 2; 
+				// read type_argument_index
+				this.annotationTypeIndex = u1At(classFileBytes, this.readOffset, localOffset);
+				this.readOffset++;
 				break;
 
 			case IExtendedAnnotationConstants.CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT :
@@ -267,7 +269,7 @@ public class ExtendedAnnotation extends ClassFileStruct implements IExtendedAnno
 	}
 
 	public int getLocalVariableRefenceInfoLength() {
-		return this.localVariableTable != null ? this.localVariableTable.length : 0;
+		return this.localVariableTable.length;
 	}
 
 	public ILocalVariableReferenceInfo[] getLocalVariableTable() {

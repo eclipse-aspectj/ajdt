@@ -38,6 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.index.IndexLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.search.JavaSearchDocument;
 import org.aspectj.org.eclipse.jdt.internal.core.search.processing.JobManager;
 
+@SuppressWarnings("rawtypes")
 class AddJarFileToIndex extends IndexRequest {
 
 	private static final char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
@@ -234,7 +235,12 @@ class AddJarFileToIndex extends IndexRequest {
 						this.manager.indexDocument(entryDocument, participant, index, indexPath);
 					}
 				}
-				this.manager.saveIndex(index);
+				if(this.forceIndexUpdate) {
+					this.manager.savePreBuiltIndex(index);
+				}
+				else {
+					this.manager.saveIndex(index);
+				}
 				if (JobManager.VERBOSE)
 					org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> done indexing of " //$NON-NLS-1$
 						+ zip.getName() + " (" //$NON-NLS-1$

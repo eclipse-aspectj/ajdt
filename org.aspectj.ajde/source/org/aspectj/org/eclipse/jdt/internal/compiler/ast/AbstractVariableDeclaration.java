@@ -1,27 +1,28 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
-public abstract class AbstractVariableDeclaration extends Statement implements InvocationSite, ExpressionContext {
+public abstract class AbstractVariableDeclaration extends Statement implements InvocationSite {
 	public int declarationEnd;
 	/**
 	 * For local declarations (outside of for statement initialization) and field declarations,
@@ -63,6 +64,10 @@ public abstract class AbstractVariableDeclaration extends Statement implements I
 	 * Returns the constant kind of this variable declaration
 	 */
 	public abstract int getKind();
+
+	public InferenceContext18 freshInferenceContext(Scope scope) {
+		return null;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#isSuperAccess()

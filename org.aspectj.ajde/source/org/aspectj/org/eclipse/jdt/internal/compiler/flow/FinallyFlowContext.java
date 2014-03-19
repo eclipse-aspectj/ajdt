@@ -15,6 +15,8 @@
  *								bug 385626 - @NonNull fails across loop boundaries
  *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
  *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *     Jesper S Moller - Contributions for
+ *								bug 404657 - [1.8][compiler] Analysis for effectively final variables fails to consider loops
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
@@ -25,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
@@ -77,10 +80,13 @@ public void complainOnDeferredChecks(FlowInfo flowInfo, BlockScope scope) {
 		} else {
 			// final local variable
 			if (flowInfo.isPotentiallyAssigned((LocalVariableBinding)variable)) {
-				complained = true;
-				scope.problemReporter().duplicateInitializationOfFinalLocal(
-					(LocalVariableBinding) variable,
-					this.finalAssignments[i]);
+				variable.tagBits &= ~TagBits.IsEffectivelyFinal;
+				if (variable.isFinal()) {
+					complained = true;
+					scope.problemReporter().duplicateInitializationOfFinalLocal(
+						(LocalVariableBinding) variable,
+						this.finalAssignments[i]);
+				}
 			}
 		}
 		// any reference reported at this level is removed from the parent context

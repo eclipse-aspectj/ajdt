@@ -16,18 +16,20 @@ import java.util.List;
 
 /**
  * Variable declaration fragment AST node type, used in field declarations,
- * local variable declarations, and <code>ForStatement</code> initializers.
+ * local variable declarations, <code>ForStatement</code> initializers,
+ * and <code>LambdaExpression</code> parameters.
  * In contrast to <code>SingleVariableDeclaration</code>, fragments are
- * missing the modifiers and the type; these are located in the fragment's
- * parent node.
+ * missing the modifiers and the type; these are either located in the fragment's
+ * parent node, or inferred (for lambda parameters).
  *
  * <pre>
  * VariableDeclarationFragment:
- *    Identifier { ExtraDimension } [ <b>=</b> Expression ]
+ *    Identifier { Dimension } [ <b>=</b> Expression ]
  * </pre>
  * @since 2.0
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
+@SuppressWarnings("rawtypes")
 public class VariableDeclarationFragment extends VariableDeclaration {
 
 	/**
@@ -47,8 +49,8 @@ public class VariableDeclarationFragment extends VariableDeclaration {
 			internalExtraDimensionsPropertyFactory(VariableDeclarationFragment.class);
 
 	/**
-	 * The "extraDimensions2" structural property of this node type (element type: {@link ExtraDimension}) (added in JLS8 API).
-	 * @since 3.9 BETA_JAVA8
+	 * The "extraDimensions2" structural property of this node type (element type: {@link Dimension}) (added in JLS8 API).
+	 * @since 3.10
 	 */
 	public static final ChildListPropertyDescriptor EXTRA_DIMENSIONS2_PROPERTY =
 			internalExtraDimensions2PropertyFactory(VariableDeclarationFragment.class);
@@ -72,7 +74,7 @@ public class VariableDeclarationFragment extends VariableDeclaration {
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	private static final List PROPERTY_DESCRIPTORS_8_0;
 
@@ -142,7 +144,7 @@ public class VariableDeclarationFragment extends VariableDeclaration {
 
 	/* (omit javadoc for this method)
 	 * Method declared on VariableDeclaration.
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	final ChildListPropertyDescriptor internalExtraDimensions2Property() {
 		return EXTRA_DIMENSIONS2_PROPERTY;

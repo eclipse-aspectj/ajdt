@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Util implements SuffixConstants {
 
 	/**
@@ -860,7 +861,7 @@ public class Util implements SuffixConstants {
 			int suffixIndex = suffixLength - i - 1;
 			if (c != SUFFIX_aj[suffixIndex] && c != SUFFIX_AJ[suffixIndex]) return false;
 		}
-		return true;		
+		return true;
 	}
 	// End AspectJ Extension
 
@@ -1570,5 +1571,21 @@ public class Util implements SuffixConstants {
 			default :
 				return scanTypeSignature(string, start);
 		}
+	}
+
+	public static boolean effectivelyEqual(Object [] one, Object [] two) {
+		if (one == two)
+			return true;
+		int oneLength = one == null ? 0 : one.length;
+		int twoLength = two == null ? 0 : two.length;
+		if (oneLength != twoLength)
+			return false;
+		if (oneLength == 0)
+			return true;
+		for (int i = 0; i < one.length; i++) {
+			if (one[i] != two[i])
+				return false;
+		}
+		return true;
 	}
 }

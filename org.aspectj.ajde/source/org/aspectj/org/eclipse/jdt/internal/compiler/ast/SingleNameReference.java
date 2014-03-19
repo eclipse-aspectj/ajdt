@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -16,9 +12,11 @@
  *								bug 185682 - Increment/decrement operators mark local variables as read
  *								bug 331649 - [compiler][null] consider null annotations for fields
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								Bug 412203 - [compiler] Internal compiler error: java.lang.IllegalArgumentException: info cannot be null
  *     Jesper S Moller - <jesper@selskabet.org>   - Contributions for 
  *     							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *								bug 378674 - "The method can be declared as static" is wrong
+ *								bug 404657 - [1.8][compiler] Analysis for effectively final variables fails to consider loops
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -124,7 +122,8 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 				} else {
 					currentScope.problemReporter().cannotAssignToFinalField(fieldBinding, this);
 				}
-			} else if (!isCompound && fieldBinding.isNonNull()) {
+			} else if (!isCompound && fieldBinding.isNonNull()
+						&& TypeBinding.equalsEquals(fieldBinding.declaringClass, currentScope.enclosingReceiverType())) { // inherited fields are not tracked here
 				// record assignment for detecting uninitialized non-null fields:
 				flowInfo.markAsDefinitelyAssigned(fieldBinding);
 			}
@@ -137,19 +136,23 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 			} else {
 				this.bits &= ~ASTNode.FirstAssignmentToLocal;
 			}
-			if (flowInfo.isPotentiallyAssigned(localBinding)) {
+			if (flowInfo.isPotentiallyAssigned(localBinding) || (this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
 				localBinding.tagBits &= ~TagBits.IsEffectivelyFinal;
 				if (!isFinal && (this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
 					currentScope.problemReporter().cannotReferToNonEffectivelyFinalOuterLocal(localBinding, this);
 				}
 			}
-			if (isFinal) {
+			if (! isFinal && (localBinding.tagBits & TagBits.IsEffectivelyFinal) != 0 && (localBinding.tagBits & TagBits.IsArgument) == 0) {
+				flowContext.recordSettingFinal(localBinding, this, flowInfo);
+			} else if (isFinal) {
 				if ((this.bits & ASTNode.DepthMASK) == 0) {
 					// tolerate assignment to final local in unreachable code (45674)
 					if ((isReachable && isCompound) || !localBinding.isBlankFinal()){
 						currentScope.problemReporter().cannotAssignToFinalLocal(localBinding, this);
 					} else if (flowInfo.isPotentiallyAssigned(localBinding)) {
 						currentScope.problemReporter().duplicateInitializationOfFinalLocal(localBinding, this);
+					} else if ((this.bits & ASTNode.IsCapturedOuterLocal) != 0) {
+						currentScope.problemReporter().cannotAssignToFinalOuterLocal(localBinding, this);
 					} else {
 						flowContext.recordSettingFinal(localBinding, this, flowInfo);
 					}
@@ -216,7 +219,7 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 			SourceTypeBinding sourceType = scope.enclosingSourceType();
 			if (this.constant == Constant.NotAConstant
 					&& !methodScope.isStatic
-					&& (sourceType == declaringClass || sourceType.superclass == declaringClass) // enum constant body
+					&& (TypeBinding.equalsEquals(sourceType, declaringClass) || TypeBinding.equalsEquals(sourceType.superclass, declaringClass)) // enum constant body
 					&& methodScope.isInsideInitializerOrConstructor()) {
 				scope.problemReporter().enumStaticFieldUsedDuringInitialization(fieldBinding, this);
 			}
@@ -238,7 +241,7 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 		scope.problemReporter().deprecatedField(fieldBinding, this);
 
 	if ((this.bits & ASTNode.IsStrictlyAssigned) == 0
-			&& methodScope.enclosingSourceType() == fieldBinding.original().declaringClass
+			&& TypeBinding.equalsEquals(methodScope.enclosingSourceType(), fieldBinding.original().declaringClass)
 			&& methodScope.lastVisibleFieldID >= 0
 			&& fieldBinding.id >= methodScope.lastVisibleFieldID
 			&& (!fieldBinding.isStatic() || methodScope.isStatic)) {
@@ -419,7 +422,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 				if (codegenField.isStatic()) {
 					if (!valueRequired
 							// if no valueRequired, still need possible side-effects of <clinit> invocation, if field belongs to different class
-							&& ((FieldBinding)this.binding).original().declaringClass == this.actualReceiverType.erasure()
+							&& TypeBinding.equalsEquals(((FieldBinding)this.binding).original().declaringClass, this.actualReceiverType.erasure())
 							&& ((this.implicitConversion & TypeIds.UNBOXING) == 0)
 							&& this.genericCast == null) {
 						// if no valueRequired, optimize out entire gen
@@ -777,7 +780,7 @@ public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream
 			}
 
 			// using incr bytecode if possible
-			if (localBinding.type == TypeBinding.INT) {
+			if (TypeBinding.equalsEquals(localBinding.type, TypeBinding.INT)) {
 				if (valueRequired) {
 					codeStream.load(localBinding);
 				}
@@ -851,7 +854,7 @@ public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotatio
 		case Binding.FIELD : // reading a field
 		case Binding.LOCAL : // reading a local variable
 			if (supportTypeAnnotations 
-					|| (((VariableBinding)this.binding).tagBits & (TagBits.AnnotationNonNull|TagBits.AnnotationNullable)) != 0)
+					|| (((VariableBinding)this.binding).tagBits & TagBits.AnnotationNullMASK) != 0)
 				return (VariableBinding) this.binding;
 	}
 	return null;

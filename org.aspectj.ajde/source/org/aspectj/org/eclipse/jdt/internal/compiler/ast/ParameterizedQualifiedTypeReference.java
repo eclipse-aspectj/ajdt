@@ -5,15 +5,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
  *								bug 342671 - ClassCastException: org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding cannot be cast to org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding
  *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
+ *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
+ *								Bug 416181 – [1.8][compiler][null] Invalid assignment is not rejected by the compiler
  *        Andy Clement - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
@@ -56,7 +54,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	}
 	public ParameterizedQualifiedTypeReference(char[][] tokens, TypeReference[][] typeArguments, int dim, Annotation[][] annotationsOnDimensions, long[] positions) {
 		this(tokens, typeArguments, dim, positions);
-		this.annotationsOnDimensions = annotationsOnDimensions;
+		setAnnotationsOnDimensions(annotationsOnDimensions);
 		if (annotationsOnDimensions != null) {
 			this.bits |= ASTNode.HasTypeAnnotations;
 		}
@@ -83,16 +81,15 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			}
 		}
 	}
-	public TypeReference copyDims(int dim){
-		return new ParameterizedQualifiedTypeReference(this.tokens, this.typeArguments, dim, this.sourcePositions);
-	}
-	public TypeReference copyDims(int dim, Annotation[][] dimensionAnnotations){
-		ParameterizedQualifiedTypeReference parameterizedQualifiedTypeReference = new ParameterizedQualifiedTypeReference(this.tokens, this.typeArguments, dim, dimensionAnnotations, this.sourcePositions);
-		parameterizedQualifiedTypeReference.bits |= (this.bits & ASTNode.HasTypeAnnotations);
-		if (dimensionAnnotations != null) {
-			parameterizedQualifiedTypeReference.bits |= ASTNode.HasTypeAnnotations;
-		}
-		return parameterizedQualifiedTypeReference;
+	public TypeReference augmentTypeWithAdditionalDimensions(int additionalDimensions, Annotation[][] additionalAnnotations, boolean isVarargs) {
+		int totalDimensions = this.dimensions() + additionalDimensions;
+		Annotation [][] allAnnotations = getMergedAnnotationsOnDimensions(additionalDimensions, additionalAnnotations);
+		ParameterizedQualifiedTypeReference pqtr = new ParameterizedQualifiedTypeReference(this.tokens, this.typeArguments, totalDimensions, allAnnotations, this.sourcePositions);
+		pqtr.annotations = this.annotations;
+		pqtr.bits |= (this.bits & ASTNode.HasTypeAnnotations);
+		if (!isVarargs)
+			pqtr.extendedDimensions = additionalDimensions;
+		return pqtr;
 	}
 	public boolean isParameterizedTypeReference() {
 		return true;
@@ -135,6 +132,10 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 		return qParamName;
 	}
 
+	public TypeReference[][] getTypeArguments() {
+		return this.typeArguments;
+	}
+	
 	/* (non-Javadoc)
      * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference#getTypeBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope)
      */
@@ -166,9 +167,12 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			}
 		}
 		this.bits |= ASTNode.DidResolve;
-		resolveAnnotations(scope);
 		TypeBinding type = internalResolveLeafType(scope, checkBounds);
 		createArrayType(scope);
+		resolveAnnotations(scope);
+		if (this.typeArguments != null)
+			// relevant null annotations are on the inner most type:
+			checkNullConstraints(scope, this.typeArguments[this.typeArguments.length-1]); 
 		return type == null ? type : this.resolvedType;
 	}
 	private TypeBinding internalResolveLeafType(Scope scope, boolean checkBounds) {
@@ -231,14 +235,15 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 						: scope.environment().convertToParameterizedType(qualifyingType);
 				}
 			} else {
-				 rejectAnnotationsOnStaticMemberQualififer(scope, currentType, i);
+				if (this.annotations != null)
+					rejectAnnotationsOnStaticMemberQualififer(scope, currentType, this.annotations[i-1]);
 				if (typeIsConsistent && currentType.isStatic()
 						&& (qualifyingType.isParameterizedTypeWithActualArguments() || qualifyingType.isGenericType())) {
 					scope.problemReporter().staticMemberOfParameterizedType(this, scope.environment().createParameterizedType((ReferenceBinding)currentType.erasure(), null, qualifyingType), i);
 					typeIsConsistent = false;
 				}
 				ReferenceBinding enclosingType = currentType.enclosingType();
-				if (enclosingType != null && enclosingType.erasure() != qualifyingType.erasure()) { // qualifier != declaring/enclosing
+				if (enclosingType != null && TypeBinding.notEquals(enclosingType.erasure(), qualifyingType.erasure())) { // qualifier != declaring/enclosing
 					qualifyingType = enclosingType; // inherited member type, leave it associated with its enclosing rather than subtype
 				}
 			}
@@ -264,10 +269,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 					if (argType == null) {
 						argHasError = true;
 					} else {
-						if (arg.annotations != null)
-							argTypes[j] = captureTypeAnnotations(scope, qualifyingType, argType, arg.annotations[0]);
-						else
-							argTypes[j] = argType;
+						argTypes[j] = argType;
 					}
 				}
 				if (argHasError) {
@@ -304,7 +306,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 						typeIsConsistent = false;
 					}
 				}
-				ParameterizedTypeBinding parameterizedType = scope.environment().createParameterizedType(currentOriginal, argTypes, currentType.tagBits & TagBits.AnnotationNullMASK, qualifyingType);
+				ParameterizedTypeBinding parameterizedType = scope.environment().createParameterizedType(currentOriginal, argTypes, qualifyingType);
 				// check argument type compatibility for non <> cases - <> case needs no bounds check, we will scream foul if needed during inference.
 				if (!isDiamond) {
 					if (checkBounds) // otherwise will do it in Scope.connectTypeVariables() or generic method resolution
@@ -389,26 +391,27 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 			}
 			output.append('>');
 		}
+		Annotation [][] annotationsOnDimensions = this.getAnnotationsOnDimensions();
 		if ((this.bits & IsVarArgs) != 0) {
 			for (int i= 0 ; i < this.dimensions - 1; i++) {
-				if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[i] != null) {
+				if (annotationsOnDimensions != null && annotationsOnDimensions[i] != null) {
 					output.append(" "); //$NON-NLS-1$
-					printAnnotations(this.annotationsOnDimensions[i], output);
+					printAnnotations(annotationsOnDimensions[i], output);
 					output.append(" "); //$NON-NLS-1$
 				}
 				output.append("[]"); //$NON-NLS-1$
 			}
-			if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[this.dimensions - 1] != null) {
+			if (annotationsOnDimensions != null && annotationsOnDimensions[this.dimensions - 1] != null) {
 				output.append(" "); //$NON-NLS-1$
-				printAnnotations(this.annotationsOnDimensions[this.dimensions - 1], output);
+				printAnnotations(annotationsOnDimensions[this.dimensions - 1], output);
 				output.append(" "); //$NON-NLS-1$
 			}
 			output.append("..."); //$NON-NLS-1$
 		} else {
 			for (int i= 0 ; i < this.dimensions; i++) {
-				if (this.annotationsOnDimensions != null && this.annotationsOnDimensions[i] != null) {
+				if (annotationsOnDimensions != null && annotationsOnDimensions[i] != null) {
 					output.append(" "); //$NON-NLS-1$
-					printAnnotations(this.annotationsOnDimensions[i], output);
+					printAnnotations(annotationsOnDimensions[i], output);
 					output.append(" "); //$NON-NLS-1$
 				}
 				output.append("[]"); //$NON-NLS-1$
@@ -433,9 +436,10 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 						this.annotations[i][j].traverse(visitor, scope);
 				}
 			}
-			if (this.annotationsOnDimensions != null) {
-				for (int i = 0, max = this.annotationsOnDimensions.length; i < max; i++) {
-					Annotation[] annotations2 = this.annotationsOnDimensions[i];
+			Annotation [][] annotationsOnDimensions = getAnnotationsOnDimensions(true);
+			if (annotationsOnDimensions != null) {
+				for (int i = 0, max = annotationsOnDimensions.length; i < max; i++) {
+					Annotation[] annotations2 = annotationsOnDimensions[i];
 					for (int j = 0, max2 = annotations2 == null ? 0 : annotations2.length; j < max2; j++) {
 						Annotation annotation = annotations2[j];
 						annotation.traverse(visitor, scope);
@@ -463,9 +467,10 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 						this.annotations[i][j].traverse(visitor, scope);
 				}
 			}
-			if (this.annotationsOnDimensions != null) {
-				for (int i = 0, max = this.annotationsOnDimensions.length; i < max; i++) {
-					Annotation[] annotations2 = this.annotationsOnDimensions[i];
+			Annotation [][] annotationsOnDimensions = getAnnotationsOnDimensions(true);
+			if (annotationsOnDimensions != null) {
+				for (int i = 0, max = annotationsOnDimensions.length; i < max; i++) {
+					Annotation[] annotations2 = annotationsOnDimensions[i];
 					for (int j = 0, max2 = annotations2 == null ? 0 : annotations2.length; j < max2; j++) {
 						Annotation annotation = annotations2[j];
 						annotation.traverse(visitor, scope);

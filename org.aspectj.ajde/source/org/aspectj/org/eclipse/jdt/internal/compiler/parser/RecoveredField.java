@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 
+@SuppressWarnings("rawtypes")
 public class RecoveredField extends RecoveredElement {
 
 	public FieldDeclaration fieldDeclaration;
@@ -34,7 +35,7 @@ public class RecoveredField extends RecoveredElement {
 
 	public RecoveredAnnotation[] annotations;
 	public int annotationCount;
-
+	
 	public int modifiers;
 	public int modifiersStart;
 

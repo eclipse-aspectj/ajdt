@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -54,10 +55,12 @@ class TypeBinding implements ITypeBinding {
 		Modifier.ABSTRACT | Modifier.STATIC | Modifier.FINAL | Modifier.STRICTFP;
 
 	org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding binding;
+	private TypeBinding prototype = null;
 	private String key;
 	private BindingResolver resolver;
 	private IVariableBinding[] fields;
 	private IAnnotationBinding[] annotations;
+	private IAnnotationBinding[] typeAnnotations;
 	private IMethodBinding[] methods;
 	private ITypeBinding[] members;
 	private ITypeBinding[] interfaces;
@@ -68,6 +71,8 @@ class TypeBinding implements ITypeBinding {
 	public TypeBinding(BindingResolver resolver, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding binding) {
 		this.binding = binding;
 		this.resolver = resolver;
+		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding compilerPrototype = binding.prototype();
+		this.prototype = (TypeBinding) (compilerPrototype == null || compilerPrototype == binding ? null : resolver.getTypeBinding(compilerPrototype)); //$IDENTITY-COMPARISON$
 	}
 
 	public ITypeBinding createArrayType(int dimension) {
@@ -80,6 +85,9 @@ class TypeBinding implements ITypeBinding {
 	}
 
 	public IAnnotationBinding[] getAnnotations() {
+		if (this.prototype != null) {
+			return this.prototype.getAnnotations();
+		}
 		if (this.annotations != null) {
 			return this.annotations;
 		}
@@ -90,29 +98,35 @@ class TypeBinding implements ITypeBinding {
 			refType = (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding) this.binding;
 		}
 		if (refType != null) {
-			org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] internalAnnotations = refType.getAnnotations();
-			int length = internalAnnotations == null ? 0 : internalAnnotations.length;
-			if (length != 0) {
-				IAnnotationBinding[] tempAnnotations = new IAnnotationBinding[length];
-				int convertedAnnotationCount = 0;
-				for (int i = 0; i < length; i++) {
-					org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding internalAnnotation = internalAnnotations[i];
-					IAnnotationBinding annotationInstance = this.resolver.getAnnotationInstance(internalAnnotation);
-					if (annotationInstance == null) {
-						continue;
-					}
-					tempAnnotations[convertedAnnotationCount++] = annotationInstance;
-				}
-				if (convertedAnnotationCount != length) {
-					if (convertedAnnotationCount == 0) {
-						return this.annotations = AnnotationBinding.NoAnnotations;
-					}
-					System.arraycopy(tempAnnotations, 0, (tempAnnotations = new IAnnotationBinding[convertedAnnotationCount]), 0, convertedAnnotationCount);
-				}
-				return this.annotations = tempAnnotations;
-			}
+			return this.annotations = resolveAnnotationBindings(refType.getAnnotations(), false);
 		}
 		return this.annotations = AnnotationBinding.NoAnnotations;
+	}
+	private IAnnotationBinding[] resolveAnnotationBindings(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] internalAnnotations, boolean isTypeUse) {
+		int length = internalAnnotations == null ? 0 : internalAnnotations.length;
+		if (length != 0) {
+			IAnnotationBinding[] tempAnnotations = new IAnnotationBinding[length];
+			int convertedAnnotationCount = 0;
+			for (int i = 0; i < length; i++) {
+				org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding internalAnnotation = internalAnnotations[i];
+				if (isTypeUse && internalAnnotation == null) {
+					break;
+				}
+				IAnnotationBinding annotationInstance = this.resolver.getAnnotationInstance(internalAnnotation);
+				if (annotationInstance == null) {
+					continue;
+				}
+				tempAnnotations[convertedAnnotationCount++] = annotationInstance;
+			}
+			if (convertedAnnotationCount != length) {
+				if (convertedAnnotationCount == 0) {
+					return this.annotations = AnnotationBinding.NoAnnotations;
+				}
+				System.arraycopy(tempAnnotations, 0, (tempAnnotations = new IAnnotationBinding[convertedAnnotationCount]), 0, convertedAnnotationCount);
+			}
+			return tempAnnotations;
+		}
+		return AnnotationBinding.NoAnnotations;
 	}
 
 	/*
@@ -215,6 +229,9 @@ class TypeBinding implements ITypeBinding {
 	 * @see ITypeBinding#getDeclaredFields()
 	 */
 	public synchronized IVariableBinding[] getDeclaredFields() {
+		if (this.prototype != null) {
+			return this.prototype.getDeclaredFields();
+		}
 		if (this.fields != null) {
 			return this.fields;
 		}
@@ -258,6 +275,9 @@ class TypeBinding implements ITypeBinding {
 	 * @see ITypeBinding#getDeclaredMethods()
 	 */
 	public synchronized IMethodBinding[] getDeclaredMethods() {
+		if (this.prototype != null) {
+			return this.prototype.getDeclaredMethods();
+		}
 		if (this.methods != null) {
 			return this.methods;
 		}
@@ -301,6 +321,7 @@ class TypeBinding implements ITypeBinding {
 
 	/*
 	 * @see ITypeBinding#getDeclaredModifiers()
+	 * @deprecated Use ITypeBinding#getModifiers() instead
 	 */
 	public int getDeclaredModifiers() {
 		return getModifiers();
@@ -309,7 +330,7 @@ class TypeBinding implements ITypeBinding {
 	/*
 	 * @see ITypeBinding#getDeclaredTypes()
 	 */
-	public synchronized ITypeBinding[] getDeclaredTypes() {
+	public synchronized ITypeBinding[] getDeclaredTypes() { // should not deflect to prototype.
 		if (this.members != null) {
 			return this.members;
 		}
@@ -444,17 +465,34 @@ class TypeBinding implements ITypeBinding {
 	public ITypeBinding getTypeDeclaration() {
 		if (this.binding instanceof ParameterizedTypeBinding)
 			return this.resolver.getTypeBinding(((ParameterizedTypeBinding)this.binding).genericType());
-		return this;
+		return this.resolver.getTypeBinding(this.binding.unannotated());
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ITypeBinding#getErasure()
 	 */
 	public ITypeBinding getErasure() {
 		return this.resolver.getTypeBinding(this.binding.erasure());
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.aspectj.org.eclipse.jdt.core.dom.ITypeBinding#getFunctionalInterfaceMethod
+	 */
+	@Override
+	public IMethodBinding getFunctionalInterfaceMethod() {
+		Scope scope = this.resolver.scope();
+		if (this.binding == null || scope == null)
+			return null;
+		MethodBinding sam = this.binding.getSingleAbstractMethod(scope, true);
+		if (sam == null || !sam.isValidBinding())
+			return null;
+		return this.resolver.getMethodBinding(sam);
+	}
 
 	public synchronized ITypeBinding[] getInterfaces() {
+		if (this.prototype != null) {
+			return this.prototype.getInterfaces();
+		}
 		if (this.interfaces != null) {
 			return this.interfaces;
 		}
@@ -825,6 +863,9 @@ class TypeBinding implements ITypeBinding {
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ITypeBinding#getTypeArguments()
 	 */
 	public ITypeBinding[] getTypeArguments() {
+		if (this.prototype != null) {
+			return this.prototype.getTypeArguments();
+		}
 		if (this.typeArguments != null) {
 			return this.typeArguments;
 		}
@@ -849,16 +890,30 @@ class TypeBinding implements ITypeBinding {
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ITypeBinding#getTypeBounds()
 	 */
 	public ITypeBinding[] getTypeBounds() {
+		if (this.prototype != null) {
+			return this.prototype.getTypeBounds();
+		}
 		if (this.bounds != null) {
 			return this.bounds;
 		}
+		TypeVariableBinding typeVariableBinding = null;
 		if (this.binding instanceof TypeVariableBinding) {
-			TypeVariableBinding typeVariableBinding = (TypeVariableBinding) this.binding;
+			typeVariableBinding = (TypeVariableBinding) this.binding;
+		} else if (this.binding instanceof WildcardBinding) {
+			WildcardBinding wildcardBinding = (WildcardBinding) this.binding;
+			typeVariableBinding = wildcardBinding.typeVariable();
+		}
+		if (typeVariableBinding != null) {
 			ReferenceBinding varSuperclass = typeVariableBinding.superclass();
 			org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding firstClassOrArrayBound = typeVariableBinding.firstBound;
 			int boundsLength = 0;
-			if (firstClassOrArrayBound != null) {
-				if (firstClassOrArrayBound == varSuperclass) {
+			if (firstClassOrArrayBound == null) {
+				if (varSuperclass != null && varSuperclass.id != TypeIds.T_JavaLangObject) {
+					firstClassOrArrayBound = varSuperclass;
+					boundsLength++;
+				}
+			} else  {
+				if (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.equalsEquals(firstClassOrArrayBound, varSuperclass)) {
 					boundsLength++;
 				} else if (firstClassOrArrayBound.isArrayType()) { // capture of ? extends/super arrayType
 					boundsLength++;
@@ -901,6 +956,9 @@ class TypeBinding implements ITypeBinding {
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ITypeBinding#getTypeParameters()
 	 */
 	public ITypeBinding[] getTypeParameters() {
+		if (this.prototype != null) {
+			return this.prototype.getTypeParameters();
+		}
 		if (this.typeParameters != null) {
 			return this.typeParameters;
 		}
@@ -980,7 +1038,7 @@ class TypeBinding implements ITypeBinding {
 	 */
 	public boolean isAssignmentCompatible(ITypeBinding type) {
 		try {
-			if (this == type) return true;
+			if (this == type) return true; //$IDENTITY-COMPARISON$
 			if (!(type instanceof TypeBinding)) return false;
 			TypeBinding other = (TypeBinding) type;
 			Scope scope = this.resolver.scope();
@@ -1067,6 +1125,9 @@ class TypeBinding implements ITypeBinding {
 			return false;
 		}
 		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding otherBinding = ((TypeBinding) other).binding;
+		if (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.equalsEquals(otherBinding.unannotated(), this.binding.unannotated())) {
+			return true;
+		}
 		// check return type
 		return BindingComparator.isEqual(this.binding, otherBinding);
 	}
@@ -1201,7 +1262,7 @@ class TypeBinding implements ITypeBinding {
 	 */
 	public boolean isSubTypeCompatible(ITypeBinding type) {
 		try {
-			if (this == type) return true;
+			if (this == type) return true; //$IDENTITY-COMPARISON$
 			if (this.binding.isBaseType()) return false;
 			if (!(type instanceof TypeBinding)) return false;
 			TypeBinding other = (TypeBinding) type;
@@ -1265,5 +1326,16 @@ class TypeBinding implements ITypeBinding {
 	 */
 	public String toString() {
 		return this.binding.toString();
+	}
+
+	/*
+	 * @see ITypeBinding#getTypeUseAnnotations()
+	 */
+	public IAnnotationBinding[] getTypeAnnotations() {
+		if (this.typeAnnotations != null) {
+			return this.typeAnnotations;
+		}
+		this.typeAnnotations = resolveAnnotationBindings(this.binding.getTypeAnnotations(), true);
+		return this.typeAnnotations;
 	}
 }

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,7 +12,8 @@
  *								bug 374605 - Unreasonable warning for enum-based switch statements
  *								bug 382353 - [1.8][compiler] Implementation property modifiers should be accepted on default methods.
  *								bug 382354 - [1.8][compiler] Compiler silent on conflicting modifier
- *								bug 401030 - [1.8][null] Null analysis support for lambda methods. 
+ *								bug 401030 - [1.8][null] Null analysis support for lambda methods.
+ *								Bug 416176 - [1.8][compiler][null] null type annotations cause grief on type variables
  *     Jesper S Moller - Contributions for
  *							bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *******************************************************************************/
@@ -72,6 +69,11 @@ public MethodScope(Scope parent, ReferenceContext context, boolean isStatic) {
 	this.referenceContext = context;
 	this.isStatic = isStatic;
 	this.startIndex = 0;
+}
+
+public MethodScope(Scope parent, ReferenceContext context, boolean isStatic, int lastVisibleFieldID) {
+	this(parent, context, isStatic);
+	this.lastVisibleFieldID = lastVisibleFieldID;
 }
 
 String basicToString(int tab) {
@@ -302,7 +304,7 @@ public void computeLocalVariablePositions(int initOffset, CodeStream codeStream)
 		// assign variable position
 		local.resolvedPosition = this.offset;
 
-		if ((local.type == TypeBinding.LONG) || (local.type == TypeBinding.DOUBLE)) {
+		if ((TypeBinding.equalsEquals(local.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(local.type, TypeBinding.DOUBLE))) {
 			this.offset += 2;
 		} else {
 			this.offset++;
@@ -319,7 +321,7 @@ public void computeLocalVariablePositions(int initOffset, CodeStream codeStream)
 		for (int iarg = 0, maxArguments = this.extraSyntheticArguments.length; iarg < maxArguments; iarg++){
 			SyntheticArgumentBinding argument = this.extraSyntheticArguments[iarg];
 			argument.resolvedPosition = this.offset;
-			if ((argument.type == TypeBinding.LONG) || (argument.type == TypeBinding.DOUBLE)){
+			if ((TypeBinding.equalsEquals(argument.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(argument.type, TypeBinding.DOUBLE))){
 				this.offset += 2;
 			} else {
 				this.offset++;
@@ -422,7 +424,7 @@ public FieldBinding findField(TypeBinding receiverType, char[] fieldName, Invoca
 	if (field.isStatic())
 		return field; // static fields are always accessible
 
-	if (!this.isConstructorCall || receiverType != enclosingSourceType())
+	if (!this.isConstructorCall || TypeBinding.notEquals(receiverType, enclosingSourceType()))
 		return field;
 
 	if (invocationSite instanceof SingleNameReference)
@@ -557,5 +559,9 @@ public MethodBinding referenceMethodBinding() {
 public TypeDeclaration referenceType() {
 	ClassScope scope = enclosingClassScope();
 	return scope == null ? null : scope.referenceContext;
+}
+
+void resolveTypeParameter(TypeParameter typeParameter) {
+	typeParameter.resolve(this);
 }
 }

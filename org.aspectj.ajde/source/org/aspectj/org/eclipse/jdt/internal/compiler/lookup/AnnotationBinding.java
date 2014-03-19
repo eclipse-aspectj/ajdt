@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
+import java.util.Arrays;
+
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 
 /**
@@ -139,6 +142,11 @@ private static AnnotationBinding buildTargetAnnotation(long bits, LookupEnvironm
 		arraysize++;
 	if ((bits & TagBits.AnnotationForType) != 0)
 		arraysize++;
+	if ((bits & TagBits.AnnotationForTypeUse) != 0)
+		arraysize++;
+	if ((bits & TagBits.AnnotationForTypeParameter) != 0)
+		arraysize++;
+	
 	Object[] value = new Object[arraysize];
 	if (arraysize > 0) {
 		ReferenceBinding elementType = env.getResolvedType(TypeConstants.JAVA_LANG_ANNOTATION_ELEMENTTYPE, null);
@@ -149,16 +157,20 @@ private static AnnotationBinding buildTargetAnnotation(long bits, LookupEnvironm
 			value[index++] = elementType.getField(TypeConstants.UPPER_CONSTRUCTOR, true);
 		if ((bits & TagBits.AnnotationForField) != 0)
 			value[index++] = elementType.getField(TypeConstants.UPPER_FIELD, true);
-		if ((bits & TagBits.AnnotationForLocalVariable) != 0)
-			value[index++] = elementType.getField(TypeConstants.UPPER_LOCAL_VARIABLE, true);
 		if ((bits & TagBits.AnnotationForMethod) != 0)
 			value[index++] = elementType.getField(TypeConstants.UPPER_METHOD, true);
 		if ((bits & TagBits.AnnotationForPackage) != 0)
 			value[index++] = elementType.getField(TypeConstants.UPPER_PACKAGE, true);
 		if ((bits & TagBits.AnnotationForParameter) != 0)
 			value[index++] = elementType.getField(TypeConstants.UPPER_PARAMETER, true);
+		if ((bits & TagBits.AnnotationForTypeUse) != 0)
+			value[index++] = elementType.getField(TypeConstants.TYPE_USE_TARGET, true);
+		if ((bits & TagBits.AnnotationForTypeParameter) != 0)
+			value[index++] = elementType.getField(TypeConstants.TYPE_PARAMETER_TARGET, true);
 		if ((bits & TagBits.AnnotationForType) != 0)
 			value[index++] = elementType.getField(TypeConstants.TYPE, true);
+		if ((bits & TagBits.AnnotationForLocalVariable) != 0)
+			value[index++] = elementType.getField(TypeConstants.UPPER_LOCAL_VARIABLE, true);
 	}
 	return env.createAnnotation(
 			target,
@@ -167,7 +179,7 @@ private static AnnotationBinding buildTargetAnnotation(long bits, LookupEnvironm
 			});
 }
 
-AnnotationBinding(ReferenceBinding type, ElementValuePair[] pairs) {
+public AnnotationBinding(ReferenceBinding type, ElementValuePair[] pairs) {
 	this.type = type;
 	this.pairs = pairs;
 }
@@ -195,6 +207,10 @@ public ReferenceBinding getAnnotationType() {
 	return this.type;
 }
 
+public void resolve() {
+	// Nothing to do, this is already resolved.
+}
+
 public ElementValuePair[] getElementValuePairs() {
 	return this.pairs;
 }
@@ -214,13 +230,63 @@ public String toString() {
 	StringBuffer buffer = new StringBuffer(5);
 	buffer.append('@').append(this.type.sourceName);
 	if (this.pairs != null && this.pairs.length > 0) {
-		buffer.append("{ "); //$NON-NLS-1$
-		for (int i = 0, max = this.pairs.length; i < max; i++) {
-			if (i > 0) buffer.append(", "); //$NON-NLS-1$
-			buffer.append(this.pairs[i]);
+		buffer.append('(');
+		if (this.pairs.length == 1 && CharOperation.equals(this.pairs[0].getName(), TypeConstants.VALUE)) {
+			buffer.append(this.pairs[0].value); 
+		} else {
+			for (int i = 0, max = this.pairs.length; i < max; i++) {
+				if (i > 0) buffer.append(", "); //$NON-NLS-1$
+				buffer.append(this.pairs[i]);
+			}
 		}
-		buffer.append('}');
+		buffer.append(')');
 	}
 	return buffer.toString();
+}
+
+public int hashCode() {
+	return this.type.hashCode();
+}
+public boolean equals(Object object) {
+	if (this == object)
+		return true;
+	if (!(object instanceof AnnotationBinding))
+		return false;
+
+	AnnotationBinding that = (AnnotationBinding) object;
+	if (this.getAnnotationType() != that.getAnnotationType()) //$IDENTITY-COMPARISON$
+		return false;
+
+	final ElementValuePair[] thisElementValuePairs = this.getElementValuePairs();
+	final ElementValuePair[] thatElementValuePairs = that.getElementValuePairs();
+	final int length = thisElementValuePairs.length;
+	if (length != thatElementValuePairs.length) 
+		return false;
+	loop: for (int i = 0; i < length; i++) {
+		ElementValuePair thisPair = thisElementValuePairs[i];
+		for (int j = 0; j < length; j++) {
+			ElementValuePair thatPair = thatElementValuePairs[j];
+			if (thisPair.binding == thatPair.binding) {
+				if (thisPair.value == null) {
+					if (thatPair.value == null) {
+						continue loop;
+					}
+					return false;
+				} else {
+					if (thatPair.value == null) return false;
+					if (thatPair.value instanceof Object[] && thisPair.value instanceof Object[]) {
+						if (!Arrays.equals((Object[]) thisPair.value, (Object[]) thatPair.value)) {
+							return false;
+						}
+					} else if (!thatPair.value.equals(thisPair.value)) {
+						return false;
+					}
+				}
+				continue loop;
+			}
+		}
+		return false;
+	}
+	return true;
 }
 }

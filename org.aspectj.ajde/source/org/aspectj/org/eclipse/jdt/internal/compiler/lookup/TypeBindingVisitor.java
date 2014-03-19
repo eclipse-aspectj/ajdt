@@ -5,17 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation.TypeUseBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 
 
@@ -48,10 +43,6 @@ public class TypeBindingVisitor {
 	}
 	
 	public boolean visit(IntersectionCastTypeBinding intersectionCastTypeBinding) {
-		return true;  // continue traversal.
-	}
-	
-	public boolean visit(TypeUseBinding typeUseBinding) {
 		return true;  // continue traversal.
 	}
 	
@@ -137,10 +128,6 @@ public class TypeBindingVisitor {
 				IntersectionCastTypeBinding intersectionCastTypeBinding = (IntersectionCastTypeBinding) type;
 				if (visitor.visit(intersectionCastTypeBinding))
 					visit(visitor, intersectionCastTypeBinding.intersectingTypes);
-				break;
-				
-			case Binding.TYPE_USE:
-				visitor.visit((TypeUseBinding) type);
 				break;
 				
 			default:

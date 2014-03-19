@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -50,6 +50,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class CompilationResult {
 
 	public CategorizedProblem problems[];
@@ -64,6 +65,7 @@ public class CompilationResult {
 	public char[][] simpleNameReferences;
 	public char[][] rootReferences;
 	public boolean hasAnnotations = false;
+	public boolean hasFunctionalTypes = false;
 	public int lineSeparatorPositions[];
 	public RecoveryScannerData recoveryScannerData;
 	public Map compiledTypes = new Hashtable(11);

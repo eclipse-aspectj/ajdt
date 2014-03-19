@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,6 +40,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashSetOfInt;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class CompilationUnitDeclaration extends ASTNode implements ProblemSeverities, ReferenceContext {
 
 	private static final Comparator STRING_LITERAL_COMPARATOR = new Comparator() {
@@ -78,10 +75,14 @@ public class CompilationUnitDeclaration extends ASTNode implements ProblemSeveri
 	private int stringLiteralsPtr;
 	private HashSetOfInt stringLiteralsStart;
 
+	public boolean[] validIdentityComparisonLines;
+
 	IrritantSet[] suppressWarningIrritants;  // irritant for suppressed warnings
 	Annotation[] suppressWarningAnnotations;
 	long[] suppressWarningScopePositions; // (start << 32) + end
 	int suppressWarningsCount;
+	public int functionalExpressionsCount;
+	public FunctionalExpression[] functionalExpressions;
 
 public CompilationUnitDeclaration(ProblemReporter problemReporter, CompilationResult compilationResult, int sourceLength) {
 	this.problemReporter = problemReporter;
@@ -423,6 +424,10 @@ public boolean isSuppressed(CategorizedProblem problem) {
 	return false;
 }
 
+public boolean hasFunctionalTypes() {
+	return this.compilationResult.hasFunctionalTypes;
+}
+
 public boolean hasErrors() {
 	return this.ignoreFurtherInvestigation;
 }
@@ -530,6 +535,20 @@ public void record(LocalTypeBinding localType) {
 		System.arraycopy(this.localTypes, 0, (this.localTypes = new LocalTypeBinding[this.localTypeCount * 2]), 0, this.localTypeCount);
 	}
 	this.localTypes[this.localTypeCount++] = localType;
+}
+
+/*
+ * Keep track of all lambda/method reference expressions, so as to be able to look it up later without 
+ * having to traverse AST. Return the 1 based "ordinal" in the CUD.
+ */
+public int record(FunctionalExpression expression) {
+	if (this.functionalExpressionsCount == 0) {
+		this.functionalExpressions = new FunctionalExpression[5];
+	} else if (this.functionalExpressionsCount == this.functionalExpressions.length) {
+		System.arraycopy(this.functionalExpressions, 0, (this.functionalExpressions = new FunctionalExpression[this.functionalExpressionsCount * 2]), 0, this.functionalExpressionsCount);
+	}
+	this.functionalExpressions[this.functionalExpressionsCount] = expression;
+	return ++this.functionalExpressionsCount;
 }
 
 public void resolve() {
@@ -684,7 +703,10 @@ public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
 }
 
 public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope) {
-	if (this.ignoreFurtherInvestigation)
+	traverse(visitor, unitScope, true);
+}
+public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope, boolean skipOnError) {
+	if (skipOnError && this.ignoreFurtherInvestigation)
 		return;
 	try {
 		if (visitor.visit(this, this.scope)) {

@@ -5,14 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
  *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 426996 - [1.8][inference] try to avoid method Expression.unresolve()? 
  *     Jesper S Moller - Contributions for
  *							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *******************************************************************************/
@@ -52,6 +50,10 @@ public FieldBinding fieldBinding() {
 public FieldBinding lastFieldBinding() {
 	if ((this.bits & ASTNode.RestrictiveFlagMASK) == Binding.FIELD)
 		return fieldBinding(); // most subclasses only refer to one field anyway
+	return null;
+}
+
+public InferenceContext18 freshInferenceContext(Scope scope) {
 	return null;
 }
 
