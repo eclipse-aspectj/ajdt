@@ -640,8 +640,11 @@ public TypeBinding resolveType(BlockScope scope) {
 		this.receiver.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
 		receiverCast = true;
 	}
+	// AspectJ Extension: commenting this out for now. An InterTypeScope has been observed
+	// to have an already resolved receiver
 //	if (this.receiver.resolvedType != null)
 //		scope.problemReporter().genericInferenceError("Receiver was unexpectedly found resolved", this); //$NON-NLS-1$
+	// AspectJ Extension: End
 	this.actualReceiverType = this.receiver.resolveType(scope);
 	boolean receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
 	if (receiverCast && this.actualReceiverType != null) {
@@ -742,7 +745,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	// this.binding = this.receiver.isImplicitThis()
 	//		? scope.getImplicitMethod(this.selector, argumentTypes, this)
 	//		: scope.getMethod(this.actualReceiverType, this.selector, argumentTypes, this);
-//	resolveMethodBinding(scope, argumentTypes); // AspectJ Extension - moved to helper method
+	// resolveMethodBinding(scope, argumentTypes); // AspectJ Extension - moved to helper method
 	// End AspectJ Extension
 	
 	findMethodBinding(scope, argumentTypes);

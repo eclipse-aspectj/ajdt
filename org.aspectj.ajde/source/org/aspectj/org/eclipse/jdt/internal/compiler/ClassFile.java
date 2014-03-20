@@ -3582,7 +3582,10 @@ public class ClassFile implements TypeConstants, TypeIds {
 			Annotation annotation;
 			if ((annotation = annotations[i].getPersistibleAnnotation()) == null) continue; // already packaged into container.
 			long annotationMask = annotation.resolvedType != null ? annotation.resolvedType.getAnnotationTagBits() & TagBits.AnnotationTargetMASK : 0;
+			// AspectJ Extension: this prevents a Type targeting annotation being stashed on a
+			// method representing an 'declare @type'. So don't enforce this restriction
 //			if (annotationMask != 0 && (annotationMask & targetMask) == 0) continue;
+			// AspectJ Extension: End
 			if (annotation.isRuntimeInvisible() || annotation.isRuntimeTypeInvisible()) {
 				invisibleAnnotationsCounter++;
 			} else if (annotation.isRuntimeVisible() || annotation.isRuntimeTypeVisible()) {
@@ -3613,7 +3616,10 @@ public class ClassFile implements TypeConstants, TypeIds {
 				Annotation annotation;
 				if ((annotation = annotations[i].getPersistibleAnnotation()) == null) continue; // already packaged into container.
 				long annotationMask = annotation.resolvedType != null ? annotation.resolvedType.getAnnotationTagBits() & TagBits.AnnotationTargetMASK : 0;
+				// AspectJ Extension: this prevents a Type targeting annotation being stashed on a
+				// method representing an 'declare @type'. So don't enforce this restriction
 //				if (annotationMask != 0 && (annotationMask & targetMask) == 0) continue;
+				// AspectJ Extension: end
 				if (annotation.isRuntimeInvisible() || annotation.isRuntimeTypeInvisible()) {
 					int currentAnnotationOffset = this.contentsOffset;
 					generateAnnotation(annotation, currentAnnotationOffset);
@@ -3663,7 +3669,10 @@ public class ClassFile implements TypeConstants, TypeIds {
 				Annotation annotation;
 				if ((annotation = annotations[i].getPersistibleAnnotation()) == null) continue; // already packaged into container.
 				long annotationMask = annotation.resolvedType != null ? annotation.resolvedType.getAnnotationTagBits() & TagBits.AnnotationTargetMASK : 0;
+				// AspectJ Extension: this prevents a Type targeting annotation being stashed on a
+				// method representing an 'declare @type'. So don't enforce this restriction
 //				if (annotationMask != 0 && (annotationMask & targetMask) == 0) continue;
+				// AspectJ Extension: end
 				if (annotation.isRuntimeVisible() || annotation.isRuntimeTypeVisible()) {
 					visibleAnnotationsCounter--;
 					int currentAnnotationOffset = this.contentsOffset;

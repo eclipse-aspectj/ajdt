@@ -248,6 +248,7 @@ public boolean canBeSeenBy(PackageBinding invocationPackage) {
 /**
  * Answer true if the receiver is visible to the receiverType and the invocationType.
  */
+
 //AspectJ Extension - replace original impl with this one
 public boolean canBeSeenBy(ReferenceBinding receiverType, ReferenceBinding invocationType) {
 	boolean ret = innerCanBeSeenBy(receiverType, invocationType);
@@ -345,7 +346,7 @@ public final boolean innerCanBeSeenBy(ReferenceBinding receiverType, ReferenceBi
 /**
  * Answer true if the receiver is visible to the type provided by the scope.
  */
-//AspectJ Extension: replace existing implementation with alternative that can access the privileged handler
+// AspectJ Extension: replace existing implementation with alternative that can access the privileged handler
 public boolean canBeSeenBy(Scope scope) {
 	
 	boolean ret = innerCanBeSeenBy(scope);
@@ -364,9 +365,10 @@ public boolean canBeSeenBy(Scope scope) {
 }
 
 /*
-* Answer true if the receiver is visible to the type provided by the scope.
-*/
+ * Answer true if the receiver is visible to the type provided by the scope.
+ */
 public final boolean innerCanBeSeenBy(Scope scope) {
+	// End AspectJ Extension
 	if (isPublic()) return true;
 
 	SourceTypeBinding invocationType = scope.invocationType(); // AspectJ Extension - use invocationType() rather than enclosingSourceType()

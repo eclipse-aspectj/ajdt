@@ -1026,8 +1026,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	// field and/or local are done before type lookups
 	// the only available value for the restrictiveFlag BEFORE
 	// the TC is Flag_Type Flag_LocalField and Flag_TypeLocalField
-    this.actualReceiverType = scope.enclosingSourceType();// invocationType();// AspectJ Extension - was enclosingReceiverType()
-//	this.actualReceiverType = scope.enclosingReceiverType();
+	this.actualReceiverType = scope.enclosingSourceType();// invocationType();// AspectJ Extension - was enclosingReceiverType()
 	this.constant = Constant.NotAConstant;
 	if ((this.binding = scope.getBinding(this.tokens, this.bits & ASTNode.RestrictiveFlagMASK, this, true /*resolve*/)).isValidBinding()) {
 		switch (this.bits & ASTNode.RestrictiveFlagMASK) {
