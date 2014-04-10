@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 
+@SuppressWarnings("rawtypes")
 public class ProblemReferenceBinding extends ReferenceBinding {
 	ReferenceBinding closestMatch;
 	private int problemReason;
@@ -27,6 +28,9 @@ public ProblemReferenceBinding(char[][] compoundName, ReferenceBinding closestMa
 	this.problemReason = problemReason;
 }
 
+public TypeBinding clone(TypeBinding enclosingType) {
+	throw new IllegalStateException(); // shouldn't get here.
+}
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#closestMatch()
  */
@@ -77,6 +81,9 @@ public static String problemReasonString(int problemReason) {
 	return "unknown"; //$NON-NLS-1$
 }
 
+public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
+	return; // reject misguided attempts.
+}
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding#shortReadableName()
  */

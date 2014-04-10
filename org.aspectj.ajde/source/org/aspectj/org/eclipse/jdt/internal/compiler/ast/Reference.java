@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -16,6 +12,9 @@
  *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
  *								bug 331649 - [compiler][null] consider null annotations for fields
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
+ *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis 
+ *								Bug 411964 - [1.8][null] leverage null type annotation in foreach statement
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -55,6 +54,11 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 }
 
 protected boolean checkNullableFieldDereference(Scope scope, FieldBinding field, long sourcePosition) {
+	// preference to type annotations if we have any
+	if ((field.type.tagBits & TagBits.AnnotationNullable) != 0) {
+		scope.problemReporter().dereferencingNullableExpression(sourcePosition, scope.environment());
+		return true;
+	}
 	if ((field.tagBits & TagBits.AnnotationNullable) != 0) {
 		scope.problemReporter().nullableFieldDereference(field, sourcePosition);
 		return true;
@@ -141,10 +145,7 @@ public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
 		}
 	}
 	if (this.resolvedType != null) {
-		if ((this.resolvedType.tagBits & TagBits.AnnotationNonNull) != 0)
-			return FlowInfo.NON_NULL;
-		else if ((this.resolvedType.tagBits & TagBits.AnnotationNullable) != 0)
-			return FlowInfo.POTENTIALLY_NULL;
+		return FlowInfo.tagBitsToNullStatus(this.resolvedType.tagBits);
 	}
 	return FlowInfo.UNKNOWN;
 }

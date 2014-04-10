@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -86,6 +86,7 @@ public interface ITypeBinding extends IBinding {
 	 * @return the bound of this wildcard type, or <code>null</code> if none
 	 * @see #isWildcardType()
 	 * @see #isUpperbound()
+	 * @see #getTypeBounds()
 	 * @since 3.1
 	 */
 	public ITypeBinding getBound();
@@ -114,11 +115,12 @@ public interface ITypeBinding extends IBinding {
 	/**
 	 * Returns the binding representing the component type of this array type,
 	 * or <code>null</code> if this is not an array type binding. The component
-	 * type of an array might be an array type.
-	 * <p>This is subject to change before 3.2 release.</p>
+	 * type of an array might be an array type (with one dimension less than
+	 * this array type).
 	 *
 	 * @return the component type binding, or <code>null</code> if this is
 	 *   not an array type
+	 * @see #getElementType()
 	 * @since 3.2
 	 */
 	public ITypeBinding getComponentType();
@@ -173,6 +175,10 @@ public interface ITypeBinding extends IBinding {
 	 * @return the bit-wise or of <code>Modifier</code> constants
 	 * @see #getModifiers()
 	 * @see Modifier
+	 * @deprecated  Use {@link #getModifiers()} instead.
+	 * This method was never implemented properly and historically has simply
+	 * delegated to the method <code>getModifiers</code>. Clients should call
+	 * <code>getModifiers</code> method directly.
 	 */
 	public int getDeclaredModifiers();
 
@@ -256,7 +262,7 @@ public interface ITypeBinding extends IBinding {
 	/**
 	 * Returns the binding representing the element type of this array type,
 	 * or <code>null</code> if this is not an array type binding. The element
-	 * type of an array is never itself an array type.
+	 * type of an array type is never itself an array type.
 	 *
 	 * @return the element type binding, or <code>null</code> if this is
 	 *   not an array type
@@ -290,6 +296,23 @@ public interface ITypeBinding extends IBinding {
 	 * @since 3.1
 	 */
 	public ITypeBinding getErasure();
+	
+	/**
+	 * Returns the single abstract method that constitutes the single function 
+	 * contract (aside from any redeclarations of methods of <code>java.lang.Object</code>) 
+	 * of the receiver interface type or <code>null</code> if there is no such contract or if the receiver 
+	 * is not an interface.
+	 * <p>
+	 * The returned method binding may be synthetic and its {@link #getDeclaringClass() declaring type}
+	 * may be a super interface type of this type binding.
+	 * </p>
+	 * 
+	 * @return the single abstract method that represents the single function contract, or
+	 * <code>null</code> if the receiver is not a functional interface type
+	 *
+	 * @since 3.10
+	 */
+	public IMethodBinding getFunctionalInterfaceMethod();
 
 	/**
 	 * Returns a list of type bindings representing the direct superinterfaces
@@ -328,15 +351,13 @@ public interface ITypeBinding extends IBinding {
 	 * or annotation type binding.
 	 * The result may not correspond to the modifiers as declared in the
 	 * original source, since the compiler may change them (in particular,
-	 * for inner class emulation). The <code>getDeclaredModifiers</code> method
-	 * should be used if the original modifiers are needed.
+	 * for inner class emulation).
 	 * Returns 0 if this type does not represent a class, an interface, an enum, an annotation
 	 * type or a recovered type.
 	 *
 	 * @return the compiled modifiers for this type binding or 0
 	 * if this type does not represent a class, an interface, an enum, an annotation
 	 * type or a recovered type.
-	 * @see #getDeclaredModifiers()
 	 */
 	public int getModifiers();
 
@@ -494,6 +515,27 @@ public interface ITypeBinding extends IBinding {
 	public ITypeBinding getSuperclass();
 
 	/**
+	 * Returns the type annotations that this type reference is annotated with. Since JLS8, 
+	 * multiple instances of type bindings may be created if they are annotated with 
+	 * different type use annotations.
+	 * <p>
+	 * For example, the following three type references would produce three distinct type 
+	 * bindings for java.lang.String that share the same key:
+	 * <ul>
+	 * <li>java.lang.@Marker1 String</li>
+	 * <li>java.lang.@Marker2 String</li>
+	 * <li>java.lang.String</li>
+	 * </ul>
+	 * </p>
+	 * @return type annotations specified on this type reference, or an empty array if
+	 * no type use annotations are found.
+	 * @see #getTypeDeclaration()
+	 * @see #getKey()
+	 * @since 3.10
+	 */
+	public IAnnotationBinding[] getTypeAnnotations();
+
+	/**
 	 * Returns the type arguments of this generic type instance, or the
 	 * empty list for other type bindings.
 	 * <p>
@@ -516,8 +558,8 @@ public interface ITypeBinding extends IBinding {
 	public ITypeBinding[] getTypeArguments();
 
 	/**
-	 * Returns the declared type bounds of this type variable or capture. If the
-	 * variable or the capture had no explicit bound, then it returns an empty list.
+	 * Returns the upper type bounds of this type variable, wildcard, or capture. If the
+	 * variable, wildcard, or capture had no explicit bound, then it returns an empty list.
      * <p>
      * Note that per construction, it can only contain one class or array type,
      * at most, and then it is located in first position.
@@ -527,10 +569,11 @@ public interface ITypeBinding extends IBinding {
      * binding, e.g. <code>capture-of ? extends Object[]</code>
      * </p>
 	 *
-	 * @return the list of type bindings for this type variable or capture,
+	 * @return the list of upper bounds for this type variable, wildcard, or capture,
      * or otherwise the empty list
+     * @see #isTypeVariable()
+     * @see #isWildcardType()
 	 * @see #isCapture()
-	 * @see #isTypeVariable()
 	 * @since 3.1
 	 */
 	public ITypeBinding[] getTypeBounds();
@@ -540,16 +583,20 @@ public interface ITypeBinding extends IBinding {
 	 * binding.
 	 * <p>For parameterized types ({@link #isParameterizedType()})
 	 * and most raw types ({@link #isRawType()}), this method returns the binding
-	 * for the corresponding generic type.</p>
+	 * for the corresponding generic type ({@link #isGenericType()}.</p>
 	 * <p>For raw member types ({@link #isRawType()}, {@link #isMember()})
 	 * of a raw declaring class, the type declaration is a generic or a non-generic
 	 * type.</p>
 	 * <p>A different non-generic binding will be returned when one of the declaring
 	 * types/methods was parameterized.</p>
-	 * <p>For other type bindings, this returns the same binding.</p>
+	 * <p>For other type bindings, this method returns the binding for the type declaration
+	 * corresponding to this type binding. In particular, for type bindings that
+	 * contain a {@link #getTypeAnnotations() type annotation}, this method returns the binding for the type
+	 * declaration, which does not contain the type annotations from the use site.</p>
 	 *
-	 * @return the type binding
+	 * @return the declaration type binding
 	 * @since 3.1
+	 * @see #isEqualTo(IBinding)
 	 */
 	public ITypeBinding getTypeDeclaration();
 
@@ -568,7 +615,6 @@ public interface ITypeBinding extends IBinding {
 	 * @see #isTypeVariable()
 	 * @since 3.1
 	 */
-	// TODO (jeem) - clarify whether binding for a generic type instance carries a copy of the generic type's type parameters as well as type arguments
 	public ITypeBinding[] getTypeParameters();
 
 	/**
@@ -939,10 +985,10 @@ public interface ITypeBinding extends IBinding {
 	 * Returns whether this type binding represents a wildcard type. A wildcard
 	 * type occurs only as an argument to a parameterized type reference.
 	 * <p>
-	 * For example, a AST type like
-	 * <code>Collection&lt;? extends Object&gt;</code> typically resolves to a
+	 * For example, an AST type like
+	 * <code>Collection&lt;? extends Number&gt;</code> typically resolves to a
 	 * parameterized type binding whose type argument is a wildcard type
-	 * with upper type bound <code>java.util.Object</code>.
+	 * with upper type bound <code>java.lang.Number</code>.
 	 * </p>
 	 *
 	 * @return <code>true</code> if this object represents a wildcard type,
@@ -952,4 +998,5 @@ public interface ITypeBinding extends IBinding {
 	 * @see #isUpperbound()
 	 */
 	public boolean isWildcardType();
+	
 }

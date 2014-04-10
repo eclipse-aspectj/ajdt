@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ public abstract class SearchDocument {
 	private SourceElementParser parser;
 	private String documentPath;
 	private SearchParticipant participant;
+	private boolean shouldIndexResolvedDocument = false;
 
 	/**
 	 * Creates a new search document. The given document path is a string that uniquely identifies the document.
@@ -162,5 +163,23 @@ public abstract class SearchDocument {
 	 */
 	public void setParser(SourceElementParser sourceElementParser) {
 		this.parser = sourceElementParser;
+	}
+
+	/** Flags the document as requiring indexing after symbol and type resolution. A participant would be asked 
+	 *  to resolve the document via {@link SearchParticipant#resolveDocument} and to index the document adding 
+	 *  additional entries via {@link SearchParticipant#indexResolvedDocument} 
+	 *  
+	 * @since 3.10 
+	 */
+	public void requireIndexingResolvedDocument() {
+		this.shouldIndexResolvedDocument = true;
+	}
+	
+	/**
+	 * @nooverride This method is not intended to be re-implemented or extended by clients.
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
+	public boolean shouldIndexResolvedDocument() {
+		return this.shouldIndexResolvedDocument;
 	}
 }

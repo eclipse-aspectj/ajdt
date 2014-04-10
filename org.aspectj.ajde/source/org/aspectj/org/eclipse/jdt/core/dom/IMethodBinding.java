@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -109,12 +109,18 @@ public interface IMethodBinding extends IBinding {
 	public Object getDefaultValue();
 
 	/**
-	 * Returns the resolved annotations of a parameter of this method.
+	 * Returns the resolved declaration annotations of a parameter of this method.
 	 * The result returned is the same regardless of whether
 	 * this is a parameterized method.
+	 * <p>
+	 * <b>Note:</b> This method only returns declaration annotations.
+	 * <em>Type annotations</em> in the sense of JLS8 9.7.4 are <em>not</em> returned.
+	 * Type annotations can be retrieved from a parameter type 
+	 * via {@link ITypeBinding#getTypeAnnotations()}. 
+	 * </p>
 	 *
 	 * @param paramIndex the index of the parameter of interest
-	 * @return the resolved annotations of the <code>paramIndex</code>th parameter,
+	 * @return the resolved declaration annotations of the <code>paramIndex</code>th parameter,
 	 * or an empty list if there are none
 	 * @throws ArrayIndexOutOfBoundsException if <code>paramIndex</code> is
 	 * not a valid index
@@ -137,7 +143,7 @@ public interface IMethodBinding extends IBinding {
 	 * </p>
 	 * <p>
 	 * Note: The result does not include synthetic parameters introduced by
-	 * inner class emulation.
+	 * inner class emulation. Explicit receiver parameters are also not included.
 	 * </p>
 	 *
 	 * @return a (possibly empty) list of type bindings for the formal
@@ -146,8 +152,26 @@ public interface IMethodBinding extends IBinding {
 	public ITypeBinding[] getParameterTypes();
 
 	/**
+	 * Returns the type of this method's receiver or <code>null</code> 
+	 * if there is no receiver declared explicitly.
+	 * 
+	 * @return the type of this method's receiver or <code>null</code> 
+	 * if there is no receiver declared explicitly.
+	 * 
+	 * @since 3.10
+	 */
+	public ITypeBinding getDeclaredReceiverType();
+	
+	/**
 	 * Returns the binding for the return type of this method. Returns the
 	 * special primitive <code>void</code> return type for constructors.
+	 * <p>
+	 * For methods, the type binding that is returned contains type annotations 
+	 * if any. For e.g. the following code would get the type annotations on a 
+	 * method: <br><br>
+	 *  <code> IAnnotationBinding[] annots = getReturnType().getTypeAnnotations() </code>
+	 * </p>
+	 * For a constructor, the returned binding does not include type annotations.
 	 *
 	 * @return the binding for the return type of this method, or the
 	 *    <code>void</code> return type for constructors

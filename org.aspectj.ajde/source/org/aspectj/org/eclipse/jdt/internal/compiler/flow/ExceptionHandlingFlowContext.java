@@ -36,6 +36,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
  * Reflects the context of code analysis, keeping track of enclosing
  *	try statements, exception handlers, etc...
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ExceptionHandlingFlowContext extends FlowContext {
 
 	public final static int BitCacheSize = 32; // 32 bits per int
@@ -148,7 +149,7 @@ public void complainIfUnusedExceptionHandlers(AbstractMethodDeclaration method) 
 		int index = this.indexes.get(this.handledExceptions[i]);
 		if ((this.isReached[index / ExceptionHandlingFlowContext.BitCacheSize] & 1 << (index % ExceptionHandlingFlowContext.BitCacheSize)) == 0) {
 			for (int j = 0; j < docCommentReferencesLength; j++) {
-				if (docCommentReferences[j] == this.handledExceptions[i]) {
+				if (TypeBinding.equalsEquals(docCommentReferences[j], this.handledExceptions[i])) {
 					continue nextHandledException;
 				}
 			}
@@ -189,7 +190,7 @@ private ASTNode getExceptionType(int index) {
 		TypeReference[] typeRefs = ((UnionTypeReference)node).typeReferences;
 		for (int i = 0, len = typeRefs.length; i < len; i++) {
 			TypeReference typeRef = typeRefs[i];
-			if (typeRef.resolvedType == this.handledExceptions[index]) return typeRef;
+			if (TypeBinding.equalsEquals(typeRef.resolvedType, this.handledExceptions[index])) return typeRef;
 		}	
 	} 
 	return node;

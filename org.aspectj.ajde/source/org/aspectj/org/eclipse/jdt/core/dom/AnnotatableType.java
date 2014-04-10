@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -20,10 +16,18 @@ import java.util.List;
  * Abstract base class of AST nodes that represent an annotatable type (added in JLS8 API).
  * <p>
  * Introduced in JLS8, type references that can be annotated are represented by 
- * AnnotatableType. For the list of types extending AnnotatableType, see {@link Type}.</p>
+ * AnnotatableType. For the list of types extending AnnotatableType, see {@link Type}.
+ * </p>
+ * <p>
+ * Note that type annotations ({@link ITypeBinding#getTypeAnnotations()}) that semantically
+ * belong to a resolved type reference don't always show up in {@link AnnotatableType#annotations()}.
+ * Syntactically, type annotations can also be part of an associated declaration node's
+ * <code>modifiers()</code> list.
+ * </p>
  *
- * @since 3.9 BETA_JAVA8
+ * @since 3.10
  */
+@SuppressWarnings({"rawtypes"})
 public abstract class AnnotatableType extends Type {
 	
 	/**
@@ -78,9 +82,16 @@ public abstract class AnnotatableType extends Type {
 
 	/**
 	 * Returns the live ordered list of annotations for this Type node (added in JLS8 API).
-	 *
+	 * <p>
+	 * Note that type annotations ({@link ITypeBinding#getTypeAnnotations()}) that semantically
+	 * belong to a resolved type reference don't always show up in this list.
+	 * Syntactically, type annotations can also be part of an associated declaration node's
+	 * <code>modifiers()</code> list.
+	 * </p>
+	 * 
 	 * @return the live list of annotations (element type: {@link Annotation})
 	 * @exception UnsupportedOperationException if this operation is used below JLS8
+	 * @see ITypeBinding#getTypeAnnotations()
 	 */
 	public List annotations() {
 		// more efficient than just calling unsupportedIn2_3_4() to check

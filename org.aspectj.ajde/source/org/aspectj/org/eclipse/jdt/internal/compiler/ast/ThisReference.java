@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -62,6 +58,12 @@ public class ThisReference extends Reference {
 		if (methodScope.isStatic) {
 			methodScope.problemReporter().errorThisSuperInStatic(this);
 			return false;
+		} else if (this.isUnqualifiedSuper()) {
+			TypeDeclaration type = methodScope.referenceType();
+			if (type != null && TypeDeclaration.kind(type.modifiers) == TypeDeclaration.INTERFACE_DECL) {
+				methodScope.problemReporter().errorNoSuperInInterface(this);
+				return false;
+			}
 		}
 		if (receiverType != null)
 			scope.tagAsAccessingEnclosingInstanceStateOf(receiverType, false /* type variable access */);
@@ -132,7 +134,14 @@ public class ThisReference extends Reference {
 		if (!isImplicitThis() &&!checkAccess(scope, enclosingReceiverType)) {
 			return null;
 		}
-		return this.resolvedType = enclosingReceiverType;
+		this.resolvedType = enclosingReceiverType;
+		MethodScope methodScope = scope.namedMethodScope();
+		if (methodScope != null) {
+			MethodBinding method = methodScope.referenceMethodBinding();
+			if (method != null && method.receiver != null && TypeBinding.equalsEquals(method.receiver, this.resolvedType))
+				this.resolvedType = method.receiver;
+		}
+		return this.resolvedType;
 	}
 
 	public void traverse(ASTVisitor visitor, BlockScope blockScope) {

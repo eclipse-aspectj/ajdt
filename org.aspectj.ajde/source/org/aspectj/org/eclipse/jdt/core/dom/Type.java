@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,10 +13,10 @@ package org.aspectj.org.eclipse.jdt.core.dom;
 
 
 /**
- * Abstract base class of all type AST node types. A type node represents a
+ * Abstract base class of all type reference AST node types. A type node represents a
  * reference to a primitive type (including void), to an array type, or to a
  * simple named type (or type variable), to a qualified type, to a
- * parameterized type, to a union type, or to a wildcard type. Note that not all of these
+ * parameterized type, to a union type, to an intersection type, or to a wildcard type. Note that not all of these
  * are meaningful in all contexts; for example, a wildcard type is only
  * meaningful in the type argument position of a parameterized type.
  * UnionType got introduced in JLS4 to support common catch blocks for disjunctive types.
@@ -30,11 +26,11 @@ package org.aspectj.org.eclipse.jdt.core.dom;
  * Type:
  *    AnnotatableType:
  *       PrimitiveType
- *       ArrayType
  *       SimpleType
  *       QualifiedType
- *       PackageQualifiedType
+ *       NameQualifiedType
  *       WildcardType
+ *    ArrayType
  *    ParameterizedType
  *    UnionType
  *    IntersectionType
@@ -50,12 +46,12 @@ package org.aspectj.org.eclipse.jdt.core.dom;
  *    { Annotation } <b>boolean</b>
  *    { Annotation } <b>void</b>
  * {@link ArrayType}:
- *    Type { Annotation } <b>'['</b> <b>']'</b>
+ *    Type Dimension <b>{</b> Dimension <b>}</b>
  * {@link SimpleType}:
  *    { Annotation } TypeName
  * {@link QualifiedType}:
  *    Type <b>.</b> {Annotation} SimpleName
- * {@link PackageQualifiedType}:
+ * {@link NameQualifiedType}:
  *    Name <b>.</b> { Annotation } SimpleName
  * {@link WildcardType}:
  *    { Annotation } <b>?</b> [ ( <b>extends</b> | <b>super</b>) Type ]
@@ -118,15 +114,15 @@ public abstract class Type extends ASTNode {
 	}
 
 	/**
-	 * Returns whether this type is a package qualified type
-	 * ({@link PackageQualifiedType}).
+	 * Returns whether this type is a name qualified type
+	 * ({@link NameQualifiedType}).
 	 *
-	 * @return <code>true</code> if this is a package qualified type, and
+	 * @return <code>true</code> if this is a name qualified type, and
 	 *    <code>false</code> otherwise
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
-	public final boolean isPackageQualifiedType() {
-		return (this instanceof PackageQualifiedType);
+	public final boolean isNameQualifiedType() {
+		return (this instanceof NameQualifiedType);
 	}
 
 	/**
@@ -187,7 +183,7 @@ public abstract class Type extends ASTNode {
 	 *
 	 * @return <code>true</code> if this is an intersection type, and
 	 * 		<code>false</code> otherwise
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public final boolean isIntersectionType() {
 		return (this instanceof IntersectionType);
@@ -216,7 +212,7 @@ public abstract class Type extends ASTNode {
 	 * @return <code>true</code> if this type is an instance of {@link AnnotatableType}, and
 	 * <code>false</code> otherwise
 	 * 			
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public boolean isAnnotatable() {
 		return (this instanceof AnnotatableType);

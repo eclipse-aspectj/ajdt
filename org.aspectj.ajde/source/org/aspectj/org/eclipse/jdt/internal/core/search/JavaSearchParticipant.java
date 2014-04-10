@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,9 +27,11 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.matching.MatchLocator;
  * index queries. It also can map a document path to an actual document (note that documents could live outside
  * the workspace or no exist yet, and thus aren't just resources).
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class JavaSearchParticipant extends SearchParticipant {
 
 	private ThreadLocal indexSelector = new ThreadLocal();
+	private SourceIndexer sourceIndexer;
 
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#beginSearching()
@@ -70,12 +72,37 @@ public class JavaSearchParticipant extends SearchParticipant {
 
 		String documentPath = document.getPath();
 		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
-			new SourceIndexer(document).indexDocument();
+			this.sourceIndexer = new SourceIndexer(document);
+			this.sourceIndexer.indexDocument();
 		} else if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(documentPath)) {
 			new BinaryIndexer(document).indexDocument();
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#indexResolvedDocument(SearchDocument, IPath)
+	 */
+	@Override
+	public void indexResolvedDocument(SearchDocument document, IPath indexPath) {
+		String documentPath = document.getPath();
+		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
+			if (this.sourceIndexer != null)
+				this.sourceIndexer.indexResolvedDocument();
+			this.sourceIndexer = null;
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.aspectj.org.eclipse.jdt.core.search.SearchParticipant#resolveDocument(SearchDocument document)
+	 */
+	public void resolveDocument(SearchDocument document) {
+		String documentPath = document.getPath();
+		if (org.aspectj.org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(documentPath)) {
+			if (this.sourceIndexer != null)
+				this.sourceIndexer.resolveDocument();
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see SearchParticipant#locateMatches(SearchDocument[], SearchPattern, IJavaSearchScope, SearchRequestor, IProgressMonitor)
 	 */

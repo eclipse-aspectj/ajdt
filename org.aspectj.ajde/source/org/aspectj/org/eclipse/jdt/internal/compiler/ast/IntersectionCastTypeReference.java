@@ -1,27 +1,30 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 IBM Corporation and others.
+ * Copyright (c) 2011, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
+ *                          Bug 409236 - [1.8][compiler] Type annotations on intersection cast types dropped by code generator
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionCastTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
+@SuppressWarnings({"rawtypes"})
 public class IntersectionCastTypeReference extends TypeReference {
 	public TypeReference[] typeReferences;
 
@@ -30,13 +33,15 @@ public class IntersectionCastTypeReference extends TypeReference {
 		this.sourceStart = typeReferences[0].sourceStart;
 		int length = typeReferences.length;
 		this.sourceEnd = typeReferences[length - 1].sourceEnd;
+		for (int i = 0, max = typeReferences.length; i < max; i++) {
+			if ((typeReferences[i].bits & ASTNode.HasTypeAnnotations) != 0) {
+				this.bits |= ASTNode.HasTypeAnnotations;
+				break;
+			}
+		}
 	}
 
-	public TypeReference copyDims(int dim) {
-		throw new UnsupportedOperationException(); // no syntax for this.
-	}
-	
-	public TypeReference copyDims(int dim, Annotation[][] annotationsOnDimensions) {
+	public TypeReference augmentTypeWithAdditionalDimensions(int additionalDimensions, Annotation[][] additionalAnnotations, boolean isVarargs) {
 		throw new UnsupportedOperationException(); // no syntax for this.
 	}
 
@@ -54,6 +59,10 @@ public class IntersectionCastTypeReference extends TypeReference {
 		return null; // not supported here - combined with resolveType(...)
 	}
 
+	public TypeReference[] getTypeReferences() {
+		return this.typeReferences;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference#getTypeBinding(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope)
 	 */
@@ -63,6 +72,8 @@ public class IntersectionCastTypeReference extends TypeReference {
 		ReferenceBinding[] intersectingTypes = new ReferenceBinding[length];
 		boolean hasError = false;
 		
+		int typeCount = 0;
+		nextType:
 		for (int i = 0; i < length; i++) {
 			final TypeReference typeReference = this.typeReferences[i];
 			TypeBinding type = typeReference.resolveType(scope, checkBounds);
@@ -81,24 +92,66 @@ public class IntersectionCastTypeReference extends TypeReference {
 					hasError = true;
 					continue;
 				}
-			} else if (!type.isInterface()) {  // TODO: understand how annotations play here ...
+			} else if (!type.isInterface()) {
 				scope.problemReporter().boundMustBeAnInterface(typeReference, type);
 				hasError = true;
 				continue;
 			}
-			for (int j = 0; j < i; j++) {
-				if (intersectingTypes[j] == type) {
+			for (int j = 0; j < typeCount; j++) {
+				final ReferenceBinding priorType = intersectingTypes[j];
+				if (TypeBinding.equalsEquals(priorType, type)) {
 					scope.problemReporter().duplicateBoundInIntersectionCast(typeReference);
 					hasError = true;
 					continue;
 				}
+				if (!priorType.isInterface())
+					continue;
+				if (TypeBinding.equalsEquals(type.findSuperTypeOriginatingFrom(priorType), priorType)) {
+					intersectingTypes[j] = (ReferenceBinding) type;
+					continue nextType;
+				}
+				if (TypeBinding.equalsEquals(priorType.findSuperTypeOriginatingFrom(type), type))
+					continue nextType;
 			}
-			intersectingTypes[i] = (ReferenceBinding) type;
+			intersectingTypes[typeCount++] = (ReferenceBinding) type;
 		}
+
 		if (hasError) {
 			return null;
 		}
-		return (this.resolvedType = scope.environment().createIntersectionCastType(intersectingTypes));
+		if (typeCount != length) {
+			if (typeCount == 1) {
+				return this.resolvedType = intersectingTypes[0];
+			}
+			System.arraycopy(intersectingTypes, 0, intersectingTypes = new ReferenceBinding[typeCount], 0, typeCount);
+		}
+		IntersectionCastTypeBinding intersectionType = (IntersectionCastTypeBinding) scope.environment().createIntersectionCastType(intersectingTypes);
+		// check for parameterized interface collisions (when different parameterizations occur)
+		ReferenceBinding itsSuperclass = null;
+		ReferenceBinding[] interfaces = intersectingTypes;
+		ReferenceBinding firstType = intersectingTypes[0];
+		if (firstType.isClass()) {
+			itsSuperclass = firstType.superclass();
+			System.arraycopy(intersectingTypes, 1, interfaces = new ReferenceBinding[typeCount - 1], 0, typeCount - 1);
+		}
+		
+		Map invocations = new HashMap(2);
+		nextInterface: for (int i = 0, interfaceCount = interfaces.length; i < interfaceCount; i++) {
+			ReferenceBinding one = interfaces[i];
+			if (one == null) continue nextInterface;
+			if (itsSuperclass != null && scope.hasErasedCandidatesCollisions(itsSuperclass, one, invocations, intersectionType, this))
+				continue nextInterface;
+			nextOtherInterface: for (int j = 0; j < i; j++) {
+				ReferenceBinding two = interfaces[j];
+				if (two == null) continue nextOtherInterface;
+				if (scope.hasErasedCandidatesCollisions(one, two, invocations, intersectionType, this))
+					continue nextInterface;
+			}
+		}
+		if ((intersectionType.tagBits & TagBits.HierarchyHasProblems) != 0)
+			return null;
+
+		return (this.resolvedType = intersectionType);
 	}
 
 	/* (non-Javadoc)

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -792,8 +788,8 @@ public String toString() {
 	return "--- CompilationUnit Scope : " + new String(this.referenceContext.getFileName()); //$NON-NLS-1$
 }
 private ReferenceBinding typeToRecord(TypeBinding type) {
-	if (type.isArrayType())
-		type = ((ArrayBinding) type).leafComponentType;
+	while (type.isArrayType())
+		type = ((ArrayBinding) type).leafComponentType();
 
 	switch (type.kind()) {
 		case Binding.BASE_TYPE :
@@ -876,6 +872,7 @@ private int checkAndRecordImportBinding(
 			conflictingType = null;
 	}
 	// collisions between an imported static field & a type should be checked according to spec... but currently not by javac
+	final char[] name = compoundName[compoundName.length - 1];
 	if (importBinding instanceof ReferenceBinding || conflictingType != null) {
 		ReferenceBinding referenceBinding = conflictingType == null ? (ReferenceBinding) importBinding : conflictingType;
 		ReferenceBinding typeToCheck = referenceBinding.problemId() == ProblemReasons.Ambiguous
@@ -884,17 +881,17 @@ private int checkAndRecordImportBinding(
 		if (importReference.isTypeUseDeprecated(typeToCheck, this))
 			problemReporter().deprecatedType(typeToCheck, importReference);
 
-		ReferenceBinding existingType = typesBySimpleNames.get(compoundName[compoundName.length - 1]);
+		ReferenceBinding existingType = typesBySimpleNames.get(name);
 		if (existingType != null) {
 			// duplicate test above should have caught this case, but make sure
-			if (existingType == referenceBinding) {
+			if (TypeBinding.equalsEquals(existingType, referenceBinding)) {
 				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=302865
 				// Check all resolved imports to see if this import qualifies as a duplicate
 				for (int j = 0; j < this.importPtr; j++) {
 					ImportBinding resolved = this.tempImports[j];
 					if (resolved instanceof ImportConflictBinding) {
 						ImportConflictBinding importConflictBinding = (ImportConflictBinding) resolved;
-						if (importConflictBinding.conflictingTypeBinding == referenceBinding) {
+						if (TypeBinding.equalsEquals(importConflictBinding.conflictingTypeBinding, referenceBinding)) {
 							if (!importReference.isStatic()) {
 								// resolved is implicitly static
 								problemReporter().duplicateImport(importReference);
@@ -917,18 +914,38 @@ private int checkAndRecordImportBinding(
 					return -1;
 				}
 			}
+			if (importReference.isStatic() && importBinding instanceof ReferenceBinding && compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8) {
+				// 7.5.3 says nothing about collision of single static imports and JDK8 tolerates them, though use is flagged.
+				for (int j = 0; j < this.importPtr; j++) {
+					ImportBinding resolved = this.tempImports[j];
+					if (resolved.isStatic() && resolved.resolvedImport instanceof ReferenceBinding && importBinding != resolved.resolvedImport) {
+						if (CharOperation.equals(name, resolved.compoundName[resolved.compoundName.length - 1])) {
+							ReferenceBinding type = (ReferenceBinding) resolved.resolvedImport;
+							resolved.resolvedImport = new ProblemReferenceBinding(new char[][] { name }, type, ProblemReasons.Ambiguous);
+							return -1;
+						}
+					}
+				}
+			}
 			problemReporter().duplicateImport(importReference);
 			return -1;
 		}
-		typesBySimpleNames.put(compoundName[compoundName.length - 1], referenceBinding);
+		typesBySimpleNames.put(name, referenceBinding);
 	} else if (importBinding instanceof FieldBinding) {
 		for (int j = 0; j < this.importPtr; j++) {
 			ImportBinding resolved = this.tempImports[j];
 			// find other static fields with the same name
 			if (resolved.isStatic() && resolved.resolvedImport instanceof FieldBinding && importBinding != resolved.resolvedImport) {
-				if (CharOperation.equals(compoundName[compoundName.length - 1], resolved.compoundName[resolved.compoundName.length - 1])) {
-					problemReporter().duplicateImport(importReference);
-					return -1;
+				if (CharOperation.equals(name, resolved.compoundName[resolved.compoundName.length - 1])) {
+					if (compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8) {
+						// 7.5.3 says nothing about collision of single static imports and JDK8 tolerates them, though use is flagged.
+						FieldBinding field = (FieldBinding) resolved.resolvedImport;
+						resolved.resolvedImport = new ProblemFieldBinding(field, field.declaringClass, name, ProblemReasons.Ambiguous);
+						return -1;
+					} else {
+						problemReporter().duplicateImport(importReference);
+						return -1;
+					}
 				}
 			}
 		}

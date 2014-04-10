@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +21,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FakedTrackingVariable;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
@@ -61,7 +58,13 @@ public class LocalVariableBinding extends VariableBinding {
 
 		this(declaration.name, type, modifiers, isArgument);
 		this.declaration = declaration;
-		this.tagBits |= TagBits.IsEffectivelyFinal;
+	}
+	
+	// argument
+	public LocalVariableBinding(LocalDeclaration declaration, TypeBinding type, int modifiers, MethodScope declaringScope) {
+
+		this(declaration, type, modifiers, true);
+		this.declaringScope = declaringScope;
 	}
 
 	/* API
@@ -94,6 +97,11 @@ public class LocalVariableBinding extends VariableBinding {
 				TypeBinding typeBinding = ((TypeDeclaration) referenceContext).binding;
 				if (typeBinding != null) {
 					buffer.append(typeBinding.computeUniqueKey(false/*not a leaf*/));
+				}
+			} else if (referenceContext instanceof LambdaExpression) {
+				MethodBinding methodBinding = ((LambdaExpression) referenceContext).binding;
+				if (methodBinding != null) {
+					buffer.append(methodBinding.computeUniqueKey(false/*not a leaf*/));
 				}
 			}
 
@@ -155,21 +163,15 @@ public class LocalVariableBinding extends VariableBinding {
 		if (sourceType == null)
 			return Binding.NO_ANNOTATIONS;
 
-		AnnotationBinding[] annotations = sourceType.retrieveAnnotations(this);
 		if ((this.tagBits & TagBits.AnnotationResolved) == 0) {
 			if (((this.tagBits & TagBits.IsArgument) != 0) && this.declaration != null) {
 				Annotation[] annotationNodes = this.declaration.annotations;
 				if (annotationNodes != null) {
-					int length = annotationNodes.length;
-					ASTNode.resolveAnnotations(this.declaringScope, annotationNodes, this);
-					annotations = new AnnotationBinding[length];
-					for (int i = 0; i < length; i++)
-						annotations[i] = new AnnotationBinding(annotationNodes[i]);
-					setAnnotations(annotations, this.declaringScope);
+					ASTNode.resolveAnnotations(this.declaringScope, annotationNodes, this, true);
 				}
 			}
 		}
-		return annotations;
+		return sourceType.retrieveAnnotations(this);
 	}
 
 	private void getScopeKey(BlockScope scope, StringBuffer buffer) {

@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
@@ -17,12 +13,26 @@
  *     							bug 359362 - FUP of bug 349326: Resource leak on non-Closeable resource
  *								bug 358903 - Filter practically unimportant resource leak warnings
  *								bug 395002 - Self bound generic class doesn't resolve bounds properly for wildcards for certain parametrisation.
+ *								bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
+ *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 426792 - [1.8][inference][impl] generify new type inference engine
+ *								Bug 428019 - [1.8][compiler] Type inference failure with nested generic invocation.
+ *								Bug 429384 - [1.8][null] implement conformance rules for null-annotated lower / upper type bounds
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
+import java.util.Set;
+
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 
 /**
  * Binding for a type parameter, held by source/binary type or method.
@@ -36,11 +46,11 @@ public class TypeVariableBinding extends ReferenceBinding {
 	 * Denote the first explicit (binding) bound amongst the supertypes (from declaration in source)
 	 * If no superclass was specified, then it denotes the first superinterface, or null if none was specified.
 	 */
-	public TypeBinding firstBound;
+	public TypeBinding firstBound;             // MUST NOT be modified directly, use setter !
 
 	// actual resolved variable supertypes (if no superclass bound, then associated to Object)
-	public ReferenceBinding superclass;
-	public ReferenceBinding[] superInterfaces;
+	public ReferenceBinding superclass;        // MUST NOT be modified directly, use setter !
+	public ReferenceBinding[] superInterfaces; // MUST NOT be modified directly, use setter !
 	public char[] genericTypeSignature;
 	LookupEnvironment environment;
 	
@@ -52,6 +62,19 @@ public class TypeVariableBinding extends ReferenceBinding {
 		this.tagBits |= TagBits.HasTypeVariable;
 		this.environment = environment;
 		this.typeBits = TypeIds.BitUninitialized;
+	}
+	
+	public TypeVariableBinding(TypeVariableBinding prototype) {
+		super(prototype);
+		this.declaringElement = prototype.declaringElement;
+		this.rank = prototype.rank;
+		this.firstBound = prototype.firstBound;
+		this.superclass = prototype.superclass;
+		this.superInterfaces = prototype.superInterfaces;
+		this.genericTypeSignature = prototype.genericTypeSignature;
+		this.environment = prototype.environment;
+		prototype.tagBits |= TagBits.HasAnnotatedVariants;
+		this.tagBits &= ~TagBits.HasAnnotatedVariants;
 	}
 
 	/**
@@ -71,7 +94,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		return code;
 	}
 	private int internalBoundCheck(Substitution substitution, TypeBinding argumentType, Scope scope) {
-		if (argumentType == TypeBinding.NULL || argumentType == this) {
+		if (argumentType == TypeBinding.NULL || TypeBinding.equalsEquals(argumentType, this)) {
 			return TypeConstants.OK;
 		}
 		boolean hasSubstitution = substitution != null;
@@ -87,7 +110,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 			switch(wildcard.boundKind) {
 				case Wildcard.EXTENDS :
 					TypeBinding wildcardBound = wildcard.bound;
-					if (wildcardBound == this)
+					if (TypeBinding.equalsEquals(wildcardBound, this))
 						return TypeConstants.OK;
 					boolean isArrayBound = wildcardBound.isArrayType();
 					if (!wildcardBound.isInterface()) {
@@ -151,7 +174,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		boolean unchecked = false;
 		if (this.superclass.id != TypeIds.T_JavaLangObject) {
 			TypeBinding substitutedSuperType = hasSubstitution ? Scope.substitute(substitution, this.superclass) : this.superclass;
-	    	if (substitutedSuperType != argumentType) {
+	    	if (TypeBinding.notEquals(substitutedSuperType, argumentType)) {
 				if (!argumentType.isCompatibleWith(substitutedSuperType, scope)) {
 				    return TypeConstants.MISMATCH;
 				}
@@ -165,7 +188,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 		}
 	    for (int i = 0, length = this.superInterfaces.length; i < length; i++) {
 			TypeBinding substitutedSuperType = hasSubstitution ? Scope.substitute(substitution, this.superInterfaces[i]) : this.superInterfaces[i];
-	    	if (substitutedSuperType != argumentType) {
+	    	if (TypeBinding.notEquals(substitutedSuperType, argumentType)) {
 				if (!argumentType.isCompatibleWith(substitutedSuperType, scope)) {
 				    return TypeConstants.MISMATCH;
 				}
@@ -177,13 +200,20 @@ public class TypeVariableBinding extends ReferenceBinding {
 				}
 	    	}
 	    }
+	    long nullTagBits = NullAnnotationMatching.validNullTagBits(this.tagBits);
+	    if (nullTagBits != 0) {
+	    	long argBits = NullAnnotationMatching.validNullTagBits(argumentType.tagBits);
+	    	if (argBits != nullTagBits) {
+//	    		System.err.println("TODO(stephan): issue proper error: bound conflict at "+String.valueOf(this.declaringElement.readableName()));
+	    	}
+	    }
 	    return unchecked ? TypeConstants.UNCHECKED : TypeConstants.OK;
 	}
 
 	public int boundsCount() {
 		if (this.firstBound == null) {
 			return 0;
-		} else if (this.firstBound == this.superclass) {
+		} else if (TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
 			return this.superInterfaces.length + 1;
 		} else {
 			return this.superInterfaces.length;
@@ -214,7 +244,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 			case Binding.BASE_TYPE :
 				if (actualType == TypeBinding.NULL) return;
 				TypeBinding boxedType = scope.environment().computeBoxingType(actualType);
-				if (boxedType == actualType) return;
+				if (boxedType == actualType) return; //$IDENTITY-COMPARISON$
 				actualType = boxedType;
 				break;
 			case Binding.POLY_TYPE: // cannot steer inference, only learn from it.
@@ -277,10 +307,35 @@ public class TypeVariableBinding extends ReferenceBinding {
 	    }
 	    return this.superclass.constantPoolName(); // java/lang/Object
 	}
+	
+	public TypeBinding clone(TypeBinding enclosingType) {
+		return new TypeVariableBinding(this);
+	}
+	public String annotatedDebugName() {
+		StringBuffer buffer = new StringBuffer(10);
+		buffer.append(super.annotatedDebugName());
+		if (this.superclass != null && TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
+		    buffer.append(" extends ").append(this.superclass.annotatedDebugName()); //$NON-NLS-1$
+		}
+		if (this.superInterfaces != null && this.superInterfaces != Binding.NO_SUPERINTERFACES) {
+		   if (TypeBinding.notEquals(this.firstBound, this.superclass)) {
+		        buffer.append(" extends "); //$NON-NLS-1$
+	        }
+		    for (int i = 0, length = this.superInterfaces.length; i < length; i++) {
+		        if (i > 0 || TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
+		            buffer.append(" & "); //$NON-NLS-1$
+		        }
+				buffer.append(this.superInterfaces[i].annotatedDebugName());
+			}
+		}
+		return buffer.toString();
+	}
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#debugName()
 	 */
 	public String debugName() {
+		if (this.hasTypeAnnotations())
+			return super.annotatedDebugName();
 	    return new String(this.sourceName);
 	}
 	public TypeBinding erasure() {
@@ -297,7 +352,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 	    StringBuffer sig = new StringBuffer(10);
 	    sig.append(this.sourceName).append(':');
 	   	int interfaceLength = this.superInterfaces == null ? 0 : this.superInterfaces.length;
-	    if (interfaceLength == 0 || this.firstBound == this.superclass) {
+	    if (interfaceLength == 0 || TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
 	    	if (this.superclass != null)
 		        sig.append(this.superclass.genericTypeSignature());
 	    }
@@ -318,8 +373,23 @@ public class TypeVariableBinding extends ReferenceBinding {
 		return this.genericTypeSignature = CharOperation.concat('T', this.sourceName, ';');
 	}
 
+	/**
+	 * Compute the initial type bounds for one inference variable as per JLS8 sect 18.1.3.
+	 */
+	TypeBound[] getTypeBounds(InferenceVariable variable, InferenceContext18 context) {
+		int n = boundsCount();
+        if (n == 0)
+        	return NO_TYPE_BOUNDS;
+        TypeBound[] bounds = new TypeBound[n];
+        bounds[0] = TypeBound.createBoundOrDependency(context, this.firstBound, variable);
+        int ifcOffset = TypeBinding.equalsEquals(this.firstBound, this.superclass) ? -1 : 0;
+        for (int i = 1; i < n; i++)
+			bounds[i] = TypeBound.createBoundOrDependency(context, this.superInterfaces[i+ifcOffset], variable);
+        return bounds;
+	}
+
 	boolean hasOnlyRawBounds() {
-		if (this.superclass != null && this.firstBound == this.superclass)
+		if (this.superclass != null && TypeBinding.equalsEquals(this.firstBound, this.superclass))
 			if (!this.superclass.isRawType())
 				return false;
 
@@ -349,10 +419,10 @@ public class TypeVariableBinding extends ReferenceBinding {
 	 * Returns true if the type variable is directly bound to a given type
 	 */
 	public boolean isErasureBoundTo(TypeBinding type) {
-		if (this.superclass.erasure() == type)
+		if (TypeBinding.equalsEquals(this.superclass.erasure(), type))
 			return true;
 		for (int i = 0, length = this.superInterfaces.length; i < length; i++) {
-			if (this.superInterfaces[i].erasure() == type)
+			if (TypeBinding.equalsEquals(this.superInterfaces[i].erasure(), type))
 				return true;
 		}
 		return false;
@@ -368,23 +438,103 @@ public class TypeVariableBinding extends ReferenceBinding {
 	 * List<T1>> is interchangeable with <T2 extends List<T2>>.
 	 */
 	public boolean isInterchangeableWith(TypeVariableBinding otherVariable, Substitution substitute) {
-		if (this == otherVariable)
+		if (TypeBinding.equalsEquals(this, otherVariable))
 			return true;
 		int length = this.superInterfaces.length;
 		if (length != otherVariable.superInterfaces.length)
 			return false;
 
-		if (this.superclass != Scope.substitute(substitute, otherVariable.superclass))
+		if (TypeBinding.notEquals(this.superclass, Scope.substitute(substitute, otherVariable.superclass)))
 			return false;
 
 		next : for (int i = 0; i < length; i++) {
 			TypeBinding superType = Scope.substitute(substitute, otherVariable.superInterfaces[i]);
 			for (int j = 0; j < length; j++)
-				if (superType == this.superInterfaces[j])
+				if (TypeBinding.equalsEquals(superType, this.superInterfaces[j]))
 					continue next;
 			return false; // not a match
 		}
 		return true;
+	}
+
+	@Override
+	public boolean isSubtypeOf(TypeBinding other) {
+		if (isSubTypeOfRTL(other))
+			return true;
+		if (this.firstBound != null && this.firstBound.isSubtypeOf(other))
+			return true;
+		if (this.superclass != null && this.superclass.isSubtypeOf(other))
+			return true;
+		if (this.superInterfaces != null)
+			for (int i = 0, l = this.superInterfaces.length; i < l; i++)
+		   		if (this.superInterfaces[i].isSubtypeOf(other))
+					return true;
+		return other.id == TypeIds.T_JavaLangObject;
+	}
+
+	// to prevent infinite recursion when inspecting recursive generics:
+	boolean inRecursiveFunction = false;
+	
+	public boolean isProperType(boolean admitCapture18) {
+		// handle recursive calls:
+		if (this.inRecursiveFunction) // be optimistic, since this node is not an inference variable
+			return true;
+		
+		this.inRecursiveFunction = true;
+		try {
+			if (this.superclass != null && !this.superclass.isProperType(admitCapture18)) {
+				return false;
+			}
+			if (this.superInterfaces != null)
+				for (int i = 0, l = this.superInterfaces.length; i < l; i++)
+			   		if (!this.superInterfaces[i].isProperType(admitCapture18)) {
+						return false;
+					}
+			return true;
+		} finally {
+			this.inRecursiveFunction = false;
+		}
+	}
+
+	TypeBinding substituteInferenceVariable(InferenceVariable var, TypeBinding substituteType) {
+		if (this.inRecursiveFunction) return this;
+		this.inRecursiveFunction = true;
+		try {
+			boolean haveSubstitution = false;
+			ReferenceBinding currentSuperclass = this.superclass;
+			if (currentSuperclass != null) {
+				currentSuperclass = (ReferenceBinding) currentSuperclass.substituteInferenceVariable(var, substituteType);
+				haveSubstitution |= TypeBinding.notEquals(currentSuperclass, this.superclass);
+			}
+			ReferenceBinding[] currentSuperInterfaces = null;
+			if (this.superInterfaces != null) {
+				int length = this.superInterfaces.length;
+				if (haveSubstitution)
+					System.arraycopy(this.superInterfaces, 0, currentSuperInterfaces=new ReferenceBinding[length], 0, length);
+				for (int i = 0; i < length; i++) {
+					ReferenceBinding currentSuperInterface = this.superInterfaces[i];
+					if (currentSuperInterface != null) {
+						currentSuperInterface = (ReferenceBinding) currentSuperInterface.substituteInferenceVariable(var, substituteType);
+						if (TypeBinding.notEquals(currentSuperInterface, this.superInterfaces[i])) {
+							if (currentSuperInterfaces == null)
+								System.arraycopy(this.superInterfaces, 0, currentSuperInterfaces=new ReferenceBinding[length], 0, length);
+							currentSuperInterfaces[i] = currentSuperInterface;
+							haveSubstitution = true;
+						}
+					}
+				}
+			}
+			if (haveSubstitution) {
+				TypeVariableBinding newVar = new TypeVariableBinding(this.sourceName, this.declaringElement, this.rank, this.environment);
+				newVar.superclass = currentSuperclass;
+				newVar.superInterfaces = currentSuperInterfaces;
+				newVar.tagBits = this.tagBits;
+				return newVar;
+			}
+			return this;
+		} finally {
+			this.inRecursiveFunction = false;
+		}
 	}
 
 	/**
@@ -418,11 +568,47 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public int kind() {
 		return Binding.TYPE_PARAMETER;
 	}
+	
+	public boolean mentionsAny(TypeBinding[] parameters, int idx) {
+		if (this.inRecursiveFunction)
+			return false; // nothing seen
+		this.inRecursiveFunction = true;
+		try {
+			if (super.mentionsAny(parameters, idx))
+				return true;
+			if (this.superclass != null && this.superclass.mentionsAny(parameters, idx))
+				return true;
+			if (this.superInterfaces != null)
+				for (int j = 0; j < this.superInterfaces.length; j++) {
+					if (this.superInterfaces[j].mentionsAny(parameters, idx))
+						return true;
+			}
+			return false;
+		} finally {
+			this.inRecursiveFunction = false;
+		}
+	}
+
+	void collectInferenceVariables(Set<InferenceVariable> variables) {
+		if (this.inRecursiveFunction)
+			return; // nothing seen
+		this.inRecursiveFunction = true;
+		try {
+			if (this.superclass != null)
+				this.superclass.collectInferenceVariables(variables);
+			if (this.superInterfaces != null)
+				for (int j = 0; j < this.superInterfaces.length; j++) {
+					this.superInterfaces[j].collectInferenceVariables(variables);
+			}
+		} finally {
+			this.inRecursiveFunction = false;
+		}
+	}
 
 	public TypeBinding[] otherUpperBounds() {
 		if (this.firstBound == null)
 			return Binding.NO_TYPES;
-		if (this.firstBound == this.superclass)
+		if (TypeBinding.equalsEquals(this.firstBound, this.superclass))
 			return this.superInterfaces;
 		int otherLength = this.superInterfaces.length - 1;
 		if (otherLength > 0) {
@@ -443,11 +629,21 @@ public class TypeVariableBinding extends ReferenceBinding {
 		if ((this.modifiers & ExtraCompilerModifiers.AccUnresolved) == 0)
 			return this;
 
+		long nullTagBits = this.tagBits & TagBits.AnnotationNullMASK;
+		
 		TypeBinding oldSuperclass = this.superclass, oldFirstInterface = null;
 		if (this.superclass != null) {
 			ReferenceBinding resolveType = (ReferenceBinding) BinaryTypeBinding.resolveType(this.superclass, this.environment, true /* raw conversion */);
 			this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences;
-			this.superclass = resolveType;
+			long superNullTagBits = resolveType.tagBits & TagBits.AnnotationNullMASK;
+			if (superNullTagBits != 0L) {
+				if (nullTagBits == 0L) {
+					this.tagBits |= (superNullTagBits | TagBits.HasNullTypeAnnotation);
+				} else {
+//					System.err.println("TODO(stephan): report proper error: conflict binary TypeVariable vs. first bound");
+				}
+			}
+			this.setSuperClass(resolveType);
 		}
 		ReferenceBinding[] interfaces = this.superInterfaces;
 		int length;
@@ -456,19 +652,32 @@ public class TypeVariableBinding extends ReferenceBinding {
 			for (int i = length; --i >= 0;) {
 				ReferenceBinding resolveType = (ReferenceBinding) BinaryTypeBinding.resolveType(interfaces[i], this.environment, true /* raw conversion */);
 				this.tagBits |= resolveType.tagBits & TagBits.ContainsNestedTypeReferences;
+				long superNullTagBits = resolveType.tagBits & TagBits.AnnotationNullMASK;
+				if (superNullTagBits != 0L) {
+					if (nullTagBits == 0L) {
+						this.tagBits |= (superNullTagBits | TagBits.HasNullTypeAnnotation);
+					} else {
+//						System.err.println("TODO(stephan): report proper error: conflict binary TypeVariable vs. bound "+i);
+					}
+				}
 				interfaces[i] = resolveType;
 			}
 		}
 		// refresh the firstBound in case it changed
 		if (this.firstBound != null) {
-			if (this.firstBound == oldSuperclass) {
-				this.firstBound = this.superclass;
-			} else if (this.firstBound == oldFirstInterface) {
-				this.firstBound = interfaces[0];
+			if (TypeBinding.equalsEquals(this.firstBound, oldSuperclass)) {
+				this.setFirstBound(this.superclass);
+			} else if (TypeBinding.equalsEquals(this.firstBound, oldFirstInterface)) {
+				this.setFirstBound(interfaces[0]);
 			}
 		}
 		this.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
 		return this;
+	}
+	
+	public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
+		this.environment.getUnannotatedType(this); // exposes original TVB/capture to type system for id stamping purposes.
+		super.setTypeAnnotations(annotations, evalNullAnnotations);
 	}
 	/**
      * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding#shortReadableName()
@@ -488,17 +697,19 @@ public class TypeVariableBinding extends ReferenceBinding {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
+		if (this.hasTypeAnnotations())
+			return annotatedDebugName();
 		StringBuffer buffer = new StringBuffer(10);
 		buffer.append('<').append(this.sourceName);//.append('[').append(this.rank).append(']');
-		if (this.superclass != null && this.firstBound == this.superclass) {
+		if (this.superclass != null && TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
 		    buffer.append(" extends ").append(this.superclass.debugName()); //$NON-NLS-1$
 		}
 		if (this.superInterfaces != null && this.superInterfaces != Binding.NO_SUPERINTERFACES) {
-		   if (this.firstBound != this.superclass) {
+		   if (TypeBinding.notEquals(this.firstBound, this.superclass)) {
 		        buffer.append(" extends "); //$NON-NLS-1$
 	        }
 		    for (int i = 0, length = this.superInterfaces.length; i < length; i++) {
-		        if (i > 0 || this.firstBound == this.superclass) {
+		        if (i > 0 || TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
 		            buffer.append(" & "); //$NON-NLS-1$
 		        }
 				buffer.append(this.superInterfaces[i].debugName());
@@ -508,6 +719,35 @@ public class TypeVariableBinding extends ReferenceBinding {
 		return buffer.toString();
 	}
 
+	@Override
+	public char[] nullAnnotatedReadableName(CompilerOptions options, boolean shortNames) {
+	    StringBuffer nameBuffer = new StringBuffer(10);
+		appendNullAnnotation(nameBuffer, options);
+		nameBuffer.append(this.sourceName());
+		if (this.superclass != null && TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
+			nameBuffer.append(" extends ").append(this.superclass.nullAnnotatedReadableName(options, shortNames)); //$NON-NLS-1$
+		}
+		if (this.superInterfaces != null && this.superInterfaces != Binding.NO_SUPERINTERFACES) {
+		   if (TypeBinding.notEquals(this.firstBound, this.superclass)) {
+			   nameBuffer.append(" extends "); //$NON-NLS-1$
+	        }
+		    for (int i = 0, length = this.superInterfaces.length; i < length; i++) {
+		        if (i > 0 || TypeBinding.equalsEquals(this.firstBound, this.superclass)) {
+		        	nameBuffer.append(" & "); //$NON-NLS-1$
+		        }
+		        nameBuffer.append(this.superInterfaces[i].nullAnnotatedReadableName(options, shortNames));
+			}
+		}
+		int nameLength = nameBuffer.length();
+		char[] readableName = new char[nameLength];
+		nameBuffer.getChars(0, nameLength, readableName, 0);
+	    return readableName;
+	}
+
+	// May still carry declaration site annotations.
+	public TypeBinding unannotated() {
+		return this.hasTypeAnnotations() ? this.environment.getUnannotatedType(this) : this;
+	}
 	/**
 	 * Upper bound doesn't perform erasure
 	 */
@@ -516,5 +756,102 @@ public class TypeVariableBinding extends ReferenceBinding {
 			return this.firstBound;
 		}
 		return this.superclass; // java/lang/Object
+	}
+
+	public void evaluateNullAnnotations(Scope scope, TypeParameter parameter) {
+		long nullTagBits = NullAnnotationMatching.validNullTagBits(this.tagBits);
+		if (this.firstBound != null && this.firstBound.isValidBinding()) {
+			long superNullTagBits = NullAnnotationMatching.validNullTagBits(this.firstBound.tagBits);
+			if (superNullTagBits != 0L) {
+				if (nullTagBits == 0L) {
+					nullTagBits |= superNullTagBits;
+				} else if (superNullTagBits != nullTagBits) {
+					// not finding either bound or ann should be considered a compiler bug
+					TypeReference bound = findBound(this.firstBound, parameter);
+					Annotation ann = bound.findAnnotation(superNullTagBits);
+					scope.problemReporter().contradictoryNullAnnotationsOnBounds(ann, nullTagBits);
+					this.tagBits &= ~TagBits.AnnotationNullMASK;
+				}
+			}
+		}	
+		ReferenceBinding[] interfaces = this.superInterfaces;
+		int length;
+		if ((length = interfaces.length) != 0) {
+			for (int i = length; --i >= 0;) {
+				ReferenceBinding resolveType = interfaces[i];
+				long superNullTagBits = NullAnnotationMatching.validNullTagBits(resolveType.tagBits);
+				if (superNullTagBits != 0L) {
+					if (nullTagBits == 0L) {
+						nullTagBits |= superNullTagBits;
+					} else if (superNullTagBits != nullTagBits) {
+						// not finding either bound or ann should be considered a compiler bug
+						TypeReference bound = findBound(this.firstBound, parameter);
+						Annotation ann = bound.findAnnotation(superNullTagBits);
+						scope.problemReporter().contradictoryNullAnnotationsOnBounds(ann, nullTagBits);
+						this.tagBits &= ~TagBits.AnnotationNullMASK;
+					}
+				}
+				interfaces[i] = resolveType;
+			}
+		}
+		if (nullTagBits != 0)
+			this.tagBits |= nullTagBits | TagBits.HasNullTypeAnnotation;
+	}
+	private TypeReference findBound(TypeBinding bound, TypeParameter parameter) {
+		if (parameter.type != null && TypeBinding.equalsEquals(parameter.type.resolvedType, bound))
+			return parameter.type;
+		TypeReference[] bounds = parameter.bounds;
+		if (bounds != null) {
+			for (int i = 0; i < bounds.length; i++) {
+				if (TypeBinding.equalsEquals(bounds[i].resolvedType, bound))
+					return bounds[i];
+			}
+		}
+		return null;
+	}
+
+	/* An annotated type variable use differs from its declaration exactly in its annotations and in nothing else.
+	   Propagate writes to all annotated variants so the clones evolve along.
+	*/
+	public TypeBinding setFirstBound(TypeBinding firstBound) {
+		this.firstBound = firstBound;
+		if ((this.tagBits & TagBits.HasAnnotatedVariants) != 0) {
+			TypeBinding [] annotatedTypes = this.environment.getAnnotatedTypes(this);
+			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
+				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
+				annotatedType.firstBound = firstBound;
+			}
+		}
+		if (firstBound != null && firstBound.hasNullTypeAnnotations())
+			this.tagBits |= TagBits.HasNullTypeAnnotation;
+		return firstBound;
+	}
+	/* An annotated type variable use differs from its declaration exactly in its annotations and in nothing else.
+	   Propagate writes to all annotated variants so the clones evolve along.
+	*/
+	public ReferenceBinding setSuperClass(ReferenceBinding superclass) {
+		this.superclass = superclass;
+		if ((this.tagBits & TagBits.HasAnnotatedVariants) != 0) {
+			TypeBinding [] annotatedTypes = this.environment.getAnnotatedTypes(this);
+			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
+				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
+				annotatedType.superclass = superclass;
+			}
+		}
+		return superclass;
+	}
+	/* An annotated type variable use differs from its declaration exactly in its annotations and in nothing else.
+	   Propagate writes to all annotated variants so the clones evolve along.
+	*/
+	public ReferenceBinding [] setSuperInterfaces(ReferenceBinding[] superInterfaces) {
+		this.superInterfaces = superInterfaces;
+		if ((this.tagBits & TagBits.HasAnnotatedVariants) != 0) {
+			TypeBinding [] annotatedTypes = this.environment.getAnnotatedTypes(this);
+			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
+				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
+				annotatedType.superInterfaces = superInterfaces;
+			}
+		}
+		return superInterfaces;
 	}
 }

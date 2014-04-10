@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
@@ -17,7 +13,7 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.codegen;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 
@@ -25,34 +21,23 @@ public class AnnotationContext {
 	public static final int VISIBLE = 0x1;
 	public static final int INVISIBLE = 0x2;
 	public Annotation annotation;
-	public TypeReference typeReference;
+	public Expression typeReference;
 	public int targetType;
 	public int info;
 	public int info2;
 	public int visibility;
-	public Annotation[] primaryAnnotations;
 	public LocalVariableBinding variableBinding;
-	public Annotation[][] annotationsOnDimensions;
 	public Wildcard wildcard;
-	// annotationsOnDimensions might be null but the dimensions may still be important. In some
-	// cases they are not on the reference.
-	public int dimensions;
 
 	public AnnotationContext(
 			Annotation annotation,
-			TypeReference typeReference,
+			Expression typeReference,
 			int targetType,
-			Annotation[] primaryAnnotations,
-			int visibility,
-			Annotation[][] annotationsOnDimensions,
-			int dimensions) {
+			int visibility) {
 		this.annotation = annotation;
 		this.typeReference = typeReference;
 		this.targetType = targetType;
-		this.primaryAnnotations = primaryAnnotations;
 		this.visibility = visibility;
-		this.annotationsOnDimensions = annotationsOnDimensions;
-		this.dimensions = dimensions;
 	}
 
 	public String toString() {

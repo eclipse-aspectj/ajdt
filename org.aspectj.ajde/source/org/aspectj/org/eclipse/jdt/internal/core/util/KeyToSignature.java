@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2011 IBM Corporation and others.
+ * Copyright (c) 2005, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *	   Stephan Herrmann - Contribution for
+ *								Bug 425183 - [1.8][inference] make CaptureBinding18 safe
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.util;
 
@@ -20,6 +22,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 /*
  * Converts a binding key into a signature
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class KeyToSignature extends BindingKeyParser {
 
 	public static final int SIGNATURE = 0;
@@ -59,6 +62,12 @@ public class KeyToSignature extends BindingKeyParser {
 	public void consumeCapture(int position) {
 		this.signature.append('!');
 		this.signature.append(((KeyToSignature) this.arguments.get(0)).signature);
+	}
+
+	@Override
+	public void consumeCapture18ID(int id, int position) {
+		// see https://bugs.eclipse.org/429264
+		this.signature.append("!*"); // pretend a 'capture-of ?' //$NON-NLS-1$
 	}
 
 	public void consumeLocalType(char[] uniqueKey) {

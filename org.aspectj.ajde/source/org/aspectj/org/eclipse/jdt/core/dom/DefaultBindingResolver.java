@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for Bug 342671 - ClassCastException: org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding cannot be cast to org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding
@@ -17,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.core.dom;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -27,10 +24,10 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpressi
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocAllocationExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocFieldReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocMessageSend;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleNameReference;
@@ -66,6 +63,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VoidTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -81,6 +79,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * threads, the methods are synchronized on the DefaultBindingResolver instance.
  * </p>
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 class DefaultBindingResolver extends BindingResolver {
 
 	/*
@@ -100,8 +99,8 @@ class DefaultBindingResolver extends BindingResolver {
 		Map compilerBindingsToASTBindings;
 
 		BindingTables() {
-			this.compilerBindingsToASTBindings = new HashMap();
-			this.bindingKeysToBindings = new HashMap();
+			this.compilerBindingsToASTBindings = new ConcurrentHashMap();
+			this.bindingKeysToBindings = new ConcurrentHashMap();
 		}
 
 	}
@@ -883,7 +882,7 @@ class DefaultBindingResolver extends BindingResolver {
 		Object oldNode = this.newAstToOldAst.get(lambda);
 		if (oldNode instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression lambdaExpression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression) oldNode;
-			IMethodBinding methodBinding = getMethodBinding(lambdaExpression.binding);
+			IMethodBinding methodBinding = getMethodBinding(lambdaExpression.getMethodBinding());
 			if (methodBinding == null) {
 				return null;
 			}
@@ -934,7 +933,7 @@ class DefaultBindingResolver extends BindingResolver {
 		Object oldNode = this.newAstToOldAst.get(methodReference);
 		if (oldNode instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression referenceExpression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) oldNode;
-			IMethodBinding methodBinding = getMethodBinding(referenceExpression.binding);
+			IMethodBinding methodBinding = getMethodBinding(referenceExpression.getMethodBinding());
 			if (methodBinding == null) {
 				return null;
 			}
@@ -1122,6 +1121,9 @@ class DefaultBindingResolver extends BindingResolver {
 		} else if (node instanceof QualifiedSuperReference) {
 			QualifiedSuperReference qualifiedSuperReference = (QualifiedSuperReference) node;
 			return this.getTypeBinding(qualifiedSuperReference.qualification.resolvedType);
+		} else if (node instanceof Receiver) {
+			org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding receiver = ((Receiver) node).type.resolvedType;
+			return this.getTypeBinding(receiver);
 		} else if (node instanceof LocalDeclaration) {
 			IVariableBinding variable = this.getVariableBinding(((LocalDeclaration)node).binding);
 			if (variable == null) return null;
@@ -1166,7 +1168,7 @@ class DefaultBindingResolver extends BindingResolver {
 			return method.getReturnType();
 		} else if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression referenceExpression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) node;
-			IMethodBinding method = getMethodBinding(referenceExpression.binding);
+			IMethodBinding method = getMethodBinding(referenceExpression.getMethodBinding());
 			if (method == null) return null;
 			return method.getReturnType();
 		}
@@ -1431,7 +1433,7 @@ class DefaultBindingResolver extends BindingResolver {
 			return getMethodBinding(memberValuePair.binding);
 		} else if (node instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) {
 			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression referenceExpression = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression) node;
-			return getMethodBinding(referenceExpression.binding);
+			return getMethodBinding(referenceExpression.getMethodBinding());
 		}
 		return null;
 	}
@@ -1603,7 +1605,11 @@ class DefaultBindingResolver extends BindingResolver {
 					}
 					ArrayType arrayType = (ArrayType) type;
 					ArrayBinding arrayBinding = (ArrayBinding) typeBinding;
-					return getTypeBinding(this.scope.createArrayType(arrayBinding.leafComponentType, arrayType.getDimensions()));
+					int dimensions = arrayType.getDimensions();
+					boolean isVarargs = typeReference.isVarargs();
+					if (dimensions == arrayBinding.dimensions)
+						return getTypeBinding(arrayBinding); // reuse.
+					return getTypeBinding(this.scope.createArrayType(arrayBinding.leafComponentType, dimensions, getTypeAnnotations(dimensions, arrayBinding, isVarargs)));
 				}
 				if (typeBinding.isArrayType()) {
 					// 'typeBinding' can still be an array type because 'node' may be "larger" than 'type' (see comment of newAstToOldAst).
@@ -1629,10 +1635,12 @@ class DefaultBindingResolver extends BindingResolver {
 					binding = typeBinding;
 				}
 			} else if (node instanceof TypeReference) {
-				if (type instanceof QualifiedType) {
+				if (type instanceof SimpleType && node instanceof QualifiedTypeReference) {
+					return resolveTypeBindingForName(((SimpleType)type).getName());
+				} else if (type instanceof QualifiedType) {
 					return resolveTypeBindingForName(((QualifiedType)type).getName());
-				} else if (type instanceof PackageQualifiedType){
-					return resolveTypeBindingForName(((PackageQualifiedType)type).getName());
+				} else if (type instanceof NameQualifiedType){
+					return resolveTypeBindingForName(((NameQualifiedType)type).getName());
 				}
 				TypeReference typeReference = (TypeReference) node;
 				binding = typeReference.resolvedType;
@@ -1650,7 +1658,11 @@ class DefaultBindingResolver extends BindingResolver {
 						return null;
 					}
 					ArrayBinding arrayBinding = (ArrayBinding) binding;
-					return getTypeBinding(this.scope.createArrayType(arrayBinding.leafComponentType, arrayType.getDimensions()));
+					int dimensions = arrayType.getDimensions();
+					boolean isVarargs = node instanceof TypeReference && ((TypeReference) node).isVarargs();
+					if (dimensions == arrayBinding.dimensions)
+						return getTypeBinding(arrayBinding); // reuse
+					return getTypeBinding(this.scope.createArrayType(arrayBinding.leafComponentType, dimensions, getTypeAnnotations(dimensions, arrayBinding, isVarargs)));
 				} else if (binding.isArrayType()) {
 					// 'binding' can still be an array type because 'node' may be "larger" than 'type' (see comment of newAstToOldAst).
 					ArrayBinding arrayBinding = (ArrayBinding) binding;
@@ -1667,6 +1679,27 @@ class DefaultBindingResolver extends BindingResolver {
 			}
 		}
 		return null;
+	}
+
+	private org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] getTypeAnnotations(int dimensions, ArrayBinding arrayBinding, boolean isVarargs) {
+		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding [] oldies = arrayBinding.getTypeAnnotations();
+		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] newbies = Binding.NO_ANNOTATIONS;
+		// Skip past extended dimensions encoded ahead of base dimensions. Dimension for variable argument array comes after the base dimensions.
+		int extendedDimensions = arrayBinding.dimensions - dimensions - (isVarargs ? 1 : 0);
+		int i, length;
+		for (i = 0, length = oldies == null ? 0 : oldies.length; i < length && extendedDimensions > 0 ; i++) {
+			if (oldies[i] == null)
+				extendedDimensions--;
+		}
+		int cells = 0;
+		for (int j = i; j < length && dimensions > 0 ; j++) {
+			if (oldies[j] == null)
+				dimensions--;
+			cells ++;
+		}
+		if (cells > 0)
+			System.arraycopy(oldies, i, newbies = new org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[cells], 0, cells);
+		return newbies;
 	}
 
 	/*
@@ -1888,41 +1921,43 @@ class DefaultBindingResolver extends BindingResolver {
 			leafComponentType = typeBinding.getElementType();
 			actualDimensions += typeBinding.getDimensions();
 		}
- 		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding leafTypeBinding = null;
- 		if (leafComponentType.isPrimitive()) {
- 	 		String name = leafComponentType.getBinaryName();
-			switch(name.charAt(0)) {
-				case 'I' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.INT;
-					break;
-				case 'B' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.BYTE;
-					break;
-				case 'Z' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.BOOLEAN;
-					break;
-				case 'C' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.CHAR;
-					break;
-				case 'J' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.LONG;
-					break;
-				case 'S' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.SHORT;
-					break;
-				case 'D' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.DOUBLE;
-					break;
-				case 'F' :
-					leafTypeBinding = org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.FLOAT;
-					break;
-				case 'V' :
-					throw new IllegalArgumentException();
+		if (!(leafComponentType instanceof TypeBinding)) return null;
+		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding leafTypeBinding = 
+											((TypeBinding) leafComponentType).binding;
+		if (leafTypeBinding instanceof VoidTypeBinding) {
+			throw new IllegalArgumentException();
+		}
+		if (typeBinding.isArray()) {
+			return this.getTypeBinding(lookupEnvironment().createArrayType(
+											leafTypeBinding,
+											actualDimensions,
+											insertAnnotations((((TypeBinding) typeBinding).binding).getTypeAnnotations(), dimensions)));
+		} else {
+			return this.getTypeBinding(lookupEnvironment().createArrayType(
+											leafTypeBinding,
+											actualDimensions));
+		}
+	}
+	
+	private org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] insertAnnotations(
+							org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] annots, int dimensions) {
+		if (dimensions == 0 || annots == null || annots.length == 0) {
+			return annots;
+		}
+		int index = 0;
+		if (dimensions < 0) {
+			for (int i = 0; i < annots.length; i++) {
+				index++;
+				if (annots[i] == null) {
+					if(++dimensions == 0) break;
+				}
 			}
- 		} else {
- 			if (!(leafComponentType instanceof TypeBinding)) return null;
- 			leafTypeBinding = ((TypeBinding) leafComponentType).binding;
- 		}
-		return this.getTypeBinding(lookupEnvironment().createArrayType(leafTypeBinding, actualDimensions));
+			if (dimensions < 0) dimensions = 0; // Just means there were no annotations
+		}
+		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] newAnnots = 
+				new org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[annots.length - index + dimensions];
+
+		System.arraycopy(annots, index, newAnnots, dimensions, annots.length - index);
+		return newAnnots;
 	}
 }

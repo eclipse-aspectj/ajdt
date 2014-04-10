@@ -1,16 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
+ *								Bug 416174 - [1.8][compiler][null] Bogus name clash error with null annotations
+ *								Bug 416176 - [1.8][compiler][null] null type annotations cause grief on type variables
+ *								Bug 423504 - [1.8] Implement "18.5.3 Functional Interface Parameterization Inference"
+ *								Bug 425783 - An internal error occurred during: "Requesting Java AST from selection". java.lang.StackOverflowError
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -72,6 +74,10 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		sig.getChars(0, sigLength, uniqueKey, 0);
 		return uniqueKey;
    	}
+	
+	public TypeBinding clone(TypeBinding outerType) {
+		return new RawTypeBinding(this.actualType(), (ReferenceBinding) outerType, this.environment);
+	}
 
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding#createParameterizedMethod(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding)
@@ -83,6 +89,10 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		return this.environment.createParameterizedGenericMethod(originalMethod, this);
 	}
 
+	public boolean isParameterizedType() {
+		return false;
+	}
+
 	public int kind() {
 		return RAW_TYPE;
 	}
@@ -91,11 +101,17 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#debugName()
 	 */
 	public String debugName() {
-	    StringBuffer nameBuffer = new StringBuffer(10);
+		if (this.hasTypeAnnotations())
+			return annotatedDebugName();
+		StringBuffer nameBuffer = new StringBuffer(10);
 		nameBuffer.append(actualType().sourceName()).append("#RAW"); //$NON-NLS-1$
 	    return nameBuffer.toString();
 	}
-
+	public String annotatedDebugName() {
+		StringBuffer buffer = new StringBuffer(super.annotatedDebugName());
+		buffer.append("#RAW"); //$NON-NLS-1$
+		return buffer.toString();
+	}
 	/**
 	 * Ltype<param1 ... paramN>;
 	 * LY<TT;>;
@@ -130,7 +146,7 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	}
 
     public boolean isEquivalentTo(TypeBinding otherType) {
-		if (this == otherType || erasure() == otherType)
+		if (equalsEquals(this, otherType) || equalsEquals(erasure(), otherType))
 		    return true;
 	    if (otherType == null)
 	        return false;
@@ -143,13 +159,13 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	    	case Binding.GENERIC_TYPE :
 	    	case Binding.PARAMETERIZED_TYPE :
 	    	case Binding.RAW_TYPE :
-	            return erasure() == otherType.erasure();
+	            return TypeBinding.equalsEquals(erasure(), otherType.erasure());
 	    }
         return false;
 	}
 
     public boolean isProvablyDistinct(TypeBinding otherType) {
-		if (this == otherType || erasure() == otherType) // https://bugs.eclipse.org/bugs/show_bug.cgi?id=329588
+		if (TypeBinding.equalsEquals(this, otherType) || TypeBinding.equalsEquals(erasure(), otherType)) // https://bugs.eclipse.org/bugs/show_bug.cgi?id=329588
 		    return false;
 	    if (otherType == null)
 	        return true;
@@ -158,10 +174,15 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 	    	case Binding.GENERIC_TYPE :
 	    	case Binding.PARAMETERIZED_TYPE :
 	    	case Binding.RAW_TYPE :
-	            return erasure() != otherType.erasure();
+	            return TypeBinding.notEquals(erasure(), otherType.erasure());
 	    }
         return true;
 	}
+
+    public boolean isProperType(boolean admitCapture18) {
+    	TypeBinding type = actualType();
+    	return type != null && type.isProperType(admitCapture18);
+    }
 
 	protected void initializeArguments() {
 		TypeVariableBinding[] typeVariables = genericType().typeVariables();
@@ -174,14 +195,18 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		this.arguments = typeArguments;
 	}
 	
-	public MethodBinding getSingleAbstractMethod(Scope scope) {
+	public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcards) {
+		int index = replaceWildcards ? 0 : 1;
 		if (this.singleAbstractMethod != null) {
-			return this.singleAbstractMethod;
+			if (this.singleAbstractMethod[index] != null)
+			return this.singleAbstractMethod[index];
+		} else {
+			this.singleAbstractMethod = new MethodBinding[2];
 		}
 		final ReferenceBinding genericType = genericType();
-		MethodBinding theAbstractMethod = genericType.getSingleAbstractMethod(scope);
+		MethodBinding theAbstractMethod = genericType.getSingleAbstractMethod(scope, replaceWildcards);
 		if (theAbstractMethod == null || !theAbstractMethod.isValidBinding())
-			return this.singleAbstractMethod = theAbstractMethod;
+			return this.singleAbstractMethod[index] = theAbstractMethod;
 		
 		ReferenceBinding declaringType = (ReferenceBinding) scope.environment().convertToRawType(genericType, true);
 		declaringType = (ReferenceBinding) declaringType.findSuperTypeOriginatingFrom(theAbstractMethod.declaringClass);
@@ -189,10 +214,10 @@ public class RawTypeBinding extends ParameterizedTypeBinding {
 		for (int i = 0, length = choices.length; i < length; i++) {
 			MethodBinding method = choices[i];
 			if (!method.isAbstract() || method.redeclaresPublicObjectMethod(scope)) continue; // (re)skip statics, defaults, public object methods ...
-			this.singleAbstractMethod = method;
+			this.singleAbstractMethod[index] = method;
 			break;
 		}
-		return this.singleAbstractMethod;
+		return this.singleAbstractMethod[index];
 	}
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#readableName()

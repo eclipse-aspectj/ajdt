@@ -10,6 +10,7 @@
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
  *								bug 185682 - Increment/decrement operators mark local variables as read
  *								bug 331649 - [compiler][null] consider null annotations for fields
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -65,7 +66,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 	if (isPublic()) return true;
 
 	SourceTypeBinding invocationType = scope.invocationType(); // AspectJ Extension, was enclosingSourceType()
-	if (invocationType == this.declaringClass && invocationType == receiverType) return true;
+	if (TypeBinding.equalsEquals(invocationType, this.declaringClass) && TypeBinding.equalsEquals(invocationType, receiverType)) return true;
 
 	if (invocationType == null) // static import call
 		return !isPrivate() && scope.getCurrentPackage() == this.declaringClass.fPackage;
@@ -76,7 +77,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 		//    AND the receiverType is the invocationType or its subclass
 		//    OR the method is a static method accessed directly through a type
 		//    OR previous assertions are true for one of the enclosing type
-		if (invocationType == this.declaringClass) return true;
+		if (TypeBinding.equalsEquals(invocationType, this.declaringClass)) return true;
 		if (invocationType.fPackage == this.declaringClass.fPackage) return true;
 
 		ReferenceBinding currentType = invocationType;
@@ -94,7 +95,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 					if (depth > 0) invocationSite.setDepth(depth);
 					return true; // see 1FMEPDL - return invocationSite.isTypeAccess();
 				}
-				if (currentType == receiverErasure || receiverErasure.findSuperTypeOriginatingFrom(currentType) != null) {
+				if (TypeBinding.equalsEquals(currentType, receiverErasure) || receiverErasure.findSuperTypeOriginatingFrom(currentType) != null) {
 					if (depth > 0) invocationSite.setDepth(depth);
 					return true;
 				}
@@ -109,7 +110,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 		// answer true if the receiverType is the declaringClass
 		// AND the invocationType and the declaringClass have a common enclosingType
 		receiverCheck: {
-			if (receiverType != this.declaringClass) {
+			if (TypeBinding.notEquals(receiverType, this.declaringClass)) {
 				// special tolerance for type variable direct bounds, but only if compliance <= 1.6, see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=334622
 				if (scope.compilerOptions().complianceLevel <= ClassFileConstants.JDK1_6 && receiverType.isTypeVariable() && ((TypeVariableBinding) receiverType).isErasureBoundTo(this.declaringClass.erasure()))
 					break receiverCheck;
@@ -117,7 +118,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 			}
 		}
 
-		if (invocationType != this.declaringClass) {
+		if (TypeBinding.notEquals(invocationType, this.declaringClass)) {
 			ReferenceBinding outerInvocationType = invocationType;
 			ReferenceBinding temp = outerInvocationType.enclosingType();
 			while (temp != null) {
@@ -131,7 +132,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 				outerDeclaringClass = temp;
 				temp = temp.enclosingType();
 			}
-			if (outerInvocationType != outerDeclaringClass) return false;
+			if (TypeBinding.notEquals(outerInvocationType, outerDeclaringClass)) return false;
 		}
 		return true;
 	}
@@ -147,9 +148,9 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 	ReferenceBinding currentType = (ReferenceBinding) receiverType;
 	do {
 		if (currentType.isCapture()) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=285002
-			if (originalDeclaringClass == currentType.erasure().original()) return true;
+			if (TypeBinding.equalsEquals(originalDeclaringClass, currentType.erasure().original())) return true;
 		} else {
-			if (originalDeclaringClass == currentType.original()) return true;
+			if (TypeBinding.equalsEquals(originalDeclaringClass, currentType.original())) return true;
 		}
 		PackageBinding currentPackage = currentType.fPackage;
 		// package could be null for wildcards/intersection types, ignore and recurse in superclass
@@ -226,11 +227,15 @@ public Constant constant() {
 }
 
 public void fillInDefaultNonNullness(FieldDeclaration sourceField, Scope scope) {
+	LookupEnvironment environment = scope.environment();
 	if (   this.type != null
 		&& !this.type.isBaseType()
-		&& (this.tagBits & (TagBits.AnnotationNonNull|TagBits.AnnotationNullable)) == 0)
+		&& (this.tagBits & TagBits.AnnotationNullMASK) == 0)
 	{
-		this.tagBits |= TagBits.AnnotationNonNull;
+		if (environment.globalOptions.sourceLevel < ClassFileConstants.JDK1_8)
+			this.tagBits |= TagBits.AnnotationNonNull;
+		else
+			this.type = environment.createAnnotatedType(this.type, new AnnotationBinding[]{environment.getNonNullAnnotation()});
 	} else if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
 		scope.problemReporter().nullAnnotationIsRedundant(sourceField);
 	}

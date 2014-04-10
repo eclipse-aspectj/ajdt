@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -498,10 +494,10 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 			ExceptionLabel exceptionLabel = null;
 			if ((argument.binding.tagBits & TagBits.MultiCatchParameter) != 0) {
 				MultiCatchExceptionLabel multiCatchExceptionLabel = new MultiCatchExceptionLabel(codeStream, argument.binding.type);
-				multiCatchExceptionLabel.initialize((UnionTypeReference) argument.type);
+				multiCatchExceptionLabel.initialize((UnionTypeReference) argument.type, argument.annotations);
 				exceptionLabel = multiCatchExceptionLabel;
 			} else {
-				exceptionLabel = new ExceptionLabel(codeStream, argument.binding.type, argument.type);
+				exceptionLabel = new ExceptionLabel(codeStream, argument.binding.type, argument.type, argument.annotations);
 			}
 			exceptionLabel.placeStart();
 			exceptionLabels[i] = exceptionLabel;
@@ -1062,8 +1058,9 @@ public void resolve(BlockScope upperScope) {
 			this.anyExceptionVariable.setConstant(Constant.NotAConstant); // not inlinable
 
 			if (!methodScope.isInsideInitializer()) {
-				MethodBinding methodBinding =
-					((AbstractMethodDeclaration) methodScope.referenceContext).binding;
+				MethodBinding methodBinding = methodScope.referenceContext instanceof AbstractMethodDeclaration ?
+					((AbstractMethodDeclaration) methodScope.referenceContext).binding : (methodScope.referenceContext instanceof LambdaExpression ? 
+							((LambdaExpression)methodScope.referenceContext).binding : null);
 				if (methodBinding != null) {
 					TypeBinding methodReturnType = methodBinding.returnType;
 					if (methodReturnType.id != TypeIds.T_void) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,8 @@
  *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *	   Stephan Herrmann - Contribution for
  *								bug 404649 - [1.8][compiler] detect illegal reference to indirect or redundant super
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 416182 - [1.8][compiler][null] Contradictory null annotations not rejected
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -37,4 +39,8 @@ public interface ProblemReasons {
 	final int IntersectionHasMultipleFunctionalInterfaces = 19;
 	final int NonStaticOrAlienTypeReceiver = 20;
 	final int AttemptToBypassDirectSuper = 21; // super access within default method
+	final int DefectiveContainerAnnotationType = 22;
+	final int ParameterizedMethodExpectedTypeProblem = 23;
+	final int ApplicableMethodOverriddenByInapplicable = 24;
+	final int ContradictoryNullAnnotations = 25;
 }

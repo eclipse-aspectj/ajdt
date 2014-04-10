@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,17 +20,48 @@ package org.aspectj.org.eclipse.jdt.internal.codeassist.select;
  *  n  means completion behind the n-th character
  */
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
-
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.AssistParser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CaseStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Reference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.CommitRollbackParser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.JavadocParser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 public class SelectionParser extends AssistParser {
@@ -53,7 +80,6 @@ public class SelectionParser extends AssistParser {
 	/* public fields */
 
 	public int selectionStart, selectionEnd;
-
 	public static final char[] SUPER = "super".toCharArray(); //$NON-NLS-1$
 	public static final char[] THIS = "this".toCharArray(); //$NON-NLS-1$
 
@@ -86,10 +112,13 @@ protected void attachOrphanCompletionNode(){
 		if (orphan instanceof Expression) {
 			buildMoreCompletionContext((Expression)orphan);
 		} else {
-			Statement statement = (Statement) orphan;
-			this.currentElement = this.currentElement.add(statement, 0);
+			if (lastIndexOfElement(K_LAMBDA_EXPRESSION_DELIMITER) < 0) { // lambdas are recovered up to the containing expression statement and will carry along the assist node anyways.
+				Statement statement = (Statement) orphan;
+				this.currentElement = this.currentElement.add(statement, 0);
+			}
 		}
-		this.currentToken = 0; // given we are not on an eof, we do not want side effects caused by looked-ahead token
+		if (!isIndirectlyInsideLambdaExpression())
+			this.currentToken = 0; // given we are not on an eof, we do not want side effects caused by looked-ahead token
 	}
 }
 private void buildMoreCompletionContext(Expression expression) {
@@ -147,12 +176,15 @@ private void buildMoreCompletionContext(Expression expression) {
 				break nextElement;
 		}
 	}
-	if(parentNode != null) {
-		this.currentElement = this.currentElement.add((Statement)parentNode, 0);
-	} else {
-		this.currentElement = this.currentElement.add((Statement)wrapWithExplicitConstructorCallIfNeeded(expression), 0);
-		if(this.lastCheckPoint < expression.sourceEnd) {
-			this.lastCheckPoint = expression.sourceEnd + 1;
+	// Do not add assist node/parent into the recovery system if we are inside a lambda. The lambda will be fully recovered including the containing statement and added.
+	if (lastIndexOfElement(K_LAMBDA_EXPRESSION_DELIMITER) < 0) {
+		if(parentNode != null) {
+			this.currentElement = this.currentElement.add((Statement)parentNode, 0);
+		} else {
+			this.currentElement = this.currentElement.add((Statement)wrapWithExplicitConstructorCallIfNeeded(expression), 0);
+			if(this.lastCheckPoint < expression.sourceEnd) {
+				this.lastCheckPoint = expression.sourceEnd + 1;
+			}
 		}
 	}
 }
@@ -307,6 +339,7 @@ protected void consumeCatchFormalParameter() {
 		long namePositions = this.identifierPositionStack[this.identifierPtr--];
 		this.intPtr--; // dimension from the variabledeclaratorid
 		TypeReference type = (TypeReference) this.astStack[this.astPtr--];
+		this.astLengthPtr --;
 		int modifierPositions = this.intStack[this.intPtr--];
 		this.intPtr--;
 		Argument arg =
@@ -378,7 +411,6 @@ protected void consumeClassInstanceCreationExpressionQualifiedWithTypeArguments(
 		char [] oldIdent = assistIdentifier();
 		setAssistIdentifier(null);
 		alloc.type = getTypeReference(0);
-		rejectIllegalLeadingTypeAnnotations(alloc.type);
 		checkForDiamond(alloc.type);
 
 		setAssistIdentifier(oldIdent);
@@ -443,7 +475,6 @@ protected void consumeClassInstanceCreationExpressionWithTypeArguments() {
 		char [] oldIdent = assistIdentifier();
 		setAssistIdentifier(null);
 		alloc.type = getTypeReference(0);
-		rejectIllegalLeadingTypeAnnotations(alloc.type);
 		checkForDiamond(alloc.type);
 
 		setAssistIdentifier(oldIdent);
@@ -520,7 +551,8 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 	if (!this.diet){
 		this.restartRecovery	= true;	// force to restart in recovery mode
 		this.lastIgnoredToken = -1;
-		this.currentToken = 0; // opening brace already taken into account
+		if (!isIndirectlyInsideLambdaExpression())
+			this.currentToken = 0; // opening brace already taken into account
 		this.hasReportedError = true;
 	}
 
@@ -530,7 +562,8 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 	if (this.currentElement != null){
 		this.lastCheckPoint = anonymousType.bodyStart;
 		this.currentElement = this.currentElement.add(anonymousType, 0);
-		this.currentToken = 0; // opening brace already taken into account
+		if (!isIndirectlyInsideLambdaExpression())
+			this.currentToken = 0; // opening brace already taken into account
 		this.lastIgnoredToken = -1;
 	}
 }
@@ -559,9 +592,9 @@ protected void consumeExitVariableWithInitialization() {
 	int end =  variable.initialization.sourceEnd;
 	if ((this.selectionStart < start) &&  (this.selectionEnd < start) ||
 			(this.selectionStart > end) && (this.selectionEnd > end)) {
-		variable.initialization = null;
+			variable.initialization = null;
 	}
-
+	triggerRecoveryUponLambdaClosure(variable, false);
 }
 
 protected void consumeFieldAccess(boolean isSuperAccess) {
@@ -634,18 +667,13 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 		int firstDimensions = this.intStack[this.intPtr--];
 		TypeReference type = getTypeReference(firstDimensions);
 
-		final int typeDimensions = firstDimensions + extendedDimensions + (isVarArgs ? 1 : 0);
-		if (typeDimensions != firstDimensions) {
-			// jsr308 type annotations management
-			Annotation [][] annotationsOnFirstDimensions = firstDimensions == 0 ? null : type.getAnnotationsOnDimensions();
-			Annotation [][] annotationsOnAllDimensions = annotationsOnFirstDimensions;
-			if (annotationsOnExtendedDimensions != null) {
-				annotationsOnAllDimensions = getMergedAnnotationsOnDimensions(firstDimensions, annotationsOnFirstDimensions, extendedDimensions, annotationsOnExtendedDimensions);
+		if (isVarArgs || extendedDimensions != 0) {
+			if (isVarArgs) {
+				type = augmentTypeWithAdditionalDimensions(type, 1, varArgsAnnotations != null ? new Annotation[][] { varArgsAnnotations } : null, true);	
+			} 
+			if (extendedDimensions != 0) { // combination illegal.
+				type = augmentTypeWithAdditionalDimensions(type, extendedDimensions, annotationsOnExtendedDimensions, false);
 			}
-			if (varArgsAnnotations != null) {
-				annotationsOnAllDimensions = getMergedAnnotationsOnDimensions(firstDimensions + extendedDimensions, annotationsOnAllDimensions, 1, new Annotation[][]{varArgsAnnotations});
-			}
-			type = copyDims(type, typeDimensions, annotationsOnAllDimensions);
 			type.sourceEnd = type.isParameterizedTypeReference() ? this.endStatementPosition : this.endPosition;
 		}
 		if (isVarArgs) {
@@ -729,6 +757,31 @@ protected void consumeInstanceOfExpressionWithName() {
 		this.lastIgnoredToken = -1;
 	}
 }
+@Override
+protected void consumeLambdaExpression() {
+	super.consumeLambdaExpression();
+	LambdaExpression expression = (LambdaExpression) this.expressionStack[this.expressionPtr];
+	int arrowEnd = expression.arrowPosition();
+	int arrowStart = arrowEnd - 1;
+	if (this.selectionStart == arrowStart || this.selectionStart == arrowEnd) {
+		if (this.selectionEnd == arrowStart || this.selectionEnd == arrowEnd) {
+			this.expressionStack[this.expressionPtr] = new SelectionOnLambdaExpression(expression);
+		}
+	}
+}
+@Override
+protected void consumeReferenceExpression(ReferenceExpression referenceExpression) {
+	int kolonKolonStart = this.colonColonStart;
+	int kolonKolonEnd = kolonKolonStart + 1;
+	this.colonColonStart = -1;
+	if (this.selectionStart == kolonKolonStart || this.selectionStart == kolonKolonEnd) {
+		if (this.selectionEnd == kolonKolonStart || this.selectionEnd == kolonKolonEnd) {
+			referenceExpression = new SelectionOnReferenceExpression(referenceExpression);
+		}
+	}
+	super.consumeReferenceExpression(referenceExpression);
+}
+
 protected void consumeLocalVariableDeclarationStatement() {
 	super.consumeLocalVariableDeclarationStatement();
 
@@ -1162,6 +1215,9 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
+protected CommitRollbackParser createSnapShotParser() {
+	return new SelectionParser(this.problemReporter);
+}
 public ImportReference createAssistImportReference(char[][] tokens, long[] positions, int mod){
 	return new SelectionOnImportReference(tokens, positions, mod);
 }
@@ -1316,6 +1372,15 @@ protected NameReference getUnspecifiedReferenceOptimized() {
 public void initializeScanner(){
 	this.scanner = new SelectionScanner(this.options.sourceLevel);
 }
+public ReferenceExpression newReferenceExpression() {
+	char[] selector = this.identifierStack[this.identifierPtr];
+	if (selector != assistIdentifier()){
+		return super.newReferenceExpression();
+	}
+	ReferenceExpression referenceExpression = new SelectionOnReferenceExpressionName();
+	this.assistNode = referenceExpression;
+	return referenceExpression;
+}
 protected MessageSend newMessageSend() {
 	// '(' ArgumentListopt ')'
 	// the arguments are on the expression stack
@@ -1381,6 +1446,7 @@ public CompilationUnitDeclaration parse(ICompilationUnit sourceUnit, Compilation
 	selectionScanner.selectionEnd = end;
 	return super.parse(sourceUnit, compilationResult, -1, -1/*parse without reseting the scanner*/);
 }
+
 /*
  * Reset context so as to resume to regular parse loop
  * If unable to reset for resuming, answers false.
@@ -1388,23 +1454,29 @@ public CompilationUnitDeclaration parse(ICompilationUnit sourceUnit, Compilation
  * Move checkpoint location, reset internal stacks and
  * decide which grammar goal is activated.
  */
-protected boolean resumeAfterRecovery() {
+protected int resumeAfterRecovery() {
 
 	/* if reached assist node inside method body, but still inside nested type,
 		should continue in diet mode until the end of the method body */
 	if (this.assistNode != null
 		&& !(this.referenceContext instanceof CompilationUnitDeclaration)){
 		this.currentElement.preserveEnclosingBlocks();
+		if (requireExtendedRecovery()) {
+			if (this.unstackedAct != ERROR_ACTION) {
+				return RESUME;
+			}
+			return super.resumeAfterRecovery();
+		}
 		if (this.currentElement.enclosingType() == null) {
-			if(!(this.currentElement instanceof RecoveredType)) {
+			if (!(this.currentElement instanceof RecoveredType)) {
 				resetStacks();
-				return false;
+				return HALT;
 			}
 
-			RecoveredType recoveredType = (RecoveredType)this.currentElement;
-			if(recoveredType.typeDeclaration != null && recoveredType.typeDeclaration.allocation == this.assistNode){
+			RecoveredType recoveredType = (RecoveredType) this.currentElement;
+			if (recoveredType.typeDeclaration != null && recoveredType.typeDeclaration.allocation == this.assistNode) {
 				resetStacks();
-				return false;
+				return HALT;
 			}
 		}
 	}
@@ -1441,7 +1513,26 @@ protected void updateRecoveryState() {
 	*/
 	recoveryTokenCheck();
 }
+protected Argument typeElidedArgument() {
+	char[] selector = this.identifierStack[this.identifierPtr];
+	if (selector != assistIdentifier()){
+		return super.typeElidedArgument();
+	}	
+	this.identifierLengthPtr--;
+	char[] identifierName = this.identifierStack[this.identifierPtr];
+	long namePositions = this.identifierPositionStack[this.identifierPtr--];
 
+	Argument argument =
+		new SelectionOnArgumentName(
+			identifierName,
+			namePositions,
+			null, // elided type
+			ClassFileConstants.AccDefault,
+			true);
+	argument.declarationSourceStart = (int) (namePositions >>> 32);
+	this.assistNode = argument;
+	return argument;
+}
 public  String toString() {
 	String s = Util.EMPTY_STRING;
 	s = s + "elementKindStack : int[] = {"; //$NON-NLS-1$

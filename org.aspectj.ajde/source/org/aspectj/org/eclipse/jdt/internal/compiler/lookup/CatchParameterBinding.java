@@ -4,10 +4,6 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +27,7 @@ public class CatchParameterBinding extends LocalVariableBinding {
 	public void setPreciseType(TypeBinding raisedException) {
 		int length = this.preciseTypes.length;
 		for (int i = 0; i < length; ++i) {
-			if (this.preciseTypes[i] == raisedException)
+			if (TypeBinding.equalsEquals(this.preciseTypes[i], raisedException))
 				return;
 		}
 		System.arraycopy(this.preciseTypes, 0, this.preciseTypes = new TypeBinding [length + 1], 0, length);

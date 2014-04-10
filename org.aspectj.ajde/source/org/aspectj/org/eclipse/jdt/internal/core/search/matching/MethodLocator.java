@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
 import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodLocator extends PatternLocator {
 
 protected MethodPattern pattern;
@@ -92,7 +93,7 @@ private MethodBinding getMethodBinding(ReferenceBinding type, char[] methodName,
 		TypeBinding[] parameters = method.parameters;
 		if (argumentTypes.length == parameters.length) {
 			for (int j=0,l=parameters.length; j<l; j++) {
-				if (parameters[j].erasure() != argumentTypes[j].erasure()) {
+				if (TypeBinding.notEquals(parameters[j].erasure(), argumentTypes[j].erasure())) {
 					continue methodsLoop;
 				}
 			}
@@ -167,6 +168,15 @@ public int match(ASTNode node, MatchingNodeSet nodeSet) {
 	}
 	return nodeSet.addMatch(node, declarationsLevel);
 }
+
+public int match(LambdaExpression node, MatchingNodeSet nodeSet) {
+	if (!this.pattern.findDeclarations) return IMPOSSIBLE_MATCH;
+	if (this.pattern.parameterSimpleNames != null && this.pattern.parameterSimpleNames.length != node.arguments().length) return IMPOSSIBLE_MATCH;
+
+	nodeSet.mustResolve = true;
+	return nodeSet.addMatch(node, POSSIBLE_MATCH);
+}
+
 //public int match(ConstructorDeclaration node, MatchingNodeSet nodeSet) - SKIP IT
 //public int match(Expression node, MatchingNodeSet nodeSet) - SKIP IT
 //public int match(FieldDeclaration node, MatchingNodeSet nodeSet) - SKIP IT
@@ -229,7 +239,14 @@ public int match(MessageSend node, MatchingNodeSet nodeSet) {
 
 	return nodeSet.addMatch(node, this.pattern.mustResolve ? POSSIBLE_MATCH : ACCURATE_MATCH);
 }
-//public int match(Reference node, MatchingNodeSet nodeSet) - SKIP IT
+
+public int match(ReferenceExpression node, MatchingNodeSet nodeSet) {
+	if (!this.pattern.findReferences) return IMPOSSIBLE_MATCH;
+	if (!matchesName(this.pattern.selector, node.selector)) return IMPOSSIBLE_MATCH;
+	nodeSet.mustResolve = true;
+	return nodeSet.addMatch(node, this.pattern.mustResolve ? POSSIBLE_MATCH : ACCURATE_MATCH);
+}
+
 public int match(Annotation node, MatchingNodeSet nodeSet) {
 	if (!this.pattern.findReferences) return IMPOSSIBLE_MATCH;
 	MemberValuePair[] pairs = node.memberValuePairs();
@@ -265,6 +282,7 @@ protected void matchLevelAndReportImportRef(ImportReference importRef, Binding b
 		super.matchLevelAndReportImportRef(importRef, binding, locator);
 	}
 }
+
 protected int matchMethod(MethodBinding method, boolean skipImpossibleArg) {
 	if (!matchesName(this.pattern.selector, method.selector)) return IMPOSSIBLE_MATCH;
 
@@ -647,10 +665,16 @@ public int resolveLevel(ASTNode possibleMatchingNode) {
 			MemberValuePair memberValuePair = (MemberValuePair) possibleMatchingNode;
 			return resolveLevel(memberValuePair.binding);
 		}
+		if (possibleMatchingNode instanceof ReferenceExpression) {
+			return resolveLevel((ReferenceExpression)possibleMatchingNode);
+		}
 	}
 	if (this.pattern.findDeclarations) {
 		if (possibleMatchingNode instanceof MethodDeclaration) {
 			return resolveLevel(((MethodDeclaration) possibleMatchingNode).binding);
+		}
+		if (possibleMatchingNode instanceof LambdaExpression) {
+			return resolveLevel(((LambdaExpression) possibleMatchingNode).descriptor);
 		}
 	}
 	return IMPOSSIBLE_MATCH;
@@ -734,6 +758,24 @@ protected int resolveLevel(MessageSend messageSend) {
 	return (methodLevel & MATCH_LEVEL_MASK) > (declaringLevel & MATCH_LEVEL_MASK) ? declaringLevel : methodLevel; // return the weaker match
 }
 
+protected int resolveLevel(ReferenceExpression referenceExpression) {
+	MethodBinding method = referenceExpression.getMethodBinding();
+	if (method == null || !method.isValidBinding())
+		return INACCURATE_MATCH;
+
+	int methodLevel = matchMethod(method, false);
+	if (methodLevel == IMPOSSIBLE_MATCH) {
+		if (method != method.original()) methodLevel = matchMethod(method.original(), false);
+		if (methodLevel == IMPOSSIBLE_MATCH) return IMPOSSIBLE_MATCH;
+		method = method.original();
+	}
+
+	// receiver type
+	if (this.pattern.declaringSimpleName == null && this.pattern.declaringQualification == null) return methodLevel; // since any declaring class will do
+	int declaringLevel = resolveLevelForType(this.pattern.declaringSimpleName, this.pattern.declaringQualification, method.declaringClass);
+	return (methodLevel & MATCH_LEVEL_MASK) > (declaringLevel & MATCH_LEVEL_MASK) ? declaringLevel : methodLevel; // return the weaker match
+}
+
 /**
  * Returns whether the given reference type binding matches or is a subtype of a type
  * that matches the given qualified pattern.
@@ -810,7 +852,7 @@ private boolean resolveLevelAsSuperInvocation(ReferenceBinding type, TypeBinding
 				if (argumentTypes.length == parameters.length) {
 					boolean found = true;
 					for (int k=0,l=parameters.length; k<l; k++) {
-						if (parameters[k].erasure() != argumentTypes[k].erasure()) {
+						if (TypeBinding.notEquals(parameters[k].erasure(), argumentTypes[k].erasure())) {
 							found = false;
 							break;
 						}

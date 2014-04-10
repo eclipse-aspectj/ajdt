@@ -12,6 +12,8 @@
  *								bug 185682 - Increment/decrement operators mark local variables as read
  *								bug 331649 - [compiler][null] consider null annotations for fields
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								Bug 412203 - [compiler] Internal compiler error: java.lang.IllegalArgumentException: info cannot be null
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
  *     Jesper S Moller - Contributions for
  *								Bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
@@ -28,6 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
@@ -123,6 +126,7 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 		if (   !isCompound
 			&& this.receiver.isThis()
 			&& !(this.receiver instanceof QualifiedThisReference)
+			&& TypeBinding.equalsEquals(this.receiver.resolvedType, this.binding.declaringClass) // inherited fields are not tracked here
 			&& ((this.receiver.bits & ASTNode.ParenthesizedMASK) == 0)) { // (this).x is forbidden
 			flowInfo.markAsDefinitelyAssigned(this.binding);
 		}		
@@ -286,7 +290,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		if (isThisReceiver) {
 			if (isStatic){
 				// if no valueRequired, still need possible side-effects of <clinit> invocation, if field belongs to different class
-				if (this.binding.original().declaringClass != this.actualReceiverType.erasure()) {
+				if (TypeBinding.notEquals(this.binding.original().declaringClass, this.actualReceiverType.erasure())) {
 					MethodBinding accessor = this.syntheticAccessors == null ? null : this.syntheticAccessors[FieldReference.READ];
 					if (accessor == null) {
 						TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(currentScope, codegenBinding, this.actualReceiverType, this.receiver.isImplicitThis());
@@ -433,6 +437,10 @@ public TypeBinding[] genericTypeArguments() {
 	return null;
 }
 
+public InferenceContext18 freshInferenceContext(Scope scope) {
+	return null;
+}
+
 public boolean isEquivalent(Reference reference) {
 	// only consider field references relative to "this":
 	if (this.receiver.isThis() && !(this.receiver instanceof QualifiedThisReference)) {
@@ -516,7 +524,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 	// if field from parameterized type got found, use the original field at codegen time
 	FieldBinding codegenBinding = this.binding.original();
 	if (this.binding.isPrivate()) {
-		if ((currentScope.enclosingSourceType() != codegenBinding.declaringClass)
+		if ((TypeBinding.notEquals(currentScope.enclosingSourceType(), codegenBinding.declaringClass))
 				&& this.binding.constant() == Constant.NotAConstant) {
 			if (this.syntheticAccessors == null)
 				this.syntheticAccessors = new MethodBinding[2];
@@ -625,7 +633,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	}
 	if (receiverCast) {
 		 // due to change of declaring class with receiver type, only identity cast should be notified
-		if (((CastExpression)this.receiver).expression.resolvedType == this.actualReceiverType) {
+		if (TypeBinding.equalsEquals(((CastExpression)this.receiver).expression.resolvedType, this.actualReceiverType)) {
 				scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
 		}
 	}
@@ -668,7 +676,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	TypeBinding oldReceiverType = this.actualReceiverType;
 	this.actualReceiverType = this.actualReceiverType.getErasureCompatibleType(fieldBinding.declaringClass);
 	this.receiver.computeConversion(scope, this.actualReceiverType, this.actualReceiverType);
-	if (this.actualReceiverType != oldReceiverType && this.receiver.postConversionType(scope) != this.actualReceiverType) { // record need for explicit cast at codegen since receiver could not handle it
+	if (TypeBinding.notEquals(this.actualReceiverType, oldReceiverType) && TypeBinding.notEquals(this.receiver.postConversionType(scope), this.actualReceiverType)) { // record need for explicit cast at codegen since receiver could not handle it
 		this.bits |= NeedReceiverGenericCast;
 	}
 	if (isFieldUseDeprecated(fieldBinding, scope, this.bits)) {
@@ -685,7 +693,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		}
 		ReferenceBinding declaringClass = this.binding.declaringClass;
 		if (!isImplicitThisRcv
-				&& declaringClass != this.actualReceiverType
+				&& TypeBinding.notEquals(declaringClass, this.actualReceiverType)
 				&& declaringClass.canBeSeenBy(scope)) {
 			scope.problemReporter().indirectAccessToStaticField(this, fieldBinding);
 		}
@@ -695,7 +703,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			SourceTypeBinding sourceType = scope.enclosingSourceType();
 			if (this.constant == Constant.NotAConstant
 					&& !methodScope.isStatic
-					&& (sourceType == declaringClass || sourceType.superclass == declaringClass) // enum constant body
+					&& (TypeBinding.equalsEquals(sourceType, declaringClass) || TypeBinding.equalsEquals(sourceType.superclass, declaringClass)) // enum constant body
 					&& methodScope.isInsideInitializerOrConstructor()) {
 				scope.problemReporter().enumStaticFieldUsedDuringInitialization(this.binding, this);
 			}
@@ -740,7 +748,7 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
 public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotations) {
 	if (this.binding != null) {
 		if (supportTypeAnnotations
-				|| ((this.binding.tagBits & (TagBits.AnnotationNonNull|TagBits.AnnotationNullable)) != 0)) {
+				|| ((this.binding.tagBits & TagBits.AnnotationNullMASK) != 0)) {
 			return this.binding;
 		}
 	}

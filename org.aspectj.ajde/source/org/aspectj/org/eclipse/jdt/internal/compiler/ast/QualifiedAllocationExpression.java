@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,12 +17,24 @@
  *								bug 388996 - [compiler][resource] Incorrect 'potential resource leak'
  *								bug 395977 - [compiler][resource] Resource leak warning behavior possibly incorrect for anonymous inner class
  *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *								Bug 415850 - [1.8] Ensure RunJDTCoreTests can cope with null annotations enabled
+ *								Bug 392238 - [1.8][compiler][null] Detect semantically invalid null type annotations
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
+ *								Bug 416267 - NPE in QualifiedAllocationExpression.resolveType
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 424415 - [1.8][compiler] Eventual resolution of ReferenceExpression is not seen to be happening.
+ *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *     Jesper S Moller <jesper@selskabet.org> - Contributions for
  *								bug 378674 - "The method can be declared as static" is wrong
- *        Andy Clement - Contributions for
+ *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ *                          Bug 409245 - [1.8][compiler] Type annotations dropped when call is routed through a synthetic bridge method
+ *     Till Brychcy - Contributions for
+ *     							bug 413460 - NonNullByDefault is not inherited to Constructors when accessed via Class File
  ******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
+
+import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.INVOCATION_CONTEXT;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -34,10 +42,12 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.Opcodes;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImplicitNullAnnotationVerifier;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
@@ -201,7 +211,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				i++) {
 				codeStream.aconst_null();
 			}
-			codeStream.invoke(Opcodes.OPC_invokespecial, this.syntheticAccessor, null /* default declaringClass */);
+			codeStream.invoke(Opcodes.OPC_invokespecial, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
 		}
 		if (valueRequired) {
 			codeStream.generateImplicitConversion(this.implicitConversion);
@@ -270,7 +280,18 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 		if (this.anonymousType == null && this.enclosingInstance == null) {
 			return super.resolveType(scope);
 		}
-
+		TypeBinding result=resolveTypeForQualifiedAllocationExpression(scope);
+		if(result != null && this.binding != null) {
+			final CompilerOptions compilerOptions = scope.compilerOptions();
+			if (compilerOptions.isAnnotationBasedNullAnalysisEnabled && (this.binding.tagBits & TagBits.IsNullnessKnown) == 0) {
+				new ImplicitNullAnnotationVerifier(scope.environment(), compilerOptions.inheritNullAnnotations)
+						.checkImplicitNullAnnotations(this.binding, null/*srcMethod*/, false, scope);
+			}
+		}
+		return result;
+	}
+	
+	private TypeBinding resolveTypeForQualifiedAllocationExpression(BlockScope scope) {
 		// Propagate the type checking to the arguments, and checks if the constructor is defined.
 		// ClassInstanceCreationExpression ::= Primary '.' 'new' SimpleName '(' ArgumentListopt ')' ClassBodyopt
 		// ClassInstanceCreationExpression ::= Name '.' 'new' SimpleName '(' ArgumentListopt ')' ClassBodyopt
@@ -308,6 +329,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				hasError = true;
 			} else {
 				receiverType = ((SingleTypeReference) this.type).resolveTypeEnclosing(scope, (ReferenceBinding) enclosingInstanceType);
+				checkIllegalNullAnnotation(scope, receiverType);
 				if (receiverType != null && enclosingInstanceContainsCast) {
 					CastExpression.checkNeedForEnclosingInstanceCast(scope, this.enclosingInstance, enclosingInstanceType, receiverType);
 				}
@@ -318,6 +340,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				receiverType = scope.enclosingSourceType();
 			} else {
 				receiverType = this.type.resolveType(scope, true /* check bounds*/);
+				checkIllegalNullAnnotation(scope, receiverType);
 				checkParameterizedAllocation: {
 					if (receiverType == null || !receiverType.isValidBinding()) break checkParameterizedAllocation;
 					if (this.type instanceof ParameterizedQualifiedTypeReference) { // disallow new X<String>.Y<Integer>()
@@ -343,10 +366,11 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 		}
 
 		// resolve type arguments (for generic constructor call)
+		long sourceLevel = scope.compilerOptions().sourceLevel;
 		final boolean isDiamond = this.type != null && (this.type.bits & ASTNode.IsDiamond) != 0;
 		if (this.typeArguments != null) {
 			int length = this.typeArguments.length;
-			boolean argHasError = scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_5;
+			boolean argHasError = sourceLevel < ClassFileConstants.JDK1_5;
 			this.genericTypeArguments = new TypeBinding[length];
 			for (int i = 0; i < length; i++) {
 				TypeReference typeReference = this.typeArguments[i];
@@ -373,11 +397,9 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 
 		// will check for null after args are resolved
 		TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
-		boolean polyExpressionSeen = false;
 		if (this.arguments != null) {
 			int length = this.arguments.length;
 			argumentTypes = new TypeBinding[length];
-			TypeBinding argumentType;
 			for (int i = 0; i < length; i++) {
 				Expression argument = this.arguments[i];
 				if (argument instanceof CastExpression) {
@@ -385,11 +407,13 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 					argsContainCast = true;
 				}
 				argument.setExpressionContext(INVOCATION_CONTEXT);
-				if ((argumentType = argumentTypes[i] = argument.resolveType(scope)) == null){
+				if ((argumentTypes[i] = argument.resolveType(scope)) == null){
 					hasError = true;
 				}
-				if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE)
-					polyExpressionSeen = true;
+				if (sourceLevel >= ClassFileConstants.JDK1_8 && argument.isPolyExpression()) {
+					if (this.innerInferenceHelper == null)
+						this.innerInferenceHelper = new InnerInferenceHelper();
+				}
 			}
 		}
 
@@ -411,7 +435,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 					for (int i = length; --i >= 0;) {
 						pseudoArgs[i] = argumentTypes[i] == null ? TypeBinding.NULL : argumentTypes[i]; // replace args with errors with null type
 					}
-					this.binding = scope.findMethod(referenceReceiver, TypeConstants.INIT, pseudoArgs, this);
+					this.binding = scope.findMethod(referenceReceiver, TypeConstants.INIT, pseudoArgs, this, false);
 					if (this.binding != null && !this.binding.isValidBinding()) {
 						MethodBinding closestMatch = ((ProblemMethodBinding)this.binding).closestMatch;
 						// record the closest match, for clients who may still need hint about possible method match
@@ -445,7 +469,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				return this.resolvedType = receiverType;
 			}
 			if (isDiamond) {
-				TypeBinding [] inferredTypes = inferElidedTypes(((ParameterizedTypeBinding) receiverType).genericType(), receiverType.enclosingType(), argumentTypes, scope);
+				TypeBinding [] inferredTypes = inferElidedTypes((ParameterizedTypeBinding) receiverType, receiverType.enclosingType(), argumentTypes, scope);
 				if (inferredTypes == null) {
 					scope.problemReporter().cannotInferElidedTypes(this);
 					return this.resolvedType = null;
@@ -453,9 +477,8 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 				receiverType = this.type.resolvedType = scope.environment().createParameterizedType(((ParameterizedTypeBinding) receiverType).genericType(), inferredTypes, ((ParameterizedTypeBinding) receiverType).enclosingType());
 			}
 			ReferenceBinding allocationType = (ReferenceBinding) receiverType;
-			this.binding = scope.getConstructor(allocationType, argumentTypes, this);
-			if (polyExpressionSeen && polyExpressionsHaveErrors(scope, this.binding, this.arguments, argumentTypes))
-				return null;
+			this.binding = findConstructorBinding(scope, this, allocationType, argumentTypes);
+
 			if (this.binding.isValidBinding()) {	
 				if (isMethodUseDeprecated(this.binding, scope, true)) {
 					scope.problemReporter().deprecatedMethod(this.binding, this);
@@ -485,7 +508,7 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 		 	}
 			// The enclosing instance must be compatible with the innermost enclosing type
 			ReferenceBinding expectedType = this.binding.declaringClass.enclosingType();
-			if (expectedType != enclosingInstanceType) // must call before computeConversion() and typeMismatchError()
+			if (TypeBinding.notEquals(expectedType, enclosingInstanceType)) // must call before computeConversion() and typeMismatchError()
 				scope.compilationUnitScope().recordTypeConversion(expectedType, enclosingInstanceType);
 			if (enclosingInstanceType.isCompatibleWith(expectedType) || scope.isBoxingCompatibleWith(enclosingInstanceType, expectedType)) {
 				this.enclosingInstance.computeConversion(scope, expectedType, enclosingInstanceType);
@@ -520,9 +543,8 @@ public class QualifiedAllocationExpression extends AllocationExpression {
 		if ((this.resolvedType.tagBits & TagBits.HierarchyHasProblems) != 0) {
 			return null; // stop secondary errors
 		}
-		MethodBinding inheritedBinding = scope.getConstructor(anonymousSuperclass, argumentTypes, this);
-		if (polyExpressionSeen && polyExpressionsHaveErrors(scope, inheritedBinding, this.arguments, argumentTypes))
-			return null;
+		MethodBinding inheritedBinding = findConstructorBinding(scope, this, anonymousSuperclass, argumentTypes);
+			
 		if (!inheritedBinding.isValidBinding()) {
 			if (inheritedBinding.declaringClass == null) {
 				inheritedBinding.declaringClass = anonymousSuperclass;

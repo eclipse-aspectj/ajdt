@@ -4,10 +4,6 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +15,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.parser;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
@@ -168,6 +165,12 @@ public class TheOriginalJDTScannerClass implements TerminalTokens {
 	public static final int TAG_PREFIX_LENGTH= TAG_PREFIX.length;
 	public static final char TAG_POSTFIX= '$';
 	public static final int TAG_POSTFIX_LENGTH= 1;
+
+	// support for complaining on uninterned type comparisons.
+	public static final char[] IDENTITY_COMPARISON_TAG = "//$IDENTITY-COMPARISON$".toCharArray(); //$NON-NLS-1$
+	public boolean [] validIdentityComparisonLines;
+	public boolean checkUninternedIdentityComparison;
+
 	private NLSTag[] nlsTags = null;
 	protected int nlsTagsPtr;
 	public boolean checkNonExternalizedStringLiterals;
@@ -197,6 +200,7 @@ public class TheOriginalJDTScannerClass implements TerminalTokens {
 	private VanguardScanner vanguardScanner;
 	private VanguardParser vanguardParser;
 	private ConflictedParser activeParser = null;
+	private boolean consumingEllipsisAnnotations = false;
 	
 	public static final int RoundBracket = 0;
 	public static final int SquareBracket = 1;
@@ -209,11 +213,11 @@ public class TheOriginalJDTScannerClass implements TerminalTokens {
 	public static final int HIGH_SURROGATE_MAX_VALUE = 0xDBFF;
 	public static final int LOW_SURROGATE_MAX_VALUE = 0xDFFF;
 
-public TheOriginalJDTScannerClass() {
+public TheOriginalJDTScannerClass() { // Aspectj Extension: new name
 	this(false /*comment*/, false /*whitespace*/, false /*nls*/, ClassFileConstants.JDK1_3 /*sourceLevel*/, null/*taskTag*/, null/*taskPriorities*/, true /*taskCaseSensitive*/);
 }
 
-public TheOriginalJDTScannerClass(
+public TheOriginalJDTScannerClass( // Aspectj Extension: new name
 		boolean tokenizeComments,
 		boolean tokenizeWhiteSpace,
 		boolean checkNonExternalizedStringLiterals,
@@ -228,6 +232,7 @@ public TheOriginalJDTScannerClass(
 	this.tokenizeWhiteSpace = tokenizeWhiteSpace;
 	this.sourceLevel = sourceLevel;
 	this.lookBack[0] = this.lookBack[1] = this.nextToken = TokenNameNotAToken;
+	this.consumingEllipsisAnnotations = false;
 	this.complianceLevel = complianceLevel;
 	this.checkNonExternalizedStringLiterals = checkNonExternalizedStringLiterals;
 	if (taskTags != null) {
@@ -261,7 +266,7 @@ public TheOriginalJDTScannerClass(
 	}
 }
 
-public TheOriginalJDTScannerClass(
+public TheOriginalJDTScannerClass( // Aspectj Extension: new name
 		boolean tokenizeComments,
 		boolean tokenizeWhiteSpace,
 		boolean checkNonExternalizedStringLiterals,
@@ -1152,6 +1157,8 @@ public int getNextToken() throws InvalidInputException {
 	}
 	if (token == TokenNameLPAREN || token == TokenNameLESS || token == TokenNameAT) {
 		token = disambiguatedToken(token);
+	} else if (token == TokenNameELLIPSIS) {
+		this.consumingEllipsisAnnotations = false;
 	}
 	this.lookBack[0] = this.lookBack[1];
 	this.lookBack[1] = token;
@@ -1631,7 +1638,7 @@ protected int getNextToken0() throws InvalidInputException {
 								recordComment(TokenNameCOMMENT_LINE);
 								if (this.taskTags != null) checkTaskTag(this.startPosition, this.currentPosition);
 								if ((this.currentCharacter == '\r') || (this.currentCharacter == '\n')) {
-									if (this.checkNonExternalizedStringLiterals &&
+									if ((this.checkNonExternalizedStringLiterals || this.checkUninternedIdentityComparison) &&
 											this.lastPosition < this.currentPosition) {
 										parseTags();
 									}
@@ -1650,7 +1657,7 @@ protected int getNextToken0() throws InvalidInputException {
 								this.currentPosition--;
 								recordComment(TokenNameCOMMENT_LINE);
 								if (this.taskTags != null) checkTaskTag(this.startPosition, this.currentPosition);
-								if (this.checkNonExternalizedStringLiterals &&
+								if ((this.checkNonExternalizedStringLiterals || this.checkUninternedIdentityComparison) &&
 										this.lastPosition < this.currentPosition) {
 									parseTags();
 								}
@@ -1893,6 +1900,11 @@ public NLSTag[] getNLSTags() {
 	}
 	return null;
 }
+public boolean[] getIdentityComparisonLines() {
+	boolean [] retVal = this.validIdentityComparisonLines;
+	this.validIdentityComparisonLines = null;
+	return retVal;
+}
 public char[] getSource(){
 	return this.source;
 }
@@ -2092,7 +2104,7 @@ public final void jumpOverMethodBody() {
 								recordComment(TokenNameCOMMENT_LINE);
 								if (this.recordLineSeparator
 									&& ((this.currentCharacter == '\r') || (this.currentCharacter == '\n'))) {
-										if (this.checkNonExternalizedStringLiterals &&
+										if ((this.checkNonExternalizedStringLiterals || this.checkUninternedIdentityComparison) &&
 												this.lastPosition < this.currentPosition) {
 											parseTags();
 										}
@@ -2108,7 +2120,7 @@ public final void jumpOverMethodBody() {
 								 //an eof will then be generated
 								this.currentPosition--;
 								recordComment(TokenNameCOMMENT_LINE);
-								if (this.checkNonExternalizedStringLiterals &&
+								if ((this.checkNonExternalizedStringLiterals || this.checkUninternedIdentityComparison) &&
 										this.lastPosition < this.currentPosition) {
 									parseTags();
 								}
@@ -2553,8 +2565,9 @@ private void parseTags() {
 	} else {
 		s = this.source;
 	}
-	int pos = CharOperation.indexOf(TAG_PREFIX, s, true, sourceStart, sourceEnd);
-	if (pos != -1) {
+	int pos;
+	if (this.checkNonExternalizedStringLiterals &&
+			(pos = CharOperation.indexOf(TAG_PREFIX, s, true, sourceStart, sourceEnd)) != -1) {
 		if (this.nlsTags == null) {
 			this.nlsTags = new NLSTag[10];
 			this.nlsTagsPtr = 0;
@@ -2580,6 +2593,17 @@ private void parseTags() {
 			}
 			pos = CharOperation.indexOf(TAG_PREFIX, s, true, end, sourceEnd);
 		}
+	} 
+	
+	if (this.checkUninternedIdentityComparison &&
+			(pos = CharOperation.indexOf(IDENTITY_COMPARISON_TAG, s, true, sourceStart, sourceEnd)) != -1) {
+		if (this.validIdentityComparisonLines == null) {
+			this.validIdentityComparisonLines = new boolean[0];
+		}
+		int currentLine = currentLinePtr + 1;
+		int length = this.validIdentityComparisonLines.length;
+		System.arraycopy(this.validIdentityComparisonLines, 0, this.validIdentityComparisonLines = new boolean[currentLine + 1], 0, length);
+		this.validIdentityComparisonLines[currentLine] = true;
 	}
 }
 private int extractInt(char[] array, int start, int end) {
@@ -2734,6 +2758,7 @@ public void resetTo(int begin, int end) {
 	this.commentPtr = -1; // reset comment stack
 	this.foundTaskCount = 0;
 	this.lookBack[0] = this.lookBack[1] = this.nextToken = TokenNameNotAToken;
+	this.consumingEllipsisAnnotations = false;
 }
 
 protected final void scanEscapeCharacter() throws InvalidInputException {
@@ -4190,7 +4215,7 @@ public static boolean isKeyword(int token) {
 }
 
 // Vanguard Scanner - A Private utility helper class for the scanner.
-private static final class VanguardScanner extends Scanner { // AspectJ: adjusted inheritance to Scanner (and not TheOriginalJDTScanner)
+private static final class VanguardScanner extends Scanner {
 	
 	public VanguardScanner(long sourceLevel, long complianceLevel) {
 		super (false /*comment*/, false /*whitespace*/, false /*nls*/, sourceLevel, complianceLevel, null/*taskTag*/, null/*taskPriorities*/, false /*taskCaseSensitive*/);
@@ -4215,11 +4240,13 @@ private static final class Goal {
 	static int IntersectionCastRule = 0;
 	static int ReferenceExpressionRule = 0;
 	static int VarargTypeAnnotationsRule  = 0;
+	static int BlockStatementoptRule = 0;
 	
 	static Goal LambdaParameterListGoal;
 	static Goal IntersectionCastGoal;
 	static Goal VarargTypeAnnotationGoal;
 	static Goal ReferenceExpressionGoal;
+	static Goal BlockStatementoptGoal;
 	
 	static {
 		
@@ -4235,12 +4262,17 @@ private static final class Goal {
 			else 
 			if ("TypeAnnotations".equals(Parser.name[Parser.non_terminal_index[Parser.lhs[i]]])) //$NON-NLS-1$
 				VarargTypeAnnotationsRule = i;
+			else
+			if ("BlockStatementopt".equals(Parser.name[Parser.non_terminal_index[Parser.lhs[i]]])) //$NON-NLS-1$
+				BlockStatementoptRule = i;
+					
 		}
 		
 		LambdaParameterListGoal =  new Goal(TokenNameARROW, new int[] { TokenNameARROW }, LambdaParameterListRule);
 		IntersectionCastGoal =     new Goal(TokenNameLPAREN, followSetOfCast(), IntersectionCastRule);
 		VarargTypeAnnotationGoal = new Goal(TokenNameAT, new int[] { TokenNameELLIPSIS }, VarargTypeAnnotationsRule);
 		ReferenceExpressionGoal =  new Goal(TokenNameLESS, new int[] { TokenNameCOLON_COLON }, ReferenceExpressionRule);
+		BlockStatementoptGoal =    new Goal(TokenNameLBRACE, new int [0], BlockStatementoptRule);
 	}
 
 
@@ -4253,10 +4285,13 @@ private static final class Goal {
 	boolean hasBeenReached(int act, int token) {
 		/*
 		System.out.println("[Goal = " + Parser.name[Parser.non_terminal_index[Parser.lhs[this.rule]]] + "]  " + "Saw: " + Parser.name[Parser.non_terminal_index[Parser.lhs[act]]] + "::" +  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-				Parser.name[Parser.terminal_index[token]]);
+					Parser.name[Parser.terminal_index[token]]);
 		*/
 		if (act == this.rule) {
-			for (int i = 0, length = this.follow.length; i < length; i++)
+			final int length = this.follow.length;
+			if (length == 0)
+				return true;
+			for (int i = 0; i < length; i++)
 				if (this.follow[i] == token)
 					return true;
 		}
@@ -4306,7 +4341,7 @@ private static final class VanguardParser extends Parser {
 				} else if (act > ERROR_ACTION) { /* shift-reduce */
 					this.unstackedAct = act;
 					try {
-						this.currentToken = this.scanner.getNextToken();
+					this.currentToken = this.scanner.getNextToken();
 					} finally {
 						this.unstackedAct = ERROR_ACTION;
 					}
@@ -4315,7 +4350,7 @@ private static final class VanguardParser extends Parser {
 				    if (act < ACCEPT_ACTION) { /* shift */
 				    	this.unstackedAct = act;
 						try {
-							this.currentToken = this.scanner.getNextToken();
+				    	this.currentToken = this.scanner.getNextToken();
 						} finally {
 							this.unstackedAct = ERROR_ACTION;
 						}
@@ -4410,7 +4445,9 @@ protected final boolean maybeAtReferenceExpression() { // Did the '<' we saw jus
 	}
 	return this.activeParser.atConflictScenario(TokenNameLESS);
 }
-protected final boolean maybeAtEllipsisAnnotation() { // Did the '@' we saw just now herald a type annotation on a ... ? Presumed to be at type annotation already.
+private final boolean maybeAtEllipsisAnnotationsStart() { // Did the '@' we saw just now herald a type annotation on a ... ? Presumed to be at type annotation already.
+	if (this.consumingEllipsisAnnotations)
+		return false;
 	switch (this.lookBack[1]) {
 		case TokenNamenew:
 		case TokenNameCOMMA:
@@ -4455,13 +4492,108 @@ private int disambiguatedToken(int token) {
 		}
 	} else if (token == TokenNameAT && atTypeAnnotation()) {
 		token = TokenNameAT308;
-		if (maybeAtEllipsisAnnotation()) {
+		if (maybeAtEllipsisAnnotationsStart()) {
 			if (parser.parse(Goal.VarargTypeAnnotationGoal) == VanguardParser.SUCCESS) {
+				this.consumingEllipsisAnnotations = true;
 				this.nextToken = TokenNameAT308;
 				return TokenNameAT308DOTDOTDOT;
 			}
 		}
 	}
 	return token;
+}
+
+protected boolean isAtAssistIdentifier() {
+	return false;
+}
+
+// Position the scanner at the next block statement and return the start token. We recognize empty statements.
+public int fastForward(Statement unused) {
+	
+	int token;
+
+	while (true) {
+		try {
+			token = getNextToken();
+		} catch (InvalidInputException e) {
+			return TokenNameEOF;
+		}
+		/* FOLLOW map of BlockStatement, since the non-terminal is recursive is a super set of its own FIRST set. 
+	   	   We use FOLLOW rather than FIRST since we want to recognize empty statements. i.e if (x > 10) {  x = 0 }
+		*/
+		switch(token) {
+			case TokenNameIdentifier:
+				if (isAtAssistIdentifier()) // do not fast forward past the assist identifier ! We don't handle collections as of now.
+					return token;
+				//$FALL-THROUGH$
+			case TokenNameabstract:
+			case TokenNameassert:
+			case TokenNameboolean:
+			case TokenNamebreak:
+			case TokenNamebyte:
+			case TokenNamecase:
+			case TokenNamechar:
+			case TokenNameclass:
+			case TokenNamecontinue:
+			case TokenNamedefault:
+			case TokenNamedo:
+			case TokenNamedouble:
+			case TokenNameenum:
+			case TokenNamefalse:
+			case TokenNamefinal:
+			case TokenNamefloat:
+			case TokenNamefor:
+			case TokenNameif:
+			case TokenNameint:
+			case TokenNameinterface:
+			case TokenNamelong:
+			case TokenNamenative:
+			case TokenNamenew:
+			case TokenNamenull:
+			case TokenNameprivate:
+			case TokenNameprotected:
+			case TokenNamepublic:
+			case TokenNamereturn:
+			case TokenNameshort:
+			case TokenNamestatic:
+			case TokenNamestrictfp:
+			case TokenNamesuper:
+			case TokenNameswitch:
+			case TokenNamesynchronized:
+			case TokenNamethis:
+			case TokenNamethrow:
+			case TokenNametransient:
+			case TokenNametrue:
+			case TokenNametry:
+			case TokenNamevoid:
+			case TokenNamevolatile:
+			case TokenNamewhile:
+			case TokenNameIntegerLiteral: // ??!
+			case TokenNameLongLiteral:
+			case TokenNameFloatingPointLiteral:
+			case TokenNameDoubleLiteral:
+			case TokenNameCharacterLiteral:
+			case TokenNameStringLiteral:
+			case TokenNamePLUS_PLUS:
+			case TokenNameMINUS_MINUS:
+			case TokenNameLESS:
+			case TokenNameLPAREN:
+			case TokenNameLBRACE:
+			case TokenNameAT:
+			case TokenNameBeginLambda:
+			case TokenNameAT308:
+				if(getVanguardParser().parse(Goal.BlockStatementoptGoal) == VanguardParser.SUCCESS)
+					return token;
+				break;
+			case TokenNameSEMICOLON:
+			case TokenNameEOF:
+				return token;
+			case TokenNameRBRACE: // simulate empty statement.
+				ungetToken(token);
+				return TokenNameSEMICOLON;
+			default:
+				break;
+		}
+	}
 }
 }

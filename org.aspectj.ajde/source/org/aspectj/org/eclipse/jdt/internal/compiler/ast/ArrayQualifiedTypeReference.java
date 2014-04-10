@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -21,7 +17,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 
 public class ArrayQualifiedTypeReference extends QualifiedTypeReference {
 	int dimensions;
-	Annotation[][] annotationsOnDimensions;  // jsr308 style type annotations on dimensions
+	private Annotation[][] annotationsOnDimensions;  // jsr308 style type annotations on dimensions
+	public int extendedDimensions;
 
 	public ArrayQualifiedTypeReference(char[][] sources , int dim, long[] poss) {
 
@@ -42,8 +39,21 @@ public class ArrayQualifiedTypeReference extends QualifiedTypeReference {
 		return this.dimensions;
 	}
 	
-	public Annotation[][] getAnnotationsOnDimensions() {
-		return this.annotationsOnDimensions;
+	public int extraDimensions() {
+		return this.extendedDimensions;
+	}
+
+	/**
+	 @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference#getAnnotationsOnDimensions(boolean)
+	*/
+	public Annotation[][] getAnnotationsOnDimensions(boolean useSourceOrder) {
+		if (useSourceOrder || this.annotationsOnDimensions == null || this.annotationsOnDimensions.length == 0 || this.extendedDimensions == 0 || this.extendedDimensions == this.dimensions)
+			return this.annotationsOnDimensions;
+		Annotation [][] externalAnnotations = new Annotation[this.dimensions][];
+		final int baseDimensions = this.dimensions - this.extendedDimensions;
+		System.arraycopy(this.annotationsOnDimensions, baseDimensions, externalAnnotations, 0, this.extendedDimensions);
+		System.arraycopy(this.annotationsOnDimensions, 0, externalAnnotations, this.extendedDimensions, baseDimensions);
+		return externalAnnotations;
 	}
 	
 	public void setAnnotationsOnDimensions(Annotation [][] annotationsOnDimensions) {

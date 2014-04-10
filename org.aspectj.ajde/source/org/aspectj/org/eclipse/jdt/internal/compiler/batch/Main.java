@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +19,9 @@
  *								bug 375366 - ECJ ignores unusedParameterIncludeDocCommentReference unless enableJavadoc option is set
  *								bug 388281 - [compiler][null] inheritance of null annotations as an option
  *								bug 381443 - [compiler][null] Allow parameter widening from @NonNull to unannotated
+ *     Jesper S Moller   - Contributions for
+ *								bug 407297 - [1.8][compiler] Control generation of parameter names by option
+ *    Mat Booth - Contribution for bug 405176 
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.batch;
 
@@ -92,7 +91,9 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class Main implements ProblemSeverities, SuffixConstants {
+
 	public static class Logger {
 		private PrintWriter err;
 		private PrintWriter log;
@@ -918,7 +919,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 						}));
 				}
 			}
-			if ((this.tagBits & Logger.EMACS) != 0) {
+			if ((this.tagBits & Logger.XML) == 0) {
 				this.printlnErr();
 			}
 		}
@@ -1630,7 +1631,7 @@ public String bind(String id, String[] arguments) {
 		// the id we were looking for.  In most cases this is semi-informative so is not too bad.
 		return "Missing message: " + id + " in: " + Main.bundleName; //$NON-NLS-2$ //$NON-NLS-1$
 	}
-	return MessageFormat.format(message, arguments);
+	return MessageFormat.format(message, (Object[]) arguments);
 }
 /**
  * Return true if and only if the running VM supports the given minimal version.
@@ -2216,6 +2217,13 @@ public void configure(String[] argv) {
 					this.options.put(
 							CompilerOptions.OPTION_InlineJsr,
 							CompilerOptions.ENABLED);
+					continue;
+				}
+				if (currentArg.equals("-parameters")) { //$NON-NLS-1$
+					mode = DEFAULT;
+					this.options.put(
+							CompilerOptions.OPTION_MethodParametersAttribute,
+							CompilerOptions.GENERATE);
 					continue;
 				}
 				if (currentArg.startsWith("-g")) { //$NON-NLS-1$
@@ -4616,7 +4624,7 @@ protected void setPaths(ArrayList bootclasspaths,
 	 * entries are searched for both sources and binaries except
 	 * the sourcepath entries which are searched for sources only.
 	 */
-	bootclasspaths.addAll(endorsedDirClasspaths);
+	bootclasspaths.addAll(0, endorsedDirClasspaths);
 	bootclasspaths.addAll(extdirsClasspaths);
 	bootclasspaths.addAll(sourcepathClasspaths);
 	bootclasspaths.addAll(classpaths);

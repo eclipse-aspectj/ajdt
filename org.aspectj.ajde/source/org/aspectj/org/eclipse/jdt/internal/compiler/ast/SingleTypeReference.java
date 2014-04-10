@@ -5,12 +5,10 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 392238 - [1.8][compiler][null] Detect semantically invalid null type annotations
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -31,21 +29,14 @@ public class SingleTypeReference extends TypeReference {
 
 	}
 
-	public TypeReference copyDims(int dim){
-		//return a type reference copy of me with some dimensions
-		//warning : the new type ref has a null binding
-
-		return new ArrayTypeReference(this.token, dim,(((long)this.sourceStart)<<32)+this.sourceEnd);
-	}
-	
-	public TypeReference copyDims(int dim, Annotation[][] annotationsOnDimensions){
-		//return a type reference copy of me with some dimensions
-		//warning : the new type ref has a null binding
-		ArrayTypeReference arrayTypeReference = new ArrayTypeReference(this.token, dim, annotationsOnDimensions, (((long)this.sourceStart)<<32)+this.sourceEnd);
+	public TypeReference augmentTypeWithAdditionalDimensions(int additionalDimensions, Annotation[][] additionalAnnotations, boolean isVarargs) {
+		int totalDimensions = this.dimensions() + additionalDimensions;
+		Annotation [][] allAnnotations = getMergedAnnotationsOnDimensions(additionalDimensions, additionalAnnotations);
+		ArrayTypeReference arrayTypeReference = new ArrayTypeReference(this.token, totalDimensions, allAnnotations, (((long) this.sourceStart) << 32) + this.sourceEnd);
+		arrayTypeReference.annotations = this.annotations;
 		arrayTypeReference.bits |= (this.bits & ASTNode.HasTypeAnnotations);
-		if (annotationsOnDimensions != null) {
-			arrayTypeReference.bits |= ASTNode.HasTypeAnnotations;
-		}
+		if (!isVarargs)
+			arrayTypeReference.extendedDimensions = additionalDimensions;
 		return arrayTypeReference;
 	}
 
@@ -84,10 +75,11 @@ public class SingleTypeReference extends TypeReference {
 	}
 
 	public TypeBinding resolveTypeEnclosing(BlockScope scope, ReferenceBinding enclosingType) {
-		TypeBinding memberType = this.resolvedType = scope.getMemberType(this.token, enclosingType);
+		this.resolvedType = scope.getMemberType(this.token, enclosingType);
 		boolean hasError = false;
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=391500
 		resolveAnnotations(scope);
+		TypeBinding memberType = this.resolvedType; // load after possible update in resolveAnnotations()
 		if (!memberType.isValidBinding()) {
 			hasError = true;
 			scope.problemReporter().invalidEnclosingType(this, memberType, enclosingType);

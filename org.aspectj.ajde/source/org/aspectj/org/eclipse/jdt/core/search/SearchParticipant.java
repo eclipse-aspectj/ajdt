@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -134,6 +134,35 @@ public abstract class SearchParticipant {
 	public abstract void indexDocument(SearchDocument document, IPath indexLocation);
 
 	/**
+	 * Indexes the given resolved document in the given index. A search participant
+	 * asked to index a resolved document should process it and call
+	 * {@link SearchDocument#addIndexEntry(char[], char[])} as many times as
+	 * needed to add only those additional index entries which could not have been originally added
+	 * to the index during a call to {@link SearchParticipant#indexDocument}. If delegating to another
+	 * participant, it should use the original index location (and not the
+	 * delegatee's one). In the particular case of delegating to the default
+	 * search participant (see {@link SearchEngine#getDefaultSearchParticipant()}),
+	 * the provided document's path must be a path ending with one of the
+	 * {@link org.aspectj.org.eclipse.jdt.core.JavaCore#getJavaLikeExtensions() Java-like extensions}
+	 * or with '.class'.
+	 * <p>
+	 * The given index location must represent a path in the file system to a file that
+	 * either already exists or is going to be created. If it exists, it must be an index file,
+	 * otherwise its data might be overwritten.
+	 * </p><p>
+	 * Clients are not expected to call this method.
+	 * </p>
+	 *
+	 * @param document the document to index
+	 * @param indexLocation the location in the file system to the index
+	 * 
+	 * @since 3.10
+	 */
+	public void indexResolvedDocument(SearchDocument document, IPath indexLocation) {
+		// do nothing, subtypes should do the "appropriate thing"
+	}
+
+	/**
 	 * Locates the matches in the given documents using the given search pattern
 	 * and search scope, and reports them to the given search requestor. This
 	 * method is called by the search engine once it has search documents
@@ -179,6 +208,23 @@ public abstract class SearchParticipant {
 		manager.removeIndexPath(indexLocation);
 	}
 
+	/**
+	 * Resolves the given document. A search participant asked to resolve a document should parse it and 
+	 * resolve the types and preserve enough state to be able to tend to a indexResolvedDocument call
+	 * subsequently. This API is invoked without holding any index related locks or monitors.
+	 * <p>
+	 * Clients are not expected to call this method.
+	 * </p>
+	 *
+	 * @param document the document to resolve
+	 * @since 3.10
+	 * @see SearchParticipant#indexResolvedDocument
+	 * @see SearchDocument#requireIndexingResolvedDocument
+	 */
+	public void resolveDocument(SearchDocument document) {
+		// do nothing, subtypes should do the "appropriate thing"
+	}
+	
 	/**
 	 * Schedules the indexing of the given document.
 	 * Once the document is ready to be indexed,

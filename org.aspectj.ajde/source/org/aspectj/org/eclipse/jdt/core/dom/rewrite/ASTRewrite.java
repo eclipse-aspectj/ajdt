@@ -54,9 +54,7 @@ import org.eclipse.text.edits.TextEditGroup;
  * several alternate sets of changes on the same AST (e.g., for calculating
  * quick fix proposals). The rewrite infrastructure tries to generate minimal
  * text changes, preserve existing comments and indentation, and follow code
- * formatter settings. If the freedom to explore multiple alternate changes is
- * not required, consider using the AST's built-in rewriter
- * (see {@link org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit#rewrite(IDocument, Map)}).
+ * formatter settings.
  * <p>
  * The following code snippet illustrated usage of this class:
  * </p>
@@ -87,12 +85,18 @@ import org.eclipse.text.edits.TextEditGroup;
  * // are new source range for "class X {}" in document.get()
  * </pre>
  * <p>
+ * If you are sure never have to explore multiple alternate changes and you never need
+ * to create {@link #createCopyTarget(ASTNode) copies} or {@link #createStringPlaceholder(String, int) string placeholders},
+ * then you can also try {@link CompilationUnit#recordModifications()} instead.
+ * </p>
+ * <p>
  * This class is not intended to be subclassed.
  * </p>
  * @since 3.0
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class ASTRewrite {
 	/** root node for the rewrite: Only nodes under this root are accepted */
 	private final AST ast;

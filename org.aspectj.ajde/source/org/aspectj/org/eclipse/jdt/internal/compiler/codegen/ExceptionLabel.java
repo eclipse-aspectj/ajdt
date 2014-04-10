@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
@@ -17,6 +13,7 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.codegen;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
@@ -26,11 +23,13 @@ public class ExceptionLabel extends Label {
 	private int count = 0; // incremented each time placeStart or placeEnd is called
 	public TypeBinding exceptionType;
 	public TypeReference exceptionTypeReference;
+	public Annotation [] se7Annotations;
 
-public ExceptionLabel(CodeStream codeStream, TypeBinding exceptionType, TypeReference exceptionTypeReference) {
+public ExceptionLabel(CodeStream codeStream, TypeBinding exceptionType, TypeReference exceptionTypeReference, Annotation [] se7Annotations) {
 	super(codeStream);
 	this.exceptionType = exceptionType;
 	this.exceptionTypeReference = exceptionTypeReference;
+	this.se7Annotations = se7Annotations;
 }
 
 public ExceptionLabel(CodeStream codeStream, TypeBinding exceptionType) {

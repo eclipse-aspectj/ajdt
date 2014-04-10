@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * Responsible for resolving types inside a compilation unit being reconciled,
  * reporting the discovered problems to a given IProblemRequestor.
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class CompilationUnitProblemFinder extends Compiler {
 
 	/**
@@ -132,7 +133,8 @@ public class CompilationUnitProblemFinder extends Compiler {
 		compilerOptions.performMethodsFullRecovery = statementsRecovery;
 		compilerOptions.performStatementsRecovery = statementsRecovery;
 		compilerOptions.parseLiteralExpressionsAsConstants = !creatingAST; /*parse literal expressions as constants only if not creating a DOM AST*/
-		compilerOptions.storeAnnotations = creatingAST; /*store annotations in the bindings if creating a DOM AST*/
+		if (creatingAST)
+			compilerOptions.storeAnnotations = true; /* store annotations in the bindings if creating a DOM AST */
 		return compilerOptions;
 	}
 

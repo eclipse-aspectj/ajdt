@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RawTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -31,7 +32,7 @@ class MethodBinding implements IMethodBinding {
 
 	private static final int VALID_MODIFIERS = Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE |
 		Modifier.ABSTRACT | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.NATIVE |
-		Modifier.STRICTFP;
+		Modifier.STRICTFP | Modifier.DEFAULT;
 	private static final ITypeBinding[] NO_TYPE_BINDINGS = new ITypeBinding[0];
 	private org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding binding;
 	private BindingResolver resolver;
@@ -100,27 +101,7 @@ class MethodBinding implements IMethodBinding {
 			return this.annotations;
 		}
 		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] internalAnnotations = this.binding.getAnnotations();
-		int length = internalAnnotations == null ? 0 : internalAnnotations.length;
-		if (length != 0) {
-			IAnnotationBinding[] tempAnnotations = new IAnnotationBinding[length];
-			int convertedAnnotationCount = 0;
-			for (int i = 0; i < length; i++) {
-				org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding internalAnnotation = internalAnnotations[i];
-				final IAnnotationBinding annotationInstance = this.resolver.getAnnotationInstance(internalAnnotation);
-				if (annotationInstance == null) {
-					continue;
-				}
-				tempAnnotations[convertedAnnotationCount++] = annotationInstance;
-			}
-			if (convertedAnnotationCount != length) {
-				if (convertedAnnotationCount == 0) {
-					return this.annotations = AnnotationBinding.NoAnnotations;
-				}
-				System.arraycopy(tempAnnotations, 0, (tempAnnotations = new IAnnotationBinding[convertedAnnotationCount]), 0, convertedAnnotationCount);
-			}
-			return this.annotations = tempAnnotations;
-		}
-		return this.annotations = AnnotationBinding.NoAnnotations;
+		return this.annotations = filterTypeAnnotations(internalAnnotations);
 	}
 
 	/**
@@ -198,6 +179,12 @@ class MethodBinding implements IMethodBinding {
 	}
 
 	/**
+	 * @see IMethodBinding#getDeclaredReceiverType()
+	 */
+	public ITypeBinding getDeclaredReceiverType() {
+		return this.resolver.getTypeBinding(this.binding.receiver);
+	}
+	/**
 	 * @see IMethodBinding#getReturnType()
 	 */
 	public ITypeBinding getReturnType() {
@@ -205,6 +192,35 @@ class MethodBinding implements IMethodBinding {
 			this.returnType = this.resolver.getTypeBinding(this.binding.returnType);
 		}
 		return this.returnType;
+	}
+
+	protected IAnnotationBinding[] filterTypeAnnotations(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding[] internalAnnotations) {
+		int length = internalAnnotations == null ? 0 : internalAnnotations.length;
+		if (length != 0) {
+			IAnnotationBinding[] tempAnnotations = new IAnnotationBinding[length];
+			int convertedAnnotationCount = 0;
+			final boolean isConstructor = this.isConstructor();
+			for (int i = 0; i < length; i++) {
+				org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding internalAnnotation = internalAnnotations[i];
+				final ReferenceBinding annotationType = internalAnnotation.getAnnotationType();
+				long metaTagBits = annotationType.getAnnotationTagBits();
+
+				if (isConstructor && (metaTagBits & TagBits.AnnotationForConstructor) == 0)
+					continue; // must be type use.
+				
+				final IAnnotationBinding annotationInstance = this.resolver.getAnnotationInstance(internalAnnotation);
+				if (annotationInstance == null) {
+					continue;
+				}
+				tempAnnotations[convertedAnnotationCount++] = annotationInstance;
+			}
+			if (convertedAnnotationCount == length) return tempAnnotations;
+			if (convertedAnnotationCount == 0) return AnnotationBinding.NoAnnotations;
+			
+			System.arraycopy(tempAnnotations, 0, (tempAnnotations = new IAnnotationBinding[convertedAnnotationCount]), 0, convertedAnnotationCount);
+			return tempAnnotations;
+		}
+		return AnnotationBinding.NoAnnotations;
 	}
 
 	public Object getDefaultValue() {

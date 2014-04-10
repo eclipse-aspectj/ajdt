@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,17 +16,61 @@
  *								bug 374605 - Unreasonable warning for enum-based switch statements
  *								bug 384870 - [compiler] @Deprecated annotation not detected if preceded by other annotation
  *								bug 393719 - [compiler] inconsistent warnings on iteration variables
+ *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 424742 - [1.8] NPE in LambdaExpression.isCompatibleWith
+ *								Bug 424710 - [1.8][compiler] CCE in SingleNameReference.localVariableBinding
+ *								Bug 424205 - [1.8] Cannot infer type for diamond type with lambda on method invocation
+ *								Bug 424415 - [1.8][compiler] Eventual resolution of ReferenceExpression is not seen to be happening.
+ *								Bug 426366 - [1.8][compiler] Type inference doesn't handle multiple candidate target types in outer overload context
+ *								Bug 427282 - [1.8][compiler] AIOOB (-1) at org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile.traverse(ClassFile.java:6209)
+ *								Bug 427483 - [Java 8] Variables in lambdas sometimes can't be resolved
+ *								Bug 428352 - [1.8][compiler] Resolution errors don't always surface
+ *								Bug 427163 - [1.8][null] bogus error "Contradictory null specification" on varags
  *     Jesper S Moller - Contributions for
  *								bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
+ *								bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
+ *								bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
+ *								bug 412149 - [1.8][compiler] Emit repeated annotations into the designated container
+ *								bug 419209 - [1.8] Repeating container annotations should be rejected in the presence of annotation it contains
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PolyTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class ASTNode implements TypeConstants, TypeIds {
 
 	public int sourceStart, sourceEnd;
@@ -218,8 +258,8 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	// for if statement
 	public static final int IsElseIfStatement = Bit30;
 	public static final int ThenExit = Bit31;
-	public static final int IsElseStatementUnreachable = Bit8;
-	public static final int IsThenStatementUnreachable = Bit9;
+	public static final int IsElseStatementUnreachable = Bit8; // as computed by control flow analysis or null analysis.
+	public static final int IsThenStatementUnreachable = Bit9; // as computed by control flow analysis or null analysis
 
 	// for type reference
 	public static final int IsSuperType = Bit5;
@@ -276,6 +316,9 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	// for annotation reference, signal if annotation was created from a default:
 	public static final int IsSynthetic = ASTNode.Bit7;
 	
+	// for all reference context entries.
+	public static final int HasFunctionalInterfaceTypes = ASTNode.Bit22;
+	
 	public static final Argument [] NO_ARGUMENTS = new Argument [0];
 
 	public ASTNode() {
@@ -292,7 +335,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 			}
 		}
 		TypeBinding checkedParameterType = parameterType; // originalParameterType == null ? parameterType : originalParameterType;
-		if (argumentType != checkedParameterType && argumentType.needsUncheckedConversion(checkedParameterType)) {
+		if (TypeBinding.notEquals(argumentType, checkedParameterType) && argumentType.needsUncheckedConversion(checkedParameterType)) {
 			scope.problemReporter().unsafeTypeConversion(argument, argumentType, checkedParameterType);
 			return INVOCATION_ARGUMENT_UNCHECKED;
 		}
@@ -369,8 +412,8 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 						if (varargsType.dimensions < dimensions) {
 							scope.problemReporter().varargsArgumentNeedCast(method, lastArgType, invocationSite);
 						} else if (varargsType.dimensions == dimensions
-										&& lastArgType != varargsType
-										&& lastArgType.leafComponentType().erasure() != varargsType.leafComponentType.erasure()
+										&& TypeBinding.notEquals(lastArgType, varargsType)
+										&& TypeBinding.notEquals(lastArgType.leafComponentType().erasure(), varargsType.leafComponentType.erasure())
 										&& lastArgType.isCompatibleWith(varargsType.elementsType())
 										&& lastArgType.isCompatibleWith(varargsType)) {
 							scope.problemReporter().varargsArgumentNeedCast(method, lastArgType, invocationSite);
@@ -500,6 +543,10 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 
 		return false;
 	}
+	
+	public boolean isUnqualifiedSuper() {
+		return false;
+	}
 
 	/* Answer true if the type use is considered deprecated.
 	* An access in the same compilation unit is allowed.
@@ -591,59 +638,153 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 			output.append("native "); //$NON-NLS-1$
 		if ((modifiers & ClassFileConstants.AccAbstract) != 0)
 			output.append("abstract "); //$NON-NLS-1$
+		if ((modifiers & ExtraCompilerModifiers.AccDefaultMethod) != 0)
+			output.append("default "); //$NON-NLS-1$
 		return output;
 	}
 
-	public static boolean polyExpressionsHaveErrors(BlockScope scope, MethodBinding methodBinding, Expression [] arguments, TypeBinding[] argumentTypes) {
-		boolean polyExpressionsHaveErrors = false;
+	/**
+	 * After method lookup has produced 'methodBinding' but when poly expressions have been seen as arguments,
+	 * inspect the arguments to trigger another round of resolving with improved target types from the methods parameters.
+	 * If this resolving produces better types for any arguments, update the 'argumentTypes' array in-place as an
+	 * intended side effect that will feed better type information in checkInvocationArguments() and others.
+	 * @param invocation the outer invocation which is being resolved
+	 * @param methodBinding the method produced by lookup (possibly involving type inference).
+	 * @param argumentTypes the argument types as collected from first resolving the invocation arguments and as used for
+	 * 	the method lookup.
+	 * @param scope scope for error reporting
+	 */
+	public static void resolvePolyExpressionArguments(Invocation invocation, MethodBinding methodBinding, TypeBinding[] argumentTypes, Scope scope) {
+		if (!invocation.innersNeedUpdate())
+			return;
+		int problemReason = 0;
 		MethodBinding candidateMethod;
 		if (methodBinding.isValidBinding()) {
 			candidateMethod = methodBinding;
 		} else if (methodBinding instanceof ProblemMethodBinding) {
+			problemReason = methodBinding.problemId();
 			candidateMethod = ((ProblemMethodBinding) methodBinding).closestMatch;
 		} else {
 			candidateMethod = null;
 		}
 		if (candidateMethod != null) {
 			boolean variableArity = candidateMethod.isVarargs();
+			InferenceContext18 infCtx = null;
+			if (candidateMethod instanceof ParameterizedMethodBinding) {
+				infCtx = invocation.getInferenceContext((ParameterizedMethodBinding) candidateMethod);
+				if (infCtx != null) {
+					if (infCtx.stepCompleted != InferenceContext18.TYPE_INFERRED) {
+						// only work in the exact state of TYPE_INFERRED
+						// - below we're not yet ready
+						// - above we're already done-done
+						return;
+					}
+					variableArity &= infCtx.isVarArgs(); // TODO: if no infCtx is available, do we have to re-check if this is a varargs invocation?
+				}
+			} else if (invocation instanceof AllocationExpression) {
+				if (((AllocationExpression)invocation).suspendedResolutionState != null)
+					return; // not yet ready
+			}
+			
 			final TypeBinding[] parameters = candidateMethod.parameters;
-			final int parametersLength = parameters.length;
+			Expression[] innerArguments = invocation.arguments();
+			Expression [] arguments = innerArguments;
+			if (infCtx == null && variableArity && parameters.length == arguments.length) { // re-check
+				TypeBinding lastParam = parameters[parameters.length-1];
+				Expression lastArg = arguments[arguments.length-1];
+				if (lastArg.isCompatibleWith(lastParam, null)) {
+					variableArity = false;
+				}
+			}
 			for (int i = 0, length = arguments == null ? 0 : arguments.length; i < length; i++) {
-				if (argumentTypes[i] instanceof PolyTypeBinding) {
-					Expression argument = arguments[i];
-					TypeBinding parameterType = i < parametersLength ? parameters[i] : variableArity ? parameters[parametersLength - 1] : null;
-					argument.setExpressionContext(parameterType != null ? ExpressionContext.INVOCATION_CONTEXT: ExpressionContext.ASSIGNMENT_CONTEXT); // force the errors to surface.
-					if (variableArity && i >= parametersLength - 1)
-						argument.tagAsEllipsisArgument();
-					argument.setExpectedType(parameterType);
-					TypeBinding argumentType = argument.resolveType(scope);
-					if (argumentType == null || !argumentType.isValidBinding())
-						polyExpressionsHaveErrors = true;
-					if (argument instanceof LambdaExpression && ((LambdaExpression) argument).hasErrors())
-						polyExpressionsHaveErrors = true;
+				Expression argument = arguments[i];
+				TypeBinding updatedArgumentType = null;
+				TypeBinding parameterType = InferenceContext18.getParameter(parameters, i, variableArity);
+				if (parameterType == null && problemReason != ProblemReasons.NoError)
+					continue; // not much we can do without a target type, assume it only happens after some resolve error
+
+				if (argument instanceof LambdaExpression && ((LambdaExpression) argument).hasErrors())
+					continue; // don't update if inner poly has errors
+
+				if (argument instanceof Invocation) {
+					Invocation innerInvocation = (Invocation)argument;
+					MethodBinding binding = innerInvocation.binding(parameterType, true, scope);
+					if (binding instanceof ParameterizedGenericMethodBinding) {
+						ParameterizedGenericMethodBinding parameterizedMethod = (ParameterizedGenericMethodBinding) binding;
+						InferenceContext18 innerContext = innerInvocation.getInferenceContext(parameterizedMethod);
+						if (innerContext != null) {
+							if (!innerContext.hasResultFor(parameterType)) {
+								argument.setExpectedType(parameterType);
+								MethodBinding improvedBinding = innerContext.inferInvocationType(innerInvocation, parameterizedMethod);
+								if (!improvedBinding.isValidBinding()) {
+									innerContext.reportInvalidInvocation(innerInvocation, improvedBinding);
+								}
+								if (innerInvocation.updateBindings(improvedBinding, parameterType)) {
+									resolvePolyExpressionArguments(innerInvocation, improvedBinding, scope);
+								}
+							} else if (innerContext.stepCompleted < InferenceContext18.BINDINGS_UPDATED) {
+								innerContext.rebindInnerPolies(parameterizedMethod, innerInvocation);
+							}
+						}
+						continue; // otherwise these have been dealt with during inner method lookup
+					}
+				}
+
+				if (argument.isPolyExpression()) {
+					// poly expressions in an invocation context may need to be resolved now:
+					if (infCtx != null && infCtx.stepCompleted == InferenceContext18.BINDINGS_UPDATED)
+						updatedArgumentType = argument.resolvedType; // in this case argument was already resolved via InferenceContext18.acceptPendingPolyArguments()
+					else
+						updatedArgumentType = argument.checkAgainstFinalTargetType(parameterType, scope);
+
+					if (problemReason == ProblemReasons.NoError // preserve errors
+							&& updatedArgumentType != null					// do we have a relevant update? ...
+							&& !(updatedArgumentType instanceof PolyTypeBinding))
+					{
+						// update the argumentTypes array (supposed to be owned by the calling method)
+						// in order to give better information for subsequent checks
+						argumentTypes[i] = updatedArgumentType;
+					}
 				}
 			}
 		}
-		return polyExpressionsHaveErrors;
+		invocation.innerUpdateDone();
 	}
+
+	public static void resolvePolyExpressionArguments(Invocation invocation, MethodBinding methodBinding, Scope scope) {
+		TypeBinding[] argumentTypes = null;
+		Expression[] innerArguments = invocation.arguments();
+		if (innerArguments != null) {
+			argumentTypes = new TypeBinding[innerArguments.length];
+			for (int i = 0; i < innerArguments.length; i++)
+				argumentTypes[i] = innerArguments[i].resolvedType;
+		}
+		resolvePolyExpressionArguments(invocation, methodBinding, argumentTypes, scope);
+	}
+
+	public static void resolveAnnotations(BlockScope scope, Annotation[] sourceAnnotations, Binding recipient) {
+		resolveAnnotations(scope, sourceAnnotations, recipient, false);
+	}
+	
 	/**
 	 * Resolve annotations, and check duplicates, answers combined tagBits
-	 * for recognized standard annotations
+	 * for recognized standard annotations. Return null if nothing new is
+	 * resolved.
 	 */
-	public static void resolveAnnotations(BlockScope scope, Annotation[] sourceAnnotations, Binding recipient) {
+	public static AnnotationBinding [] resolveAnnotations(BlockScope scope, Annotation[] sourceAnnotations, Binding recipient, boolean copySE8AnnotationsToType) {
 		AnnotationBinding[] annotations = null;
 		int length = sourceAnnotations == null ? 0 : sourceAnnotations.length;
 		if (recipient != null) {
 			switch (recipient.kind()) {
 				case Binding.PACKAGE :
 					PackageBinding packageBinding = (PackageBinding) recipient;
-					if ((packageBinding.tagBits & TagBits.AnnotationResolved) != 0) return;
+					if ((packageBinding.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
 					packageBinding.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					break;
 				case Binding.TYPE :
 				case Binding.GENERIC_TYPE :
 					ReferenceBinding type = (ReferenceBinding) recipient;
-					if ((type.tagBits & TagBits.AnnotationResolved) != 0) return;
+					if ((type.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
 					type.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
@@ -652,7 +793,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					break;
 				case Binding.METHOD :
 					MethodBinding method = (MethodBinding) recipient;
-					if ((method.tagBits & TagBits.AnnotationResolved) != 0) return;
+					if ((method.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
 					method.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
@@ -661,7 +802,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					break;
 				case Binding.FIELD :
 					FieldBinding field = (FieldBinding) recipient;
-					if ((field.tagBits & TagBits.AnnotationResolved) != 0) return;
+					if ((field.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
 					field.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
@@ -670,7 +811,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					break;
 				case Binding.LOCAL :
 					LocalVariableBinding local = (LocalVariableBinding) recipient;
-					if ((local.tagBits & TagBits.AnnotationResolved) != 0) return;
+					if ((local.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
 					local.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
@@ -678,36 +819,30 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					}
 					break;
 				case Binding.TYPE_PARAMETER :
-					// jsr308
-					ReferenceBinding typeVariableBinding = (ReferenceBinding) recipient;
-					if ((typeVariableBinding.tagBits & TagBits.AnnotationResolved) != 0) return;
-					typeVariableBinding.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
-					if (length > 0) {
-						annotations = new AnnotationBinding[length];
-						typeVariableBinding.setAnnotations(annotations);
-					}
-					break;
 				case Binding.TYPE_USE :
-					ReferenceBinding typeUseBinding = (ReferenceBinding) recipient;
-					if ((typeUseBinding.tagBits & TagBits.AnnotationResolved) != 0) return;
-					typeUseBinding.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
-					if (length > 0) {
-						annotations = new AnnotationBinding[length];
-						typeUseBinding.setAnnotations(annotations);
-					}
+					// deliberately don't set the annotation resolved tagbits, it is not material and also we are working with a dummy static object.
+					annotations = new AnnotationBinding[length];
 					break;
 				default :
-					return;
+					return annotations;
 			}
 		}
 		if (sourceAnnotations == null)
-			return;
+			return annotations;
 		for (int i = 0; i < length; i++) {
 			Annotation annotation = sourceAnnotations[i];
 			final Binding annotationRecipient = annotation.recipient;
 			if (annotationRecipient != null && recipient != null) {
-				// only local and field can share annnotations
+				// only local and field can share annnotations and their types.
 				switch (recipient.kind()) {
+					case Binding.TYPE_USE:
+						if (annotations != null) {
+							// need to fill the instances array
+							for (int j = 0; j < length; j++) {
+								annotations[j] = sourceAnnotations[j].getCompilerAnnotation();
+							}
+						}
+						break;
 					case Binding.FIELD :
 						FieldBinding field = (FieldBinding) recipient;
 						field.tagBits = ((FieldBinding) annotationRecipient).tagBits;
@@ -755,7 +890,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 						}
 						break;
 				}
-				return;
+				return annotations;
 			} else {
 				annotation.recipient = recipient;
 				// MERGECONFLICT:
@@ -773,31 +908,222 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 				}
 			}
 		}
+
+		/* See if the recipient is meta-annotated with @Repeatable and if so validate constraints. We can't do this during resolution of @Repeatable itself as @Target and 
+		   @Retention etc could come later
+		*/   
+		if (recipient != null && recipient.isTaggedRepeatable()) {
+			for (int i = 0; i < length; i++) {
+				Annotation annotation = sourceAnnotations[i];
+				ReferenceBinding annotationType = annotations[i] != null ? annotations[i].getAnnotationType() : null;
+				if (annotationType != null && annotationType.id == TypeIds.T_JavaLangAnnotationRepeatable)
+					annotation.checkRepeatableMetaAnnotation(scope);
+			}
+		}
+		
 		// check duplicate annotations
-		if (annotations != null) {
+		if (annotations != null && length > 1) {
 			AnnotationBinding[] distinctAnnotations = annotations; // only copy after 1st duplicate is detected
+			Map implicitContainerAnnotations = null;
 			for (int i = 0; i < length; i++) {
 				AnnotationBinding annotation = distinctAnnotations[i];
 				if (annotation == null) continue;
-				TypeBinding annotationType = annotation.getAnnotationType();
+				ReferenceBinding annotationType = annotation.getAnnotationType();
 				boolean foundDuplicate = false;
+				ContainerAnnotation container = null;
 				for (int j = i+1; j < length; j++) {
 					AnnotationBinding otherAnnotation = distinctAnnotations[j];
 					if (otherAnnotation == null) continue;
-					if (otherAnnotation.getAnnotationType() == annotationType) {
-						foundDuplicate = true;
+					if (TypeBinding.equalsEquals(otherAnnotation.getAnnotationType(), annotationType)) {
 						if (distinctAnnotations == annotations) {
 							System.arraycopy(distinctAnnotations, 0, distinctAnnotations = new AnnotationBinding[length], 0, length);
 						}
-						distinctAnnotations[j] = null; // report it only once
-						scope.problemReporter().duplicateAnnotation(sourceAnnotations[j]);
+						distinctAnnotations[j] = null; // report/process it only once
+						if (annotationType.isRepeatableAnnotationType()) {
+							Annotation persistibleAnnotation = sourceAnnotations[i].getPersistibleAnnotation();
+							if (persistibleAnnotation instanceof ContainerAnnotation)
+								container = (ContainerAnnotation) persistibleAnnotation;
+							if (container == null) {  // first encounter with a duplicate.
+								ReferenceBinding containerAnnotationType = annotationType.containerAnnotationType();
+								container = new ContainerAnnotation(sourceAnnotations[i], containerAnnotationType, scope);
+								if (implicitContainerAnnotations == null) implicitContainerAnnotations = new HashMap(3);
+								implicitContainerAnnotations.put(containerAnnotationType, sourceAnnotations[i]);
+								Annotation.checkForInstancesOfRepeatableWithRepeatingContainerAnnotation(scope, annotationType, sourceAnnotations);
+							}
+							container.addContainee(sourceAnnotations[j]);
+						} else {
+							foundDuplicate = true;
+							scope.problemReporter().duplicateAnnotation(sourceAnnotations[j], scope.compilerOptions().sourceLevel);
+						}
 					}
 				}
+				if (container != null) {
+					container.resolveType(scope);
+				}
 				if (foundDuplicate) {
-					scope.problemReporter().duplicateAnnotation(sourceAnnotations[i]);
+					scope.problemReporter().duplicateAnnotation(sourceAnnotations[i], scope.compilerOptions().sourceLevel);
+				}
+			}
+			// Check for presence of repeating annotation together with the containing annotation
+			if (implicitContainerAnnotations != null) {
+				for (int i = 0; i < length; i++) {
+					if (distinctAnnotations[i] == null) continue;
+					Annotation annotation = sourceAnnotations[i];
+					ReferenceBinding annotationType = distinctAnnotations[i].getAnnotationType();
+					if (implicitContainerAnnotations.containsKey(annotationType)) {
+						scope.problemReporter().repeatedAnnotationWithContainer((Annotation) implicitContainerAnnotations.get(annotationType), annotation);
+					}
 				}
 			}
 		}
+		if (copySE8AnnotationsToType)
+			copySE8AnnotationsToType(scope, recipient, sourceAnnotations);
+		return annotations;
+	}
+	
+	/**	Resolve JSR308 annotations on a type reference, array creation expression or a wildcard. Type parameters go directly to the subroutine,
+	    By construction the bindings associated with QTR, PQTR etc get resolved first and then annotations for different levels get resolved
+	    and applied at one go. Likewise for multidimensional arrays.
+	    
+	    @Returns the annotated type binding. 
+	*/
+	public static TypeBinding resolveAnnotations(BlockScope scope, Annotation[][] sourceAnnotations, TypeBinding type) {
+		int levels = sourceAnnotations == null ? 0 : sourceAnnotations.length;
+		if (type == null || levels == 0)
+			return type;
+		AnnotationBinding [][] annotationBindings = new AnnotationBinding [levels][];
+
+		for (int i = 0; i < levels; i++) {
+			Annotation[] annotations = sourceAnnotations[i];
+			if (annotations != null && annotations.length > 0) {
+				annotationBindings[i] = resolveAnnotations(scope, annotations, TypeBinding.TYPE_USE_BINDING, false);
+			}
+		}
+		return scope.environment().createAnnotatedType(type, annotationBindings);
+	}
+
+	// When SE8 annotations feature in SE7 locations, they get attributed to the declared entity. Copy/move these to the type of the declared entity (field, local, argument etc.)
+	public static void copySE8AnnotationsToType(BlockScope scope, Binding recipient, Annotation[] annotations) {
+		
+		if (annotations == null || annotations.length == 0 || recipient == null)
+			return;
+		
+		long recipientTargetMask = 0;
+		switch (recipient.kind()) {
+			case Binding.LOCAL:
+				recipientTargetMask = recipient.isParameter() ? TagBits.AnnotationForParameter : TagBits.AnnotationForLocalVariable;
+				break;
+			case Binding.FIELD:
+				recipientTargetMask = TagBits.AnnotationForField;
+				break;
+			case Binding.METHOD:
+				recipientTargetMask = TagBits.AnnotationForMethod;
+				break;
+			default:
+				return;
+		}
+		
+		AnnotationBinding [] se8Annotations = null;
+		int se8count = 0;
+		long se8nullBits = 0;
+		Annotation se8NullAnnotation = null;
+		for (int i = 0, length = annotations.length; i < length; i++) {
+			AnnotationBinding annotation = annotations[i].getCompilerAnnotation();
+			if (annotation == null) continue;
+			final ReferenceBinding annotationType = annotation.getAnnotationType();
+			long metaTagBits = annotationType.getAnnotationTagBits();
+			if ((metaTagBits & TagBits.AnnotationForTypeUse) != 0) {
+				if (se8Annotations == null) {
+					se8Annotations = new AnnotationBinding[] { annotation };
+					se8count = 1;
+				} else {
+					System.arraycopy(se8Annotations, 0, se8Annotations = new AnnotationBinding[se8count + 1], 0, se8count);
+					se8Annotations[se8count++] = annotation;
+				}
+				if (annotationType.id == TypeIds.T_ConfiguredAnnotationNonNull) {
+					se8nullBits = TagBits.AnnotationNonNull;
+					se8NullAnnotation = annotations[i];
+				} else if (annotationType.id == TypeIds.T_ConfiguredAnnotationNullable) {
+					se8nullBits = TagBits.AnnotationNullable;
+					se8NullAnnotation = annotations[i];
+				}
+			}
+		}
+		if (se8Annotations != null) {
+			switch (recipient.kind()) {
+				case Binding.LOCAL:
+					LocalVariableBinding local = (LocalVariableBinding) recipient;
+					TypeReference typeRef = local.declaration.type;
+					if (Annotation.isTypeUseCompatible(typeRef, scope)) { // discard hybrid annotations on name qualified types.
+						local.declaration.bits |= HasTypeAnnotations;
+						typeRef.bits |= HasTypeAnnotations;
+						local.type = mergeAnnotationsIntoType(scope, se8Annotations, se8nullBits, se8NullAnnotation, typeRef, local.type);
+					}
+					break;
+				case Binding.FIELD:
+					FieldBinding field = (FieldBinding) recipient;
+					SourceTypeBinding sourceType = (SourceTypeBinding) field.declaringClass;
+					FieldDeclaration fieldDeclaration = sourceType.scope.referenceContext.declarationOf(field);
+					if (Annotation.isTypeUseCompatible(fieldDeclaration.type, scope)) { // discard hybrid annotations on name qualified types.
+						fieldDeclaration.bits |= HasTypeAnnotations;
+						fieldDeclaration.type.bits |= HasTypeAnnotations;
+						field.type = mergeAnnotationsIntoType(scope, se8Annotations, se8nullBits, se8NullAnnotation, fieldDeclaration.type, field.type);
+					}
+					break;
+				case Binding.METHOD:
+					MethodBinding method = (MethodBinding) recipient;
+					if (!method.isConstructor()) {
+						sourceType = (SourceTypeBinding) method.declaringClass;
+						MethodDeclaration methodDecl = (MethodDeclaration) sourceType.scope.referenceContext.declarationOf(method);
+						if (Annotation.isTypeUseCompatible(methodDecl.returnType, scope)) {
+							methodDecl.bits |= HasTypeAnnotations;
+							methodDecl.returnType.bits |= HasTypeAnnotations;
+							method.returnType = mergeAnnotationsIntoType(scope, se8Annotations, se8nullBits, se8NullAnnotation, methodDecl.returnType, method.returnType);
+						}
+					}
+					break;
+			}
+			AnnotationBinding [] recipientAnnotations = recipient.getAnnotations();
+			int length = recipientAnnotations == null ? 0 : recipientAnnotations.length;
+			int newLength = 0;
+			for (int i = 0; i < length; i++) {
+				final AnnotationBinding recipientAnnotation = recipientAnnotations[i];
+				if (recipientAnnotation == null)
+					continue;
+				long annotationTargetMask = recipientAnnotation.getAnnotationType().getAnnotationTagBits() & TagBits.AnnotationTargetMASK;
+				if (annotationTargetMask == 0 || (annotationTargetMask & recipientTargetMask) != 0)
+					recipientAnnotations[newLength++] = recipientAnnotation;
+			}
+			if (newLength != length) {
+				System.arraycopy(recipientAnnotations, 0, recipientAnnotations = new AnnotationBinding[newLength],  0, newLength);
+				recipient.setAnnotations(recipientAnnotations, scope);
+			}
+		}
+	}
+
+	private static TypeBinding mergeAnnotationsIntoType(BlockScope scope, AnnotationBinding[] se8Annotations, long se8nullBits, Annotation se8NullAnnotation,
+			TypeReference typeRef, TypeBinding existingType) 
+	{
+		if (existingType == null || !existingType.isValidBinding()) return existingType;
+		TypeReference unionRef = typeRef.isUnionType() ? ((UnionTypeReference) typeRef).typeReferences[0] : null;
+		
+		// for arrays: @T X[] SE7 associates @T to the type, but in SE8 it affects the leaf component type
+		long prevNullBits = existingType.leafComponentType().tagBits & TagBits.AnnotationNullMASK;
+		if (se8nullBits != 0 && prevNullBits != se8nullBits && ((prevNullBits | se8nullBits) == TagBits.AnnotationNullMASK)) {
+			scope.problemReporter().contradictoryNullAnnotations(se8NullAnnotation);
+		}
+		TypeBinding oldLeafType = (unionRef == null) ? existingType.leafComponentType() : unionRef.resolvedType;
+		AnnotationBinding [][] goodies = new AnnotationBinding[typeRef.getAnnotatableLevels()][];
+		goodies[0] = se8Annotations;  // @T X.Y.Z local; ==> @T should annotate X
+		TypeBinding newLeafType = scope.environment().createAnnotatedType(oldLeafType, goodies);
+
+		if (unionRef == null) {
+			typeRef.resolvedType = existingType.isArrayType() ? scope.environment().createArrayType(newLeafType, existingType.dimensions(), existingType.getTypeAnnotations()) : newLeafType;
+		} else {
+			unionRef.resolvedType = newLeafType;
+			unionRef.bits |= HasTypeAnnotations;
+		}
+		return typeRef.resolvedType;
 	}
 
 /**

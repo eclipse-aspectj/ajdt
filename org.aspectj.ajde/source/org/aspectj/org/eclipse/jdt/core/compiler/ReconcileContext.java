@@ -46,6 +46,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  */
+@SuppressWarnings({"rawtypes"})
 public class ReconcileContext {
 
 	private ReconcileWorkingCopyOperation operation;
@@ -162,7 +163,7 @@ public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST4() throws Jav
  * <ul>
  * <li> The working copy does not exist (ELEMENT_DOES_NOT_EXIST)</li>
  * </ul>
- * @since 3.9 BETA_JAVA8
+ * @since 3.10
  */
 public org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit getAST8() throws JavaModelException {
 	if (this.operation.astLevel != AST.JLS8 || !this.operation.resolveBindings) {

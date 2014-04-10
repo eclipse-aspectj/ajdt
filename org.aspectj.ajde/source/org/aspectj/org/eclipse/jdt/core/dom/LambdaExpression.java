@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -31,9 +27,10 @@ import java.util.List;
  * while the third form uses {@link SingleVariableDeclaration}.</p>
  *<p>The Body can be either a {@link Block} or an {@link Expression}.</p>
  *
- * @since 3.9 BETA_JAVA8
+ * @since 3.10
  * @noinstantiate This class is not intended to be instantiated by clients 
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class LambdaExpression extends Expression {
 
 	/**
@@ -233,14 +230,14 @@ public class LambdaExpression extends Expression {
 	}
 
 	/**
-	 * Sets whether this lambda expression should have parentheses around its parameters or not.
+	 * Sets whether this lambda expression has parentheses around its parameters or not.
 	 * <p>
 	 * Note that parentheses are required unless {@link #parameters()} contains
 	 * just a single {@link VariableDeclarationFragment}.
 	 * ASTRewrite may ignore this property if necessary.
 	 * </p>
 	 *
-	 * @param hasParentheses <code>true</code> if this lambda expression should have parentheses around its parameters
+	 * @param hasParentheses <code>true</code> if this lambda expression has parentheses around its parameters
 	 *  and <code>false</code> otherwise
 	 */
 	public void setParentheses(boolean hasParentheses) {
@@ -251,12 +248,14 @@ public class LambdaExpression extends Expression {
 
 	/**
 	 * Returns the live ordered list of formal parameters of this lambda expression.
-	 * <p>
-	 * Note that all elements must be of the same type, either all {@link SingleVariableDeclaration} or all {@link VariableDeclarationFragment}.
-	 * </p>
+	 * Note that all elements must be of the same type, either
+	 * <ul>
+	 * <li>all {@link SingleVariableDeclaration} (explicit type), or</li>
+	 * <li>all {@link VariableDeclarationFragment} (inferred type).</li>
+	 * </ul>
 	 *
 	 * @return the live list of formal parameters of this lambda expression
-	 *    (element type: {@link VariableDeclaration} 
+	 *    (element type: {@link VariableDeclaration})
 	 */
 	public List parameters() {
 		return this.parameters;

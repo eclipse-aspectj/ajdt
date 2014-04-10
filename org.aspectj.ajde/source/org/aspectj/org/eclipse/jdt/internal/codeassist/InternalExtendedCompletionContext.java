@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2011 IBM Corporation and others.
+ * Copyright (c) 2008, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist;
 
@@ -28,6 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclara
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Initializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
@@ -35,6 +38,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.TypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
@@ -61,6 +65,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaElement;
 import org.aspectj.org.eclipse.jdt.internal.core.LocalVariable;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class InternalExtendedCompletionContext {
 	private static Util.BindingsToNodesMap EmptyNodeMap = new Util.BindingsToNodesMap() {
 		public ASTNode get(Binding binding) {
@@ -177,7 +182,7 @@ public class InternalExtendedCompletionContext {
 			this.visibleMethods = new ObjectVector();
 	
 			ReferenceContext referenceContext = scope.referenceContext();
-			if (referenceContext instanceof AbstractMethodDeclaration) {
+			if (referenceContext instanceof AbstractMethodDeclaration || referenceContext instanceof LambdaExpression) {
 				// completion is inside a method body
 				searchVisibleVariablesAndMethods(scope, this.visibleLocalVariables, this.visibleFields, this.visibleMethods, notInJavadoc);
 			} else if (referenceContext instanceof TypeDeclaration) {
@@ -195,7 +200,7 @@ public class InternalExtendedCompletionContext {
 							}
 						} else {
 							FieldDeclaration fieldDeclaration = fields[i];							
-							if (fieldDeclaration.initialization != null) {
+							if (fieldDeclaration.initialization != null && fieldDeclaration.binding != null) {
 								boolean isInsideInitializer = false;
 								if (fieldDeclaration.initialization.sourceEnd > 0) {
 									if (fieldDeclaration.initialization.sourceStart <= astNode.sourceStart &&
@@ -332,7 +337,8 @@ public class InternalExtendedCompletionContext {
 		try {
 
 			SignatureWrapper wrapper = new SignatureWrapper(replacePackagesDot(typeSignature.toCharArray()));
-			assignableTypeBinding = this.lookupEnvironment.getTypeFromTypeSignature(wrapper, typeVariables, this.assistScope.enclosingClassScope().referenceContext.binding, null);
+			// FIXME(stephan): do we interpret type annotations here?
+			assignableTypeBinding = this.lookupEnvironment.getTypeFromTypeSignature(wrapper, typeVariables, this.assistScope.enclosingClassScope().referenceContext.binding, null, TypeAnnotationWalker.EMPTY_ANNOTATION_WALKER);
 			assignableTypeBinding = BinaryTypeBinding.resolveType(assignableTypeBinding, this.lookupEnvironment, true);
 		} catch (AbortCompilation e) {
 			assignableTypeBinding = null;
@@ -512,7 +518,7 @@ public class InternalExtendedCompletionContext {
 					nextInterface : for (int a = 0; a < itsLength; a++) {
 						ReferenceBinding next = itsInterfaces[a];
 						for (int b = 0; b < nextPosition; b++)
-							if (next == interfacesToVisit[b]) continue nextInterface;
+							if (TypeBinding.equalsEquals(next, interfacesToVisit[b])) continue nextInterface;
 						interfacesToVisit[nextPosition++] = next;
 					}
 				}
@@ -558,7 +564,7 @@ public class InternalExtendedCompletionContext {
 					nextInterface : for (int a = 0; a < itsLength; a++) {
 						ReferenceBinding next = itsInterfaces[a];
 						for (int b = 0; b < nextPosition; b++)
-							if (next == interfacesToVisit[b]) continue nextInterface;
+							if (TypeBinding.equalsEquals(next, interfacesToVisit[b])) continue nextInterface;
 						interfacesToVisit[nextPosition++] = next;
 					}
 				}
@@ -600,7 +606,7 @@ public class InternalExtendedCompletionContext {
 					nextInterface : for (int a = 0; a < itsLength; a++) {
 						ReferenceBinding next = itsInterfaces[a];
 						for (int b = 0; b < nextPosition; b++)
-							if (next == interfacesToVisit[b]) continue nextInterface;
+							if (TypeBinding.equalsEquals(next, interfacesToVisit[b])) continue nextInterface;
 						interfacesToVisit[nextPosition++] = next;
 					}
 				}

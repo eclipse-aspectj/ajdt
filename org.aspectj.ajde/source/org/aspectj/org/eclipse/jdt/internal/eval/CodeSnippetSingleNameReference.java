@@ -4,10 +4,6 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -174,7 +170,7 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 				}
 				assignment.expression.generateCode(currentScope, codeStream, true);
 				if (valueRequired) {
-					if ((codegenField.type == TypeBinding.LONG) || (codegenField.type == TypeBinding.DOUBLE)) {
+					if ((TypeBinding.equalsEquals(codegenField.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(codegenField.type, TypeBinding.DOUBLE))) {
 						codeStream.dup2_x2();
 					} else {
 						codeStream.dup_x2();
@@ -203,7 +199,7 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 					if (valueRequired) {
 						codeStream.generateImplicitConversion(assignment.implicitConversion); // implicit conversion
 					} else {
-						if ((localBinding.type == TypeBinding.LONG) || (localBinding.type == TypeBinding.DOUBLE)) {
+						if ((TypeBinding.equalsEquals(localBinding.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(localBinding.type, TypeBinding.DOUBLE))) {
 							codeStream.pop2();
 						} else {
 							codeStream.pop();

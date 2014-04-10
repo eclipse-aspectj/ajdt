@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -18,6 +14,9 @@
  *								bug 368546 - [compiler][resource] Avoid remaining false positives found when compiling the Eclipse SDK
  *								bug 382353 - [1.8][compiler] Implementation property modifiers should be accepted on default methods.
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
+ *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
+ *								Bug 392238 - [1.8][compiler][null] Detect semantically invalid null type annotations
+ *								Bug 416176 - [1.8][compiler][null] null type annotations cause grief on type variables
  *     Jesper S Moller <jesper@selskabet.org> - Contributions for
  *								bug 378674 - "The method can be declared as static" is wrong
  *******************************************************************************/
@@ -106,7 +105,10 @@ public class MethodDeclaration extends AbstractMethodDeclaration {
 					FlowInfo.DEAD_END);
 
 			// nullity and mark as assigned
-			analyseArguments(flowInfo, this.arguments, this.binding);
+			if (classScope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8)
+				analyseArguments(flowInfo, this.arguments, this.binding);
+			else
+				analyseArguments18(flowInfo, this.arguments, this.binding);
 
 			if (this.binding.declaringClass instanceof MemberTypeBinding && !this.binding.declaringClass.isStatic()) {
 				// method of a non-static member type can't be static.
@@ -162,7 +164,7 @@ public class MethodDeclaration extends AbstractMethodDeclaration {
 	}
 
 	public void getAllAnnotationContexts(int targetType, List allAnnotationContexts) {
-		AnnotationCollector collector = new AnnotationCollector(this, targetType, allAnnotationContexts);
+		AnnotationCollector collector = new AnnotationCollector(this.returnType, targetType, allAnnotationContexts);
 		for (int i = 0, max = this.annotations.length; i < max; i++) {
 			Annotation annotation = this.annotations[i];
 			annotation.traverse(collector, (BlockScope) null);
@@ -207,8 +209,8 @@ public class MethodDeclaration extends AbstractMethodDeclaration {
 			for (int i = 0, length = this.typeParameters.length; i < length; i++) {
 				TypeParameter typeParameter = this.typeParameters[i];
 				this.bits |= (typeParameter.bits & ASTNode.HasTypeAnnotations);
-				typeParameter.resolve(this.scope);
-				if (returnsUndeclTypeVar && this.typeParameters[i].binding == this.returnType.resolvedType) {
+				// typeParameter is already resolved from Scope#connectTypeVariables()
+				if (returnsUndeclTypeVar && TypeBinding.equalsEquals(this.typeParameters[i].binding, this.returnType.resolvedType)) {
 					returnsUndeclTypeVar = false;
 				}
 			}
@@ -349,12 +351,5 @@ public class MethodDeclaration extends AbstractMethodDeclaration {
 	}
 	public TypeParameter[] typeParameters() {
 	    return this.typeParameters;
-	}
-	
-	void validateNullAnnotations() {
-		super.validateNullAnnotations();
-		// null-annotations on the return type?
-		if (this.binding != null)
-			this.scope.validateNullAnnotation(this.binding.tagBits, this.returnType, this.annotations);
 	}
 }

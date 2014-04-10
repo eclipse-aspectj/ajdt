@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +16,15 @@
  *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
  *								bug 402993 - [null] Follow up of bug 401088: Missing warning about redundant null check
  *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *								Bug 426792 - [1.8][inference][impl] generify new type inference engine
+ *								Bug 423505 - [1.8] Implement "18.5.4 More Specific Method Inference"
+ *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
+ *								Bug 426996 - [1.8][inference] try to avoid method Expression.unresolve()?
+ *								Bug 428274 - [1.8] [compiler] Cannot cast from Number to double
+ *								Bug 428352 - [1.8][compiler] Resolution errors don't always surface
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -53,7 +58,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Messages;
 
-public abstract class Expression extends Statement implements ExpressionContext {
+public abstract class Expression extends Statement {
 
 	public Constant constant;
 
@@ -259,7 +264,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 	boolean use17specifics = scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_7;
 	if (castType.isBaseType()) {
 		if (expressionType.isBaseType()) {
-			if (expressionType == castType) {
+			if (TypeBinding.equalsEquals(expressionType, castType)) {
 				if (expression != null) {
 					this.constant = expression.constant; //use the same constant
 				}
@@ -279,8 +284,10 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 				return true;
 
 			}
-		} else if (use17specifics && expressionType.id == TypeIds.T_JavaLangObject){
-			// cast from Object to base type allowed from 1.7, see JLS $5.5
+		} else if (use17specifics && castType.isPrimitiveType() && expressionType instanceof ReferenceBinding && 
+				!expressionType.isBoxedPrimitiveType() && checkCastTypesCompatibility(scope, scope.boxing(castType), expressionType, expression)) {
+			// cast from any reference type (other than boxing types) to base type allowed from 1.7, see JLS $5.5
+			// by our own interpretation (in accordance with javac) we reject arays, though.
 			return true;
 		} else if (use15specifics
 							&& scope.environment().computeBoxingType(expressionType).isCompatibleWith(castType)) { // unboxing - only widening match is allowed
@@ -314,7 +321,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 			return false;
 
 		case Binding.ARRAY_TYPE :
-			if (castType == expressionType) {
+			if (TypeBinding.equalsEquals(castType, expressionType)) {
 				tagAsUnnecessaryCast(scope, castType);
 				return true; // identity conversion
 			}
@@ -324,7 +331,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 					TypeBinding castElementType = ((ArrayBinding) castType).elementsType();
 					TypeBinding exprElementType = ((ArrayBinding) expressionType).elementsType();
 					if (exprElementType.isBaseType() || castElementType.isBaseType()) {
-						if (castElementType == exprElementType) {
+						if (TypeBinding.equalsEquals(castElementType, exprElementType)) {
 							tagAsNeedCheckCast();
 							return true;
 						}
@@ -436,7 +443,7 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
 								int exprMethodsLength = expressionTypeMethods.length;
 								for (int i = 0, castMethodsLength = castTypeMethods.length; i < castMethodsLength; i++) {
 									for (int j = 0; j < exprMethodsLength; j++) {
-										if ((castTypeMethods[i].returnType != expressionTypeMethods[j].returnType)
+										if ((TypeBinding.notEquals(castTypeMethods[i].returnType, expressionTypeMethods[j].returnType))
 												&& (CharOperation.equals(castTypeMethods[i].selector, expressionTypeMethods[j].selector))
 												&& castTypeMethods[i].areParametersEqual(expressionTypeMethods[j])) {
 											return false;
@@ -560,19 +567,19 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
  * @return could this expression be checked by the current implementation?
  */
 public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	boolean isNullable = false;
 	if (this.resolvedType != null) {
+		// 1. priority: @NonNull
 		if ((this.resolvedType.tagBits & TagBits.AnnotationNonNull) != 0) {
 			return true; // no danger
 		} else if ((this.resolvedType.tagBits & TagBits.AnnotationNullable) != 0) {
-			scope.problemReporter().dereferencingNullableExpression(this, scope.environment());
-			return true; // danger is definite.
-			// stopping analysis at this point requires that the above error is not suppressable
-			// unless suppressing all null warnings (otherwise we'd miss a stronger warning below).
+			isNullable = true;
 		}
 	}
 	LocalVariableBinding local = localVariableBinding();
 	if (local != null &&
 			(local.type.tagBits & TagBits.IsBaseType) == 0) {
+		// 2. priority: local with flow analysis (via the FlowContext)
 		if ((this.bits & ASTNode.IsNonNull) == 0) {
 			flowContext.recordUsingNullReference(scope, local, this,
 					FlowContext.MAY_NULL, flowInfo);
@@ -584,6 +591,10 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 		flowInfo.markAsComparedEqualToNonNull(local);
 			// from thereon it is set
 		flowContext.markFinallyNullStatus(local, FlowInfo.NON_NULL);
+		return true;
+	} else if (isNullable) {
+		// 3. priority: @Nullable without a local
+		scope.problemReporter().dereferencingNullableExpression(this);
 		return true;
 	}
 	return false; // not checked
@@ -601,7 +612,7 @@ protected void checkNPEbyUnboxing(BlockScope scope, FlowContext flowContext, Flo
 }
 
 public boolean checkUnsafeCast(Scope scope, TypeBinding castType, TypeBinding expressionType, TypeBinding match, boolean isNarrowing) {
-	if (match == castType) {
+	if (TypeBinding.equalsEquals(match, castType)) {
 		if (!isNarrowing) tagAsUnnecessaryCast(scope, castType);
 		return true;
 	}
@@ -637,7 +648,7 @@ public void computeConversion(Scope scope, TypeBinding runtimeType, TypeBinding 
 		}
 	} else if (compileTimeType != TypeBinding.NULL && compileTimeType.isBaseType()) {
 		TypeBinding boxedType = scope.environment().computeBoxingType(runtimeType);
-		if (boxedType == runtimeType) // Object o = 12;
+		if (TypeBinding.equalsEquals(boxedType, runtimeType)) // Object o = 12;
 			boxedType = compileTimeType;
 		this.implicitConversion = TypeIds.BOXING | (boxedType.id << 4) + compileTimeType.id;
 		scope.problemReporter().autoboxing(this, compileTimeType, scope.environment().computeBoxingType(boxedType));
@@ -647,9 +658,12 @@ public void computeConversion(Scope scope, TypeBinding runtimeType, TypeBinding 
 		return;
 	}
 	int compileTimeTypeID, runtimeTypeID;
-	if ((compileTimeTypeID = compileTimeType.id) == TypeIds.NoId) { // e.g. ? extends String  ==> String (103227)
+	if ((compileTimeTypeID = compileTimeType.id) >= TypeIds.T_LastWellKnownTypeId) { // e.g. ? extends String  ==> String (103227); >= TypeIds.T_LastWellKnownTypeId implies TypeIds.NoId
 		compileTimeTypeID = compileTimeType.erasure().id == TypeIds.T_JavaLangString ? TypeIds.T_JavaLangString : TypeIds.T_JavaLangObject;
+	} else if (runtimeType.isPrimitiveType() && compileTimeType instanceof ReferenceBinding && !compileTimeType.isBoxedPrimitiveType()) {
+		compileTimeTypeID = TypeIds.T_JavaLangObject; // treatment is the same as for jlO.
 	}
+
 	switch (runtimeTypeID = runtimeType.id) {
 		case T_byte :
 		case T_short :
@@ -819,15 +833,15 @@ public void generateOptimizedStringConcatenationCreation(BlockScope blockScope, 
 }
 
 private MethodBinding[] getAllOriginalInheritedMethods(ReferenceBinding binding) {
-	ArrayList collector = new ArrayList();
+	ArrayList<MethodBinding> collector = new ArrayList<MethodBinding>();
 	getAllInheritedMethods0(binding, collector);
 	for (int i = 0, len = collector.size(); i < len; i++) {
-		collector.set(i, ((MethodBinding)collector.get(i)).original());
+		collector.set(i, collector.get(i).original());
 	}
-	return (MethodBinding[]) collector.toArray(new MethodBinding[collector.size()]);
+	return collector.toArray(new MethodBinding[collector.size()]);
 }
 
-private void getAllInheritedMethods0(ReferenceBinding binding, ArrayList collector) {
+private void getAllInheritedMethods0(ReferenceBinding binding, ArrayList<MethodBinding> collector) {
 	if (!binding.isInterface()) return;
 	MethodBinding[] methodBindings = binding.methods();
 	for (int i = 0, max = methodBindings.length; i < max; i++) {
@@ -887,7 +901,7 @@ public boolean isConstantValueOfTypeAssignableToType(TypeBinding constantType, T
 
 	if (this.constant == Constant.NotAConstant)
 		return false;
-	if (constantType == targetType)
+	if (TypeBinding.equalsEquals(constantType, targetType))
 		return true;
 	//No free assignment conversion from anything but to integral ones.
 	if (BaseTypeBinding.isWidening(TypeIds.T_int, constantType.id)
@@ -943,6 +957,9 @@ public Constant optimizedBooleanConstant() {
 	return this.constant;
 }
 
+public boolean isPertinentToApplicability(TypeBinding targetType, MethodBinding method) {
+	return true;
+}
 /**
  * Returns the type of the expression after required implicit conversions. When expression type gets promoted
  * or inserted a generic cast, the converted type will differ from the resolved type (surface side-effects from
@@ -1030,7 +1047,7 @@ public TypeBinding resolveTypeExpecting(BlockScope scope, TypeBinding expectedTy
 	setExpectedType(expectedType); // needed in case of generic method invocation
 	TypeBinding expressionType = this.resolveType(scope);
 	if (expressionType == null) return null;
-	if (expressionType == expectedType) return expressionType;
+	if (TypeBinding.equalsEquals(expressionType, expectedType)) return expressionType;
 
 	if (!expressionType.isCompatibleWith(expectedType)) {
 		if (scope.isBoxingCompatibleWith(expressionType, expectedType)) {
@@ -1042,6 +1059,17 @@ public TypeBinding resolveTypeExpecting(BlockScope scope, TypeBinding expectedTy
 	}
 	return expressionType;
 }
+
+/**
+ * Once outer contexts have finalized the target type for this expression,
+ * perform any checks that might have been delayed previously.
+ * @param targetType the final target type (aka expectedType) for this expression.
+ * @param scope scope for error reporting
+ */
+public TypeBinding checkAgainstFinalTargetType(TypeBinding targetType, Scope scope) {
+	return this.resolvedType; // subclasses may choose to do real stuff here
+}
+
 /**
  * Returns true if the receiver is forced to be of raw type either to satisfy the contract imposed
  * by a super type or because it *is* raw and the current type has no control over it (i.e the rawness
@@ -1057,12 +1085,12 @@ public boolean forcedToBeRaw(ReferenceContext referenceContext) {
 			if (field.type.isRawType()) {
 				if (referenceContext instanceof AbstractMethodDeclaration) {
 					AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) referenceContext;
-					if (field.declaringClass != methodDecl.binding.declaringClass) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
+					if (TypeBinding.notEquals(field.declaringClass, methodDecl.binding.declaringClass)) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
 						return true;
 					}
 				} else if (referenceContext instanceof TypeDeclaration) {
 					TypeDeclaration type = (TypeDeclaration) referenceContext;
-					if (field.declaringClass != type.binding) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
+					if (TypeBinding.notEquals(field.declaringClass, type.binding)) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
 						return true;
 					}
 				}
@@ -1082,12 +1110,12 @@ public boolean forcedToBeRaw(ReferenceContext referenceContext) {
 		if (field.type.isRawType()) {
 			if (referenceContext instanceof AbstractMethodDeclaration) {
 				AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) referenceContext;
-				if (field.declaringClass != methodDecl.binding.declaringClass) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
+				if (TypeBinding.notEquals(field.declaringClass, methodDecl.binding.declaringClass)) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
 					return true;
 				}
 			} else if (referenceContext instanceof TypeDeclaration) {
 				TypeDeclaration type = (TypeDeclaration) referenceContext;
-				if (field.declaringClass != type.binding) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
+				if (TypeBinding.notEquals(field.declaringClass, type.binding)) { // inherited raw field, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=337962
 					return true;
 				}
 			}
@@ -1130,25 +1158,23 @@ public void setExpressionContext(ExpressionContext context) {
 }
 
 public boolean isCompatibleWith(TypeBinding left, Scope scope) {
-	throw new UnsupportedOperationException("Unexpected control flow, should not have reached Expression.isCompatibleWith"); //$NON-NLS-1$
+	return this.resolvedType != null && this.resolvedType.isCompatibleWith(left,  scope);
 }
 
-public boolean tIsMoreSpecific(TypeBinding t, TypeBinding s) {
-	TypeBinding expressionType = this.resolvedType;
-	if (expressionType == null || !expressionType.isValidBinding()) // Shouldn't get here, just to play it safe
-		return false; // trigger ambiguity.
-	
-	if (t.findSuperTypeOriginatingFrom(s) == s)
-		return true;
-	
-	final boolean tIsBaseType = t.isBaseType();
-	final boolean sIsBaseType = s.isBaseType();
-	
-	return expressionType.isBaseType() ? tIsBaseType && !sIsBaseType : !tIsBaseType && sIsBaseType;
+public boolean isBoxingCompatibleWith(TypeBinding left, Scope scope) {
+	return isBoxingCompatible(this.resolvedType, left, this, scope);
+}
+
+public boolean sIsMoreSpecific(TypeBinding s, TypeBinding t, Scope scope) {
+	return s.isCompatibleWith(t, scope);
 }
 
 public void tagAsEllipsisArgument() {
 	// don't care. Subclasses that are poly expressions in specific contexts should listen in and make note.
+}
+
+public boolean isExactMethodReference() {
+	return false;
 }
 
 /* Answer if the receiver is a poly expression in the prevailing context. Caveat emptor: Some constructs (notably method calls)
@@ -1159,6 +1185,11 @@ public void tagAsEllipsisArgument() {
 public boolean isPolyExpression() throws UnsupportedOperationException {
 	return false;
 }
+/** Variant of isPolyExpression() to be used during type inference, when a resolution candidate exists. */
+public boolean isPolyExpression(MethodBinding method) {
+	return false;
+}
+
 
 public void tagAsNeedCheckCast() {
     // do nothing by default

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -116,14 +112,26 @@ public class QualifiedThisReference extends ThisReference {
 		if (depth == 0) {
 			checkAccess(scope, null);
 		} // if depth>0, path emulation will diagnose bad scenarii
-
+		
+		MethodScope methodScope = scope.namedMethodScope();
+		if (methodScope != null) {
+			MethodBinding method = methodScope.referenceMethodBinding();
+			if (method != null) {
+				TypeBinding receiver = method.receiver;
+				while (receiver != null) {
+					if (TypeBinding.equalsEquals(receiver, this.resolvedType))
+						return this.resolvedType = receiver;
+					receiver = receiver.enclosingType();	
+				}
+			}
+		}
 		return this.resolvedType;
 	}
 
 	int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type) {
 		int depth = 0;
 		this.currentCompatibleType = enclosingType;
-		while (this.currentCompatibleType != null && this.currentCompatibleType != type) {
+		while (this.currentCompatibleType != null && TypeBinding.notEquals(this.currentCompatibleType, type)) {
 			depth++;
 			this.currentCompatibleType = this.currentCompatibleType.isStatic() ? null : this.currentCompatibleType.enclosingType();
 		}

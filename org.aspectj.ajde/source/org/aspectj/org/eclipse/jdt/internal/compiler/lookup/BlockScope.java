@@ -4,10 +4,6 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,6 +37,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class BlockScope extends Scope {
 
 	// Local variable management
@@ -164,11 +161,13 @@ public void addSubscope(Scope childScope) {
  * in other words, it is inside an initializer, a constructor or a clinit
  */
 public final boolean allowBlankFinalFieldAssignment(FieldBinding binding) {
-	if (enclosingReceiverType() != binding.declaringClass)
+	if (TypeBinding.notEquals(enclosingReceiverType(), binding.declaringClass))
 		return false;
 
 	MethodScope methodScope = methodScope();
 	if (methodScope.isStatic != binding.isStatic())
+		return false;
+	if (methodScope.isLambdaScope()) 
 		return false;
 	return methodScope.isInsideInitializer() // inside initializer
 			|| ((AbstractMethodDeclaration) methodScope.referenceContext).isInitializationMethod(); // inside constructor or clinit
@@ -268,7 +267,7 @@ void computeLocalVariablePositions(int ilocal, int initOffset, CodeStream codeSt
 				// assign variable position
 				local.resolvedPosition = this.offset;
 
-				if ((local.type == TypeBinding.LONG) || (local.type == TypeBinding.DOUBLE)) {
+				if ((TypeBinding.equalsEquals(local.type, TypeBinding.LONG)) || (TypeBinding.equalsEquals(local.type, TypeBinding.DOUBLE))) {
 					this.offset += 2;
 				} else {
 					this.offset++;
@@ -794,7 +793,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 
 	// use 'this' if possible
 	if (!currentMethodScope.isStatic && !currentMethodScope.isConstructorCall) {
-		if (sourceType == targetEnclosingType || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null)) {
+		if (TypeBinding.equalsEquals(sourceType, targetEnclosingType) || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null)) {
 			return BlockScope.EmulationPathToImplicitThis; // implicit this is good enough
 		}
 	}
@@ -817,7 +816,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 			if (denyEnclosingArgInConstructorCall
 					&& currentMethodScope.isConstructorCall
 					&& !isAnonymousAndHasEnclosing
-					&& (sourceType == targetEnclosingType || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null))) {
+					&& (TypeBinding.equalsEquals(sourceType, targetEnclosingType) || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null))) {
 				return BlockScope.NoEnclosingInstanceInConstructorCall;
 			}
 			return new Object[] { syntheticArg };
@@ -840,7 +839,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 			if (enclosingArgument != null) {
 				FieldBinding syntheticField = sourceType.getSyntheticField(enclosingArgument);
 				if (syntheticField != null) {
-					if (syntheticField.type == targetEnclosingType || (!onlyExactMatch && ((ReferenceBinding)syntheticField.type).findSuperTypeOriginatingFrom(targetEnclosingType) != null))
+					if (TypeBinding.equalsEquals(syntheticField.type, targetEnclosingType) || (!onlyExactMatch && ((ReferenceBinding)syntheticField.type).findSuperTypeOriginatingFrom(targetEnclosingType) != null))
 						return new Object[] { syntheticField };
 				}
 			}
@@ -872,7 +871,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 		while ((currentEnclosingType = currentType.enclosingType()) != null) {
 
 			//done?
-			if (currentType == targetEnclosingType
+			if (TypeBinding.equalsEquals(currentType, targetEnclosingType)
 				|| (!onlyExactMatch && currentType.findSuperTypeOriginatingFrom(targetEnclosingType) != null))	break;
 
 			if (currentMethodScope != null) {
@@ -896,7 +895,7 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 			path[count++] = ((SourceTypeBinding) syntheticField.declaringClass).addSyntheticMethod(syntheticField, true/*read*/, false /*not super access*/);
 			currentType = currentEnclosingType;
 		}
-		if (currentType == targetEnclosingType
+		if (TypeBinding.equalsEquals(currentType, targetEnclosingType)
 			|| (!onlyExactMatch && currentType.findSuperTypeOriginatingFrom(targetEnclosingType) != null)) {
 			return path;
 		}
@@ -943,12 +942,14 @@ public final boolean needBlankFinalFieldInitializationCheck(FieldBinding binding
 	while (methodScope != null) {
 		if (methodScope.isStatic != isStatic)
 			return false;
+		if (methodScope.isLambdaScope())
+			return false;
 		if (!methodScope.isInsideInitializer() // inside initializer
 				&& !((AbstractMethodDeclaration) methodScope.referenceContext).isInitializationMethod()) { // inside constructor or clinit
 			return false; // found some non-initializer context
 		}
 		ReferenceBinding enclosingType = methodScope.enclosingReceiverType();
-		if (enclosingType == fieldDeclaringClass) {
+		if (TypeBinding.equalsEquals(enclosingType, fieldDeclaringClass)) {
 			return true; // found the field context, no need to check any further
 		}
 		if (!enclosingType.erasure().isAnonymousType()) {
@@ -982,7 +983,7 @@ public void propagateInnerEmulation(ReferenceBinding targetType, boolean isEnclo
 			SyntheticArgumentBinding syntheticArg = syntheticArguments[i];
 			// need to filter out the one that could match a supplied enclosing instance
 			if (!(isEnclosingInstanceSupplied
-				&& (syntheticArg.type == targetType.enclosingType()))) {
+				&& (TypeBinding.equalsEquals(syntheticArg.type, targetType.enclosingType())))) {
 				emulateOuterAccess(syntheticArg.actualOuterLocalVariable);
 			}
 		}

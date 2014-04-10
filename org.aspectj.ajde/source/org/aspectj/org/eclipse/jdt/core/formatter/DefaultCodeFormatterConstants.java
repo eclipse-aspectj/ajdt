@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation  - initial API and implementation
  *     Brock Janiczak   - Contribution for bug 150741
@@ -31,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.formatter.align.Alignment;
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  */
+@SuppressWarnings("rawtypes")
 public class DefaultCodeFormatterConstants {
 
 	/**
@@ -624,7 +621,7 @@ public class DefaultCodeFormatterConstants {
 	 * @see #NEXT_LINE
 	 * @see #NEXT_LINE_SHIFTED
 	 * @see #NEXT_LINE_ON_WRAP
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final String FORMATTER_BRACE_POSITION_FOR_LAMBDA_BODY = JavaCore.PLUGIN_ID + ".formatter.brace_position_for_lambda_body";	//$NON-NLS-1$
 
@@ -1407,6 +1404,18 @@ public class DefaultCodeFormatterConstants {
 
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a new line after a type annotation
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_new_line_after_type_annotation"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           DO_NOT_INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.10
+	 */
+	public static final String FORMATTER_INSERT_NEW_LINE_AFTER_TYPE_ANNOTATION = JavaCore.PLUGIN_ID + ".formatter.insert_new_line_after_type_annotation";//$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a new line after an annotation on a parameter
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_parameter"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -2030,7 +2039,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final String FORMATTER_INSERT_SPACE_AFTER_LAMBDA_ARROW  = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_lambda_arrow";	//$NON-NLS-1$
 	/**
@@ -2967,7 +2976,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.9 BETA_JAVA8
+	 * @since 3.10
 	 */
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_LAMBDA_ARROW = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_lambda_arrow";	//$NON-NLS-1$
 	/**
@@ -3985,7 +3994,7 @@ public class DefaultCodeFormatterConstants {
 	 * @param wrapStyle the given wrapping style
 	 * @param indentStyle the given indent style
 	 *
-	 * @return the new alignement value
+	 * @return the new alignment value
 	 */
 	public static String createAlignmentValue(boolean forceSplit, int wrapStyle, int indentStyle) {
 		int alignmentValue = 0;

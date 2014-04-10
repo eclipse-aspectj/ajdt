@@ -5,14 +5,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
  *								bug 365531 - [compiler][null] investigate alternative strategy for internally encoding nullness defaults
+ *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *     Jesper Steen Moller - Contributions for
+ *								Bug 412150 [1.8] [compiler] Enable reflected parameter names during annotation processing
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -45,6 +44,7 @@ public abstract class Binding {
 
 	// Shared binding collections
 	public static final TypeBinding[] NO_TYPES = new TypeBinding[0];
+	public static final ReferenceBinding[] NO_REFERENCE_TYPES = new ReferenceBinding[0];
 	public static final TypeBinding[] NO_PARAMETERS = new TypeBinding[0];
 	public static final ReferenceBinding[] NO_EXCEPTIONS = new ReferenceBinding[0];
 	public static final ReferenceBinding[] ANY_EXCEPTION = new ReferenceBinding[] { null }; // special handler for all exceptions
@@ -55,10 +55,14 @@ public abstract class Binding {
 	public static final TypeVariableBinding[] NO_TYPE_VARIABLES = new TypeVariableBinding[0];
 	public static final AnnotationBinding[] NO_ANNOTATIONS = new AnnotationBinding[0];
 	public static final ElementValuePair[] NO_ELEMENT_VALUE_PAIRS = new ElementValuePair[0];
-
+	public static final char[][] NO_PARAMETER_NAMES = new char[0][];
+	
 	public static final FieldBinding[] UNINITIALIZED_FIELDS = new FieldBinding[0];
 	public static final MethodBinding[] UNINITIALIZED_METHODS = new MethodBinding[0];
 	public static final ReferenceBinding[] UNINITIALIZED_REFERENCE_TYPES = new ReferenceBinding[0];
+
+	static final InferenceVariable[] NO_INFERENCE_VARIABLES = new InferenceVariable[0];
+	static final TypeBound[] NO_TYPE_BOUNDS = new TypeBound[0];
 
 	// Nullness defaults:
 	public static final int NO_NULL_DEFAULT = 0;
@@ -87,6 +91,8 @@ public abstract class Binding {
 	/**
 	 * Compute the tagbits for standard annotations. For source types, these could require
 	 * lazily resolving corresponding annotation nodes, in case of forward references.
+	 * For type use bindings, this method still returns the tagbits corresponding to the type 
+	 * declaration binding.
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding#getAnnotationTagBits()
 	 */
 	public long getAnnotationTagBits() {
@@ -102,6 +108,10 @@ public abstract class Binding {
 		// empty block
 	}
 
+	public boolean isAnnotationType() {
+		return false;
+	}
+	
 	/* API
 	* Answer true if the receiver is not a problem binding
 	*/
@@ -109,6 +119,9 @@ public abstract class Binding {
 		return problemId() == ProblemReasons.NoError;
 	}
 	public boolean isVolatile() {
+		return false;
+	}
+	public boolean isTaggedRepeatable() {
 		return false;
 	}
 	public boolean isParameter() {
@@ -130,5 +143,14 @@ public abstract class Binding {
 	 */
 	public char[] shortReadableName(){
 		return readableName();
+	}
+	public AnnotationBinding[] getAnnotations() {
+		return Binding.NO_ANNOTATIONS;
+	}
+	public void setAnnotations(AnnotationBinding[] annotations, Scope scope) {
+		setAnnotations(annotations);
+	}
+	public void setAnnotations(AnnotationBinding[] annotations) {
+		// Left to subtypes.
 	}
 }

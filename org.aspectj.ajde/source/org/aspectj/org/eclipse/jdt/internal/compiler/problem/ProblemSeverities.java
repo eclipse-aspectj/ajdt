@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,7 +12,6 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.problem;
 
 public interface ProblemSeverities {
 
-	final int Ignore = 256; // during handling only
 	final int Warning = 0; // during handling only
 
 	final int Error = 1; // when bit is set: problem is error, if not it is a warning
@@ -24,4 +23,6 @@ public interface ProblemSeverities {
 	final int Optional = 32; // when bit is set: problem was configurable
 	final int SecondaryError = 64;
 	final int Fatal = 128; // when bit is set: problem was either a mandatory error, or an optional+treatOptionalErrorAsFatal
+	final int Ignore = 256; // during handling only
+	final int InternalError = 512;  // always exposed, even when silent error handling policy is in effect.
 }

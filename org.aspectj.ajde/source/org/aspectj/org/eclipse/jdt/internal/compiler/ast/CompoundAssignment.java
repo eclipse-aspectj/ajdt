@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -144,7 +140,7 @@ public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
 		if (use15specifics) {
 			if (!lhsType.isBaseType() && expressionType.id != T_JavaLangString && expressionType.id != T_null) {
 				TypeBinding unboxedType = env.computeBoxingType(lhsType);
-				if (unboxedType != lhsType) {
+				if (TypeBinding.notEquals(unboxedType, lhsType)) {
 					lhsType = unboxedType;
 					unboxedLhs = true;
 				}

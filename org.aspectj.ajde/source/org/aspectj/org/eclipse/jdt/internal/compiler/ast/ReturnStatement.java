@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,19 +23,27 @@
  *								bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
  *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
- *								bug 401030 - [1.8][null] Null analysis support for lambda methods. 
+ *								bug 401030 - [1.8][null] Null analysis support for lambda methods.
+ *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
+ *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
+ *								Bug 416307 - [1.8][compiler][null] subclass with type parameter substitution confuses null checking
+ *								Bug 417758 - [1.8][null] Null safety compromise during array creation.
+ *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *     Jesper S Moller - Contributions for
  *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.ASSIGNMENT_CONTEXT;
+
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
-public class ReturnStatement extends Statement implements ExpressionContext {
+public class ReturnStatement extends Statement {
 
 	public Expression expression;
 	public SubRoutineStatement[] subroutines;
@@ -62,13 +66,23 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	// to each of the traversed try statements, so that execution will terminate properly.
 
 	// lookup the label, this should answer the returnContext
+	
+	if (this.expression instanceof FunctionalExpression) {
+		if (this.expression.resolvedType == null || !this.expression.resolvedType.isValidBinding()) {
+			/* Don't descend without proper target types. For lambda shape analysis, what is pertinent is value vs void return and the fact that
+			   this constitutes an abrupt exit. The former is already gathered, the latter is handled here.
+			*/ 
+			flowContext.recordAbruptExit();
+			return FlowInfo.DEAD_END;
+		}
+	}
 
 	MethodScope methodScope = currentScope.methodScope();
 	if (this.expression != null) {
 		flowInfo = this.expression.analyseCode(currentScope, flowContext, flowInfo);
 		this.expression.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
 		if (flowInfo.reachMode() == FlowInfo.REACHABLE)
-			checkAgainstNullAnnotation(currentScope, flowContext, this.expression.nullStatus(flowInfo, flowContext));
+			checkAgainstNullAnnotation(currentScope, flowContext, flowInfo);
 		if (currentScope.compilerOptions().analyseResourceLeaks) {
 			FakedTrackingVariable trackingVariable = FakedTrackingVariable.getCloseTrackingVariable(this.expression, flowInfo, flowContext);
 			if (trackingVariable != null) {
@@ -144,7 +158,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		}
 	} else {
 		this.saveValueVariable = null;
-		if (((this.bits & ASTNode.IsSynchronized) == 0) && this.expression != null && this.expression.resolvedType == TypeBinding.BOOLEAN) {
+		if (((this.bits & ASTNode.IsSynchronized) == 0) && this.expression != null && TypeBinding.equalsEquals(this.expression.resolvedType, TypeBinding.BOOLEAN)) {
 			if (noAutoCloseables) { // can't abruptly return in the presence of autocloseables. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=367566
 				this.expression.bits |= ASTNode.IsReturnedValue;
 			}
@@ -155,19 +169,23 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	flowContext.recordAbruptExit();
 	return FlowInfo.DEAD_END;
 }
-void checkAgainstNullAnnotation(BlockScope scope, FlowContext flowContext, int nullStatus) {
-	if (nullStatus != FlowInfo.NON_NULL) {
+void checkAgainstNullAnnotation(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	int nullStatus = this.expression.nullStatus(flowInfo, flowContext);
+	long tagBits;
+	MethodBinding methodBinding = null;
+	boolean useTypeAnnotations = scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8;
+	try {
+		methodBinding = scope.methodScope().referenceMethodBinding();
+		tagBits = (useTypeAnnotations) ? methodBinding.returnType.tagBits : methodBinding.tagBits;
+	} catch (NullPointerException npe) {
+		// chain of references in try-block has several potential nulls;
+		// any null means we cannot perform the following check
+		return;			
+	}
+	if (useTypeAnnotations) {
+		checkAgainstNullTypeAnnotation(scope, methodBinding.returnType, this.expression, flowContext, flowInfo);
+	} else if (nullStatus != FlowInfo.NON_NULL) {
 		// if we can't prove non-null check against declared null-ness of the enclosing method:
-		long tagBits;
-		MethodBinding methodBinding;
-		try {
-			methodBinding = scope.methodScope().referenceMethodBinding();
-			tagBits = methodBinding.tagBits;
-		} catch (NullPointerException npe) {
-			// chain of references in try-block has several potential nulls;
-			// any null means we cannot perform the following check
-			return;			
-		}
 		if ((tagBits & TagBits.AnnotationNonNull) != 0) {
 			flowContext.recordNullityMismatch(scope, this.expression, this.expression.resolvedType, methodBinding.returnType, nullStatus);
 		}
@@ -294,7 +312,7 @@ public void resolve(BlockScope scope) {
 			return;
 		}
 		expressionType = this.expression.resolveType(scope);
-		if (lambda != null && !this.implicitReturn)
+		if (lambda != null)
 			lambda.returnsExpression(this.expression, expressionType);
 		if (this.implicitReturn && (expressionType == TypeBinding.VOID || this.expression.statementExpression()))
 			return;
@@ -321,7 +339,7 @@ public void resolve(BlockScope scope) {
 	if (methodType == null)
 		return;
 
-	if (methodType != expressionType) // must call before computeConversion() and typeMismatchError()
+	if (TypeBinding.notEquals(methodType, expressionType)) // must call before computeConversion() and typeMismatchError()
 		scope.compilationUnitScope().recordTypeConversion(methodType, expressionType);
 	if (this.expression.isConstantValueOfTypeAssignableToType(expressionType, methodType)
 			|| expressionType.isCompatibleWith(methodType)) {
@@ -344,7 +362,7 @@ public void resolve(BlockScope scope) {
 	}
 	if ((methodType.tagBits & TagBits.HasMissingType) == 0) {
 		// no need to complain if return type was missing (avoid secondary error : 220967)
-		scope.problemReporter().typeMismatchError(expressionType, methodType, this.expression, null);
+		scope.problemReporter().typeMismatchError(expressionType, methodType, this.expression, this);
 	}
 }
 

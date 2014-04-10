@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,8 @@
 package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.aspectj.org.eclipse.jdt.core.Flags;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
@@ -27,12 +29,14 @@ import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.ISelectionRequestor;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.SelectionEngine;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
@@ -46,6 +50,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * Implementation of <code>ISelectionRequestor</code> to assist with
  * code resolve in a compilation unit. Translates names to elements.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class SelectionRequestor implements ISelectionRequestor {
 	/*
 	 * The name lookup facility used to resolve packages
@@ -439,9 +444,16 @@ public void acceptLocalMethodTypeParameter(TypeVariableBinding typeVariableBindi
 		}
 	}
 }
-public void acceptLocalVariable(LocalVariableBinding binding) {
+public void acceptLocalVariable(LocalVariableBinding binding, org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit unit) {
 	LocalDeclaration local = binding.declaration;
-	IJavaElement parent = findLocalElement(local.sourceStart); // findLocalElement() cannot find local variable
+	IJavaElement parent = null;
+	if (binding.declaringScope.isLambdaSubscope() && unit instanceof ICompilationUnit) {
+		HashSet existingElements = new HashSet();
+		HashMap knownScopes = new HashMap();
+		parent = this.handleFactory.createElement(binding.declaringScope, local.sourceStart, (ICompilationUnit) unit, existingElements, knownScopes);
+	} else {		
+		parent = findLocalElement(local.sourceStart, binding.declaringScope.methodScope()); // findLocalElement() cannot find local variable
+	}
 	LocalVariable localVar = null;
 	if(parent != null) {
 		localVar = new LocalVariable(
@@ -451,7 +463,7 @@ public void acceptLocalVariable(LocalVariableBinding binding) {
 				local.declarationSourceEnd,
 				local.sourceStart,
 				local.sourceEnd,
-				Util.typeSignature(local.type),
+				local.type == null ? Signature.createTypeSignature(binding.type.readableName(), true) : Util.typeSignature(local.type),
 				local.annotations,
 				local.modifiers,
 				local.getKind() == AbstractVariableDeclaration.PARAMETER);
@@ -842,6 +854,21 @@ protected IJavaElement findLocalElement(int pos) {
 		}
 	}
 	return res;
+}
+/*
+ * findLocalElement() cannot find lambdas.
+ */
+protected IJavaElement findLocalElement(int pos, MethodScope scope) {
+	if (scope != null && scope.isLambdaScope()) {
+		IJavaElement parent = findLocalElement(pos, scope.enclosingMethodScope());
+		LambdaExpression expression = (LambdaExpression) scope.originalReferenceContext();
+		if (expression != null && expression.resolvedType != null && expression.resolvedType.isValidBinding()) {
+			org.aspectj.org.eclipse.jdt.internal.core.LambdaExpression lambdaElement = new org.aspectj.org.eclipse.jdt.internal.core.LambdaExpression((JavaElement) parent, expression);
+			return lambdaElement.getMethod();
+		}
+		return parent;
+	}
+	return findLocalElement(pos);
 }
 
 /**

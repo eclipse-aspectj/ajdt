@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,11 @@ import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.SourceRange;
 
 public class CompilationUnitElementInfo extends OpenableElementInfo {
+	
+	/**
+	 * Count that will be used by SourceTypeConverter to decide whether or not to diet parse.
+	 */
+	public static int ANNOTATION_THRESHOLD_FOR_DIET_PARSE = 10;
 
 	/**
 	 * The length of this compilation unit's source code <code>String</code>
@@ -30,6 +35,8 @@ public class CompilationUnitElementInfo extends OpenableElementInfo {
 	 * Number of annotations in this compilation unit
 	 */
 	public int annotationNumber = 0;
+
+	public boolean hasFunctionalTypes = false;
 
 /**
  * Returns the length of the source string.

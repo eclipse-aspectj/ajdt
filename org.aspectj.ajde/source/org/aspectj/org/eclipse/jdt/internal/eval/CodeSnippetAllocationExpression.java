@@ -1,25 +1,30 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *        Andy Clement - Contributions for
+ *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ *                          Bug 409245 - [1.8][compiler] Type annotations dropped when call is routed through a synthetic bridge method
+ *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
+ *        Stephan Herrmann - Contribution for
+ *							Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec) 
+ *							Bug 424415 - [1.8][compiler] Eventual resolution of ReferenceExpression is not seen to be happening.
+ *							Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.eval;
+
+import static org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext.INVOCATION_CONTEXT;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InnerInferenceHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
@@ -83,7 +88,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, 	boolea
 				this);
 		}
 		// invoke constructor
-		codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, null /* default declaringClass */);
+		codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, null /* default declaringClass */, this.typeArguments);
 	} else {
 		// private emulation using reflect
 		codeStream.generateEmulationForConstructor(currentScope, codegenBinding);
@@ -91,7 +96,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, 	boolea
 		if (this.arguments != null) {
 			int argsLength = this.arguments.length;
 			codeStream.generateInlinedValue(argsLength);
-			codeStream.newArray(null, currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
+			codeStream.newArray(currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
 			codeStream.dup();
 			for (int i = 0; i < argsLength; i++) {
 				codeStream.generateInlinedValue(i);
@@ -107,7 +112,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, 	boolea
 			}
 		} else {
 			codeStream.generateInlinedValue(0);
-			codeStream.newArray(null, currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
+			codeStream.newArray(currentScope.createArrayType(currentScope.getType(TypeConstants.JAVA_LANG_OBJECT, 3), 1));
 		}
 		codeStream.invokeJavaLangReflectConstructorNewInstance();
 		codeStream.checkcast(allocatedType);
@@ -181,7 +186,6 @@ public TypeBinding resolveType(BlockScope scope) {
 	// buffering the arguments' types
 	boolean argsContainCast = false;
 	TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
-	boolean polyExpressionSeen = false;
 	if (this.arguments != null) {
 		boolean argHasError = false;
 		int length = this.arguments.length;
@@ -197,8 +201,10 @@ public TypeBinding resolveType(BlockScope scope) {
 			if ((argumentType = argumentTypes[i] = argument.resolveType(scope)) == null) {
 				argHasError = true;
 			}
-			if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE)
-				polyExpressionSeen = true;
+			if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE) {
+				if (this.innerInferenceHelper == null)
+					this.innerInferenceHelper = new InnerInferenceHelper();
+			}
 		}
 		if (argHasError) {
 			return this.resolvedType;
@@ -212,7 +218,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		return this.resolvedType;
 	}
 	if (isDiamond) {
-		TypeBinding [] inferredTypes = inferElidedTypes(((ParameterizedTypeBinding) this.resolvedType).genericType(), null, argumentTypes, scope);
+		TypeBinding [] inferredTypes = inferElidedTypes((ParameterizedTypeBinding) this.resolvedType, null, argumentTypes, scope);
 		if (inferredTypes == null) {
 			scope.problemReporter().cannotInferElidedTypes(this);
 			return this.resolvedType = null;
@@ -221,9 +227,7 @@ public TypeBinding resolveType(BlockScope scope) {
  	}
 	
 	ReferenceBinding allocatedType = (ReferenceBinding) this.resolvedType;
-	this.binding = scope.getConstructor(allocatedType, argumentTypes, this);
-	if (polyExpressionSeen && polyExpressionsHaveErrors(scope, this.binding, this.arguments, argumentTypes))
-		return null;
+	this.binding = findConstructorBinding(scope, this, allocatedType, argumentTypes);
 
 	if (!this.binding.isValidBinding()) {	
 		if (this.binding instanceof ProblemMethodBinding

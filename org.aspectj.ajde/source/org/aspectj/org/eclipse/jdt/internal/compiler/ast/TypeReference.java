@@ -1,21 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
  *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
  *								bug 392862 - [1.8][compiler][null] Evaluate null annotations on array types
+ *								bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
+ *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
+ *								Bug 415850 - [1.8] Ensure RunJDTCoreTests can cope with null annotations enabled
+ *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
+ *								Bug 427163 - [1.8][null] bogus error "Contradictory null specification" on varags
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
+ *                          Bug 409236 - [1.8][compiler] Type annotations on intersection cast types dropped by code generator
+ *                          Bug 415399 - [1.8][compiler] Type annotations on constructor results dropped by the code generator
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -23,15 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
@@ -42,17 +44,17 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class TypeReference extends Expression {
 	public static final TypeReference[] NO_TYPE_ARGUMENTS = new TypeReference[0];
 static class AnnotationCollector extends ASTVisitor {
 	List annotationContexts;
-	TypeReference typeReference;
+	Expression typeReference;
 	int targetType;
-	Annotation[] primaryAnnotations;
-	int info = -1;
-	int info2 = -1;
+	int info = 0;
+	int info2 = 0;
 	LocalVariableBinding localVariable;
 	Annotation[][] annotationsOnDimensions;
 	int dimensions;
@@ -66,7 +68,6 @@ static class AnnotationCollector extends ASTVisitor {
 		this.annotationContexts = annotationContexts;
 		this.typeReference = typeParameter.type;
 		this.targetType = targetType;
-		this.primaryAnnotations = typeParameter.annotations;
 		this.info = typeParameterIndex;
 	}
 
@@ -78,7 +79,6 @@ static class AnnotationCollector extends ASTVisitor {
 		this.annotationContexts = annotationContexts;
 		this.typeReference = localDeclaration.type;
 		this.targetType = targetType;
-		this.primaryAnnotations = localDeclaration.annotations;
 		this.localVariable = localVariable;
 	}
 
@@ -90,29 +90,9 @@ static class AnnotationCollector extends ASTVisitor {
 		this.annotationContexts = annotationContexts;
 		this.typeReference = localDeclaration.type;
 		this.targetType = targetType;
-		this.primaryAnnotations = localDeclaration.annotations;
 		this.info = parameterIndex;
 	}
 
-	public AnnotationCollector(
-			MethodDeclaration methodDeclaration,
-			int targetType,
-			List annotationContexts) {
-		this.annotationContexts = annotationContexts;
-		this.typeReference = methodDeclaration.returnType;
-		this.targetType = targetType;
-		this.primaryAnnotations = methodDeclaration.annotations;
-	}
-
-	public AnnotationCollector(
-			FieldDeclaration fieldDeclaration,
-			int targetType,
-			List annotationContexts) {
-		this.annotationContexts = annotationContexts;
-		this.typeReference = fieldDeclaration.type;
-		this.targetType = targetType;
-		this.primaryAnnotations = fieldDeclaration.annotations;
-	}
 	public AnnotationCollector(
 			TypeReference typeReference,
 			int targetType,
@@ -122,7 +102,7 @@ static class AnnotationCollector extends ASTVisitor {
 		this.targetType = targetType;
 	}
 	public AnnotationCollector(
-			TypeReference typeReference,
+			Expression typeReference,
 			int targetType,
 			int info,
 			List annotationContexts) {
@@ -166,9 +146,9 @@ static class AnnotationCollector extends ASTVisitor {
 	private boolean internalVisit(Annotation annotation) {
 		AnnotationContext annotationContext = null;
 		if (annotation.isRuntimeTypeInvisible()) {
-			annotationContext = new AnnotationContext(annotation, this.typeReference, this.targetType, this.primaryAnnotations, AnnotationContext.INVISIBLE, this.annotationsOnDimensions, this.dimensions);
+			annotationContext = new AnnotationContext(annotation, this.typeReference, this.targetType, AnnotationContext.INVISIBLE);
 		} else if (annotation.isRuntimeTypeVisible()) {
-			annotationContext = new AnnotationContext(annotation, this.typeReference, this.targetType, this.primaryAnnotations, AnnotationContext.VISIBLE, this.annotationsOnDimensions, this.dimensions);
+			annotationContext = new AnnotationContext(annotation, this.typeReference, this.targetType, AnnotationContext.VISIBLE);
 		}
 		if (annotationContext != null) {
 			annotationContext.wildcard = this.currentWildcard;
@@ -183,12 +163,6 @@ static class AnnotationCollector extends ASTVisitor {
 				case AnnotationTargetTypeConstants.NEW :
 				case AnnotationTargetTypeConstants.CONSTRUCTOR_REFERENCE :
 				case AnnotationTargetTypeConstants.METHOD_REFERENCE :
-				case AnnotationTargetTypeConstants.CAST:
-					annotationContext.info = this.info;
-					break;
-				case AnnotationTargetTypeConstants.CLASS_TYPE_PARAMETER_BOUND :
-				case AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER_BOUND :
-					annotationContext.info2 = this.info2;
 					annotationContext.info = this.info;
 					break;
 				case AnnotationTargetTypeConstants.LOCAL_VARIABLE :
@@ -199,6 +173,9 @@ static class AnnotationCollector extends ASTVisitor {
 				case AnnotationTargetTypeConstants.METHOD_INVOCATION_TYPE_ARGUMENT :
 				case AnnotationTargetTypeConstants.CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT :
 				case AnnotationTargetTypeConstants.METHOD_REFERENCE_TYPE_ARGUMENT :
+				case AnnotationTargetTypeConstants.CLASS_TYPE_PARAMETER_BOUND :
+				case AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER_BOUND :
+				case AnnotationTargetTypeConstants.CAST:
 					annotationContext.info2 = this.info2;
 					annotationContext.info = this.info;
 					break;
@@ -314,6 +291,10 @@ public static final TypeReference baseTypeReference(int baseType, int dim, Annot
 	}
 }
 
+public static final TypeReference baseTypeReference(int baseType, int dim) {
+	return baseTypeReference(baseType, dim, null);
+}
+
 // JSR308 type annotations...
 public Annotation[][] annotations = null;
 
@@ -327,11 +308,52 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 public void checkBounds(Scope scope) {
 	// only parameterized type references have bounds
 }
-public abstract TypeReference copyDims(int dim);
-public abstract TypeReference copyDims(int dim, Annotation[][] annotationsOnDimensions);
+public abstract TypeReference augmentTypeWithAdditionalDimensions(int additionalDimensions, Annotation[][] additionalAnnotations, boolean isVarargs);
+
+protected Annotation[][] getMergedAnnotationsOnDimensions(int additionalDimensions, Annotation[][] additionalAnnotations) {
+	/* Note, we actually concatenate the additional annotations after base annotations, in bindings, they should appear before base annotations.
+	   Given @English int @Nullable [] x @NonNull []; the type x is a @NonNull arrays of of @Nullable arrays of @English Strings, not the other
+	   way about. Changing this in the compiler AST representation will cause too many ripples, so we leave it as is. On the bindings, the type
+	   will reflect rotated (i.e will reflect correctly). See AnnotatableTypeSystem.flattenedAnnotations
+	*/
+	Annotation[][] annotationsOnDimensions = this.getAnnotationsOnDimensions(true);
+	int dimensions = this.dimensions();
+	
+	if (annotationsOnDimensions == null && additionalAnnotations == null)
+		return null;
+
+	final int totalDimensions = dimensions + additionalDimensions;
+	Annotation [][] mergedAnnotations = new Annotation[totalDimensions][];
+	if (annotationsOnDimensions != null) {
+		for (int i = 0; i < dimensions; i++) {
+			mergedAnnotations[i] = annotationsOnDimensions[i];
+		} 
+	}
+	if (additionalAnnotations != null) {
+		for (int i = dimensions, j = 0; i < totalDimensions; i++, j++) {
+			mergedAnnotations[i] = additionalAnnotations[j];
+		}
+	}
+	return mergedAnnotations;
+}
+
 public int dimensions() {
 	return 0;
 }
+
+
+/**
+ * This method is used to return the array dimension declared after the
+ * name of a local or a field declaration.
+ * For example:
+ *    int i, j[] = null, k[][] = {{}};
+ *    It should return 0 for i, 1 for j and 2 for k.
+ * @return int the extra dimension found
+ */
+public int extraDimensions() {
+	return 0;
+}
+
 public AnnotationContext[] getAllAnnotationContexts(int targetType) {
 	List allAnnotationContexts = new ArrayList();
 	AnnotationCollector collector = new AnnotationCollector(this, targetType, allAnnotationContexts);
@@ -346,6 +368,14 @@ public AnnotationContext[] getAllAnnotationContexts(int targetType) {
  */
 public void getAllAnnotationContexts(int targetType, int info, List allAnnotationContexts) {
 	AnnotationCollector collector = new AnnotationCollector(this, targetType, info, allAnnotationContexts);
+	this.traverse(collector, (BlockScope) null);
+}
+public void getAllAnnotationContexts(int targetType, int info, List allAnnotationContexts, Annotation [] se7Annotations) {
+	AnnotationCollector collector = new AnnotationCollector(this, targetType, info, allAnnotationContexts);
+	for (int i = 0, length = se7Annotations == null ? 0 : se7Annotations.length; i < length; i++) {
+		Annotation annotation = se7Annotations[i];
+		annotation.traverse(collector, (BlockScope) null);
+	}
 	this.traverse(collector, (BlockScope) null);
 }
 /**
@@ -374,6 +404,22 @@ public void getAllAnnotationContexts(int targetType, List allAnnotationContexts)
 	this.traverse(collector, (BlockScope) null);
 }
 public Annotation[][] getAnnotationsOnDimensions() {
+	return getAnnotationsOnDimensions(false);
+}
+
+public TypeReference [][] getTypeArguments() {
+	return null;
+}
+/**
+ * @param useSourceOrder if true annotations on dimensions are returned in source order, otherwise they are returned per
+ * how they ought to be interpreted by a type system, or external persistence view. For example, given the following:
+ * int @Nullable [] f @NonNull [] ==> f is really a @NonNull array of @Nullable arrays of ints. This is the type system
+ * view since extended dimensions bind more readily than type components that precede the identifier. This is how it ought
+ * to be encoded in bindings and how it ought to be persisted in class files. However for DOM/AST construction, we need the
+ * dimensions in source order, so we provide a way for the clients to ask what they want. 
+ * 
+ */
+public Annotation[][] getAnnotationsOnDimensions(boolean useSourceOrder) {
 	return null;
 }
 
@@ -470,6 +516,12 @@ public boolean isTypeReference() {
 public boolean isWildcard() {
 	return false;
 }
+public boolean isUnionType() {
+	return false;
+}
+public boolean isVarargs() {
+	return (this.bits & ASTNode.IsVarArgs) != 0;
+}
 public boolean isParameterizedTypeReference() {
 	return false;
 }
@@ -544,54 +596,26 @@ protected void resolveAnnotations(Scope scope) {
 	if (this.annotations != null || annotationsOnDimensions != null) {
 		BlockScope resolutionScope = Scope.typeAnnotationsResolutionScope(scope);
 		if (resolutionScope != null) {
-			long[] tagBitsPerDimension = null;
 			int dimensions = this.dimensions();
-			boolean shouldAnalyzeArrayNullAnnotations = scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled && this instanceof ArrayTypeReference;
 			if (this.annotations != null) {
-				int annotationsLevels = this.annotations.length;
-				for (int i = 0; i < annotationsLevels; i++) {
-					Annotation[] currentAnnotations = this.annotations[i];
-					if (currentAnnotations != null) {
-						resolveAnnotations(resolutionScope, currentAnnotations, new Annotation.TypeUseBinding(isWildcard() ? Binding.TYPE_PARAMETER : Binding.TYPE_USE));
-						if (shouldAnalyzeArrayNullAnnotations) {
-							int len = currentAnnotations.length;
-							for (int j=0; j<len; j++) {
-								Binding recipient = currentAnnotations[j].recipient;
-								if (recipient instanceof Annotation.TypeUseBinding) {
-									if (tagBitsPerDimension == null)
-										tagBitsPerDimension = new long[dimensions+1]; // each dimension plus leaf component type at last position
-									// @NonNull Foo [][][] means the leaf component type is @NonNull:
-									tagBitsPerDimension[dimensions] = ((Annotation.TypeUseBinding)recipient).tagBits & TagBits.AnnotationNullMASK;
-								}
-							}
-						}
-					}
-				}
+				TypeBinding leafComponentType = this.resolvedType.leafComponentType();
+				leafComponentType = resolveAnnotations(resolutionScope, this.annotations, leafComponentType);
+				this.resolvedType = dimensions > 0 ? scope.environment().createArrayType(leafComponentType, dimensions) : leafComponentType;
+				// contradictory null annotations on the type are already detected in Annotation.resolveType() (SE7 treatment)
 			}
-
 			if (annotationsOnDimensions != null) {
-				for (int i = 0, length = annotationsOnDimensions.length; i < length; i++) {
-					Annotation [] dimensionAnnotations = annotationsOnDimensions[i];
-					if (dimensionAnnotations  != null) {
-						resolveAnnotations(resolutionScope, dimensionAnnotations, new Annotation.TypeUseBinding(Binding.TYPE_USE));
-						if (shouldAnalyzeArrayNullAnnotations) {
-							int len = dimensionAnnotations.length;
-							for (int j=0; j<len; j++) {
-								Binding recipient = dimensionAnnotations[j].recipient;
-								if (recipient instanceof Annotation.TypeUseBinding) {
-									if (tagBitsPerDimension == null)
-										tagBitsPerDimension = new long[dimensions+1];
-									tagBitsPerDimension[i] = ((Annotation.TypeUseBinding)recipient).tagBits & TagBits.AnnotationNullMASK;
-								}
+				this.resolvedType = resolveAnnotations(resolutionScope, annotationsOnDimensions, this.resolvedType);
+				if (this.resolvedType instanceof ArrayBinding) {
+					long[] nullTagBitsPerDimension = ((ArrayBinding)this.resolvedType).nullTagBitsPerDimension;
+					if (nullTagBitsPerDimension != null) {
+						for (int i = 0; i < dimensions; i++) { // skip last annotations at [dimensions] (concerns the leaf type)
+							if ((nullTagBitsPerDimension[i] & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK) {
+								scope.problemReporter().contradictoryNullAnnotations(annotationsOnDimensions[i]);
+								nullTagBitsPerDimension[i] = 0;
 							}
 						}
 					}
 				}
-			}
-			if (tagBitsPerDimension != null && this.resolvedType.isValidBinding()) {
-				// TODO(stephan): wouldn't it be more efficient to store the array bindings inside the type binding rather than the environment?
-				// cf. LocalTypeBinding.createArrayType()
-				this.resolvedType = scope.environment().createArrayType(this.resolvedType.leafComponentType(), dimensions, tagBitsPerDimension);
 			}
 		}
 	}
@@ -599,36 +623,48 @@ protected void resolveAnnotations(Scope scope) {
 public int getAnnotatableLevels() {
 	return 1;
 }
-// If typeArgumentAnnotations contain any that are evaluated by the compiler
-// create/retrieve a parameterized type binding
-// capturing the effect of these annotations into the resolved type binding.
-protected TypeBinding captureTypeAnnotations(Scope scope, ReferenceBinding enclosingType, TypeBinding argType, Annotation[] typeArgumentAnnotations) {
-	if (!scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled
-			|| typeArgumentAnnotations == null 
-			|| !(argType instanceof ReferenceBinding))
+/** Check all typeArguments against null constraints on their corresponding type variables. */
+protected void checkNullConstraints(Scope scope, TypeReference[] typeArguments) {
+	CompilerOptions compilerOptions = scope.compilerOptions();
+	if (compilerOptions.isAnnotationBasedNullAnalysisEnabled
+			&& compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8
+			&& typeArguments != null)
 	{
-		return argType;
+		TypeVariableBinding[] typeVariables = this.resolvedType.original().typeVariables();
+		for (int i = 0; i < typeArguments.length; i++) {
+			TypeReference arg = typeArguments[i];
+			if (arg.resolvedType != null && arg.resolvedType.hasNullTypeAnnotations())
+				arg.checkNullConstraints(scope, typeVariables, i);
+		}
 	}
-    int annotLen = typeArgumentAnnotations.length;
-    long annotationBits = 0L;
-    for (int i = 0; i < annotLen; i++) {
-		if (typeArgumentAnnotations[i] instanceof MarkerAnnotation) {
-			AnnotationBinding compilerAnnotation = ((MarkerAnnotation)typeArgumentAnnotations[i]).getCompilerAnnotation();
-			if (compilerAnnotation != null) {
-				switch (compilerAnnotation.getAnnotationType().id) {
-					case TypeIds.T_ConfiguredAnnotationNonNull :
-						annotationBits |= TagBits.AnnotationNonNull;
-						break;
-					case TypeIds.T_ConfiguredAnnotationNullable :
-						annotationBits |= TagBits.AnnotationNullable;
-						break;
-					default: // no other annotations are currently handled
-				}
+}
+/** Check whether this type reference conforms to all null constraints defined for any of the given type variables. */
+protected void checkNullConstraints(Scope scope, TypeBinding[] variables, int rank) {
+	if (variables != null && variables.length > rank) {
+		if (variables[rank].hasNullTypeAnnotations()) {
+			if (NullAnnotationMatching.validNullTagBits(this.resolvedType.tagBits) != NullAnnotationMatching.validNullTagBits(variables[rank].tagBits)) {
+				scope.problemReporter().nullityMismatchTypeArgument(variables[rank], this.resolvedType, this);
+			}
+    	}
+	}
+}
+/** Retrieve the null annotation that has been translated to the given nullTagBits. */
+public Annotation findAnnotation(long nullTagBits) {
+	if (this.annotations != null) {
+		Annotation[] innerAnnotations = this.annotations[this.annotations.length-1];
+		if (innerAnnotations != null) {
+			int annId = nullTagBits == TagBits.AnnotationNonNull ? TypeIds.T_ConfiguredAnnotationNonNull : TypeIds.T_ConfiguredAnnotationNullable;
+			for (int i = 0; i < innerAnnotations.length; i++) {
+				if (innerAnnotations[i] != null 
+						&& innerAnnotations[i].resolvedType != null 
+						&& innerAnnotations[i].resolvedType.id == annId)
+					return innerAnnotations[i];
 			}
 		}
 	}
-    if (annotationBits == 0L)
-    	return argType;
-	return scope.environment().createParameterizedType((ReferenceBinding) argType, null, annotationBits, enclosingType);
+	return null;
+}
+public TypeReference[] getTypeReferences() {
+	return new TypeReference [] { this };
 }
 }

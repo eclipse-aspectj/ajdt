@@ -1,16 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contributions for
+ *								bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
+ *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
+ *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
+ *                          Bug 415543 - [1.8][compiler] Incorrect bound index in RuntimeInvisibleTypeAnnotations attribute
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -20,12 +21,14 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationCollector;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
+@SuppressWarnings("rawtypes")
 public class TypeParameter extends AbstractVariableDeclaration {
 
     public TypeVariableBinding binding;
@@ -64,9 +67,15 @@ public class TypeParameter extends AbstractVariableDeclaration {
 			case AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER :
 				collector.targetType = AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER_BOUND;
 		}
-		if (this.type != null && ((this.type.bits & ASTNode.HasTypeAnnotations) != 0)) {
-			collector.info2 = 0;
-			this.type.traverse(collector, (BlockScope) null);
+		int boundIndex = 0;
+		if (this.type != null) {
+			// boundIndex 0 is always a class
+			if (this.type.resolvedType.isInterface())
+				boundIndex = 1;
+			if ((this.type.bits & ASTNode.HasTypeAnnotations) != 0) {
+				collector.info2 = boundIndex;
+				this.type.traverse(collector, (BlockScope) null);
+			}
 		}
 		if (this.bounds != null) {
 			int boundsLength = this.bounds.length;
@@ -75,7 +84,7 @@ public class TypeParameter extends AbstractVariableDeclaration {
 				if ((bound.bits & ASTNode.HasTypeAnnotations) == 0) {
 					continue;
 				}
-				collector.info2 = i + 1;
+				collector.info2 = ++boundIndex;
 				bound.traverse(collector, (BlockScope) null);
 			}
 		}
@@ -107,7 +116,13 @@ public class TypeParameter extends AbstractVariableDeclaration {
 	public void resolveAnnotations(Scope scope) {
 		BlockScope resolutionScope = Scope.typeAnnotationsResolutionScope(scope);
 		if (resolutionScope != null) {
-			resolveAnnotations(resolutionScope, this.annotations, new Annotation.TypeUseBinding(Binding.TYPE_PARAMETER));
+			AnnotationBinding [] annotationBindings = resolveAnnotations(resolutionScope, this.annotations, this.binding, false);
+			if (annotationBindings != null && annotationBindings.length > 0) {
+				this.binding.setTypeAnnotations(annotationBindings, scope.environment().globalOptions.isAnnotationBasedNullAnalysisEnabled);
+				scope.referenceCompilationUnit().compilationResult.hasAnnotations = true;
+				if (this.binding != null && this.binding.isValidBinding())
+					this.binding.evaluateNullAnnotations(scope, this);
+			}
 		}	
 	}
 	/* (non-Javadoc)
