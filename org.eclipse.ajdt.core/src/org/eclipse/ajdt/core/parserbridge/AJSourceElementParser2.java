@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
+ * Copyright (c) 2005, 2013 IBM Corporation and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -443,8 +443,8 @@ protected void consumeMemberValuePair() {
 		requestor.acceptMethodReference(memberValuepair.name, 0, memberValuepair.sourceStart);
 	}
 }
-protected void consumeMarkerAnnotation() {
-	super.consumeMarkerAnnotation();
+protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
+	super.consumeMarkerAnnotation(isTypeAnnotation);
 	Annotation annotation = (Annotation)expressionStack[expressionPtr];
 	if (reportReferenceInfo) { // accept annotation type reference
 		this.requestor.acceptAnnotationTypeReference(annotation.type.getTypeName(), annotation.sourceStart, annotation.sourceEnd);
@@ -560,15 +560,15 @@ protected void consumeMethodInvocationSuperWithTypeArguments() {
 			(int)(messageSend.nameSourcePosition >>> 32));
 	}
 }
-protected void consumeNormalAnnotation() {
-	super.consumeNormalAnnotation();
+protected void consumeNormalAnnotation(boolean isTypeAnnotation) {
+	super.consumeNormalAnnotation(isTypeAnnotation);
 	Annotation annotation = (Annotation)expressionStack[expressionPtr];
 	if (reportReferenceInfo) { // accept annotation type reference
 		this.requestor.acceptAnnotationTypeReference(annotation.type.getTypeName(), annotation.sourceStart, annotation.sourceEnd);
 	}
 }
-protected void consumeSingleMemberAnnotation() {
-	super.consumeSingleMemberAnnotation();
+protected void consumeSingleMemberAnnotation(boolean isTypeAnnotation) {
+	super.consumeSingleMemberAnnotation(isTypeAnnotation);
 	SingleMemberAnnotation member = (SingleMemberAnnotation) expressionStack[expressionPtr];
 	if (reportReferenceInfo) {
 		requestor.acceptMethodReference(TypeConstants.VALUE, 0, member.sourceStart);

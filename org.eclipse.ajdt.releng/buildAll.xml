@@ -216,7 +216,7 @@
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<!-- the build eeclipse is 3.7 based -->
-		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.37}"/>
+		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.43}"/>
 
 		
 		<!-- Unpack eclipse -->
@@ -229,7 +229,7 @@
 		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/37/dev/update" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/43/dev/update" 
 			feature.id="org.eclipse.ajdt" />
 
 		<!-- Install Fetach factory for git repos -->
@@ -284,20 +284,32 @@
 		<!-- Install Mylyn -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/kepler" 
 			feature.id="org.eclipse.mylyn_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/kepler" 
 			feature.id="org.eclipse.mylyn.context_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/kepler" 
 			feature.id="org.eclipse.mylyn.ide_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="http://download.eclipse.org/mylyn/releases/kepler" 
 			feature.id="org.eclipse.mylyn.java_feature" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/eclipse/updates/4.3-P-builds/" 
+			feature.id="org.eclipse.jdt.a2.java8patch" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/eclipse/updates/4.3-P-builds/" 
+			feature.id="org.eclipse.jdt.java8patch" />
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/eclipse/updates/4.3-P-builds/" 
+			feature.id="org.eclipse.pde.java8patch" />
 
 	</target>
 

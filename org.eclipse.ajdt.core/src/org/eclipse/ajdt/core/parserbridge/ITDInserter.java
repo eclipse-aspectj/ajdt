@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 SpringSource and others. All rights reserved. This
+ * Copyright (c) 2008, 2013 SpringSource and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -42,6 +42,7 @@ import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.classfmt.TypeAnnotationWalker;
 import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
@@ -328,7 +329,7 @@ public class ITDInserter extends ASTVisitor {
      */
     protected TypeBinding getReturnTypeBinding(char[] typeName, TypeBinding ititBinding) {
         TypeBinding typeBinding = env.getTypeFromTypeSignature(new SignatureWrapper(typeName), 
-                new TypeVariableBinding[0], (ReferenceBinding) ititBinding, new char[0][][]);
+                new TypeVariableBinding[0], (ReferenceBinding) ititBinding, new char[0][][], TypeAnnotationWalker.EMPTY_ANNOTATION_WALKER);
             typeBinding = BinaryTypeBinding.resolveType(typeBinding, env, false);
         return typeBinding;
     }
