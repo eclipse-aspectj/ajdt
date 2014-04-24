@@ -219,7 +219,7 @@
 <!--	<target name="provision-build-eclipse" depends="init,check.provision.build,download-eclipse" description="Provisions the Eclipse that is driving the build process"> -->
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
-		<!-- the build eeclipse is 4.3 based -->
+		<!-- the build eclipse is 4.3 based -->
 		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.43}"/>
 
 		
@@ -285,23 +285,37 @@
 			<param name="theDir" value="${build.dest}/target" />
 		</antcall>
 
+
+		<!-- <property name="mylyn.update.site" location="http://download.eclipse.org/mylyn/releases/indigo"/> -->
+    	<property name="mylyn.update.site" value="http://download.eclipse.org/mylyn/releases/latest"/>
+
+		<echo message="mylyn.update.site = ${mylyn.update.site}"/>
+		
 		<!-- Install Mylyn -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="${mylyn.update.site}" 
 			feature.id="org.eclipse.mylyn_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="${mylyn.update.site}" 
 			feature.id="org.eclipse.mylyn.context_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="${mylyn.update.site}" 
 			feature.id="org.eclipse.mylyn.ide_feature" />
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
-			updatesite.url="http://download.eclipse.org/mylyn/releases/indigo" 
+			updatesite.url="${mylyn.update.site}" 
 			feature.id="org.eclipse.mylyn.java_feature" />
+		
+		<!-- install more recent jdt because ajdt requires it in target pf. M6 isn't good enough -->
+
+		<install-bundle 
+			eclipse.loc="${build.dest}/target/eclipse" 
+			updatesite.url="http://download.eclipse.org/eclipse/updates/4.4-I-builds" 
+			feature.id="org.eclipse.jdt" />
+		
 
 	</target>
 
