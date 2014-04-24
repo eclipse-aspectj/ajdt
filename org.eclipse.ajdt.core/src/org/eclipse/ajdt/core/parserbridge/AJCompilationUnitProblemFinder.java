@@ -602,7 +602,7 @@ public class AJCompilationUnitProblemFinder extends
                 }
             }
             
-            if (id == IProblem.TypeMismatch &&
+            if (id == IProblem.ReturnTypeMismatch 	 &&
                     numArgs == 2 &&
                     typeAtPositionIsArg(categorizedProblem, unit, firstArg)) {
                 if (findLastSegment(getITDTargetType(categorizedProblem, unit, isJavaFileInAJEditor)).equals(findLastSegment(secondArg))) {

@@ -684,7 +684,7 @@ public class PullOutRefactoring extends Refactoring {
             ICompilationUnit[] cus = memberMap.keySet().toArray(new ICompilationUnit[0]);
             Arrays.sort(cus, CompilationUnitComparator.the);
             for (ICompilationUnit cu : cus) {
-                ASTParser parser= ASTParser.newParser(AST.JLS3);
+                ASTParser parser= ASTParser.newParser(AST.JLS8);
                 parser.setSource(cu);
                 parser.setResolveBindings(true);
                 ASTNode cuNode = parser.createAST(pm);
@@ -962,7 +962,7 @@ public class PullOutRefactoring extends Refactoring {
             for (ICompilationUnit cu : memberMap.keySet()) {
                 
                 // Prepare an ASTRewriter for this compilation unit
-                ASTParser parser= ASTParser.newParser(AST.JLS3);
+                ASTParser parser= ASTParser.newParser(AST.JLS8);
                 parser.setSource(cu);
                 ASTNode cuNode = parser.createAST(pm);
                 MultiTextEdit cuEdits = new MultiTextEdit();

@@ -133,7 +133,7 @@ public class ITDRenameRefactoringProvider implements IRefactoringProvider {
                 AspectsConvertingParser acp = new AspectsConvertingParser(contents);
                 acp.convert(ConversionOptions.CONSTANT_SIZE);
                 AJCompilationUnit clone = ajUnit.ajCloneCachingContents(acp.content);
-                ASTParser parser = ASTParser.newParser(AST.JLS3);
+                ASTParser parser = ASTParser.newParser(AST.JLS8);
                 parser.setBindingsRecovery(true);
                 parser.setResolveBindings(true);
                 parser.setSource(clone);

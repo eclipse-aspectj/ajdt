@@ -162,7 +162,7 @@ public class PushInRefactoring extends Refactoring {
         void computeImports(List<IMember> itds, ICompilationUnit ajUnit, IProgressMonitor monitor)
                 throws JavaModelException {
             IJavaProject project = ajUnit.getJavaProject();
-            ASTParser parser = ASTParser.newParser(AST.JLS3);
+            ASTParser parser = ASTParser.newParser(AST.JLS8);
             parser.setProject(project);
             parser.setResolveBindings(true);
             parser.setSource(ajUnit);
@@ -465,7 +465,7 @@ public class PushInRefactoring extends Refactoring {
                 final Set<IJavaProject> set= projects.keySet();
                 subMonitor.beginTask("Compiling source...", set.size());
                 for (IJavaProject project : projects.keySet()) {
-                    ASTParser parser= ASTParser.newParser(AST.JLS3);
+                    ASTParser parser= ASTParser.newParser(AST.JLS8);
                     parser.setProject(project);
                     parser.setResolveBindings(true);
                     Collection<ICompilationUnit> collection= projects.get(project);

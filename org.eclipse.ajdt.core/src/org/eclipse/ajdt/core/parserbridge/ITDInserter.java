@@ -42,6 +42,7 @@ import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.classfmt.TypeAnnotationWalker;
 import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
@@ -328,7 +329,7 @@ public class ITDInserter extends ASTVisitor {
      */
     protected TypeBinding getReturnTypeBinding(char[] typeName, TypeBinding ititBinding) {
         TypeBinding typeBinding = env.getTypeFromTypeSignature(new SignatureWrapper(typeName), 
-                new TypeVariableBinding[0], (ReferenceBinding) ititBinding, new char[0][][]);
+                new TypeVariableBinding[0], (ReferenceBinding) ititBinding, new char[0][][],TypeAnnotationWalker.EMPTY_ANNOTATION_WALKER);
             typeBinding = BinaryTypeBinding.resolveType(typeBinding, env, false);
         return typeBinding;
     }

@@ -254,7 +254,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
             throw new CoreException(Status.CANCEL_STATUS);
         }
         IDocument document = documentProvider.getDocument(editorInput);
-        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
         parser.setSource(document.get().toCharArray());
         return (CompilationUnit) parser.createAST(null);
     }

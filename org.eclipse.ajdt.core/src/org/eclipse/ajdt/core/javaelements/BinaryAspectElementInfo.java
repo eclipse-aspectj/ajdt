@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009 SpringSource and others.
+ * Copyright (c) 2009, 2014 SpringSource and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
 import org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
@@ -134,4 +135,9 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
     public char[] getEnclosingMethod() {
         return null;
     }
+    
+    public IBinaryTypeAnnotation[] getTypeAnnotations() {
+       return null;
+    }
+
 }

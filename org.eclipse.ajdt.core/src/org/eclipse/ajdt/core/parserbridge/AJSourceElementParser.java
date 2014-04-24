@@ -881,7 +881,7 @@ public TypeReference getTypeReference(int dim) {
 	 */
 	int length = identifierLengthStack[identifierLengthPtr--];
 	if (length < 0) { //flag for precompiled type reference on base types
-		TypeReference ref = TypeReference.baseTypeReference(-length, dim,null);
+		TypeReference ref = TypeReference.baseTypeReference(-length, dim);
 		ref.sourceStart = intStack[intPtr--];
 		if (dim == 0) {
 			ref.sourceEnd = intStack[intPtr--];
