@@ -14,6 +14,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.eclipse.ajdt.core.tests.testutils.ManagedTestSuite;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
 import org.eclipse.contribution.jdt.JDTWeavingPlugin;
@@ -49,7 +50,7 @@ public class AllUITests {
             TestCase.fail("Could not start jdt weaving bundle because of: " + e.getMessage());
         }
         
-		TestSuite suite = new TestSuite(AllUITests.class.getName());
+		ManagedTestSuite suite = new ManagedTestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
 		// AJDT tests

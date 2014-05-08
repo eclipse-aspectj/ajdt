@@ -1624,7 +1624,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				return status;
 			}
 			String typeDeclaration= "class " + typeNameWithParameters + " {}"; //$NON-NLS-1$//$NON-NLS-2$
-			ASTParser parser= ASTParser.newParser(AST.JLS3);
+			ASTParser parser= ASTParser.newParser(AST.JLS8);
 			parser.setSource(typeDeclaration.toCharArray());
 			parser.setProject(project);
 			CompilationUnit compilationUnit= (CompilationUnit) parser.createAST(null);
@@ -2082,7 +2082,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	}	
 	
 	private CompilationUnit createASTForImports(ICompilationUnit cu) {
-		ASTParser parser= ASTParser.newParser(AST.JLS3);
+		ASTParser parser= ASTParser.newParser(AST.JLS8);
 		parser.setSource(cu);
 		parser.setResolveBindings(false);
 		parser.setFocalPosition(0);
@@ -2100,7 +2100,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	}
 
 	private void removeUnusedImports(ICompilationUnit cu, Set existingImports, boolean needsSave) throws CoreException {
-		ASTParser parser= ASTParser.newParser(AST.JLS3);
+		ASTParser parser= ASTParser.newParser(AST.JLS8);
 		parser.setSource(cu);
 		parser.setResolveBindings(true);
 		
@@ -2164,7 +2164,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		IPackageFragment pack= (IPackageFragment) cu.getParent();
 		String content= CodeGeneration.getCompilationUnitContent(cu, fileComment, typeComment, typeContent, lineDelimiter);
 		if (content != null) {
-			ASTParser parser= ASTParser.newParser(AST.JLS3);
+			ASTParser parser= ASTParser.newParser(AST.JLS8);
 			parser.setProject(cu.getJavaProject());
 			parser.setSource(content.toCharArray());
 			CompilationUnit unit= (CompilationUnit) parser.createAST(null);
@@ -2481,7 +2481,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		ArrayList newMethods= new ArrayList();
 		CodeGenerationSettings settings= JavaPreferencesSettings.getCodeGenerationSettings(type.getJavaProject());
 		settings.createComments= isAddComments();
-		ASTParser parser= ASTParser.newParser(AST.JLS3);
+		ASTParser parser= ASTParser.newParser(AST.JLS8);
 		parser.setResolveBindings(true);
 		parser.setSource(cu);
 		CompilationUnit unit= (CompilationUnit) parser.createAST(new SubProgressMonitor(monitor, 1));

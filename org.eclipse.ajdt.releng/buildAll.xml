@@ -73,7 +73,7 @@
 			<arg value="org.eclipse.ant.core.antRunner" />
 			<arg value="-data" />
 			<arg value="${build.dest}/target/build-workspace" />
-			<!--<arg value="-verbose" />-->
+			<!-- <arg value="-verbose" /> -->
 			<arg value="-DfetchCacheLocation=${fetchCacheLocation}" />
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
 			<arg value="-DallowBinaryCycles=true"/>
@@ -105,6 +105,7 @@
 	</target>
 	
 	<target name="find.pdebuild.home">
+		<echo message="build.eclipse=${build.eclipse}"/>
 		<files includes="${build.eclipse}/plugins/org.eclipse.pde.build_*/scripts" id="pdebuild.folder" />
 		<property name="pdebuild.home" value="${toString:pdebuild.folder}" />
 		<echo message="pdebuild.home=${pdebuild.home}" />
@@ -212,7 +213,9 @@
 
 	
 	<target name="check.provision.build" description="Check to see if the build eclipse has already been provisioned">
+		<echo message="build.eclipse=${build.eclipse}"/>
 		<available file="${build.eclipse}/.provisioned" property="provision.build.completed"/>
+		<echo message="provision.build.completed=${provision.build.completed}"/>
 	</target>
 	
 	<!-- for now, only tar files are supported -->
@@ -220,8 +223,11 @@
 	<target name="provision-build-eclipse" depends="init,init-classpaths,check.provision.build" unless="provision.build.completed" description="Provisions the Eclipse that is driving the build process">
 		<!-- set the build eclipse archive if it doesn't already exist -->
 		<!-- the build eclipse is 4.3 based -->
-		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.43}"/>
-
+		
+		<echo message="Provision BUILD eclipse"/>
+		
+		<property name="build.eclipse.tar" value="${download.home}/${target.eclipse.tar.44}"/>
+		<echo message="build.eclipse.tar=${build.eclipse.tar}"/>
 		
 		<!-- Unpack eclipse -->
 		<mkdir dir="${build.dest}"/>
@@ -233,7 +239,7 @@
 		<!-- Install AJDT -->
 		<install-bundle 
 			eclipse.loc="${build.dest}/eclipse" 
-			updatesite.url="http://download.eclipse.org/tools/ajdt/43/dev/update" 
+			updatesite.url="http://download.eclipse.org/tools/ajdt/44/dev/update" 
 			feature.id="org.eclipse.ajdt" />
 
 		<!-- Install Fetach factory for git repos -->
@@ -308,16 +314,32 @@
 			eclipse.loc="${build.dest}/target/eclipse" 
 			updatesite.url="${mylyn.update.site}" 
 			feature.id="org.eclipse.mylyn.java_feature" />
-		
-		<!-- install more recent jdt because ajdt requires it in target pf. M6 isn't good enough -->
 
+		<!-- The osg.jar in 4.4.M7 contains entries that 4.3 builder gets confused by and only 4.4.M7 PDE build handles properly
+		     See http://git.eclipse.org/c/pde/eclipse.pde.build.git/diff/org.eclipse.pde.build/src/org/eclipse/pde/internal?id=3ed6008e0d23de975203cd313e3d04ca9f23c69b
+		     
+		     We avoid the problem by replacing the profiles index file in the osgi jar.
+		     Yes, dirty hack. But what else can we do?
+		     
+		     Once we can build 4.4 with 4.4
+		     
+		<property name="target.osgi.jar" value="${build.dest}/target/eclipse/plugins/org.eclipse.osgi_3.10.0.v20140428-1446.jar"/>
+		<jar destfile="${target.osgi.jar}" update="true">
+			<fileset dir="${builder}/provisioning_support/osgi-3.10-patching">
+				<include name="profile.list"/>
+			</fileset>
+		</jar>
+		     -->
+		
+		<!-- install more recent jdt because ajdt requires it in target pf. M6 isn't good enough 
+          Now that M7 is out this shouldn't be needed anymore.
 		<install-bundle 
 			eclipse.loc="${build.dest}/target/eclipse" 
 			updatesite.url="http://download.eclipse.org/eclipse/updates/4.4-I-builds" 
 			feature.id="org.eclipse.jdt" />
-		
-
+		 -->
 	</target>
+	
 
 	<!-- Provisions the target Eclipse so that it can run the tests.  Does so by installing all of the test plugins. -->
 	<target name="provision-test-eclipse" depends="init">
@@ -483,8 +505,9 @@
 	<!-- Disable optimizeUpdateSite -->
 	<target name="build" depends="init,provision-build-eclipse,provision-target-eclipse,pdebuild,generateP2metadata,signUpdateSite,zip-archive" /> 
 
-	<target name="tests"
-		depends="init,provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
+	<target name="tests" depends="init,provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
 
 	<target name="run" depends="init,clean,build,tests" />
+	<target name="skiptest" depends="init,clean,build" />
+	
 </project>

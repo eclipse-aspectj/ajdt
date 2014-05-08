@@ -199,7 +199,7 @@ public class AJOrganizeImportsTests extends UITestCase {
     }
     private void checkOrganizeImports(String cuName, String packageName, String original, String expected) throws Exception {
         ICompilationUnit unit = createCompilationUnitAndPackage(packageName, cuName, original, javaProject);
-        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
         parser.setSource(unit);
         CompilationUnit astRoot= (CompilationUnit) parser.createAST(null); 
         String actual = performOrganizeImports(unit, astRoot);

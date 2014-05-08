@@ -29,6 +29,7 @@ import org.aspectj.weaver.ShadowMunger;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.TestMode;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJProjectModelFactory;
@@ -517,6 +518,13 @@ public class AJDTUtils {
             }
         }// end if we got a reference to the manifest editor
         else {
+        	if (TestMode.isTesting) {
+        		//Don't popup error dialogs in test execution. It will hang the test.
+        		throw new Error(
+        				UIMessages.AutoPluginImportDialog_noEditor_title + "\n" +
+                        UIMessages.AutoPluginImportDialog_noEditor_message
+                );
+        	}
             MessageDialog
                     .openError(
                             AspectJUIPlugin.getDefault().getWorkbench()

@@ -2,11 +2,11 @@
 plugin@com.sun.syndication,0.9.0=GET,http://download.eclipse.org/tools/orbit/downloads/drops/R20090529135407/bundles/com.sun.syndication_0.9.0.v200803061811.jar
 
 !!*** EQUINOX ASPECTS ******
-plugin@org.eclipse.equinox.weaving.aspectj=GIT,tag=I20131224-0800,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.aspectj
-plugin@org.eclipse.equinox.weaving.caching=GIT,tag=I20131224-0800,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.caching
-plugin@org.eclipse.equinox.weaving.caching.j9=GIT,tag=I20131224-0800,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.caching.j9
-fragment@org.eclipse.equinox.weaving.hook=GIT,tag=I20131224-0800,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.hook
-feature@org.eclipse.equinox.weaving.sdk=GIT,tag=I20131224-0800,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=features/org.eclipse.equinox.weaving.sdk
+plugin@org.eclipse.equinox.weaving.aspectj=GIT,tag=I20140501-0200,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.aspectj
+plugin@org.eclipse.equinox.weaving.caching=GIT,tag=I20140501-0200,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.caching
+plugin@org.eclipse.equinox.weaving.caching.j9=GIT,tag=I20140501-0200,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.caching.j9
+fragment@org.eclipse.equinox.weaving.hook=GIT,tag=I20140501-0200,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=bundles/org.eclipse.equinox.weaving.hook
+feature@org.eclipse.equinox.weaving.sdk=GIT,tag=I20140501-0200,repo=http://git.eclipse.org/gitroot/equinox/rt.equinox.bundles.git,path=features/org.eclipse.equinox.weaving.sdk
 
 !!*** OTHER DEPENDENCIES ******
 feature@org.eclipse.license=GIT,tag=v20130124-013030,repo=http://git.eclipse.org/gitroot/platform/eclipse.platform.releng.git,path=features/org.eclipse.license
