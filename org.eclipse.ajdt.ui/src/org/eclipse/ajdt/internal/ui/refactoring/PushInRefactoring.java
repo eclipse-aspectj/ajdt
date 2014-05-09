@@ -619,7 +619,7 @@ public class PushInRefactoring extends Refactoring {
 
     private Type createTypeAST(String newSuper, AST ast) {
         String toParse = newSuper + " t;";
-        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
         parser.setSource((toParse).toCharArray());
         parser.setKind(ASTParser.K_CLASS_BODY_DECLARATIONS);
         ASTNode astNode = parser.createAST(null);

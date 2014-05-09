@@ -126,7 +126,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
         String converted = new String(conv.content);
         
         // now convert using a regular Java parser:
-        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        ASTParser parser = ASTParser.newParser(AST.JLS8);
         parser.setSource(converted.toCharArray());
         CompilationUnit result = (CompilationUnit) parser.createAST(null);
         if (result.getProblems().length > 0) {

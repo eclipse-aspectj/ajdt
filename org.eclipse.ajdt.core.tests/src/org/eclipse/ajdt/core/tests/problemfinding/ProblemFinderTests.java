@@ -154,7 +154,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
     
     public void testReconciler() throws Exception {
         otherClassCU.becomeWorkingCopy(new MockProblemRequestor(), null);
-        otherClassCU.reconcile(AST.JLS3, true, true, null, null);
+        otherClassCU.reconcile(AST.JLS8, true, true, null, null);
         MockProblemRequestor requestor = (MockProblemRequestor) otherClassCU.getPerWorkingCopyInfo().getProblemRequestor();
         assertEquals("Problem requestor should have found no problems: " + requestor.problemString(), 0, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
     }
@@ -166,7 +166,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
             otherClassCU.getBuffer().setContents(contents + "gggg"); //$NON-NLS-1$
             joinBackgroudActivities();
             
-            otherClassCU.reconcile(AST.JLS3, true, true, null, null);
+            otherClassCU.reconcile(AST.JLS8, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) otherClassCU.getPerWorkingCopyInfo().getProblemRequestor();
             assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
         } finally {
@@ -185,7 +185,7 @@ public class ProblemFinderTests extends AJDTCoreTestCase {
             demoCU.getBuffer().setContents(s);
             joinBackgroudActivities();
             
-            demoCU.reconcile(AST.JLS3, true, true, null, null);
+            demoCU.reconcile(AST.JLS8, true, true, null, null);
             MockProblemRequestor requestor = (MockProblemRequestor) demoCU.getPerWorkingCopyInfo().getProblemRequestor();
             assertEquals("Problem requestor should have found one problem: " + requestor.problemString(), 1, MockProblemRequestor.filterProblems(requestor.problems).size()); //$NON-NLS-1$
         } finally {
