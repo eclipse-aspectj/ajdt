@@ -54,7 +54,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 		Map compilerOptions = JavaCore.create(project).getOptions(true);
 
 		Document doc = new Document("import java.util.List;\nclass X {}\n"); //$NON-NLS-1$
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(doc.get().toCharArray());
 		parser.setCompilerOptions(compilerOptions);
 		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
@@ -612,7 +612,7 @@ public class ASTRewritingPointcutDeclTest extends AJDTCoreTestCase {
 						+ "    public abstract void kee(int p1, int p2, int p3) throws IllegalArgumentException, IllegalAccessException, SecurityException;\n" //$NON-NLS-1$
 						+ "    public abstract void lee(int p1, int p2, int p3) throws IllegalArgumentException, IllegalAccessException, SecurityException;\n" //$NON-NLS-1$
 						+ "}\n"); //$NON-NLS-1$
-		ASTParser parser = ASTParser.newParser(AST.JLS8); 
+		ASTParser parser = ASTParser.newParser(AST.JLS3); 
 		parser.setSource(doc.get().toCharArray());
 		parser.setCompilerOptions(compilerOptions);
 		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
