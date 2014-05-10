@@ -330,7 +330,7 @@ public class ExtraITDFinder implements IExtraMatchFinder<SearchPattern> {
     }
 
     private CompilationUnit getDom(AJCompilationUnit unit) throws JavaModelException {
-        ASTParser parser = ASTParser.newParser(AST.JLS8);
+        ASTParser parser = ASTParser.newParser(AST.JLS3);
         unit.requestOriginalContentMode();
         parser.setSource(unit.getContents());
         parser.setCompilerOptions(unit.getJavaProject().getOptions(true));

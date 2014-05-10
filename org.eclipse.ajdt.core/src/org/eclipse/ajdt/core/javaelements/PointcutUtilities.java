@@ -316,7 +316,7 @@ public class PointcutUtilities {
      * @return the ASTNode specified by the fieldInfo, or null if something's wrong
      */
     public static BodyDeclaration createSingleBodyDeclarationNode(int declarationStart, int sourceEnd, char[] contents) {
-        ASTParser ajParser = ASTParser.newParser(AST.JLS8);
+        ASTParser ajParser = ASTParser.newParser(AST.JLS3);
         if (contents.length < sourceEnd+1) {
             // something's wrong here...don't continue indexing the declare
             return null;
