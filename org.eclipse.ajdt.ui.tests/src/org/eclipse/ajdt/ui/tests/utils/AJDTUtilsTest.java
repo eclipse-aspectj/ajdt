@@ -261,29 +261,31 @@ public class AJDTUtilsTest extends UITestCase {
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY)); //$NON-NLS-1$
 	}
 
-	/**
-	 * This tests whether you get back the manifest editor for the project you
-	 * require.
-	 * 
-	 */
-	public void testGetPDEManifestEditor() throws Exception {
-		setUpPluginEnvironment();
-		// know that the plugin id of this is HelloWorld
-		IProject projectA1 = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
-		waitForJobsToComplete();
-		
-		// know that the plugin id for this is PluginWithView
-		IProject projectA2 = createPredefinedProject("PluginWithView"); //$NON-NLS-1$
-		waitForJobsToComplete();
-
-		assertTrue("projectA1 should have manifest editor for project A1", //$NON-NLS-1$
-				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
-						.getPartName().equals("HelloWorld")); //$NON-NLS-1$
-		assertTrue("projectA2 should have manifest editor for project A2", //$NON-NLS-1$
-				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
-						.getPartName().equals("PluginWithView")); //$NON-NLS-1$
-		resetPluginEnvironment();
-	}
+//This test disabled because it fails because Eclipse 4.4 no longer supports 'pre-OSGI' plugins.
+// See https://wiki.eclipse.org/Equinox/Luna_Framework (Removal of Old Style Plugin Support)
+//	/**
+//	 * This tests whether you get back the manifest editor for the project you
+//	 * require.
+//	 * 
+//	 */
+//	public void testGetPDEManifestEditor() throws Exception {
+//		setUpPluginEnvironment();
+//		// know that the plugin id of this is HelloWorld
+//		IProject projectA1 = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
+//		waitForJobsToComplete();
+//		
+//		// know that the plugin id for this is PluginWithView
+//		IProject projectA2 = createPredefinedProject("PluginWithView"); //$NON-NLS-1$
+//		waitForJobsToComplete();
+//
+//		assertTrue("projectA1 should have manifest editor for project A1", //$NON-NLS-1$
+//				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
+//						.getPartName().equals("HelloWorld")); //$NON-NLS-1$
+//		assertTrue("projectA2 should have manifest editor for project A2", //$NON-NLS-1$
+//				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
+//						.getPartName().equals("PluginWithView")); //$NON-NLS-1$
+//		resetPluginEnvironment();
+//	}
 
 	// Do not delete this test - if we ever change the way we deal with 
 	// project dependencies, then need this test
