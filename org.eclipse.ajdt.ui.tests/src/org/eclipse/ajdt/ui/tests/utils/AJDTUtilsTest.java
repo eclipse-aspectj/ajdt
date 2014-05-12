@@ -63,55 +63,57 @@ public class AJDTUtilsTest extends UITestCase {
 		super.tearDown();
 	}
 
-	/**
-	 * Occasional failures on build server try rerunning the test
-	 */
-	public void testAddAndRemoveAspectJNatureWithPluginProject()
-			throws Exception {
-	    Runnable run = new Runnable() {
-            public void run() {
-                setUpPluginEnvironment();
-                try {
-                    IProject testPluginProject = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
-                    waitForJobsToComplete();
-                    assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
-                            AspectJPlugin.isAJProject(testPluginProject.getProject()));
-                    assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
-                            hasDependencyOnAJDE(testPluginProject));
-                    AspectJUIPlugin.convertToAspectJProject(testPluginProject.getProject());
-                    waitForJobsToComplete();
-                    assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
-                            AspectJPlugin.isAJProject(testPluginProject.getProject()));
-                    assertTrue("Plugin should now import AJDE plugin", //$NON-NLS-1$
-                            hasDependencyOnAJDE(testPluginProject));
-                    AspectJUIPlugin.convertFromAspectJProject(testPluginProject.getProject());
-                    waitForJobsToComplete();
-                    assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
-                            hasDependencyOnAJDE(testPluginProject));
-                    assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
-                            AspectJPlugin.isAJProject(testPluginProject.getProject()));
-                } catch (CoreException e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    resetPluginEnvironment();
-                }
-            }
-        };
-        
-        int numTries = 0;
-        while (true) {
-            try {
-                run.run();
-                break;
-            } catch (AssertionFailedError e) {
-                if (numTries >= 4) {
-                    throw e;
-                }
-                numTries++;
-                System.out.println("Failed...trying again.");
-            }
-        }
-	}
+//This test disabled because it fails because Eclipse 4.4 no longer supports 'pre-OSGI' plugins.
+// See https://wiki.eclipse.org/Equinox/Luna_Framework (Removal of Old Style Plugin Support)
+//	/**
+//	 * Occasional failures on build server try rerunning the test
+//	 */
+//	public void testAddAndRemoveAspectJNatureWithPluginProject()
+//			throws Exception {
+//	    Runnable run = new Runnable() {
+//            public void run() {
+//                setUpPluginEnvironment();
+//                try {
+//                    IProject testPluginProject = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
+//                    waitForJobsToComplete();
+//                    assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
+//                            AspectJPlugin.isAJProject(testPluginProject.getProject()));
+//                    assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
+//                            hasDependencyOnAJDE(testPluginProject));
+//                    AspectJUIPlugin.convertToAspectJProject(testPluginProject.getProject());
+//                    waitForJobsToComplete();
+//                    assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
+//                            AspectJPlugin.isAJProject(testPluginProject.getProject()));
+//                    assertTrue("Plugin should now import AJDE plugin", //$NON-NLS-1$
+//                            hasDependencyOnAJDE(testPluginProject));
+//                    AspectJUIPlugin.convertFromAspectJProject(testPluginProject.getProject());
+//                    waitForJobsToComplete();
+//                    assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
+//                            hasDependencyOnAJDE(testPluginProject));
+//                    assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
+//                            AspectJPlugin.isAJProject(testPluginProject.getProject()));
+//                } catch (CoreException e) {
+//                    throw new RuntimeException(e);
+//                } finally {
+//                    resetPluginEnvironment();
+//                }
+//            }
+//        };
+//        
+//        int numTries = 0;
+//        while (true) {
+//            try {
+//                run.run();
+//                break;
+//            } catch (AssertionFailedError e) {
+//                if (numTries >= 4) {
+//                    throw e;
+//                }
+//                numTries++;
+//                System.out.println("Failed...trying again.");
+//            }
+//        }
+//	}
 
 	// bug 137922: test with a bundle project with has no plugin.xml
 	public void testAddAndRemoveAspectJNatureWithBundleProject()
