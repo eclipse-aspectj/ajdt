@@ -20,6 +20,7 @@
  *                          Bug 415399 - [1.8][compiler] Type annotations on constructor results dropped by the code generator
  *                          Bug 415470 - [1.8][compiler] Type annotations on class declaration go vanishing
  *                          Bug 405104 - [1.8][compiler][codegen] Implement support for serializeable lambdas
+ *                          Bug 434556 - Broken class file generated for incorrect annotation usage
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler;
 
@@ -2097,6 +2098,15 @@ public class ClassFile implements TypeConstants, TypeIds {
 				startLineIndexes);
 	}
 
+	private void completeArgumentAnnotationInfo(Argument[] arguments, List allAnnotationContexts) {
+		for (int i = 0, max = arguments.length; i < max; i++) {
+			Argument argument = arguments[i];
+			if ((argument.bits & ASTNode.HasTypeAnnotations) != 0) {
+				argument.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_FORMAL_PARAMETER, i, allAnnotationContexts);
+			}
+		}
+	}
+
 	/**
 	 * INTERNAL USE-ONLY
 	 * Complete the creation of a method info by setting up the number of attributes at the right offset.
@@ -2118,12 +2128,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 				if ((methodDeclaration.bits & ASTNode.HasTypeAnnotations) != 0) {
 					Argument[] arguments = methodDeclaration.arguments;
 					if (arguments != null) {
-						for (int i = 0, max = arguments.length; i < max; i++) {
-							Argument argument = arguments[i];
-							if ((argument.bits & ASTNode.HasTypeAnnotations) != 0) {
-								argument.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_FORMAL_PARAMETER, i, allTypeAnnotationContexts);
-							}
-						}
+						completeArgumentAnnotationInfo(arguments, allTypeAnnotationContexts);
 					}
 					Receiver receiver = methodDeclaration.receiver;
 					if (receiver != null && (receiver.type.bits & ASTNode.HasTypeAnnotations) != 0) {
@@ -2156,6 +2161,12 @@ public class ClassFile implements TypeConstants, TypeIds {
 							typeParameter.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_TYPE_PARAMETER, i, allTypeAnnotationContexts);
 						}
 					}
+				}
+			} else if (binding.sourceLambda() != null) { // SyntheticMethodBinding, purpose : LambdaMethod.
+				LambdaExpression lambda = binding.sourceLambda();
+				if ((lambda.bits & ASTNode.HasTypeAnnotations) != 0) {
+					if (lambda.arguments != null)
+						completeArgumentAnnotationInfo(lambda.arguments, allTypeAnnotationContexts);
 				}
 			}
 			int size = allTypeAnnotationContexts.size();
@@ -2333,9 +2344,11 @@ public class ClassFile implements TypeConstants, TypeIds {
 			NormalAnnotation normalAnnotation = (NormalAnnotation) annotation;
 			MemberValuePair[] memberValuePairs = normalAnnotation.memberValuePairs;
 			if (memberValuePairs != null) {
+				int memberValuePairsCount = 0;
+				int memberValuePairsLengthPosition = this.contentsOffset;
+				this.contentsOffset+=2; // leave space to fill in the pair count later
+				int resetPosition = this.contentsOffset;
 				final int memberValuePairsLength = memberValuePairs.length;
-				this.contents[this.contentsOffset++] = (byte) (memberValuePairsLength >> 8);
-				this.contents[this.contentsOffset++] = (byte) memberValuePairsLength;
 				for (int i = 0; i < memberValuePairsLength; i++) {
 					MemberValuePair memberValuePair = memberValuePairs[i];
 					if (this.contentsOffset + 2 >= this.contents.length) {
@@ -2346,17 +2359,21 @@ public class ClassFile implements TypeConstants, TypeIds {
 					this.contents[this.contentsOffset++] = (byte) elementNameIndex;
 					MethodBinding methodBinding = memberValuePair.binding;
 					if (methodBinding == null) {
-						this.contentsOffset = startingContentsOffset;
+						this.contentsOffset = resetPosition;
 					} else {
 						try {
 							generateElementValue(memberValuePair.value, methodBinding.returnType, startingContentsOffset);
+							memberValuePairsCount++;
+							resetPosition = this.contentsOffset;
 						} catch(ClassCastException e) {
-							this.contentsOffset = startingContentsOffset;
+							this.contentsOffset = resetPosition;
 						} catch(ShouldNotImplement e) {
-							this.contentsOffset = startingContentsOffset;
+							this.contentsOffset = resetPosition;
 						}
 					}
 				}
+				this.contents[memberValuePairsLengthPosition++] = (byte) (memberValuePairsCount >> 8);
+				this.contents[memberValuePairsLengthPosition++] = (byte) memberValuePairsCount;
 			} else {
 				this.contents[this.contentsOffset++] = 0;
 				this.contents[this.contentsOffset++] = 0;
@@ -2376,8 +2393,14 @@ public class ClassFile implements TypeConstants, TypeIds {
 			if (methodBinding == null) {
 				this.contentsOffset = startingContentsOffset;
 			} else {
+				int memberValuePairOffset = this.contentsOffset;
 				try {
-					generateElementValue(singleMemberAnnotation.memberValue, methodBinding.returnType, startingContentsOffset);
+					generateElementValue(singleMemberAnnotation.memberValue, methodBinding.returnType, memberValuePairOffset);
+					if (this.contentsOffset == memberValuePairOffset) {
+						// ignore annotation value
+						this.contents[this.contentsOffset++] = 0;
+						this.contents[this.contentsOffset++] = 0;
+					}
 				} catch(ClassCastException e) {
 					this.contentsOffset = startingContentsOffset;
 				} catch(ShouldNotImplement e) {
@@ -3321,6 +3344,11 @@ public class ClassFile implements TypeConstants, TypeIds {
 		}
 		if (this.targetJDK >= ClassFileConstants.JDK1_4) {
 			AbstractMethodDeclaration methodDeclaration = methodBinding.sourceMethod();
+			if (methodBinding instanceof SyntheticMethodBinding) {
+				SyntheticMethodBinding syntheticMethod = (SyntheticMethodBinding) methodBinding;
+				if (syntheticMethod.purpose == SyntheticMethodBinding.SuperMethodAccess && CharOperation.equals(syntheticMethod.selector, syntheticMethod.targetMethod.selector))
+					methodDeclaration = ((SyntheticMethodBinding)methodBinding).targetMethod.sourceMethod();
+			}
 			if (methodDeclaration != null) {
 				Annotation[] annotations = methodDeclaration.annotations;
 				if (annotations != null) {
@@ -4016,9 +4044,15 @@ public class ClassFile implements TypeConstants, TypeIds {
 			}
 		}
 		if (targetParameters != Binding.NO_PARAMETERS) {
-			for (int i = 0, max = targetParameters.length; i < max; i++) {
-				if (methodDeclaration != null && methodDeclaration.arguments != null && methodDeclaration.arguments.length > i && methodDeclaration.arguments[i] != null) {
-					Argument argument = methodDeclaration.arguments[i];
+			Argument[] arguments = null;
+			if (methodDeclaration != null && methodDeclaration.arguments != null) {
+				arguments = methodDeclaration.arguments;
+			} else if (binding.sourceLambda() != null) { // SyntheticMethodBinding, purpose : LambdaMethod.
+				arguments = binding.sourceLambda().arguments;
+			}
+			for (int i = 0, max = targetParameters.length, argumentsLength = arguments != null ? arguments.length : 0; i < max; i++) {
+				if (argumentsLength > i && arguments[i] != null) {
+					Argument argument = arguments[i];
 					length = writeArgumentName(argument.name, argument.binding.modifiers, length);
 				} else {
 					length = writeArgumentName(null, ClassFileConstants.AccSynthetic, length);
@@ -5221,6 +5255,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 			this.produceAttributes |= ClassFileConstants.ATTR_STACK_MAP_TABLE;
 			if (this.targetJDK >= ClassFileConstants.JDK1_8) {
 				this.produceAttributes |= ClassFileConstants.ATTR_TYPE_ANNOTATION;
+				if (options.produceMethodParameters) {
+					this.produceAttributes |= ClassFileConstants.ATTR_METHOD_PARAMETERS;
+				}
 			}
 		} else if (this.targetJDK == ClassFileConstants.CLDC_1_1) {
 			this.targetJDK = ClassFileConstants.JDK1_1; // put back 45.3

@@ -29,6 +29,8 @@
  *								Bug 428019 - [1.8][compiler] Type inference failure with nested generic invocation.
  *								Bug 427199 - [1.8][resource] avoid resource leak warnings on Streams that have no resource
  *								Bug 418743 - [1.8][null] contradictory annotations on invocation of generic method not reported
+ *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
+ *								Bug 431581 - Eclipse compiles what it should not
  *      Jesper S Moller - Contributions for
  *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *								bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
@@ -1141,20 +1143,35 @@ public boolean hasMemberTypes() {
 }
 
 /**
- * Answer whether a @NonNullByDefault is applicable at the given method binding.
+ * Answer whether a @NonNullByDefault is applicable at the reference binding,
+ * for 1.8 check if the default is applicable to the given kind of location.
  */
-boolean hasNonNullDefault() {
+// pre: null annotation analysis is enabled
+boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations) {
 	// Note, STB overrides for correctly handling local types
 	ReferenceBinding currentType = this;
 	while (currentType != null) {
-		if ((currentType.tagBits & TagBits.AnnotationNonNullByDefault) != 0)
-			return true;
-		if ((currentType.tagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0)
-			return false;
+		if (useTypeAnnotations) {
+			int nullDefault = ((ReferenceBinding)currentType.original()).getNullDefault();
+			if (nullDefault != 0)
+				return (nullDefault & location) != 0;
+		} else {
+			if ((currentType.tagBits & TagBits.AnnotationNonNullByDefault) != 0)
+				return true;
+			if ((currentType.tagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0)
+				return false;
+		}
 		currentType = currentType.enclosingType();
 	}
 	// package
-	return this.getPackage().defaultNullness == NONNULL_BY_DEFAULT;
+	if (useTypeAnnotations)
+		return (this.getPackage().defaultNullness & location) != 0;
+	else
+		return this.getPackage().defaultNullness == NONNULL_BY_DEFAULT;
+}
+
+int getNullDefault() {
+	return 0;
 }
 
 public final boolean hasRestrictedAccess() {
@@ -1929,48 +1946,29 @@ private MethodBinding [] getInterfaceAbstractContracts(Scope scope) throws Inval
 	int contractsCount = 0;
 	int contractsLength = 0;
 	
-	// -- the following are used for early termination.
-	MethodBinding aContract = null;
-	int contractParameterLength = 0;
-	char [] contractSelector = null;
-	// ---
-	
 	ReferenceBinding [] superInterfaces = superInterfaces();
 	for (int i = 0, length = superInterfaces.length; i < length; i++) {
 		MethodBinding [] superInterfaceContracts = superInterfaces[i].getInterfaceAbstractContracts(scope);
 		final int superInterfaceContractsLength = superInterfaceContracts == null  ? 0 : superInterfaceContracts.length;
-		
 		if (superInterfaceContractsLength == 0) continue;
-		if (aContract == null) {
-			aContract = superInterfaceContracts[0];
-			contractParameterLength = aContract.parameters.length;
-			contractSelector = aContract.selector;
-			contracts = superInterfaceContracts;
-			contractsCount = contractsLength = superInterfaceContractsLength;
-		} else {
-			if (superInterfaceContracts[0].parameters.length != contractParameterLength || !CharOperation.equals(contractSelector, superInterfaceContracts[0].selector)) {
-				throw new InvalidInputException("Not a functional interface"); //$NON-NLS-1$
-			}
-			if (contractsLength < contractsCount + superInterfaceContractsLength) {
-				System.arraycopy(contracts, 0, contracts = new MethodBinding[contractsLength = contractsCount + superInterfaceContractsLength], 0, contractsCount);
-			}
-			System.arraycopy(superInterfaceContracts, 0, contracts, contractsCount,	superInterfaceContractsLength);
-			contractsCount += superInterfaceContractsLength;
+		if (contractsLength < contractsCount + superInterfaceContractsLength) {
+			System.arraycopy(contracts, 0, contracts = new MethodBinding[contractsLength = contractsCount + superInterfaceContractsLength], 0, contractsCount);
 		}
+		System.arraycopy(superInterfaceContracts, 0, contracts, contractsCount,	superInterfaceContractsLength);
+		contractsCount += superInterfaceContractsLength;
 	}
+
 	for (int i = 0, length = methods == null ? 0 : methods.length; i < length; i++) {
 		final MethodBinding method = methods[i];
-		if (method.isStatic() || method.redeclaresPublicObjectMethod(scope)) continue;
+		if (method == null || method.isStatic() || method.redeclaresPublicObjectMethod(scope)) 
+			continue;
+		if (!method.isValidBinding()) 
+			throw new InvalidInputException("Not a functional interface"); //$NON-NLS-1$
 		if (method.isDefaultMethod()) {
 			for (int j = 0; j < contractsCount; j++) {
 				if (contracts[j] == null)
 					continue;
 				if (MethodVerifier.doesMethodOverride(method, contracts[j], scope.environment())) {
-					if (aContract == contracts[j]) {
-						aContract = null;
-						contractParameterLength = 0;
-						contractSelector = null;
-					}
 					contractsCount--;
 					// abstract method from super type rendered default by present interface ==> contracts[j] = null;
 					if (j < contractsCount)
@@ -1978,16 +1976,6 @@ private MethodBinding [] getInterfaceAbstractContracts(Scope scope) throws Inval
 				}
 			}
 			continue; // skip default method itself
-		}
-		final boolean validBinding = method.isValidBinding();
-		if (aContract == null && validBinding) {
-			aContract = method;
-			contractParameterLength = aContract.parameters.length;
-			contractSelector = aContract.selector;
-		} else {
-			if (!validBinding || method.parameters.length != contractParameterLength || !CharOperation.equals(contractSelector, method.selector)) {
-				throw new InvalidInputException("Not a functional interface"); //$NON-NLS-1$
-			}
 		}
 		if (contractsCount == contractsLength) {
 			System.arraycopy(contracts, 0, contracts = new MethodBinding[contractsLength += 16], 0, contractsCount);
@@ -2014,15 +2002,32 @@ public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcar
 	MethodBinding[] methods = null;
 	try {
 		methods = getInterfaceAbstractContracts(scope);
+		if (methods == null || methods.length == 0)
+			return this.singleAbstractMethod[index] = samProblemBinding;
+		int contractParameterLength = 0;
+		char [] contractSelector = null;
+		for (int i = 0, length = methods.length; i < length; i++) {
+			MethodBinding method = methods[i];
+			if (method == null) continue;
+			if (contractSelector == null) {
+				contractSelector = method.selector;
+				contractParameterLength = method.parameters == null ? 0 : method.parameters.length;
+			} else {
+				int methodParameterLength = method.parameters == null ? 0 : method.parameters.length;
+				if (methodParameterLength != contractParameterLength || !CharOperation.equals(method.selector, contractSelector))
+					return this.singleAbstractMethod[index] = samProblemBinding;
+			}
+		}
 	} catch (InvalidInputException e) {
 		return this.singleAbstractMethod[index] = samProblemBinding;
 	}
-	if (methods != null && methods.length == 1)
+	if (methods.length == 1)
 		return this.singleAbstractMethod[index] = methods[0];
 	
 	final LookupEnvironment environment = scope.environment();
 	boolean genericMethodSeen = false;
 	int length = methods.length;
+	
 	next:for (int i = length - 1; i >= 0; --i) {
 		MethodBinding method = methods[i], otherMethod = null;
 		if (method.typeVariables != Binding.NO_TYPE_VARIABLES)
@@ -2113,5 +2118,29 @@ public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcar
 		return this.singleAbstractMethod[index];
 	}
 	return this.singleAbstractMethod[index] = samProblemBinding;
+}
+
+// See JLS 4.9 bullet 1
+public static boolean isConsistentIntersection(TypeBinding[] intersectingTypes) {
+	TypeBinding[] ci = new TypeBinding[intersectingTypes.length];
+	for (int i = 0; i < ci.length; i++) {
+		TypeBinding current = intersectingTypes[i];
+		ci[i] = (current.isClass() || current.isArrayType())
+					? current : current.superclass();
+	}
+	TypeBinding mostSpecific = ci[0];
+	for (int i = 1; i < ci.length; i++) {
+		TypeBinding current = ci[i];
+		// when invoked during type inference we only want to check inconsistency among real types:
+		if (current.isTypeVariable() || current.isWildcard() || !current.isProperType(true))
+			continue;
+		if (mostSpecific.isSubtypeOf(current))
+			continue;
+		else if (current.isSubtypeOf(mostSpecific))
+			mostSpecific = current;
+		else
+			return false;
+	}
+	return true;
 }
 }

@@ -41,6 +41,8 @@
  *								Bug 424728 - [1.8][null] Unexpected error: The nullness annotation 'XXXX' is not applicable at this location 
  *								Bug 428811 - [1.8][compiler] Type witness unnecessarily required
  *								Bug 429424 - [1.8][inference] Problem inferring type of method's parameter
+ *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
+ *								Bug 434570 - Generic type mismatch for parametrized class annotation attribute with inner class
  *     Jesper S Moller - Contributions for
  *								Bug 378674 - "The method can be declared as static" is wrong
  *  							Bug 405066 - [1.8][compiler][codegen] Implement code generation infrastructure for JSR335
@@ -943,8 +945,8 @@ public abstract class Scope {
 				continue nextVariable;
 			boolean isFirstBoundTypeVariable = false;
 			TypeBinding superType = this.kind == METHOD_SCOPE
-				? typeRef.resolveType((BlockScope)this, false/*no bound check*/)
-				: typeRef.resolveType((ClassScope)this);
+				? typeRef.resolveType((BlockScope)this, false/*no bound check*/, Binding.DefaultLocationTypeBound)
+				: typeRef.resolveType((ClassScope)this, Binding.DefaultLocationTypeBound);
 			if (superType == null) {
 				typeVariable.tagBits |= TagBits.HierarchyHasProblems;
 			} else {
@@ -5010,6 +5012,12 @@ public abstract class Scope {
 		return null;
 	}
 
+	public boolean deferCheck(Runnable check) {
+		if (this.parent != null)
+			return this.parent.deferCheck(check); // only ClassScope potentially records this
+		return false;
+	}
+
 	public void deferBoundCheck(TypeReference typeRef) {
 		if (this.kind == CLASS_SCOPE) {
 			ClassScope classScope = (ClassScope) this;
@@ -5188,6 +5196,10 @@ public abstract class Scope {
 		}
 		return true;
 	}
+	
+	/** Answer a defaultNullness defined for the closest enclosing scope, using bits from Binding.NullnessDefaultMASK. */
+	public abstract boolean hasDefaultNullnessFor(int location);
+
 	public static BlockScope typeAnnotationsResolutionScope(Scope scope) {
 		BlockScope resolutionScope = null;
 		switch(scope.kind) {

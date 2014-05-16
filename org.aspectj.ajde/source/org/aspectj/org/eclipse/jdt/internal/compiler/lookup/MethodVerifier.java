@@ -627,14 +627,14 @@ void computeInheritedMethods(ReferenceBinding superclass, ReferenceBinding[] sup
 			nextMethod : for (int m = methods.length; --m >= 0;) { // Interface methods are all abstract public
 				MethodBinding inheritedMethod = methods[m];
 				if (inheritedMethod.isStatic()) continue nextMethod;
-				if (!inheritedMethod.isAbstract()) continue nextMethod; // AspectJ Extension - allow for ITDs on the interface
+				if (!inheritedMethod.isAbstract() && !inheritedMethod.isDefaultMethod()) continue nextMethod; // AspectJ Extension - allow for ITDs on the interface
 				MethodBinding[] existingMethods = (MethodBinding[]) this.inheritedMethods.get(inheritedMethod.selector);
 				if (existingMethods == null) {
 					// AspectJ Extension
 					// check for intertype declarations hitting the same type that implement the method in question (242797)
 					for (int ii=0;ii<methods.length;ii++) {
 						MethodBinding mb = methods[ii];
-						if (!mb.isAbstract() && new String(mb.selector).equals(new String(inheritedMethod.selector))) {
+						if (!mb.isAbstract() && !inheritedMethod.isDefaultMethod() && new String(mb.selector).equals(new String(inheritedMethod.selector))) {
 							if (areMethodsCompatible(mb,inheritedMethod)) {
 								continue nextMethod;
 							}

@@ -36,6 +36,7 @@
  *							Bug 428352 - [1.8][compiler] Resolution errors don't always surface
  *							Bug 429203 - [1.8][compiler] NPE in AllocationExpression.binding
  *							Bug 429430 - [1.8] Lambdas and method reference infer wrong exception type with generics (RuntimeException instead of IOException)
+ *							Bug 434297 - [1.8] NPE in LamdaExpression.analyseCode with lamda expression nested in a conditional expression
  *     Jesper S Moller <jesper@selskabet.org> - Contributions for
  *							bug 378674 - "The method can be declared as static" is wrong
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
@@ -619,6 +620,7 @@ public void checkTypeArgumentRedundancy(ParameterizedTypeBinding allocationType,
 	if ((scope.problemReporter().computeSeverity(IProblem.RedundantSpecificationOfTypeArguments) == ProblemSeverities.Ignore) || scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_7) return;
 	if (allocationType.arguments == null) return;  // raw binding
 	if (this.genericTypeArguments != null) return; // diamond can't occur with explicit type args for constructor
+	if (this.type == null) return;
 	if (argumentTypes == Binding.NO_PARAMETERS && this.typeExpected instanceof ParameterizedTypeBinding) {
 		ParameterizedTypeBinding expected = (ParameterizedTypeBinding) this.typeExpected;
 		if (expected.arguments != null && allocationType.arguments.length == expected.arguments.length) {
@@ -741,11 +743,21 @@ public MethodBinding binding(TypeBinding targetType, boolean reportErrors, Scope
 	return this.binding;
 }
 public TypeBinding checkAgainstFinalTargetType(TypeBinding targetType, Scope scope) {
+	// confer MessageSend.checkAgainstFinalTargetType(,,):
+	if (this.binding instanceof ParameterizedGenericMethodBinding) {
+		InferenceContext18 ctx = getInferenceContext((ParameterizedMethodBinding) this.binding);
+		if (ctx != null && ctx.stepCompleted < InferenceContext18.TYPE_INFERRED) {
+			this.typeExpected = targetType;
+			MethodBinding updatedBinding = ctx.inferInvocationType(this, (ParameterizedGenericMethodBinding) this.binding);
+			if (updateBindings(updatedBinding, targetType)) {
+				ASTNode.resolvePolyExpressionArguments(this, updatedBinding, scope);
+			}
+		}
+	}
 	if (this.suspendedResolutionState != null) {
 		return resolvePart3(this.suspendedResolutionState);
-		// also: should this trigger any propagation to inners, too?
 	}
-	return super.checkAgainstFinalTargetType(targetType, scope);
+	return this.resolvedType;
 }
 public Expression[] arguments() {
 	return this.arguments;

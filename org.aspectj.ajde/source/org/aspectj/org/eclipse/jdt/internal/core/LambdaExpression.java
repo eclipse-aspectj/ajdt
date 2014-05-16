@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.ILocalVariable;
 import org.aspectj.org.eclipse.jdt.core.IMethod;
+import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.Signature;
 import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
@@ -35,20 +36,20 @@ public class LambdaExpression extends SourceType {
 	
 	
 	// Construction from AST node
-	public LambdaExpression(JavaElement parent, org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression lambdaExpression) {
-		super(parent, new String("Lambda(") + new String(lambdaExpression.resolvedType.sourceName()) + ')'); //$NON-NLS-1$
+	LambdaExpression(JavaElement parent, org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression lambdaExpression) {
+		super(parent, new String(CharOperation.NO_CHAR));
 		this.sourceStart = lambdaExpression.sourceStart;
 		this.sourceEnd = lambdaExpression.sourceEnd;
 		this.arrowPosition = lambdaExpression.arrowPosition;
 		this.interphase = new String(CharOperation.replaceOnCopy(lambdaExpression.resolvedType.genericTypeSignature(), '/', '.'));
 		this.elementInfo = makeTypeElementInfo(this, this.interphase, this.sourceStart, this.sourceEnd, this.arrowPosition); 
-		this.lambdaMethod = LambdaMethod.make(this, lambdaExpression);
+		this.lambdaMethod = LambdaFactory.createLambdaMethod(this, lambdaExpression);
 		this.elementInfo.children = new IJavaElement[] { this.lambdaMethod };
 	}
 	
 	// Construction from memento
-	public LambdaExpression(JavaElement parent, String name, String interphase, int sourceStart, int sourceEnd, int arrowPosition) {
-		super(parent, name);
+	LambdaExpression(JavaElement parent, String interphase, int sourceStart, int sourceEnd, int arrowPosition) {
+		super(parent, new String(CharOperation.NO_CHAR));
 		this.sourceStart = sourceStart;
 		this.sourceEnd = sourceEnd;
 		this.arrowPosition = arrowPosition;
@@ -58,8 +59,8 @@ public class LambdaExpression extends SourceType {
 	}
 	
 	// Construction from subtypes.
-	public LambdaExpression(JavaElement parent, String name, String interphase, int sourceStart, int sourceEnd, int arrowPosition, LambdaMethod lambdaMethod) {
-		super(parent, name);
+	LambdaExpression(JavaElement parent, String interphase, int sourceStart, int sourceEnd, int arrowPosition, LambdaMethod lambdaMethod) {
+		super(parent, new String(CharOperation.NO_CHAR));
 		this.sourceStart = sourceStart;
 		this.sourceEnd = sourceEnd;
 		this.arrowPosition = arrowPosition;
@@ -104,9 +105,9 @@ public class LambdaExpression extends SourceType {
 			LambdaExpression that = (LambdaExpression) o;
 			if (this.sourceStart != that.sourceStart)
 				return false;
-			CompilationUnit thisCU = (CompilationUnit) this.getCompilationUnit();
-			CompilationUnit thatCU = (CompilationUnit) that.getCompilationUnit();
-			return thisCU.getElementName().equals(thatCU.getElementName()) && thisCU.parent.equals(thatCU.parent);
+			ITypeRoot thisTR = this.getTypeRoot();
+			ITypeRoot thatTR = that.getTypeRoot();
+			return thisTR.getElementName().equals(thatTR.getElementName()) && thisTR.getParent().equals(thatTR.getParent());
 		}
 		return false;
 	}
@@ -127,15 +128,16 @@ public class LambdaExpression extends SourceType {
 	 * @see JavaElement#getHandleMemento(StringBuffer)
 	 */
 	protected void getHandleMemento(StringBuffer buff) {
-		getHandleMemento(buff, true);
+		getHandleMemento(buff, true, true);
+		// lambda method and lambda expression cannot share the same memento - add a trailing discriminator.
+		appendEscapedDelimiter(buff, getHandleMementoDelimiter());
 	}
 	
-	protected void getHandleMemento(StringBuffer buff, boolean memoizeParent) {
-		if (memoizeParent) 
+	protected void getHandleMemento(StringBuffer buff, boolean serializeParent, boolean serializeChild) {
+		if (serializeParent) 
 			((JavaElement)getParent()).getHandleMemento(buff);
-		buff.append(getHandleMementoDelimiter());
-		escapeMementoName(buff, this.name);
-		buff.append(JEM_STRING);
+		appendEscapedDelimiter(buff, getHandleMementoDelimiter());
+		appendEscapedDelimiter(buff, JEM_STRING);
 		escapeMementoName(buff, this.interphase);
 		buff.append(JEM_COUNT);
 		buff.append(this.sourceStart);
@@ -143,6 +145,8 @@ public class LambdaExpression extends SourceType {
 		buff.append(this.sourceEnd);
 		buff.append(JEM_COUNT);
 		buff.append(this.arrowPosition);
+		if (serializeChild)
+			this.lambdaMethod.getHandleMemento(buff, false);
 	}
 	
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
@@ -168,14 +172,24 @@ public class LambdaExpression extends SourceType {
 		String returnType = memento.nextToken();
 		if (!memento.hasMoreTokens() || memento.nextToken().charAt(0) != JEM_STRING) return this;
 		String key = memento.nextToken();
-		this.lambdaMethod = LambdaMethod.make(this, selector, key, this.sourceStart, this.sourceEnd, this.arrowPosition, parameterTypes, parameterNames, returnType);
+		this.lambdaMethod = LambdaFactory.createLambdaMethod(this, selector, key, this.sourceStart, this.sourceEnd, this.arrowPosition, parameterTypes, parameterNames, returnType);
 		ILocalVariable [] parameters = new ILocalVariable[length];
 		for (int i = 0; i < length; i++) {
 			parameters[i] = (ILocalVariable) this.lambdaMethod.getHandleFromMemento(memento, workingCopyOwner);
 		}
 		this.lambdaMethod.elementInfo.arguments  = parameters;
 		this.elementInfo.children = new IJavaElement[] { this.lambdaMethod };
-		return this.lambdaMethod;
+		if (!memento.hasMoreTokens())
+			return this.lambdaMethod;
+		switch (memento.nextToken().charAt(0)) {
+			case JEM_LAMBDA_METHOD:
+				if (!memento.hasMoreTokens())
+					return this.lambdaMethod;
+				return this.lambdaMethod.getHandleFromMemento(memento, workingCopyOwner);
+			case JEM_LAMBDA_EXPRESSION:
+			default:
+				return this;	
+		}
 	}
 
 	public IJavaElement[] getChildren() throws JavaModelException {
@@ -196,6 +210,23 @@ public class LambdaExpression extends SourceType {
 	}
 	
 	@Override
+	public boolean isLambda() {
+		return true;
+	}
+
+	@Override
+	public boolean isAnonymous() {
+		return false;
+	}
+
+	public void toStringName(StringBuffer buffer) {
+		super.toStringName(buffer);
+		buffer.append("<lambda #"); //$NON-NLS-1$
+		buffer.append(this.occurrenceCount);
+		buffer.append(">"); //$NON-NLS-1$
+	}
+
+	@Override
 	public IJavaElement getPrimaryElement(boolean checkOwner) {
 		if (checkOwner) {
 			CompilationUnit cu = (CompilationUnit)getAncestor(COMPILATION_UNIT);
@@ -205,8 +236,7 @@ public class LambdaExpression extends SourceType {
 		if (primaryParent instanceof JavaElement) {
 			JavaElement ancestor = (JavaElement) primaryParent;
 			StringBuffer buffer = new StringBuffer(32);
-			getHandleMemento(buffer, false);
-			this.lambdaMethod.getHandleMemento(buffer, false);
+			getHandleMemento(buffer, false, true);
 			String memento = buffer.toString();
 			return ancestor.getHandleFromMemento(new MementoTokenizer(memento), DefaultWorkingCopyOwner.PRIMARY).getParent();
 		}

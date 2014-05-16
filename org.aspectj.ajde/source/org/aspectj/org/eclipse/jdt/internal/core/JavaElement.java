@@ -26,6 +26,8 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.*;
@@ -73,6 +75,22 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public static final char JEM_LAMBDA_METHOD = '&';
 	public static final char JEM_STRING = '"';
 	
+	/**
+	 * Before ')', '&' and '"' became the newest additions as delimiters, the former two
+	 * were allowed as part of element attributes and possibly stored. Trying to recreate 
+	 * elements from such memento would cause undesirable results. Consider the following 
+	 * valid project name: (abc)
+	 * If we were to use ')' alone as the delimiter and decode the above name, the memento
+	 * would be wrongly identified to contain a lambda expression.  
+	 *
+	 * In order to differentiate delimiters from characters that are part of element attributes, 
+	 * the following escape character is being introduced and all the new delimiters must 
+	 * be escaped with this. So, a lambda expression would be written as: "=)..."
+	 * 
+	 * @see JavaElement#appendEscapedDelimiter(StringBuffer, char)
+	 */
+	public static final char JEM_DELIMITER_ESCAPE = JEM_JAVAPROJECT;
+	
 
 	/**
 	 * This element's parent, or <code>null</code> if this
@@ -82,6 +100,9 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 
 	protected static final JavaElement[] NO_ELEMENTS = new JavaElement[0];
 	protected static final Object NO_INFO = new Object();
+	
+	private static Set<String> invalidURLs = null;
+	private static Set<String> validURLs = null;
 
 	/**
 	 * Constructs a handle for a java element with
@@ -133,6 +154,16 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		return getElementName().equals(other.getElementName()) &&
 				this.parent.equals(other.parent);
 	}
+	/**
+	 * @see #JEM_DELIMITER_ESCAPE
+	 */
+	protected void appendEscapedDelimiter(StringBuffer buffer, char delimiter) {
+		buffer.append(JEM_DELIMITER_ESCAPE);
+		buffer.append(delimiter);
+	}
+	/*
+	 * Do not add new delimiters here
+	 */
 	protected void escapeMementoName(StringBuffer buffer, String mementoName) {
 		for (int i = 0, length = mementoName.length(); i < length; i++) {
 			char character = mementoName.charAt(i);
@@ -153,9 +184,6 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 				case JEM_LOCALVARIABLE:
 				case JEM_TYPE_PARAMETER:
 				case JEM_ANNOTATION:
-				case JEM_LAMBDA_EXPRESSION:
-				case JEM_LAMBDA_METHOD:
-				case JEM_STRING:
 					buffer.append(JEM_ESCAPE);
 			}
 			buffer.append(character);
@@ -744,10 +772,45 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	}
 	
 	/*
+	 * This method caches a list of good and bad Javadoc locations in the current eclipse session. 
+	 */
+	protected void validateAndCache(URL baseLoc, FileNotFoundException e) throws JavaModelException {
+		String url = baseLoc.toString();
+		if (validURLs != null && validURLs.contains(url)) return;
+		
+		if (invalidURLs != null && invalidURLs.contains(url)) 
+				throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
+
+		InputStream input = null;
+		try {
+			URLConnection connection = baseLoc.openConnection();
+			input = connection.getInputStream();
+			if (validURLs == null) {
+				validURLs = new HashSet<String>(1);
+			}
+			validURLs.add(url);
+		} catch (Exception e1) {
+			if (invalidURLs == null) { 
+				invalidURLs = new HashSet<String>(1);
+			}
+			invalidURLs.add(url);
+			throw new JavaModelException(e, IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC);
+		} finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (Exception e1) {
+					// Ignore
+				}
+			}
+		}
+	}
+
+	/*
 	 * We don't use getContentEncoding() on the URL connection, because it might leave open streams behind.
 	 * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=117890
 	 */
-	protected String getURLContents(String docUrlValue) throws JavaModelException {
+	protected String getURLContents(URL baseLoc, String docUrlValue) throws JavaModelException {
 		InputStream stream = null;
 		JarURLConnection connection2 = null;
 		try {
@@ -831,8 +894,8 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		} catch (MalformedURLException e) {
 			throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.CANNOT_RETRIEVE_ATTACHED_JAVADOC, this));
 		} catch (FileNotFoundException e) {
-			// Ignore, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=120559 &
-			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=403036
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=403154
+			validateAndCache(baseLoc, e);
 		} catch (SocketException e) {
 			// see bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=247845 &
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=400060
