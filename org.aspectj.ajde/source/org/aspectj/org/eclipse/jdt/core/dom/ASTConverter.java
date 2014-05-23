@@ -533,6 +533,8 @@ public class ASTConverter {
 		methodName.internalSetIdentifier(new String(methodDeclaration.selector));
 		int start = methodDeclaration.sourceStart;
 		int end = retrieveIdentifierEndPosition(start, methodDeclaration.sourceEnd);
+		if (end < start)
+			end = start + methodDeclaration.selector.length;// naive recovery with method name
 		methodName.setSourceRange(start, end - start + 1);
 		methodDecl.setName(methodName);
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference[] thrownExceptions = methodDeclaration.thrownExceptions;
@@ -2758,7 +2760,7 @@ public class ASTConverter {
 		}
 		if (statement instanceof org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) {
 			ASTNode result = convert((org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration) statement);
-			if (result == null) {
+			if (result == null || !(result instanceof TypeDeclaration)) {
 				return createFakeEmptyStatement(statement);
 			}
 			// annotation and enum type declarations are not returned by the parser inside method bodies
