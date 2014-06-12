@@ -10,6 +10,7 @@
  *     Erling Ellingsen -  patch for bug 125570
  *     Stephan Herrmann - Contribution for
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
+ *								Bug 434570 - Generic type mismatch for parametrized class annotation attribute with inner class
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -55,6 +56,8 @@ public class CompilationUnitScope extends Scope {
 		 */
 		private boolean skipCachingImports;
 	
+	boolean connectingHierarchy;
+
 public CompilationUnitScope(CompilationUnitDeclaration unit, LookupEnvironment environment) {
 	super(COMPILATION_UNIT_SCOPE, null);
 	this.environment = environment;
@@ -331,9 +334,15 @@ public char[] computeConstantPoolName(LocalTypeBinding localType) {
 	return candidateName;
 }
 
-public void connectTypeHierarchy() { // AspectJ Extension - raised to public
-	for (int i = 0, length = this.topLevelTypes.length; i < length; i++)
-		this.topLevelTypes[i].scope.connectTypeHierarchy();
+public void connectTypeHierarchy() { // AspectJ Extension - raised to public	
+	this.connectingHierarchy = true;
+	try {
+		for (int i = 0, length = this.topLevelTypes.length; i < length; i++)
+			this.topLevelTypes[i].scope.connectTypeHierarchy();
+	} finally {
+		this.connectingHierarchy = false;
+	}
+
 }
 void faultInImports() {
 	boolean unresolvedFound = false;

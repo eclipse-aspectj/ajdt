@@ -20,6 +20,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclarati
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching.CheckMode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 
@@ -282,12 +283,12 @@ public class ImplicitNullAnnotationVerifier {
 				}
 				if (useTypeAnnotations) {
 					TypeBinding substituteReturnType = null; // for TVB identity checks inside NullAnnotationMatching.analyze()
-					TypeVariableBinding[] typeVariables = inheritedMethod.typeVariables;
+					TypeVariableBinding[] typeVariables = inheritedMethod.original().typeVariables;
 					if (typeVariables != null && currentMethod.returnType.id != TypeIds.T_void) {
 						ParameterizedGenericMethodBinding substitute = this.environment.createParameterizedGenericMethod(currentMethod, typeVariables);
 						substituteReturnType = substitute.returnType;
 					}
-					if (NullAnnotationMatching.analyse(inheritedMethod.returnType, currentMethod.returnType, substituteReturnType, 0, true).isAnyMismatch()) {
+					if (NullAnnotationMatching.analyse(inheritedMethod.returnType, currentMethod.returnType, substituteReturnType, 0, CheckMode.OVERRIDE).isAnyMismatch()) {
 						scope.problemReporter().cannotImplementIncompatibleNullness(currentMethod, inheritedMethod, useTypeAnnotations);
 						return;
 					}
@@ -298,7 +299,7 @@ public class ImplicitNullAnnotationVerifier {
 		// parameters:
 		TypeBinding[] substituteParameters = null; // for TVB identity checks inside NullAnnotationMatching.analyze()
 		if (shouldComplain) {
-			TypeVariableBinding[] typeVariables = currentMethod.typeVariables;
+			TypeVariableBinding[] typeVariables = currentMethod.original().typeVariables;
 			if (typeVariables != Binding.NO_TYPE_VARIABLES) {
 				ParameterizedGenericMethodBinding substitute = this.environment.createParameterizedGenericMethod(inheritedMethod, typeVariables);
 				substituteParameters = substitute.parameters;
@@ -404,7 +405,7 @@ public class ImplicitNullAnnotationVerifier {
 				} 
 				if (useTypeAnnotations) {
 					TypeBinding substituteParameter = substituteParameters != null ? substituteParameters[i] : null;
-					if (NullAnnotationMatching.analyse(currentMethod.parameters[i], inheritedMethod.parameters[i], substituteParameter, 0, true).isAnyMismatch()) {
+					if (NullAnnotationMatching.analyse(currentMethod.parameters[i], inheritedMethod.parameters[i], substituteParameter, 0, CheckMode.OVERRIDE).isAnyMismatch()) {
 						scope.problemReporter().cannotImplementIncompatibleNullness(currentMethod, inheritedMethod, false);
 					}
 				}

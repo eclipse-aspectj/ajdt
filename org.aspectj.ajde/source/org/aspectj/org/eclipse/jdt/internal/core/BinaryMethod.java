@@ -277,6 +277,9 @@ public String[] getParameterNames() throws JavaModelException {
 		if (declaringType.isMember()
 				&& !Flags.isStatic(declaringType.getFlags())) {
 			paramCount--; // remove synthetic argument from constructor param count
+		} else if (declaringType.isEnum()) {
+			if (paramCount >= 2) // https://bugs.eclipse.org/bugs/show_bug.cgi?id=436347
+				paramCount -= 2;
 		}
 	}
 
