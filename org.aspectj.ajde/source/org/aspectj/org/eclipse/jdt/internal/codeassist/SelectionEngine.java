@@ -557,6 +557,17 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 						case '"':
 						case '\'':
 							break lineLoop;
+						case '-':
+							if (source[nextCharacterPosition] == '>') {
+								nextCharacterPosition--; // nextCharacterPosition = currentPosition
+								break lineLoop;
+							}
+							break;
+						case ':':
+							if (source[nextCharacterPosition] == ':') {
+								nextCharacterPosition--; // nextCharacterPosition = currentPosition
+								break lineLoop;
+							}
 					}
 					currentPosition--;
 				}

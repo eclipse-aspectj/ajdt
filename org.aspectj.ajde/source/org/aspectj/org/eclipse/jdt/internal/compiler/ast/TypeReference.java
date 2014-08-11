@@ -18,6 +18,9 @@
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 434570 - Generic type mismatch for parametrized class annotation attribute with inner class
  *								Bug 434600 - Incorrect null analysis error reporting on type parameters
+ *								Bug 439516 - [1.8][null] NonNullByDefault wrongly applied to implicit type bound of binary type
+ *								Bug 438458 - [1.8][null] clean up handling of null type annotations wrt type variables
+ *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *                          Bug 409236 - [1.8][compiler] Type annotations on intersection cast types dropped by code generator
@@ -639,12 +642,16 @@ protected void resolveAnnotations(Scope scope, int location) {
 			&& (this.resolvedType.tagBits & TagBits.AnnotationNullMASK) == 0
 			&& !this.resolvedType.isTypeVariable()
 			&& !this.resolvedType.isWildcard()
-			&& location != 0 
+			&& location != 0
 			&& scope.hasDefaultNullnessFor(location)) 
 	{
-		LookupEnvironment environment = scope.environment();
-		AnnotationBinding[] annots = new AnnotationBinding[]{environment.getNonNullAnnotation()};
-		this.resolvedType = environment.createAnnotatedType(this.resolvedType, annots);
+		if (location == Binding.DefaultLocationTypeBound && this.resolvedType.id == TypeIds.T_JavaLangObject) {
+			scope.problemReporter().implicitObjectBoundNoNullDefault(this);
+		} else {
+			LookupEnvironment environment = scope.environment();
+			AnnotationBinding[] annots = new AnnotationBinding[]{environment.getNonNullAnnotation()};
+			this.resolvedType = environment.createAnnotatedType(this.resolvedType, annots);
+		}
 	}
 }
 public int getAnnotatableLevels() {
@@ -660,12 +667,12 @@ protected void checkNullConstraints(Scope scope, TypeReference[] typeArguments) 
 		TypeVariableBinding[] typeVariables = this.resolvedType.original().typeVariables();
 		for (int i = 0; i < typeArguments.length; i++) {
 			TypeReference arg = typeArguments[i];
-			if (arg.resolvedType != null && arg.resolvedType.hasNullTypeAnnotations())
+			if (arg.resolvedType != null)
 				arg.checkNullConstraints(scope, typeVariables, i);
 		}
 	}
 }
-/** Check whether this type reference conforms to all null constraints defined for any of the given type variables. */
+/** Check whether this type reference conforms to the null constraints defined for the corresponding type variable. */
 protected void checkNullConstraints(Scope scope, TypeBinding[] variables, int rank) {
 	if (variables != null && variables.length > rank) {
 		TypeBinding variable = variables[rank];
@@ -690,6 +697,26 @@ public Annotation findAnnotation(long nullTagBits) {
 		}
 	}
 	return null;
+}
+public boolean hasNullTypeAnnotation() {
+	if (this.annotations != null) {
+		Annotation[] innerAnnotations = this.annotations[this.annotations.length-1];
+		if (containsNullAnnotation(innerAnnotations))
+			return true;
+	}
+	return false;
+}
+public static boolean containsNullAnnotation(Annotation[] annotations) {
+	if (annotations != null) {
+		for (int i = 0; i < annotations.length; i++) {
+			if (annotations[i] != null 
+					&& annotations[i].resolvedType != null 
+					&& (annotations[i].resolvedType.id == TypeIds.T_ConfiguredAnnotationNonNull
+						|| annotations[i].resolvedType.id == TypeIds.T_ConfiguredAnnotationNullable))
+				return true;
+		}
+	}
+	return false;	
 }
 public TypeReference[] getTypeReferences() {
 	return new TypeReference [] { this };

@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 438458 - [1.8][null] clean up handling of null type annotations wrt type variables
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.core.dom;
@@ -22,6 +24,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CaptureBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionCastTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
@@ -465,7 +468,7 @@ class TypeBinding implements ITypeBinding {
 	public ITypeBinding getTypeDeclaration() {
 		if (this.binding instanceof ParameterizedTypeBinding)
 			return this.resolver.getTypeBinding(((ParameterizedTypeBinding)this.binding).genericType());
-		return this.resolver.getTypeBinding(this.binding.unannotated());
+		return this.resolver.getTypeBinding(this.binding.unannotated(false));
 	}
 	
 	/* (non-Javadoc)
@@ -681,6 +684,10 @@ class TypeBinding implements ITypeBinding {
 				buffer = new StringBuffer(elementType.getName());
 				buffer.append(brackets);
 				return String.valueOf(buffer);
+
+			case Binding.INTERSECTION_CAST_TYPE :
+				// just use the first bound for now (same kludge as in IntersectionCastTypeBinding#constantPoolName())
+				return new String(((IntersectionCastTypeBinding) this.binding).getIntersectingTypes()[0].sourceName());
 
 			default :
 				if (isPrimitive() || isNullType()) {
@@ -1125,7 +1132,7 @@ class TypeBinding implements ITypeBinding {
 			return false;
 		}
 		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding otherBinding = ((TypeBinding) other).binding;
-		if (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.equalsEquals(otherBinding.unannotated(), this.binding.unannotated())) {
+		if (org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding.equalsEquals(otherBinding.unannotated(false), this.binding.unannotated(false))) {
 			return true;
 		}
 		// check return type

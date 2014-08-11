@@ -291,7 +291,8 @@ public class InferenceContext18 {
 			}
 		}
 		if (checkVararg && varArgsType instanceof ArrayBinding) {
-			TypeBinding thetaF = substitute(((ArrayBinding) varArgsType).elementsType());
+			varArgsType = ((ArrayBinding)varArgsType).elementsType();
+			TypeBinding thetaF = substitute(varArgsType);
 			for (int i = len; i < this.invocationArguments.length; i++) {
 				if (this.invocationArguments[i].isPertinentToApplicability(varArgsType, method)) {
 					this.initialConstraints[numConstraints++] = new ConstraintExpressionFormula(this.invocationArguments[i], thetaF, ReductionResult.COMPATIBLE, ARGUMENT_CONSTRAINTS_ARE_SOFT);
@@ -329,22 +330,26 @@ public class InferenceContext18 {
 	public InferenceVariable[] addTypeVariableSubstitutions(TypeBinding[] typeVariables) {
 		int len2 = typeVariables.length;
 		InferenceVariable[] newVariables = new InferenceVariable[len2];
+		InferenceVariable[] toAdd = new InferenceVariable[len2];
+		int numToAdd = 0;
 		for (int i = 0; i < typeVariables.length; i++) {
 			if (typeVariables[i] instanceof InferenceVariable)
 				newVariables[i] = (InferenceVariable) typeVariables[i]; // prevent double substitution of an already-substituted inferenceVariable
 			else
-				newVariables[i] = new InferenceVariable(typeVariables[i], this.variableCount++, this.currentInvocation, this.environment, this.object);
+				toAdd[numToAdd++] =
+					newVariables[i] = new InferenceVariable(typeVariables[i], this.variableCount++, this.currentInvocation, this.environment, this.object);
 		}
-
-		int start = 0;
-		if (this.inferenceVariables != null) {
-			int len1 = this.inferenceVariables.length;
-			System.arraycopy(this.inferenceVariables, 0, this.inferenceVariables = new InferenceVariable[len1+len2], 0, len1);
-			start = len1;
-		} else {
-			this.inferenceVariables = new InferenceVariable[len2];
+		if (numToAdd > 0) {
+			int start = 0;
+			if (this.inferenceVariables != null) {
+				int len1 = this.inferenceVariables.length;
+				System.arraycopy(this.inferenceVariables, 0, this.inferenceVariables = new InferenceVariable[len1+numToAdd], 0, len1);
+				start = len1;
+			} else {
+				this.inferenceVariables = new InferenceVariable[numToAdd];
+			}
+			System.arraycopy(toAdd, 0, this.inferenceVariables, start, numToAdd);
 		}
-		System.arraycopy(newVariables, 0, this.inferenceVariables, start, len2);
 		return newVariables;
 	}
 
@@ -354,7 +359,7 @@ public class InferenceContext18 {
 			TypeBinding parameter = parameters[i];
 			for (int j = 0; j < thrownExceptions.length; j++) {
 				if (TypeBinding.equalsEquals(parameter, thrownExceptions[j])) {
-					this.currentBounds.inThrows.add(variables[i]);
+					this.currentBounds.inThrows.add(variables[i].prototype());
 					break;
 				}
 			}
@@ -412,7 +417,8 @@ public class InferenceContext18 {
 				}
 				InferenceVariable[] variablesArray = allInputs.toArray(new InferenceVariable[allInputs.size()]);
 				//   ... is resolved
-				this.currentBounds.incorporate(this);
+				if (!this.currentBounds.incorporate(this))
+					return null;
 				BoundSet solution = resolve(variablesArray);
 				// in rare cases resolving just one set of variables doesn't suffice,
 				// don't bother with finding the necessary superset, just resolve all:
@@ -949,7 +955,7 @@ public class InferenceContext18 {
 							} else {
 								TypeBinding[] upperBounds = tmpBoundSet.upperBounds(variable, true/*onlyProper*/);
 								// check exception bounds:
-								if (tmpBoundSet.inThrows.contains(variable) && tmpBoundSet.hasOnlyTrivialExceptionBounds(variable, upperBounds)) {
+								if (tmpBoundSet.inThrows.contains(variable.prototype()) && tmpBoundSet.hasOnlyTrivialExceptionBounds(variable, upperBounds)) {
 									TypeBinding runtimeException = this.scope.getType(TypeConstants.JAVA_LANG_RUNTIMEEXCEPTION, 3);
 									tmpBoundSet.addBound(new TypeBound(variable, runtimeException, ReductionResult.SAME), this.environment);
 								} else {
@@ -996,7 +1002,7 @@ public class InferenceContext18 {
 						}
 						public TypeBinding substitute(TypeVariableBinding typeVariable) {
 							for (int j = 0; j < numVars; j++)
-								if (variables[j] == typeVariable) //$IDENTITY-COMPARISON$ InferenceVariable does not participate in type annotation encoding
+								if (TypeBinding.equalsEquals(variables[j], typeVariable))
 									return zs[j];
 							return typeVariable;
 						}
@@ -1028,7 +1034,7 @@ public class InferenceContext18 {
 							ParameterizedTypeBinding key = captureKeys.next();
 							int len = key.arguments.length;
 							for (int i = 0; i < len; i++) {
-								if (key.arguments[i] == variable) { //$IDENTITY-COMPARISON$
+								if (TypeBinding.equalsEquals(key.arguments[i], variable)) {
 									toRemove.add(key);
 									break;
 								}
@@ -1126,7 +1132,7 @@ public class InferenceContext18 {
 		if (!variableSet.add(currentVariable)) return true; // already present
 		for (int j = 0; j < this.inferenceVariables.length; j++) {
 			InferenceVariable nextVariable = this.inferenceVariables[j];
-			if (nextVariable == currentVariable) continue; //$IDENTITY-COMPARISON$ Inference variables
+			if (TypeBinding.equalsEquals(nextVariable, currentVariable)) continue;
 			if (boundSet.dependsOnResolutionOf(currentVariable, nextVariable))
 				if (!addDependencies(boundSet, variableSet, nextVariable, min))
 					return false; // abort traversal: no improvement

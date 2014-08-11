@@ -26,6 +26,9 @@
  *								Bug 392245 - [1.8][compiler][null] Define whether / how @NonNullByDefault applies to TYPE_USE locations
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 390889 - [1.8][compiler] Evaluate options to support 1.7- projects against 1.8 JRE.
+ *								Bug 438458 - [1.8][null] clean up handling of null type annotations wrt type variables
+ *								Bug 439516 - [1.8][null] NonNullByDefault wrongly applied to implicit type bound of binary type
+ *								Bug 434602 - Possible error with inferred null annotations leading to contradictory null annotations
  *    Jesper Steen Moller - Contributions for
  *								Bug 412150 [1.8] [compiler] Enable reflected parameter names during annotation processing
  *								Bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
@@ -798,7 +801,7 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 		? new MethodBinding(methodModifiers, parameters, exceptions, this)
 		: new MethodBinding(methodModifiers, method.getSelector(), returnType, parameters, exceptions, this);
 	
-	IBinaryAnnotation[] receiverAnnotations = walker.toReceiver().getAnnotationsAtCursor();
+	IBinaryAnnotation[] receiverAnnotations = walker.toReceiver().getAnnotationsAtCursor(0);
 	if (receiverAnnotations != null && receiverAnnotations.length > 0) {
 		result.receiver = this.environment.createAnnotatedType(this, createAnnotations(receiverAnnotations, this.environment, missingTypeNames));
 	}
@@ -807,7 +810,7 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 		IBinaryAnnotation[] annotations = method.getAnnotations();
 	    if (annotations == null || annotations.length == 0)
 	    	if (method.isConstructor())
-	    		annotations = walker.toMethodReturn().getAnnotationsAtCursor(); // FIXME: When both exist, order could become an issue.
+	    		annotations = walker.toMethodReturn().getAnnotationsAtCursor(0); // FIXME: When both exist, order could become an issue.
 		result.setAnnotations(
 			createAnnotations(annotations, this.environment, missingTypeNames),
 			paramAnnotations,
@@ -820,9 +823,9 @@ private MethodBinding createMethod(IBinaryMethod method, long sourceLevel, char[
 	if (use15specifics)
 		result.tagBits |= method.getTagBits();
 	result.typeVariables = typeVars;
-	// fixup the declaring element of the type variable
+	// fixup the declaring element of all type variables
 	for (int i = 0, length = typeVars.length; i < length; i++)
-		typeVars[i].declaringElement = result;
+		this.environment.typeSystem.fixTypeVariableDeclaringElement(typeVars[i], result);
 
 	return result;
 }
@@ -919,7 +922,7 @@ private TypeVariableBinding[] createTypeVariables(SignatureWrapper wrapper, bool
 						int colon = CharOperation.indexOf(Util.C_COLON, typeSignature, i);
 						char[] variableName = CharOperation.subarray(typeSignature, i, colon);
 						TypeVariableBinding typeVariable = new TypeVariableBinding(variableName, this, rank, this.environment);
-						AnnotationBinding [] annotations = BinaryTypeBinding.createAnnotations(walker.toTypeParameter(isClassTypeParameter, rank++).getAnnotationsAtCursor(), 
+						AnnotationBinding [] annotations = BinaryTypeBinding.createAnnotations(walker.toTypeParameter(isClassTypeParameter, rank++).getAnnotationsAtCursor(0), 
 																										this.environment, missingTypeNames);
 						if (annotations != null && annotations != Binding.NO_ANNOTATIONS)
 							typeVariable.setTypeAnnotations(annotations, this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled);
@@ -1524,8 +1527,15 @@ public void initializeDeprecatedAnnotationTagBits() {
 }
 // End AspectJ Extension
 
+//pre: null annotation analysis is enabled
 private void scanFieldForNullAnnotation(IBinaryField field, FieldBinding fieldBinding, boolean isEnum) {
 	if (!isPrototype()) throw new IllegalStateException();
+
+	if (isEnum && (field.getModifiers() & ClassFileConstants.AccEnum) != 0) {
+		fieldBinding.tagBits |= TagBits.AnnotationNonNull;
+		return; // we know it's nonnull, no need to look for null *annotations* on enum constants.
+	}
+
 	if (this.environment.globalOptions.sourceLevel >= ClassFileConstants.JDK1_8) {
 		TypeBinding fieldType = fieldBinding.type;
 		if (fieldType != null
@@ -1568,11 +1578,6 @@ private void scanFieldForNullAnnotation(IBinaryField field, FieldBinding fieldBi
 	}
 	if (!explicitNullness && (this.tagBits & TagBits.AnnotationNonNullByDefault) != 0) {
 		fieldBinding.tagBits |= TagBits.AnnotationNonNull;
-	}
-	if (isEnum) {
-		if ((field.getModifiers() & ClassFileConstants.AccEnum) != 0) {
-			fieldBinding.tagBits |= TagBits.AnnotationNonNull;
-		}
 	}
 }
 
@@ -1976,7 +1981,14 @@ public String toString() {
 	return buffer.toString();
 }
 
-public TypeBinding unannotated() {
+public TypeBinding unannotated(boolean removeOnlyNullAnnotations) {
+	if (removeOnlyNullAnnotations) {
+		if (!hasNullTypeAnnotations())
+			return this;
+		AnnotationBinding[] newAnnotations = this.environment.filterNullTypeAnnotations(this.typeAnnotations);
+		if (newAnnotations.length > 0)
+			return this.environment.createAnnotatedType(this.prototype, newAnnotations);
+	}
 	return this.prototype;
 }
 

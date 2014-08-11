@@ -12,6 +12,8 @@
  *								bug 365519 - editorial cleanup after bug 186342 and bug 365387
  *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
  *								Bug 392238 - [1.8][compiler][null] Detect semantically invalid null type annotations
+ *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
+ *								Bug 438012 - [1.8][null] Bogus Warning: The nullness annotation is redundant with a default that applies to this location
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 409246 - [1.8][compiler] Type annotations on catch parameters not handled properly
  *******************************************************************************/
@@ -126,6 +128,12 @@ public class Argument extends LocalDeclaration {
 		return (this.bits & IsTypeElided) != 0;
 	}
 
+	public boolean hasNullTypeAnnotation() {
+		// parser associates SE8 annotations to the declaration
+		return TypeReference.containsNullAnnotation(this.annotations) || 
+				(this.type != null && this.type.hasNullTypeAnnotation()); // just in case
+	}
+
 	public StringBuffer print(int indent, StringBuffer output) {
 
 		printIndent(indent, output);
@@ -196,7 +204,9 @@ public class Argument extends LocalDeclaration {
 		}
 		resolveAnnotations(scope, this.annotations, this.binding, true);
 		Annotation.isTypeUseCompatible(this.type, scope, this.annotations);
-		if (this.type.resolvedType != null && this.type.resolvedType.hasNullTypeAnnotations()) {
+		if (scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled && 
+				(this.type.hasNullTypeAnnotation() || TypeReference.containsNullAnnotation(this.annotations)))
+		{
 			scope.problemReporter().nullAnnotationUnsupportedLocation(this.type);
 		}
 

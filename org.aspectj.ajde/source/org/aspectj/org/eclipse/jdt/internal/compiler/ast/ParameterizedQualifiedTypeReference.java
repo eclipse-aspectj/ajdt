@@ -11,9 +11,10 @@
  *								bug 342671 - ClassCastException: org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding cannot be cast to org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding
  *								bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
  *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
- *								Bug 416181 – [1.8][compiler][null] Invalid assignment is not rejected by the compiler
+ *								Bug 416181 - [1.8][compiler][null] Invalid assignment is not rejected by the compiler
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 434600 - Incorrect null analysis error reporting on type parameters
+ *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
  *        Andy Clement - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
@@ -97,6 +98,24 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 	public boolean isParameterizedTypeReference() {
 		return true;
 	}
+
+	@Override
+    public boolean hasNullTypeAnnotation() {
+    	if (super.hasNullTypeAnnotation())
+    		return true;
+    	if (this.resolvedType != null && !this.resolvedType.hasNullTypeAnnotations())
+    		return false; // shortcut
+    	if (this.typeArguments != null) {
+    		for (int i = 0; i < this.typeArguments.length; i++) {
+    			TypeReference[] arguments = this.typeArguments[i];
+    			for (int j = 0; j < arguments.length; j++) {				
+    				if (arguments[i].hasNullTypeAnnotation())
+    					return true;
+				}
+			}
+    	}
+    	return false;
+    }
 
 	/**
 	 * @return char[][]
@@ -229,8 +248,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 				return null;
 			}
 			ReferenceBinding currentType = (ReferenceBinding) this.resolvedType;
-			if (qualifyingType == null
-					|| (currentType.isMemberType() && TypeBinding.notEquals(qualifyingType,currentType.enclosingType()))) { // AspectJ Extension - pr235829
+			if (qualifyingType == null) {
 				qualifyingType = currentType.enclosingType(); // if member type
 				if (qualifyingType != null) {
 					qualifyingType = currentType.isStatic()
@@ -324,7 +342,7 @@ public class ParameterizedQualifiedTypeReference extends ArrayQualifiedTypeRefer
 					if (((ClassScope) scope).detectHierarchyCycle(currentOriginal, this))
 						return null;
 				if (currentOriginal.isGenericType()) {
-	   			    if (typeIsConsistent && qualifyingType != null && qualifyingType.isParameterizedType()) {
+	   			    if (typeIsConsistent && qualifyingType != null && qualifyingType.isParameterizedType() && !currentOriginal.isStatic()) {
 						scope.problemReporter().parameterizedMemberTypeMissingArguments(this, scope.environment().createParameterizedType(currentOriginal, null, qualifyingType), i);
 						typeIsConsistent = false;
 					}

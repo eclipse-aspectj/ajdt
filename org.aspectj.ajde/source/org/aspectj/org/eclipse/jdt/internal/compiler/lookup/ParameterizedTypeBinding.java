@@ -32,6 +32,8 @@
  *								Bug 428294 - [1.8][compiler] Type mismatch: cannot convert from List<Object> to Collection<Object[]>
  *								Bug 427199 - [1.8][resource] avoid resource leak warnings on Streams that have no resource
  *								Bug 416182 - [1.8][compiler][null] Contradictory null annotations not rejected
+ *								Bug 438458 - [1.8][null] clean up handling of null type annotations wrt type variables
+ *								Bug 438179 - [1.8][null] 'Contradictory null annotations' error on type variable with explicit null-annotation.
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -873,8 +875,27 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 		return isRawType();
 	}
 
-	public TypeBinding unannotated() {
-		return this.hasTypeAnnotations() ? this.environment.getUnannotatedType(this) : this;
+	public TypeBinding unannotated(boolean removeOnlyNullAnnotations) {
+		if (!hasTypeAnnotations())
+			return this;
+		if (removeOnlyNullAnnotations && !hasNullTypeAnnotations())
+			return this;
+		if (removeOnlyNullAnnotations) {
+			ReferenceBinding unannotatedGenericType = (ReferenceBinding) this.environment.getUnannotatedType(this.type);
+			AnnotationBinding[] newAnnotations = this.environment.filterNullTypeAnnotations(this.typeAnnotations);
+			TypeBinding[] newArguments = null;
+			if (this.arguments != null) {
+				newArguments = new TypeBinding[this.arguments.length];
+				for (int i = 0; i < this.arguments.length; i++) {
+					newArguments[i] = this.arguments[i].unannotated(removeOnlyNullAnnotations);
+				}
+			}
+			ReferenceBinding newEnclosing = null;
+			if (this.enclosingType != null)
+				newEnclosing = (ReferenceBinding)this.enclosingType.unannotated(removeOnlyNullAnnotations);
+			return this.environment.createParameterizedType(unannotatedGenericType, newArguments, newEnclosing, newAnnotations);
+		}
+		return this.environment.getUnannotatedType(this);
 	}
 
 	public int kind() {
@@ -1188,7 +1209,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 					    	return originalVariable;
 					 }
 			    	 TypeBinding substitute = currentType.arguments[originalVariable.rank];
-			    	 return originalVariable.hasTypeAnnotations() ? this.environment.createAnnotatedType(substitute, originalVariable.getTypeAnnotations()) : substitute;
+			    	 return originalVariable.combineTypeAnnotations(substitute);
 			    }	
 			}
 			// recurse on enclosing type, as it may hold more substitutions to perform

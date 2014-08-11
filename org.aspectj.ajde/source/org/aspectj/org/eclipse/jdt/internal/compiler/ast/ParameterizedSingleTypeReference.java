@@ -14,6 +14,7 @@
  *								Bug 415043 - [1.8][null] Follow-up re null type annotations after bug 392099
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 434600 - Incorrect null analysis error reporting on type parameters
+ *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
  *        Andy Clement - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
@@ -119,6 +120,21 @@ public class ParameterizedSingleTypeReference extends ArrayTypeReference {
     	return true;
     }
 
+    @Override
+    public boolean hasNullTypeAnnotation() {
+    	if (super.hasNullTypeAnnotation())
+    		return true;
+    	if (this.resolvedType != null && !this.resolvedType.hasNullTypeAnnotations())
+    		return false; // shortcut
+    	if (this.typeArguments != null) {
+    		for (int i = 0; i < this.typeArguments.length; i++) {
+				if (this.typeArguments[i].hasNullTypeAnnotation())
+					return true;
+			}
+    	}
+    	return false;
+    }
+
     /*
      * No need to check for reference to raw type per construction
      */
@@ -150,20 +166,20 @@ public class ParameterizedSingleTypeReference extends ArrayTypeReference {
 			this.resolvedType = createArrayType(scope, this.resolvedType);
 			resolveAnnotations(scope, 0); // no defaultNullness for buggy type
 			if (checkBounds)
-			checkNullConstraints(scope, this.typeArguments);
+				checkNullConstraints(scope, this.typeArguments);
 			return null;							// (1) no useful type, but still captured dimensions into this.resolvedType
 		} else {
 			type = createArrayType(scope, type);
 			if (!this.resolvedType.isValidBinding() && this.resolvedType.dimensions() == type.dimensions()) {
 				resolveAnnotations(scope, 0); // no defaultNullness for buggy type
 				if (checkBounds)
-				checkNullConstraints(scope, this.typeArguments);
+					checkNullConstraints(scope, this.typeArguments);
 				return type;						// (2) found some error, but could recover useful type (like closestMatch)
 			} else {
 				this.resolvedType = type; 			// (3) no complaint, keep fully resolved type (incl. dimensions)
 				resolveAnnotations(scope, location);
 				if (checkBounds)
-				checkNullConstraints(scope, this.typeArguments);
+					checkNullConstraints(scope, this.typeArguments);
 				return this.resolvedType; // pick up any annotated type.
 			}
 		}
