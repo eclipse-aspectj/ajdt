@@ -39,6 +39,10 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.apt.core.internal.JarFactoryContainer;
+import org.eclipse.jdt.apt.core.internal.util.FactoryContainer;
+import org.eclipse.jdt.apt.core.internal.util.FactoryPath;
+import org.eclipse.jdt.apt.core.internal.util.FactoryPathUtil;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -55,7 +59,7 @@ import org.eclipse.osgi.util.NLS;
 public class CoreCompilerConfiguration implements ICompilerConfiguration {
 
     private String cachedClasspath = null;
-    protected IProject project;
+    protected IProject project; 
     protected CoreOutputLocationManager locationManager;
     protected FileURICache fileCache; 
 
@@ -650,5 +654,30 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
     
     public FileURICache getFileCache() {
         return fileCache;
+    }
+
+	public String getProcessor() {
+		return null;
+	}
+
+	public String getProcessorPath() {
+		// Grab the factory entries from the Java Compiler annotation project properties page
+        IJavaProject jp = JavaCore.create(project);
+		FactoryPath fp =  FactoryPathUtil.getFactoryPath(jp);
+		Map<FactoryContainer,FactoryPath.Attributes> containers = fp.getEnabledContainers();
+		ArrayList<File> fileList = new ArrayList<File>( containers.size() );
+		for (Map.Entry<FactoryContainer, FactoryPath.Attributes> entry : containers.entrySet()) {
+			FactoryPath.Attributes attr = entry.getValue();
+			FactoryContainer fc = entry.getKey();
+			if (!attr.runInBatchMode() && fc instanceof JarFactoryContainer) {
+				JarFactoryContainer jfc = (JarFactoryContainer)fc;
+				fileList.add( jfc.getJarFile() );
+			}
+		}
+		StringBuilder fcp = new StringBuilder();
+		for (File f: fileList) {
+			fcp.append(f.getAbsolutePath());
+		}
+		return fcp.toString();
     }
 }

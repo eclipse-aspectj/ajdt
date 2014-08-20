@@ -116,56 +116,59 @@ public final class AjBatchFilerImpl extends BatchFilerImpl {
 
             @Override
             public void write(int c) throws IOException {
-                writer.write(c);
+                this.writer.write(c);
             }
 
             @Override
             public void write(char[] cbuf) throws IOException {
-                writer.write(cbuf);
+            	this.writer.write(cbuf);
             }
 
             @Override
             public void write(String str) throws IOException {
-                writer.write(str);
+            	this.writer.write(str);
             }
 
             @Override
             public void write(String str, int off, int len) throws IOException {
-                writer.write(str, off, len);
+            	this.writer.write(str, off, len);
             }
 
             @Override
             public void write(char[] cbuf, int off, int len) throws IOException {
-                writer.write(cbuf, off, len);
+            	this.writer.write(cbuf, off, len);
             }
 
             @Override
             public void flush() throws IOException {
-                writer.flush();
+            	this.writer.flush();
             }
 
             @Override
             public void close() throws IOException {
-                writer.close();
+            	this.writer.close();
                 onClose();
             }
 
 
             @Override
             public Writer append(CharSequence csq) throws IOException {
-                return writer.append(csq);
+                this.writer.append(csq);
+                return this;
             }
 
 
             @Override
             public Writer append(CharSequence csq, int start, int end) throws IOException {
-                return writer.append(csq, start, end);
+                this.writer.append(csq, start, end);
+                return this;
             }
 
 
             @Override
             public Writer append(char c) throws IOException {
-                return writer.append(c);
+                this.writer.append(c);
+                return this;
             }
         }
 

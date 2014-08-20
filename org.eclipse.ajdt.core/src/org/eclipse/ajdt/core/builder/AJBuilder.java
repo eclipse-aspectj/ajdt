@@ -285,7 +285,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
         final IJavaProject javaProject = JavaCore.create(getProject());
         Map<IFile, List<CategorizedProblem>> newProblems = Collections.emptyMap();
 
-        // now handle particpants
+        // now handle participants
         if (participants != null) {
             if (noSourceChanges) {
                 for (final CompilationParticipant participant : participants) {
@@ -383,7 +383,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
             // there is a null value in the array. must squash the array
             List<BuildContext> resultsList = new ArrayList<BuildContext>(results.length);
             for (BuildContext buildContext : results) {
-                if (results != null) {
+                if (buildContext != null) {
                     resultsList.add(buildContext);
                 }
             }
