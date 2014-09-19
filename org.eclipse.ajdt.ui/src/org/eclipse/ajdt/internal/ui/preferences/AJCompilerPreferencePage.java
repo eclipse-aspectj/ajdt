@@ -462,6 +462,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_invalid_wildcard_type_name_label;
 		addComboBox(othersComposite, label, AspectJPreferences.OPTION_ReportInvalidWildcardTypeName,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
@@ -534,6 +535,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		gd.horizontalSpan = nColumns;
 		description.setLayoutData(gd);
 
+		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_adviceDidNotMatch,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_unmatchedTargetKind;
 		addComboBox(othersComposite, label,
