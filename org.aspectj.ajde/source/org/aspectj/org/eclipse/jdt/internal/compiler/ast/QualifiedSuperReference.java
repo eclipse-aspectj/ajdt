@@ -85,8 +85,10 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type) {
 			this.resolvedType =  new ProblemReferenceBinding(compoundName, 
 					closestMatch, ProblemReasons.AttemptToBypassDirectSuper);
 		}
-		// AspectJ: remove this line. I think we still want to call the super
-		// return 0; // never an outer enclosing type
+		// AspectJ: Conditional. Remove 'return 0' and Interface.super refs fail, leave it in and ITD super refs fail
+		if (this.currentCompatibleType != null) 
+		// End AspectJ extension
+		return 0; // never an outer enclosing type
 	}
 	return super.findCompatibleEnclosing(enclosingType, type);
 }
