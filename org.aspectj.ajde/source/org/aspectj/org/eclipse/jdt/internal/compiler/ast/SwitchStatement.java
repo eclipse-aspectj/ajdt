@@ -301,8 +301,8 @@ public class SwitchStatement extends Statement {
 				defaultBranchLabel.place();
 			}
 			codeStream.recordPositionsFrom(pc, this.sourceStart);
-		} catch (Throwable e) {
-			e.printStackTrace();
+//		} catch (Throwable e) {
+//			e.printStackTrace();
 		}
 		finally {
 			if (this.scope != null) this.scope.enclosingCase = null; // no longer inside switch case block
