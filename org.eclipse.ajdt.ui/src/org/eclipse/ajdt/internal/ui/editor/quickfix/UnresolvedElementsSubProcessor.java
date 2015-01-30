@@ -883,7 +883,7 @@ public class UnresolvedElementsSubProcessor {
 				if (parameterTypes != null) {
 					String sig= ASTResolving.getMethodSignature(methodName, parameterTypes, false);
 	
-					if (ASTResolving.isUseableTypeInContext(parameterTypes, senderDeclBinding, false)) {
+					if (isUseableTypeInContext(parameterTypes, senderDeclBinding, false)) {
 						if (nodeParentType == senderDeclBinding) {
 							label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_createmethod_description, sig);
 							image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PRIVATE);
@@ -897,7 +897,7 @@ public class UnresolvedElementsSubProcessor {
 						ASTNode anonymDecl= astRoot.findDeclaringNode(senderDeclBinding);
 						if (anonymDecl != null) {
 							senderDeclBinding= Bindings.getBindingOfParentType(anonymDecl.getParent());
-							if (!senderDeclBinding.isAnonymous() && ASTResolving.isUseableTypeInContext(parameterTypes, senderDeclBinding, false)) {
+							if (!senderDeclBinding.isAnonymous() && isUseableTypeInContext(parameterTypes, senderDeclBinding, false)) {
 								String[] args= new String[] { sig, ASTResolving.getTypeSignature(senderDeclBinding) };
 								label= Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_createmethod_other_description, args);
 								image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PROTECTED);
@@ -908,6 +908,16 @@ public class UnresolvedElementsSubProcessor {
 				}
 			}
 		}
+	}
+	
+
+	public static boolean isUseableTypeInContext(ITypeBinding[] binding, IBinding context, boolean noWildcards) {
+		for (int i= 0; i < binding.length; i++) {
+			if (!ASTResolving.isUseableTypeInContext(binding[i], context, noWildcards)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static void addMissingCastParentsProposal(ICompilationUnit cu, MethodInvocation invocationNode, Collection proposals) {
