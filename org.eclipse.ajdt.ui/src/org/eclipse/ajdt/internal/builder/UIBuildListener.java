@@ -217,14 +217,14 @@ public class UIBuildListener implements IAJBuildListener {
         CoreCompilerConfiguration compilerConfig = getCompilerConfiguration(project);
         switch (kind) {
             case IncrementalProjectBuilder.CLEAN_BUILD:
-                deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+                deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project,"clean build");
                 deleteUpdateMarkers.doDeleteOnly(true);
                 deleteUpdateMarkers.setPriority(Job.BUILD);
                 deleteUpdateMarkers.schedule();
                 break;
                 
             case IncrementalProjectBuilder.FULL_BUILD:
-                deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project);
+                deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project,"full build");
                 deleteUpdateMarkers.setPriority(Job.BUILD);
                 deleteUpdateMarkers.schedule();
                 break;
@@ -235,7 +235,7 @@ public class UIBuildListener implements IAJBuildListener {
                 if (touchedFiles == null /* recreate all markers */ || 
                         touchedFiles.length > 0) {
                     
-                    deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project, touchedFiles);
+                    deleteUpdateMarkers = new DeleteAndUpdateAJMarkersJob(project, touchedFiles,"auto/incremental build");
                     deleteUpdateMarkers.schedule();
                 }
         }
