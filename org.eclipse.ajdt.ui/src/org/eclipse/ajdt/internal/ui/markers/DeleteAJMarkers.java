@@ -22,35 +22,50 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 public class DeleteAJMarkers {
     private IProject project;
     private final IFile[] sourceFiles;
+    private String reason;
 
-    public DeleteAJMarkers(IProject project) {
+    public DeleteAJMarkers(IProject project,String reason) {
         this.project = project;
         this.sourceFiles = null;
+        this.reason=reason;
     }
     
     /**
      * @deprecated Use {@link DeleteAJMarkers#DeleteAJMarkers(IProject, IFile[])} instead
      */
-    public DeleteAJMarkers(IProject project, File[] sourceFiles) {
+    public DeleteAJMarkers(IProject project, File[] sourceFiles, String reason) {
         this.project = project;
         this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles, project);
+        this.reason=reason;
     }
-    public DeleteAJMarkers(IProject project, IFile[] sourceFiles) {
+    public DeleteAJMarkers(IProject project, IFile[] sourceFiles, String reason) {
         this.project = project;
         this.sourceFiles = sourceFiles;
+        this.reason=reason;
     }
-    
+
+    private String toJobString() {
+    	StringBuilder s = new StringBuilder();
+    	s.append("Delete markers: "+project.getName());
+    	if (reason!=null && reason.length()!=0) {
+    		s.append(" - "+reason);
+    	}
+    	if (sourceFiles != null) {
+    		s.append(" ("+sourceFiles.length+" files)");
+    	}
+    	return s.toString();
+    }
     
     
     protected IStatus run(IProgressMonitor monitor) {
         try {
-            AJLog.logStart("Delete markers: " + project.getName());
+            AJLog.logStart(toJobString());
             if (sourceFiles != null) {
                 deleteMarkersForFiles(monitor);
             } else {
                 deleteAllMarkers(monitor);
             }
-            AJLog.logEnd(AJLog.BUILDER, "Delete markers: " + project.getName(), "Finished deleting markers for " + project.getName());
+            AJLog.logEnd(AJLog.BUILDER, toJobString(), "Finished deleting markers for " + project.getName());
             return Status.OK_STATUS;
         } catch(CoreException e) {
             return new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, 

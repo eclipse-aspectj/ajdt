@@ -58,19 +58,22 @@ public class UpdateAJMarkers {
 	private final IFile[] sourceFiles;
     private int fileCount;
     private int markerCount;
+    private String reason;
 	
 	/**
 	 * To update markers for the entire project
 	 * 
      * @param project the poject that needs updating
 	 */
-    public UpdateAJMarkers(IProject project) {
+    public UpdateAJMarkers(IProject project, String reason) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = null;
         this.fileCount = 0;
         this.markerCount = 0;
+        this.reason = reason;
     }
+    
     /**
      * to update markers for the given files only.
      * 
@@ -81,10 +84,11 @@ public class UpdateAJMarkers {
      * 
      * @deprecated Use {@link UpdateAJMarkers#UpdateAJMarkers(IProject, IFile[])} instead
      */
-    public UpdateAJMarkers(IProject project, File[] sourceFiles) {
+    public UpdateAJMarkers(IProject project, File[] sourceFiles, String reason) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = DeleteAndUpdateAJMarkersJob.javaFileToIFile(sourceFiles, project);        
+        this.reason = reason;
     }
     
     /**
@@ -96,20 +100,33 @@ public class UpdateAJMarkers {
      * need updating 
      * 
      */
-    public UpdateAJMarkers(IProject project, IFile[] sourceFiles) {
+    public UpdateAJMarkers(IProject project, IFile[] sourceFiles, String reason) {
         this.model = AJProjectModelFactory.getInstance().getModelForProject(project);
         this.project = project;
         this.sourceFiles = sourceFiles;        
+        this.reason = reason;
     }
 	
+    private String toJobString() {
+    	StringBuilder s = new StringBuilder();
+    	s.append("Create markers: "+project.getName());
+    	if (reason!=null && reason.length()!=0) {
+    		s.append(" - "+reason);
+    	}
+    	if (sourceFiles != null) {
+    		s.append(" ("+sourceFiles.length+" files)");
+    	}
+    	return s.toString();
+    }
+    
 	protected IStatus run(IProgressMonitor monitor) {
-        AJLog.logStart("Create markers: " + project.getName());
+        AJLog.logStart(toJobString());
         if (sourceFiles != null) {
             addMarkersForFiles(monitor);
         } else {
             addMarkersForProject(monitor);
         }
-        AJLog.logEnd(AJLog.BUILDER, "Create markers: " + project.getName(), "Finished creating markers for " + project.getName());
+        AJLog.logEnd(AJLog.BUILDER, toJobString(), "Finished creating markers for " + project.getName());
         AJLog.log(AJLog.BUILDER, "Created " + markerCount + " markers in " + fileCount + " files");
         return Status.OK_STATUS;
     }

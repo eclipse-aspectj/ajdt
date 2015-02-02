@@ -28,33 +28,33 @@ public class DeleteAndUpdateAJMarkersJob extends Job {
     
     public DeleteAndUpdateAJMarkersJob(IProject project, String reason) {
         super("Delete and update AspectJ markers for " + project.getName()+": "+reason);
-        update = new UpdateAJMarkers(project);
-        delete = new DeleteAJMarkers(project);
+        update = new UpdateAJMarkers(project,reason);
+        delete = new DeleteAJMarkers(project,reason);
         rule = createSchedulingRule(project, null);    	
     }
 
     public DeleteAndUpdateAJMarkersJob(IProject project) {
         super("Delete and update AspectJ markers for " + project.getName());
-        update = new UpdateAJMarkers(project);
-        delete = new DeleteAJMarkers(project);
+        update = new UpdateAJMarkers(project,"");
+        delete = new DeleteAJMarkers(project,"");
         rule = createSchedulingRule(project, null);
     }
 
     public DeleteAndUpdateAJMarkersJob(IProject project, File[] sourceFiles, String reason) {
         super("Delete and update AspectJ markers for " + project.getName()+": "+reason);
         IFile[] iFiles = javaFileToIFile(sourceFiles, project);
-        update = new UpdateAJMarkers(project, iFiles);
-        delete = new DeleteAJMarkers(project, iFiles);
+        update = new UpdateAJMarkers(project, iFiles,reason);
+        delete = new DeleteAJMarkers(project, iFiles,reason);
         rule = createSchedulingRule(project, iFiles);
     }
 
-    public DeleteAndUpdateAJMarkersJob(IProject project, File[] sourceFiles) {
-        super("Delete and update AspectJ markers for " + project.getName());
-        IFile[] iFiles = javaFileToIFile(sourceFiles, project);
-        update = new UpdateAJMarkers(project, iFiles);
-        delete = new DeleteAJMarkers(project, iFiles);
-        rule = createSchedulingRule(project, iFiles);
-    }
+//    public DeleteAndUpdateAJMarkersJob(IProject project, File[] sourceFiles, String reason) {
+//        super("Delete and update AspectJ markers for " + project.getName());
+//        IFile[] iFiles = javaFileToIFile(sourceFiles, project);
+//        update = new UpdateAJMarkers(project, iFiles,reason);
+//        delete = new DeleteAJMarkers(project, iFiles,reason);
+//        rule = createSchedulingRule(project, iFiles);
+//    }
 
     public IStatus run(IProgressMonitor monitor) {
         try {
