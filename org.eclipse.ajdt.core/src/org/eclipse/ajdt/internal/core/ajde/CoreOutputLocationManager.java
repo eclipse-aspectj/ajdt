@@ -279,10 +279,24 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		}
 	}
 	
+	private boolean isComputingXmlFile() {
+		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+		int max = stacktrace.length;
+		if (max > 6) max = 6;
+		for (int i=(max-1);i>0;i--) {
+			String s = stacktrace[i].toString();
+			// org.aspectj.ajdt.internal.core.builder.AjBuildManager.writeOutxmlFile(AjBuildManager.java:659) probably at i==4
+			if (s.startsWith("org.aspectj.ajdt.internal.core.builder.AjBuildManager.writeOutxmlFile")) {
+				return true;
+			}
+		}	
+		return false;
+	}
+	
 	public File getOutputLocationForClass(File compilationUnit) {
 	    // remember that this file has been asked for
 	    // presumably it is being recompiled
-	    if (Util.isJavaLikeFileName(compilationUnit.getName())) {     
+	    if (Util.isJavaLikeFileName(compilationUnit.getName()) && !isComputingXmlFile()) {     
 	        compiledSourceFiles.add(compilationUnit);
 	    }
 	    
