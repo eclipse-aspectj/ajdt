@@ -113,6 +113,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			sr.close();
 			try {Thread.sleep(1000); } catch (Exception e) {}
 			project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+			waitForAutoBuild();
 			assertTrue("project should have errors, but had:\n" + testLog.getLog(), testLog //$NON-NLS-1$
 					.containsMessage("Syntax error on")); //$NON-NLS-1$
 			assertTrue("bin directory should contain class file", //$NON-NLS-1$
