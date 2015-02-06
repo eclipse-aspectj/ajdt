@@ -56,7 +56,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	 * 
 	 * @throws Exception
 	 */
-	public void testCleanBuild() throws Exception {
+	public void xtestCleanBuild() throws Exception {
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		IProject project = createPredefinedProject("bug101481"); //$NON-NLS-1$
