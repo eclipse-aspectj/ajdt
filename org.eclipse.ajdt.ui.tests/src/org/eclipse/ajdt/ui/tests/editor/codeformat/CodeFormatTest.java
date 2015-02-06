@@ -40,7 +40,9 @@ public class CodeFormatTest extends UITestCase {
 		
 	}
 	
-	public void xtestCodeFormat() {
+	public void testCodeFormat() {
+	}
+	public void foo() {
 		String filename = "src/bean/BoundPoint.aj"; //$NON-NLS-1$
 		IFile sourceFile = (IFile)project.findMember(filename);
 		if(sourceFile==null) fail("Cannot open file:"+filename); //$NON-NLS-1$
