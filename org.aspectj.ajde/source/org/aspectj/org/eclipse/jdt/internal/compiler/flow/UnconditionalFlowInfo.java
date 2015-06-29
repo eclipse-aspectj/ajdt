@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for
+ *     Stephan Herrmann - Contributions for
  *     						bug 325755 - [compiler] wrong initialization state after conditional expression
  *     						bug 320170 - [compiler] [null] Whitebox issues in null analysis
  *     						bug 292478 - Report potentially null across variable assignment
@@ -17,8 +17,13 @@
  *							bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *							bug 386181 - [compiler][null] wrong transition in UnconditionalFlowInfo.mergedWith()
  *							bug 394768 - [compiler][resource] Incorrect resource leak warning when creating stream in conditional
+ *							Bug 453483 - [compiler][null][loop] Improve null analysis for loops
+ *							Bug 454031 - [compiler][null][loop] bug in null analysis; wrong "dead code" detection
+ *							Bug 421035 - [resource] False alarm of resource leak warning when casting a closeable in its assignment
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
+
+import java.util.Arrays;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
@@ -80,12 +85,18 @@ public class UnconditionalFlowInfo extends FlowInfo {
 		1110	prot. null
 		1111	prot. non null
  */
+	public long 
+		iNBit,	// can an incoming null value reach the current point?
+		iNNBit;	// can an incoming nonnull value reach the current point?
 
 	// extra segments
-	public static final int extraLength = 6;
+	public static final int extraLength = 8;
 	public long extra[][];
 		// extra bit fields for larger numbers of fields/variables
 		// extra[0] holds definiteInits values, extra[1] potentialInits, etc.
+		// extra[1+1]... corresponds to nullBits1 ...
+		// extra[IN] is iNBit
+		// extra[INN] is iNNBit
 		// lifecycle is extra == null or else all extra[]'s are allocated
 		// arrays which have the same size
 
@@ -93,6 +104,8 @@ public class UnconditionalFlowInfo extends FlowInfo {
 
 	// Constants
 	public static final int BitCacheSize = 64; // 64 bits in a long.
+	public static final int IN = 6;
+	public static final int INN = 7;
 
 /* fakeInitializedFlowInfo: For Lambda expressions tentative analysis during overload resolution. 
    We presume that any and all outer locals touched by the lambda are definitely assigned and 
@@ -133,6 +146,8 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
 	// combine null information
 	boolean thisHadNulls = (this.tagBits & NULL_FLAG_MASK) != 0,
 		otherHasNulls = (otherInits.tagBits & NULL_FLAG_MASK) != 0;
+//	if ((otherInits.iNNBit | otherInits.iNBit) == 0)
+//		thisHadNulls = false; // suppress incoming null info, if none shines through in other
 	long
 		a1, a2, a3, a4,
 		na1, na2, na3, na4,
@@ -144,6 +159,8 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
 			this.nullBit2 = otherInits.nullBit2;
 			this.nullBit3 = otherInits.nullBit3;
 			this.nullBit4 = otherInits.nullBit4;
+			this.iNBit = otherInits.iNBit;
+			this.iNNBit = otherInits.iNNBit;
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 1) {
 				  this.nullBit4 = ~0;
@@ -151,12 +168,33 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
 			}
 		}
 		else {
+			a1 = this.nullBit1;
+			a2 = this.nullBit2;
+			a3 = this.nullBit3;
+			a4 = this.nullBit4;
+
+			// state that breaks the correlation between bits and n or nn, used below:
+			long protNN1111 = a1&a2&a3&a4;
+
+			// filter 'a' using iNBit,iNNBit from otherInits:
+			// this implements that otherInit does not accept certain bits which are known to be superseded by info in otherInits.			
+			long acceptNonNull = otherInits.iNNBit;
+			long acceptNull = otherInits.iNBit
+								| protNN1111; // for 1111 don't bother suppressing incoming null, logic operation would produce wrong result
+			long dontResetToStart = ~protNN1111 | acceptNonNull; // for 1111 & ~acceptNonNull we reset all bits to 0000
+
+			a1 &= dontResetToStart;
+			a2 = dontResetToStart & acceptNull & a2;
+			a3 = dontResetToStart & acceptNonNull & a3;
+			a4 &= dontResetToStart;
+			a1 &= (a2 | a3 | a4);		// translate 1000 (undefined state) to 0000
+			
 			this.nullBit1 = (b1 = otherInits.nullBit1)
-                				| (a1 = this.nullBit1) & ((a3 = this.nullBit3)
-                					& (a4 = this.nullBit4) & (nb2 = ~(b2 = otherInits.nullBit2))
+                				| a1 & (a3
+                					& a4 & (nb2 = ~(b2 = otherInits.nullBit2))
                 					& (nb4 = ~(b4 = otherInits.nullBit4))
                         		| ((na4 = ~a4) | (na3 = ~a3))
-                        			& ((na2 = ~(a2 = this.nullBit2)) & nb2
+                        			& ((na2 = ~a2) & nb2
                         				| a2 & (nb3 = ~(b3 = otherInits.nullBit3)) & nb4));
 			this.nullBit2  = b2 & (nb4 | nb3)
                     			| na3 & na4 & b2
@@ -179,6 +217,10 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
                           			| na1 & (b4	| (a4 | a2) & b2 & b3))
                       			| (na1 & (na3 & nb3 | na2 & nb2)
                       				| a1 & (nb2 & nb3 | a2 & a3)) & b4;
+
+			// unconditional sequence, must shine through both to shine through in the end:
+			this.iNBit &= otherInits.iNBit;
+			this.iNNBit &= otherInits.iNNBit;
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 2) {
 				  this.nullBit4 = ~0;
@@ -243,6 +285,8 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
 				for (int j = 2; j < extraLength; j++) {
 					this.extra[j] = new long[otherLength];
 				}
+				System.arraycopy(otherInits.extra[IN], 0, this.extra[IN], 0, otherLength);
+				System.arraycopy(otherInits.extra[INN], 0, this.extra[INN], 0, otherLength);
 				if (COVERAGE_TEST_FLAG) {
 					if (CoverageTestId == 6) {
 						throw new AssertionFailedException("COVERAGE 6"); //$NON-NLS-1$
@@ -275,14 +319,34 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
 		  	mergeLimit = 0;
 		}
 		for (i = 0; i < mergeLimit; i++) {
+			a1 = this.extra[1 + 1][i];
+			a2 = this.extra[2 + 1][i];
+			a3 = this.extra[3 + 1][i];
+			a4 = this.extra[4 + 1][i];
+			// state that breaks the correlation between bits and n or nn, used below:
+			long protNN1111 = a1&a2&a3&a4;
+
+			// filter 'a' using iNBit,iNNBit from otherInits:
+			// this implements that otherInit does not accept certain bits which are known to be superseded by info in otherInits.			
+			long acceptNonNull = otherInits.extra[INN][i];
+			long acceptNull = otherInits.extra[IN][i]
+								| protNN1111; // for 1111 don't bother suppressing incoming null, logic operation would produce wrong result
+			long dontResetToStart = ~protNN1111 | acceptNonNull; // for 1111 & ~acceptNonNull we reset all bits to 0000
+
+			a1 &= dontResetToStart;
+			a2 = dontResetToStart & acceptNull & a2;
+			a3 = dontResetToStart & acceptNonNull & a3;
+			a4 &= dontResetToStart;
+			a1 &= (a2 | a3 | a4);		// translate 1000 (undefined state) to 0000
+
 			this.extra[1 + 1][i] = (b1 = otherInits.extra[1 + 1][i])
-                				| (a1 = this.extra[1 + 1][i]) & ((a3 = this.extra[3 + 1][i])
-                					& (a4 = this.extra[4 + 1][i]) & (nb2 = ~(b2 = otherInits.extra[2 + 1][i]))
+                				| a1 & (a3 
+                					& a4 & (nb2 = ~(b2 = otherInits.extra[2 + 1][i]))
                 					& (nb4 = ~(b4 = otherInits.extra[4 + 1][i]))
                         		| ((na4 = ~a4) | (na3 = ~a3))
-                        			& ((na2 = ~(a2 = this.extra[2 + 1][i])) & nb2
+                        			& ((na2 = ~a2) & nb2
                         				| a2 & (nb3 = ~(b3 = otherInits.extra[3 + 1][i])) & nb4));
-			this.extra[2 + 1][i]  = b2 & (nb4 | nb3)
+			this.extra[2 + 1][i] = b2 & (nb4 | nb3)
                     			| na3 & na4 & b2
                     			| a2 & (nb3 & nb4
                                 			| (nb1 = ~b1) & (na3 | (na1 = ~a1))
@@ -303,6 +367,11 @@ private FlowInfo addInfoFrom(FlowInfo inits, boolean handleInits) {
                           			| na1 & (b4	| (a4 | a2) & b2 & b3))
                       			| (na1 & (na3 & nb3 | na2 & nb2)
                       				| a1 & (nb2 & nb3 | a2 & a3)) & b4;
+
+			// unconditional sequence, must shine through both to shine through in the end:
+			this.extra[IN][i] &= otherInits.extra[IN][i];
+			this.extra[INN][i] &= otherInits.extra[INN][i];
+
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 7) {
 				  this.extra[5][i] = ~0;
@@ -362,10 +431,7 @@ public FlowInfo addPotentialInitializationsFrom(FlowInfo inits) {
 	else if (otherInits.extra != null) {
 		// no storage here, but other has extra storage.
 		int otherLength = otherInits.extra[0].length;
-		this.extra = new long[extraLength][];
-		for (int j = 0; j < extraLength; j++) {
-			this.extra[j] = new long[otherLength];
-		}
+		createExtraSpace(otherLength);
 		System.arraycopy(otherInits.extra[1], 0, this.extra[1], 0,
 			otherLength);
 	}
@@ -420,6 +486,7 @@ public UnconditionalFlowInfo addPotentialNullInfoFrom(
     			| nb2 & (na3 & b1 & nb3	| na2 & (nb1 & b4 | b1 & nb3 | a4))
     			| a3 & (a4 & (nb2 | b1 & b3)
             			| a1 & a2 & (nb1 & b4 | na4 & (b2 | b1) & nb3));
+		// this and then pot.other: leave iNBit & iNNBit untouched
 		if (COVERAGE_TEST_FLAG) {
 			if (CoverageTestId == 9) {
 			  this.nullBit4 = ~0;
@@ -435,6 +502,7 @@ public UnconditionalFlowInfo addPotentialNullInfoFrom(
   								(nb1 = ~(b1 = otherInits.nullBit1)));
   		this.nullBit3 = b3 & (nb1 | (nb2 = ~b2));
   		this.nullBit4 = ~b1 & ~b3 & (b4 = otherInits.nullBit4) | ~b2 & (b1 & ~b3 | ~b1 & b4);
+		// this and then pot.other: leave iNBit & iNNBit untouched
 		if (COVERAGE_TEST_FLAG) {
 			if (CoverageTestId == 10) {
 			  this.nullBit4 = ~0;
@@ -448,10 +516,7 @@ public UnconditionalFlowInfo addPotentialNullInfoFrom(
 	if (otherInits.extra != null) {
 		int mergeLimit = 0, copyLimit = otherInits.extra[0].length;
 		if (this.extra == null) {
-			this.extra = new long[extraLength][];
-			for (int j = 0; j < extraLength; j++) {
-				this.extra[j] = new long[copyLimit];
-			}
+			createExtraSpace(copyLimit);
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 11) {
 					throw new AssertionFailedException("COVERAGE 11"); //$NON-NLS-1$
@@ -501,6 +566,7 @@ public UnconditionalFlowInfo addPotentialNullInfoFrom(
         			| nb2 & (na3 & b1 & nb3	| na2 & (nb1 & b4 | b1 & nb3 | a4))
         			| a3 & (a4 & (nb2 | b1 & b3)
                 			| a1 & a2 & (nb1 & b4 | na4 & (b2 | b1) & nb3));
+    		// this and then pot.other: leave iNBit & iNNBit untouched
     		if ((this.extra[2 + 1][i] | this.extra[3 + 1][i] | this.extra[4 + 1][i]) != 0) { //  bit1 is redundant
     		  	thisHasNulls = true;
     		}
@@ -517,6 +583,7 @@ public UnconditionalFlowInfo addPotentialNullInfoFrom(
     								(nb1 = ~(b1 = otherInits.extra[1 + 1][i])));
     		this.extra[3 + 1][i] = b3 & (nb1 | (nb2 = ~b2));
     		this.extra[4 + 1][i] = ~b1 & ~b3 & (b4 = otherInits.extra[4 + 1][i]) | ~b2 & (b1 & ~b3 | ~b1 & b4);
+    		// this and then pot.other: leave iNBit & iNNBit untouched
     		if ((this.extra[2 + 1][i] | this.extra[3 + 1][i] | this.extra[4 + 1][i]) != 0) { //  bit1 is redundant
     		  	thisHasNulls = true;
     		}
@@ -636,6 +703,8 @@ public FlowInfo copy() {
 		copy.nullBit3 = this.nullBit3;
 		copy.nullBit4 = this.nullBit4;
 	}
+	copy.iNBit = this.iNBit;
+	copy.iNNBit = this.iNNBit;
 	copy.tagBits = this.tagBits;
 	copy.maxFieldCount = this.maxFieldCount;
 	if (this.extra != null) {
@@ -694,6 +763,8 @@ public UnconditionalFlowInfo discardNonFieldInitializations() {
 		this.nullBit2 &= mask;
 		this.nullBit3 &= mask;
 		this.nullBit4 &= mask;
+		this.iNBit &= mask;
+		this.iNNBit &= mask;
 	}
 	// use extra vector
 	if (this.extra == null) {
@@ -1078,6 +1149,8 @@ public void markAsComparedEqualToNonNull(LocalVariableBinding local) {
 			}
 			this.nullBit1 |= mask;
 			this.nullBit3 |= mask;
+			// it was not null;
+			this.iNBit &= ~mask;
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 15) {
 				  	this.nullBit4 = ~0;
@@ -1089,10 +1162,7 @@ public void markAsComparedEqualToNonNull(LocalVariableBinding local) {
 			int vectorIndex = (position / BitCacheSize) - 1;
 			if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length];
-				}
+				createExtraSpace(length);
 				if (COVERAGE_TEST_FLAG) {
 					if (CoverageTestId == 16) {
 						throw new AssertionFailedException("COVERAGE 16"); //$NON-NLS-1$
@@ -1136,6 +1206,8 @@ public void markAsComparedEqualToNonNull(LocalVariableBinding local) {
   			}
   			this.extra[1 + 1][vectorIndex] |= mask;
   			this.extra[3 + 1][vectorIndex] |= mask;
+			// it was not null;
+			this.extra[IN][vectorIndex] &= ~mask;
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 18) {
 				  	this.extra[5][vectorIndex] = ~0;
@@ -1172,6 +1244,8 @@ public void markAsComparedEqualToNull(LocalVariableBinding local) {
 			}
 			this.nullBit1 |= mask;
 			this.nullBit2 |= mask;
+			// it was null;
+			this.iNNBit &= ~mask;
 			if (COVERAGE_TEST_FLAG) {
 				if (CoverageTestId == 19) {
 				  	this.nullBit4 = ~0;
@@ -1184,10 +1258,7 @@ public void markAsComparedEqualToNull(LocalVariableBinding local) {
 			mask = 1L << (position % BitCacheSize);
 			if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length ];
-				}
+				createExtraSpace(length);
 				if (COVERAGE_TEST_FLAG) {
 					if(CoverageTestId == 20) {
 						throw new AssertionFailedException("COVERAGE 20"); //$NON-NLS-1$
@@ -1228,6 +1299,8 @@ public void markAsComparedEqualToNull(LocalVariableBinding local) {
 			}
 			this.extra[1 + 1][vectorIndex] |= mask;
 			this.extra[2 + 1][vectorIndex] |= mask;
+			// it was null;
+			this.extra[INN][vectorIndex] &= ~mask;
 		}
 	}
 }
@@ -1250,10 +1323,7 @@ final private void markAsDefinitelyAssigned(int position) {
 			int vectorIndex = (position / BitCacheSize) - 1;
 			if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length];
-				}
+				createExtraSpace(length);
 			}
 			else {
 				int oldLength; // might need to grow the arrays
@@ -1297,6 +1367,9 @@ public void markAsDefinitelyNonNull(LocalVariableBinding local) {
     		// clear others
     		this.nullBit2 &= (mask = ~mask);
     		this.nullBit4 &= mask;
+    		// old value no longer shining through
+    		this.iNBit &= mask;
+    		this.iNNBit &= mask;
     		if (COVERAGE_TEST_FLAG) {
     			if(CoverageTestId == 22) {
 	    		  	this.nullBit1 = 0;
@@ -1308,10 +1381,7 @@ public void markAsDefinitelyNonNull(LocalVariableBinding local) {
     		int vectorIndex = (position / BitCacheSize) - 1;
     		if (this.extra == null) {
     			int length = vectorIndex + 1;
-    			this.extra = new long[extraLength][];
-    			for (int j = 0; j < extraLength; j++) {
-    				this.extra[j] = new long[length];
-    			}
+    			createExtraSpace(length);
     		}
     		else {
     			int oldLength; // might need to grow the arrays
@@ -1328,6 +1398,9 @@ public void markAsDefinitelyNonNull(LocalVariableBinding local) {
     		this.extra[4][vectorIndex] |= mask;
     		this.extra[3][vectorIndex] &= (mask = ~mask);
     		this.extra[5][vectorIndex] &= mask;
+    		// old value no longer shining through
+    		this.extra[IN][vectorIndex] &= mask;
+    		this.extra[INN][vectorIndex] &= mask;
     		if (COVERAGE_TEST_FLAG) {
     			if(CoverageTestId == 23) {
 	    			this.extra[2][vectorIndex] = 0;
@@ -1351,6 +1424,9 @@ public void markAsDefinitelyNull(LocalVariableBinding local) {
     		// clear others
     		this.nullBit3 &= (mask = ~mask);
     		this.nullBit4 &= mask;
+    		// old value no longer shining through
+    		this.iNBit &= mask;
+    		this.iNNBit &= mask;
     		if (COVERAGE_TEST_FLAG) {
     			if(CoverageTestId == 24) {
 	    		  	this.nullBit4 = ~0;
@@ -1362,10 +1438,7 @@ public void markAsDefinitelyNull(LocalVariableBinding local) {
     		int vectorIndex = (position / BitCacheSize) - 1;
     		if (this.extra == null) {
     			int length = vectorIndex + 1;
-    			this.extra = new long[extraLength][];
-    			for (int j = 0; j < extraLength; j++) {
-    				this.extra[j] = new long[length];
-    			}
+    			createExtraSpace(length);
     		}
     		else {
     			int oldLength; // might need to grow the arrays
@@ -1382,6 +1455,9 @@ public void markAsDefinitelyNull(LocalVariableBinding local) {
     		this.extra[3][vectorIndex] |= mask;
     		this.extra[4][vectorIndex] &= (mask = ~mask);
     		this.extra[5][vectorIndex] &= mask;
+    		// old value no longer shining through
+    		this.extra[IN][vectorIndex] &= mask;
+    		this.extra[INN][vectorIndex] &= mask;
     		if (COVERAGE_TEST_FLAG) {
     			if(CoverageTestId == 25) {
 	    			this.extra[5][vectorIndex] = ~0;
@@ -1412,6 +1488,9 @@ public void markAsDefinitelyUnknown(LocalVariableBinding local) {
 			// clear others
 			this.nullBit2 &= (mask = ~mask);
 			this.nullBit3 &= mask;
+    		// old value no longer shining through
+    		this.iNBit &= mask;
+    		this.iNNBit &= mask;
 			if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 26) {
 				  	this.nullBit4 = 0;
@@ -1423,10 +1502,7 @@ public void markAsDefinitelyUnknown(LocalVariableBinding local) {
 			int vectorIndex = (position / BitCacheSize) - 1;
 			if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length];
-				}
+				createExtraSpace(length);
 			}
 			else {
 				int oldLength; // might need to grow the arrays
@@ -1443,6 +1519,9 @@ public void markAsDefinitelyUnknown(LocalVariableBinding local) {
 			this.extra[5][vectorIndex] |= mask;
 			this.extra[3][vectorIndex] &= (mask = ~mask);
 			this.extra[4][vectorIndex] &= mask;
+    		// old value no longer shining through
+    		this.extra[IN][vectorIndex] &= mask;
+    		this.extra[INN][vectorIndex] &= mask;
 			if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 27) {
 					this.extra[5][vectorIndex] = 0;
@@ -1463,6 +1542,8 @@ public void resetNullInfo(LocalVariableBinding local) {
             this.nullBit2 &= mask;
             this.nullBit3 &= mask;
             this.nullBit4 &= mask;
+            this.iNBit &= mask;
+            this.iNNBit &= mask;
         } else {
     		// use extra vector
     		int vectorIndex = (position / BitCacheSize) - 1;
@@ -1476,6 +1557,8 @@ public void resetNullInfo(LocalVariableBinding local) {
     		this.extra[3][vectorIndex] &= mask;
     		this.extra[4][vectorIndex] &= mask;
     		this.extra[5][vectorIndex] &= mask;
+    		this.extra[IN][vectorIndex] &= mask;
+    		this.extra[INN][vectorIndex] &= mask;
     	}
 	}
 }
@@ -1505,10 +1588,7 @@ public void markPotentiallyUnknownBit(LocalVariableBinding local) {
     		int vectorIndex = (position / BitCacheSize) - 1;
     		if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length];
-				}
+				createExtraSpace(length);
 			}
 			else {
 				int oldLength; // might need to grow the arrays
@@ -1555,10 +1635,7 @@ public void markPotentiallyNullBit(LocalVariableBinding local) {
     		int vectorIndex = (position / BitCacheSize) - 1;
     		if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length];
-				}
+				createExtraSpace(length);
 			}
 			else {
 				int oldLength; // might need to grow the arrays
@@ -1605,10 +1682,7 @@ public void markPotentiallyNonNullBit(LocalVariableBinding local) {
     		int vectorIndex  = (position / BitCacheSize) - 1;
     		if (this.extra == null) {
 				int length = vectorIndex + 1;
-				this.extra = new long[extraLength][];
-				for (int j = 0; j < extraLength; j++) {
-					this.extra[j] = new long[length];
-				}
+				createExtraSpace(length);
 			}
 			else {
 				int oldLength; // might need to grow the arrays
@@ -1675,6 +1749,8 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 		this.nullBit2 = otherInits.nullBit2;
 		this.nullBit3 = otherInits.nullBit3;
 		this.nullBit4 = otherInits.nullBit4;
+		this.iNBit = otherInits.iNBit;
+		this.iNNBit = otherInits.iNNBit;
 		thisHadNulls = false;
 		thisHasNulls = otherHasNulls;
 		this.tagBits = otherInits.tagBits;
@@ -1719,11 +1795,15 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
     			}
     		}
     	}
+    	this.iNBit |= otherInits.iNBit;
+    	this.iNNBit |= otherInits.iNNBit;
 	} else if (otherHasNulls) { // only other had nulls
   		this.nullBit1 = 0;
   		this.nullBit2 = (b2 = otherInits.nullBit2) & (nb3 = ~(b3 = otherInits.nullBit3) | (nb1 = ~(b1 = otherInits.nullBit1)));
   		this.nullBit3 = b3 & ((nb2 = ~b2) & (b4 = otherInits.nullBit4) | nb1) | b1 & nb2 & ~b4;
   		this.nullBit4 = (nb3 | nb2) & nb1 & b4	| b1 & nb3 & nb2;
+  		this.iNBit |= otherInits.iNBit;
+  		this.iNNBit |= otherInits.iNNBit;
   		if (COVERAGE_TEST_FLAG) {
   			if(CoverageTestId == 32) {
 	  		  	this.nullBit4 = ~0;
@@ -1788,6 +1868,8 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
 			}
 			System.arraycopy(otherInits.extra[1], 0,
 				this.extra[1], 0, otherLength);
+			System.arraycopy(otherInits.extra[IN], 0, this.extra[IN], 0, otherLength);
+			System.arraycopy(otherInits.extra[INN], 0, this.extra[INN], 0, otherLength);
 			copyLimit = otherLength;
 			if (COVERAGE_TEST_FLAG) {
 				if(CoverageTestId == 36) {
@@ -1841,6 +1923,8 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
                 			| na2 & b3 & b4
                 			| a2 & (nb1 & b4 | a3 & na4 & b1) & nb3)
                 	|nb1 & b2 & b3 & b4;
+    		this.extra[IN][i] |= otherInits.extra[IN][i];
+    		this.extra[INN][i] |= otherInits.extra[INN][i];
 			thisHasNulls = thisHasNulls ||
 				this.extra[3][i] != 0 ||
 				this.extra[4][i] != 0 ||
@@ -1856,6 +1940,8 @@ public UnconditionalFlowInfo mergedWith(UnconditionalFlowInfo otherInits) {
     		this.extra[2 + 1][i] = (b2 = otherInits.extra[2 + 1][i]) & (nb3 = ~(b3 = otherInits.extra[3 + 1][i]) | (nb1 = ~(b1 = otherInits.extra[1 + 1][i])));
     		this.extra[3 + 1][i] = b3 & ((nb2 = ~b2) & (b4 = otherInits.extra[4 + 1][i]) | nb1) | b1 & nb2 & ~b4;
     		this.extra[4 + 1][i] = (nb3 | nb2) & nb1 & b4	| b1 & nb3 & nb2;
+    		this.extra[IN][i] |= otherInits.extra[IN][i];
+    		this.extra[INN][i] |= otherInits.extra[INN][i];
 			thisHasNulls = thisHasNulls ||
 				this.extra[3][i] != 0 ||
 				this.extra[4][i] != 0 ||
@@ -1912,7 +1998,11 @@ public UnconditionalFlowInfo nullInfoLessUnconditionalCopy() {
 	UnconditionalFlowInfo copy = new UnconditionalFlowInfo();
 	copy.definiteInits = this.definiteInits;
 	copy.potentialInits = this.potentialInits;
+	// no nullness known means: any previous nullness could shine through:
+	copy.iNBit = -1L;
+	copy.iNNBit = -1L;
 	copy.tagBits = this.tagBits & ~NULL_FLAG_MASK;
+	copy.tagBits |= UNROOTED;
 	copy.maxFieldCount = this.maxFieldCount;
 	if (this.extra != null) {
 		int length;
@@ -1925,6 +2015,9 @@ public UnconditionalFlowInfo nullInfoLessUnconditionalCopy() {
 		for (int j = 2; j < extraLength; j++) {
 			copy.extra[j] = new long[length];
 		}
+		// no nullness known means: any previous nullness could shine through:
+		Arrays.fill(copy.extra[IN], -1L);
+		Arrays.fill(copy.extra[INN], -1L);
 	}
 	return copy;
 }
@@ -1970,6 +2063,7 @@ public String toString(){
 				+ ", reachable:" + ((this.tagBits & UNREACHABLE) == 0) //$NON-NLS-1$
 				+", null: " + this.nullBit1 //$NON-NLS-1$
 					+ this.nullBit2 + this.nullBit3 + this.nullBit4
+				+", incoming: " + this.iNBit + this.iNNBit //$NON-NLS-1$
 				+">"; //$NON-NLS-1$
 		}
 		else {
@@ -1985,7 +2079,8 @@ public String toString(){
 				def += "," + this.extra[0][i]; //$NON-NLS-1$
 				pot += "," + this.extra[1][i]; //$NON-NLS-1$
 				nullS += "," + this.extra[2][i] //$NON-NLS-1$
-				    + this.extra[3][i] + this.extra[4][i] + this.extra[5][i];
+				    + this.extra[3][i] + this.extra[4][i] + this.extra[5][i]
+					+", incoming: " + this.extra[IN][i] + this.extra[INN]; //$NON-NLS-1$
 			}
 			if (ceil < this.extra[0].length) {
 				def += ",..."; //$NON-NLS-1$
@@ -2045,6 +2140,8 @@ public UnconditionalFlowInfo unconditionalFieldLessCopy() {
 		copy.nullBit2 = this.nullBit2 & mask;
 		copy.nullBit3 = this.nullBit3 & mask;
 		copy.nullBit4 = this.nullBit4 & mask;
+		copy.iNBit = this.iNBit & mask;
+		copy.iNNBit = this.iNNBit & mask;
 	}
 	// use extra vector
 	if (this.extra == null) {
@@ -2066,9 +2163,7 @@ public UnconditionalFlowInfo unconditionalFieldLessCopy() {
 		}
 	}
 	else if (vectorIndex >= 0) {
-		for (int j = 0; j < extraLength; j++) {
-			copy.extra[j] = new long[length];
-		}
+		copy.createExtraSpace(length);
 	}
 	if (vectorIndex >= 0) {
 		mask = ~((1L << (limit % BitCacheSize))-1);
@@ -2110,6 +2205,17 @@ public void resetAssignmentInfo(int position) {
 				(mask = ~(1L << (position % BitCacheSize)));
 			this.extra[1][vectorIndex] &= mask;
 		}
+	}
+}
+
+private void createExtraSpace(int length) {
+	this.extra = new long[extraLength][];
+	for (int j = 0; j < extraLength; j++) {
+		this.extra[j] = new long[length];
+	}
+	if ((this.tagBits & UNROOTED) != 0) {
+		Arrays.fill(this.extra[IN], -1L);
+		Arrays.fill(this.extra[INN], -1L);
 	}
 }
 }

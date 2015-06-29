@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,8 @@
  *								bug 400761 - [compiler][null] null may be return as boolean without a diagnostic
  *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *								Bug 429403 - [1.8][null] null mismatch from type arguments is not reported at field initializer
+ *								Bug 453483 - [compiler][null][loop] Improve null analysis for loops
+ *								Bug 458396 - NPE in CodeStream.invoke()
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *								Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
  *******************************************************************************/
@@ -74,7 +76,7 @@ public FlowInfo analyseCode(MethodScope initializationScope, FlowContext flowCon
 	if (this.binding != null
 			&& this.binding.isValidBinding()
 			&& this.binding.isStatic()
-			&& this.binding.constant() == Constant.NotAConstant
+			&& this.binding.constant(initializationScope) == Constant.NotAConstant
 			&& this.binding.declaringClass.isNestedType()
 			&& !this.binding.declaringClass.isStatic()) {
 		initializationScope.problemReporter().unexpectedStaticModifierForField(
@@ -94,7 +96,7 @@ public FlowInfo analyseCode(MethodScope initializationScope, FlowContext flowCon
 		if (options.isAnnotationBasedNullAnalysisEnabled) {
 			if (this.binding.isNonNull() || options.sourceLevel >= ClassFileConstants.JDK1_8) {
 				int nullStatus = this.initialization.nullStatus(flowInfo, flowContext);
-				NullAnnotationMatching.checkAssignment(initializationScope, flowContext, this.binding, nullStatus, this.initialization, this.initialization.resolvedType);
+				NullAnnotationMatching.checkAssignment(initializationScope, flowContext, this.binding, flowInfo, nullStatus, this.initialization, this.initialization.resolvedType);
 			}
 		}
 		this.initialization.checkNPEbyUnboxing(initializationScope, flowContext, flowInfo);
@@ -317,7 +319,7 @@ public void resolve(MethodScope initializationScope) {
 	} finally {
 		initializationScope.initializedField = previousField;
 		initializationScope.lastVisibleFieldID = previousFieldID;
-		if (this.binding.constant() == null)
+		if (this.binding.constant(initializationScope) == null)
 			this.binding.setConstant(Constant.NotAConstant);
 	}
 }

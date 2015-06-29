@@ -11,6 +11,7 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 
 /**
  * Capture-like type variable introduced during 1.8 type inference.
@@ -19,12 +20,22 @@ public class CaptureBinding18 extends CaptureBinding {
 	
 	TypeBinding[] upperBounds;
 	private char[] originalName;
+	private CaptureBinding18 prototype;
 
-	public CaptureBinding18(ReferenceBinding contextType, char[] sourceName, char[] originalName, int position, int captureID, LookupEnvironment environment) {
-		super(contextType, sourceName, position, captureID, environment);
+	public CaptureBinding18(ReferenceBinding contextType, char[] sourceName, char[] originalName, int start, int end, int captureID, LookupEnvironment environment) {
+		super(contextType, sourceName, start, end, captureID, environment);
 		this.originalName = originalName;
+		this.prototype = this;
 	}
 	
+	private CaptureBinding18(CaptureBinding18 prototype) {
+		super(prototype);
+		this.sourceName = CharOperation.append(prototype.sourceName, '\'');
+		this.originalName = prototype.originalName;
+		this.upperBounds = prototype.upperBounds;
+		this.prototype = prototype.prototype;		
+	}
+
 	public boolean setUpperBounds(TypeBinding[] upperBounds, ReferenceBinding javaLangObject) {
 		this.upperBounds = upperBounds;
 		if (upperBounds.length > 0)
@@ -58,7 +69,7 @@ public class CaptureBinding18 extends CaptureBinding {
 	}
 
 	public TypeBinding clone(TypeBinding enclosingType) {
-		return new CaptureBinding18(this.sourceType, CharOperation.append(this.sourceName, '\''), this.originalName, this.position, this.captureID, this.environment);
+		return new CaptureBinding18(this);
 	}
 
 	public MethodBinding[] getMethods(char[] selector) {
@@ -80,7 +91,7 @@ public class CaptureBinding18 extends CaptureBinding {
 			}
 			if (!multipleErasures)
 				return erasures[0];
-			return new IntersectionCastTypeBinding(erasures, this.environment);
+			return this.environment.createIntersectionType18(erasures);
 		}
 		return super.erasure();
 	}
@@ -99,16 +110,12 @@ public class CaptureBinding18 extends CaptureBinding {
 				// capture of ? extends X[]
 				if (aBound != null && aBound.isArrayType()) {
 					if (!aBound.isCompatibleWith(otherType))
-						continue;
-				}
-				switch (otherType.kind()) {
+						return false;
+				} else switch (otherType.kind()) {
 					case Binding.WILDCARD_TYPE :
 					case Binding.INTERSECTION_TYPE :
 						if (!((WildcardBinding) otherType).boundCheck(aBound))
 							return false;
-						break;
-					default:
-						return false;
 				}
 			}
 			return true;
@@ -117,17 +124,50 @@ public class CaptureBinding18 extends CaptureBinding {
 	}
 
 	public boolean isCompatibleWith(TypeBinding otherType, Scope captureScope) {
+		if (TypeBinding.equalsEquals(this, otherType))
+			return true;
 		if (this.inRecursiveFunction)
 			return true;
 		this.inRecursiveFunction = true; 
 		try {
 			if (this.upperBounds != null) {
-				for (int i = 0; i < this.upperBounds.length; i++) {
+				int length = this.upperBounds.length;
+
+				// need to compare two intersection types? (borrowed from IntersectionType18)
+				int rightKind = otherType.kind();
+				TypeBinding[] rightIntersectingTypes = null;
+				if (rightKind == INTERSECTION_TYPE && otherType.boundKind() == Wildcard.EXTENDS) {
+					TypeBinding allRightBounds = ((WildcardBinding) otherType).allBounds();
+					if (allRightBounds instanceof IntersectionTypeBinding18)
+						rightIntersectingTypes = ((IntersectionTypeBinding18) allRightBounds).intersectingTypes;
+				} else if (rightKind == INTERSECTION_TYPE18) {
+					rightIntersectingTypes = ((IntersectionTypeBinding18) otherType).intersectingTypes;
+				}
+				if (rightIntersectingTypes != null) {
+					int numRequired = rightIntersectingTypes.length;
+					TypeBinding[] required = new TypeBinding[numRequired];
+					System.arraycopy(rightIntersectingTypes, 0, required, 0, numRequired);
+					for (int i = 0; i < length; i++) {
+						TypeBinding provided = this.upperBounds[i];
+						for (int j = 0; j < required.length; j++) {
+							if (required[j] == null) continue;
+							if (provided.isCompatibleWith(required[j], captureScope)) {
+								required[j] = null;
+								if (--numRequired == 0)
+									return true;
+								break;
+							}
+						}
+					}
+					return false;
+				}
+
+				for (int i = 0; i < length; i++) {
 					if (this.upperBounds[i].isCompatibleWith(otherType, captureScope))
 						return true;
 				}
 			}
-			return super.isCompatibleWith(otherType, captureScope);
+			return false;
 		} finally {
 			this.inRecursiveFunction = false;
 		}
@@ -192,6 +232,11 @@ public class CaptureBinding18 extends CaptureBinding {
 					}
 				}
 			}
+			TypeBinding currentFirstBound = null;
+			if (this.firstBound != null) {
+				currentFirstBound = this.firstBound.substituteInferenceVariable(var, substituteType);
+				haveSubstitution |= TypeBinding.notEquals(this.firstBound, currentFirstBound);
+			}
 			if (haveSubstitution) {
 				final CaptureBinding18 newCapture = (CaptureBinding18) clone(enclosingType());
 				newCapture.tagBits = this.tagBits;
@@ -209,6 +254,8 @@ public class CaptureBinding18 extends CaptureBinding {
 						return CaptureBinding18.this.environment;
 					}
 				};
+				if (currentFirstBound != null)
+					newCapture.firstBound = Scope.substitute(substitution, currentFirstBound);
 				newCapture.superclass = (ReferenceBinding) Scope.substitute(substitution, currentSuperclass);
 				newCapture.superInterfaces = Scope.substitute(substitution, currentSuperInterfaces);
 				newCapture.upperBounds = Scope.substitute(substitution, currentUpperBounds);
@@ -248,7 +295,7 @@ public class CaptureBinding18 extends CaptureBinding {
 		if (this.genericTypeSignature == null) {
 			char[] boundSignature;
 			try {
-				if (this.recursionLevel++ > 0 || this.firstBound == null) {
+				if (this.prototype.recursionLevel++ > 0 || this.firstBound == null) {
 					boundSignature = TypeConstants.WILDCARD_STAR;
 				} else if (this.upperBounds != null) {
 					boundSignature = CharOperation.concat(TypeConstants.WILDCARD_PLUS, this.firstBound.genericTypeSignature());
@@ -259,7 +306,7 @@ public class CaptureBinding18 extends CaptureBinding {
 				}
 				this.genericTypeSignature = CharOperation.concat(TypeConstants.WILDCARD_CAPTURE, boundSignature);
 			} finally {
-				this.recursionLevel--;
+				this.prototype.recursionLevel--;
 			}
 		}
 		return this.genericTypeSignature;
@@ -267,9 +314,9 @@ public class CaptureBinding18 extends CaptureBinding {
 	
 	public char[] readableName() {
 		if (this.lowerBound == null && this.firstBound != null) {
-			if (this.recursionLevel < 2) {
+			if (this.prototype.recursionLevel < 2) {
 				try {
-					this.recursionLevel ++;
+					this.prototype.recursionLevel ++;
 					if (this.upperBounds != null && this.upperBounds.length > 1) {
 						StringBuffer sb = new StringBuffer();
 						sb.append(this.upperBounds[0].readableName());
@@ -282,7 +329,7 @@ public class CaptureBinding18 extends CaptureBinding {
 					}
 					return this.firstBound.readableName();
 				} finally {
-					this.recursionLevel--;
+					this.prototype.recursionLevel--;
 				}
 			} else {
 				return this.originalName;
@@ -293,9 +340,9 @@ public class CaptureBinding18 extends CaptureBinding {
 
 	public char[] shortReadableName() {
 		if (this.lowerBound == null && this.firstBound != null) {
-			if (this.recursionLevel < 2) {
+			if (this.prototype.recursionLevel < 2) {
 				try {
-					this.recursionLevel++;
+					this.prototype.recursionLevel++;
 					if (this.upperBounds != null && this.upperBounds.length > 1) {
 						StringBuffer sb = new StringBuffer();
 						sb.append(this.upperBounds[0].shortReadableName());
@@ -308,7 +355,7 @@ public class CaptureBinding18 extends CaptureBinding {
 					}
 					return this.firstBound.shortReadableName();
 				} finally {
-					this.recursionLevel--;
+					this.prototype.recursionLevel--;
 				}
 			} else {
 				return this.originalName;
@@ -325,7 +372,7 @@ public class CaptureBinding18 extends CaptureBinding {
 	public char[] computeUniqueKey(boolean isLeaf) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(TypeConstants.CAPTURE18);
-		buffer.append('{').append(this.position).append('#').append(this.captureID).append('}');
+		buffer.append('{').append(this.end).append('#').append(this.captureID).append('}');
 		buffer.append(';');
 		int length = buffer.length();
 		char[] uniqueKey = new char[length];

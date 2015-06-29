@@ -19,6 +19,9 @@
  *                          Bug 409236 - [1.8][compiler] Type annotations on intersection cast types dropped by code generator
  *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
  *                          Bug 405104 - [1.8][compiler][codegen] Implement support for serializeable lambdas
+ *                          Bug 449467 - [1.8][compiler] Invalid lambda deserialization with anonymous class
+ *        Olivier Tardieu (tardieu@us.ibm.com) - Contributions for
+ *                          Bug 442418 - $deserializeLambda$ off-by-one error when deserializing the captured arguments of a lambda that also capture this
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.codegen;
 
@@ -2651,8 +2654,8 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 				ConstantPool.GetFunctionalInterfaceClass, ConstantPool.GetFunctionalInterfaceClassSignature);
 		String functionalInterface = null;
 		final TypeBinding expectedType = lambdaEx.expectedType();
-		if (expectedType instanceof IntersectionCastTypeBinding) {
-			functionalInterface = new String(((IntersectionCastTypeBinding)expectedType).getSAMType(scope).constantPoolName());
+		if (expectedType instanceof IntersectionTypeBinding18) {
+			functionalInterface = new String(((IntersectionTypeBinding18)expectedType).getSAMType(scope).constantPoolName());
 		} else {
 			functionalInterface = new String(expectedType.constantPoolName());
 		}
@@ -2680,7 +2683,7 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 		aload_0();
 		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
 				ConstantPool.GetImplClass, ConstantPool.GetImplClassSignature);
-		ldc(new String(CharOperation.concatWith(mb.declaringClass.compoundName,'/'))); // e.g. "com/foo/X"
+		ldc(new String(mb.declaringClass.constantPoolName())); // e.g. "com/foo/X"
 		invokeObjectEquals();
 		ifeq(errorLabel);
 
@@ -2707,7 +2710,7 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 		SyntheticArgumentBinding[] outerLocalVariables = lambdaEx.outerLocalVariables;
 		for (int p=0,max=outerLocalVariables.length;p<max;p++) {
 			aload_0();
-			loadInt(p);
+			loadInt(index);
 			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
 					ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
 			TypeBinding varType = outerLocalVariables[p].type;
@@ -2724,8 +2727,8 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 			sig.append(varType.signature());
 		}
 		sig.append(")"); //$NON-NLS-1$
-		if (lambdaEx.resolvedType instanceof IntersectionCastTypeBinding) {
-			sig.append(((IntersectionCastTypeBinding)lambdaEx.resolvedType).getSAMType(scope).signature());
+		if (lambdaEx.resolvedType instanceof IntersectionTypeBinding18) {
+			sig.append(((IntersectionTypeBinding18)lambdaEx.resolvedType).getSAMType(scope).signature());
 		} else {
 			sig.append(lambdaEx.resolvedType.signature());
 		}
@@ -3382,7 +3385,7 @@ public static TypeBinding getConstantPoolDeclaringClass(Scope currentScope, Meth
 						&& (options.complianceLevel >= ClassFileConstants.JDK1_4 || !(isImplicitThisReceiver && codegenBinding.isStatic()))
 						&& codegenBinding.declaringClass.id != TypeIds.T_JavaLangObject) // no change for Object methods
 					|| !codegenBinding.declaringClass.canBeSeenBy(currentScope)) {
-				if (!actualReceiverType.isIntersectionCastType()) // no constant pool representation. FIXME, visibility issue not handled.
+				if (!actualReceiverType.isIntersectionType18()) // no constant pool representation. FIXME, visibility issue not handled.
 					constantPoolDeclaringClass = actualReceiverType.erasure();
 			}
 		}				

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,11 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 440687 - [compiler][batch][null] improve command line option for external annotations
  *******************************************************************************/
+// AspectJ
+
 package org.aspectj.org.eclipse.jdt.internal.compiler.batch;
 
 import java.io.File;
@@ -20,6 +24,7 @@ import java.util.Set;
 import java.util.zip.ZipFile;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
@@ -69,6 +74,11 @@ public class FileSystem implements INameEnvironment, SuffixConstants {
 		 * Initialize the entry
 		 */
 		void initialize() throws IOException;
+		/**
+		 * Can the current location provide an external annotation file for the given type?
+		 * @param qualifiedTypeName type name in qualified /-separated notation.
+		 */
+		boolean hasAnnotationFileFor(String qualifiedTypeName);
 	}
 	public interface ClasspathSectionProblemReporter {
 		void invalidClasspathSection(String jarFilePath);
@@ -104,6 +114,7 @@ public class FileSystem implements INameEnvironment, SuffixConstants {
 
 	protected Classpath[] classpaths;
 	Set knownFileNames;
+	protected boolean annotationsFromClasspath; // should annotation files be read from the classpath (vs. explicit separate path)?
 
 /*
 	classPathNames is a collection is Strings representing the full path of each class path
@@ -128,7 +139,7 @@ public FileSystem(String[] classpathNames, String[] initialFileNames, String enc
 	}
 	initializeKnownFileNames(initialFileNames);
 }
-protected FileSystem(Classpath[] paths, String[] initialFileNames) {
+protected FileSystem(Classpath[] paths, String[] initialFileNames, boolean annotationsFromClasspath) {
 	final int length = paths.length;
 	int counter = 0;
 	this.classpaths = new FileSystem.Classpath[length];
@@ -146,6 +157,7 @@ protected FileSystem(Classpath[] paths, String[] initialFileNames) {
 		System.arraycopy(this.classpaths, 0, (this.classpaths = new FileSystem.Classpath[counter]), 0, counter);
 	}
 	initializeKnownFileNames(initialFileNames);
+	this.annotationsFromClasspath = annotationsFromClasspath;
 }
 public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet) {
 	return getClasspath(classpathName, encoding, false, accessRuleSet, null);
@@ -179,8 +191,7 @@ public static Classpath getClasspath(String classpathName, String encoding,
 // New AspectJ Extension
 // old code:
 //					isSourceOnly ? ClasspathLocation.SOURCE :
-//						ClasspathLocation.SOURCE | 
-//						ClasspathLocation.BINARY,
+//						ClasspathLocation.SOURCE | ClasspathLocation.BINARY,
 // new code:
 					mode,
 // End AspectJ Extension
@@ -295,6 +306,24 @@ private static String convertPathSeparators(String path) {
 		 : path.replace('/', '\\');
 }
 private NameEnvironmentAnswer findClass(String qualifiedTypeName, char[] typeName, boolean asBinaryOnly){
+	NameEnvironmentAnswer answer = internalFindClass(qualifiedTypeName, typeName, asBinaryOnly);
+	if (this.annotationsFromClasspath && answer != null && answer.getBinaryType() instanceof ClassFileReader) {
+		for (int i = 0, length = this.classpaths.length; i < length; i++) {
+			Classpath classpathEntry = this.classpaths[i];
+			if (classpathEntry.hasAnnotationFileFor(qualifiedTypeName)) {
+				ZipFile zip = classpathEntry instanceof ClasspathJar ? ((ClasspathJar) classpathEntry).zipFile : null;
+				try {
+					((ClassFileReader) answer.getBinaryType()).setExternalAnnotationProvider(classpathEntry.getPath(), qualifiedTypeName, zip, null);
+					break;
+				} catch (IOException e) {
+					// ignore broken entry, keep searching
+				}
+			}
+		}
+	}
+	return answer;
+}
+private NameEnvironmentAnswer internalFindClass(String qualifiedTypeName, char[] typeName, boolean asBinaryOnly){
 	if (this.knownFileNames.contains(qualifiedTypeName)) return null; // looking for a file which we know was provided at the beginning of the compilation
 
 	String qualifiedBinaryFileName = qualifiedTypeName + SUFFIX_STRING_class;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2014 IBM Corporation and others.
+ * Copyright (c) 2005, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
  * Contributors:
  *    IBM Corporation - initial API and implementation
  *    IBM Corporation - Fix for bug 328575
+ *    het@google.com - Bug 415274 - Annotation processing throws a NPE in getElementsAnnotatedWith()
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch;
 
@@ -194,6 +195,9 @@ public class RoundEnvImpl implements RoundEnvironment
 			throw new IllegalArgumentException("Argument must represent an annotation type"); //$NON-NLS-1$
 		}
 		TypeElement annoType = _processingEnv.getElementUtils().getTypeElement(canonicalName);
+		if (annoType == null) {
+			return Collections.emptySet();
+		}
 		return getElementsAnnotatedWith(annoType);
 	}
 

@@ -26,7 +26,6 @@ public abstract class ReductionResult {
 		public Object reduce(InferenceContext18 context) { return this; }
 		public String toString() { return "FALSE"; } //$NON-NLS-1$
 	};
-	/** Used to accept unchecked conversion to make ecj conform with javac bug https://bugs.openjdk.java.net/browse/JDK-8026527 */
 	
 	// Relation kinds, mimic an enum:
 	protected static final int COMPATIBLE = 1;
@@ -36,6 +35,7 @@ public abstract class ReductionResult {
 	protected static final int TYPE_ARGUMENT_CONTAINED = 5;
 	protected static final int CAPTURE = 6;
 	static final int EXCEPTIONS_CONTAINED = 7;
+	protected static final int POTENTIALLY_COMPATIBLE = 8;
 	
 	protected TypeBinding right; // note that the LHS differs between sub-classes.
 	protected int relation;
@@ -44,6 +44,7 @@ public abstract class ReductionResult {
 		switch (relation) {
 			case SAME: 			return " = "; //$NON-NLS-1$
 			case COMPATIBLE: 	return " \u2192 "; //$NON-NLS-1$
+			case POTENTIALLY_COMPATIBLE: return " \u2192? "; //$NON-NLS-1$
 			case SUBTYPE: 		return " <: "; //$NON-NLS-1$
 			case SUPERTYPE: 	return " :> "; //$NON-NLS-1$
 			case TYPE_ARGUMENT_CONTAINED:

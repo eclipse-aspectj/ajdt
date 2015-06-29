@@ -23,7 +23,6 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InnerInferenceHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -195,73 +194,68 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 public TypeBinding resolveType(BlockScope scope) {
 	// Answer the signature return type
 	// Base type promotion
-
-	this.constant = Constant.NotAConstant;
-	boolean receiverCast = false, argsContainCast = false;
-	if (this.receiver instanceof CastExpression) {
-		this.receiver.bits |= DisableUnnecessaryCastCheck; // will check later on
-		receiverCast = true;
-	}
-	this.actualReceiverType = this.receiver.resolveType(scope);
-	if (receiverCast && this.actualReceiverType != null) {
-		 // due to change of declaring class with receiver type, only identity cast should be notified
-		if (TypeBinding.equalsEquals(((CastExpression)this.receiver).expression.resolvedType, this.actualReceiverType)) {
-			scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
+	
+	if (this.constant != Constant.NotAConstant) {
+		this.constant = Constant.NotAConstant;
+		boolean receiverCast = false;
+		if (this.receiver instanceof CastExpression) {
+			this.receiver.bits |= DisableUnnecessaryCastCheck; // will check later on
+			receiverCast = true;
 		}
-	}
-	// resolve type arguments (for generic constructor call)
-	if (this.typeArguments != null) {
-		int length = this.typeArguments.length;
-		boolean argHasError = false; // typeChecks all arguments
-		this.genericTypeArguments = new TypeBinding[length];
-		for (int i = 0; i < length; i++) {
-			if ((this.genericTypeArguments[i] = this.typeArguments[i].resolveType(scope, true /* check bounds*/)) == null) {
-				argHasError = true;
+		this.actualReceiverType = this.receiver.resolveType(scope);
+		if (receiverCast && this.actualReceiverType != null) {
+			// due to change of declaring class with receiver type, only identity cast should be notified
+			if (TypeBinding.equalsEquals(((CastExpression)this.receiver).expression.resolvedType, this.actualReceiverType)) {
+				scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
 			}
 		}
-		if (argHasError) {
+		// resolve type arguments (for generic constructor call)
+		if (this.typeArguments != null) {
+			int length = this.typeArguments.length;
+			this.argumentsHaveErrors = false; // typeChecks all arguments
+			this.genericTypeArguments = new TypeBinding[length];
+			for (int i = 0; i < length; i++) {
+				if ((this.genericTypeArguments[i] = this.typeArguments[i].resolveType(scope, true /* check bounds*/)) == null) {
+					this.argumentsHaveErrors = true;
+				}
+			}
+			if (this.argumentsHaveErrors) {
+				return null;
+			}
+		}
+		// will check for null after args are resolved
+		if (this.arguments != null) {
+			this.argumentsHaveErrors = false; // typeChecks all arguments
+			int length = this.arguments.length;
+			this.argumentTypes = new TypeBinding[length];
+			for (int i = 0; i < length; i++) {
+				Expression argument = this.arguments[i];
+				if (argument instanceof CastExpression) {
+					argument.bits |= DisableUnnecessaryCastCheck; // will check later on
+					this.argsContainCast = true;
+				}
+				argument.setExpressionContext(INVOCATION_CONTEXT);
+				if ((this.argumentTypes[i] = this.arguments[i].resolveType(scope)) == null)
+					this.argumentsHaveErrors = true;
+			}
+			if (this.argumentsHaveErrors) {
+				if(this.actualReceiverType instanceof ReferenceBinding) {
+					// record any selector match, for clients who may still need hint about possible method match
+					this.binding = scope.findMethod((ReferenceBinding)this.actualReceiverType, this.selector, new TypeBinding[]{}, this, false);
+				}
+				return null;
+			}
+		}
+		if (this.actualReceiverType == null) {
+			return null;
+		}
+		// base type cannot receive any message
+		if (this.actualReceiverType.isBaseType()) {
+			scope.problemReporter().errorNoMethodFor(this, this.actualReceiverType, this.argumentTypes);
 			return null;
 		}
 	}
-	// will check for null after args are resolved
-	TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
-	if (this.arguments != null) {
-		boolean argHasError = false; // typeChecks all arguments
-		int length = this.arguments.length;
-		argumentTypes = new TypeBinding[length];
-		TypeBinding argumentType;
-		for (int i = 0; i < length; i++) {
-			Expression argument = this.arguments[i];
-			if (argument instanceof CastExpression) {
-				argument.bits |= DisableUnnecessaryCastCheck; // will check later on
-				argsContainCast = true;
-			}
-			argument.setExpressionContext(INVOCATION_CONTEXT);
-			if ((argumentType = argumentTypes[i] = this.arguments[i].resolveType(scope)) == null)
-				argHasError = true;
-			if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE) {
-				if (this.innerInferenceHelper == null)
-					this.innerInferenceHelper = new InnerInferenceHelper();
-			}
-		}
-		if (argHasError) {
-			if(this.actualReceiverType instanceof ReferenceBinding) {
-				// record any selector match, for clients who may still need hint about possible method match
-				this.binding = scope.findMethod((ReferenceBinding)this.actualReceiverType, this.selector, new TypeBinding[]{}, this, false);
-			}
-			return null;
-		}
-	}
-	if (this.actualReceiverType == null) {
-		return null;
-	}
-	// base type cannot receive any message
-	if (this.actualReceiverType.isBaseType()) {
-		scope.problemReporter().errorNoMethodFor(this, this.actualReceiverType, argumentTypes);
-		return null;
-	}
-
-	findMethodBinding(scope, argumentTypes);
+	findMethodBinding(scope);
 		
 	if (!this.binding.isValidBinding()) {
 		if (this.binding instanceof ProblemMethodBinding
@@ -270,29 +264,29 @@ public TypeBinding resolveType(BlockScope scope) {
 				this.delegateThis = scope.getField(scope.enclosingSourceType(), EvaluationConstants.DELEGATE_THIS, this);
 				if (this.delegateThis == null){ // if not found then internal error, field should have been found
 					this.constant = Constant.NotAConstant;
-					scope.problemReporter().invalidMethod(this, this.binding);
+					scope.problemReporter().invalidMethod(this, this.binding, scope);
 					return null;
 				}
 			} else {
 				this.constant = Constant.NotAConstant;
-				scope.problemReporter().invalidMethod(this, this.binding);
+				scope.problemReporter().invalidMethod(this, this.binding, scope);
 				return null;
 			}
 			CodeSnippetScope localScope = new CodeSnippetScope(scope);
 			MethodBinding privateBinding =
 				this.receiver instanceof CodeSnippetThisReference && ((CodeSnippetThisReference) this.receiver).isImplicit
-					? localScope.getImplicitMethod((ReferenceBinding)this.delegateThis.type, this.selector, argumentTypes, this)
-					: localScope.getMethod(this.delegateThis.type, this.selector, argumentTypes, this);
+					? localScope.getImplicitMethod((ReferenceBinding)this.delegateThis.type, this.selector, this.argumentTypes, this)
+					: localScope.getMethod(this.delegateThis.type, this.selector, this.argumentTypes, this);
 			if (!privateBinding.isValidBinding()) {
 				if (this.binding.declaringClass == null) {
 					if (this.actualReceiverType instanceof ReferenceBinding) {
 						this.binding.declaringClass = (ReferenceBinding) this.actualReceiverType;
 					} else { // really bad error ....
-						scope.problemReporter().errorNoMethodFor(this, this.actualReceiverType, argumentTypes);
+						scope.problemReporter().errorNoMethodFor(this, this.actualReceiverType, this.argumentTypes);
 						return null;
 					}
 				}
-				scope.problemReporter().invalidMethod(this, this.binding);
+				scope.problemReporter().invalidMethod(this, this.binding, scope);
 				return null;
 			} else {
 				this.binding = privateBinding;
@@ -302,11 +296,11 @@ public TypeBinding resolveType(BlockScope scope) {
 				if (this.actualReceiverType instanceof ReferenceBinding) {
 					this.binding.declaringClass = (ReferenceBinding) this.actualReceiverType;
 				} else { // really bad error ....
-					scope.problemReporter().errorNoMethodFor(this, this.actualReceiverType, argumentTypes);
+					scope.problemReporter().errorNoMethodFor(this, this.actualReceiverType, this.argumentTypes);
 					return null;
 				}
 			}
-			scope.problemReporter().invalidMethod(this, this.binding);
+			scope.problemReporter().invalidMethod(this, this.binding, scope);
 			return null;
 		}
 	}
@@ -326,7 +320,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			}			
 		}
 	}
-	if (checkInvocationArguments(scope, this.receiver, this.actualReceiverType, this.binding, this.arguments, argumentTypes, argsContainCast, this)) {
+	if (checkInvocationArguments(scope, this.receiver, this.actualReceiverType, this.binding, this.arguments, this.argumentTypes, this.argsContainCast, this)) {
 		this.bits |= ASTNode.Unchecked;
 	}
 
@@ -353,10 +347,11 @@ public TypeBinding resolveType(BlockScope scope) {
 			if ((this.bits & ASTNode.Unchecked) != 0 && this.genericTypeArguments == null) {
 				returnType = scope.environment().convertToRawType(returnType.erasure(), true);
 			}
-			returnType = returnType.capture(scope, this.sourceEnd);			
+			returnType = returnType.capture(scope, this.sourceStart, this.sourceEnd);			
 		}
 		this.resolvedType = returnType;
 	}
 	return this.resolvedType;
 }
 }
+

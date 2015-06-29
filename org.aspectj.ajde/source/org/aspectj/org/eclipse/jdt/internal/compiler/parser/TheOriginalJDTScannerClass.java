@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -196,10 +196,10 @@ public class TheOriginalJDTScannerClass implements TerminalTokens {
 		newEntry6 = 0;
 	public boolean insideRecovery = false;
 	int lookBack[] = new int[2]; // fall back to spring forward.
-	private int nextToken = TokenNameNotAToken; // allows for one token push back, only the most recent token can be reliably ungotten.
+	int nextToken = TokenNameNotAToken; // allows for one token push back, only the most recent token can be reliably ungotten.
 	private VanguardScanner vanguardScanner;
 	private VanguardParser vanguardParser;
-	private ConflictedParser activeParser = null;
+	ConflictedParser activeParser = null;
 	private boolean consumingEllipsisAnnotations = false;
 	
 	public static final int RoundBracket = 0;
@@ -3602,6 +3602,12 @@ public int scanNumber(boolean dotPrefix) throws InvalidInputException {
 					throw new InvalidInputException(INVALID_HEXA);
 				}
 			} else if (getNextChar('p', 'P') >= 0) { // consume next character
+				if (end == start) { // Has no digits before exponent
+					if (this.sourceLevel < ClassFileConstants.JDK1_5) {
+						throw new InvalidInputException(ILLEGAL_HEXA_LITERAL);
+					}
+					throw new InvalidInputException(INVALID_HEXA);
+				}
 				this.unicodeAsBackSlash = false;
 				if (((this.currentCharacter = this.source[this.currentPosition++]) == '\\')
 						&& (this.source[this.currentPosition] == 'u')) {
@@ -4222,9 +4228,19 @@ private static final class VanguardScanner extends Scanner {
 	}
 	
 	public int getNextToken() throws InvalidInputException {
-		int token = getNextToken0();
+		int token;
+		if (this.nextToken != TokenNameNotAToken) {
+			token = this.nextToken;
+			this.nextToken = TokenNameNotAToken;
+			return token; // presumed to be unambiguous.
+		}
+		token = getNextToken0();
 		if (token == TokenNameAT && atTypeAnnotation()) {
-			token = TokenNameAT308;
+			if (((VanguardParser) this.activeParser).currentGoal == Goal.LambdaParameterListGoal) {
+				token = disambiguatedToken(token);
+			} else {
+				token = TokenNameAT308;
+			}
 		}
 		return token == TokenNameEOF ? TokenNameNotAToken : token; 
 	}
@@ -4312,12 +4328,15 @@ private static final class VanguardParser extends Parser {
 	public static final boolean SUCCESS = true;
 	public static final boolean FAILURE = false;
 	
+	Goal currentGoal;
+
 	public VanguardParser(VanguardScanner scanner) {
 		this.scanner = scanner;
 	}
 	
 	// Canonical LALR pushdown automaton identical to Parser.parse() minus side effects of any kind, returns the rule reduced.
 	protected boolean parse(Goal goal) {
+		this.currentGoal = goal;
 		try {
 			int act = START_STATE;
 			this.stateStackTop = -1;
@@ -4473,7 +4492,7 @@ public void setActiveParser(ConflictedParser parser) {
 	this.activeParser  = parser;
 	this.lookBack[0] = this.lookBack[1] = TokenNameNotAToken;  // no hand me downs please.
 }
-private int disambiguatedToken(int token) {
+int disambiguatedToken(int token) {
 	final VanguardParser parser = getVanguardParser();
 	if (token == TokenNameLPAREN  && maybeAtLambdaOrCast()) {
 		if (parser.parse(Goal.LambdaParameterListGoal) == VanguardParser.SUCCESS) {

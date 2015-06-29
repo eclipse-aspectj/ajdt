@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -2318,6 +2318,11 @@ protected void consumeClassHeaderImplements() {
 		}
 	}
 }
+protected void consumeClassInstanceCreationExpressionName() {
+	super.consumeClassInstanceCreationExpressionName();
+	this.invocationType = QUALIFIED_ALLOCATION;
+	this.qualifier = this.expressionPtr;
+}
 protected void consumeClassTypeElt() {
 	pushOnElementStack(K_NEXT_TYPEREF_IS_EXCEPTION);
 	super.consumeClassTypeElt();
@@ -2426,8 +2431,17 @@ protected void consumeEmptyStatement() {
 	   decide whether to call contactNodeLists. See Parser.consumeBlockStatement(s) 
 	*/
 	if (this.shouldStackAssistNode && this.assistNode != null)
-		this.astStack[this.astPtr] = this.assistNode;
+		this.astStack[this.astPtr] = this.assistNodeParent instanceof MessageSend ? this.assistNodeParent : this.assistNode;
 	this.shouldStackAssistNode = false;
+}
+@Override
+protected void consumeBlockStatement() {
+	super.consumeBlockStatement();
+	if (this.shouldStackAssistNode && this.assistNode != null) {
+		Statement stmt = (Statement) this.astStack[this.astPtr];
+		if (stmt.sourceStart <= this.assistNode.sourceStart && stmt.sourceEnd >= this.assistNode.sourceEnd)
+			this.shouldStackAssistNode = false;
+	}
 }
 protected void consumeEnhancedForStatement() {
 	super.consumeEnhancedForStatement();
@@ -2604,7 +2618,11 @@ protected void consumeExitVariableWithInitialization() {
 	} else if (this.assistNode != null && this.assistNode == variable.initialization) {
 			this.assistNodeParent = variable;
 	}
-	triggerRecoveryUponLambdaClosure(variable, false);
+	if (triggerRecoveryUponLambdaClosure(variable, false)) {
+		if (this.currentElement != null) {
+			this.restartRecovery = true;
+		}
+	}
 }
 protected void consumeExitVariableWithoutInitialization() {
 	// ExitVariableWithoutInitialization ::= $empty
@@ -2787,7 +2805,7 @@ protected void consumeInsideCastExpression() {
 	}
 	Expression castType = getTypeReference(this.intStack[this.intPtr--]);
 	if (additionalBoundsLength > 0) {
-		bounds[0] = getTypeReference(this.intStack[this.intPtr--]);
+		bounds[0] = (TypeReference) castType;
 		castType = createIntersectionCastTypeReference(bounds); 
 	}
 	if(isParameterized) {
@@ -3263,6 +3281,13 @@ protected void consumeLabel() {
 	pushOnLabelStack(this.identifierStack[this.identifierPtr]);
 	this.pushOnElementStack(K_LABEL, this.labelPtr);
 }
+@Override
+protected void consumeLambdaExpression() {
+	super.consumeLambdaExpression();
+	Expression expression = this.expressionStack[this.expressionPtr];
+	if (this.assistNode == null || !(this.assistNode.sourceStart >= expression.sourceStart && this.assistNode.sourceEnd <= expression.sourceEnd))
+		popElement(K_LAMBDA_EXPRESSION_DELIMITER);
+}
 protected void consumeMarkerAnnotation(boolean isTypeAnnotation) {
 	if (this.topKnownElementKind(COMPLETION_OR_ASSIST_PARSER) == K_BETWEEN_ANNOTATION_NAME_AND_RPAREN &&
 			(this.topKnownElementInfo(COMPLETION_OR_ASSIST_PARSER) & ANNOTATION_NAME_COMPLETION) != 0 ) {
@@ -3537,6 +3562,7 @@ protected void consumeToken(int token) {
 	if (token == TokenNameIdentifier
 			&& this.identifierStack[this.identifierPtr] == assistIdentifier()
 			&& this.currentElement == null
+			&& (!isIndirectlyInsideLambdaExpression() || isIndirectlyInsideLambdaBlock())
 			&& isIndirectlyInsideFieldInitialization()) {
 		this.scanner.eofPosition = this.cursorLocation < Integer.MAX_VALUE ? this.cursorLocation+1 : this.cursorLocation;
 	}
@@ -4381,11 +4407,11 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 		return new CompletionOnSingleNameReference(assistName, position, isInsideAttributeValue());
 	} else {
 		boolean canBeExplicitConstructorCall = false;
-		if(kind == K_BLOCK_DELIMITER
+		if((kind == K_BLOCK_DELIMITER || kind == K_LAMBDA_EXPRESSION_DELIMITER)
 			&& this.previousKind == K_BLOCK_DELIMITER
 			&& this.previousInfo == DO) {
 			return new CompletionOnKeyword3(assistName, position, Keywords.WHILE);
-		} else if(kind == K_BLOCK_DELIMITER
+		} else if((kind == K_BLOCK_DELIMITER || kind == K_LAMBDA_EXPRESSION_DELIMITER)
 			&& this.previousKind == K_BLOCK_DELIMITER
 			&& this.previousInfo == TRY) {
 			return new CompletionOnKeyword3(assistName, position, new char[][]{Keywords.CATCH, Keywords.FINALLY});
@@ -4404,7 +4430,7 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=269493: Keywords are not proposed in a for
 			// loop without block. Completion while at K_CONTROL_STATEMENT_DELIMITER case needs to handled
 			// similar to the K_BLOCK_DELIMITER with minor differences.
-			if(kind == K_BLOCK_DELIMITER || kind == K_CONTROL_STATEMENT_DELIMITER) {
+			if(kind == K_BLOCK_DELIMITER || kind == K_CONTROL_STATEMENT_DELIMITER || kind == K_LAMBDA_EXPRESSION_DELIMITER) {
 				if(this.canBeExplicitConstructor == YES) {
 					canBeExplicitConstructorCall = true;
 				}
@@ -4661,7 +4687,7 @@ public void initialize(boolean parsingCompilationUnit) {
 	this.labelPtr = -1;
 	initializeForBlockStatements();
 }
-public void copyState(CommitRollbackParser from) {
+public void copyState(Parser from) {
 
 	super.copyState(from);
 	
@@ -5028,7 +5054,7 @@ public void recoveryTokenCheck() {
 	}
 }
 
-protected CommitRollbackParser createSnapShotParser() {
+protected CompletionParser createSnapShotParser() {
 	return new CompletionParser(this.problemReporter, this.storeSourceEnds);
 }
 /*
@@ -5146,6 +5172,11 @@ protected void shouldStackAssistNode() {
 	this.shouldStackAssistNode = true;
 }
 
+@Override
+protected boolean assistNodeNeedsStacking() {
+	return this.shouldStackAssistNode;
+}
+
 public  String toString() {
 	StringBuffer buffer = new StringBuffer();
 	buffer.append("elementKindStack : int[] = {"); //$NON-NLS-1$
@@ -5170,14 +5201,15 @@ protected void updateRecoveryState() {
 	/* expose parser state to recovery state */
 	this.currentElement.updateFromParserState();
 
-	/* may be able to retrieve completionNode as an orphan, and then attach it */
-	completionIdentifierCheck();
-	// attachOrphanCompletionNode pops various stacks to construct astNodeParent and enclosingNode. This does not gel well with extended recovery.
-	CommitRollbackParser parser = null;
+	// completionIdentifierCheck && attachOrphanCompletionNode pops various stacks to construct astNodeParent and enclosingNode. This does not gel well with extended recovery.
+	AssistParser parser = null;
 	if (lastIndexOfElement(K_LAMBDA_EXPRESSION_DELIMITER) >= 0) {
 		parser = createSnapShotParser();
 		parser.copyState(this);
 	}
+	
+	/* may be able to retrieve completionNode as an orphan, and then attach it */
+	completionIdentifierCheck();
 	attachOrphanCompletionNode();
 	if (parser != null)
 		this.copyState(parser);

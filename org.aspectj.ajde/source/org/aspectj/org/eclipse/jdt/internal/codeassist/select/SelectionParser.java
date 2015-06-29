@@ -52,13 +52,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.CommitRollbackParser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.JavadocParser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveredType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -117,8 +117,14 @@ protected void attachOrphanCompletionNode(){
 				this.currentElement = this.currentElement.add(statement, 0);
 			}
 		}
-		if (!isIndirectlyInsideLambdaExpression())
+		if (isIndirectlyInsideLambdaExpression()) {
+			if (this.currentToken == TokenNameLBRACE)
+				this.ignoreNextOpeningBrace = true;
+			else if (this.currentToken == TokenNameRBRACE)
+				this.ignoreNextClosingBrace = true;
+		} else {
 			this.currentToken = 0; // given we are not on an eof, we do not want side effects caused by looked-ahead token
+		}
 	}
 }
 private void buildMoreCompletionContext(Expression expression) {
@@ -551,8 +557,10 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 	if (!this.diet){
 		this.restartRecovery	= true;	// force to restart in recovery mode
 		this.lastIgnoredToken = -1;
-		if (!isIndirectlyInsideLambdaExpression())
-			this.currentToken = 0; // opening brace already taken into account
+		if (isIndirectlyInsideLambdaExpression())
+			this.ignoreNextOpeningBrace = true;
+		else 
+			this.currentToken = 0; // opening brace already taken into account.
 		this.hasReportedError = true;
 	}
 
@@ -562,8 +570,10 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 	if (this.currentElement != null){
 		this.lastCheckPoint = anonymousType.bodyStart;
 		this.currentElement = this.currentElement.add(anonymousType, 0);
-		if (!isIndirectlyInsideLambdaExpression())
-			this.currentToken = 0; // opening brace already taken into account
+		if (isIndirectlyInsideLambdaExpression())
+			this.ignoreNextOpeningBrace = true;
+		else 
+			this.currentToken = 0; // opening brace already taken into account.
 		this.lastIgnoredToken = -1;
 	}
 }
@@ -768,6 +778,8 @@ protected void consumeLambdaExpression() {
 			this.expressionStack[this.expressionPtr] = new SelectionOnLambdaExpression(expression);
 		}
 	}
+	if (!(this.selectionStart >= expression.sourceStart && this.selectionEnd <= expression.sourceEnd))
+		popElement(K_LAMBDA_EXPRESSION_DELIMITER);
 }
 @Override
 protected void consumeReferenceExpression(ReferenceExpression referenceExpression) {
@@ -786,7 +798,7 @@ protected void consumeLocalVariableDeclarationStatement() {
 	super.consumeLocalVariableDeclarationStatement();
 
 	// force to restart in recovery mode if the declaration contains the selection
-	if (!this.diet) {
+	if (!this.diet && this.astStack[this.astPtr] instanceof LocalDeclaration) {
 		LocalDeclaration localDeclaration = (LocalDeclaration) this.astStack[this.astPtr];
 		if ((this.selectionStart >= localDeclaration.sourceStart)
 				&&  (this.selectionEnd <= localDeclaration.sourceEnd)) {
@@ -885,6 +897,18 @@ protected void consumeMethodInvocationName() {
 		}
 	} else {
 		super.consumeMethodInvocationName();
+		if (requireExtendedRecovery()) {
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=430572, compensate for the hacks elsewhere where super/this gets treated as identifier. See getUnspecifiedReference
+			if (this.astPtr >= 0 && this.astStack[this.astPtr] == this.assistNode && this.assistNode instanceof ThisReference) {
+				MessageSend messageSend = (MessageSend) this.expressionStack[this.expressionPtr];
+				if (messageSend.receiver instanceof SingleNameReference) {
+					SingleNameReference snr = (SingleNameReference) messageSend.receiver;
+					if (snr.token == CharOperation.NO_CHAR) { // dummy reference created by getUnspecifiedReference ???
+						messageSend.receiver = (Expression) this.astStack[this.astPtr--];
+					}
+				}
+			}
+		}
 		return;
 	}
 
@@ -1215,7 +1239,7 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 		this.restartRecovery = true; // used to avoid branching back into the regular automaton
 	}
 }
-protected CommitRollbackParser createSnapShotParser() {
+protected SelectionParser createSnapShotParser() {
 	return new SelectionParser(this.problemReporter);
 }
 public ImportReference createAssistImportReference(char[][] tokens, long[] positions, int mod){

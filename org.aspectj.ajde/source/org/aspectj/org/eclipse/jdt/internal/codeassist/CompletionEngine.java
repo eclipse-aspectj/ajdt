@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -629,6 +629,9 @@ public final class CompletionEngine
 		public boolean receiverIsImplicitThis() { return false; }
 		public InferenceContext18 freshInferenceContext(Scope scope) { return null; }
 		public ExpressionContext getExpressionContext() { return ExpressionContext.VANILLA_CONTEXT; }
+		public boolean isQualifiedSuper() { return false; }
+		public boolean checkingPotentialCompatibility() { return false; }
+		public void acceptPotentiallyCompatibleMethods(MethodBinding[] methods) {/* ignore */}
 	};
 
 	private int foundTypesCount;
@@ -1701,6 +1704,7 @@ public final class CompletionEngine
 
 		buildContext(astNode, astNodeParent, compilationUnitDeclaration, qualifiedBinding, scope);
 
+		if (astNode instanceof CompletionOnMemberAccess && qualifiedBinding instanceof BaseTypeBinding) return true;
 		if (astNode instanceof CompletionOnFieldType) {
 			completionOnFieldType(astNode, scope);
 		} else if (astNode instanceof CompletionOnMethodReturnType) {
@@ -2355,7 +2359,7 @@ public final class CompletionEngine
 				this.completionToken,
 				null,
 				argTypes,
-				(ReferenceBinding) ((ReferenceBinding) qualifiedBinding).capture(scope, messageSend.receiver.sourceEnd),
+				(ReferenceBinding) ((ReferenceBinding) qualifiedBinding).capture(scope, messageSend.receiver.sourceStart, messageSend.receiver.sourceEnd),
 				scope,
 				new ObjectVector(),
 				false,
@@ -2617,7 +2621,7 @@ public final class CompletionEngine
 
 				findFieldsAndMethods(
 					this.completionToken,
-					((TypeBinding) qualifiedBinding).capture(scope, access.receiver.sourceEnd),
+					((TypeBinding) qualifiedBinding).capture(scope, access.receiver.sourceStart, access.receiver.sourceEnd),
 					scope,
 					fieldsFound,
 					methodsFound,
@@ -2729,7 +2733,7 @@ public final class CompletionEngine
 				this.completionToken,
 				null,
 				argTypes,
-				(ReferenceBinding)((ReferenceBinding) qualifiedBinding).capture(scope, messageSend.receiver.sourceEnd),
+				(ReferenceBinding)((ReferenceBinding) qualifiedBinding).capture(scope, messageSend.receiver.sourceStart, messageSend.receiver.sourceEnd),
 				scope,
 				new ObjectVector(),
 				false,
@@ -2773,7 +2777,7 @@ public final class CompletionEngine
 							this.completionToken,
 							typeArgTypes,
 							null,
-							(ReferenceBinding)receiverType.capture(scope, messageSend.receiver.sourceEnd),
+							(ReferenceBinding)receiverType.capture(scope, messageSend.receiver.sourceStart, messageSend.receiver.sourceEnd),
 							scope,
 							new ObjectVector(),
 							onlyStatic,
@@ -2803,11 +2807,16 @@ public final class CompletionEngine
 			
 			TypeBinding receiverType = (TypeBinding) qualifiedBinding;
 			if (receiverType != null && receiverType instanceof ReferenceBinding) {
+				if (!(receiverType.isInterface() || this.requestor.isIgnored(CompletionProposal.KEYWORD))) {
+					this.assistNodeIsConstructor = true;
+					setSourceAndTokenRange(referenceExpression.nameSourceStart, referenceExpression.sourceEnd);
+					findKeywords(this.completionToken, new char[][] { Keywords.NEW }, false, false);
+				}
 				findMethods(
 						this.completionToken,
 						referenceExpression.resolvedTypeArguments,
 						null,
-						(ReferenceBinding)receiverType.capture(scope, referenceExpression.sourceEnd),
+						(ReferenceBinding)receiverType.capture(scope, referenceExpression.sourceStart, referenceExpression.sourceEnd),
 						scope,
 						new ObjectVector(),
 						onlyStatic,
@@ -3087,7 +3096,7 @@ public final class CompletionEngine
 
 				findFieldsAndMethods(
 						this.completionToken,
-						receiverType.capture(scope, ref.sourceEnd),
+						receiverType.capture(scope, ref.sourceStart, ref.sourceEnd),
 						scope,
 						fieldsFound,
 						methodsFound,
@@ -8181,6 +8190,9 @@ public final class CompletionEngine
 					relevance += computeRelevanceForExpectingType(TypeBinding.BOOLEAN);
 					relevance += computeRelevanceForQualification(false);
 				}
+				if (CharOperation.equals(choices[i], Keywords.NEW)) {
+					relevance += computeRelevanceForConstructor();
+				}
 				this.noProposal = false;
 				if(!this.requestor.isIgnored(CompletionProposal.KEYWORD)) {
 					InternalCompletionProposal proposal =  createProposal(CompletionProposal.KEYWORD, this.actualCompletionPosition);
@@ -8739,10 +8751,7 @@ public final class CompletionEngine
 					}
 					proposal.setCompletion(completion);
 					proposal.setFlags(method.modifiers);
-					if (completionOnReferenceExpressionName)
-						proposal.setReplaceRange(this.endPosition - this.offset - methodLength, this.endPosition - this.offset);
-					else 
-						proposal.setReplaceRange(this.startPosition - this.offset, this.endPosition - this.offset);
+					proposal.setReplaceRange(this.startPosition - this.offset, this.endPosition - this.offset);
 					proposal.setTokenRange(this.tokenStart - this.offset, this.tokenEnd - this.offset);
 					proposal.setRelevance(relevance);
 					if(parameterNames != null) proposal.setParameterNames(parameterNames);
@@ -9296,7 +9305,7 @@ public final class CompletionEngine
 				((scope instanceof MethodScope && !((MethodScope)scope).isStatic)
 				|| ((methodScope = scope.enclosingMethodScope()) != null && !methodScope.isStatic))) {
 			if (token.length > 0) {
-				findKeywords(token, new char[][]{Keywords.THIS}, true, false);
+				findKeywords(token, new char[][]{Keywords.THIS, Keywords.SUPER}, true, false);
 			} else {
 				int relevance = computeBaseRelevance();
 				relevance += computeRelevanceForResolution();
@@ -10063,7 +10072,7 @@ public final class CompletionEngine
 				ReferenceBinding[] superInterfaces = currentType.superInterfaces();
 				if (superInterfaces != null && currentType.isIntersectionType()) {
 					for (int i = 0; i < superInterfaces.length; i++) {
-						superInterfaces[i] = (ReferenceBinding)superInterfaces[i].capture(invocationScope, invocationSite.sourceEnd());
+						superInterfaces[i] = (ReferenceBinding)superInterfaces[i].capture(invocationScope, invocationSite.sourceStart(), invocationSite.sourceEnd());
 					}
 				}
 
@@ -12193,6 +12202,9 @@ public final class CompletionEngine
 
 		if(parent instanceof ParameterizedSingleTypeReference) {
 			ParameterizedSingleTypeReference ref = (ParameterizedSingleTypeReference) parent;
+			if (ref.resolvedType == null) {
+				return false;
+			}
 			TypeVariableBinding[] typeVariables = ((ReferenceBinding)ref.resolvedType).typeVariables();
 			int length = ref.typeArguments == null ? 0 : ref.typeArguments.length;
 			int nodeIndex = -1;

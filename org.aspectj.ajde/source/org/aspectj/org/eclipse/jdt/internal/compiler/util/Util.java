@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -677,7 +678,7 @@ public class Util implements SuffixConstants {
 	}
 	/**
 	 * Returns the contents of the given zip entry as a byte array.
-	 * @throws IOException if a problem occured reading the zip entry.
+	 * @throws IOException if a problem occurred reading the zip entry.
 	 */
 	public static byte[] getZipEntryByteContent(ZipEntry ze, ZipFile zip)
 		throws IOException {
@@ -1083,7 +1084,14 @@ public class Util implements SuffixConstants {
 				}
 			}
 		} else if (typeBinding.isNestedType()) {
-			classFile.recordInnerClasses(typeBinding);
+			TypeBinding enclosingType = typeBinding;
+			do {
+				if (!enclosingType.canBeSeenBy(classFile.referenceBinding.scope))
+					break;
+				enclosingType = enclosingType.enclosingType();
+			} while (enclosingType != null);
+			boolean onBottomForBug445231 = enclosingType != null;
+			classFile.recordInnerClasses(typeBinding, onBottomForBug445231);
 		}
 	}
 	/*
@@ -1101,6 +1109,15 @@ public class Util implements SuffixConstants {
 	}
 
 	public static void collectRunningVMBootclasspath(List bootclasspaths) {
+		for (String filePath : collectFilesNames()) {
+			FileSystem.Classpath currentClasspath = FileSystem.getClasspath(filePath, null, null);
+			if (currentClasspath != null) {
+				bootclasspaths.add(currentClasspath);
+			}
+		}
+	}
+
+	public static List<String> collectFilesNames() {
 		/* no bootclasspath specified
 		 * we can try to retrieve the default librairies of the VM used to run
 		 * the batch compiler
@@ -1123,15 +1140,11 @@ public class Util implements SuffixConstants {
 				bootclasspathProperty = System.getProperty("org.apache.harmony.boot.class.path"); //$NON-NLS-1$
 			}
 		}
+		List<String> filePaths = new ArrayList<>();
 		if ((bootclasspathProperty != null) && (bootclasspathProperty.length() != 0)) {
 			StringTokenizer tokenizer = new StringTokenizer(bootclasspathProperty, File.pathSeparator);
-			String token;
 			while (tokenizer.hasMoreTokens()) {
-				token = tokenizer.nextToken();
-				FileSystem.Classpath currentClasspath = FileSystem.getClasspath(token, null, null);
-				if (currentClasspath != null) {
-					bootclasspaths.add(currentClasspath);
-				}
+				filePaths.add(tokenizer.nextToken());
 			}
 		} else {
 			// try to get all jars inside the lib folder of the java home
@@ -1154,18 +1167,14 @@ public class Util implements SuffixConstants {
 						File[] current = systemLibrariesJars[i];
 						if (current != null) {
 							for (int j = 0, max2 = current.length; j < max2; j++) {
-								FileSystem.Classpath classpath =
-									FileSystem.getClasspath(current[j].getAbsolutePath(),
-										null, false, null, null);
-								if (classpath != null) {
-									bootclasspaths.add(classpath);
-								}
+								filePaths.add(current[j].getAbsolutePath());
 							}
 						}
 					}
 				}
 			}
 		}
+		return filePaths;
 	}
 	public static int getParameterCount(char[] methodSignature) {
 		try {
@@ -1588,4 +1597,52 @@ public class Util implements SuffixConstants {
 		}
 		return true;
 	}
+	
+	public static void appendEscapedChar(StringBuffer buffer, char c, boolean stringLiteral) {
+		switch (c) {
+			case '\b' :
+				buffer.append("\\b"); //$NON-NLS-1$
+				break;
+			case '\t' :
+				buffer.append("\\t"); //$NON-NLS-1$
+				break;
+			case '\n' :
+				buffer.append("\\n"); //$NON-NLS-1$
+				break;
+			case '\f' :
+				buffer.append("\\f"); //$NON-NLS-1$
+				break;
+			case '\r' :
+				buffer.append("\\r"); //$NON-NLS-1$
+				break;
+			case '\"':
+				if (stringLiteral) {
+					buffer.append("\\\""); //$NON-NLS-1$
+				} else {
+					buffer.append(c);
+				}
+				break;
+			case '\'':
+				if (stringLiteral) {
+					buffer.append(c);
+				} else {
+					buffer.append("\\\'"); //$NON-NLS-1$
+				}
+				break;
+			case '\\':
+				buffer.append("\\\\"); //$NON-NLS-1$
+				break;
+			default:
+				if (c >= 0x20) {
+					buffer.append(c);
+				} else if (c >= 0x10) {
+					buffer.append("\\u00").append(Integer.toHexString(c)); //$NON-NLS-1$
+				} else if (c >= 0) {
+					buffer.append("\\u000").append(Integer.toHexString(c)); //$NON-NLS-1$
+				} else {
+					buffer.append(c);
+				}
+		}
+	}
+
 }

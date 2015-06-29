@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 BEA Systems, Inc. and others
+ * Copyright (c) 2007 - 2012 BEA Systems, Inc. and others
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    wharley@bea.com - initial API and implementation
+ *    Walter Harley - initial API and implementation
  *    IBM Corporation - fix for 342598
  *******************************************************************************/
 
@@ -37,6 +37,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
@@ -72,9 +73,6 @@ public class TypesImpl implements Types {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#asMemberOf(javax.lang.model.type.DeclaredType, javax.lang.model.element.Element)
-     */
     @Override
     public TypeMirror asMemberOf(DeclaredType containing, Element element) {
 //        throw new UnsupportedOperationException("NYI: TypesImpl.asMemberOf(" + containing + ", " + element + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -85,51 +83,54 @@ public class TypesImpl implements Types {
     		case CONSTRUCTOR :
     		case METHOD :
     			MethodBinding methodBinding = (MethodBinding) elementImpl._binding;
-    			if (TypeBinding.notEquals(methodBinding.declaringClass, referenceBinding)) {
-    				throw new IllegalArgumentException("element is not valid for the containing declared type"); //$NON-NLS-1$
-    			}
+    			while (referenceBinding != null) {
     			for (MethodBinding method : referenceBinding.methods()) {
     				if (CharOperation.equals(method.selector, methodBinding.selector)
     						&& method.areParameterErasuresEqual(methodBinding)) {
     					return this._env.getFactory().newTypeMirror(method);
     				}
     			}
+                    referenceBinding = referenceBinding.superclass();
+                }
     			break;
     		case FIELD :
     		case ENUM_CONSTANT:
     			FieldBinding fieldBinding = (FieldBinding) elementImpl._binding;
-    			if (TypeBinding.notEquals(fieldBinding.declaringClass, referenceBinding)) {
-    				throw new IllegalArgumentException("element is not valid for the containing declared type"); //$NON-NLS-1$
-    			}
+                while (referenceBinding != null) {
     			for (FieldBinding field : referenceBinding.fields()) {
     				if (CharOperation.equals(field.name, fieldBinding.name)) {
     					return this._env.getFactory().newTypeMirror(field);
     				}
     			}
+                    referenceBinding = referenceBinding.superclass();
+                }
     			break;
     		case ENUM :
     		case ANNOTATION_TYPE :
     		case INTERFACE :
     		case CLASS :
-    			ReferenceBinding referenceBinding2 = (ReferenceBinding) elementImpl._binding;
-    			if (TypeBinding.notEquals(referenceBinding2.enclosingType(), referenceBinding)) {
-    				throw new IllegalArgumentException("element is not valid for the containing declared type"); //$NON-NLS-1$
+    			ReferenceBinding elementBinding = (ReferenceBinding) elementImpl._binding;
+                while (referenceBinding != null) {
+                    // If referenceBinding is a ParameterizedTypeBinding, this will return only ParameterizedTypeBindings
+                    // for member types, even if the member happens to be a static nested class. That's probably a bug;
+                    // static nested classes are not parameterized by their outer class.
+                    for (ReferenceBinding memberReferenceBinding : referenceBinding.memberTypes()) {
+                        if (CharOperation.equals(elementBinding.compoundName, memberReferenceBinding.compoundName)) {
+                            return this._env.getFactory().newTypeMirror(memberReferenceBinding);
     			}
-    			for (ReferenceBinding referenceBinding3 : referenceBinding.memberTypes()) {
-    				if (CharOperation.equals(referenceBinding3.compoundName, referenceBinding3.compoundName)) {
-    					return this._env.getFactory().newTypeMirror(referenceBinding3);
     				}
+                    referenceBinding = referenceBinding.superclass();
     			}
     			break;
     		default:
-    			break;
+                throw new IllegalArgumentException("element " + element + //$NON-NLS-1$
+                        " has unrecognized element kind " + element.getKind()); //$NON-NLS-1$
     	}
-		throw new IllegalArgumentException("element is not valid for the containing declared type: element kind " + element.getKind()); //$NON-NLS-1$
+            throw new IllegalArgumentException("element " + element + //$NON-NLS-1$
+                    " is not a member of the containing type " + containing +  //$NON-NLS-1$
+                    " nor any of its superclasses"); //$NON-NLS-1$
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#boxedClass(javax.lang.model.type.PrimitiveType)
-     */
     @Override
     public TypeElement boxedClass(PrimitiveType p) {
         PrimitiveTypeImpl primitiveTypeImpl = (PrimitiveTypeImpl) p;
@@ -138,17 +139,11 @@ public class TypesImpl implements Types {
         return (TypeElement) _env.getFactory().newElement(boxed);
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#capture(javax.lang.model.type.TypeMirror)
-     */
     @Override
     public TypeMirror capture(TypeMirror t) {
         throw new UnsupportedOperationException("NYI: TypesImpl.capture(...)"); //$NON-NLS-1$
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#contains(javax.lang.model.type.TypeMirror, javax.lang.model.type.TypeMirror)
-     */
     @Override
     public boolean contains(TypeMirror t1, TypeMirror t2) {
     	switch(t1.getKind()) {
@@ -168,9 +163,6 @@ public class TypesImpl implements Types {
         throw new UnsupportedOperationException("NYI: TypesImpl.contains(" + t1 + ", " + t2 + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#directSupertypes(javax.lang.model.type.TypeMirror)
-     */
     @Override
     public List<? extends TypeMirror> directSupertypes(TypeMirror t) {
         switch(t.getKind()) {
@@ -197,9 +189,6 @@ public class TypesImpl implements Types {
         return Collections.emptyList();
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#erasure(javax.lang.model.type.TypeMirror)
-     */
     @Override
     public TypeMirror erasure(TypeMirror t) {
     	TypeMirrorImpl typeMirrorImpl = (TypeMirrorImpl) t;
@@ -217,9 +206,6 @@ public class TypesImpl implements Types {
     	return t;
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#getArrayType(javax.lang.model.type.TypeMirror)
-     */
     @Override
     public ArrayType getArrayType(TypeMirror componentType) {
         TypeMirrorImpl typeMirrorImpl = (TypeMirrorImpl) componentType;
@@ -230,20 +216,25 @@ public class TypesImpl implements Types {
         				typeBinding.dimensions() + 1));
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#getDeclaredType(javax.lang.model.element.TypeElement, javax.lang.model.type.TypeMirror[])
+    /*
+     * (non-Javadoc)
+     * Create a type instance by parameterizing a type element. If the element is a member type,
+     * its container must not be generic (if it were, you would need to use the form of
+     * getDeclaredType that takes a container TypeMirror). If typeArgs is empty, and typeElem
+     * is not generic, then you should use TypeElem.asType().  If typeArgs is empty and typeElem
+     * is generic, this method will create the raw type.
      */
     @Override
     public DeclaredType getDeclaredType(TypeElement typeElem, TypeMirror... typeArgs) {
         int typeArgsLength = typeArgs.length;
         TypeElementImpl typeElementImpl = (TypeElementImpl) typeElem;
-        ReferenceBinding referenceBinding = (ReferenceBinding) typeElementImpl._binding;
-        TypeVariableBinding[] typeVariables = referenceBinding.typeVariables();
+        ReferenceBinding elementBinding = (ReferenceBinding) typeElementImpl._binding;
+        TypeVariableBinding[] typeVariables = elementBinding.typeVariables();
         int typeVariablesLength = typeVariables.length;
         if (typeArgsLength == 0) {
-            if (referenceBinding.isGenericType()) {
-                // must return a raw type
-                return (DeclaredType) _env.getFactory().newTypeMirror(this._env.getLookupEnvironment().createRawType(referenceBinding, null));
+            if (elementBinding.isGenericType()) {
+                // per javadoc, 
+                return (DeclaredType) _env.getFactory().newTypeMirror(this._env.getLookupEnvironment().createRawType(elementBinding, null));
             }
             return (DeclaredType)typeElem.asType();
         } else if (typeArgsLength != typeVariablesLength) {
@@ -259,29 +250,38 @@ public class TypesImpl implements Types {
             typeArguments[i] = (TypeBinding) binding;
         }
         return (DeclaredType) _env.getFactory().newTypeMirror(
-                this._env.getLookupEnvironment().createParameterizedType(referenceBinding, typeArguments, null));
+                this._env.getLookupEnvironment().createParameterizedType(elementBinding, typeArguments, null));
     }
 
     /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#getDeclaredType(javax.lang.model.type.DeclaredType, javax.lang.model.element.TypeElement, javax.lang.model.type.TypeMirror[])
+     * Create a specific type from a member element. The containing type can be parameterized, 
+     * e.g. Outer<String>.Inner, but it cannot be generic, i.e., Outer<T>.Inner. It only makes
+     * sense to use this method when the member element is parameterized by its container; so,
+     * for example, it makes sense for an inner class but not for a static member class.
+     * Otherwise you should just use getDeclaredType(TypeElement, TypeMirror ...), if you need
+     * to specify type arguments, or TypeElement.asType() directly, if not.
      */
     @Override
     public DeclaredType getDeclaredType(DeclaredType containing, TypeElement typeElem,
             TypeMirror... typeArgs) {
         int typeArgsLength = typeArgs.length;
         TypeElementImpl typeElementImpl = (TypeElementImpl) typeElem;
-        ReferenceBinding referenceBinding = (ReferenceBinding) typeElementImpl._binding;
-        TypeVariableBinding[] typeVariables = referenceBinding.typeVariables();
+        ReferenceBinding elementBinding = (ReferenceBinding) typeElementImpl._binding;
+        TypeVariableBinding[] typeVariables = elementBinding.typeVariables();
         int typeVariablesLength = typeVariables.length;
         DeclaredTypeImpl declaredTypeImpl = (DeclaredTypeImpl) containing;
         ReferenceBinding enclosingType = (ReferenceBinding) declaredTypeImpl._binding;
         if (typeArgsLength == 0) {
-            if (referenceBinding.isGenericType()) {
-                // must return a raw type
-                return (DeclaredType) _env.getFactory().newTypeMirror(this._env.getLookupEnvironment().createRawType(referenceBinding, enclosingType));
+            if (elementBinding.isGenericType()) {
+                // e.g., Outer.Inner<T> but T is not specified
+                // Per javadoc on interface, must return the raw type Outer.Inner
+                return (DeclaredType) _env.getFactory().newTypeMirror(
+                        _env.getLookupEnvironment().createRawType(elementBinding, enclosingType));
+            } else {
+                // e.g., Outer<Long>.Inner
+                ParameterizedTypeBinding ptb = _env.getLookupEnvironment().createParameterizedType(elementBinding, null, enclosingType);
+                return (DeclaredType) _env.getFactory().newTypeMirror(ptb);
             }
-            // TODO (see how to create a member type binding
-            throw new UnsupportedOperationException("NYI: TypesImpl.getDeclaredType(...) for member types"); //$NON-NLS-1$
         } else if (typeArgsLength != typeVariablesLength) {
             throw new IllegalArgumentException("Number of typeArguments doesn't match the number of formal parameters of typeElem"); //$NON-NLS-1$
         }
@@ -295,7 +295,7 @@ public class TypesImpl implements Types {
             typeArguments[i] = (TypeBinding) binding;
         }
         return (DeclaredType) _env.getFactory().newTypeMirror(
-                this._env.getLookupEnvironment().createParameterizedType(referenceBinding, typeArguments, enclosingType));
+                this._env.getLookupEnvironment().createParameterizedType(elementBinding, typeArguments, enclosingType));
     }
 
     @Override
@@ -303,25 +303,16 @@ public class TypesImpl implements Types {
         return _env.getFactory().getNoType(kind);
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#getNullType()
-     */
     @Override
     public NullType getNullType() {
         return _env.getFactory().getNullType();
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#getPrimitiveType(javax.lang.model.type.TypeKind)
-     */
     @Override
     public PrimitiveType getPrimitiveType(TypeKind kind) {
         return _env.getFactory().getPrimitiveType(kind);
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#getWildcardType(javax.lang.model.type.TypeMirror, javax.lang.model.type.TypeMirror)
-     */
     @Override
     public WildcardType getWildcardType(TypeMirror extendsBound, TypeMirror superBound) {
         if (extendsBound != null && superBound != null) {
@@ -356,7 +347,7 @@ public class TypesImpl implements Types {
                 Wildcard.UNBOUND));
     }
 
-    /**
+    /* (non-Javadoc)
      * @return true if a value of type t1 can be assigned to a variable of type t2, i.e., t2 = t1.
      */
     @Override
@@ -378,9 +369,6 @@ public class TypesImpl implements Types {
         return null != convertedType && convertedType.isCompatibleWith((TypeBinding)b2);
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#isSameType(javax.lang.model.type.TypeMirror, javax.lang.model.type.TypeMirror)
-     */
     @Override
     public boolean isSameType(TypeMirror t1, TypeMirror t2) {
     	if (t1.getKind() == TypeKind.WILDCARD || t2.getKind() == TypeKind.WILDCARD) {
@@ -409,9 +397,6 @@ public class TypesImpl implements Types {
         return CharOperation.equals(type1.computeUniqueKey(), type2.computeUniqueKey());
     }
 
-    /* (non-Javadoc)
-     * @see javax.lang.model.util.Types#isSubsignature(javax.lang.model.type.ExecutableType, javax.lang.model.type.ExecutableType)
-     */
     @Override
     public boolean isSubsignature(ExecutableType m1, ExecutableType m2) {
 		MethodBinding methodBinding1 = (MethodBinding) ((ExecutableTypeImpl) m1)._binding;
@@ -421,7 +406,7 @@ public class TypesImpl implements Types {
 		return methodBinding1.areParameterErasuresEqual(methodBinding2) && methodBinding1.areTypeVariableErasuresEqual(methodBinding2);
 	}
 
-    /**
+    /* (non-Javadoc)
      * @return true if t1 is a subtype of t2, or if t1 == t2.
      */
     @Override

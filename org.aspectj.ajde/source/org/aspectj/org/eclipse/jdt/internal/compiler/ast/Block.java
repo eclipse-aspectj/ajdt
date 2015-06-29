@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@
  *								bug 345305 - [compiler][null] Compiler misidentifies a case of "variable can only be null"
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
  *								bug 402993 - [null] Follow up of bug 401088: Missing warning about redundant null check
+ *								Bug 440282 - [resource] Resource leak detection false negative with empty finally block
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -27,12 +28,7 @@ public class Block extends Statement {
 	public int explicitDeclarations;
 	// the number of explicit declaration , used to create scope
 	public BlockScope scope;
-	public boolean lambdaBody;
 
-public Block(int explicitDeclarations, boolean lambdaBody) {
-	this.explicitDeclarations = explicitDeclarations;
-	this.lambdaBody = lambdaBody;
-}
 public Block(int explicitDeclarations) {
 	this.explicitDeclarations = explicitDeclarations;
 }
@@ -53,9 +49,11 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			flowContext.expireNullCheckedFieldInfo();
 		}
 	}
-	if (this.explicitDeclarations > 0) {
-		// if block has its own scope analyze tracking vars now:
+	if (this.scope != currentScope) {
+		// if block is tracking any resources other than the enclosing 'currentScope', analyse them now:
 		this.scope.checkUnclosedCloseables(flowInfo, flowContext, null, null);
+	}
+	if (this.explicitDeclarations > 0) {
 		// cleanup assignment info for locals that are scoped to this block:
 		LocalVariableBinding[] locals = this.scope.locals;
 		if (locals != null) {
@@ -151,5 +149,18 @@ public void branchChainTo(BranchLabel label) {
 	if (this.statements != null) {
 		this.statements[this.statements.length - 1].branchChainTo(label);
 	}
+}
+
+// A block does not complete normally if the last statement which we presume is reachable does not complete normally.
+@Override
+public boolean doesNotCompleteNormally() {
+	int length = this.statements == null ? 0 : this.statements.length;
+	return length > 0 && this.statements[length - 1].doesNotCompleteNormally();
+}
+
+@Override
+public boolean completesByContinue() {
+	int length = this.statements == null ? 0 : this.statements.length;
+	return length > 0 && this.statements[length - 1].completesByContinue();
 }
 }

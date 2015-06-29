@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 IBM Corporation and others.
+ * Copyright (c) 2010, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,11 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 440687 - [compiler][batch][null] improve command line option for external annotations
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.ClasspathDirectory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -26,7 +30,7 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 	IProgressMonitor monitor;
 	
 	public NameEnvironmentWithProgress(Classpath[] paths, String[] initialFileNames, IProgressMonitor monitor) {
-		super(paths, initialFileNames);
+		super(paths, initialFileNames, false);
 		setMonitor(monitor);
 	}
 	private void checkCanceled() {
@@ -39,8 +43,29 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 	}
 	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
 		checkCanceled();
-		return super.findType(typeName, packageName);
+		NameEnvironmentAnswer answer = super.findType(typeName, packageName);
+		if (answer == null) {
+			NameEnvironmentAnswer suggestedAnswer = null;
+			String qualifiedPackageName = new String(CharOperation.concatWith(packageName, '/'));
+			String qualifiedTypeName = new String(CharOperation.concatWith(packageName, typeName, '/'));
+			String qualifiedBinaryFileName = qualifiedTypeName + SUFFIX_STRING_class;
+			for (int i = 0, length = this.classpaths.length; i < length; i++) {
+				if (!(this.classpaths[i] instanceof ClasspathDirectory)) continue;
+				ClasspathDirectory classpathDirectory = (ClasspathDirectory) this.classpaths[i];
+				answer = classpathDirectory.findSecondaryInClass(typeName, qualifiedPackageName, qualifiedBinaryFileName);
+				if (answer != null) {
+					if (!answer.ignoreIfBetter()) {
+						if (answer.isBetter(suggestedAnswer))
+							return answer;
+					} else if (answer.isBetter(suggestedAnswer))
+						// remember suggestion and keep looking
+						suggestedAnswer = answer;
+				}
+			}
+		}
+		return answer;
 	}
+
 	public NameEnvironmentAnswer findType(char[][] compoundName) {
 		checkCanceled();
 		return super.findType(compoundName);

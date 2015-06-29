@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@
  *								bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
  *								Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis 
  *								Bug 411964 - [1.8][null] leverage null type annotation in foreach statement
+ *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -136,6 +137,8 @@ public FieldBinding lastFieldBinding() {
 }
 
 public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	if ((this.implicitConversion & TypeIds.BOXING) != 0)
+		return FlowInfo.NON_NULL;
 	FieldBinding fieldBinding = lastFieldBinding();
 	if (fieldBinding != null) {
 		if (fieldBinding.isNonNull() || flowContext.isNullcheckedFieldAccess(this)) {
@@ -167,7 +170,6 @@ void reportOnlyUselesslyReadPrivateField(BlockScope currentScope, FieldBinding f
 			{
 				// compoundAssignment/postIncrement is the only usage of this field
 				currentScope.problemReporter().unusedPrivateField(fieldBinding.sourceField());
-//				fieldBinding.modifiers |= ExtraCompilerModifiers.AccLocallyUsed; // don't report again
 			}
 		}
 	}
@@ -215,6 +217,5 @@ static void reportOnlyUselesslyReadLocal(BlockScope currentScope, LocalVariableB
 		// report the case of a local variable that is unread except for a special operator
 		currentScope.problemReporter().unusedLocalVariable(localBinding.declaration);
 	}
-//	localBinding.useFlag = LocalVariableBinding.USED; // don't report again
 }
 }

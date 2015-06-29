@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,8 @@
  *								bug 331649 - [compiler][null] consider null annotations for fields
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
  *								Bug 412203 - [compiler] Internal compiler error: java.lang.IllegalArgumentException: info cannot be null
+ *								Bug 458396 - NPE in CodeStream.invoke()
+ *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
  *     Jesper S Moller - <jesper@selskabet.org>   - Contributions for 
  *     							bug 382721 - [1.8][compiler] Effectively final variables needs special treatment
  *								bug 378674 - "The method can be declared as static" is wrong
@@ -207,7 +209,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 
 public TypeBinding checkFieldAccess(BlockScope scope) {
 	FieldBinding fieldBinding = (FieldBinding) this.binding;
-	this.constant = fieldBinding.constant();
+	this.constant = fieldBinding.constant(scope);
 
 	this.bits &= ~ASTNode.RestrictiveFlagMASK; // clear bits
 	this.bits |= Binding.FIELD;
@@ -272,14 +274,19 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBinding compileTimeType) {
 	if (runtimeTimeType == null || compileTimeType == null)
 		return;
-	if ((this.bits & Binding.FIELD) != 0 && this.binding != null && this.binding.isValidBinding()) {
+	if (this.binding != null && this.binding.isValidBinding()) {
+		TypeBinding originalType = null;
+		if ((this.bits & Binding.FIELD) != 0 && (this.binding instanceof FieldBinding)) { // AspectJ extension - - new guard (ajc_aroundClosure does this) ??
 		// set the generic cast after the fact, once the type expectation is fully known (no need for strict cast)
-			if (this.binding instanceof FieldBinding) { // AspectJ Extension - new guard (ajc_aroundClosure does this) ??
 		FieldBinding field = (FieldBinding) this.binding;
 		FieldBinding originalBinding = field.original();
-		TypeBinding originalType = originalBinding.type;
-		// extra cast needed if field type is type variable
-		if (originalType.leafComponentType().isTypeVariable()) {
+			originalType = originalBinding.type;
+		} else if ((this.bits & Binding.LOCAL) != 0) {
+			LocalVariableBinding local = (LocalVariableBinding) this.binding;
+			originalType = local.type;
+		}
+		// extra cast needed if field/local type is type variable
+		if (originalType != null && originalType.leafComponentType().isTypeVariable()) {
 	    	TypeBinding targetType = (!compileTimeType.isBaseType() && runtimeTimeType.isBaseType())
 	    		? compileTimeType  // unboxing: checkcast before conversion
 	    		: runtimeTimeType;
@@ -294,7 +301,6 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 								ProblemReasons.NotVisible));
 				}
 	        }
-		        }// AspectJ Extension - close the new if()		        
 		}
 	}
 	super.computeConversion(scope, runtimeTimeType, compileTimeType);
@@ -861,6 +867,8 @@ public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotatio
 }
 
 public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	if ((this.implicitConversion & TypeIds.BOXING) != 0)
+		return FlowInfo.NON_NULL;
 	LocalVariableBinding local = localVariableBinding();
 	if (local != null) {
 		return flowInfo.nullStatus(local);
@@ -1018,7 +1026,7 @@ public TypeBinding resolveType(BlockScope scope) {
 								scope.problemReporter().cannotReferToNonFinalOuterLocal((LocalVariableBinding)variable, this);
 						}
 						variableType = variable.type;
-						this.constant = (this.bits & ASTNode.IsStrictlyAssigned) == 0 ? variable.constant() : Constant.NotAConstant;
+						this.constant = (this.bits & ASTNode.IsStrictlyAssigned) == 0 ? variable.constant(scope) : Constant.NotAConstant;
 					} else {
 						// a field
 						variableType = checkFieldAccess(scope);
@@ -1026,7 +1034,7 @@ public TypeBinding resolveType(BlockScope scope) {
 					// perform capture conversion if read access
 					if (variableType != null) {
 						this.resolvedType = variableType = (((this.bits & ASTNode.IsStrictlyAssigned) == 0)
-								? variableType.capture(scope, this.sourceEnd)
+								? variableType.capture(scope, this.sourceStart, this.sourceEnd)
 								: variableType);
 						if ((variableType.tagBits & TagBits.HasMissingType) != 0) {
 							if ((this.bits & Binding.LOCAL) == 0) {

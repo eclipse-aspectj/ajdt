@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -163,7 +163,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
  * Renamed from Parser to TheOriginalJDTParserClass
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class TheOriginalJDTParserClass extends CommitRollbackParser implements ConflictedParser, OperatorIds, TypeIds {
+public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInformation, ConflictedParser, OperatorIds, TypeIds {
 	
 	protected static final int THIS_CALL = ExplicitConstructorCall.This;
 	protected static final int SUPER_CALL = ExplicitConstructorCall.Super;
@@ -239,6 +239,14 @@ public class TheOriginalJDTParserClass extends CommitRollbackParser implements C
 		METHOD_REFERENCE,
 		LAMBDA,
 	}
+	
+	// resumeOnSyntaxError codes:
+	protected static final int HALT = 0;     // halt and throw up hands.
+	protected static final int RESTART = 1;  // stacks adjusted, alternate goal from check point.
+	protected static final int RESUME = 2;   // stacks untouched, just continue from where left off.
+	
+	public Scanner scanner;
+	public int currentToken;
 
 	static {
 		try{
@@ -955,6 +963,7 @@ public class TheOriginalJDTParserClass extends CommitRollbackParser implements C
 	protected int identifierPtr;
 	protected char[][] identifierStack;
 	protected boolean ignoreNextOpeningBrace;
+	protected boolean ignoreNextClosingBrace;
 
 	//positions , dimensions , .... (int stacks)
 	protected int intPtr;
@@ -1033,6 +1042,7 @@ private boolean haltOnSyntaxError = false;
 private boolean tolerateDefaultClassMethods = false;
 private boolean processingLambdaParameterList = false;
 private boolean expectTypeAnnotation = false;
+private boolean reparsingLambdaExpression = false;
 
 public TheOriginalJDTParserClass () { // AspectJ - new name
 	// Caveat Emptor: For inheritance purposes and then only in very special needs. Only minimal state is initialized !
@@ -1558,7 +1568,9 @@ protected void consumeAllocationHeader() {
 		this.lastCheckPoint = anonymousType.bodyStart = this.scanner.currentPosition;
 		this.currentElement = this.currentElement.add(anonymousType, 0);
 		this.lastIgnoredToken = -1;
-		if (!isIndirectlyInsideLambdaExpression())
+		if (isIndirectlyInsideLambdaExpression())
+			this.ignoreNextOpeningBrace = true;
+		else
 			this.currentToken = 0; // opening brace already taken into account
 		return;
 	}
@@ -3495,7 +3507,9 @@ protected void consumeEnterAnonymousClassBody(boolean qualified) {
 		this.lastCheckPoint = anonymousType.bodyStart;
 		this.currentElement = this.currentElement.add(anonymousType, 0);
 		if (!(this.currentElement instanceof RecoveredAnnotation)) {
-			if (!isIndirectlyInsideLambdaExpression())
+			if (isIndirectlyInsideLambdaExpression())
+				this.ignoreNextOpeningBrace = true;
+			else 
 				this.currentToken = 0; // opening brace already taken into account
 		} else {
 			this.ignoreNextOpeningBrace = true;
@@ -3697,8 +3711,10 @@ protected void consumeEnumConstantHeader() {
 	  	this.currentElement = this.currentElement.add(anonymousType, 0);
       	this.lastCheckPoint = anonymousType.bodyStart;
         this.lastIgnoredToken = -1;
-        if (!isIndirectlyInsideLambdaExpression())
-        	this.currentToken = 0; // opening brace already taken into account
+        if (isIndirectlyInsideLambdaExpression())
+			this.ignoreNextOpeningBrace = true;
+		else
+			this.currentToken = 0; // opening brace already taken into account
 	  } else {
 	  	  if(this.currentToken == TokenNameSEMICOLON) {
 		  	RecoveredType currentType = currentRecoveryType();
@@ -4838,13 +4854,59 @@ protected void consumeLocalVariableDeclaration() {
 	this.variablesCounter[this.nestedType] = 0;
 }
 protected void consumeLocalVariableDeclarationStatement() {
+	
+	int variableDeclaratorsCounter = this.astLengthStack[this.astLengthPtr];
+	if (variableDeclaratorsCounter == 1) {
+		LocalDeclaration localDeclaration = (LocalDeclaration) this.astStack[this.astPtr];
+		if (localDeclaration.isRecoveredFromLoneIdentifier()) {
+			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=430336, [1.8][compiler] Bad syntax error recovery: Lonely identifier should be variable name, not type
+			// Mutate foo $missing; into foo = $missing$; 
+			Expression left;
+			if (localDeclaration.type instanceof QualifiedTypeReference) {
+				QualifiedTypeReference qtr = (QualifiedTypeReference) localDeclaration.type;
+				left = new QualifiedNameReference(qtr.tokens, qtr.sourcePositions, 0, 0);
+			} else {
+				left = new SingleNameReference(localDeclaration.type.getLastToken(), 0L);
+			}
+			left.sourceStart = localDeclaration.type.sourceStart;
+			left.sourceEnd = localDeclaration.type.sourceEnd;
+			
+			Expression right = new SingleNameReference(localDeclaration.name, 0L);
+			right.sourceStart = localDeclaration.sourceStart;
+			right.sourceEnd = localDeclaration.sourceEnd;
+			
+			Assignment assignment = new Assignment(left, right, 0);
+			int end = this.endStatementPosition;
+			assignment.sourceEnd = (end == localDeclaration.sourceEnd) ? ++end : end; 
+			assignment.statementEnd = end;
+			this.astStack[this.astPtr] = assignment;
+			
+			// also massage recovery scanner data.
+			if (this.recoveryScanner != null) {
+				RecoveryScannerData data = this.recoveryScanner.getData();
+				int position = data.insertedTokensPtr;
+				while (position > 0) {
+					if (data.insertedTokensPosition[position] != data.insertedTokensPosition[position - 1])
+						break;
+					position--;
+				}
+				if (position >= 0)
+					this.recoveryScanner.insertTokenAhead(TerminalTokens.TokenNameEQUAL, position);
+			}
+			
+			if (this.currentElement != null) {
+				this.lastCheckPoint = assignment.sourceEnd + 1;
+				this.currentElement = this.currentElement.add(assignment, 0);
+			}
+			return;
+		}
+	}
 	// LocalVariableDeclarationStatement ::= LocalVariableDeclaration ';'
 	// see blockReal in case of change: duplicated code
 	// increment the amount of declared variables for this block
 	this.realBlockStack[this.realBlockPtr]++;
 
 	// update source end to include the semi-colon
-	int variableDeclaratorsCounter = this.astLengthStack[this.astLengthPtr];
 	for (int i = variableDeclaratorsCounter - 1; i >= 0; i--) {
 		LocalDeclaration localDeclaration = (LocalDeclaration) this.astStack[this.astPtr - i];
 		localDeclaration.declarationSourceEnd = this.endStatementPosition;
@@ -5992,7 +6054,6 @@ protected void consumeZeroTypeAnnotations() {
 protected void consumeRule(int act) {
 	throw new UnsupportedOperationException("Should be invoking method in Parser instead"); // AspectJ extension - subclass should be used
 }
-
 protected void consumeVariableDeclaratorIdParameter () {
 	pushOnIntStack(1);  // signal "normal" variable declarator id parameter.
 }
@@ -6059,6 +6120,7 @@ protected void consumeLambdaHeader() {
 	this.processingLambdaParameterList = false;
 	if (this.currentElement != null) {
 		this.lastCheckPoint = arrowPosition + 1; // we don't want the typed formal parameters to be processed by recovery.
+		this.currentElement.lambdaNestLevel++;
 	}
 }
 protected void consumeLambdaExpression() {
@@ -6071,9 +6133,11 @@ protected void consumeLambdaExpression() {
 	Statement body = (Statement) this.astStack[this.astPtr--];
 	if (body instanceof Block) {
 		if (this.options.ignoreMethodBodies) {
+			Statement oldBody = body;
 			body = new Block(0);
+			body.sourceStart = oldBody.sourceStart;
+			body.sourceEnd = oldBody.sourceEnd;
 		}
-		((Block) body).lambdaBody = true; // for consistency's sakes.
 	}
 
 	LambdaExpression lexp = (LambdaExpression) this.astStack[this.astPtr--];
@@ -6091,13 +6155,14 @@ protected void consumeLambdaExpression() {
 	pushOnExpressionStack(lexp);
 	if (this.currentElement != null) {
 		this.lastCheckPoint = body.sourceEnd + 1;
+		this.currentElement.lambdaNestLevel --;
 	}
 	this.referenceContext.compilationResult().hasFunctionalTypes = true;
 	markEnclosingMemberWithLocalOrFunctionalType(LocalTypeKind.LAMBDA);
 	if (lexp.compilationResult.getCompilationUnit() == null) {
-	    // unit built out of model. Stash a textual representation of lambda to enable LE.copy().
-	    int length = lexp.sourceEnd - lexp.sourceStart + 1;
-	    System.arraycopy(this.scanner.getSource(), lexp.sourceStart, lexp.text = new char [length], 0, length); 
+		// unit built out of model. Stash a textual representation of lambda to enable LE.copy().
+		int length = lexp.sourceEnd - lexp.sourceStart + 1;
+		System.arraycopy(this.scanner.getSource(), lexp.sourceStart, lexp.text = new char [length], 0, length); 
 	}
 }
 
@@ -6286,6 +6351,11 @@ protected void consumeReferenceExpression(ReferenceExpression referenceExpressio
 	pushOnExpressionStack(referenceExpression);
 	if (!this.parsingJava8Plus) {
 		problemReporter().referenceExpressionsNotBelow18(referenceExpression);
+	}
+	if (referenceExpression.compilationResult.getCompilationUnit() == null) {
+		// unit built out of model. Stash a textual representation to enable RE.copy().
+		int length = referenceExpression.sourceEnd - referenceExpression.sourceStart + 1;
+		System.arraycopy(this.scanner.getSource(), referenceExpression.sourceStart, referenceExpression.text = new char [length], 0, length); 
 	}
 	this.referenceContext.compilationResult().hasFunctionalTypes = true;
 	markEnclosingMemberWithLocalOrFunctionalType(LocalTypeKind.METHOD_REFERENCE);
@@ -7077,6 +7147,7 @@ protected void consumeToken(int type) {
 		case TokenNameStringLiteral :
 			StringLiteral stringLiteral;
 			if (this.recordStringLiterals &&
+					!this.reparsingLambdaExpression &&
 					this.checkExternalizeStrings &&
 					this.lastPosistion < this.scanner.currentPosition &&
 					!this.statementRecoveryActivated) {
@@ -8596,6 +8667,11 @@ public boolean hasLeadingTagComment(char[] commentPrefixTag, int rangeEnd) {
 	}
 	return false;
 }
+
+protected void ignoreNextClosingBrace() {
+	this.ignoreNextClosingBrace = true;
+}
+
 protected void ignoreExpressionAssignment() {
 	// Assignment ::= InvalidArrayInitializerAssignement
 	// encoded operator would be: this.intStack[this.intPtr]
@@ -9658,6 +9734,7 @@ public ASTNode[] parseClassBodyDeclarations(char[] source, int offset, int lengt
 
 public Expression parseLambdaExpression(char[] source, int offset, int length, CompilationUnitDeclaration unit, boolean recordLineSeparators) {
 	this.haltOnSyntaxError = true; // unexposed/unshared object, no threading concerns.
+	this.reparsingLambdaExpression = true;
 	return parseExpression(source, offset, length, unit, recordLineSeparators);
 }
 
@@ -10214,6 +10291,10 @@ public void recoveryTokenCheck() {
 			break;
 
 		case TokenNameRBRACE :
+			if (this.ignoreNextClosingBrace) {
+				this.ignoreNextClosingBrace = false;
+				break;
+			}
 			this.rBraceStart = this.scanner.startPosition - 1;
 			this.rBraceEnd = this.scanner.currentPosition - 1;
 			this.endPosition = flushCommentsDefinedPriorTo(this.rBraceEnd);
@@ -10546,9 +10627,9 @@ protected void updateSourcePosition(Expression exp) {
 	exp.sourceEnd = this.intStack[this.intPtr--];
 	exp.sourceStart = this.intStack[this.intPtr--];
 }
-public void copyState(CommitRollbackParser from) {
+public void copyState(Parser from) {
 	
-	Parser parser = (Parser) from;
+	Parser parser = from;
 
 	// Stack pointers.
 	

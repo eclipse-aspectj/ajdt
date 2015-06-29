@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@
  *								Bug 392238 - [1.8][compiler][null] Detect semantically invalid null type annotations
  *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
  *								Bug 438012 - [1.8][null] Bogus Warning: The nullness annotation is redundant with a default that applies to this location
+ *								Bug 466713 - Null Annotations: NullPointerException using <int @Nullable []> as Type Param
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 409246 - [1.8][compiler] Type annotations on catch parameters not handled properly
  *******************************************************************************/
@@ -21,6 +22,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationPosition;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
@@ -52,6 +54,11 @@ public class Argument extends LocalDeclaration {
 			this.bits |= (tr.bits & ASTNode.HasTypeAnnotations);
 		}
 		this.bits |= (IsLocalDeclarationReachable | IsArgument | IsTypeElided);
+	}
+	
+	@Override
+	public boolean isRecoveredFromLoneIdentifier() {
+		return false;
 	}
 
 	public TypeBinding createBinding(MethodScope scope, TypeBinding typeBinding) {
@@ -85,10 +92,12 @@ public class Argument extends LocalDeclaration {
 		Binding existingVariable = scope.getBinding(this.name, Binding.VARIABLE, this, false /*do not resolve hidden field*/);
 		if (existingVariable != null && existingVariable.isValidBinding()){
 			final boolean localExists = existingVariable instanceof LocalVariableBinding;
-			if (localExists && (this.bits & ASTNode.ShadowsOuterLocal) != 0 && scope.isLambdaSubscope()) {
-				scope.problemReporter().lambdaRedeclaresArgument(this);
-			} else if (localExists && this.hiddenVariableDepth == 0) {
-				scope.problemReporter().redefineArgument(this);
+			if (localExists && this.hiddenVariableDepth == 0) {
+				if ((this.bits & ASTNode.ShadowsOuterLocal) != 0 && scope.isLambdaSubscope()) {
+					scope.problemReporter().lambdaRedeclaresArgument(this);
+				} else {
+					scope.problemReporter().redefineArgument(this);
+				}
 			} else {
 				boolean isSpecialArgument = false;
 				if (existingVariable instanceof FieldBinding) {
@@ -128,10 +137,10 @@ public class Argument extends LocalDeclaration {
 		return (this.bits & IsTypeElided) != 0;
 	}
 
-	public boolean hasNullTypeAnnotation() {
+	public boolean hasNullTypeAnnotation(AnnotationPosition position) {
 		// parser associates SE8 annotations to the declaration
 		return TypeReference.containsNullAnnotation(this.annotations) || 
-				(this.type != null && this.type.hasNullTypeAnnotation()); // just in case
+				(this.type != null && this.type.hasNullTypeAnnotation(position)); // just in case
 	}
 
 	public StringBuffer print(int indent, StringBuffer output) {
@@ -205,7 +214,7 @@ public class Argument extends LocalDeclaration {
 		resolveAnnotations(scope, this.annotations, this.binding, true);
 		Annotation.isTypeUseCompatible(this.type, scope, this.annotations);
 		if (scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled && 
-				(this.type.hasNullTypeAnnotation() || TypeReference.containsNullAnnotation(this.annotations)))
+				(this.type.hasNullTypeAnnotation(AnnotationPosition.ANY) || TypeReference.containsNullAnnotation(this.annotations)))
 		{
 			scope.problemReporter().nullAnnotationUnsupportedLocation(this.type);
 		}

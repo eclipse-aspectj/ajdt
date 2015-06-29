@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2014 IBM Corporation and others.
+ * Copyright (c) 2004, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 458577 - IClassFile.getWorkingCopy() may lead to NPE in BecomeWorkingCopyOperation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
 
@@ -30,6 +32,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.RecoveryScanner;
@@ -1145,6 +1148,10 @@ public class ASTParser {
 					NodeSearcher searcher = null;
 					org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit = null;
 					WorkingCopyOwner wcOwner = this.workingCopyOwner;
+					if (this.typeRoot instanceof ClassFileWorkingCopy) {
+						// special case: class file mimics as compilation unit, but that would use a wrong file name below, so better unwrap now:
+						this.typeRoot = ((ClassFileWorkingCopy) this.typeRoot).classFile;
+					}
 					if (this.typeRoot instanceof ICompilationUnit) {
 							/*
 							 * this.compilationUnitSource is an instance of org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit that implements
@@ -1394,6 +1401,10 @@ public class ASTParser {
 				compilationUnit.setLineEndTable(recordedParsingInformation.lineEnds);
 				Block block = ast.newBlock();
 				block.setSourceRange(this.sourceOffset, this.sourceOffset + this.sourceLength);
+				ExplicitConstructorCall constructorCall = constructorDeclaration.constructorCall;
+				if (constructorCall != null && constructorCall.accessMode != org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall.ImplicitSuper) {
+					block.statements().add(converter.convert(constructorCall));
+				}
 				org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement[] statements = constructorDeclaration.statements;
 				if (statements != null) {
 					int statementsLength = statements.length;

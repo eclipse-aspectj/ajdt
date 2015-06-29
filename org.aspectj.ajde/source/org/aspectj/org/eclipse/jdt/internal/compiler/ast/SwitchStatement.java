@@ -20,11 +20,24 @@ import java.util.Arrays;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
-import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CaseLabel;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.Opcodes;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.flow.SwitchFlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 
 @SuppressWarnings("rawtypes")
@@ -301,10 +314,7 @@ public class SwitchStatement extends Statement {
 				defaultBranchLabel.place();
 			}
 			codeStream.recordPositionsFrom(pc, this.sourceStart);
-//		} catch (Throwable e) {
-//			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			if (this.scope != null) this.scope.enclosingCase = null; // no longer inside switch case block
 		}
 	}
@@ -638,5 +648,27 @@ public class SwitchStatement extends Statement {
 		if (this.breakLabel.forwardReferenceCount() > 0) {
 			label.becomeDelegateFor(this.breakLabel);
 		}
+	}
+
+	@Override
+	public boolean doesNotCompleteNormally() {
+		if (this.statements == null || this.statements.length == 0)
+			return false;
+		for (int i = 0, length = this.statements.length; i < length; i++) {
+			if (this.statements[i].breaksOut(null))
+				return false;
+		}
+		return this.statements[this.statements.length - 1].doesNotCompleteNormally();
+	}
+	
+	@Override
+	public boolean completesByContinue() {
+		if (this.statements == null || this.statements.length == 0)
+			return false;
+		for (int i = 0, length = this.statements.length; i < length; i++) {
+			if (this.statements[i].completesByContinue())
+				return true;
+		}
+		return false;
 	}
 }

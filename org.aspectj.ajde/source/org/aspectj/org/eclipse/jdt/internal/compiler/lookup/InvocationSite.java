@@ -20,6 +20,7 @@ public interface InvocationSite {
 
 	TypeBinding[] genericTypeArguments();
 	boolean isSuperAccess();
+	boolean isQualifiedSuper();
 	boolean isTypeAccess();
 	// in case the receiver type does not match the actual receiver type
 	// e.g. pkg.Type.C (receiver type of C is type of source context,
@@ -32,6 +33,9 @@ public interface InvocationSite {
 	int sourceStart();
 	TypeBinding invocationTargetType();
 	boolean receiverIsImplicitThis();
+	boolean checkingPotentialCompatibility();
+	void acceptPotentiallyCompatibleMethods(MethodBinding [] methods);
+	
 	/** When inference for this invocationSite starts, get a fresh inference context, initialized from this site. */
 	InferenceContext18 freshInferenceContext(Scope scope);
 	ExpressionContext getExpressionContext();
@@ -53,5 +57,9 @@ public interface InvocationSite {
 		public boolean receiverIsImplicitThis() { return false; }
 		public InferenceContext18 freshInferenceContext(Scope scope) { return null; }
 		public ExpressionContext getExpressionContext() { return ExpressionContext.VANILLA_CONTEXT; }
+		@Override
+		public boolean isQualifiedSuper() { return false; }
+		public boolean checkingPotentialCompatibility() { return false; }
+		public void acceptPotentiallyCompatibleMethods(MethodBinding[] methods) { /* ignore */ }
 	}
 }

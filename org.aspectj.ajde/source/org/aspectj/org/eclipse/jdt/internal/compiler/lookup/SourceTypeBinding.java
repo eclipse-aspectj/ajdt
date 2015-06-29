@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,11 @@
  *								Bug 432348 - [1.8] Internal compiler error (NPE) after upgrade to 1.8
  *								Bug 438458 - [1.8][null] clean up handling of null type annotations wrt type variables
  *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
+ *								Bug 441693 - [1.8][null] Bogus warning for type argument annotated with @NonNull
+ *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations
+ *								Bug 457210 - [1.8][compiler][null] Wrong Nullness errors given on full build build but not on incremental build?
+ *								Bug 461250 - ArrayIndexOutOfBoundsException in SourceTypeBinding.fields
+ *								Bug 466713 - Null Annotations: NullPointerException using <int @Nullable []> as Type Param
  *      Jesper S Moller <jesper@selskabet.org> -  Contributions for
  *								Bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
  *      Till Brychcy - Contributions for
@@ -60,6 +65,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationPosition;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
@@ -737,7 +743,7 @@ public SyntheticMethodBinding addSyntheticFactoryMethod(MethodBinding privateCon
  */
 public SyntheticMethodBinding addSyntheticBridgeMethod(MethodBinding inheritedMethodToBridge, MethodBinding targetMethod) {
 	if (!isPrototype()) throw new IllegalStateException();
-	if (isInterface()) return null; // only classes & enums get bridge methods
+	if (isInterface() && this.scope.compilerOptions().sourceLevel <= ClassFileConstants.JDK1_7) return null; // only classes & enums get bridge methods, interfaces too at 1.8+
 	// targetMethod may be inherited
 	if (TypeBinding.equalsEquals(inheritedMethodToBridge.returnType.erasure(), targetMethod.returnType.erasure())
 		&& inheritedMethodToBridge.areParameterErasuresEqual(targetMethod)) {
@@ -888,18 +894,29 @@ public char[] computeUniqueKey(boolean isLeaf) {
 	return uniqueKey;
 }
 
-void faultInTypesForFieldsAndMethods() {
-	if (!isPrototype()) throw new IllegalStateException();
+private void checkAnnotationsInType() {
 	// check @Deprecated annotation
 	getAnnotationTagBits(); // marks as deprecated by side effect
 	ReferenceBinding enclosingType = enclosingType();
 	if (enclosingType != null && enclosingType.isViewedAsDeprecated() && !isDeprecated())
 		this.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+
+	for (int i = 0, length = this.memberTypes.length; i < length; i++)
+		((SourceTypeBinding) this.memberTypes[i]).checkAnnotationsInType();
+}
+
+void faultInTypesForFieldsAndMethods() {
+	if (!isPrototype()) throw new IllegalStateException();
+	checkAnnotationsInType();
+	internalFaultInTypeForFieldsAndMethods();
+}
+
+private void internalFaultInTypeForFieldsAndMethods() {
 	fields();
 	methods();
 
 	for (int i = 0, length = this.memberTypes.length; i < length; i++)
-		((SourceTypeBinding) this.memberTypes[i]).faultInTypesForFieldsAndMethods();
+		((SourceTypeBinding) this.memberTypes[i]).internalFaultInTypeForFieldsAndMethods();
 }
 // NOTE: the type of each field of a source type is resolved when needed
 public FieldBinding[] fields() {
@@ -924,11 +941,12 @@ public FieldBinding[] fields() {
 				ReferenceBinding.sortFields(this.fields, 0, length);
 			this.tagBits |= TagBits.AreFieldsSorted;
 		}
-		for (int i = 0, length = this.fields.length; i < length; i++) {
-			if (resolveTypeFor(this.fields[i]) == null) {
+		FieldBinding[] fieldsSnapshot = this.fields;
+		for (int i = 0, length = fieldsSnapshot.length; i < length; i++) {
+			if (resolveTypeFor(fieldsSnapshot[i]) == null) {
 				// do not alter original field array until resolution is over, due to reentrance (143259)
-				if (resolvedFields == this.fields) {
-					System.arraycopy(this.fields, 0, resolvedFields = new FieldBinding[length], 0, length);
+				if (resolvedFields == fieldsSnapshot) {
+					System.arraycopy(fieldsSnapshot, 0, resolvedFields = new FieldBinding[length], 0, length);
 				}
 				resolvedFields[i] = null;
 				failed++;
@@ -1033,7 +1051,6 @@ public long getAnnotationTagBits() {
 		}
 		if ((this.tagBits & TagBits.AnnotationDeprecated) != 0)
 			this.modifiers |= ClassFileConstants.AccDeprecated;
-		evaluateNullAnnotations(this.tagBits);
 	}
 	return this.tagBits;
 }
@@ -1913,7 +1930,7 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 			if ((resolvedExceptionType.tagBits & TagBits.HasMissingType) != 0) {
 				method.tagBits |= TagBits.HasMissingType;
 			}
-			if (exceptionTypes[i].hasNullTypeAnnotation()) {
+			if (exceptionTypes[i].hasNullTypeAnnotation(AnnotationPosition.ANY)) {
 				methodDecl.scope.problemReporter().nullAnnotationUnsupportedLocation(exceptionTypes[i]);
 			}
 			method.modifiers |= (resolvedExceptionType.modifiers & ExtraCompilerModifiers.AccGenericSignature);
@@ -2050,20 +2067,17 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 			long nullTagBits = method.tagBits & TagBits.AnnotationNullMASK;
 			if (nullTagBits != 0) {
 				TypeReference returnTypeRef = ((MethodDeclaration)methodDecl).returnType;
-				if (compilerOptions.sourceLevel < ClassFileConstants.JDK1_8) {
+				if (this.scope.environment().usesNullTypeAnnotations()) {
 					if (!this.scope.validateNullAnnotation(nullTagBits, returnTypeRef, methodDecl.annotations))
+						method.returnType.tagBits &= ~TagBits.AnnotationNullMASK;
 						method.tagBits &= ~TagBits.AnnotationNullMASK;
 				} else {
-					if (nullTagBits != (method.returnType.tagBits & TagBits.AnnotationNullMASK)) {
-						if (!this.scope.validateNullAnnotation(nullTagBits, returnTypeRef, methodDecl.annotations)) {
-							method.returnType.tagBits &= ~TagBits.AnnotationNullMASK;
-						}
+					if (!this.scope.validateNullAnnotation(nullTagBits, returnTypeRef, methodDecl.annotations))
 						method.tagBits &= ~TagBits.AnnotationNullMASK;
 					}
 				}
 			}
 		}
-	}
 	if (compilerOptions.storeAnnotations)
 		createArgumentBindings(method, compilerOptions); // need annotations resolved already at this point
 	if (foundReturnTypeProblem)
@@ -2103,12 +2117,27 @@ private void createArgumentBindings(MethodBinding method, CompilerOptions compil
 	}
 }
 
-private void evaluateNullAnnotations(long annotationTagBits) {
+public void evaluateNullAnnotations() {
 	
 	if (!isPrototype()) throw new IllegalStateException();
-	
-	if (this.nullnessDefaultInitialized > 0 || !this.scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled)
+	// AspectJ added guard for null scope (happens for aspects in the 'BcelWorld.hasUnsatisfiedDependency' chain call
+	if (this.nullnessDefaultInitialized > 0 || this.scope==null || !this.scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled)
 		return;
+
+	if ((this.tagBits & TagBits.AnnotationNullMASK) != 0) {
+		Annotation[] annotations = this.scope.referenceContext.annotations;
+		for (int i = 0; i < annotations.length; i++) {
+			ReferenceBinding annotationType = annotations[i].getCompilerAnnotation().getAnnotationType();
+			if (annotationType != null) {
+				if (annotationType.id == TypeIds.T_ConfiguredAnnotationNonNull
+						|| annotationType.id == TypeIds.T_ConfiguredAnnotationNullable) {
+					this.scope.problemReporter().nullAnnotationUnsupportedLocation(annotations[i]);
+					this.tagBits &= ~TagBits.AnnotationNullMASK;
+				}
+			}
+		}
+	}
+
 	boolean isPackageInfo = CharOperation.equals(this.sourceName, TypeConstants.PACKAGE_INFO_NAME);
 	PackageBinding pkg = getPackage();
 	boolean isInDefaultPkg = (pkg.compoundName == CharOperation.NO_CHAR_CHAR);
@@ -2130,14 +2159,14 @@ private void evaluateNullAnnotations(long annotationTagBits) {
 		}
 	}
 	this.nullnessDefaultInitialized = 1;
-	boolean isJdk18 = this.scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8;
-	if (isJdk18) {
+	boolean usesNullTypeAnnotations = this.scope.environment().usesNullTypeAnnotations();
+	if (usesNullTypeAnnotations) {
 		if (this.defaultNullness != 0) {
 			if (isPackageInfo) {
 				pkg.defaultNullness = this.defaultNullness;
 			} else {
 				TypeDeclaration typeDecl = this.scope.referenceContext;
-				checkRedundantNullnessDefaultRecurse(typeDecl, typeDecl.annotations, this.defaultNullness, isJdk18);
+				checkRedundantNullnessDefaultRecurse(typeDecl, typeDecl.annotations, this.defaultNullness, true);
 			}
 		} else if (isPackageInfo || (isInDefaultPkg && !(this instanceof NestedTypeBinding))) {
 			this.scope.problemReporter().missingNonNullByDefaultAnnotation(this.scope.referenceContext);
@@ -2145,12 +2174,23 @@ private void evaluateNullAnnotations(long annotationTagBits) {
 				pkg.defaultNullness = NULL_UNSPECIFIED_BY_DEFAULT;
 		}
 	} else {
-		// transfer nullness info from tagBits to this.nullnessDefaultAnnotation
+		// transfer nullness info from tagBits to this.defaultNullness
+		long annotationTagBits = this.tagBits;
 		int newDefaultNullness = NO_NULL_DEFAULT;
-		if ((annotationTagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0)
+		if ((annotationTagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0) {
 			newDefaultNullness = NULL_UNSPECIFIED_BY_DEFAULT;
-		else if ((annotationTagBits & TagBits.AnnotationNonNullByDefault) != 0)
+		} else if ((annotationTagBits & TagBits.AnnotationNonNullByDefault) != 0) {
 			newDefaultNullness = NONNULL_BY_DEFAULT;
+		} else if (this.defaultNullness != 0) {
+			 // NNBD with argument while NN & NU are SE5 annotations, revert to old default & encoding.
+			if (this.defaultNullness == NULL_UNSPECIFIED_BY_DEFAULT) {
+				annotationTagBits = TagBits.AnnotationNullUnspecifiedByDefault;
+				newDefaultNullness = NULL_UNSPECIFIED_BY_DEFAULT;
+			} else {
+				annotationTagBits = TagBits.AnnotationNonNullByDefault;
+			newDefaultNullness = NONNULL_BY_DEFAULT;
+			}
+		}
 		if (newDefaultNullness != NO_NULL_DEFAULT) {
 			if (isPackageInfo) {
 				pkg.defaultNullness = newDefaultNullness;
@@ -2187,17 +2227,17 @@ private void maybeMarkTypeParametersNonNull() {
  * Recursively check if the given annotations are redundant with equal annotations at an enclosing level.
  * @param location fallback location to report the warning against (if we can't blame a specific annotation)
  * @param annotations search these for the annotation that should be blamed in warning messages
- * @param nullBits in 1.7- times these are the annotationTagBits, in 1.8+ the bitvector from {@link Binding#NullnessDefaultMASK}
- * @param isJdk18 toggles the interpretation of 'nullBits'
+ * @param nullBits when using declaration annotations these are the annotationTagBits, for type annotations the bitvector from {@link Binding#NullnessDefaultMASK}
+ * @param useNullTypeAnnotations toggles the interpretation of 'nullBits'
  * 
  * @pre null annotation analysis is enabled
  */
-protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation[] annotations, long nullBits, boolean isJdk18) {
+protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation[] annotations, long nullBits, boolean useNullTypeAnnotations) {
 	
 	if (!isPrototype()) throw new IllegalStateException();
 	
 	if (this.fPackage.defaultNullness != NO_NULL_DEFAULT) {
-		boolean isRedundant = isJdk18
+		boolean isRedundant = useNullTypeAnnotations
 				? this.fPackage.defaultNullness == nullBits
 				: (this.fPackage.defaultNullness == NONNULL_BY_DEFAULT
 						&& ((nullBits & TagBits.AnnotationNonNullByDefault) != 0));
@@ -2209,13 +2249,13 @@ protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation
 }
 
 // return: should caller continue searching?
-protected boolean checkRedundantNullnessDefaultOne(ASTNode location, Annotation[] annotations, long nullBits, boolean isJdk18) {
+protected boolean checkRedundantNullnessDefaultOne(ASTNode location, Annotation[] annotations, long nullBits, boolean useNullTypeAnnotations) {
 	
 	if (!isPrototype()) throw new IllegalStateException();
 	
 	int thisDefault = getNullDefault();
 	if (thisDefault != NO_NULL_DEFAULT) {
-		boolean isRedundant = isJdk18
+		boolean isRedundant = useNullTypeAnnotations
 				? thisDefault == nullBits
 				: (nullBits & TagBits.AnnotationNonNullByDefault) != 0;
 		if (isRedundant) {
@@ -2608,14 +2648,17 @@ void verifyMethods(MethodVerifier verifier) {
 		 ((SourceTypeBinding) this.memberTypes[i]).verifyMethods(verifier);
 }
 
-public TypeBinding unannotated(boolean removeOnlyNullAnnotations) {
-	if (removeOnlyNullAnnotations) {
+public TypeBinding unannotated() {
+	return this.prototype;
+}
+
+@Override
+public TypeBinding withoutToplevelNullAnnotation() {
 		if (!hasNullTypeAnnotations())
 			return this;
 		AnnotationBinding[] newAnnotations = this.environment.filterNullTypeAnnotations(this.typeAnnotations);
 		if (newAnnotations.length > 0)
 			return this.environment.createAnnotatedType(this.prototype, newAnnotations);
-	}
 	return this.prototype;
 }
 

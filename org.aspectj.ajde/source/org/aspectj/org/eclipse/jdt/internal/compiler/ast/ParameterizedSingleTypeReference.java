@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,8 @@
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 434600 - Incorrect null analysis error reporting on type parameters
  *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
+ *								Bug 456508 - Unexpected RHS PolyTypeBinding for: <code-snippet>
+ *								Bug 466713 - Null Annotations: NullPointerException using <int @Nullable []> as Type Param
  *        Andy Clement - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *******************************************************************************/
@@ -31,6 +33,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
  * Note that it might also have a dimension.
  */
 public class ParameterizedSingleTypeReference extends ArrayTypeReference {
+
+	public static final TypeBinding[] DIAMOND_TYPE_ARGUMENTS = new TypeBinding[0];
 
 	public TypeReference[] typeArguments;
 
@@ -121,17 +125,19 @@ public class ParameterizedSingleTypeReference extends ArrayTypeReference {
     }
 
     @Override
-    public boolean hasNullTypeAnnotation() {
-    	if (super.hasNullTypeAnnotation())
-    		return true;
-    	if (this.resolvedType != null && !this.resolvedType.hasNullTypeAnnotations())
-    		return false; // shortcut
-    	if (this.typeArguments != null) {
-    		for (int i = 0; i < this.typeArguments.length; i++) {
-				if (this.typeArguments[i].hasNullTypeAnnotation())
-					return true;
-			}
-    	}
+    public boolean hasNullTypeAnnotation(AnnotationPosition position) {
+		if (super.hasNullTypeAnnotation(position))
+			return true;
+		if (position == AnnotationPosition.ANY) {
+	    	if (this.resolvedType != null && !this.resolvedType.hasNullTypeAnnotations())
+	    		return false; // shortcut
+	    	if (this.typeArguments != null) {
+	    		for (int i = 0; i < this.typeArguments.length; i++) {
+					if (this.typeArguments[i].hasNullTypeAnnotation(position))
+						return true;
+				}
+	    	}
+		}
     	return false;
     }
 
@@ -309,6 +315,8 @@ public class ParameterizedSingleTypeReference extends ArrayTypeReference {
     			parameterizedType.boundCheck(scope, this.typeArguments);
     		else
     			scope.deferBoundCheck(this);
+    	} else {
+    		parameterizedType.arguments = DIAMOND_TYPE_ARGUMENTS;
     	}
 		if (isTypeUseDeprecated(parameterizedType, scope))
 			reportDeprecatedType(parameterizedType, scope);

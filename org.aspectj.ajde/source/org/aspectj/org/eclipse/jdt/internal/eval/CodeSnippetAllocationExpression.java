@@ -24,7 +24,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InnerInferenceHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
@@ -158,14 +157,14 @@ public TypeBinding resolveType(BlockScope scope) {
 	// resolve type arguments (for generic constructor call)
 	if (this.typeArguments != null) {
 		int length = this.typeArguments.length;
-		boolean argHasError = scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_5;
+		this.argumentsHaveErrors = scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_5;
 		this.genericTypeArguments = new TypeBinding[length];
 		for (int i = 0; i < length; i++) {
 			TypeReference typeReference = this.typeArguments[i];
 			if ((this.genericTypeArguments[i] = typeReference.resolveType(scope, true /* check bounds*/)) == null) {
-				argHasError = true;
+				this.argumentsHaveErrors = true;
 			}
-			if (argHasError && typeReference instanceof Wildcard) {
+			if (this.argumentsHaveErrors && typeReference instanceof Wildcard) {
 				scope.problemReporter().illegalUsageOfWildcard(typeReference);
 			}
 		}
@@ -173,7 +172,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			scope.problemReporter().diamondNotWithExplicitTypeArguments(this.typeArguments);
 			return null;
 		}
-		if (argHasError) {
+		if (this.argumentsHaveErrors) {
 			if (this.arguments != null) { // still attempt to resolve arguments
 				for (int i = 0, max = this.arguments.length; i < max; i++) {
 					this.arguments[i].resolveType(scope);
@@ -184,29 +183,23 @@ public TypeBinding resolveType(BlockScope scope) {
 	}
 
 	// buffering the arguments' types
-	boolean argsContainCast = false;
-	TypeBinding[] argumentTypes = Binding.NO_PARAMETERS;
+	this.argumentTypes = Binding.NO_PARAMETERS;
 	if (this.arguments != null) {
-		boolean argHasError = false;
+		this.argumentsHaveErrors = false;
 		int length = this.arguments.length;
-		argumentTypes = new TypeBinding[length];
-		TypeBinding argumentType;
+		this.argumentTypes = new TypeBinding[length];
 		for (int i = 0; i < length; i++) {
 			Expression argument = this.arguments[i];
 			if (argument instanceof CastExpression) {
 				argument.bits |= DisableUnnecessaryCastCheck; // will check later on
-				argsContainCast = true;
+				this.argsContainCast = true;
 			}
 			argument.setExpressionContext(INVOCATION_CONTEXT);
-			if ((argumentType = argumentTypes[i] = argument.resolveType(scope)) == null) {
-				argHasError = true;
-			}
-			if (argumentType != null && argumentType.kind() == Binding.POLY_TYPE) {
-				if (this.innerInferenceHelper == null)
-					this.innerInferenceHelper = new InnerInferenceHelper();
+			if ((this.argumentTypes[i] = argument.resolveType(scope)) == null) {
+				this.argumentsHaveErrors = true;
 			}
 		}
-		if (argHasError) {
+		if (this.argumentsHaveErrors) {
 			return this.resolvedType;
 		}
 	}
@@ -218,7 +211,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		return this.resolvedType;
 	}
 	if (isDiamond) {
-		TypeBinding [] inferredTypes = inferElidedTypes((ParameterizedTypeBinding) this.resolvedType, null, argumentTypes, scope);
+		TypeBinding [] inferredTypes = inferElidedTypes(scope);
 		if (inferredTypes == null) {
 			scope.problemReporter().cannotInferElidedTypes(this);
 			return this.resolvedType = null;
@@ -227,7 +220,7 @@ public TypeBinding resolveType(BlockScope scope) {
  	}
 	
 	ReferenceBinding allocatedType = (ReferenceBinding) this.resolvedType;
-	this.binding = findConstructorBinding(scope, this, allocatedType, argumentTypes);
+	this.binding = findConstructorBinding(scope, this, allocatedType, this.argumentTypes);
 
 	if (!this.binding.isValidBinding()) {	
 		if (this.binding instanceof ProblemMethodBinding
@@ -255,7 +248,7 @@ public TypeBinding resolveType(BlockScope scope) {
 				return this.resolvedType;
 			}
 			CodeSnippetScope localScope = new CodeSnippetScope(scope);
-			MethodBinding privateBinding = localScope.getConstructor((ReferenceBinding)this.delegateThis.type, argumentTypes, this);
+			MethodBinding privateBinding = localScope.getConstructor((ReferenceBinding)this.delegateThis.type, this.argumentTypes, this);
 			if (!privateBinding.isValidBinding()) {
 				if (this.binding.declaringClass == null) {
 					this.binding.declaringClass = allocatedType;
@@ -285,14 +278,14 @@ public TypeBinding resolveType(BlockScope scope) {
 	if (this.arguments != null) {
 		for (int i = 0; i < this.arguments.length; i++) {
 			TypeBinding parameterType = this.binding.parameters[i];
-			TypeBinding argumentType = argumentTypes[i];
+			TypeBinding argumentType = this.argumentTypes[i];
 			this.arguments[i].computeConversion(scope, parameterType, argumentType);
 			if (argumentType.needsUncheckedConversion(parameterType)) {
 				scope.problemReporter().unsafeTypeConversion(this.arguments[i], argumentType, parameterType);
 			}
 		}
-		if (argsContainCast) {
-			CastExpression.checkNeedForArgumentCasts(scope, null, allocatedType, this.binding, this.arguments, argumentTypes, this);
+		if (this.argsContainCast) {
+			CastExpression.checkNeedForArgumentCasts(scope, null, allocatedType, this.binding, this.arguments, this.argumentTypes, this);
 		}
 	}
 	if (allocatedType.isRawType() && this.binding.hasSubstitutedParameters()) {

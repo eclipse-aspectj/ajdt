@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,10 @@
  *								bug 402993 - [null] Follow up of bug 401088: Missing warning about redundant null check
  *								bug 403086 - [compiler][null] include the effect of 'assert' in syntactic null analysis for fields
  *								bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
+ *								Bug 453483 - [compiler][null][loop] Improve null analysis for loops
+ *								Bug 455723 - Nonnull argument not correctly inferred in loop
+ *								Bug 415790 - [compiler][resource]Incorrect potential resource leak warning in for loop with close in try/catch
+ *								Bug 446691 - [1.8][null][compiler] NullPointerException in SingleNameReference.analyseCode
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 
@@ -29,6 +33,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FakedTrackingVariable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LabeledStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Reference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SubRoutineStatement;
@@ -251,20 +256,22 @@ public void checkExceptionHandlers(TypeBinding raisedException, ASTNode location
 					caughtIndex < caughtCount;
 					caughtIndex++) {
 					ReferenceBinding caughtException = caughtExceptions[caughtIndex];
+					FlowInfo exceptionFlow = flowInfo;
 				    int state = caughtException == null
 				    	? Scope.EQUAL_OR_MORE_SPECIFIC /* any exception */
 				        : Scope.compareTypes(raisedException, caughtException);
 				    if (abruptlyExitedLoops != null && caughtException != null && state != Scope.NOT_RELATED) {
 				    	for (int i = 0, abruptlyExitedLoopsCount = abruptlyExitedLoops.size(); i < abruptlyExitedLoopsCount; i++) {
 							LoopingFlowContext loop = (LoopingFlowContext) abruptlyExitedLoops.get(i);
-							loop.recordCatchContextOfEscapingException(exceptionContext, caughtException);
+							loop.recordCatchContextOfEscapingException(exceptionContext, caughtException, flowInfo);
 						}
+				    	exceptionFlow = FlowInfo.DEAD_END; // don't use flow info on first round, flow info will be evaluated during loopback simulation
 					}
 					switch (state) {
 						case Scope.EQUAL_OR_MORE_SPECIFIC :
 							exceptionContext.recordHandlingException(
 								caughtException,
-								flowInfo.unconditionalInits(),
+								exceptionFlow.unconditionalInits(),
 								raisedException,
 								raisedException, // precise exception that will be caught
 								location,
@@ -275,7 +282,7 @@ public void checkExceptionHandlers(TypeBinding raisedException, ASTNode location
 						case Scope.MORE_GENERIC :
 							exceptionContext.recordHandlingException(
 								caughtException,
-								flowInfo.unconditionalInits(),
+								exceptionFlow.unconditionalInits(),
 								raisedException,
 								caughtException,
 								location,
@@ -290,16 +297,18 @@ public void checkExceptionHandlers(TypeBinding raisedException, ASTNode location
 			if (exceptionContext.isMethodContext) {
 				if (raisedException.isUncheckedException(false))
 					return;
+				boolean shouldMergeUnhandledExceptions = exceptionContext instanceof ExceptionInferenceFlowContext;
 
 				// anonymous constructors are allowed to throw any exceptions (their thrown exceptions
 				// clause will be fixed up later as per JLS 8.6).
 				if (exceptionContext.associatedNode instanceof AbstractMethodDeclaration){
 					AbstractMethodDeclaration method = (AbstractMethodDeclaration)exceptionContext.associatedNode;
-					if (method.isConstructor() && method.binding.declaringClass.isAnonymousType()){
-
-						exceptionContext.mergeUnhandledException(raisedException);
-						return; // no need to complain, will fix up constructor exceptions
+					if (method.isConstructor() && method.binding.declaringClass.isAnonymousType())
+						shouldMergeUnhandledExceptions = true;
 					}
+				if (shouldMergeUnhandledExceptions) {
+					exceptionContext.mergeUnhandledException(raisedException);
+					return; // no need to complain, will fix up constructor/lambda exceptions
 				}
 				break; // not handled anywhere, thus jump to error handling
 			}
@@ -383,20 +392,22 @@ public void checkExceptionHandlers(TypeBinding[] raisedExceptions, ASTNode locat
 					for (int raisedIndex = 0; raisedIndex < raisedCount; raisedIndex++) {
 						TypeBinding raisedException;
 						if ((raisedException = raisedExceptions[raisedIndex]) != null) {
+							FlowInfo exceptionFlow = flowInfo;
 						    int state = caughtException == null
 						    	? Scope.EQUAL_OR_MORE_SPECIFIC /* any exception */
 						        : Scope.compareTypes(raisedException, caughtException);
 						    if (abruptlyExitedLoops != null && caughtException != null && state != Scope.NOT_RELATED) {
 						    	for (int i = 0, abruptlyExitedLoopsCount = abruptlyExitedLoops.size(); i < abruptlyExitedLoopsCount; i++) {
 									LoopingFlowContext loop = (LoopingFlowContext) abruptlyExitedLoops.get(i);
-									loop.recordCatchContextOfEscapingException(exceptionContext, caughtException);
+									loop.recordCatchContextOfEscapingException(exceptionContext, caughtException, flowInfo);
 								}
+						    	exceptionFlow = FlowInfo.DEAD_END; // don't use flow info on first round, flow info will be evaluated during loopback simulation
 							}
 							switch (state) {
 								case Scope.EQUAL_OR_MORE_SPECIFIC :
 									exceptionContext.recordHandlingException(
 										caughtException,
-										flowInfo.unconditionalInits(),
+										exceptionFlow.unconditionalInits(),
 										raisedException,
 										raisedException, // precise exception that will be caught
 										location,
@@ -411,7 +422,7 @@ public void checkExceptionHandlers(TypeBinding[] raisedExceptions, ASTNode locat
 								case Scope.MORE_GENERIC :
 									exceptionContext.recordHandlingException(
 										caughtException,
-										flowInfo.unconditionalInits(),
+										exceptionFlow.unconditionalInits(),
 										raisedException,
 										caughtException, 
 										location,
@@ -439,20 +450,22 @@ public void checkExceptionHandlers(TypeBinding[] raisedExceptions, ASTNode locat
 						}
 					}
 				}
+				boolean shouldMergeUnhandledException = exceptionContext instanceof ExceptionInferenceFlowContext;
 				// anonymous constructors are allowed to throw any exceptions (their thrown exceptions
 				// clause will be fixed up later as per JLS 8.6).
 				if (exceptionContext.associatedNode instanceof AbstractMethodDeclaration){
 					AbstractMethodDeclaration method = (AbstractMethodDeclaration)exceptionContext.associatedNode;
-					if (method.isConstructor() && method.binding.declaringClass.isAnonymousType()){
-
+					if (method.isConstructor() && method.binding.declaringClass.isAnonymousType())
+						shouldMergeUnhandledException = true;
+				}
+				if (shouldMergeUnhandledException) {
 						for (int i = 0; i < raisedCount; i++) {
 							TypeBinding raisedException;
 							if ((raisedException = raisedExceptions[i]) != null) {
 								exceptionContext.mergeUnhandledException(raisedException);
 							}
 						}
-						return; // no need to complain, will fix up constructor exceptions
-					}
+					return; // no need to complain, will fix up constructor/lambda exceptions
 				}
 				break; // not handled anywhere, thus jump to error handling
 			}
@@ -511,7 +524,7 @@ public FlowInfo getInitsForFinalBlankInitializationCheck(TypeBinding declaringTy
 			current = initializationContext.initializationParent;
 		} else if (current instanceof ExceptionHandlingFlowContext) {
 			ExceptionHandlingFlowContext exceptionContext = (ExceptionHandlingFlowContext) current;
-			current = exceptionContext.initializationParent == null ? exceptionContext.getLocalParent() : exceptionContext.initializationParent;
+			current = exceptionContext.initializationParent == null ? exceptionContext.parent : exceptionContext.initializationParent;
 		} else {
 			current = current.getLocalParent();
 		}
@@ -616,6 +629,13 @@ public FlowContext getTargetContextForDefaultContinue() {
 		current = current.getLocalParent();
 	}
 	// not found
+	return null;
+}
+
+/** 
+ * Answer flow context that corresponds to initialization. Suitably override in subtypes.
+ */
+public FlowContext getInitializationContext() {
 	return null;
 }
 
@@ -775,9 +795,10 @@ protected boolean recordFinalAssignment(VariableBinding variable, Reference fina
  *      {@link #IN_COMPARISON_NON_NULL}, {@link #IN_ASSIGNMENT} or {@link #IN_INSTANCEOF}).
  *      <br>
  *      Alternatively, a {@link #IN_UNBOXING} check can e requested.
+ * @param nullInfo the null flow info observed at this first visit of location.
  */
 protected void recordNullReference(LocalVariableBinding local,
-	ASTNode location, int checkType) {
+	ASTNode location, int checkType, FlowInfo nullInfo) {
 	// default implementation: do nothing
 }
 
@@ -988,9 +1009,11 @@ public String toString() {
  * @param expression the expression violating the specification
  * @param providedType the type of the provided value, i.e., either expression or an element thereof (in ForeachStatements)
  * @param expectedType the declared type of the spec'ed variable, for error reporting.
+ * @param flowInfo the flowInfo observed when visiting expression
  * @param nullStatus the null status of expression at the current location
+ * @param annotationStatus status from type annotation analysis, or null
  */
-public void recordNullityMismatch(BlockScope currentScope, Expression expression, TypeBinding providedType, TypeBinding expectedType, int nullStatus) {
+public void recordNullityMismatch(BlockScope currentScope, Expression expression, TypeBinding providedType, TypeBinding expectedType, FlowInfo flowInfo, int nullStatus, NullAnnotationMatching annotationStatus) {
 	if (providedType == null) {
 		return; // assume type error was already reported
 	}
@@ -1003,16 +1026,19 @@ public void recordNullityMismatch(BlockScope currentScope, Expression expression
 			if ((this.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
 				isInsideAssert = FlowContext.HIDE_NULL_COMPARISON_WARNING;
 			}
-			if (currentContext.internalRecordNullityMismatch(expression, providedType, nullStatus, expectedType, ASSIGN_TO_NONNULL | isInsideAssert))
+			if (currentContext.internalRecordNullityMismatch(expression, providedType, flowInfo, nullStatus, expectedType, ASSIGN_TO_NONNULL | isInsideAssert))
 				return;
 			currentContext = currentContext.parent;
 		}
 	}
 	// no reason to defer, so report now:
-	char[][] annotationName = currentScope.environment().getNonNullAnnotationName();
-	currentScope.problemReporter().nullityMismatch(expression, providedType, expectedType, nullStatus, annotationName);
+	if (annotationStatus != null)
+		currentScope.problemReporter().nullityMismatchingTypeAnnotation(expression, providedType, expectedType, annotationStatus);
+	else
+		currentScope.problemReporter().nullityMismatch(expression, providedType, expectedType, nullStatus,
+														currentScope.environment().getNonNullAnnotationName());
 }
-protected boolean internalRecordNullityMismatch(Expression expression, TypeBinding providedType, int nullStatus, TypeBinding expectedType, int checkType) {
+protected boolean internalRecordNullityMismatch(Expression expression, TypeBinding providedType, FlowInfo flowInfo, int nullStatus, TypeBinding expectedType, int checkType) {
 	// nop, to be overridden in subclasses
 	return false; // not recorded
 }

@@ -213,4 +213,13 @@ public void traverse(ASTVisitor visitor, BlockScope blockScope) {
 	}
 	visitor.endVisit(this, blockScope);
 }
+
+@Override
+public boolean doesNotCompleteNormally() {
+	return this.block.doesNotCompleteNormally();
+}
+@Override
+public boolean completesByContinue() {
+	return this.block.completesByContinue();
+}
 }

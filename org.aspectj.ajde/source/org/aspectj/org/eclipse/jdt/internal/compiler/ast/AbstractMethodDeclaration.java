@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,8 @@
  *								Bug 417295 - [1.8[[null] Massage type annotated null analysis to gel well with deep encoded type bindings.
  *								Bug 392238 - [1.8][compiler][null] Detect semantically invalid null type annotations
  *								Bug 435570 - [1.8][null] @NonNullByDefault illegally tries to affect "throws E"
+ *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations
+ *								Bug 466713 - Null Annotations: NullPointerException using <int @Nullable []> as Type Param
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -30,6 +32,7 @@ import java.util.List;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationPosition;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
@@ -42,6 +45,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 /**
  * AspectJ Extension - added several extension points for subclasses
  */
+@SuppressWarnings({"rawtypes"})
 public abstract class AbstractMethodDeclaration
 	extends ASTNode
 	implements ProblemSeverities, ReferenceContext {
@@ -100,7 +104,7 @@ public abstract class AbstractMethodDeclaration
 	}
 	// version for invocation from LambdaExpression:
 	static void createArgumentBindings(Argument[] arguments, MethodBinding binding, MethodScope scope) {
-		boolean useTypeAnnotations = scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8;
+		boolean useTypeAnnotations = scope.environment().usesNullTypeAnnotations();
 		if (arguments != null && binding != null) {
 			for (int i = 0, length = arguments.length; i < length; i++) {
 				Argument argument = arguments[i];
@@ -359,15 +363,6 @@ public abstract class AbstractMethodDeclaration
 				classFile.completeCodeAttribute(codeAttributeOffset);
 			} catch(NegativeArraySizeException e) {
 				throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
-			} catch (IllegalArgumentException iae) {
-				// TODO debug for 458660
-				String debugString = "";
-				try {
-					debugString = new String(this.binding.declaringClass.sourceName)+"."+new String(this.binding.selector);
-				} catch (Exception e) {
-					new RuntimeException("Unable to produce debug string...").printStackTrace();
-				}
-				throw new IllegalArgumentException("Unable to complete code attribute for "+debugString,iae);
 			}
 			attributeNumber++;
 		} else {
@@ -554,7 +549,8 @@ public abstract class AbstractMethodDeclaration
 			resolveAnnotations(this.scope, this.annotations, this.binding);
 			
 			long sourceLevel = this.scope.compilerOptions().sourceLevel;
-			validateNullAnnotations(sourceLevel);
+			if (sourceLevel < ClassFileConstants.JDK1_8) // otherwise already checked via Argument.createBinding
+				validateNullAnnotations(this.scope.environment().usesNullTypeAnnotations());
 
 			resolveStatements();
 			// check @Deprecated annotation presence
@@ -615,7 +611,7 @@ public abstract class AbstractMethodDeclaration
 			this.scope.problemReporter().illegalTypeForExplicitThis(this.receiver, enclosingReceiver);
 		}
 
-		if (this.receiver.type.hasNullTypeAnnotation()) {
+		if (this.receiver.type.hasNullTypeAnnotation(AnnotationPosition.ANY)) {
 			this.scope.problemReporter().nullAnnotationUnsupportedLocation(this.receiver.type);
 		}
 	}
@@ -673,10 +669,10 @@ public abstract class AbstractMethodDeclaration
 	    return null;
 	}
 
-	void validateNullAnnotations(long sourceLevel) {
+	void validateNullAnnotations(boolean useTypeAnnotations) {
 		if (this.binding == null) return;
 		// null annotations on parameters?
-		if (sourceLevel < ClassFileConstants.JDK1_8) {
+		if (!useTypeAnnotations) {
 			if (this.binding.parameterNonNullness != null) {
 				int length = this.binding.parameters.length;
 				for (int i=0; i<length; i++) {
@@ -694,7 +690,7 @@ public abstract class AbstractMethodDeclaration
 				this.scope.validateNullAnnotation(this.binding.parameters[i].tagBits, this.arguments[i].type, this.arguments[i].annotations);
 // TODO(stephan) remove once we're sure:
 //					this.binding.parameters[i] = this.binding.parameters[i].unannotated();
-			}			
+			}
 		}
 	}
 	//*********************************************************************

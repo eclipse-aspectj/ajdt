@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     het@google.com - Bug 441790
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.model;
 
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -97,6 +99,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		return true;
 	}
 
+	@Override
 	public DeclaredType getAnnotationType() {
 		return (DeclaredType) _env.getFactory().newTypeMirror(_binding.getAnnotationType());
 	}
@@ -105,6 +108,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 	 * @return all the members of this annotation mirror that have explicit values.
 	 * Default values are not included.
 	 */
+	@Override
 	public Map<? extends ExecutableElement, ? extends AnnotationValue> getElementValues() {
 		if (this._binding == null) {
 			return Collections.emptyMap();
@@ -164,6 +168,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		return Collections.unmodifiableMap(valueMap);
 	}
 	
+	@Override
 	public int hashCode() {
 		if (this._binding == null) return this._env.hashCode();
 		return this._binding.hashCode();
@@ -222,24 +227,35 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		}
 		if (!foundMethod) {
 			// couldn't find explicit value; see if there's a default
-			actualValue = methodBinding.getDefaultValue(); 
+			actualValue = methodBinding.getDefaultValue();
 		}
 		Class<?> expectedType = method.getReturnType();
 		TypeBinding actualType = methodBinding.returnType;
         return getReflectionValue(actualValue, actualType, expectedType);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * Sun implementation shows the values.  We avoid that here,
-	 * because getting the values is not idempotent.
-	 */
 	@Override
-	public String toString() {
-		if (this._binding == null) {
-			return "@any()"; //$NON-NLS-1$
+    public String toString() {
+    	TypeMirror decl = getAnnotationType();
+    	StringBuilder sb = new StringBuilder();
+    	sb.append('@');
+    	sb.append(decl.toString());
+    	Map<? extends ExecutableElement, ? extends AnnotationValue> values = getElementValues();
+		if (!values.isEmpty()) {
+			sb.append('(');
+			boolean first = true;
+			for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : values.entrySet()) {
+				if (!first) {
+					sb.append(", "); //$NON-NLS-1$
+				}
+				first = false;
+				sb.append(e.getKey().getSimpleName());
+				sb.append(" = "); //$NON-NLS-1$
+				sb.append(e.getValue().toString());
+			}
+			sb.append(')');
 		}
-		return "@" + _binding.getAnnotationType().debugName(); //$NON-NLS-1$
+		return sb.toString();
 	}
 	
 	/**

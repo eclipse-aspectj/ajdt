@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 IBM Corporation and others.
+ * Copyright (c) 2008, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
  *								Bug 392384 - [1.8][compiler][null] Restore nullness info from type annotations in class files
+ *								Bug 440477 - [null] Infrastructure for feeding external annotations into compilation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist;
 
@@ -19,6 +20,7 @@ import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.core.Signature;
 import org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionNodeDetector;
@@ -38,7 +40,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.TypeAnnotationWalker;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
@@ -261,7 +263,7 @@ public class InternalExtendedCompletionContext {
 		LocalDeclaration local = binding.declaration;
 
 		JavaElement parent = null;
-		ReferenceContext referenceContext = binding.declaringScope.referenceContext();
+		ReferenceContext referenceContext = binding.declaringScope.isLambdaSubscope() ? binding.declaringScope.namedMethodScope().referenceContext() : binding.declaringScope.referenceContext();
 		if (referenceContext instanceof AbstractMethodDeclaration) {
 			AbstractMethodDeclaration methodDeclaration = (AbstractMethodDeclaration) referenceContext;
 			parent = this.getJavaElementOfCompilationUnit(methodDeclaration, methodDeclaration.binding);
@@ -281,7 +283,7 @@ public class InternalExtendedCompletionContext {
 				local.declarationSourceEnd,
 				local.sourceStart,
 				local.sourceEnd,
-				Util.typeSignature(local.type),
+				local.type == null ? Signature.createTypeSignature(binding.type.signableName(), true) : Util.typeSignature(local.type),
 				binding.declaration.annotations,
 				local.modifiers,
 				local.getKind() == AbstractVariableDeclaration.PARAMETER);
@@ -338,7 +340,7 @@ public class InternalExtendedCompletionContext {
 
 			SignatureWrapper wrapper = new SignatureWrapper(replacePackagesDot(typeSignature.toCharArray()));
 			// FIXME(stephan): do we interpret type annotations here?
-			assignableTypeBinding = this.lookupEnvironment.getTypeFromTypeSignature(wrapper, typeVariables, this.assistScope.enclosingClassScope().referenceContext.binding, null, TypeAnnotationWalker.EMPTY_ANNOTATION_WALKER);
+			assignableTypeBinding = this.lookupEnvironment.getTypeFromTypeSignature(wrapper, typeVariables, this.assistScope.enclosingClassScope().referenceContext.binding, null, ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER);
 			assignableTypeBinding = BinaryTypeBinding.resolveType(assignableTypeBinding, this.lookupEnvironment, true);
 		} catch (AbortCompilation e) {
 			assignableTypeBinding = null;
@@ -705,7 +707,7 @@ public class InternalExtendedCompletionContext {
 				ReferenceBinding[] superInterfaces = currentType.superInterfaces();
 				if (superInterfaces != null && currentType.isIntersectionType()) {
 					for (int i = 0; i < superInterfaces.length; i++) {
-						superInterfaces[i] = (ReferenceBinding)superInterfaces[i].capture(invocationScope, invocationSite.sourceEnd());
+						superInterfaces[i] = (ReferenceBinding)superInterfaces[i].capture(invocationScope, invocationSite.sourceStart(), invocationSite.sourceEnd());
 					}
 				}
 

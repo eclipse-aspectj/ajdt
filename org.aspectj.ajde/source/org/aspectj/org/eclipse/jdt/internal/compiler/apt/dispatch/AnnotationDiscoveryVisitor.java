@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2012 IBM Corporation and others.
+ * Copyright (c) 2006, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.model.Factory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.util.ManyToMany;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
@@ -36,6 +35,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
@@ -230,13 +230,16 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 		
 		boolean old = scope.insideTypeAnnotation;
 		scope.insideTypeAnnotation = true;
-		ASTNode.resolveAnnotations(scope, annotations, currentBinding);
+		currentBinding.getAnnotationTagBits();
 		scope.insideTypeAnnotation = old;
 		ElementImpl element = (ElementImpl) _factory.newElement(currentBinding);
 		AnnotationBinding [] annotationBindings = element.getPackedAnnotationBindings(); // discovery is never in terms of repeating annotation.
 		for (AnnotationBinding binding : annotationBindings) {
-			if (binding != null) { // binding should be resolved, but in case it's not, ignore it: it could have been wrapped into a container.
-				TypeElement anno = (TypeElement)_factory.newElement(binding.getAnnotationType());
+			ReferenceBinding annotationType = binding.getAnnotationType();
+			if (binding != null
+					&& Annotation.isAnnotationTargetAllowed(scope, annotationType, currentBinding)
+					) { // binding should be resolved, but in case it's not, ignore it: it could have been wrapped into a container.
+				TypeElement anno = (TypeElement)_factory.newElement(annotationType);
 				_annoToElement.put(anno, element);
 			}
 		}

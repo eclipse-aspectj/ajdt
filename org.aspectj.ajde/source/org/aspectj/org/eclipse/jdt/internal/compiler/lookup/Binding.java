@@ -38,7 +38,7 @@ public abstract class Binding {
 	public static final int INTERSECTION_TYPE = TYPE | ASTNode.Bit14;
 	// jsr 308
 	public static final int TYPE_USE = TYPE | ASTNode.Bit15;
-	public static final int INTERSECTION_CAST_TYPE = TYPE | ASTNode.Bit16;
+	public static final int INTERSECTION_TYPE18 = TYPE | ASTNode.Bit16;
 	public static final int POLY_TYPE = TYPE | ASTNode.Bit17;
 	
 	// In the unlikely event you add a new type binding, remember to update TypeBindingVisitor and Scope.substitute methods. 
@@ -112,14 +112,14 @@ public abstract class Binding {
 	public abstract int kind();
 	/*
 	 * Computes a key that uniquely identifies this binding.
-	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding or a PackageBinding.
+	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding, a LocalVariableBinding or a PackageBinding (i.e. an ImportBinding).
 	 */
 	public char[] computeUniqueKey() {
 		return computeUniqueKey(true/*leaf*/);
 	}
 	/*
 	 * Computes a key that uniquely identifies this binding. Optionally include access flags.
-	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding or a PackageBinding.
+	 * Returns null if binding is not a TypeBinding, a MethodBinding, a FieldBinding, a LocalVariableBinding or a PackageBinding (i.e. an ImportBinding)
 	 */
 	public char[] computeUniqueKey(boolean isLeaf) {
 		return null;

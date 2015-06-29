@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 IBM Corporation and others.
+ * Copyright (c) 2008, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,9 +28,9 @@ public class ProcessTaskManager implements Runnable {
 
 	public static final int PROCESSED_QUEUE_SIZE = 12;
 
-public ProcessTaskManager(Compiler compiler) {
+public ProcessTaskManager(Compiler compiler, int startingIndex) {
 	this.compiler = compiler;
-	this.unitIndex = 0;
+	this.unitIndex = startingIndex;
 
 	this.currentIndex = 0;
 	this.availableIndex = 0;
@@ -109,9 +109,11 @@ public CompilationUnitDeclaration removeNextUnit() throws Error {
 }
 
 public void run() {
+	boolean noAnnotations = this.compiler.annotationProcessorManager == null;
 	while (this.processingThread != null) {
 		this.unitToProcess = null;
 		int index = -1;
+		boolean cleanup = noAnnotations || this.compiler.shouldCleanup(this.unitIndex);
 		try {
 			synchronized (this) {
 				if (this.processingThread == null) return;
@@ -122,6 +124,8 @@ public void run() {
 					return;
 				}
 				index = this.unitIndex++;
+				if (this.unitToProcess.compilationResult.hasBeenAccepted)
+					continue;
 			}
 
 			try {
@@ -136,7 +140,8 @@ public void run() {
 						}));
 				this.compiler.process(this.unitToProcess, index);
 			} finally {
-				if (this.unitToProcess != null)
+				// cleanup compilation unit result, but only if not annotation processed.
+				if (this.unitToProcess != null && cleanup)
 					this.unitToProcess.cleanUp();
 			}
 

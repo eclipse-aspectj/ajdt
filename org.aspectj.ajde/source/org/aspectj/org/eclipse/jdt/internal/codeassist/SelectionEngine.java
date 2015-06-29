@@ -601,6 +601,15 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 							break isolateLastName;
 						}
 						break;
+					case TerminalTokens.TokenNameARROW:
+					case TerminalTokens.TokenNameCOLON_COLON:
+						if (scanner.startPosition <= selectionStart && selectionStart <= scanner.currentPosition) {
+							lastIdentifierStart = scanner.startPosition;
+							lastIdentifierEnd = scanner.currentPosition - 1;
+							lastIdentifier = scanner.getCurrentTokenSource();
+							break isolateLastName;
+						}
+						break;
 				}
 			} while (token != TerminalTokens.TokenNameEOF);
 		} else {

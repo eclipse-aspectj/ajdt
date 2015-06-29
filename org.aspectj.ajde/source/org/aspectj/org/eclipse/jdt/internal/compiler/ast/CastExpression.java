@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,8 @@
  *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
  *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *								Bug 430150 - [1.8][null] stricter checking against type variables
+ *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations
+ *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 415541 - [1.8][compiler] Type annotations in the body of static initializer get dropped
  *******************************************************************************/
@@ -89,7 +91,7 @@ public static void checkNeedForAssignedCast(BlockScope scope, TypeBinding expect
 	if (castedExpressionType == null || rhs.resolvedType.isBaseType()) return;
 	//if (castedExpressionType.id == T_null) return; // tolerate null expression cast
 	if (castedExpressionType.isCompatibleWith(expectedType, scope)) {
-		if (compilerOptions.isAnnotationBasedNullAnalysisEnabled && compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8) {
+		if (scope.environment().usesNullTypeAnnotations()) {
 			// are null annotations compatible, too?
 			if (NullAnnotationMatching.analyse(expectedType, castedExpressionType, -1).isAnyMismatch())
 				return; // already reported unchecked cast (nullness), say no more.
@@ -281,8 +283,11 @@ private static void checkAlternateBinding(BlockScope scope, Expression receiver,
 			public int sourceEnd() { return 0; }
 			public TypeBinding invocationTargetType() { return invocationSite.invocationTargetType(); }
 			public boolean receiverIsImplicitThis() { return invocationSite.receiverIsImplicitThis();}
-			public InferenceContext18 freshInferenceContext(Scope someScope) { return null; /* suppress inference */ }
+			public InferenceContext18 freshInferenceContext(Scope someScope) { return invocationSite.freshInferenceContext(someScope); }
 			public ExpressionContext getExpressionContext() { return invocationSite.getExpressionContext(); }
+			public boolean isQualifiedSuper() { return invocationSite.isQualifiedSuper(); }
+			public boolean checkingPotentialCompatibility() { return false; }
+			public void acceptPotentiallyCompatibleMethods(MethodBinding[] methods) {/* ignore */}
 		};
 		MethodBinding bindingIfNoCast;
 		if (binding.isConstructor()) {
@@ -322,7 +327,8 @@ private static void checkAlternateBinding(BlockScope scope, Expression receiver,
 
 public boolean checkUnsafeCast(Scope scope, TypeBinding castType, TypeBinding expressionType, TypeBinding match, boolean isNarrowing) {
 	if (TypeBinding.equalsEquals(match, castType)) {
-		if (!isNarrowing && TypeBinding.equalsEquals(match, this.resolvedType.leafComponentType())) { // do not tag as unnecessary when recursing through upper bounds
+		if (!isNarrowing && TypeBinding.equalsEquals(match, this.resolvedType.leafComponentType()) // do not tag as unnecessary when recursing through upper bounds
+				&& !(expressionType.isParameterizedType() && expressionType.isProvablyDistinct(castType))) {
 			tagAsUnnecessaryCast(scope, castType);
 		}
 		return true;
@@ -457,9 +463,8 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 	}
 	if (valueRequired) {
 		codeStream.generateImplicitConversion(this.implicitConversion);
-	} else if (needRuntimeCheckcast) {
-		boolean isUnboxing = (this.implicitConversion & TypeIds.UNBOXING) != 0;
-		switch (isUnboxing ? postConversionType(currentScope).id : this.resolvedType.id) {
+	} else if (annotatedCast || needRuntimeCheckcast) {
+		switch (this.resolvedType.id) {
 			case T_long :
 			case T_double :
 				codeStream.pop2();
@@ -488,6 +493,8 @@ public LocalVariableBinding localVariableBinding() {
 }
 
 public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	if ((this.implicitConversion & TypeIds.BOXING) != 0)
+		return FlowInfo.NON_NULL;
 	return this.expression.nullStatus(flowInfo, flowContext);
 }
 
@@ -580,7 +587,7 @@ public TypeBinding resolveType(BlockScope scope) {
 				this.bits |= ASTNode.DisableUnnecessaryCastCheck; // disable further secondary diagnosis
 			}
 		}
-		this.resolvedType = castType.capture(scope, this.sourceEnd);
+		this.resolvedType = castType.capture(scope, this.type.sourceStart, this.type.sourceEnd); // make it unique, a cast expression shares source end with the expression.
 		if (exprContainCast) {
 			checkNeedForCastCast(scope, this);
 		}

@@ -10,25 +10,24 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
 
 import javax.annotation.processing.Processor;
 import javax.tools.StandardLocation;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 
 /**
  * Java 6 annotation processor manager used when compiling from the command line
  * or via the javax.tools.JavaCompiler interface.
- *
  * @see org.aspectj.org.eclipse.jdt.internal.apt.pluggable.core.dispatch.IdeAnnotationProcessorManager
  */
-public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorManager {
+public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorManager
+{
 
   /**
    * Processors that have been set by calling CompilationTask.setProcessors().
@@ -56,7 +55,8 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
    * A BatchAnnotationProcessorManager cannot be used until its
    * {@link #configure(Object, String[])} method has been called.
    */
-  public BatchAnnotationProcessorManager() {
+	public BatchAnnotationProcessorManager() 
+	{
   }
 
   @Override
@@ -75,7 +75,6 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
   /**
    * If a -processor option was specified in command line arguments,
    * parse it into a list of qualified classnames.
-   *
    * @param commandLineArguments contains one string for every space-delimited token on the command line
    */
   private void parseCommandLine(String[] commandLineArguments) {
@@ -85,9 +84,11 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
       if ("-XprintProcessorInfo".equals(option)) { //$NON-NLS-1$
         _printProcessorInfo = true;
         _printProcessorDiscovery = VERBOSE_PROCESSOR_DISCOVERY;
-      } else if ("-XprintRounds".equals(option)) { //$NON-NLS-1$
+			}
+			else if ("-XprintRounds".equals(option)) { //$NON-NLS-1$
         _printRounds = true;
-      } else if ("-processor".equals(option)) { //$NON-NLS-1$
+			}
+			else if ("-processor".equals(option)) { //$NON-NLS-1$
         commandLineProcessors = new ArrayList<String>();
         String procs = commandLineArguments[++i];
         for (String proc : procs.split(",")) { //$NON-NLS-1$
@@ -104,7 +105,6 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
 
   @Override
   public ProcessorInfo discoverNextProcessor() {
-    try {
       if (null != _setProcessors) {
         // If setProcessors() was called, use that list until it's empty and then stop.
         if (_setProcessorIter.hasNext()) {
@@ -145,14 +145,6 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
       }
       // if no processors were explicitly specified with setProcessors()
       // or the command line, search the processor path with ServiceLoader.
-      String resPath = "META-INF/services/" + Processor.class.getName();
-      Enumeration<URL> resources = _procLoader.getResources(resPath);
-      if (resources != null) {
-        while (resources.hasMoreElements()) {
-          URL url = resources.nextElement();
-          parse(url);
-        }
-      }
       if (null == _serviceLoader) {
         _serviceLoader = ServiceLoader.load(Processor.class, _procLoader);
         _serviceLoaderIter = _serviceLoader.iterator();
@@ -179,66 +171,12 @@ public class BatchAnnotationProcessorManager extends BaseAnnotationProcessorMana
         // TODO: better error handling
         throw new AbortCompilation(null, e);
       }
-    } catch (Throwable e) {
-      throw new IllegalStateException(e);
-    }
     return null;
-  }
-
-  private Iterator<String> parse(URL u)
-          throws ServiceConfigurationError, IOException {
-    InputStream in = null;
-    BufferedReader r = null;
-    ArrayList<String> names = new ArrayList<String>();
-    try {
-      in = u.openStream();
-      r = new BufferedReader(new InputStreamReader(in, "utf-8"));
-      int lc = 1;
-      while ((lc = parseLine(r, lc, names)) >= 0) ;
-    } catch (IOException x) {
-      throw new IllegalStateException("Error reading configuration file", x);
-    } finally {
-      try {
-        if (r != null) r.close();
-        if (in != null) in.close();
-      } catch (IOException y) {
-        throw new IllegalStateException("Error closing configuration file", y);
-      }
-    }
-    return names.iterator();
-  }
-
-  private int parseLine(BufferedReader r, int lc, List<String> names)
-          throws IOException, ServiceConfigurationError {
-    String ln = r.readLine();
-    if (ln == null) {
-      return -1;
-    }
-    int ci = ln.indexOf('#');
-    if (ci >= 0) ln = ln.substring(0, ci);
-    ln = ln.trim();
-    int n = ln.length();
-    if (n != 0) {
-      if ((ln.indexOf(' ') >= 0) || (ln.indexOf('\t') >= 0))
-        throw new IllegalStateException("Illegal configuration-file syntax");
-      int cp = ln.codePointAt(0);
-      if (!Character.isJavaIdentifierStart(cp))
-        throw new IllegalStateException("Illegal provider-class name: " + ln);
-      for (int i = Character.charCount(cp); i < n; i += Character.charCount(cp)) {
-        cp = ln.codePointAt(i);
-        if (!Character.isJavaIdentifierPart(cp) && (cp != '.'))
-          throw new IllegalStateException("Illegal provider-class name: " + ln);
-      }
-      if (!names.contains(ln))
-        names.add(ln);
-    }
-    return lc + 1;
   }
 
   /**
    * Used only for debugging purposes.  Generates output like "file:jar:D:/temp/jarfiles/myJar.jar!/".
    * Surely this code already exists in several hundred other places?
-   *
    * @return the location whence a processor class was loaded.
    */
   private String getProcessorLocation(Processor p) {

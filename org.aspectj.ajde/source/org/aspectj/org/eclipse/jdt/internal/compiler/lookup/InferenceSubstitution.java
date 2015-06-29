@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 GK Software AG.
+ * Copyright (c) 2013, 2015 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,12 +17,18 @@ public class InferenceSubstitution extends Scope.Substitutor implements Substitu
 
 	private LookupEnvironment environment;
 	private InferenceVariable[] variables;
+	private InvocationSite site;
 
-	public InferenceSubstitution(LookupEnvironment environment, InferenceVariable[] variables) {
+	public InferenceSubstitution(LookupEnvironment environment, InferenceVariable[] variables, InvocationSite site) {
 		this.environment = environment;
 		this.variables = variables;
+		this.site = site;
 	}
-	
+
+	public InferenceSubstitution(InferenceContext18 context) {
+		this(context.environment, context.inferenceVariables, context.currentInvocation);
+	}
+
 	/**
 	 * Override method {@link Scope.Substitutor#substitute(Substitution, TypeBinding)}, 
 	 * to add substitution of types other than type variables.
@@ -30,8 +36,9 @@ public class InferenceSubstitution extends Scope.Substitutor implements Substitu
 	public TypeBinding substitute(Substitution substitution, TypeBinding originalType) {
 		for (int i = 0; i < this.variables.length; i++) {
 			InferenceVariable variable = this.variables[i];
-			if (TypeBinding.equalsEquals(getP(i), originalType)) {
-				variable.nullHints |= originalType.tagBits & TagBits.AnnotationNullMASK;
+			if (this.site == variable.site && TypeBinding.equalsEquals(getP(i), originalType)) {
+				if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled && originalType.hasNullTypeAnnotations())
+					return this.environment.createAnnotatedType(variable.withoutToplevelNullAnnotation(), originalType.getTypeAnnotations());
 				return variable;
 			}
 		}

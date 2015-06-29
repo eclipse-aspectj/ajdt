@@ -68,7 +68,6 @@ public StringBuffer printStatement(int indent, StringBuffer output) {
 
 public void resolve(BlockScope scope) {
 	this.exceptionType = this.exception.resolveType(scope);
-	recordExceptionsForEnclosingLambda(scope, this.exceptionType);
 	if (this.exceptionType != null && this.exceptionType.isValidBinding()) {
 		if (this.exceptionType == TypeBinding.NULL) {
 			if (scope.compilerOptions().complianceLevel <= ClassFileConstants.JDK1_3){
@@ -86,5 +85,10 @@ public void traverse(ASTVisitor visitor, BlockScope blockScope) {
 	if (visitor.visit(this, blockScope))
 		this.exception.traverse(visitor, blockScope);
 	visitor.endVisit(this, blockScope);
+}
+
+@Override
+public boolean doesNotCompleteNormally() {
+	return true;
 }
 }

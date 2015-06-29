@@ -17,12 +17,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.lang.model.element.Element;
-import javax.tools.*;
+import javax.tools.FileObject;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import javax.tools.JavaFileManager.Location;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
@@ -85,13 +87,7 @@ public class BatchFilerImpl implements Filer {
 				location, pkg.toString(), relativeName.toString(), null);
 		URI uri = fo.toUri();
 		if (_createdFiles.contains(uri)) {
-			Iterator<URI> it = _createdFiles.iterator();
-			StringBuilder sb = new StringBuilder("\n----\n");
-			while (it.hasNext()) {
-				URI next = it.next();
-				sb.append(next).append("\n");
-			}
-			throw new FilerException("createResource. Resource already created : " + location + '/' + pkg + '/' + relativeName + " --- uri = " + uri + sb.toString()); //$NON-NLS-1$
+			throw new FilerException("Resource already created : " + location + '/' + pkg + '/' + relativeName); //$NON-NLS-1$
 		}
 
     _createdFiles.add(uri);
@@ -163,7 +159,7 @@ public class BatchFilerImpl implements Filer {
 		}
 		URI uri = fo.toUri();
 		if (_createdFiles.contains(uri)) {
-			throw new FilerException("getResource. Resource already created : " + location + '/' + pkg + '/' + relativeName + " --- uri = " + uri); //$NON-NLS-1$
+			throw new FilerException("Resource already created : " + location + '/' + pkg + '/' + relativeName); //$NON-NLS-1$
 		}
 
     _createdFiles.add(uri);

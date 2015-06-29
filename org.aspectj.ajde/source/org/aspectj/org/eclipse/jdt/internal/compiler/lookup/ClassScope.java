@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,8 +19,11 @@
  *							Bug 427199 - [1.8][resource] avoid resource leak warnings on Streams that have no resource
  *							Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *							Bug 434570 - Generic type mismatch for parametrized class annotation attribute with inner class
+ *							Bug 444024 - [1.8][compiler][null] Type mismatch error in annotation generics assignment which happens "sometimes"
+ *							Bug 459967 - [null] compiler should know about nullness of special methods like MyEnum.valueOf()
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 415821 - [1.8][compiler] CLASS_EXTENDS target type annotation missing for anonymous classes
+ *     het@google.com - Bug 456986 - Bogus error when annotation processor generates annotation type
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -291,6 +294,9 @@ public class ClassScope extends Scope {
 			int count = 0;
 			nextMember : for (int i = 0; i < length; i++) {
 				TypeDeclaration memberContext = this.referenceContext.memberTypes[i];
+				if (this.environment().isProcessingAnnotations && this.environment().isMissingType(memberContext.name)) {
+					throw new SourceTypeCollisionException(); // resolved a type ref before APT generated the type
+				}
 				switch(TypeDeclaration.kind(memberContext.modifiers)) {
 					case TypeDeclaration.INTERFACE_DECL :
 					case TypeDeclaration.ANNOTATION_TYPE_DECL :
@@ -401,6 +407,12 @@ public class ClassScope extends Scope {
 			for (int i = 0; i < fields.length; i++) {
 				fields[i].modifiers |= ExtraCompilerModifiers.AccLocallyUsed;	
 			}
+		}
+		if (isEnum && compilerOptions().isAnnotationBasedNullAnalysisEnabled) {
+			// mark return types of values & valueOf as nonnull (needed to wait till after setMethods() to avoid reentrance):
+			LookupEnvironment environment = this.environment();
+			((SyntheticMethodBinding)methodBindings[0]).markNonNull(environment);
+			((SyntheticMethodBinding)methodBindings[1]).markNonNull(environment);
 		}
 	}
 	// AspectJ start - replace original method with one simply passing null to new variant
@@ -1136,6 +1148,10 @@ public class ClassScope extends Scope {
 
 	void connectTypeHierarchy() {
 		SourceTypeBinding sourceType = this.referenceContext.binding;
+		CompilationUnitScope compilationUnitScope = compilationUnitScope();
+		boolean wasAlreadyConnecting = compilationUnitScope.connectingHierarchy;
+		compilationUnitScope.connectingHierarchy = true;
+		try {
 			if ((sourceType.tagBits & TagBits.BeginHierarchyCheck) == 0) {
 				sourceType.tagBits |= TagBits.BeginHierarchyCheck;
 				environment().typesBeingConnected.add(sourceType);
@@ -1149,6 +1165,9 @@ public class ClassScope extends Scope {
 					problemReporter().hierarchyHasProblems(sourceType);
 			}
 			connectMemberTypes();
+		} finally {
+			compilationUnitScope.connectingHierarchy = wasAlreadyConnecting;
+		}
 		LookupEnvironment env = environment();
 		try {
 			env.missingClassFileLocation = this.referenceContext;
@@ -1188,6 +1207,10 @@ public class ClassScope extends Scope {
 		if ((sourceType.tagBits & TagBits.BeginHierarchyCheck) != 0)
 			return;
 
+		CompilationUnitScope compilationUnitScope = compilationUnitScope();
+		boolean wasAlreadyConnecting = compilationUnitScope.connectingHierarchy;
+		compilationUnitScope.connectingHierarchy = true;
+		try {
 		sourceType.tagBits |= TagBits.BeginHierarchyCheck;
 		environment().typesBeingConnected.add(sourceType);
 		boolean noProblems = connectSuperclass();
@@ -1198,6 +1221,9 @@ public class ClassScope extends Scope {
 		sourceType.tagBits |= TagBits.TypeVariablesAreConnected;
 		if (noProblems && sourceType.isHierarchyInconsistent())
 			problemReporter().hierarchyHasProblems(sourceType);
+		} finally {
+			compilationUnitScope.connectingHierarchy = wasAlreadyConnecting;
+	}
 	}
 
 	public boolean detectHierarchyCycle(TypeBinding superType, TypeReference reference) {
@@ -1252,6 +1278,11 @@ public class ClassScope extends Scope {
 			// force its superclass & superinterfaces to be found... 2 possibilities exist - the source type is included in the hierarchy of:
 			//		- a binary type... this case MUST be caught & reported here
 			//		- another source type... this case is reported against the other source type
+			if (superType.problemId() != ProblemReasons.NotFound && (superType.tagBits & TagBits.HierarchyHasProblems) != 0) { 
+				sourceType.tagBits |= TagBits.HierarchyHasProblems;
+				problemReporter().hierarchyHasProblems(sourceType);
+				return true;
+			}
 			boolean hasCycle = false;
 			ReferenceBinding parentType = superType.superclass();
 			if (parentType != null) {

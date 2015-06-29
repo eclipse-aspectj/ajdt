@@ -26,6 +26,7 @@
  *								Bug 427483 - [Java 8] Variables in lambdas sometimes can't be resolved
  *								Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
  *								Bug 428352 - [1.8][compiler] Resolution errors don't always surface
+ *								Bug 452788 - [1.8][compiler] Type not correctly inferred in lambda expression
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 409245 - [1.8][compiler] Type annotations dropped when call is routed through a synthetic bridge method
  *******************************************************************************/
@@ -59,7 +60,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 
 public class ExplicitConstructorCall extends Statement implements Invocation {
 
@@ -79,10 +79,6 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 
 	// TODO Remove once DOMParser is activated
 	public int typeArgumentsSourceStart;
-
-	 // hold on to this context from invocation applicability inference until invocation type inference (per method candidate):
-	private SimpleLookupTable/*<PGMB,InferenceContext18>*/ inferenceContexts;
-	private InnerInferenceHelper innerInferenceHelper;
 
 	public ExplicitConstructorCall(int accessMode) {
 		this.accessMode = accessMode;
@@ -411,10 +407,6 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 					if ((argumentTypes[i] = argument.resolveType(scope)) == null) {
 						argHasError = true;
 					}
-					if (sourceLevel >= ClassFileConstants.JDK1_8 && argument.isPolyExpression()) {
-						if (this.innerInferenceHelper == null)
-							this.innerInferenceHelper = new InnerInferenceHelper();
-					}
 				}
 				if (argHasError) {
 					if (receiverType == null) {
@@ -515,58 +507,29 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 		visitor.endVisit(this, scope);
 	}
 
-	// -- interface Invocation: --
-	public MethodBinding binding(TypeBinding targetType, boolean reportErrors, Scope scope) {
-		if (reportErrors) {
-			if (this.binding == null)
-				scope.problemReporter().genericInferenceError("constructor is unexpectedly unresolved", this); //$NON-NLS-1$
-			else if (!this.binding.isValidBinding())
-				scope.problemReporter().invalidConstructor(this, this.binding);
-		}
+	// -- interface Invocation
+	public MethodBinding binding() {
 		return this.binding;
 	}
+
+	public void registerInferenceContext(ParameterizedGenericMethodBinding method, InferenceContext18 infCtx18) {
+		// Nothing to do.
+	}
+	
+	@Override
+	public void registerResult(TypeBinding targetType, MethodBinding method) {
+		// Nothing to do.
+	}
+	
+	public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method) {
+		return null;
+	}
+	
 	public Expression[] arguments() {
 		return this.arguments;
 	}
-	public boolean updateBindings(MethodBinding updatedBinding, TypeBinding targetType) {
-		boolean hasUpdate = this.binding != updatedBinding;
-		if (this.inferenceContexts != null) {
-			InferenceContext18 ctx = (InferenceContext18)this.inferenceContexts.removeKey(this.binding);
-			if (ctx != null && updatedBinding instanceof ParameterizedGenericMethodBinding) {
-				this.inferenceContexts.put(updatedBinding, ctx);
-				// solution may have come from an outer inference, mark now that this (inner) is done (but not deep inners):
-				hasUpdate |= ctx.registerSolution(targetType, updatedBinding);
-			}
-		}
-		this.binding = updatedBinding;
-		return hasUpdate;
-	}
-	public void registerInferenceContext(ParameterizedGenericMethodBinding method, InferenceContext18 infCtx18) {
-		if (this.inferenceContexts == null)
-			this.inferenceContexts = new SimpleLookupTable();
-		this.inferenceContexts.put(method, infCtx18);
-	}
-	public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method) {
-		if (this.inferenceContexts == null)
-			return null;
-		return (InferenceContext18) this.inferenceContexts.get(method);
-	}
-	public boolean usesInference() {
-		return (this.binding instanceof ParameterizedGenericMethodBinding) 
-				&& getInferenceContext((ParameterizedGenericMethodBinding) this.binding) != null;
-	}
-	public boolean innersNeedUpdate() {
-		return this.innerInferenceHelper != null;
-	}
-	public void innerUpdateDone() {
-		this.innerInferenceHelper = null;
-	}
-	public InnerInferenceHelper innerInferenceHelper() {
-		return this.innerInferenceHelper;
-	}
-
 	// -- interface InvocationSite: --
 	public InferenceContext18 freshInferenceContext(Scope scope) {
-		return new InferenceContext18(scope, this.arguments, this);
+		return new InferenceContext18(scope, this.arguments, this, null);
 	}
 }

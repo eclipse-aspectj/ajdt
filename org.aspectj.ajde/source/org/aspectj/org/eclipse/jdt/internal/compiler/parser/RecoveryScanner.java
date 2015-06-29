@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2012 IBM Corporation and others.
+ * Copyright (c) 2006, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -93,6 +93,16 @@ public class RecoveryScanner extends Scanner {
 		this.data.insertedTokensPosition[this.data.insertedTokensPtr] = position;
 		this.data.insertedTokenUsed[this.data.insertedTokensPtr] = false;
 	}
+	
+	public void insertTokenAhead(int token, int index) {
+		if(!this.record) return;
+
+		int length = this.data.insertedTokens[index].length;
+		int [] tokens = new int [length + 1];
+		System.arraycopy(this.data.insertedTokens[index], 0, tokens, 1, length);
+		tokens[0] = token;
+		this.data.insertedTokens[index] = tokens;
+	}
 
 	public void replaceTokens(int token, int start, int end) {
 		replaceTokens(new int []{token}, start, end);
@@ -139,13 +149,13 @@ public class RecoveryScanner extends Scanner {
 
 	protected int getNextToken0() throws InvalidInputException {
 		if(this.pendingTokensPtr > -1) {
-			int nextToken = this.pendingTokens[this.pendingTokensPtr--];
-			if(nextToken == TerminalTokens.TokenNameIdentifier){
+			int pendingToken = this.pendingTokens[this.pendingTokensPtr--];
+			if(pendingToken == TerminalTokens.TokenNameIdentifier){
 				this.fakeTokenSource = FAKE_IDENTIFIER;
 			} else {
 				this.fakeTokenSource = CharOperation.NO_CHAR;
 			}
-			return nextToken;
+			return pendingToken;
 		}
 
 		this.fakeTokenSource = null;
@@ -160,13 +170,13 @@ public class RecoveryScanner extends Scanner {
 					this.isInserted = true;
 					this.startPosition = this.currentPosition;
 					this.skipNextInsertedTokens = i;
-					int nextToken = this.pendingTokens[this.pendingTokensPtr--];
-					if(nextToken == TerminalTokens.TokenNameIdentifier){
+					int pendingToken = this.pendingTokens[this.pendingTokensPtr--];
+					if(pendingToken == TerminalTokens.TokenNameIdentifier){
 						this.fakeTokenSource = FAKE_IDENTIFIER;
 					} else {
 						this.fakeTokenSource = CharOperation.NO_CHAR;
 					}
-					return nextToken;
+					return pendingToken;
 				}
 			}
 			this.skipNextInsertedTokens = -1;
@@ -186,13 +196,13 @@ public class RecoveryScanner extends Scanner {
 					this.fakeTokenSource = FAKE_IDENTIFIER;
 					this.isInserted = false;
 					this.currentPosition = this.data.replacedTokensEnd[i] + 1;
-					int nextToken = this.pendingTokens[this.pendingTokensPtr--];
-					if(nextToken == TerminalTokens.TokenNameIdentifier){
+					int pendingToken = this.pendingTokens[this.pendingTokensPtr--];
+					if(pendingToken == TerminalTokens.TokenNameIdentifier){
 						this.fakeTokenSource = FAKE_IDENTIFIER;
 					} else {
 						this.fakeTokenSource = CharOperation.NO_CHAR;
 					}
-					return nextToken;
+					return pendingToken;
 				}
 			}
 		}

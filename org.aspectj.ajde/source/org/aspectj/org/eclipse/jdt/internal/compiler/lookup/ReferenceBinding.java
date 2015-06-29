@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,9 +32,14 @@
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
  *								Bug 431581 - Eclipse compiles what it should not
  *								Bug 440759 - [1.8][null] @NonNullByDefault should never affect wildcards and uses of a type variable
+ *								Bug 452788 - [1.8][compiler] Type not correctly inferred in lambda expression
+ *								Bug 446442 - [1.8] merge null annotations from super methods
+ *								Bug 456532 - [1.8][null] ReferenceBinding.appendNullAnnotation() includes phantom annotations in error messages
  *      Jesper S Moller - Contributions for
  *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *								bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
+ *     Ulrich Grave <ulrich.grave@gmx.de> - Contributions for
+ *                              bug 386692 - Missing "unused" warning on "autowired" fields
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -43,9 +48,12 @@ import java.util.Comparator;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 
 /*
@@ -883,10 +891,20 @@ public void computeId() {
 			}
 			break;
 		case 6:
+			if (CharOperation.equals(TypeConstants.ORG, this.compoundName[0])) {
+				if (CharOperation.equals(TypeConstants.SPRING, this.compoundName[1])) {
+					if (CharOperation.equals(TypeConstants.AUTOWIRED, this.compoundName[5])) {
+						if (CharOperation.equals(TypeConstants.ORG_SPRING_AUTOWIRED, this.compoundName)) {
+							this.id = TypeIds.T_OrgSpringframeworkBeansFactoryAnnotationAutowired;
+						}
+					}
+					return;
+				}
 			if (!CharOperation.equals(TypeConstants.JDT, this.compoundName[2]) || !CharOperation.equals(TypeConstants.ITYPEBINDING, this.compoundName[5]))
 				return;
 			if (CharOperation.equals(TypeConstants.ORG_ECLIPSE_JDT_CORE_DOM_ITYPEBINDING, this.compoundName))
 				this.typeBits |= TypeIds.BitUninternedType;
+			}
 			break;
 		case 7 :
 			if (!CharOperation.equals(TypeConstants.JDT, this.compoundName[2]) || !CharOperation.equals(TypeConstants.TYPEBINDING, this.compoundName[6]))
@@ -895,6 +913,10 @@ public void computeId() {
 				this.typeBits |= TypeIds.BitUninternedType;
 			break;
 	}
+}
+
+public void computeId(LookupEnvironment environment) {
+	environment.getUnannotatedType(this);
 }
 
 /**
@@ -1345,6 +1367,18 @@ private boolean isCompatibleWith0(TypeBinding otherType, /*@Nullable*/ Scope cap
 					return isCompatibleWith(otherLowerBound);
 				}
 			}
+			if (otherType instanceof InferenceVariable) {
+				// may interpret InferenceVariable as a joker, but only when within an outer lambda inference:
+				if (captureScope != null) {
+					MethodScope methodScope = captureScope.methodScope();
+					if (methodScope != null) {
+						ReferenceContext referenceContext = methodScope.referenceContext;
+						if (referenceContext instanceof LambdaExpression
+								&& ((LambdaExpression)referenceContext).inferenceContext != null)
+							return true;
+					}
+				}
+			}
 			//$FALL-THROUGH$
 		case Binding.GENERIC_TYPE :
 		case Binding.TYPE :
@@ -1365,7 +1399,7 @@ private boolean isCompatibleWith0(TypeBinding otherType, /*@Nullable*/ Scope cap
 				if (this instanceof TypeVariableBinding && captureScope != null) {
 					TypeVariableBinding typeVariable = (TypeVariableBinding) this;
 					if (typeVariable.firstBound instanceof ParameterizedTypeBinding) {
-						TypeBinding bound = typeVariable.firstBound.capture(captureScope, -1); // no position needed as this capture will never escape this context
+						TypeBinding bound = typeVariable.firstBound.capture(captureScope, -1, -1); // no position needed as this capture will never escape this context
 						return bound.isCompatibleWith(otherReferenceType);
 					}
 				}
@@ -1679,6 +1713,14 @@ public char[] readableName() /*java.lang.Object,  p.X<T> */ {
 
 protected void appendNullAnnotation(StringBuffer nameBuffer, CompilerOptions options) {
 	if (options.isAnnotationBasedNullAnalysisEnabled) {
+		if (options.usesNullTypeAnnotations()) {
+			for (AnnotationBinding annotation : this.typeAnnotations) {
+				TypeBinding annotationType = annotation.getAnnotationType();
+				if (annotationType.id == TypeIds.T_ConfiguredAnnotationNonNull || annotation.type.id == TypeIds.T_ConfiguredAnnotationNullable) {
+					nameBuffer.append('@').append(annotationType.shortReadableName()).append(' ');
+				}
+			}
+		} else {
 		// restore applied null annotation from tagBits:
 	    if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
 	    	char[][] nonNullAnnotationName = options.nonNullAnnotationName;
@@ -1689,6 +1731,7 @@ protected void appendNullAnnotation(StringBuffer nameBuffer, CompilerOptions opt
 			nameBuffer.append('@').append(nullableAnnotationName[nullableAnnotationName.length-1]).append(' ');
 	    }
 	}
+}
 }
 
 public AnnotationHolder retrieveAnnotationHolder(Binding binding, boolean forceInitialization) {
@@ -1969,19 +2012,18 @@ private MethodBinding [] getInterfaceAbstractContracts(Scope scope) throws Inval
 			continue;
 		if (!method.isValidBinding()) 
 			throw new InvalidInputException("Not a functional interface"); //$NON-NLS-1$
-		if (method.isDefaultMethod()) {
 			for (int j = 0; j < contractsCount; j++) {
 				if (contracts[j] == null)
 					continue;
 				if (MethodVerifier.doesMethodOverride(method, contracts[j], scope.environment())) {
 					contractsCount--;
-					// abstract method from super type rendered default by present interface ==> contracts[j] = null;
+				// abstract method from super type overridden by present interface ==> contracts[j] = null;
 					if (j < contractsCount)
 						System.arraycopy(contracts, j+1, contracts, j, contractsCount - j);
 				}
 			}
+		if (method.isDefaultMethod())
 			continue; // skip default method itself
-		}
 		if (contractsCount == contractsLength) {
 			System.arraycopy(contracts, 0, contracts = new MethodBinding[contractsLength += 16], 0, contractsCount);
 		}
@@ -2032,11 +2074,14 @@ public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcar
 	final LookupEnvironment environment = scope.environment();
 	boolean genericMethodSeen = false;
 	int length = methods.length;
+	boolean analyseNullAnnotations = environment.globalOptions.isAnnotationBasedNullAnalysisEnabled;
 	
 	next:for (int i = length - 1; i >= 0; --i) {
 		MethodBinding method = methods[i], otherMethod = null;
 		if (method.typeVariables != Binding.NO_TYPE_VARIABLES)
 			genericMethodSeen = true;
+		TypeBinding returnType = method.returnType;
+		TypeBinding[] parameters = method.parameters;
 		for (int j = 0; j < length; j++) {
 			if (i == j) continue;
 			otherMethod = methods[j];
@@ -2050,6 +2095,10 @@ public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcar
 			}
 			if (!MethodVerifier.isSubstituteParameterSubsignature(method, otherMethod, environment) || !MethodVerifier.areReturnTypesCompatible(method, otherMethod, environment)) 
 				continue next; 
+			if (analyseNullAnnotations) {
+				returnType = NullAnnotationMatching.strongerType(returnType, otherMethod.returnType, environment);
+				parameters = NullAnnotationMatching.weakerTypes(parameters, otherMethod.parameters, environment);
+			}
 		}
 		// If we reach here, we found a method that is override equivalent with every other method and is also return type substitutable. Compute kosher exceptions now ...
 		ReferenceBinding [] exceptions = new ReferenceBinding[0];
@@ -2115,8 +2164,8 @@ public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcar
 		}
 		this.singleAbstractMethod[index] = new MethodBinding(theAbstractMethod.modifiers | ClassFileConstants.AccSynthetic, 
 				theAbstractMethod.selector, 
-				theAbstractMethod.returnType, 
-				theAbstractMethod.parameters, 
+				returnType, 
+				parameters, 
 				exceptions, 
 				theAbstractMethod.declaringClass);
 	    this.singleAbstractMethod[index].typeVariables = theAbstractMethod.typeVariables;

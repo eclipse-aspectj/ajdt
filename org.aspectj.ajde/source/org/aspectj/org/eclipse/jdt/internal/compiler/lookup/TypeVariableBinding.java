@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,12 @@
  *								Bug 438179 - [1.8][null] 'Contradictory null annotations' error on type variable with explicit null-annotation.
  *								Bug 440143 - [1.8][null] one more case of contradictory null annotations regarding type variables
  *								Bug 440759 - [1.8][null] @NonNullByDefault should never affect wildcards and uses of a type variable
+ *								Bug 441693 - [1.8][null] Bogus warning for type argument annotated with @NonNull
+ *								Bug 456497 - [1.8][null] during inference nullness from target type is lost against weaker hint from applicability analysis
+ *								Bug 456459 - Discrepancy between Eclipse compiler and javac - Enums, interfaces, and generics
+ *								Bug 456487 - [1.8][null] @Nullable type variant of @NonNull-constrained type parameter causes grief
+ *								Bug 462790 - [null] NPE in Expression.computeConversion()
+ *								Bug 456532 - [1.8][null] ReferenceBinding.appendNullAnnotation() includes phantom annotations in error messages
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -70,8 +76,19 @@ public class TypeVariableBinding extends ReferenceBinding {
 		this.tagBits |= TagBits.HasTypeVariable;
 		this.environment = environment;
 		this.typeBits = TypeIds.BitUninitialized;
+		computeId(environment);
 	}
 	
+	// for subclass CaptureBinding
+	protected TypeVariableBinding(char[] sourceName, LookupEnvironment environment) {
+		this.sourceName = sourceName;
+		this.modifiers = ClassFileConstants.AccPublic | ExtraCompilerModifiers.AccGenericSignature; // treat type var as public
+		this.tagBits |= TagBits.HasTypeVariable;
+		this.environment = environment;
+		this.typeBits = TypeIds.BitUninitialized;
+		// don't yet compute the ID!
+	}
+
 	public TypeVariableBinding(TypeVariableBinding prototype) {
 		super(prototype);
 		this.declaringElement = prototype.declaringElement;
@@ -94,7 +111,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 			if (argumentType instanceof TypeVariableBinding && scope != null) {
 				TypeBinding bound = ((TypeVariableBinding)argumentType).firstBound;
 				if (bound instanceof ParameterizedTypeBinding) {
-					int code2 = boundCheck(substitution, bound.capture(scope, -1), scope); // no position needed as this capture will never escape this context
+					int code2 = boundCheck(substitution, bound.capture(scope, -1, -1), scope); // no position needed as this capture will never escape this context
 					return Math.min(code, code2);
 				}
 			}
@@ -140,7 +157,8 @@ public class TypeVariableBinding extends ReferenceBinding {
 											return TypeConstants.MISMATCH;
 										}
 									} else {
-										if (!wildcardBound.isTypeVariable() && !substitutedSuperType.isTypeVariable()) {
+										if (denotesRelevantSuperClass(wildcardBound) && denotesRelevantSuperClass(substitutedSuperType)) {
+											// non-object real superclass should have produced a valid 'match' above
 											return TypeConstants.MISMATCH;
 										}
 									}
@@ -216,6 +234,13 @@ public class TypeVariableBinding extends ReferenceBinding {
 	    	}
 	    }
 	    return unchecked ? TypeConstants.UNCHECKED : TypeConstants.OK;
+	}
+
+	boolean denotesRelevantSuperClass(TypeBinding type) {
+		if (!type.isTypeVariable() && !type.isInterface() && type.id != TypeIds.T_JavaLangObject)
+			return true;
+		ReferenceBinding aSuperClass = type.superclass();
+		return aSuperClass != null && aSuperClass.id != TypeIds.T_JavaLangObject && !aSuperClass.isTypeVariable();
 	}
 
 	public int boundsCount() {
@@ -704,12 +729,10 @@ public class TypeVariableBinding extends ReferenceBinding {
 	
 	public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNullAnnotations) {
 		if (getClass() == TypeVariableBinding.class) {
-			// TVB only: if the declaration already carries type annotations,
-			// clone the unannotated binding first to ensure TypeSystem.getUnnanotatedType() will see it at position 0:
-			TypeBinding unannotated = clone(null);
-			this.environment.getUnannotatedType(unannotated); // register unannotated
-			this.id = unannotated.id; // transfer fresh id
-			this.environment.typeSystem.cacheDerivedType(this, unannotated, this); // register this
+			// TVB only: if the declaration itself carries type annotations,
+			// make sure TypeSystem will still have an unannotated variant at position 0, to answer getUnannotated()
+			// (in this case the unannotated type is never explicit in source code, that's why we need this charade).
+			this.environment.typeSystem.forceRegisterAsDerived(this);
 		} else {
 			this.environment.getUnannotatedType(this); // exposes original TVB/capture to type system for id stamping purposes.
 		}
@@ -787,18 +810,39 @@ public class TypeVariableBinding extends ReferenceBinding {
 	    return readableName;
 	}
 
-	public TypeBinding unannotated(boolean removeOnlyNullAnnotations) {
-		if (!hasTypeAnnotations())
-			return this;
-		if (removeOnlyNullAnnotations && !hasNullTypeAnnotations())
+	protected void appendNullAnnotation(StringBuffer nameBuffer, CompilerOptions options) {
+		int oldSize = nameBuffer.length();
+		super.appendNullAnnotation(nameBuffer, options);
+		if (oldSize == nameBuffer.length()) { // nothing appended in super.appendNullAnnotation()?
+			if (hasNullTypeAnnotations()) {
+				// see if the prototype has null type annotations:
+				TypeVariableBinding[] typeVariables = null;
+				if (this.declaringElement instanceof ReferenceBinding) {
+					typeVariables = ((ReferenceBinding) this.declaringElement).typeVariables();
+				} else if (this.declaringElement instanceof MethodBinding) {
+					typeVariables = ((MethodBinding) this.declaringElement).typeVariables();
+				}
+				if (typeVariables != null && typeVariables.length > this.rank) {
+					TypeVariableBinding prototype = typeVariables[this.rank];
+					if (prototype != this)//$IDENTITY-COMPARISON$
+						prototype.appendNullAnnotation(nameBuffer, options);
+				}
+			}
+		}
+	}
+
+	public TypeBinding unannotated() {
+		return this.hasTypeAnnotations() ? this.environment.getUnannotatedType(this) : this;
+	}
+
+	@Override
+	public TypeBinding withoutToplevelNullAnnotation() {
+		if (!hasNullTypeAnnotations())
 			return this;
 		TypeBinding unannotated = this.environment.getUnannotatedType(this);
-		if (removeOnlyNullAnnotations) {
-			AnnotationBinding[] newAnnotations = this.environment.filterNullTypeAnnotations(this.typeAnnotations);
-			if (newAnnotations.length > 0)
-				return this.environment.createAnnotatedType(unannotated, newAnnotations);
-			// FIXME: selectively keep type annotations on bounds
-		}
+		AnnotationBinding[] newAnnotations = this.environment.filterNullTypeAnnotations(this.typeAnnotations);
+		if (newAnnotations.length > 0)
+			return this.environment.createAnnotatedType(unannotated, newAnnotations);
 		return unannotated; 
 	}
 	/**
@@ -852,7 +896,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 			this.tagBits &= ~TagBits.AnnotationNullMASK;
 		} else {
 			// implicit annotation: let the new one override
-			return boundType.unannotated(true);
+			return boundType.withoutToplevelNullAnnotation();
 		}
 		return boundType;
 	}
@@ -875,10 +919,11 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public TypeBinding setFirstBound(TypeBinding firstBound) {
 		this.firstBound = firstBound;
 		if ((this.tagBits & TagBits.HasAnnotatedVariants) != 0) {
-			TypeBinding [] annotatedTypes = this.environment.getAnnotatedTypes(this);
+			TypeBinding [] annotatedTypes = getDerivedTypesForDeferredInitialization();
 			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
 				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
-				annotatedType.firstBound = firstBound;
+				if (annotatedType.firstBound == null)
+					annotatedType.firstBound = firstBound;
 			}
 		}
 		if (firstBound != null && firstBound.hasNullTypeAnnotations())
@@ -891,10 +936,11 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public ReferenceBinding setSuperClass(ReferenceBinding superclass) {
 		this.superclass = superclass;
 		if ((this.tagBits & TagBits.HasAnnotatedVariants) != 0) {
-			TypeBinding [] annotatedTypes = this.environment.getAnnotatedTypes(this);
+			TypeBinding [] annotatedTypes = getDerivedTypesForDeferredInitialization();
 			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
 				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
-				annotatedType.superclass = superclass;
+				if (annotatedType.superclass == null)
+					annotatedType.superclass = superclass;
 			}
 		}
 		return superclass;
@@ -905,13 +951,18 @@ public class TypeVariableBinding extends ReferenceBinding {
 	public ReferenceBinding [] setSuperInterfaces(ReferenceBinding[] superInterfaces) {
 		this.superInterfaces = superInterfaces;
 		if ((this.tagBits & TagBits.HasAnnotatedVariants) != 0) {
-			TypeBinding [] annotatedTypes = this.environment.getAnnotatedTypes(this);
+			TypeBinding [] annotatedTypes = getDerivedTypesForDeferredInitialization();
 			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
 				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
-				annotatedType.superInterfaces = superInterfaces;
+				if (annotatedType.superInterfaces == null)
+					annotatedType.superInterfaces = superInterfaces;
 			}
 		}
 		return superInterfaces;
+	}
+
+	protected TypeBinding[] getDerivedTypesForDeferredInitialization() {
+		return this.environment.getAnnotatedTypes(this);
 	}
 
 	public TypeBinding combineTypeAnnotations(TypeBinding substitute) {
@@ -919,7 +970,7 @@ public class TypeVariableBinding extends ReferenceBinding {
 			// may need to merge annotations from the original variable and from substitution:
 			if (hasRelevantTypeUseNullAnnotations()) {
 				// explicit type use null annotation overrides any annots on type parameter and concrete type arguments
-				substitute = substitute.unannotated(true);
+				substitute = substitute.withoutToplevelNullAnnotation();
 			}
 			if (this.typeAnnotations != Binding.NO_ANNOTATIONS)
 				return this.environment.createAnnotatedType(substitute, this.typeAnnotations);

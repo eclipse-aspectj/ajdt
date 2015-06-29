@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 GK Software AG and others.
+ * Copyright (c) 2013, 2015 GK Software AG and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,15 +10,16 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CaptureBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
@@ -72,35 +73,36 @@ public class NullAnnotationMatching {
 	public boolean isUnchecked()        { return this.severity == 1; }
 	public boolean isDefiniteMismatch() { return this.severity == 2; }
 	
+	public boolean isPotentiallyNullMismatch() {
+		return !isDefiniteMismatch() && this.nullStatus != -1 && (this.nullStatus & FlowInfo.POTENTIALLY_NULL) != 0;
+	}
+
 	public String superTypeHintName(CompilerOptions options, boolean shortNames) {
 		return String.valueOf(this.superTypeHint.nullAnnotatedReadableName(options, shortNames));
 	}
 	
 	/** Check null-ness of 'var' against a possible null annotation */
 	public static int checkAssignment(BlockScope currentScope, FlowContext flowContext,
-									   VariableBinding var, int nullStatus, Expression expression, TypeBinding providedType)
+									   VariableBinding var, FlowInfo flowInfo, int nullStatus, Expression expression, TypeBinding providedType)
 	{
 		long lhsTagBits = 0L;
 		boolean hasReported = false;
-		if (currentScope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) {
+		if (!currentScope.environment().usesNullTypeAnnotations()) {
 			lhsTagBits = var.tagBits & TagBits.AnnotationNullMASK;
 		} else {
 			if (expression instanceof ConditionalExpression && expression.isPolyExpression()) {
 				// drill into both branches:
 				ConditionalExpression ce = ((ConditionalExpression) expression);
-				int status1 = NullAnnotationMatching.checkAssignment(currentScope, flowContext, var, ce.ifTrueNullStatus, ce.valueIfTrue, ce.valueIfTrue.resolvedType);
-				int status2 = NullAnnotationMatching.checkAssignment(currentScope, flowContext, var, ce.ifFalseNullStatus, ce.valueIfFalse, ce.valueIfFalse.resolvedType);
+				int status1 = NullAnnotationMatching.checkAssignment(currentScope, flowContext, var, flowInfo, ce.ifTrueNullStatus, ce.valueIfTrue, ce.valueIfTrue.resolvedType);
+				int status2 = NullAnnotationMatching.checkAssignment(currentScope, flowContext, var, flowInfo, ce.ifFalseNullStatus, ce.valueIfFalse, ce.valueIfFalse.resolvedType);
 				if (status1 == status2)
 					return status1;
 				return nullStatus; // if both branches disagree use the precomputed & merged nullStatus
 			}
 			lhsTagBits = var.type.tagBits & TagBits.AnnotationNullMASK;
 			NullAnnotationMatching annotationStatus = analyse(var.type, providedType, nullStatus);
-			if (annotationStatus.isDefiniteMismatch()) {
-				currentScope.problemReporter().nullityMismatchingTypeAnnotation(expression, providedType, var.type, annotationStatus);
-				hasReported = true;
-			} else if (annotationStatus.isUnchecked()) {
-				flowContext.recordNullityMismatch(currentScope, expression, providedType, var.type, nullStatus);
+			if (annotationStatus.isAnyMismatch()) {
+				flowContext.recordNullityMismatch(currentScope, expression, providedType, var.type, flowInfo, nullStatus, annotationStatus);
 				hasReported = true;
 			} else if (annotationStatus.nullStatus != FlowInfo.UNKNOWN) {
 				return annotationStatus.nullStatus;
@@ -108,7 +110,7 @@ public class NullAnnotationMatching {
 		}
 		if (lhsTagBits == TagBits.AnnotationNonNull && nullStatus != FlowInfo.NON_NULL) {
 			if (!hasReported)
-				flowContext.recordNullityMismatch(currentScope, expression, providedType, var.type, nullStatus);
+				flowContext.recordNullityMismatch(currentScope, expression, providedType, var.type, flowInfo, nullStatus, null);
 			return FlowInfo.NON_NULL;
 		} else if (lhsTagBits == TagBits.AnnotationNullable && nullStatus == FlowInfo.UNKNOWN) {	// provided a legacy type?
 			return FlowInfo.POTENTIALLY_NULL;			// -> use more specific info from the annotation
@@ -137,9 +139,9 @@ public class NullAnnotationMatching {
 	 * @return a status object representing the severity of mismatching plus optionally a supertype hint
 	 */
 	public static NullAnnotationMatching analyse(TypeBinding requiredType, TypeBinding providedType, TypeBinding providedSubstitute, int nullStatus, CheckMode mode) {
+		if (!requiredType.enterRecursiveFunction())
+			return NullAnnotationMatching.NULL_ANNOTATIONS_OK;
 		try {
-			if (!requiredType.enterRecursiveFunction())
-				return NullAnnotationMatching.NULL_ANNOTATIONS_OK;
 			int severity = 0;
 			TypeBinding superTypeHint = null;
 			NullAnnotationMatching okStatus = NullAnnotationMatching.NULL_ANNOTATIONS_OK;
@@ -177,14 +179,17 @@ public class NullAnnotationMatching {
 						long[] providedDimsTagBits = ((ArrayBinding)providedType).nullTagBitsPerDimension;
 						if (providedDimsTagBits == null)
 							providedDimsTagBits = new long[dims+1]; // set to unspec'd at all dimensions
+						int currentNullStatus = nullStatus;
 						for (int i=0; i<=dims; i++) {
 							long requiredBits = validNullTagBits(requiredDimsTagBits[i]);
 							long providedBits = validNullTagBits(providedDimsTagBits[i]);
 							if (i > 0)
-								nullStatus = -1; // don't use beyond the outermost dimension
-							severity = Math.max(severity, computeNullProblemSeverity(requiredBits, providedBits, nullStatus, mode == CheckMode.OVERRIDE && nullStatus == -1));
+								currentNullStatus = -1; // don't use beyond the outermost dimension
+							severity = Math.max(severity, computeNullProblemSeverity(requiredBits, providedBits, currentNullStatus, mode == CheckMode.OVERRIDE && nullStatus == -1));
 							if (severity == 2)
 								return NullAnnotationMatching.NULL_ANNOTATIONS_MISMATCH;
+							if (severity == 0)
+								nullStatus = -1;
 						}
 					} else if (providedType.id == TypeIds.T_null) {
 						if (dims > 0 && requiredDimsTagBits[0] == TagBits.AnnotationNonNull)
@@ -204,12 +209,13 @@ public class NullAnnotationMatching {
 				}
 				if (severity < 2) {
 					TypeBinding providedSuper = providedType.findSuperTypeOriginatingFrom(requiredType);
+					TypeBinding providedSubstituteSuper = providedSubstitute != null ? providedSubstitute.findSuperTypeOriginatingFrom(requiredType) : null;
 					if (providedSuper != providedType) //$IDENTITY-COMPARISON$
 						superTypeHint = providedSuper;
 					if (requiredType.isParameterizedType()  && providedSuper instanceof ParameterizedTypeBinding) { // TODO(stephan): handle providedType.isRaw()
 						TypeBinding[] requiredArguments = ((ParameterizedTypeBinding) requiredType).arguments;
 						TypeBinding[] providedArguments = ((ParameterizedTypeBinding) providedSuper).arguments;
-						TypeBinding[] providedSubstitutes = (providedSubstitute instanceof ParameterizedTypeBinding) ? ((ParameterizedTypeBinding)providedSubstitute).arguments : null;
+						TypeBinding[] providedSubstitutes = (providedSubstituteSuper instanceof ParameterizedTypeBinding) ? ((ParameterizedTypeBinding)providedSubstituteSuper).arguments : null;
 						if (requiredArguments != null && providedArguments != null && requiredArguments.length == providedArguments.length) {
 							for (int i = 0; i < requiredArguments.length; i++) {
 								TypeBinding providedArgSubstitute = providedSubstitutes != null ? providedSubstitutes[i] : null;
@@ -415,46 +421,87 @@ public class NullAnnotationMatching {
 		return 0; // OK by tagBits
 	}
 
+	static class SearchContradictions extends TypeBindingVisitor {
+		ReferenceBinding typeWithContradiction;
+		@Override
+		public boolean visit(ReferenceBinding referenceBinding) {
+			if ((referenceBinding.tagBits & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK) {
+				this.typeWithContradiction = referenceBinding;
+				return false;
+			}
+			return true;
+		}
+		@Override
+		public boolean visit(TypeVariableBinding typeVariable) {
+			if (!visit((ReferenceBinding)typeVariable))
+				return false;
+			long allNullBits = typeVariable.tagBits & TagBits.AnnotationNullMASK;
+			if (typeVariable.firstBound != null)
+				allNullBits = typeVariable.firstBound.tagBits & TagBits.AnnotationNullMASK;
+			for (TypeBinding otherBound : typeVariable.otherUpperBounds())
+				allNullBits |= otherBound.tagBits & TagBits.AnnotationNullMASK;
+			if (allNullBits == TagBits.AnnotationNullMASK) {
+				this.typeWithContradiction = typeVariable;
+				return false;
+			}
+			return true;
+		}
+		@Override
+		public boolean visit(RawTypeBinding rawType) {
+			return visit((ReferenceBinding)rawType);
+		}
+		@Override
+		public boolean visit(WildcardBinding wildcardBinding) {
+			long allNullBits = wildcardBinding.tagBits & TagBits.AnnotationNullMASK;
+			switch (wildcardBinding.boundKind) {
+				case Wildcard.EXTENDS:
+					allNullBits |= wildcardBinding.bound.tagBits & TagBits.AnnotationNonNull;
+					break;
+				case Wildcard.SUPER:
+					allNullBits |= wildcardBinding.bound.tagBits & TagBits.AnnotationNullable;
+					break;
+			}
+			if (allNullBits == TagBits.AnnotationNullMASK) {
+				this.typeWithContradiction = wildcardBinding;
+				return false;
+			}
+			return true;
+		}
+		@Override
+		public boolean visit(ParameterizedTypeBinding parameterizedTypeBinding) {
+			if (!visit((ReferenceBinding) parameterizedTypeBinding))
+				return false;
+			return super.visit(parameterizedTypeBinding);
+		}
+	}
+
 	/**
 	 * After a method has substituted type parameters, check if this resulted in any contradictory null annotations.
 	 * Problems are either reported directly (if scope != null) or by returning a ProblemMethodBinding.
 	 */
-	public static MethodBinding checkForContraditions(
-			final MethodBinding method, final InvocationSite invocationSite, final Scope scope) {
-		
-		class SearchContradictions extends TypeBindingVisitor {
-			ReferenceBinding typeWithContradiction;
-			@Override
-			public boolean visit(ReferenceBinding referenceBinding) {
-				if ((referenceBinding.tagBits & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK) {
-					this.typeWithContradiction = referenceBinding;
-					return false;
-				}
-				return true;
-			}
-			@Override
-			public boolean visit(TypeVariableBinding typeVariable) {
-				return visit((ReferenceBinding)typeVariable);
-			}
-			@Override
-			public boolean visit(RawTypeBinding rawType) {
-				return visit((ReferenceBinding)rawType);
-			}
-		}
+	public static MethodBinding checkForContradictions(MethodBinding method, Object location, Scope scope) {
 
+		int start = 0, end = 0;
+		if (location instanceof InvocationSite) {
+			start = ((InvocationSite) location).sourceStart();
+			end = ((InvocationSite) location).sourceEnd();
+		} else if (location instanceof ASTNode) {
+			start = ((ASTNode) location).sourceStart;
+			end = ((ASTNode) location).sourceEnd;
+		}
 		SearchContradictions searchContradiction = new SearchContradictions();
 		TypeBindingVisitor.visit(searchContradiction, method.returnType);
 		if (searchContradiction.typeWithContradiction != null) {
 			if (scope == null)
 				return new ProblemMethodBinding(method, method.selector, method.parameters, ProblemReasons.ContradictoryNullAnnotations);
-			scope.problemReporter().contradictoryNullAnnotationsInferred(method, invocationSite);
+			scope.problemReporter().contradictoryNullAnnotationsInferred(method, start, end, location instanceof FunctionalExpression);
 			// note: if needed, we might want to update the method by removing the contradictory annotations??
 			return method;
 		}
 
 		Expression[] arguments = null;
-		if (invocationSite instanceof Invocation)
-			arguments = ((Invocation)invocationSite).arguments();
+		if (location instanceof Invocation)
+			arguments = ((Invocation)location).arguments();
 		for (int i = 0; i < method.parameters.length; i++) {
 			TypeBindingVisitor.visit(searchContradiction, method.parameters[i]);
 			if (searchContradiction.typeWithContradiction != null) {
@@ -463,10 +510,59 @@ public class NullAnnotationMatching {
 				if (arguments != null && i < arguments.length)
 					scope.problemReporter().contradictoryNullAnnotationsInferred(method, arguments[i]);
 				else
-					scope.problemReporter().contradictoryNullAnnotationsInferred(method, invocationSite);
+					scope.problemReporter().contradictoryNullAnnotationsInferred(method, start, end, location instanceof FunctionalExpression);
 				return method;
 			}
 		}
 		return method;
+	}
+
+	public static boolean hasContradictions(TypeBinding type) {
+		SearchContradictions searchContradiction = new SearchContradictions();
+		TypeBindingVisitor.visit(searchContradiction, type);
+		return searchContradiction.typeWithContradiction != null;
+	}
+
+	public static TypeBinding strongerType(TypeBinding type1, TypeBinding type2, LookupEnvironment environment) {
+		if ((type1.tagBits & TagBits.AnnotationNonNull) != 0)
+			return mergeTypeAnnotations(type1, type2, true, environment);
+		return mergeTypeAnnotations(type2, type1, true, environment); // don't bother to distinguish unannotated vs. @Nullable, since both can accept null
+	}
+
+	public static TypeBinding[] weakerTypes(TypeBinding[] parameters1, TypeBinding[] parameters2, LookupEnvironment environment) {
+		TypeBinding[] newParameters = new TypeBinding[parameters1.length];
+		for (int i = 0; i < newParameters.length; i++) {
+			long tagBits1 = parameters1[i].tagBits;
+			long tagBits2 = parameters2[i].tagBits;
+			if ((tagBits1 & TagBits.AnnotationNullable) != 0)
+				newParameters[i] = mergeTypeAnnotations(parameters1[i], parameters2[i], true, environment);		// @Nullable must be preserved
+			else if ((tagBits2 & TagBits.AnnotationNullable) != 0)
+				newParameters[i] = mergeTypeAnnotations(parameters2[i], parameters1[i], true, environment);		// @Nullable must be preserved
+			else if ((tagBits1 & TagBits.AnnotationNonNull) == 0)
+				newParameters[i] = mergeTypeAnnotations(parameters1[i], parameters2[i], true, environment);		// unannotated must be preserved
+			else
+				newParameters[i] = mergeTypeAnnotations(parameters2[i], parameters1[i], true, environment);		// either unannotated, or both are @NonNull
+		}
+		return newParameters;
+	}
+	private static TypeBinding mergeTypeAnnotations(TypeBinding type, TypeBinding otherType, boolean top, LookupEnvironment environment) {
+		TypeBinding mainType = type;
+		if (!top) {
+			// for all but the top level type superimpose other's type annotation onto type
+			AnnotationBinding[] otherAnnotations = otherType.getTypeAnnotations();
+			if (otherAnnotations != Binding.NO_ANNOTATIONS)
+				mainType = environment.createAnnotatedType(type, otherAnnotations);
+		}
+		if (mainType.isParameterizedType() && otherType.isParameterizedType()) {
+			ParameterizedTypeBinding ptb = (ParameterizedTypeBinding) type, otherPTB = (ParameterizedTypeBinding) otherType;
+			TypeBinding[] typeArguments = ptb.arguments;
+			TypeBinding[] otherTypeArguments = otherPTB.arguments;
+			TypeBinding[] newTypeArguments = new TypeBinding[typeArguments.length];
+			for (int i = 0; i < typeArguments.length; i++) {
+				newTypeArguments[i] = mergeTypeAnnotations(typeArguments[i], otherTypeArguments[i], false, environment);
+			}
+			return environment.createParameterizedType(ptb.genericType(), newTypeArguments, ptb.enclosingType());
+		}
+		return mainType;
 	}
 }

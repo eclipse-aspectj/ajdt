@@ -13,6 +13,8 @@ package org.eclipse.ajdt.core.javaelements;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
+import org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
+import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
 import org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
@@ -139,5 +141,10 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
     public IBinaryTypeAnnotation[] getTypeAnnotations() {
        return null;
     }
+
+	public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(ITypeAnnotationWalker arg0, Object arg1,
+			LookupEnvironment arg2) {
+		return arg0;
+	}
 
 }

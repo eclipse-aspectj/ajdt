@@ -23,7 +23,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeVisitor;
 
 /**
- * An implementation of NoType, which is used to represent certain psuedo-types.
+ * An implementation of NoType, which is used to represent certain pseudo-types.
  * @see NoType
  */
 public class NoTypeImpl implements NoType, NullType

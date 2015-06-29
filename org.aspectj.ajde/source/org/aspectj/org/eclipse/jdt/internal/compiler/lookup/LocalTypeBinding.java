@@ -11,6 +11,7 @@
  *								bug 365662 - [compiler][null] warn on contradictory and redundant null annotations
  *								bug 401030 - [1.8][null] Null analysis support for lambda methods.
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
+ *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations 
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -78,12 +79,19 @@ public void addInnerEmulationDependent(BlockScope dependentScope, boolean wasEnc
 	//  System.out.println("Adding dependency: "+ new String(scope.enclosingType().readableName()) + " --> " + new String(this.readableName()));
 }
 
+@Override
+public MethodBinding enclosingMethod() {
+	return this.enclosingMethod;
+}
+
 /*
  * Returns the anonymous original super type (in some error cases, superclass may get substituted with Object)
  */
 public ReferenceBinding anonymousOriginalSuperType() {
 	if (!isPrototype())
 		return ((LocalTypeBinding) this.prototype).anonymousOriginalSuperType();
+	if (this.superclass == null && this.scope != null)
+		return this.scope.getJavaLangObject();
 	
 	if (this.superInterfaces != Binding.NO_SUPERINTERFACES) {
 		return this.superInterfaces[0];
@@ -100,13 +108,13 @@ public ReferenceBinding anonymousOriginalSuperType() {
 	return this.superclass; // default answer
 }
 
-protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation[] annotations, long nullBits, boolean isJdk18) {
+protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation[] annotations, long nullBits, boolean useNullTypeAnnotations) {
 	
 	if (!isPrototype()) throw new IllegalStateException();
 	
 	long outerDefault = 0;
 	if (this.enclosingMethod != null) {
-		outerDefault = isJdk18 
+		outerDefault = useNullTypeAnnotations 
 				? this.enclosingMethod.defaultNullness 
 				: this.enclosingMethod.tagBits & (TagBits.AnnotationNonNullByDefault|TagBits.AnnotationNullUnspecifiedByDefault);
 	}
@@ -116,7 +124,7 @@ protected void checkRedundantNullnessDefaultRecurse(ASTNode location, Annotation
 		}
 		return;
 	}
-	super.checkRedundantNullnessDefaultRecurse(location, annotations, nullBits, isJdk18);
+	super.checkRedundantNullnessDefaultRecurse(location, annotations, nullBits, useNullTypeAnnotations);
 }
 
 public char[] computeUniqueKey(boolean isLeaf) {

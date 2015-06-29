@@ -185,6 +185,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 		 */
 		this.tagBits = originalMethod.tagBits & ~TagBits.HasMissingType;
 		this.parameterNonNullness = originalMethod.parameterNonNullness;
+		this.defaultNullness = originalMethod.defaultNullness;
 
 		final TypeVariableBinding[] originalVariables = originalMethod.typeVariables;
 		Substitution substitution = null;

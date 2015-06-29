@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stephan Herrmann - Contribution for
+ *								Bug 458577 - IClassFile.getWorkingCopy() may lead to NPE in BecomeWorkingCopyOperation
+ *								Bug 440477 - [null] Infrastructure for feeding external annotations into compilation
+ *								Bug 462768 - [null] NPE when using linked folder for external annotations
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -19,12 +23,15 @@ import java.util.zip.ZipFile;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
@@ -44,6 +51,8 @@ public class ClassFile extends Openable implements IClassFile, SuffixConstants {
 
 	protected String name;
 	protected BinaryType binaryType = null;
+
+	private IPath externalAnnotationBase;
 
 /*
  * Creates a handle to a class file.
@@ -199,7 +208,8 @@ public boolean existsUsingJarTypeCache() {
 			// if parent is open, this class file must be in its children
 			IJavaElement[] children = parentInfo.getChildren();
 			for (int i = 0, length = children.length; i < length; i++) {
-				if (this.name.equals(((ClassFile) children[i]).name))
+				IJavaElement child = children[i];
+				if (child instanceof ClassFile && this.name.equals(((ClassFile) child).name))
 					return true;
 			}
 			return false;
@@ -340,6 +350,7 @@ public byte[] getBytes() throws JavaModelException {
 private IBinaryType getJarBinaryTypeInfo(PackageFragment pkg, boolean fullyInitialize) throws CoreException, IOException, ClassFormatException {
 	JarPackageFragmentRoot root = (JarPackageFragmentRoot) pkg.getParent();
 	ZipFile zip = null;
+	ZipFile annotationZip = null;
 	try {
 		zip = root.getJar();
 		String entryName = Util.concatWith(pkg.names, getElementName(), '/');
@@ -347,12 +358,80 @@ private IBinaryType getJarBinaryTypeInfo(PackageFragment pkg, boolean fullyIniti
 		if (ze != null) {
 			byte contents[] = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
 			String fileName = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
-			return new ClassFileReader(contents, fileName.toCharArray(), fullyInitialize);
+			ClassFileReader reader = new ClassFileReader(contents, fileName.toCharArray(), fullyInitialize);
+			if (root.getKind() == IPackageFragmentRoot.K_BINARY) {
+				JavaProject javaProject = (JavaProject) getAncestor(IJavaElement.JAVA_PROJECT);
+				IClasspathEntry entry = javaProject.getClasspathEntryFor(getPath());
+				if (entry != null) {
+					IProject project = javaProject.getProject();
+					IPath externalAnnotationPath = ClasspathEntry.getExternalAnnotationPath(entry, project, false);
+					if (externalAnnotationPath != null)
+						setupExternalAnnotationProvider(project, externalAnnotationPath, annotationZip, reader, 
+								entryName.substring(0, entryName.length() - SuffixConstants.SUFFIX_CLASS.length));
+				}
+			} 
+			return reader;
 		}
 	} finally {
 		JavaModelManager.getJavaModelManager().closeZipFile(zip);
+		JavaModelManager.getJavaModelManager().closeZipFile(annotationZip);
 	}
 	return null;
+}
+
+private void setupExternalAnnotationProvider(IProject project, final IPath externalAnnotationPath,
+		ZipFile annotationZip, ClassFileReader reader, final String typeName)
+{
+	// try resolve path within the workspace:
+	IWorkspaceRoot root = project.getWorkspace().getRoot();
+	IResource resource = externalAnnotationPath.segmentCount() == 1
+			? root.getProject(externalAnnotationPath.lastSegment())
+			: root.getFolder(externalAnnotationPath);
+	if (!resource.exists())
+		resource = root.getFile(externalAnnotationPath);
+	String resolvedPath;
+	if (resource.exists()) {
+		if (resource.isVirtual()) {
+			Util.log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, 
+					"Virtual resource "+externalAnnotationPath+" cannot be used as annotationpath for project "+project.getName())); //$NON-NLS-1$ //$NON-NLS-2$
+			return;
+		}
+		resolvedPath = resource.getLocation().toString(); // workspace lookup succeeded -> resolve it
+	} else {
+		resolvedPath = externalAnnotationPath.toString(); // not in workspace, use as is
+	}
+	try {
+		annotationZip = reader.setExternalAnnotationProvider(resolvedPath, typeName, annotationZip, new ClassFileReader.ZipFileProducer() {
+			@Override public ZipFile produce() throws IOException {
+				try {
+					return JavaModelManager.getJavaModelManager().getZipFile(externalAnnotationPath); // use (absolute, but) unresolved path here
+				} catch (CoreException e) {
+					throw new IOException("Failed to read annotation file for "+typeName+" from "+externalAnnotationPath.toString(), e); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}});
+	} catch (IOException e) {
+		Util.log(e);
+		return;
+	}
+	if (annotationZip == null) {
+		// Additional change listening for individual types only when annotations are in individual files.
+		// Note that we also listen for classes that don't yet have an annotation file, to detect its creation
+		this.externalAnnotationBase = externalAnnotationPath; // remember so we can unregister later
+		ExternalAnnotationTracker.registerClassFile(externalAnnotationPath, new Path(typeName), this);
+	}
+}
+void closeAndRemoveFromJarTypeCache() throws JavaModelException {
+	super.close();
+	// triggered when external annotations have changed we need to recreate this class file
+	JavaModelManager.getJavaModelManager().removeFromJarTypeCache(this.binaryType);
+}
+@Override
+public void close() throws JavaModelException {
+	if (this.externalAnnotationBase != null) {
+		String entryName = Util.concatWith(((PackageFragment) getParent()).names, this.name, '/');
+		ExternalAnnotationTracker.unregisterClassFile(this.externalAnnotationBase, new Path(entryName));
+	}
+	super.close();
 }
 public IBuffer getBuffer() throws JavaModelException {
 	IStatus status = validateClassFile();

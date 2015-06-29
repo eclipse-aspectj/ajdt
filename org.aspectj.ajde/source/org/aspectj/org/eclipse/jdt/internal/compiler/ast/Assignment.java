@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,8 @@
  *							bug 403147 - [compiler][null] FUP of bug 400761: consolidate interaction between unboxing, NPE, and deferred checking
  *							Bug 392099 - [1.8][compiler][null] Apply null annotation on types for null analysis
  *							Bug 427438 - [1.8][compiler] NPE at org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression.generateCode(ConditionalExpression.java:280)
+ *							Bug 453483 - [compiler][null][loop] Improve null analysis for loops
+ *							Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -94,7 +96,7 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	if (compilerOptions.isAnnotationBasedNullAnalysisEnabled) {
 		VariableBinding var = this.lhs.nullAnnotatedVariableBinding(compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8);
 		if (var != null) {
-			nullStatus = NullAnnotationMatching.checkAssignment(currentScope, flowContext, var, nullStatus, this.expression, this.expression.resolvedType);
+			nullStatus = NullAnnotationMatching.checkAssignment(currentScope, flowContext, var, flowInfo, nullStatus, this.expression, this.expression.resolvedType);
 			if (nullStatus == FlowInfo.NON_NULL
 					&& var instanceof FieldBinding
 					&& this.lhs instanceof Reference
@@ -158,6 +160,8 @@ FieldBinding getLastField(Expression someExpression) {
 }
 
 public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+	if ((this.implicitConversion & TypeIds.BOXING) != 0)
+		return FlowInfo.NON_NULL;
 	return this.expression.nullStatus(flowInfo, flowContext);
 }
 
@@ -193,7 +197,7 @@ public TypeBinding resolveType(BlockScope scope) {
 	this.expression.setExpressionContext(ASSIGNMENT_CONTEXT);
 	this.expression.setExpectedType(lhsType); // needed in case of generic method invocation
 	if (lhsType != null) {
-		this.resolvedType = lhsType.capture(scope, this.sourceEnd);
+		this.resolvedType = lhsType.capture(scope, this.lhs.sourceStart, this.lhs.sourceEnd); // make it unique, `this' shares source end with 'this.expression'.
 	}
 	LocalVariableBinding localVariableBinding = this.lhs.localVariableBinding();
 	if (localVariableBinding != null && (localVariableBinding.isCatchParameter() || localVariableBinding.isParameter())) { 
@@ -265,6 +269,6 @@ public LocalVariableBinding localVariableBinding() {
 	return this.lhs.localVariableBinding();
 }
 public boolean statementExpression() {
-	return true;
+	return ((this.bits & ASTNode.ParenthesizedMASK) == 0);
 }
 }

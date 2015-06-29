@@ -149,7 +149,6 @@ public abstract class BaseAnnotationProcessorManager extends AbstractAnnotationP
 		if (_isFirstRound) {
 			_isFirstRound = false;
 		}
-
 		PrintWriter traceProcessorInfo = _printProcessorInfo ? _out : null;
 		PrintWriter traceRounds = _printRounds ? _out : null;
 		if (traceRounds != null) {

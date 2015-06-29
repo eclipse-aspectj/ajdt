@@ -35,7 +35,7 @@ public interface TerminalTokens {
 		TokenNameCOMMENT_BLOCK = 1002,
 		TokenNameCOMMENT_JAVADOC = 1003;
 
-	public final static int
+    public final static int
     TokenNameIdentifier = 18,
     TokenNameabstract = 47,
     TokenNameassert = 78,

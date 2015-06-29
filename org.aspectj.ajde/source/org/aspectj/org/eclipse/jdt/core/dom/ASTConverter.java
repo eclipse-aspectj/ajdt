@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -643,7 +643,7 @@ public class ASTConverter {
 
 			start = retrieveStartBlockPosition(methodHeaderEnd, methodDeclaration.bodyStart);
 			if (start == -1) start = methodDeclaration.bodyStart; // use recovery position for body start
-			end = retrieveRightBrace(methodDeclaration.bodyEnd, declarationSourceEnd);
+			end = retrieveRightBrace(methodDeclaration.bodyEnd + 1, declarationSourceEnd);
 			Block block = null;
 			if (start != -1 && end != -1) {
 				/*
@@ -1592,7 +1592,7 @@ public class ASTConverter {
 				if (anonymousType != null) {
 					AnonymousClassDeclaration anonymousClassDeclaration = new AnonymousClassDeclaration(this.ast);
 					int start = retrieveStartBlockPosition(anonymousType.sourceEnd, anonymousType.bodyEnd);
-					int end = retrieveRightBrace(anonymousType.bodyEnd, declarationSourceEnd);
+					int end = retrieveRightBrace(anonymousType.bodyEnd +1, declarationSourceEnd);
 					if (end == -1) end = anonymousType.bodyEnd;
 					anonymousClassDeclaration.setSourceRange(start, end - start + 1);
 					enumConstantDeclaration.setAnonymousClassDeclaration(anonymousClassDeclaration);
@@ -3457,11 +3457,11 @@ public class ASTConverter {
 		List dimensions = arrayType.dimensions();
 		Type elementType = arrayType.getElementType();
 		int start = elementType.getStartPosition();
-		int endElement = start + elementType.getLength();
+		int endElement = start + elementType.getLength() - 1;
 		int end = retrieveProperRightBracketPosition(dimensions.size(), endElement);
 		arrayType.setSourceRange(start, end - start + 1);
 		
-		start = endElement;
+		start = endElement + 1;
 		for (int i = 0; i < dimensions.size(); i++) {
 			Dimension currentDimension = (Dimension) dimensions.get(i);
 			setTypeAnnotationsOnDimension(currentDimension, annotationsOnDimensions, i);
@@ -4641,6 +4641,8 @@ public class ASTConverter {
 		return -1;
 
 	}
+	
+	// Aspectj keeping this for now, we use it.
 	/**
 	 * This method is used to retrieve the end position of the block.
 	 * @return int the dimension found, -1 if none
@@ -4904,7 +4906,7 @@ public class ASTConverter {
 		return hasTokens ? Integer.MIN_VALUE : pos;
 	}
 
-	protected int retrieveProperRightBracketPosition(int bracketNumber, int start) {
+	protected int retrieveProperRightBracketPosition(int bracketNumber, int start, int end) {
 		this.scanner.resetTo(start, this.compilationUnitSourceLength);
 		try {
 			int token, count = 0, lParentCount = 0, balance = 0;
@@ -4936,6 +4938,10 @@ public class ASTConverter {
 			// ignore
 		}
 		return -1;
+	}
+
+	protected int retrieveProperRightBracketPosition(int bracketNumber, int start) {
+		return retrieveProperRightBracketPosition(bracketNumber, start, this.compilationUnitSourceLength);
 	}
 
 	/**

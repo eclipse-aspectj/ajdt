@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,8 @@
  *								Bug 424728 - [1.8][null] Unexpected error: The nullness annotation 'XXXX' is not applicable at this location
  *								Bug 392245 - [1.8][compiler][null] Define whether / how @NonNullByDefault applies to TYPE_USE locations
  *								Bug 429958 - [1.8][null] evaluate new DefaultLocation attribute of @NonNullByDefault
+ *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations
+ *								Bug 457210 - [1.8][compiler][null] Wrong Nullness errors given on full build build but not on incremental build?
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *                          Bug 409517 - [1.8][compiler] Type annotation problems on more elaborate array references
@@ -38,6 +40,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.EnumConstantSignature;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.BooleanConstant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.IrritantSet;
@@ -396,26 +399,21 @@ public abstract class Annotation extends Expression {
 				// seeing this id implies that null annotation analysis is enabled
 				Object value = null;
 				if (valueAttribute != null) {
-					if (valueAttribute.value instanceof FalseLiteral) {
-						// parameter 'false' means: this annotation cancels any defaults
-						tagBits |= TagBits.AnnotationNullUnspecifiedByDefault;
-						break;
-					} else if (valueAttribute.compilerElementPair != null) {
+					if (valueAttribute.compilerElementPair != null)
 						value = valueAttribute.compilerElementPair.value;
-					}
-				} else if (scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8) { // fetch default value  - TODO: cache it?
+				} else { // fetch default value  - TODO: cache it?
 					MethodBinding[] methods = annotationType.methods();
-					if (methods != null && methods.length == 1) {
-						Object defaultValue = methods[0].getDefaultValue();
-						if (defaultValue instanceof Object[])
-							value = defaultValue;
-					}
+					if (methods != null && methods.length == 1)
+						value = methods[0].getDefaultValue();
+					else
+						tagBits |= TagBits.AnnotationNonNullByDefault; // custom unconfigurable NNBD
 				}
-				if (value != null) {
-					tagBits |= nullTagBitsFromAnnotationValue(value);
-				} else {
-					// neither explicit value, nor default value from DefaultLocation (1.8)
-					tagBits |= TagBits.AnnotationNonNullByDefault;
+				if (value instanceof BooleanConstant) {
+					// boolean value is used for declaration annotations, signal using the annotation tag bit:
+					tagBits |= ((BooleanConstant)value).booleanValue() ? TagBits.AnnotationNonNullByDefault : TagBits.AnnotationNullUnspecifiedByDefault;
+				} else if (value != null) {
+					// non-boolean value signals type annotations, evaluate from DefaultLocation[] to bitvector a la Binding#NullnessDefaultMASK:
+					tagBits |= nullLocationBitsFromAnnotationValue(value);
 				}
 				break;
 		}
@@ -428,17 +426,17 @@ public abstract class Annotation extends Expression {
 	 * 
 	 * <b>pre:</b> null annotation analysis is enabled
 	 */
-	public static int nullTagBitsFromAnnotationValue(Object value) {
+	public static int nullLocationBitsFromAnnotationValue(Object value) {
 		if (value instanceof Object[]) {
-			if (((Object[]) value).length == 0) {
+			if (((Object[]) value).length == 0) {					// ({})
 				return Binding.NULL_UNSPECIFIED_BY_DEFAULT;
-			} else {
+			} else {												// ({vals...})
 				int bits = 0;
 				for (Object single : (Object[])value)
 					bits |= evaluateDefaultNullnessLocation(single);
 				return bits;
 			}
-		} else {
+		} else {													// (val)
 			return evaluateDefaultNullnessLocation(value);
 		}
 	}
@@ -451,6 +449,8 @@ public abstract class Annotation extends Expression {
 			name = ((EnumConstantSignature) value).getEnumConstantName();
 		} else if (value instanceof ElementValuePair.UnresolvedEnumConstant) {
 			name = ((ElementValuePair.UnresolvedEnumConstant) value).getEnumConstantName();
+		} else if (value instanceof BooleanConstant) {
+			return ((BooleanConstant)value).booleanValue() ? Binding.NONNULL_BY_DEFAULT : Binding.NULL_UNSPECIFIED_BY_DEFAULT;
 		}
 		if (name != null) {
 			switch (name.length) {
@@ -782,7 +782,7 @@ public abstract class Annotation extends Expression {
 			}
 		}
 		if (isSuppressingWarnings && suppressWarningIrritants != null) {
-			scope.referenceCompilationUnit().recordSuppressWarnings(suppressWarningIrritants, this, startSuppresss, endSuppress);
+			scope.referenceCompilationUnit().recordSuppressWarnings(suppressWarningIrritants, this, startSuppresss, endSuppress, scope.referenceContext());
 		}
 	}
 
@@ -876,7 +876,7 @@ public abstract class Annotation extends Expression {
 		tagBits &= ~Binding.NullnessDefaultMASK;
 
 		// record annotation positions in the compilation result
-		scope.referenceCompilationUnit().recordSuppressWarnings(IrritantSet.NLS, null, this.sourceStart, this.declarationSourceEnd);
+		scope.referenceCompilationUnit().recordSuppressWarnings(IrritantSet.NLS, null, this.sourceStart, this.declarationSourceEnd, scope.referenceContext());
 		if (this.recipient != null) {
 			int kind = this.recipient.kind();
 			if (tagBits != 0 || defaultNullness != 0) {
@@ -951,41 +951,27 @@ public abstract class Annotation extends Expression {
 						}
 						break;
 				}
+			} 
+			if (kind == Binding.TYPE) {
+				SourceTypeBinding sourceType = (SourceTypeBinding) this.recipient;
+				if (CharOperation.equals(sourceType.sourceName, TypeConstants.PACKAGE_INFO_NAME))
+					kind = Binding.PACKAGE;
 			}
-			checkAnnotationTarget(this, scope, annotationType, kind);
+			checkAnnotationTarget(this, scope, annotationType, kind, this.recipient, tagBits & TagBits.AnnotationNullMASK);
 		}
 		return this.resolvedType;
 	}
 
-	static boolean isAnnotationTargetAllowed(Annotation annotation, BlockScope scope, TypeBinding annotationType, int kind) {
-		long metaTagBits = annotationType.getAnnotationTagBits(); // could be forward reference
-		if ((metaTagBits & TagBits.AnnotationTargetMASK) == 0) {
-			// does not specify any target restriction - all locations supported in Java 7 and before are possible
-			if (kind == Binding.TYPE_PARAMETER || kind == Binding.TYPE_USE) {
-				scope.problemReporter().explitAnnotationTargetRequired(annotation);
-			}
-			return true;
-		}
-
-		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=391201
-		if ((metaTagBits & TagBits.SE7AnnotationTargetMASK) == 0
-				&& (metaTagBits & (TagBits.AnnotationForTypeUse | TagBits.AnnotationForTypeParameter)) != 0) {
-			if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) {
-				switch (kind) {
-					case Binding.PACKAGE :
-					case Binding.TYPE :
-					case Binding.GENERIC_TYPE :
-					case Binding.METHOD :
-					case Binding.FIELD :
-					case Binding.LOCAL :
-						scope.problemReporter().invalidUsageOfTypeAnnotations(annotation);
-				}
-			}
-		}
+	private static boolean isAnnotationTargetAllowed(Binding recipient, BlockScope scope, TypeBinding annotationType, int kind, long metaTagBits) {
 		switch (kind) {
 			case Binding.PACKAGE :
 				if ((metaTagBits & TagBits.AnnotationForPackage) != 0)
 					return true;
+				else if (scope.compilerOptions().sourceLevel <= ClassFileConstants.JDK1_6) {
+					SourceTypeBinding sourceType = (SourceTypeBinding) recipient;
+					if (CharOperation.equals(sourceType.sourceName, TypeConstants.PACKAGE_INFO_NAME))
+						return true;
+				}
 				break;
 			case Binding.TYPE_USE :
 				if ((metaTagBits & TagBits.AnnotationForTypeUse) != 0) {
@@ -999,18 +985,18 @@ public abstract class Annotation extends Expression {
 				break;
 			case Binding.TYPE :
 			case Binding.GENERIC_TYPE :
-				if (((ReferenceBinding)annotation.recipient).isAnnotationType()) {
+				if (((ReferenceBinding)recipient).isAnnotationType()) {
 					if ((metaTagBits & (TagBits.AnnotationForAnnotationType | TagBits.AnnotationForType | TagBits.AnnotationForTypeUse)) != 0)
 					return true;
 				} else if ((metaTagBits & (TagBits.AnnotationForType | TagBits.AnnotationForTypeUse)) != 0) {
 					return true;
 				} else if ((metaTagBits & TagBits.AnnotationForPackage) != 0) {
-					if (CharOperation.equals(((ReferenceBinding) annotation.recipient).sourceName, TypeConstants.PACKAGE_INFO_NAME))
+					if (CharOperation.equals(((ReferenceBinding) recipient).sourceName, TypeConstants.PACKAGE_INFO_NAME))
 						return true;
 				}
 				break;
 			case Binding.METHOD :
-				MethodBinding methodBinding = (MethodBinding) annotation.recipient;
+				MethodBinding methodBinding = (MethodBinding) recipient;
 				if (methodBinding.isConstructor()) {
 					if ((metaTagBits & (TagBits.AnnotationForConstructor | TagBits.AnnotationForTypeUse)) != 0)
 						return true;
@@ -1028,7 +1014,7 @@ public abstract class Annotation extends Expression {
 				if ((metaTagBits & TagBits.AnnotationForField) != 0) {
 					return true;
 				} else if ((metaTagBits & TagBits.AnnotationForTypeUse) != 0) {
-					FieldBinding sourceField = (FieldBinding) annotation.recipient;
+					FieldBinding sourceField = (FieldBinding) recipient;
 					SourceTypeBinding sourceType = (SourceTypeBinding) sourceField.declaringClass;
 					FieldDeclaration fieldDeclaration = sourceType.scope.referenceContext.declarationOf(sourceField);
 					if (isTypeUseCompatible(fieldDeclaration.type, scope)) {
@@ -1037,7 +1023,7 @@ public abstract class Annotation extends Expression {
 				}
 				break;
 			case Binding.LOCAL :
-				LocalVariableBinding localVariableBinding = (LocalVariableBinding) annotation.recipient;
+				LocalVariableBinding localVariableBinding = (LocalVariableBinding) recipient;
 				if ((localVariableBinding.tagBits & TagBits.IsArgument) != 0) {
 					if ((metaTagBits & TagBits.AnnotationForParameter) != 0) {
 						return true;
@@ -1063,7 +1049,44 @@ public abstract class Annotation extends Expression {
 		return false;
 	}
 
-	static void checkAnnotationTarget(Annotation annotation, BlockScope scope, ReferenceBinding annotationType, int kind) {
+	public static boolean isAnnotationTargetAllowed(BlockScope scope, TypeBinding annotationType, Binding recipient) {
+		long metaTagBits = annotationType.getAnnotationTagBits(); // could be forward reference
+		if ((metaTagBits & TagBits.AnnotationTargetMASK) == 0) {
+			return true;
+		}
+		return isAnnotationTargetAllowed(recipient, scope, annotationType, recipient.kind(), metaTagBits);
+	}
+
+	static boolean isAnnotationTargetAllowed(Annotation annotation, BlockScope scope, TypeBinding annotationType, int kind) {
+
+		long metaTagBits = annotationType.getAnnotationTagBits(); // could be forward reference
+		if ((metaTagBits & TagBits.AnnotationTargetMASK) == 0) {
+			// does not specify any target restriction - all locations supported in Java 7 and before are possible
+			if (kind == Binding.TYPE_PARAMETER || kind == Binding.TYPE_USE) {
+				scope.problemReporter().explitAnnotationTargetRequired(annotation);
+			}
+			return true;
+		}
+
+		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=391201
+		if ((metaTagBits & TagBits.SE7AnnotationTargetMASK) == 0
+				&& (metaTagBits & (TagBits.AnnotationForTypeUse | TagBits.AnnotationForTypeParameter)) != 0) {
+			if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8) {
+				switch (kind) {
+					case Binding.PACKAGE :
+					case Binding.TYPE :
+					case Binding.GENERIC_TYPE :
+					case Binding.METHOD :
+					case Binding.FIELD :
+					case Binding.LOCAL :
+						scope.problemReporter().invalidUsageOfTypeAnnotations(annotation);
+				}
+			}
+		}
+		return isAnnotationTargetAllowed(annotation.recipient, scope, annotationType, kind, metaTagBits);
+	}
+
+	static void checkAnnotationTarget(Annotation annotation, BlockScope scope, ReferenceBinding annotationType, int kind, Binding recipient, long tagBitsToRevert) {
 		// check (meta)target compatibility
 		if (!annotationType.isValidBinding()) {
 			// no need to check annotation usage if missing
@@ -1071,6 +1094,8 @@ public abstract class Annotation extends Expression {
 		}
 		if (! isAnnotationTargetAllowed(annotation, scope, annotationType, kind)) {
 			scope.problemReporter().disallowedTargetForAnnotation(annotation);
+			if (recipient instanceof TypeBinding)
+				((TypeBinding)recipient).tagBits &= ~tagBitsToRevert;
 		}
 	}
 
