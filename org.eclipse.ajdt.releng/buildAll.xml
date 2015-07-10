@@ -65,6 +65,7 @@
 	<target name="clean" unless="noclean">
 		<delete dir="${build.home}" />
 		<delete dir="${build.dist}" />
+		<delete dir="${build.dest}/target/eclipse/test_framework"/>
 		<delete dir="${target.eclipse}" />
 	</target>
 
