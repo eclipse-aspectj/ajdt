@@ -379,6 +379,9 @@
 			updatesite.url="file:${build.dest}/target/test_framework" 
 			feature.id="org.eclipse.test" />
 		
+<copy file="${builder}/build_bundles/library.xml" todir="${build.eclipse}/plugins/org.eclipse.test_${org.eclipse.test}/"/>
+<copy file="${builder}/build_bundles/JUNIT.XSL" todir="${build.eclipse}/plugins/org.eclipse.test_${org.eclipse.test}/"/>
+
 
 		<!-- start with a clean workspace -->
 		<delete failonerror="false">

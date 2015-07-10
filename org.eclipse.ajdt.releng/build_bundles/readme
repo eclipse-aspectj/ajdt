@@ -1,0 +1,3 @@
+For Eclipse 4.5 I had to download a new test framework zip - this did not include library.xml and JUNIT.XSL 
+like older versions so I downloaded those separately and put them here. The build copies them
+into the right place before they are used (copies them to where the build is still looking for them)
