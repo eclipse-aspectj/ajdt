@@ -63,9 +63,13 @@
 
 
 	<target name="clean" unless="noclean">
+<echo message="Deleting ${build.home}"/>
 		<delete dir="${build.home}" />
+<echo message="Deleting ${build.dist}"/>
 		<delete dir="${build.dist}" />
+<echo message="Deleting ${build.dest}/target/eclipse/test_framework"/>
 		<delete dir="${build.dest}/target/eclipse/test_framework"/>
+<echo message="Deleting ${target.eclipse}"/>
 		<delete dir="${target.eclipse}" />
 	</target>
 
