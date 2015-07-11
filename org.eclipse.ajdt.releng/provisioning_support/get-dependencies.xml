@@ -10,21 +10,20 @@
          Andrew Eisenberg     - install-bundle macro
  -->
 <project name="Download files and provide provisioning for existing eclipse installatins">
-    <macrodef name="uninstall-bundle-version" description="Install a bundle into a given Eclipse">
+    <macrodef name="uninstall-bundle" description="Install a bundle into a given Eclipse">
             <attribute name="eclipse.loc" />
             <attribute name="updatesite.url" />
             <attribute name="feature.id" />
-            <attribute name="version" />
 
             <sequential>
-                    <echo message="Uninstalling @{feature.id} version @{version} into @{eclipse.loc} from @{updatesite.url}" />
+                    <echo message="Uninstalling @{feature.id} into @{eclipse.loc} from @{updatesite.url}" />
                     <java fork="true" failonerror="true"
                       classname="org.eclipse.core.launcher.Main">
 
                             <arg line= "-application org.eclipse.equinox.p2.director" />
                             <arg line= "-metadataRepository @{updatesite.url}" />
                             <arg line= "-artifactRepository @{updatesite.url}" />
-                            <arg line= "-uninstallIU @{feature.id}.feature.group/@{version}" />
+                            <arg line= "-uninstallIU @{feature.id}.feature.group" />
                             <arg value="-nosplash" />
 
                             <classpath>
