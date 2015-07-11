@@ -10,6 +10,32 @@
          Andrew Eisenberg     - install-bundle macro
  -->
 <project name="Download files and provide provisioning for existing eclipse installatins">
+    <macrodef name="install-bundle-version" description="Install a bundle into a given Eclipse">
+            <attribute name="eclipse.loc" />
+            <attribute name="updatesite.url" />
+            <attribute name="feature.id" />
+            <attribute name="version" />
+
+            <sequential>
+                    <echo message="Installing @{feature.id} into @{eclipse.loc} from @{updatesite.url}" />
+                    <java fork="true" failonerror="true"
+                      classname="org.eclipse.core.launcher.Main">
+
+                            <arg line= "-application org.eclipse.equinox.p2.director" />
+                            <arg line= "-metadataRepository @{updatesite.url}" />
+                            <arg line= "-artifactRepository @{updatesite.url}" />
+                            <arg line= "-installIU @{feature.id}.feature.group/@{version}" />
+                            <arg value="-nosplash" />
+
+                            <classpath>
+                                    <fileset dir="@{eclipse.loc}/plugins">
+                                            <include name="org.eclipse.equinox.launcher_*.jar"/>
+                                    </fileset>
+                            </classpath>
+                    </java>
+            </sequential>
+
+    </macrodef>
 	<macrodef name="install-bundle" description="Install a bundle into a given Eclipse">
 		<attribute name="eclipse.loc" />
 		<attribute name="updatesite.url" />

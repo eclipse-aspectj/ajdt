@@ -374,15 +374,15 @@
 		<mkdir dir="${build.dest}/target/test_framework"/>
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/test_framework" />
 		
-		<install-bundle 
+		<install-bundle-version 
 			eclipse.loc="${build.dest}/target/eclipse" 
 			updatesite.url="file:${build.dest}/target/test_framework" 
-			feature.id="org.eclipse.test" />
+			feature.id="org.eclipse.test" version="${org.eclipse.test.feature.version}"/>
 		
-		<install-bundle 
+		<install-bundle-version
 			eclipse.loc="${build.dest}/eclipse" 
 			updatesite.url="file:${build.dest}/target/test_framework" 
-			feature.id="org.eclipse.test" />
+			feature.id="org.eclipse.test" version="${org.eclipse.test.feature.version}"/>
 		
 <copy file="${builder}/build_bundles/library.xml" todir="${build.eclipse}/plugins/org.eclipse.test_${org.eclipse.test}/"/>
 <copy file="${builder}/build_bundles/JUNIT.XSL" todir="${build.eclipse}/plugins/org.eclipse.test_${org.eclipse.test}/"/>
