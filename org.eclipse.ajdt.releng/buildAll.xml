@@ -371,6 +371,7 @@
 			token="osgi.bundles=" value="osgi.bundles=org.eclipse.equinox.weaving.aspectj@3\:start,"/>
 
 		<!-- org.eclipse.test needs to be in the target AND the build eclipses -->
+		<delete dir="${build.dest}/target/test_framework"/>
 		<mkdir dir="${build.dest}/target/test_framework"/>
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/test_framework" />
 		
