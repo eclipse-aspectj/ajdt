@@ -375,10 +375,12 @@
 		<mkdir dir="${build.dest}/target/test_framework"/>
 		<unzip src="${builder}/build_bundles/${eclipse.test.framework.version}" dest="${build.dest}/target/test_framework" />
 		
+<!--
 		<uninstall-bundle
 			eclipse.loc="${build.dest}/target/eclipse" 
 			updatesite.url="file:${build.dest}/target/test_framework" 
 			feature.id="org.eclipse.test"/>
+-->
 
 		<install-bundle-version 
 			eclipse.loc="${build.dest}/target/eclipse" 
