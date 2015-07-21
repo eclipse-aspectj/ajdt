@@ -81,7 +81,7 @@
 			<arg value="org.eclipse.ant.core.antRunner" />
 			<arg value="-data" />
 			<arg value="${build.dest}/target/build-workspace" />
-			<!-- <arg value="-verbose" /> -->
+<arg value="-verbose" /> 
 			<arg value="-DfetchCacheLocation=${fetchCacheLocation}" />
 			<arg value="-Dbuilder=${workdir}/org.eclipse.ajdt.releng" />
 			<arg value="-DallowBinaryCycles=true"/>
