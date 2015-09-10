@@ -37,7 +37,7 @@ public class Version {
       * Time text set by build script using SIMPLE_DATE_FORMAT.
       * (if DEVELOPMENT version, invalid)
       */
-    public static final String time_text = "Thursday Sep 3, 2015 at 21:25:56 GMT";
+    public static final String time_text = "Thursday Sep 10, 2015 at 15:14:59 GMT";
 
     /** 
       * time in seconds-since-... format, used by programmatic clients.

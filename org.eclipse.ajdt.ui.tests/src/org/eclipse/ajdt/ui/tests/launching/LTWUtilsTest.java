@@ -61,9 +61,22 @@ public class LTWUtilsTest extends UITestCase{
 		assertEquals("There should be one src directory",1,srcRoots.size()); //$NON-NLS-1$
 		List aspects = LTWUtils.getAspects((IPackageFragmentRoot)srcRoots.get(0));
 		assertEquals("There should be two aspects",2,aspects.size()); //$NON-NLS-1$
-		assertEquals("The first aspect should be called TraceMyClasses","TraceMyClasses",((AspectElement)aspects.get(0)).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
-		assertEquals("The second aspect should be called AbstractTrace","AbstractTrace",((AspectElement)aspects.get(1)).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
-		
+		String aspectOne = ((AspectElement)aspects.get(0)).getElementName();
+		String aspectTwo = ((AspectElement)aspects.get(1)).getElementName();
+		boolean foundOne = false;
+		boolean foundTwo = false;
+		if (aspectOne.equals("TraceMyClasses") || aspectTwo.equals("TraceMyClasses")) {
+			foundOne = true;
+		}
+		if (aspectOne.equals("AbstractTrace") || aspectTwo.equals("AbstractTrace")) {
+			foundTwo = true;
+		}
+		if (!foundOne) {
+			fail("Expected to find TraceMyClasses:"+aspectOne+","+aspectTwo);
+		}
+		if (!foundTwo) {
+			fail("Expected to find AbstractTrace:"+aspectOne+","+aspectTwo);
+		}		
 	}
 	
 	// multiple source folders with no aspects

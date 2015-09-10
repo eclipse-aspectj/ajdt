@@ -75,6 +75,9 @@ public abstract class AbstractAJDTRefactoringTest extends AJDTCoreTestCase {
                     sb.append(expectedContents[i]);
                     sb.append("\n--------WAS--------\n");
                     sb.append(actualContents);
+                    sb.append("\nExpected length="+expectedContents[i].length());
+                    sb.append("\nActual length="+actualContents.length());
+                    sb.append("\n");
                 }
             } else {
                 // unit should have been deleted

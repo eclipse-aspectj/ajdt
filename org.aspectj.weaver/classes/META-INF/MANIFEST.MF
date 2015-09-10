@@ -7,4 +7,5 @@ Implementation-Title: org.aspectj.weaver
 Implementation-Version: DEVELOPMENT
 Implementation-Vendor: aspectj.org
 Premain-Class: org.aspectj.weaver.loadtime.Agent
+Agent-Class: org.aspectj.weaver.loadtime.Agent
 Can-Redefine-Classes: true
