@@ -223,8 +223,8 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"tracing.lib.TraceMyClasses\"/>", //$NON-NLS-1$
 				"\t\t<aspect name=\"tracing.lib.AbstractTrace\"/>", //$NON-NLS-1$
+				"\t\t<aspect name=\"tracing.lib.TraceMyClasses\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
