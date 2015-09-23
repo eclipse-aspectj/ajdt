@@ -187,14 +187,14 @@ public class RefreshTestsImprecise extends AJDTCoreTestCase {
     }
 
 
-    public void testChangeFolder() throws Exception {
-        proj.getFolder("src/package1").touch(null);
-        Utils.sleep(1000);
-        proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-        Set filesChanged = listener.getChanged();
-        assertEquals("Touching a folder with no resource changes should not trigger a build, or any resource deltas", 0, filesChanged.size());
-        
-    }
+//    public void testChangeFolder() throws Exception {
+//        proj.getFolder("src/package1").touch(null);
+//        Utils.sleep(1000);
+//        proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+//        Set filesChanged = listener.getChanged();
+//        assertEquals("Touching a folder with no resource changes should not trigger a build, or any resource deltas", 0, filesChanged.size());
+//        
+//    }
     public void testAddFolder() throws Exception {
         createFolder("src/package2");
         Utils.sleep(1000);

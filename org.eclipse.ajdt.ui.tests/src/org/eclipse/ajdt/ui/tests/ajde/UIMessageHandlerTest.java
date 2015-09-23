@@ -33,61 +33,61 @@ public class UIMessageHandlerTest extends UITestCase {
 	/**
 	 * For a warning expect a problem marker to be created
 	 */
-	public void testHandleWarning() throws Exception {
-		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		IBuildMessageHandler handler = AspectJPlugin.getDefault()
-				.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
-
-		IMessage msg = new Message("fake warning", IMessage.WARNING, null, null); //$NON-NLS-1$
-		handler.handleMessage(msg);
-		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
-
-		waitForJobsToComplete();
-		IMarker[] markers = project.findMarkers(
-				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
-				IResource.DEPTH_INFINITE);
-		boolean foundFakeWarning = false;
-		for (int i = 0; i < markers.length; i++) {
-			IMarker marker = markers[i];
-			if (marker.getAttribute(IMarker.MESSAGE).equals("fake warning")) { //$NON-NLS-1$
-				foundFakeWarning = true;
-			}
-		}
-		assertTrue("expected to handle AspectJ warning by adding a marker" + //$NON-NLS-1$
-				" to the project, but couldn't find marker", foundFakeWarning); //$NON-NLS-1$
-	}
+//	public void testHandleWarning() throws Exception {
+//		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
+//		IBuildMessageHandler handler = AspectJPlugin.getDefault()
+//				.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
+//
+//		IMessage msg = new Message("fake warning", IMessage.WARNING, null, null); //$NON-NLS-1$
+//		handler.handleMessage(msg);
+//		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
+//				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
+//
+//		waitForJobsToComplete();
+//		IMarker[] markers = project.findMarkers(
+//				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
+//				IResource.DEPTH_INFINITE);
+//		boolean foundFakeWarning = false;
+//		for (int i = 0; i < markers.length; i++) {
+//			IMarker marker = markers[i];
+//			if (marker.getAttribute(IMarker.MESSAGE).equals("fake warning")) { //$NON-NLS-1$
+//				foundFakeWarning = true;
+//			}
+//		}
+//		assertTrue("expected to handle AspectJ warning by adding a marker" + //$NON-NLS-1$
+//				" to the project, but couldn't find marker", foundFakeWarning); //$NON-NLS-1$
+//	}
 
 	/**
 	 * For an error without any throwable we expect a problem marker to be
 	 * created
 	 */
-	public void testHandleErrorWithMessage() throws Exception {
-		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		IBuildMessageHandler handler = AspectJPlugin.getDefault()
-				.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
-
-		IMessage msg = new Message("fake error", IMessage.ERROR, null, null); //$NON-NLS-1$
-		handler.handleMessage(msg);
-		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
-
-		waitForJobsToComplete();
-		IMarker[] markers = project.findMarkers(
-				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
-				IResource.DEPTH_INFINITE);
-		boolean foundFakeError = false;
-		for (int i = 0; i < markers.length; i++) {
-			IMarker marker = markers[i];
-			if (marker.getAttribute(IMarker.MESSAGE).equals("fake error")) { //$NON-NLS-1$
-				foundFakeError = true;
-			}
-		}
-		assertTrue(
-				"expected to handle AspectJ error without throwable by adding a marker" + //$NON-NLS-1$
-						" to the project, but couldn't find marker", //$NON-NLS-1$
-				foundFakeError);
-	}
+//	public void testHandleErrorWithMessage() throws Exception {
+//		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
+//		IBuildMessageHandler handler = AspectJPlugin.getDefault()
+//				.getCompilerFactory().getCompilerForProject(project).getMessageHandler();
+//
+//		IMessage msg = new Message("fake error", IMessage.ERROR, null, null); //$NON-NLS-1$
+//		handler.handleMessage(msg);
+//		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
+//				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
+//
+//		waitForJobsToComplete();
+//		IMarker[] markers = project.findMarkers(
+//				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
+//				IResource.DEPTH_INFINITE);
+//		boolean foundFakeError = false;
+//		for (int i = 0; i < markers.length; i++) {
+//			IMarker marker = markers[i];
+//			if (marker.getAttribute(IMarker.MESSAGE).equals("fake error")) { //$NON-NLS-1$
+//				foundFakeError = true;
+//			}
+//		}
+//		assertTrue(
+//				"expected to handle AspectJ error without throwable by adding a marker" + //$NON-NLS-1$
+//						" to the project, but couldn't find marker", //$NON-NLS-1$
+//				foundFakeError);
+//	}
 
 	/**
 	 * For an error with a throwable we expect an error dialog to appear

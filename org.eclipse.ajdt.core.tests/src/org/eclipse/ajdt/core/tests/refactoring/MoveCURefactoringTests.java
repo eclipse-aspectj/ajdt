@@ -680,60 +680,60 @@ public class MoveCURefactoringTests extends AbstractAJDTRefactoringTest {
         });
     }
     
-    // from different package to same package
-    public void testMoveTypeInITDField5() throws Exception {
-        performRefactoringAndUndo("q", 
-                new String[] { 
-                "p", 
-                "q", 
-        }, 
-        new String[] {
-                "Java.java", 
-                "Aspect.aj", 
-        }, new String[] {
-                "package p;\npublic class Java { }", 
-                "package q;\n\nimport p.Java;\n\npublic aspect Aspect {\npublic int Java.x; }", 
-        }, new String[] { 
-                "package q;\npublic class Java { }", 
-                "package q;\n\n\npublic aspect Aspect {\npublic int Java.x; }", 
-        });
-    }
+//    // from different package to same package
+//    public void testMoveTypeInITDField5() throws Exception {
+//        performRefactoringAndUndo("q", 
+//                new String[] { 
+//                "p", 
+//                "q", 
+//        }, 
+//        new String[] {
+//                "Java.java", 
+//                "Aspect.aj", 
+//        }, new String[] {
+//                "package p;\npublic class Java { }", 
+//                "package q;\n\nimport p.Java;\n\npublic aspect Aspect {\npublic int Java.x; }", 
+//        }, new String[] { 
+//                "package q;\npublic class Java { }", 
+//                "package q;\n\n\npublic aspect Aspect {\npublic int Java.x; }", 
+//        });
+//    }
     
-    public void testMoveTypeInITDMethod5() throws Exception {
-        performRefactoringAndUndo("q", 
-                new String[] { 
-                "p", 
-                "q", 
-        }, 
-        new String[] {
-                "Java.java", 
-                "Aspect.aj", 
-        }, new String[] {
-                "package p;\npublic class Java { }", 
-                "package q;\n\nimport p.Java;\n\npublic aspect Aspect {\npublic void Java.x() { } }", 
-        }, new String[] { 
-                "package q;\npublic class Java { }", 
-                "package q;\n\n\npublic aspect Aspect {\npublic void Java.x() { } }", 
-        });
-    }
+//    public void testMoveTypeInITDMethod5() throws Exception {
+//        performRefactoringAndUndo("q", 
+//                new String[] { 
+//                "p", 
+//                "q", 
+//        }, 
+//        new String[] {
+//                "Java.java", 
+//                "Aspect.aj", 
+//        }, new String[] {
+//                "package p;\npublic class Java { }", 
+//                "package q;\n\nimport p.Java;\n\npublic aspect Aspect {\npublic void Java.x() { } }", 
+//        }, new String[] { 
+//                "package q;\npublic class Java { }", 
+//                "package q;\n\n\npublic aspect Aspect {\npublic void Java.x() { } }", 
+//        });
+//    }
     
-    public void testMoveTypeInITDConstructor5() throws Exception {
-        performRefactoringAndUndo("q", 
-                new String[] { 
-                "p", 
-                "q", 
-        }, 
-        new String[] {
-                "Java.java", 
-                "Aspect.aj", 
-        }, new String[] {
-                "package p;\npublic class Java { }", 
-                "package q;\n\nimport p.Java;\n\npublic aspect Aspect {\npublic Java.new(int x) {\n this(); } }", 
-        }, new String[] { 
-                "package q;\npublic class Java { }", 
-                "package q;\n\n\npublic aspect Aspect {\npublic Java.new(int x) {\n this(); } }", 
-        });
-    }
+//    public void testMoveTypeInITDConstructor5() throws Exception {
+//        performRefactoringAndUndo("q", 
+//                new String[] { 
+//                "p", 
+//                "q", 
+//        }, 
+//        new String[] {
+//                "Java.java", 
+//                "Aspect.aj", 
+//        }, new String[] {
+//                "package p;\npublic class Java { }", 
+//                "package q;\n\nimport p.Java;\n\npublic aspect Aspect {\npublic Java.new(int x) {\n this(); } }", 
+//        }, new String[] { 
+//                "package q;\npublic class Java { }", 
+//                "package q;\n\n\npublic aspect Aspect {\npublic Java.new(int x) {\n this(); } }", 
+//        });
+//    }
     
     // from different package to same package, fully qualified
     public void testMoveTypeInITDField6() throws Exception {

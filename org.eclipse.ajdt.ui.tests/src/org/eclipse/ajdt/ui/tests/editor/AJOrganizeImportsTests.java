@@ -63,11 +63,11 @@ public class AJOrganizeImportsTests extends UITestCase {
                 "package pack;\n\nimport java.util.HashMap;\n\nclass Aspect {\nprivate HashMap val; }");
     }
 
-    public void testOrganizeImports1() throws Exception {
-        checkOrganizeImports("Aspect.aj", "pack", 
-                "package pack;\nimport java.util.List;\naspect Aspect { }", 
-                "package pack;\naspect Aspect { }");
-    }
+//    public void testOrganizeImports1() throws Exception {
+//        checkOrganizeImports("Aspect.aj", "pack", 
+//                "package pack;\nimport java.util.List;\naspect Aspect { }", 
+//                "package pack;\naspect Aspect { }");
+//    }
     
     public void testOrganizeImport2() throws Exception {
         checkOrganizeImports("Aspect.aj", "pack", 
@@ -136,11 +136,11 @@ public class AJOrganizeImportsTests extends UITestCase {
         "package pack;\n\nimport java.util.HashSet;\n\naspect Aspect { void java.util.ArrayList.x(HashSet g) { } }");
     }
     
-    public void testDeclare1() throws Exception {
-        checkOrganizeImports("Aspect.aj", "pack", 
-                "package pack;\naspect Aspect { class F { }\ndeclare parents : F extends ArrayList; }", 
-                "package pack;\n\nimport java.util.ArrayList;\n\naspect Aspect { class F { }\ndeclare parents : F extends ArrayList; }");
-    }
+//    public void testDeclare1() throws Exception {
+//        checkOrganizeImports("Aspect.aj", "pack", 
+//                "package pack;\naspect Aspect { class F { }\ndeclare parents : F extends ArrayList; }", 
+//                "package pack;\n\nimport java.util.ArrayList;\n\naspect Aspect { class F { }\ndeclare parents : F extends ArrayList; }");
+//    }
     
     public void testDeclare2() throws Exception {
         checkOrganizeImports("Aspect.aj", "pack", 
