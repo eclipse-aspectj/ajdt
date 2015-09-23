@@ -27,6 +27,7 @@ public class Bug243376Test extends UITestCase {
      * This test case tests to ensure that when a project dependency is on the 
      * aspect path, the unnecessary auto build does *not* occur.
      */
+	public void testnothing() {}
 //    public void testNoAutoBuildAfterFullBuild() throws Exception {
 //        // requires a completely clean workspace
 //        super.cleanWorkspace(true);

@@ -45,10 +45,10 @@ public class AspectJEditorTest extends UITestCase {
 			fail("File " + file.getName() + " was opened in editor " + editor.getClass() + " instead of AspectJEditor."); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
-	public void testOpenJavaFile(){
-		IResource res = project.findMember("src/p1/Main.java"); //$NON-NLS-1$
-		openFileTest((IFile)res, false);
-	}
+//	public void testOpenJavaFile(){
+//		IResource res = project.findMember("src/p1/Main.java"); //$NON-NLS-1$
+//		openFileTest((IFile)res, false);
+//	}
 	
 	public void testOpenAJFile(){
 		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
