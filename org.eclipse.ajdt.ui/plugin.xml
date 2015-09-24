@@ -1534,13 +1534,14 @@ M4 = Platform-specific fourth key
                   <count
                         value="1">
                   </count>
-              <iterate>
-                  <test
-	                    property="org.eclipse.debug.ui.projectNature"
-                      value="org.eclipse.ajdt.ui.ajnature">
-                  </test>
-              		<adapt type="org.eclipse.jdt.core.IJavaElement"/>
-              </iterate>
+                   <iterate>
+                    <adapt type="org.eclipse.jdt.core.IJavaElement">
+                      <test
+                          property="org.eclipse.debug.ui.projectNature"
+                          value="org.eclipse.ajdt.ui.ajnature">
+                      </test>
+                    </adapt>
+                  </iterate>
                </with>
             </enablement>
          </contextualLaunch>
