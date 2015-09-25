@@ -22,6 +22,9 @@
     	<property file="provisioning_support/download.properties" />
     	<property file="local.properties" />
     	<property file="build.properties" />
+
+        <property file="${build.dist}/ajdt-zip.properties"/>
+        <property environment="env"/>
     	<!-- ===================================================================== -->
     	<!-- Create the timestamp to be used for the build                         -->
     	<!-- This timestamp will not be used if forceContextQualifier is set from  -->
@@ -528,7 +531,36 @@
 
 	<target name="tests" depends="init,provision-test-eclipse,run-test-eclipse,copy-test-results,check-results,check-tests-failed" />
 
-	<target name="run" depends="init,clean,build,tests" />
+	<target name="run" depends="init,clean,build,tests,upload-and-unzip" />
 	<target name="skiptest" depends="init,clean,build" />
+
+        <!-- =================================
+          target: upload-build
+       ================================= -->
+        <target name="upload-build" description="Uploads an AJDT zip archive to the download server">
+                <scp todir="${env.bamboo_upload_userid}:${env.bamboo_upload_password}@${upload.host}:${upload.dir}" failonerror="true" trust="true" verbose="true">
+                        <fileset dir="${build.dist}">
+                                <include name="${zip.name}" />
+                        </fileset>
+                </scp>
+        </target>
+
+        <!-- =================================
+          target: delete-old
+       ================================= -->
+        <target name="delete-old" description="Deletes the old version of the plugin">
+                <sshexec host="${upload.host}" username="${env.bamboo_upload_userid}" password="${env.bamboo_upload_password}" command="unalias rm ; rm -rf content.* artifacts.* site.* ${upload.dir}/plugins ${upload.dir}/features" failonerror="true" verbose="true" trust="true" />
+        </target>
+
+        <!-- =================================
+          target: unzip-build
+       ================================= -->
+        <target name="unzip-build" description="Unzips build on download server">
+                <sshexec host="${upload.host}" username="${env.bamboo_upload_userid}" password="${env.bamboo_upload_password}" command="unzip -o ${upload.dir}/${zip.name} -d ${upload.dir}" failonerror="true" trust="true" />
+        </target>
+
+        <target name="upload-and-unzip" depends="upload-build,delete-old,unzip-build"
+                description="Uploads, and unzips build on download server">
+        </target>
 	
 </project>
