@@ -1170,7 +1170,7 @@ public class TypeInfoViewer {
 		Object element= item.getData();
 		if (!(element instanceof TypeNameMatch))
 			return;
-		if (fHistory.remove(element) != null) {
+		if (fHistory.remove((TypeNameMatch)element) != null) {
 			item.dispose();
 			fItems.remove(index);
 			int count= fTable.getItemCount();
