@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: AspectJ
 Bundle-SymbolicName: org.aspectj.ajde; singleton:=true
 Bundle-Version: 92.2.29
-Bundle-Activator: org.eclipse.core.internal.compatibility.PluginActivator
 Bundle-Vendor: Eclipse AspectJ Development Tools
 Export-Package: org.aspectj.ajde.core,
  org.aspectj.ajde.core.internal,
