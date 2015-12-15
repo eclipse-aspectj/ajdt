@@ -21,13 +21,6 @@
       <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/34/update"/>
    </url>
 
-   <includes
-         id="org.eclipse.contribution.xref.source"
-         version="0.0.0" 
-         name=""
-         optional="true"/>
-
-
    <requires>
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.jdt.core"/>

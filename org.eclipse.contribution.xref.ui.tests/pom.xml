@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.eclipse.ajdt</groupId>
+		<artifactId>parent</artifactId>
+		<version>2.2.4-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>org.eclipse.contribution.xref.ui.tests</artifactId>
+	<packaging>eclipse-test-plugin</packaging>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<skip>${skip.tests}</skip>
+					<useUIThread>true</useUIThread>
+					<useUIHarness>true</useUIHarness>
+					<forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
+					<showEclipseLog>true</showEclipseLog>
+					<argLine>-Xmx1024m -XX:MaxPermSize=256m ${tycho.surefire.extra.vmargs}</argLine>
+					
+					<testClass>org.eclipse.contribution.xref.ui.tests.AllTests</testClass>
+
+					<testFailureIgnore>true</testFailureIgnore>-
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<configuration>
+					<dependency-resolution>
+						<extraRequirements>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.platform</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.jdt</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.ajdt</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+						</extraRequirements>
+					</dependency-resolution>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>

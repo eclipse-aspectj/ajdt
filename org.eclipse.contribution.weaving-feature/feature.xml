@@ -17,18 +17,6 @@
       %license
    </license>
 
-   <includes
-         id="org.eclipse.contribution.weaving.source"
-         version="0.0.0"
-         name=""
-         optional="true"/>
-
-   <includes
-         id="org.eclipse.equinox.weaving.sdk"
-         version="0.0.0.EAVERSION"
-         name="Equinox Aspects"
-         optional="true"/>
-         
    <requires>
       <import plugin="org.eclipse.osgi" />
       <import plugin="org.eclipse.core.runtime"  />

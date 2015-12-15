@@ -76,6 +76,7 @@ import org.eclipse.ajdt.core.tests.problemfinding.ITITProblemFinderTests;
 import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests;
 import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests13;
 import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests14;
+import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests15;
 import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests16;
 import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests2;
 import org.eclipse.ajdt.core.tests.problemfinding.ProblemFinderTests3;
@@ -158,12 +159,14 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(Bug283468Test.class));
         suite.addTest(new TestSuite(MultipleProjectModelTests.class));
         suite.addTest(new TestSuite(AnnotationConversionTests.class));
-		
+
 		// core compiler configuration and ajde
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests.class));
         suite.addTest(new TestSuite(CoreCompilerConfigurationTests2.class));
         suite.addTest(new TestSuite(CoreCompilerFactoryTests.class));
         suite.addTest(new TestSuite(Bug270325Tests.class));
+		
+// TODO: two tests are failing here !!!
         suite.addTest(new TestSuite(Bug273770Tests.class));
 
 		// Java Element tests
@@ -186,7 +189,7 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(LinkedFoldersTestBug270202.class));
         suite.addTest(new TestSuite(LinkedFoldersTestBug275903.class));
         suite.addTest(new TestSuite(Bug268609Test.class));
-        
+
         // build configuration tests
         suite.addTest(new TestSuite(BuildConfigurationTest.class));
         suite.addTest(new TestSuite(BuildConfigurationTest2.class));
@@ -199,8 +202,10 @@ public class AllCoreTests {
         suite.addTest(new TestSuite(ProblemFinderTests9.class));
         suite.addTest(new TestSuite(ProblemFinderTests13.class));
         suite.addTest(new TestSuite(ProblemFinderTests14.class));
-        // mysteriously failing on build server
-//        suite.addTest(new TestSuite(ProblemFinderTests15.class));
+
+// TODO mysteriously failing on build server
+        suite.addTest(new TestSuite(ProblemFinderTests15.class));
+		
         suite.addTest(new TestSuite(ProblemFinderTests16.class));
         suite.addTest(new TestSuite(Bug273691Reconciling.class));
         suite.addTest(new TestSuite(GenericProblemFinderTests.class));
@@ -212,8 +217,8 @@ public class AllCoreTests {
 
 
 		// AST tests
-        // TODO work out what is wrong with these, removing for 4.5 builds for now
-		// suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
+// TODO work out what is wrong with these, removing for 4.5 builds for now
+		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
 		
 		// refactoring tests
 		suite.addTest(new TestSuite(AspectRenameRefactoringTests.class));
@@ -229,7 +234,6 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ITDAwareJUnit4TestFinderTests.class));
 		suite.addTest(new TestSuite(ITDAwareTypeSearchTests.class));
 		suite.addTest(new TestSuite(DeclareAwareSearchTests.class));
-		
 
 		return suite;
 	}

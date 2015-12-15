@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.eclipse.ajdt</groupId>
+		<artifactId>parent</artifactId>
+		<version>2.2.4-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>org.eclipse.ajdt.ui.tests</artifactId>
+	<packaging>eclipse-test-plugin</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- have the tycho compiler skip the aspect files -->
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-compiler-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<excludeResources>
+						<exludeResource>**/*.aj</exludeResource>
+					</excludeResources>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<!-- compile the aspect files -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>aspectj-maven-plugin</artifactId>
+				<version>${aspectj-maven-compiler-version}</version>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
+						<id>compile</id>
+						<configuration>
+							<source>1.7</source>
+							<target>1.7</target>
+							<complianceLevel>1.7</complianceLevel>
+							<aspectDirectory>src</aspectDirectory>
+							<XnotReweavable>true</XnotReweavable>
+							<Xlint>ignore</Xlint>
+							<deprecation>true</deprecation>
+						</configuration>
+						<goals>
+							<goal>compile</goal>
+							<goal>test-compile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<id>plugin-source</id>
+						<goals>
+							<goal>plugin-source</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<skip>${skip.tests}</skip>
+					<useUIThread>true</useUIThread>
+					<useUIHarness>true</useUIHarness>
+					<forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
+					<showEclipseLog>true</showEclipseLog>
+					<argLine>-Xmx1024m -XX:MaxPermSize=256m ${tycho.surefire.extra.vmargs}</argLine>
+					
+					<testClass>org.eclipse.ajdt.ui.tests.AllAJDTUITests</testClass>
+
+					<testFailureIgnore>true</testFailureIgnore>
+					<dependencies>
+						<dependency>
+							<type>p2-installable-unit</type>
+							<artifactId>org.eclipse.equinox.weaving.sdk.feature.group</artifactId>
+							<version>1.2.0</version>
+						</dependency>
+					</dependencies>
+
+					<frameworkExtensions>
+						<frameworkExtension>
+							<groupId>p2.osgi.bundle</groupId>
+							<artifactId>org.eclipse.equinox.weaving.hook</artifactId>
+							<version>${weaving.hook.version}</version>
+						</frameworkExtension>
+					</frameworkExtensions>
+
+					<bundleStartLevel>
+						<bundle>
+							<id>org.eclipse.equinox.weaving.aspectj</id>
+							<level>2</level>
+							<autoStart>true</autoStart>
+						</bundle>
+					</bundleStartLevel>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<configuration>
+					<dependency-resolution>
+						<extraRequirements>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.platform</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.jdt</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.ajdt</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.contribution.weaving</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+							<requirement>
+								<type>eclipse-feature</type>
+								<id>org.eclipse.equinox.weaving.sdk</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+						</extraRequirements>
+					</dependency-resolution>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>

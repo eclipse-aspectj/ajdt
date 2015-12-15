@@ -39,7 +39,7 @@
 
    <includes
          id="org.eclipse.equinox.weaving.sdk"
-         version="0.0.0.EAVERSION"
+         version="0.0.0"
          name="Equinox Weaving"
          optional="true"/>
 

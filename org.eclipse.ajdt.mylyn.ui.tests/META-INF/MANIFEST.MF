@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AJDT-Mylyn UI Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.mylyn.ui.tests
-Bundle-Version: 2.2.4
+Bundle-Version: 2.2.4.qualifier
 Bundle-Activator: org.eclipse.ajdt.mylyn.ui.tests.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

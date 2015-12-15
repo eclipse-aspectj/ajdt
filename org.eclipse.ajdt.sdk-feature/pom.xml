@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.eclipse.ajdt</groupId>
+		<artifactId>parent</artifactId>
+		<version>2.2.4-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>org.eclipse.ajdt.sdk</artifactId>
+	<packaging>eclipse-feature</packaging>
+
+</project>
