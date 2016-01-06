@@ -10,6 +10,10 @@
 
 	<artifactId>org.eclipse.ajdt.releng</artifactId>
 	<packaging>eclipse-repository</packaging>
+	
+	<properties>
+		<zip.name>ajdt-${platform.version}x-${unqualifiedVersion}.${buildQualifier}</zip.name>
+	</properties>
 
 	<build>
 		<plugins>
@@ -18,9 +22,30 @@
 				<artifactId>tycho-p2-repository-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<configuration>
-					<finalName>ajdt-${platform.version}x-${unqualifiedVersion}.${buildQualifier}</finalName>
+					<finalName>${zip.name}</finalName>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<propertyfile file="target/ajdt-zip.properties" comment="This properties file contains the location and name of the AJDT update site archive produced by the latest build">
+									<entry key="zip.name" value="${zip.name}.zip"/>
+								</propertyfile>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
 		</plugins>
 	</build>
 </project>
