@@ -12,7 +12,7 @@
 	<packaging>eclipse-repository</packaging>
 	
 	<properties>
-		<zip.name>ajdt-${platform.version}x-${unqualifiedVersion}.${buildQualifier}</zip.name>
+		<zip.name>ajdt-${platform.version}-${unqualifiedVersion}.${buildQualifier}</zip.name>
 	</properties>
 
 	<build>
