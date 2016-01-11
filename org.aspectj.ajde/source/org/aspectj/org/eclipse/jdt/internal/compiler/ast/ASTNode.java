@@ -823,17 +823,22 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 				return annotations;
 			} else {
 				annotation.recipient = recipient;
-				// MERGECONFLICT:
-//				// AspectJ Extension - don't re-resolve (pr211052)
-//			    // old code:
-//			    // annotationTypes[i] = annotation.resolveType(scope);
-//			    // new code:
-//			    annotationTypes[i] =(annotation.resolvedType==null?annotation.resolveType(scope):annotation.resolvedType);
-//			    // End AspectJ Extension
-				if (annotation.resolvedType==null) 
-				annotation.resolveType(scope);
+				// AspectJ Extension - do not re-resolve (211052)
+				if (annotation.resolvedType==null)
+				// End AspectJ Extension
+					annotation.resolveType(scope);
+
 				// null if receiver is a package binding
 				if (annotations != null) {
+					// AspectJ Extension - even if already resolved, set this compilerAnnotation if necessary (485448)
+					if (annotation.compilerAnnotation == null) {
+						try {
+						    annotation.compilerAnnotation = scope.environment().createAnnotation((ReferenceBinding) annotation.resolvedType, annotation.computeElementValuePairs());
+						} catch (Exception e) {
+							new RuntimeException("Unexpected problem initialization compiler annotation: ",e).printStackTrace();
+						}
+					}
+					// End AspectJ Extension
 					annotations[i] = annotation.getCompilerAnnotation();
 				}
 			}
