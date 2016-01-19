@@ -485,6 +485,13 @@ public final class LazyClassGen {
 				myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
 			}
 		}
+//		if (myType != null && myType.getWeaverState() != null) {
+//			    if (world.isOverWeaving()) {
+//		            Attribute attribute = myGen.getAttribute(WeaverState.AttributeName);
+//		            myGen.removeAttribute(attribute);
+//			    }
+//				myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
+//		}
 
 		// FIXME ATAJ needed only for slow Aspects.aspectOf() - keep or remove
 		// make a lot of test fail since the test compare weaved class file

@@ -1,0 +1,36 @@
+# This file contains local settings for the build
+
+# Location of org.eclipse.ajdt.releng project.
+# Also, if nofetch is specified (ie- not extracting from cvs),
+# specify the local directory to find the AJDT and EA sources from
+workdir=/opt/bamboo-home/xml-data/build-dir/AJDT-AJDT45-JOB1
+#workdir=..
+
+# Location of org.eclipse.ajdt.releng project.
+builder=${workdir}/org.eclipse.ajdt.releng
+
+# The directory where the build takes place. This directory WILL BE (mostly) DELETED before every build.
+# The build eclipse will not be deleted
+build.dest=${workdir}/ajdt45build
+
+# place to download and to find pre-downloaded items
+# consider moving to local.properties
+download.home=/opt/bamboo-home/downloaded-eclipses
+
+# place to cache the git repositories for building equinox aspects
+fetchCacheLocation=${workdir}/git-caches
+
+# set this property if you want to use a different build eclipse
+# from your target eclipse.  This is useful for kicking off the
+# build process on a new version of Eclipse.  Since a build 
+# of AJDT is required to be installed in the build eclipse
+#build.eclipse.tar=/Users/andrew/Eclipse/Installations/Eclipses/3.6.1eclipse-SDK-3.6.1-macosx-cocoa-x86_64.tar.gz
+
+# uncomment to prevent cleans
+#noclean=true
+
+# uncomment if the target eclipse should not be re-provisioned
+# in general, this should be commented out in order to ensure old configurations 
+# do not affect new builds, but during testing the build process, it may be 
+# useful to uncomment if you want to speed things up.
+#no.provision.target=true
