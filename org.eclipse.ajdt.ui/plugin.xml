@@ -389,6 +389,7 @@
             class="org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor"
             id="org.eclipse.jdt.ui.ClassFileEditor">
       </editor-->
+      <!--
       <editor
             name="%propertiesFileEditor"
             icon="icons/jdt/file_obj.gif"
@@ -405,6 +406,7 @@
             class="org.eclipse.ui.editors.text.TextEditor"
             id="org.eclipse.jdt.ui.JARDescEditor">
       </editor>
+      -->
    </extension>
 
 <!-- Define the relevant wizards for AspectJ -->
