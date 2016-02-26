@@ -434,12 +434,13 @@ public class BcelWorld extends World implements Repository {
 			if (file == null) {
 				return null;
 			}
-
 			ClassParser parser = new ClassParser(file.getInputStream(), file.getPath());
-
 			JavaClass jc = parser.parse();
 			return jc;
 		} catch (IOException ioe) {
+			if (trace.isTraceEnabled()) {
+				trace.error("IOException whilst processing class",ioe);
+			}
 			return null;
 		} finally {
 			if (file != null) {
@@ -447,10 +448,6 @@ public class BcelWorld extends World implements Repository {
 			}
 		}
 	}
-
-	// public BcelObjectType addSourceObjectType(JavaClass jc) {
-	// return addSourceObjectType(jc.getClassName(), jc, -1);
-	// }
 
 	public BcelObjectType addSourceObjectType(JavaClass jc, boolean artificial) {
 		return addSourceObjectType(jc.getClassName(), jc, artificial);

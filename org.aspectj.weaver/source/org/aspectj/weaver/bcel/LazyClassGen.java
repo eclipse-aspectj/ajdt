@@ -486,11 +486,11 @@ public final class LazyClassGen {
 			}
 		}
 //		if (myType != null && myType.getWeaverState() != null) {
-//			    if (world.isOverWeaving()) {
-//		            Attribute attribute = myGen.getAttribute(WeaverState.AttributeName);
-//		            myGen.removeAttribute(attribute);
-//			    }
-//				myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
+//			if (world.isOverWeaving()) {
+//				Attribute attribute = myGen.getAttribute(WeaverState.AttributeName);
+//				myGen.removeAttribute(attribute);
+// 			}
+//			myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
 //		}
 
 		// FIXME ATAJ needed only for slow Aspects.aspectOf() - keep or remove
@@ -584,8 +584,8 @@ public final class LazyClassGen {
 
 		// 3. Do we need an attribute?
 		boolean needAttribute = false;
-		// If we had one before, we definetly still need one as types can't be
-		// 'removed' from the hierarchy
+		// If we had one before, we definitely still need one as types cannot be 
+		// removed from the hierarchy
 		if (sigAttr != null) {
 			needAttribute = true;
 		}
