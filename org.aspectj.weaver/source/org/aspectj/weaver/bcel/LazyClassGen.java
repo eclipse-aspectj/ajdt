@@ -480,18 +480,19 @@ public final class LazyClassGen {
 		}
 
 		// 352389: don't add another one (there will already be one there and this new one won't deserialize correctly)
-		if (!world.isOverWeaving() || !myGen.hasAttribute(WeaverState.AttributeName)) {
-			if (myType != null && myType.getWeaverState() != null) {
-				myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
-			}
-		}
-//		if (myType != null && myType.getWeaverState() != null) {
-//			if (world.isOverWeaving()) {
-//				Attribute attribute = myGen.getAttribute(WeaverState.AttributeName);
-//				myGen.removeAttribute(attribute);
-// 			}
-//			myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
+//		if (!world.isOverWeaving() || !myGen.hasAttribute(WeaverState.AttributeName)) {
+//			if (myType != null && myType.getWeaverState() != null) {
+//				myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
+//			}
 //		}
+		// new code from patch:
+		if (myType != null && myType.getWeaverState() != null) {
+			if (world.isOverWeaving()) {
+				Attribute attribute = myGen.getAttribute(WeaverState.AttributeName);
+				myGen.removeAttribute(attribute);
+ 			}
+			myGen.addAttribute(Utility.bcelAttribute(new AjAttribute.WeaverState(myType.getWeaverState()), getConstantPool()));
+		}
 
 		// FIXME ATAJ needed only for slow Aspects.aspectOf() - keep or remove
 		// make a lot of test fail since the test compare weaved class file

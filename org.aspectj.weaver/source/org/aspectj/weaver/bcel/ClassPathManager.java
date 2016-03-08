@@ -108,6 +108,9 @@ public class ClassPathManager {
 			Entry entry = i.next();
 			try {
 				ClassFile ret = entry.find(name);
+				if (trace.isTraceEnabled()) {
+					trace.event("searching for "+type+" in "+entry.toString());
+				}
 				if (ret != null) {
 					if (trace.isTraceEnabled()) {
 						trace.exit("find", ret);
@@ -116,6 +119,9 @@ public class ClassPathManager {
 				}
 			} catch (IOException ioe) {
 				// this is NOT an error: it's valid to have missing classpath entries
+				if (trace.isTraceEnabled()) {
+					trace.error("Removing classpath entry for "+entry,ioe);
+				}
 				i.remove();
 			}
 		}
