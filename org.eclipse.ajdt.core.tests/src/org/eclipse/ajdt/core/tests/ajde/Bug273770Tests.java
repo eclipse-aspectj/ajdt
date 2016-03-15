@@ -72,7 +72,12 @@ public class Bug273770Tests extends AJDTCoreTestCase {
     }
 
     private String findValue(String string, String toFind) {
-        return string.substring(string.indexOf(toFind), string.indexOf(toFind)+toFind.length());
+    	try {
+    		return string.substring(string.indexOf(toFind), string.indexOf(toFind)+toFind.length());
+    	} catch (Throwable t) {
+    		System.out.println("Unable to find '"+toFind+"' in the string '"+string+"'");
+    		throw new IllegalStateException("Unable to find '"+toFind+"' in the string '"+string+"'",t);
+    	}
     }
     
     private boolean valueNotFound(String string, String toFind) {
