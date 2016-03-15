@@ -52,6 +52,7 @@
  *								Bug 452788 - [1.8][compiler] Type not correctly inferred in lambda expression
  *								Bug 456487 - [1.8][null] @Nullable type variant of @NonNull-constrained type parameter causes grief
  *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
+ *								Bug 470958 - [1.8] Unable to convert lambda 
  *     Jesper S Moller - Contributions for
  *								Bug 378674 - "The method can be declared as static" is wrong
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
@@ -82,6 +83,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IPrivilegedHandler;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImplicitNullAnnotationVerifier;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceVariable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MissingTypeBinding;
@@ -472,7 +474,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		codeStream.invoke(Opcodes.OPC_invokestatic, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
 		} else {
 			codeStream.invoke(Opcodes.OPC_invokevirtual, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
-		    }
+		}
 		// End AspectJ extension
 	}
 	// required cast must occur even if no value is required
@@ -663,6 +665,9 @@ public TypeBinding resolveType(BlockScope scope) {
 //		scope.problemReporter().genericInferenceError("Receiver was unexpectedly found resolved", this); //$NON-NLS-1$
 	// AspectJ Extension: End
 	this.actualReceiverType = this.receiver.resolveType(scope);
+		if (this.actualReceiverType instanceof InferenceVariable) {
+			return null; // not yet ready for resolving
+		}
 		this.receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
 	if (receiverCast && this.actualReceiverType != null) {
 		 // due to change of declaring class with receiver type, only identity cast should be notified

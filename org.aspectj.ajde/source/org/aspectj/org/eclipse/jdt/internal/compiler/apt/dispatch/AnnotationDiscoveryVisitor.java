@@ -211,7 +211,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 		SourceTypeBinding binding = typeDeclaration.binding;
 		if (binding == null) {
 			return false;
-		} 
+		}
 		Annotation[] annotations = typeDeclaration.annotations;
 		if (annotations != null) {
 			this.resolveAnnotations(
@@ -235,7 +235,6 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 		ElementImpl element = (ElementImpl) _factory.newElement(currentBinding);
 		AnnotationBinding [] annotationBindings = element.getPackedAnnotationBindings(); // discovery is never in terms of repeating annotation.
 		for (AnnotationBinding binding : annotationBindings) {
-//			if (binding == null) continue; // AspectJ Extension - 484941
 			ReferenceBinding annotationType = binding.getAnnotationType();
 			if (binding != null
 					&& Annotation.isAnnotationTargetAllowed(scope, annotationType, currentBinding)
