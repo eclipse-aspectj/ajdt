@@ -33,6 +33,7 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
+import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.JavaElement;
@@ -239,6 +240,10 @@ public class SourceTransformerTests extends WeavingTestCase {
 
 		public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(ITypeAnnotationWalker arg0, Object arg1,
 				LookupEnvironment arg2) {
+			return null;
+		}
+
+		public ExternalAnnotationStatus getExternalAnnotationStatus() {
 			return null;
 		}
     }

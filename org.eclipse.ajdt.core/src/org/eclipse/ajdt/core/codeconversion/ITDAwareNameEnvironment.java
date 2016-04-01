@@ -1,7 +1,7 @@
 package org.eclipse.ajdt.core.codeconversion;
 
 import java.lang.reflect.Field;
-
+ 
 import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.ITDAwareSourceTypeInfo;
@@ -112,7 +112,7 @@ public class ITDAwareNameEnvironment extends
                             sourceTypes[index++] = newOtherInfo; // AspectJ Change
                         }
                     }
-                    return new NameEnvironmentAnswer(sourceTypes, getRestriction(answer));
+                    return new NameEnvironmentAnswer(sourceTypes, getRestriction(answer), null);
                 } catch (JavaModelException npe) {
                     return null;
                 }
