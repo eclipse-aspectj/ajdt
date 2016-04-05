@@ -65,6 +65,11 @@ public class Bug273770Tests extends AJDTCoreTestCase {
 
     public void testExtraInpathEntry2() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectInpath(project2);
+        int i =0;
+        for (String entry: entries) {
+        	System.out.println("ENTRY:"+i+":"+entry);
+        	i++;
+        }
         assertEquals("Should have found org.eclipse.jdt on the resolved inpath", "org.eclipse.jdt_", findValue(entries[0], "org.eclipse.jdt_"));
         assertEquals("Should have found org.eclipse.jdt.apt.core on the resolved inpath", "org.eclipse.jdt.apt.core", findValue(entries[0], "org.eclipse.jdt.apt.core"));
         assertEquals("Should have found org.eclipse.jdt.apt.ui on the resolved inpath", "org.eclipse.jdt.apt.ui", findValue(entries[0], "org.eclipse.jdt.apt.ui"));
