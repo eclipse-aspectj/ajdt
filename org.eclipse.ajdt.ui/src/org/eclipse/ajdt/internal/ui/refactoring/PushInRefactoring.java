@@ -147,7 +147,10 @@ public class PushInRefactoring extends Refactoring {
                 }
             }
             for (Name name : staticImports) {
-                rewrite.addImport(name.resolveTypeBinding());
+            	 ITypeBinding binding = name.resolveTypeBinding();
+            	 if (binding != null) {
+            		 rewrite.addImport(name.resolveTypeBinding());
+            	 }
             }
 
             for (String qualName : extraImports) {
