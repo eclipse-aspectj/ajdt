@@ -199,6 +199,10 @@ public class AJDTCoreTestCase extends TestCase {
             return null;
         }
         
+        // New in Eclipse 4.6 - substring proposals. With this turned on we will get
+        // extra matches that disturb the tests
+        jp.setOption(JavaCore.CODEASSIST_SUBSTRING_MATCH, "disabled");
+        
         try {
             jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
         } catch (NullPointerException npe) {
