@@ -55,7 +55,7 @@ public class PushInRefactoringAction implements IWorkbenchWindowActionDelegate, 
             try {
                 List<IMember> itds = findAllITDs(currSelection);
                 if (itds.size() > 0) {
-                    PushInRefactoring refactoring= new PushInRefactoring();
+                    PushInRefactoring refactoring = new PushInRefactoring();
                     refactoring.setITDs(itds);
                     run(new PushInRefactoringWizard(refactoring, "Push In Intertype Declaration", 
                             refactoring.createDescriptor()), getShell(), "Push In Intertype Declaration");

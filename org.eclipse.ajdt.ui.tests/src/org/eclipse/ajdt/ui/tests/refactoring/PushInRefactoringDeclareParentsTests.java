@@ -374,7 +374,7 @@ public class PushInRefactoringDeclareParentsTests extends AbstractAJDTRefactorin
                         "package pack1;\n" +
                         "public interface Interface2 { }",
                         "package pack1;\n" +
-                        "public class Target extends Clazz implements Interface2, Interface { }",
+                        "public class Target extends Clazz implements Interface, Interface2 { }",
                 }, ToPushIn.ALL
                 );
     }

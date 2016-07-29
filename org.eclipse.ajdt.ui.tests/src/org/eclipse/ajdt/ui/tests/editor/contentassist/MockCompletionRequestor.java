@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aspectj.asm.internal.CharOperation;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.CompletionRequestor;
 
@@ -25,10 +26,23 @@ import org.eclipse.jdt.core.CompletionRequestor;
  */
 class MockCompletionRequestor extends CompletionRequestor {
     
-    List accepted = new LinkedList();
+    List<CompletionProposal> accepted = new LinkedList<CompletionProposal>();
     
     public void accept(CompletionProposal proposal) {
+    	System.out.println("Accepting proposal: "+proposal);
         accepted.add(proposal);
+    }
+    
+    public void filter(String completion) {
+    	CompletionProposal toRemove = null;
+    	for (CompletionProposal proposals: accepted) {
+    		if (new String(proposals.getCompletion()).equals(completion)) {
+    			toRemove = proposals;
+    		}
+    	}
+    	if (toRemove != null) {
+    		accepted.remove(toRemove);
+    	}
     }
     
     public List getAccepted() {
@@ -48,5 +62,14 @@ class MockCompletionRequestor extends CompletionRequestor {
         }
         return sb.toString();
     }
+
+	public CompletionProposal findProposal(String completionText) {
+		for (CompletionProposal proposal: accepted) {
+			if (new String(proposal.getCompletion()).equals(completionText)) {
+				return proposal;
+			}
+		}
+		return null;
+	}
     
 }

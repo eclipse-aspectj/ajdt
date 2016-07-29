@@ -73,13 +73,14 @@ public class ContentAssistTests5 extends UITestCase {
         int offset = cunitContents.indexOf("baz.com") + "baz.com".length();  
         cunit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
-        assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
+        // There are lots of completions for 'com' these days. Let's just verify the one we want *is* on the list
+        assertTrue("Expected at least one proposal",requestor.accepted.size()>0);
 
-        CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);
-        assertEquals("Signature of proposal should have been the 'baz.compareTo()' method\n" + completionProposal, 
-                "compareTo", new String(completionProposal.getName())); 
+        CompletionProposal completionProposal = (CompletionProposal) requestor.findProposal("compareTo");
+        assertNotNull("Expected 'compareTo' to be proposed",completionProposal);
         assertEquals("Completion start is wrong", offset - "com".length(), completionProposal.getReplaceStart());
     }
+    
     public void testGenericContentAssist4() throws Exception {
         MockCompletionRequestor requestor = new MockCompletionRequestor();
         // baz is a generic type that also extends HashMap

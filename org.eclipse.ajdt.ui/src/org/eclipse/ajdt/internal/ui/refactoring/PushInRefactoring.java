@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -98,13 +99,10 @@ import org.eclipse.text.edits.TextEdit;
 
 /**
  * @author Andrew Eisenberg
- * @created Apr 30, 2009
- *
+ * @author Andy Clement
  */
 public class PushInRefactoring extends Refactoring {
-    
 
-    
     public static final String ALL_ITDS = "all.itds";
     public static final String DELETE_EMPTY = "delete.empty";
     
@@ -244,7 +242,7 @@ public class PushInRefactoring extends Refactoring {
         public void addDeclarParents(IType type, List<String> parentTypes) {
             Set<String> set = declareParents.get(type);
             if (set == null) {
-                set = new HashSet<String>();
+                set = new LinkedHashSet<String>();
                 declareParents.put(type, set);
             }
             set.addAll(parentTypes);

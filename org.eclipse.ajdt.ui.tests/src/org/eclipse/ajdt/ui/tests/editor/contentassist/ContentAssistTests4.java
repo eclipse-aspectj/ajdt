@@ -57,6 +57,8 @@ public class ContentAssistTests4 extends UITestCase {
         int offset = aspectsUnitContents.indexOf("= new ArrayLis") + "= new ArrayLis".length();
         aspectsUnit.codeComplete(offset, requestor, AJWorkingCopyOwner.INSTANCE);
         
+        requestor.filter("java.util.ArrayListSpliterator");
+        requestor.filter("com.sun.javafx.collections.ArrayListenerHelper");
         assertEquals("Should have 1 proposal, but found:\n" + requestor.toString(), 1, requestor.accepted.size());
 
         CompletionProposal completionProposal = (CompletionProposal) requestor.accepted.get(0);

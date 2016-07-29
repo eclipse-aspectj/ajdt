@@ -77,7 +77,7 @@ public class ITITContentAssistTests extends UITestCase {
         assertContentAssist(unit, findLocation(contents, "substring", 1), "substring", 2);
         assertContentAssist(unit, findLocation(contents, "A_CITY", 1), "A_CITY");
         assertContentAssist(unit, findLocation(contents, "getter", 2), "getter");
-        assertContentAssist(unit, findLocation(contents, "put", 1), "put", 2);
+        assertContentAssist(unit, findLocation(contents, "put", 1), "put", 3);
 
     }
     
@@ -165,7 +165,7 @@ public class ITITContentAssistTests extends UITestCase {
         assertContentAssist(unit, findLocation(contents, "City", 2), "City");
         assertContentAssist(unit, findLocation(contents, "CITY"), "CITY");
         assertContentAssist(unit, findLocation(contents, "xxx"), "xxx");
-        assertContentAssist(unit, findLocation(contents, "get", 2), "get", 2);
+        assertContentAssist(unit, findLocation(contents, "get", 2), "get", 3);
         assertContentAssist(unit, findLocation(contents, "charAt"), "charAt");
     }
     
