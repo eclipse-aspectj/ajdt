@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubMonitor;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
@@ -388,7 +389,6 @@ class CompilationUnitResolver extends Compiler {
 	}
 
 	public static void parse(ICompilationUnit[] compilationUnits, ASTRequestor astRequestor, int apiLevel, Map options, int flags, IProgressMonitor monitor) {
-		try {
 			CompilerOptions compilerOptions = new CompilerOptions(options);
 			compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
 			Parser parser = new CommentRecorderParser(
@@ -398,10 +398,12 @@ class CompilationUnitResolver extends Compiler {
 						new DefaultProblemFactory()),
 				false);
 			int unitLength = compilationUnits.length;
-			if (monitor != null) monitor.beginTask("", unitLength); //$NON-NLS-1$
+		SubMonitor subMonitor = SubMonitor.convert(monitor);
 			for (int i = 0; i < unitLength; i++) {
+			subMonitor.setWorkRemaining(unitLength - i);
 				org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit sourceUnit = (org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit) compilationUnits[i];
-				CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0, compilerOptions.maxProblemsPerUnit);
+			CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0,
+					compilerOptions.maxProblemsPerUnit);
 				CompilationUnitDeclaration compilationUnitDeclaration = parser.dietParse(sourceUnit, compilationResult);
 
 				if (compilationUnitDeclaration.ignoreMethodBodies) {
@@ -420,18 +422,15 @@ class CompilationUnitResolver extends Compiler {
 				}
 
 				// convert AST
-				CompilationUnit node = convert(compilationUnitDeclaration, parser.scanner.getSource(), apiLevel, options, false/*don't resolve binding*/, null/*no owner needed*/, null/*no binding table needed*/, flags /* flags */, monitor, true);
+			CompilationUnit node = convert(compilationUnitDeclaration, parser.scanner.getSource(), apiLevel, options,
+					false/* don't resolve binding */, null/* no owner needed */, null/* no binding table needed */,
+					flags /* flags */, subMonitor.split(1), true);
 				node.setTypeRoot(compilationUnits[i]);
 
 				// accept AST
 				astRequestor.acceptAST(compilationUnits[i], node);
-
-				if (monitor != null) monitor.worked(1);
 			}
-		} finally {
-			if (monitor != null) monitor.done();
 		}
-	}
 	public static void parse(
 			String[] sourceUnits,
 			String[] encodings,
@@ -440,7 +439,6 @@ class CompilationUnitResolver extends Compiler {
 			Map options,
 			int flags,
 			IProgressMonitor monitor) {
-		try {
 			CompilerOptions compilerOptions = new CompilerOptions(options);
 			compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
 			Parser parser = new CommentRecorderParser(
@@ -450,8 +448,9 @@ class CompilationUnitResolver extends Compiler {
 						new DefaultProblemFactory()),
 				false);
 			int unitLength = sourceUnits.length;
-			if (monitor != null) monitor.beginTask("", unitLength); //$NON-NLS-1$
+		SubMonitor subMonitor = SubMonitor.convert(monitor, unitLength);
 			for (int i = 0; i < unitLength; i++) {
+			SubMonitor iterationMonitor = subMonitor.split(1);
 				char[] contents = null;
 				String encoding = encodings != null ? encodings[i] : null;
 				try {
@@ -485,16 +484,13 @@ class CompilationUnitResolver extends Compiler {
 				}
 
 				// convert AST
-				CompilationUnit node = convert(compilationUnitDeclaration, parser.scanner.getSource(), apiLevel, options, false/*don't resolve binding*/, null/*no owner needed*/, null/*no binding table needed*/, flags /* flags */, monitor, true);
+			CompilationUnit node = convert(compilationUnitDeclaration, parser.scanner.getSource(), apiLevel, options,
+					false/* don't resolve binding */, null/* no owner needed */, null/* no binding table needed */,
+					flags /* flags */, iterationMonitor, true);
 				node.setTypeRoot(null);
 
 				// accept AST
 				astRequestor.acceptAST(sourceUnits[i], node);
-
-				if (monitor != null) monitor.worked(1);
-			}
-		} finally {
-			if (monitor != null) monitor.done();
 		}
 	}
 	public static CompilationUnitDeclaration parse(
@@ -578,12 +574,10 @@ class CompilationUnitResolver extends Compiler {
 		CancelableNameEnvironment environment = null;
 		CancelableProblemFactory problemFactory = null;
 		try {
-			if (monitor != null) {
 				int amountOfWork = (compilationUnits.length + bindingKeys.length) * 2; // 1 for beginToCompile, 1 for resolve
-				monitor.beginTask("", amountOfWork); //$NON-NLS-1$
-			}
-			environment = new CancelableNameEnvironment(((JavaProject) javaProject), owner, monitor);
-			problemFactory = new CancelableProblemFactory(monitor);
+			SubMonitor subMonitor = SubMonitor.convert(monitor, amountOfWork);
+			environment = new CancelableNameEnvironment(((JavaProject) javaProject), owner, subMonitor);
+			problemFactory = new CancelableProblemFactory(subMonitor);
 			CompilerOptions compilerOptions = getCompilerOptions(options, (flags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0);
 			compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
 			CompilationUnitResolver resolver =
@@ -593,7 +587,7 @@ class CompilationUnitResolver extends Compiler {
 					compilerOptions,
 					getRequestor(),
 					problemFactory,
-					monitor,
+					subMonitor,
 					javaProject != null);
 			resolver.resolve(compilationUnits, bindingKeys, requestor, apiLevel, options, owner, flags);
 			if (NameLookup.VERBOSE) {
@@ -604,7 +598,6 @@ class CompilationUnitResolver extends Compiler {
 			// project doesn't exist -> simple parse without resolving
 			parse(compilationUnits, requestor, apiLevel, options, flags, monitor);
 		} finally {
-			if (monitor != null) monitor.done();
 			if (environment != null) {
 				environment.setMonitor(null); // don't hold a reference to this external object
 			}
@@ -627,14 +620,12 @@ class CompilationUnitResolver extends Compiler {
 			INameEnvironmentWithProgress environment = null;
 			CancelableProblemFactory problemFactory = null;
 			try {
-				if (monitor != null) {
 					int amountOfWork = (sourceUnits.length + bindingKeys.length) * 2; // 1 for beginToCompile, 1 for resolve
-					monitor.beginTask("", amountOfWork); //$NON-NLS-1$
-				}
+				SubMonitor subMonitor = SubMonitor.convert(monitor, amountOfWork);
 				Classpath[] allEntries = new Classpath[classpaths.size()];
 				classpaths.toArray(allEntries);
-				environment = new NameEnvironmentWithProgress(allEntries, null, monitor);
-				problemFactory = new CancelableProblemFactory(monitor);
+				environment = new NameEnvironmentWithProgress(allEntries, null, subMonitor);
+				problemFactory = new CancelableProblemFactory(subMonitor);
 				CompilerOptions compilerOptions = getCompilerOptions(options, (flags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0);
 				compilerOptions.ignoreMethodBodies = (flags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
 				CompilationUnitResolver resolver =
@@ -644,7 +635,7 @@ class CompilationUnitResolver extends Compiler {
 						compilerOptions,
 						getRequestor(),
 						problemFactory,
-						monitor,
+						subMonitor,
 						false);
 				resolver.resolve(sourceUnits, encodings, bindingKeys, requestor, apiLevel, options, flags);
 				if (NameLookup.VERBOSE && (environment instanceof CancelableNameEnvironment)) {
@@ -653,7 +644,6 @@ class CompilationUnitResolver extends Compiler {
 					System.out.println(Thread.currentThread() + " TIME SPENT in NameLoopkup#seekTypesInBinaryPackage: " + cancelableNameEnvironment.nameLookup.timeSpentInSeekTypesInBinaryPackage + "ms");  //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			} finally {
-				if (monitor != null) monitor.done();
 				if (environment != null) {
 					environment.setMonitor(null); // don't hold a reference to this external object
 				}
@@ -1224,6 +1214,9 @@ class CompilationUnitResolver extends Compiler {
 			}
 
 			if (unit.scope != null) {
+				CompilationUnitDeclaration previousUnit = this.lookupEnvironment.unitBeingCompleted;
+				this.lookupEnvironment.unitBeingCompleted = unit;
+				try {
 				// fault in fields & methods
 				unit.scope.faultInTypes();
 				if (unit.scope != null && verifyMethods) {
@@ -1242,6 +1235,9 @@ class CompilationUnitResolver extends Compiler {
 
 				// finalize problems (suppressWarnings)
 				unit.finalizeProblems();
+				} finally {
+					this.lookupEnvironment.unitBeingCompleted = previousUnit; // paranoia, always null in org.aspectj.org.eclipse.jdt.core.tests.dom.RunAllTests
+				}
 			}
 			if (this.unitsToProcess != null) this.unitsToProcess[0] = null; // release reference to processed unit declaration
 			this.requestor.acceptResult(unit.compilationResult.tagAsAccepted());

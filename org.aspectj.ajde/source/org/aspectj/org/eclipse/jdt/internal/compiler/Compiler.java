@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -106,7 +106,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	public Compiler(
 			INameEnvironment environment,
 			IErrorHandlingPolicy policy,
-			Map settings,
+			Map<String, String> settings,
 			final ICompilerRequestor requestor,
 			IProblemFactory problemFactory) {
 		this(environment, policy, new CompilerOptions(settings), requestor, problemFactory, null /* printwriter */, null /* progress */);
@@ -413,12 +413,15 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		}
 	}
 
+	public void compile(ICompilationUnit[] sourceUnits) {
+		compile(sourceUnits, false);
+	}
 	/**
 	 * General API
 	 * -> compile each of supplied files
 	 * -> recompile any required types for which we have an incomplete principle structure
 	 */
-	public void compile(ICompilationUnit[] sourceUnits) {
+	private void compile(ICompilationUnit[] sourceUnits, boolean lastRound) {
 		this.stats.startTime = System.currentTimeMillis();
 		try {
 			// build and record parsed units
@@ -430,8 +433,9 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				ICompilationUnit[] originalUnits = sourceUnits.clone(); // remember source units in case a source type collision occurs
 				try {
 					beginToCompile(sourceUnits);
-
+					if (!lastRound) {
 						processAnnotations();
+					}
 					if (!this.options.generateClassFiles) {
 						// -proc:only was set on the command line
 						return;
@@ -449,13 +453,13 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 					System.arraycopy(originalUnits, 0, combinedUnits, 0, originalLength);
 					System.arraycopy(e.newAnnotationProcessorUnits, 0, combinedUnits, originalLength, newProcessedLength);
 					this.annotationProcessorStartIndex  = originalLength;
-					compile(combinedUnits);
+					compile(combinedUnits, e.isLastRound);
 					return;
 				}
 			}
 			// Restore the problems before the results are processed and cleaned up.
 			restoreAptProblems();
-			processCompiledUnits(0);
+			processCompiledUnits(0, lastRound);
 		} catch (AbortCompilation e) {
 			this.handleInternalException(e, null);
 		}
@@ -481,8 +485,8 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 
 	protected void backupAptProblems() {
 		if (this.unitsToProcess == null) return;
-		for (CompilationUnitDeclaration unitDecl : this.unitsToProcess) {
-			if (unitDecl == null) continue;
+		for (int i = 0; i < this.totalUnits; i++) {
+			CompilationUnitDeclaration unitDecl = this.unitsToProcess[i];
 			CompilationResult result = unitDecl.compilationResult;
 			if (result != null && result.hasErrors()) {
 				CategorizedProblem[] errors = result.getErrors();
@@ -510,11 +514,12 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 	
 	protected void restoreAptProblems() {
 		if (this.unitsToProcess != null && this.aptProblems!= null) {
-			for (CompilationUnitDeclaration unit : this.unitsToProcess) {
-				APTProblem[] problems = this.aptProblems.get(new String(unit.getFileName()));
+			for (int i = 0; i < this.totalUnits; i++) {
+				CompilationUnitDeclaration unitDecl = this.unitsToProcess[i];
+				APTProblem[] problems = this.aptProblems.get(new String(unitDecl.getFileName()));
 				if (problems != null) {
 					for (APTProblem problem : problems) {
-						unit.compilationResult.record(problem.problem, problem.context);
+						unitDecl.compilationResult.record(problem.problem, problem.context);
 					}
 				}
 			}
@@ -522,7 +527,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 		this.aptProblems = null; // No need for this.
 	}
 
-	protected void processCompiledUnits(int startingIndex) throws java.lang.Error {
+	protected void processCompiledUnits(int startingIndex, boolean lastRound) throws java.lang.Error {
 		CompilationUnitDeclaration unit = null;
 		ProcessTaskManager processingTask = null;
 		try {
@@ -599,6 +604,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 							}));
 				}
 			}
+			if (!lastRound) {
 			if (this.annotationProcessorManager != null && this.totalUnits > this.annotationProcessorStartIndex) {
 				int backup = this.annotationProcessorStartIndex;
 				int prevUnits = this.totalUnits;
@@ -607,7 +613,8 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				for (int i = backup; i < prevUnits; i++) {
 					this.unitsToProcess[i].cleanUp();
 				}
-				processCompiledUnits(backup);
+					processCompiledUnits(backup, lastRound);
+				}
 			}
 		} catch (AbortCompilation e) {
 			this.handleInternalException(e, unit);
@@ -969,6 +976,7 @@ public class Compiler implements ITypeRequestor, ProblemSeverities {
 				this.lookupEnvironment.isProcessingAnnotations = true;
 				internalBeginToCompile(newUnits, newUnitSize);
 			} catch (SourceTypeCollisionException e) {
+				e.isLastRound = true;
 				e.newAnnotationProcessorUnits = newProcessedUnits;
 				throw e;
 			} finally {

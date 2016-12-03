@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,11 +15,15 @@ package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.IJavaProject;
+import org.aspectj.org.eclipse.jdt.core.IPackageDeclaration;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
@@ -37,7 +41,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 /*
  * A name environment based on the classpath of a Java project.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class JavaSearchNameEnvironment implements INameEnvironment, SuffixConstants {
 
 	LinkedHashSet<ClasspathLocation> locationSet;
@@ -45,13 +48,18 @@ public class JavaSearchNameEnvironment implements INameEnvironment, SuffixConsta
 	/*
 	 * A map from the fully qualified slash-separated name of the main type (String) to the working copy
 	 */
-	HashMap workingCopies;
+	Map<String, org.aspectj.org.eclipse.jdt.core.ICompilationUnit> workingCopies;
 
 public JavaSearchNameEnvironment(IJavaProject javaProject, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] copies) {
 	this.locationSet = computeClasspathLocations((JavaProject) javaProject);
+	this.workingCopies = getWorkingCopyMap(copies);
+}
+
+public static Map<String, org.aspectj.org.eclipse.jdt.core.ICompilationUnit> getWorkingCopyMap(
+		org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] copies) {
+	int length = copies == null ? 0 : copies.length;
+	HashMap<String, org.aspectj.org.eclipse.jdt.core.ICompilationUnit> result = new HashMap<>(length);
 	try {
-		int length = copies == null ? 0 : copies.length;
-		this.workingCopies = new HashMap(length);
 		if (copies != null) {
 			for (int i = 0; i < length; i++) {
 				org.aspectj.org.eclipse.jdt.core.ICompilationUnit workingCopy = copies[i];
@@ -60,12 +68,13 @@ public JavaSearchNameEnvironment(IJavaProject javaProject, org.aspectj.org.eclip
 				String cuName = workingCopy.getElementName();
 				String mainTypeName = Util.getNameWithoutJavaLikeExtension(cuName);
 				String qualifiedMainTypeName = pkg.length() == 0 ? mainTypeName : pkg.replace('.', '/') + '/' + mainTypeName;
-				this.workingCopies.put(qualifiedMainTypeName, workingCopy);
+				result.put(qualifiedMainTypeName, workingCopy);
 			}
 		}
 	} catch (JavaModelException e) {
 		// working copy doesn't exist: cannot happen
 	}
+	return result;
 }
 
 public void cleanup() {
@@ -104,10 +113,15 @@ private ClasspathLocation mapToClassPathLocation( JavaModelManager manager, Pack
 			cp = new ClasspathJar(manager.getZipFile(path), rawClasspathEntry.getAccessRuleSet(), ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry, ((IJavaProject)root.getParent()).getProject(), true));
 		} else {
 			Object target = JavaModel.getTarget(path, true);
-			if (target != null) 
-				cp = root.getKind() == IPackageFragmentRoot.K_SOURCE ?
-						new ClasspathSourceDirectory((IContainer)target, root.fullExclusionPatternChars(), root.fullInclusionPatternChars()) :
-							ClasspathLocation.forBinaryFolder((IContainer) target, false, ((ClasspathEntry) root.getRawClasspathEntry()).getAccessRuleSet());
+			if (target != null) {
+				if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
+					cp = new ClasspathSourceDirectory((IContainer)target, root.fullExclusionPatternChars(), root.fullInclusionPatternChars());
+				} else {
+					ClasspathEntry rawClasspathEntry = (ClasspathEntry) root.getRawClasspathEntry();
+					cp = ClasspathLocation.forBinaryFolder((IContainer) target, false, rawClasspathEntry.getAccessRuleSet(),
+														ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry, ((IJavaProject)root.getParent()).getProject(), true));
+				}
+			}
 		}
 	} catch (CoreException e1) {
 		// problem opening zip file or getting root kind

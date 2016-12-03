@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.Set;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
@@ -51,28 +52,24 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 	public TypeBinding clone(TypeBinding enclosingType) {
 		return new IntersectionTypeBinding18(this);
 	}
-	
-	public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcards) {
-		int index = replaceWildcards ? 0 : 1;
-		if (this.singleAbstractMethod != null) {
-			if (this.singleAbstractMethod[index] != null)
-			return this.singleAbstractMethod[index];
-		} else {
-			this.singleAbstractMethod = new MethodBinding[2];
+
+	@Override
+	protected MethodBinding[] getInterfaceAbstractContracts(Scope scope, boolean replaceWildcards) throws InvalidInputException {
+		int typesLength = this.intersectingTypes.length;
+		MethodBinding[][] methods = new MethodBinding[typesLength][];
+		int contractsLength = 0;
+		for (int i = 0; i < typesLength; i++) {
+			methods[i] = this.intersectingTypes[i].getInterfaceAbstractContracts(scope, replaceWildcards);
+			contractsLength += methods[i].length;
 		}
-		MethodBinding sam = samProblemBinding;  // guilty unless proven innocent !
-		for (int i = 0; i < this.length; i++) {
-			MethodBinding method = this.intersectingTypes[i].getSingleAbstractMethod(scope, replaceWildcards);
-			if (method != null) {
-				if (method.isValidBinding()) {
-					if (sam.isValidBinding())
-						return this.singleAbstractMethod[index] = new ProblemMethodBinding(TypeConstants.ANONYMOUS_METHOD, null, ProblemReasons.IntersectionHasMultipleFunctionalInterfaces);
-					else
-						sam = method;
-				}
-			}
+		MethodBinding[] contracts = new MethodBinding[contractsLength];
+		int idx = 0;
+		for (int i = 0; i < typesLength; i++) {
+			int len = methods[i].length;
+			System.arraycopy(methods[i], 0, contracts, idx, len);
+			idx += len;
 		}
-		return this.singleAbstractMethod[index] = sam; // I don't see a value in building the notional interface described in 9.8 - it appears just pedantic/normative - perhaps it plays a role in wildcard parameterized types ?
+		return contracts;
 	}
 
 	public boolean hasTypeBit(int bit) { // Stephan ??
@@ -256,21 +253,16 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 	}
 
 	public TypeBinding getSAMType(Scope scope) {
-		TypeBinding samType = null;
 		for (int i = 0, max = this.intersectingTypes.length; i < max; i++) {
 			TypeBinding typeBinding = this.intersectingTypes[i];
 			MethodBinding methodBinding = typeBinding.getSingleAbstractMethod(scope, true);
 			// Why doesn't getSingleAbstractMethod do as the javadoc says, and return null
 			// when it is not a SAM type
-			if (methodBinding instanceof ProblemMethodBinding && ((ProblemMethodBinding) methodBinding).problemId()==ProblemReasons.NoSuchSingleAbstractMethod) {
-				continue;
+			if (methodBinding != null && methodBinding.problemId() != ProblemReasons.NoSuchSingleAbstractMethod) {
+				return typeBinding; // answer the first SAM we find
 			}
-			if (samType != null) {
-				return null; // There is more than one (!), so we don't know which
-			}
-			samType = typeBinding;
 		}
-		return samType;
+		return null;
 	}
 
 	@Override
@@ -288,5 +280,11 @@ public class IntersectionTypeBinding18 extends ReferenceBinding { // abstraction
 				return true;
 		}
 		return false;
+	}
+	@Override
+	public long updateTagBits() {
+		for (TypeBinding intersectingType : this.intersectingTypes)
+			this.tagBits |= intersectingType.updateTagBits();
+		return super.updateTagBits();
 	}
 }

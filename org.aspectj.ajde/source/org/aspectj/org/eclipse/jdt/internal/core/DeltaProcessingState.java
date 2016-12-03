@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,13 +24,16 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.Indexer;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.IndexerEvent;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * Keep the global states used during Java element delta processing.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class DeltaProcessingState implements IResourceChangeListener {
+public class DeltaProcessingState implements IResourceChangeListener, Indexer.Listener {
 
 	/*
 	 * Collection of listeners for Java element deltas
@@ -499,7 +502,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 				while (size-- > 0) {
 					String key = in.readUTF();
 					long timestamp = in.readLong();
-					timeStamps.put(Path.fromPortableString(key), new Long(timestamp));
+					timeStamps.put(Path.fromPortableString(key), Long.valueOf(timestamp));
 				}
 			} catch (IOException e) {
 				if (timestampsFile.exists())
@@ -640,6 +643,17 @@ public class DeltaProcessingState implements IResourceChangeListener {
 					}
 				}
 			}
+		}
+	}
+
+	@Override
+	public void consume(IndexerEvent event) {
+		if (JavaIndex.isEnabled()) {
+			DeltaProcessor processor = getDeltaProcessor();
+			JavaElementDelta delta = (JavaElementDelta) event.getDelta();
+			delta.ignoreFromTests = true;
+			processor.notifyAndFire(delta);
+			this.deltaProcessors.set(null);
 		}
 	}
 

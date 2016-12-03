@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -671,6 +671,14 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			}
 		}
 
+		public void logUnavaibleAPT(String className) {
+			if ((this.tagBits & Logger.XML) != 0) {
+				this.parameters.put(Logger.MESSAGE, this.main.bind("configure.unavailableAPT", className)); //$NON-NLS-1$
+				printTag(Logger.ERROR_TAG, this.parameters, true, true);
+			}
+			this.printlnErr(this.main.bind("configure.unavailableAPT", className)); //$NON-NLS-1$
+		}
+
 		public void logIncorrectVMVersionForAnnotationProcessing() {
 			if ((this.tagBits & Logger.XML) != 0) {
 				this.parameters.put(Logger.MESSAGE, this.main.bind("configure.incorrectVMVersionforAPT")); //$NON-NLS-1$
@@ -705,7 +713,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 */
 		public void logNumberOfClassFilesGenerated(int exportedClassFilesCounter) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.VALUE, new Integer(exportedClassFilesCounter));
+				this.parameters.put(Logger.VALUE, Integer.valueOf(exportedClassFilesCounter));
 				printTag(Logger.NUMBER_OF_CLASSFILES, this.parameters, true, true);
 			}
 			if (exportedClassFilesCounter == 1) {
@@ -719,21 +727,21 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		/**
 		 * @param options the given compiler options
 		 */
-		public void logOptions(Map options) {
+		public void logOptions(Map<String, String> options) {
 			if ((this.tagBits & Logger.XML) != 0) {
 				printTag(Logger.OPTIONS, null, true, false);
-				final Set entriesSet = options.entrySet();
-				Object[] entries = entriesSet.toArray();
-				Arrays.sort(entries, new Comparator() {
-					public int compare(Object o1, Object o2) {
-						Map.Entry entry1 = (Map.Entry) o1;
-						Map.Entry entry2 = (Map.Entry) o2;
-						return ((String) entry1.getKey()).compareTo((String) entry2.getKey());
+				final Set<Map.Entry<String, String>> entriesSet = options.entrySet();
+				Map.Entry<String, String>[] entries = entriesSet.toArray(new Map.Entry[entriesSet.size()]);
+				Arrays.sort(entries, new Comparator<Map.Entry<String, String>>() {
+					public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
+						Map.Entry<String, String> entry1 = o1;
+						Map.Entry<String, String> entry2 = o2;
+						return entry1.getKey().compareTo(entry2.getKey());
 					}
 				});
 				for (int i = 0, max = entries.length; i < max; i++) {
-					Map.Entry entry = (Map.Entry) entries[i];
-					String key = (String) entry.getKey();
+					Map.Entry<String, String> entry = entries[i];
+					String key = entry.getKey();
 					this.parameters.put(Logger.KEY, key);
 					this.parameters.put(Logger.VALUE, entry.getValue());
 					printTag(Logger.OPTION, this.parameters, true, true);
@@ -868,10 +876,10 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			int globalErrorsCount, int globalWarningsCount, int globalTasksCount) {
 			if ((this.tagBits & Logger.XML) != 0) {
 				// generate xml
-				this.parameters.put(Logger.NUMBER_OF_PROBLEMS, new Integer(globalProblemsCount));
-				this.parameters.put(Logger.NUMBER_OF_ERRORS, new Integer(globalErrorsCount));
-				this.parameters.put(Logger.NUMBER_OF_WARNINGS, new Integer(globalWarningsCount));
-				this.parameters.put(Logger.NUMBER_OF_TASKS, new Integer(globalTasksCount));
+				this.parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(globalProblemsCount));
+				this.parameters.put(Logger.NUMBER_OF_ERRORS, Integer.valueOf(globalErrorsCount));
+				this.parameters.put(Logger.NUMBER_OF_WARNINGS, Integer.valueOf(globalWarningsCount));
+				this.parameters.put(Logger.NUMBER_OF_TASKS, Integer.valueOf(globalTasksCount));
 				printTag(Logger.PROBLEM_SUMMARY, this.parameters, true, true);
 			}
 			if (globalProblemsCount == 1) {
@@ -951,9 +959,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			long time = compilerStats.elapsedTime();
 			long lineCount = compilerStats.lineCount;
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.VALUE, new Long(time));
+				this.parameters.put(Logger.VALUE, Long.valueOf(time));
 				printTag(Logger.TIME, this.parameters, true, true);
-				this.parameters.put(Logger.VALUE, new Long(lineCount));
+				this.parameters.put(Logger.VALUE, Long.valueOf(lineCount));
 				printTag(Logger.NUMBER_OF_LINES, this.parameters, true, true);
 			}
 			if (lineCount != 0) {
@@ -1048,9 +1056,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			final int sourceEnd = problem.getSourceEnd();
 			boolean isError = problem.isError();
 			this.parameters.put(Logger.PROBLEM_SEVERITY, isError ? Logger.ERROR : Logger.WARNING);
-			this.parameters.put(Logger.PROBLEM_LINE, new Integer(problem.getSourceLineNumber()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_START, new Integer(sourceStart));
-			this.parameters.put(Logger.PROBLEM_SOURCE_END, new Integer(sourceEnd));
+			this.parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
+			this.parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(sourceStart));
+			this.parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(sourceEnd));
 			printTag(Logger.EXTRA_PROBLEM_TAG, this.parameters, true, false);
 			this.parameters.put(Logger.VALUE, problem.getMessage());
 			printTag(Logger.PROBLEM_MESSAGE, this.parameters, true, true);
@@ -1068,19 +1076,19 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			final int sourceEnd = problem.getSourceEnd();
 			final int id = problem.getID();
 			this.parameters.put(Logger.ID, getFieldName(id)); // ID as field name
-			this.parameters.put(Logger.PROBLEM_ID, new Integer(id)); // ID as numeric value
+			this.parameters.put(Logger.PROBLEM_ID, Integer.valueOf(id)); // ID as numeric value
 			boolean isError = problem.isError();
 			int severity = isError ? ProblemSeverities.Error : ProblemSeverities.Warning;
 			this.parameters.put(Logger.PROBLEM_SEVERITY, isError ? Logger.ERROR : Logger.WARNING);
-			this.parameters.put(Logger.PROBLEM_LINE, new Integer(problem.getSourceLineNumber()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_START, new Integer(sourceStart));
-			this.parameters.put(Logger.PROBLEM_SOURCE_END, new Integer(sourceEnd));
+			this.parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
+			this.parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(sourceStart));
+			this.parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(sourceEnd));
 			String problemOptionKey = getProblemOptionKey(id);
 			if (problemOptionKey != null) {
 				this.parameters.put(Logger.PROBLEM_OPTION_KEY, problemOptionKey);
 			}
 			int categoryID = ProblemReporter.getProblemCategory(severity, id);
-			this.parameters.put(Logger.PROBLEM_CATEGORY_ID, new Integer(categoryID));
+			this.parameters.put(Logger.PROBLEM_CATEGORY_ID, Integer.valueOf(categoryID));
 			printTag(Logger.PROBLEM_TAG, this.parameters, true, false);
 			this.parameters.put(Logger.VALUE, problem.getMessage());
 			printTag(Logger.PROBLEM_MESSAGE, this.parameters, true, true);
@@ -1104,9 +1112,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 *            the given unit source
 		 */
 		private void logXmlTask(CategorizedProblem problem, char[] unitSource) {
-			this.parameters.put(Logger.PROBLEM_LINE, new Integer(problem.getSourceLineNumber()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_START, new Integer(problem.getSourceStart()));
-			this.parameters.put(Logger.PROBLEM_SOURCE_END, new Integer(problem.getSourceEnd()));
+			this.parameters.put(Logger.PROBLEM_LINE, Integer.valueOf(problem.getSourceLineNumber()));
+			this.parameters.put(Logger.PROBLEM_SOURCE_START, Integer.valueOf(problem.getSourceStart()));
+			this.parameters.put(Logger.PROBLEM_SOURCE_END, Integer.valueOf(problem.getSourceEnd()));
 			String problemOptionKey = getProblemOptionKey(problem.getID());
 			if (problemOptionKey != null) {
 				this.parameters.put(Logger.PROBLEM_OPTION_KEY, problemOptionKey);
@@ -1221,7 +1229,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 			}
 		}
 		private void startLoggingExtraProblems(int count) {
-			this.parameters.put(Logger.NUMBER_OF_PROBLEMS, new Integer(count));
+			this.parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(count));
 			printTag(Logger.EXTRA_PROBLEMS, this.parameters, true, false);
 		}
 
@@ -1230,9 +1238,9 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		 * Only use in xml mode.
 		 */
 		private void startLoggingProblems(int errors, int warnings) {
-			this.parameters.put(Logger.NUMBER_OF_PROBLEMS, new Integer(errors + warnings));
-			this.parameters.put(Logger.NUMBER_OF_ERRORS, new Integer(errors));
-			this.parameters.put(Logger.NUMBER_OF_WARNINGS, new Integer(warnings));
+			this.parameters.put(Logger.NUMBER_OF_PROBLEMS, Integer.valueOf(errors + warnings));
+			this.parameters.put(Logger.NUMBER_OF_ERRORS, Integer.valueOf(errors));
+			this.parameters.put(Logger.NUMBER_OF_WARNINGS, Integer.valueOf(warnings));
 			printTag(Logger.PROBLEMS, this.parameters, true, false);
 		}
 
@@ -1276,7 +1284,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 
 		public void startLoggingTasks(int tasks) {
 			if ((this.tagBits & Logger.XML) != 0) {
-				this.parameters.put(Logger.NUMBER_OF_TASKS, new Integer(tasks));
+				this.parameters.put(Logger.NUMBER_OF_TASKS, Integer.valueOf(tasks));
 				printTag(Logger.TASKS, this.parameters, true, false);
 			}
 		}
@@ -1342,13 +1350,14 @@ public class Main implements ProblemSeverities, SuffixConstants {
 	private File javaHomeCache;
 
 	private boolean javaHomeChecked = false;
+	private boolean primaryNullAnnotationsSeen = false;
 	public long lineCount0;
 
 	public String log;
 
 	public Logger logger;
 	public int maxProblems;
-	public Map options;
+	public Map<String, String> options;
 	public char[][] ignoreOptionalProblemsFromFolders;
 	protected PrintWriter out;
 	public boolean proceed = true;
@@ -1493,7 +1502,7 @@ public Main(PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhen
 	this(outWriter, errWriter, systemExitWhenFinished, customDefaultOptions, null /* progress */);
 }
 
-public Main(PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished, Map customDefaultOptions, CompilationProgress compilationProgress) {
+public Main(PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished, Map<String, String> customDefaultOptions, CompilationProgress compilationProgress) {
 	this.initialize(outWriter, errWriter, systemExitWhenFinished, customDefaultOptions, compilationProgress);
 	this.relocalize();
 }
@@ -1576,7 +1585,7 @@ protected void addNewEntry(ArrayList paths, String currentClasspathName,
 			customEncoding,
 			isSourceOnly,
 			accessRuleSet,
-			destPath);
+			destPath, this.options);
 	if (currentClasspath != null) {
 		paths.add(currentClasspath);
 	} else if (currentClasspathName.length() != 0) {
@@ -2908,7 +2917,7 @@ public void configure(String[] argv) {
 
 	if (specifiedEncodings != null && specifiedEncodings.size() > 1) {
 		this.logger.logWarning(this.bind("configure.multipleencodings", //$NON-NLS-1$
-				(String) this.options.get(CompilerOptions.OPTION_Encoding),
+				this.options.get(CompilerOptions.OPTION_Encoding),
 				getAllEncodings(specifiedEncodings)));
 	}
 	if (this.pendingErrors != null) {
@@ -2984,9 +2993,9 @@ private void initializeWarnings(String propertiesFile) {
 	}
 	for (Iterator iterator = properties.entrySet().iterator(); iterator.hasNext(); ) {
 		Map.Entry entry = (Map.Entry) iterator.next();
-		final String key = (String) entry.getKey();
+		final String key = entry.getKey().toString();
 		if (key.startsWith("org.aspectj.org.eclipse.jdt.core.compiler.")) { //$NON-NLS-1$
-			this.options.put(key, entry.getValue());
+			this.options.put(key, entry.getValue().toString());
 		}
 	}
 	// when using a properties file mimic relevant defaults from JavaCorePreferenceInitializer:
@@ -3013,14 +3022,10 @@ protected void enableAll(int severity) {
 			newValue = CompilerOptions.WARNING;
 			break;
 	}
-	Object[] entries = this.options.entrySet().toArray();
+	Map.Entry<String, String>[] entries = this.options.entrySet().toArray(new Map.Entry[this.options.size()]);
 	for (int i = 0, max = entries.length; i < max; i++) {
-		Map.Entry entry = (Map.Entry) entries[i];
-		if (!(entry.getKey() instanceof String))
-			continue;
-		if (!(entry.getValue() instanceof String))
-			continue;
-		if (((String) entry.getValue()).equals(CompilerOptions.IGNORE)) {
+		Map.Entry<String, String> entry = entries[i];
+		if (entry.getValue().equals(CompilerOptions.IGNORE)) {
 			this.options.put(entry.getKey(), newValue);
 		}
 	}
@@ -3044,7 +3049,7 @@ protected void disableAll(int severity) {
 		if (!(entry.getValue() instanceof String))
 			continue;
 		if (((String) entry.getValue()).equals(checkedValue)) {
-			this.options.put(entry.getKey(), CompilerOptions.IGNORE);
+			this.options.put((String) entry.getKey(), CompilerOptions.IGNORE);
 		}
 	}
 }
@@ -3077,7 +3082,7 @@ public CompilationUnit[] getCompilationUnits() {
 	CompilationUnit[] units = new CompilationUnit[fileCount];
 	HashtableOfObject knownFileNames = new HashtableOfObject(fileCount);
 
-	String defaultEncoding = (String) this.options.get(CompilerOptions.OPTION_Encoding);
+	String defaultEncoding = this.options.get(CompilerOptions.OPTION_Encoding);
 	if (Util.EMPTY_STRING.equals(defaultEncoding))
 		defaultEncoding = null;
 
@@ -3196,7 +3201,7 @@ protected ArrayList handleClasspath(ArrayList classpaths, String customEncoding)
 		String classProp = System.getProperty("java.class.path"); //$NON-NLS-1$
 		if ((classProp == null) || (classProp.length() == 0)) {
 			addPendingErrors(this.bind("configure.noClasspath")); //$NON-NLS-1$
-			final Classpath classpath = FileSystem.getClasspath(System.getProperty("user.dir"), customEncoding, null);//$NON-NLS-1$
+			final Classpath classpath = FileSystem.getClasspath(System.getProperty("user.dir"), customEncoding, null, this.options);//$NON-NLS-1$
 			if (classpath != null) {
 				classpaths.add(classpath);
 			}
@@ -3206,7 +3211,7 @@ protected ArrayList handleClasspath(ArrayList classpaths, String customEncoding)
 			while (tokenizer.hasMoreTokens()) {
 				token = tokenizer.nextToken();
 				FileSystem.Classpath currentClasspath = FileSystem
-						.getClasspath(token, customEncoding, null);
+						.getClasspath(token, customEncoding, null, this.options);
 				if (currentClasspath != null) {
 					classpaths.add(currentClasspath);
 				} else if (token.length() != 0) {
@@ -3284,7 +3289,7 @@ protected ArrayList handleEndorseddirs(ArrayList endorsedDirClasspaths) {
 						FileSystem.Classpath classpath =
 							FileSystem.getClasspath(
 									current[j].getAbsolutePath(),
-									null, null);
+									null, null, this.options);
 						if (classpath != null) {
 							endorsedDirClasspaths.add(classpath);
 						}
@@ -3344,7 +3349,7 @@ protected ArrayList handleExtdirs(ArrayList extdirsClasspaths) {
 						FileSystem.Classpath classpath =
 							FileSystem.getClasspath(
 									current[j].getAbsolutePath(),
-									null, null);
+									null, null, this.options);
 						if (classpath != null) {
 							extdirsClasspaths.add(classpath);
 						}
@@ -3386,13 +3391,13 @@ private void setSeverity(String compilerOptions, int severity, boolean isEnablin
 	} else {
 		switch(severity) {
 			case ProblemSeverities.Error :
-				String currentValue = (String) this.options.get(compilerOptions);
+				String currentValue = this.options.get(compilerOptions);
 				if (CompilerOptions.ERROR.equals(currentValue)) {
 					this.options.put(compilerOptions, CompilerOptions.IGNORE);
 				}
 				break;
 			case ProblemSeverities.Warning :
-				currentValue = (String) this.options.get(compilerOptions);
+				currentValue = this.options.get(compilerOptions);
 				if (CompilerOptions.WARNING.equals(currentValue)) {
 					this.options.put(compilerOptions, CompilerOptions.IGNORE);
 				}
@@ -3768,20 +3773,40 @@ private void handleErrorOrWarningToken(String token, boolean isEnabling, int sev
 				int end = token.indexOf(')');
 				String nonNullAnnotName = null, nullableAnnotName = null, nonNullByDefaultAnnotName = null;
 				if (isEnabling && start >= 0 && end >= 0 && start < end){
+					boolean isPrimarySet = !this.primaryNullAnnotationsSeen;
 					annotationNames = token.substring(start+1, end).trim();
 					int separator1 = annotationNames.indexOf('|');
 					if (separator1 == -1) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
 					nullableAnnotName = annotationNames.substring(0, separator1).trim();
-					if (nullableAnnotName.length() == 0) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
+					if (isPrimarySet && nullableAnnotName.length() == 0) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
 					int separator2 = annotationNames.indexOf('|', separator1 + 1);
 					if (separator2 == -1) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
 					nonNullAnnotName = annotationNames.substring(separator1 + 1, separator2).trim();
-					if (nonNullAnnotName.length() == 0) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
+					if (isPrimarySet && nonNullAnnotName.length() == 0) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
 					nonNullByDefaultAnnotName = annotationNames.substring(separator2 + 1).trim();
-					if (nonNullByDefaultAnnotName.length() == 0) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
-					this.options.put(CompilerOptions.OPTION_NullableAnnotationName, nullableAnnotName);
-					this.options.put(CompilerOptions.OPTION_NonNullAnnotationName, nonNullAnnotName);
-					this.options.put(CompilerOptions.OPTION_NonNullByDefaultAnnotationName, nonNullByDefaultAnnotName);
+					if (isPrimarySet && nonNullByDefaultAnnotName.length() == 0) throw new IllegalArgumentException(this.bind("configure.invalidNullAnnot", token)); //$NON-NLS-1$
+					if (isPrimarySet) {
+						this.primaryNullAnnotationsSeen = true;
+						this.options.put(CompilerOptions.OPTION_NullableAnnotationName, nullableAnnotName);
+						this.options.put(CompilerOptions.OPTION_NonNullAnnotationName, nonNullAnnotName);
+						this.options.put(CompilerOptions.OPTION_NonNullByDefaultAnnotationName, nonNullByDefaultAnnotName);
+					} else {
+						if (nullableAnnotName.length() > 0) {
+							String nullableList = this.options.get(CompilerOptions.OPTION_NullableAnnotationSecondaryNames);
+							nullableList = nullableList.isEmpty() ? nullableAnnotName : nullableList + ',' + nullableAnnotName;
+							this.options.put(CompilerOptions.OPTION_NullableAnnotationSecondaryNames, nullableList);
+						}
+						if (nonNullAnnotName.length() > 0) {
+							String nonnullList = this.options.get(CompilerOptions.OPTION_NonNullAnnotationSecondaryNames);
+							nonnullList = nonnullList.isEmpty() ? nonNullAnnotName : nonnullList + ',' + nonNullAnnotName;
+							this.options.put(CompilerOptions.OPTION_NonNullAnnotationSecondaryNames, nonnullList);
+						}
+						if (nonNullByDefaultAnnotName.length() > 0) {
+							String nnbdList = this.options.get(CompilerOptions.OPTION_NonNullByDefaultAnnotationSecondaryNames);
+							nnbdList = nnbdList.isEmpty() ? nonNullByDefaultAnnotName : nnbdList + ',' + nonNullByDefaultAnnotName;
+							this.options.put(CompilerOptions.OPTION_NonNullByDefaultAnnotationSecondaryNames, nnbdList);
+						}
+					}
 				}
 				this.options.put(
 						CompilerOptions.OPTION_AnnotationBasedNullAnalysis,
@@ -4051,7 +4076,7 @@ protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean 
 protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean systemExit, Map customDefaultOptions) {
 	this.initialize(outWriter, errWriter, systemExit, customDefaultOptions, null /* progress */);
 }
-protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean systemExit, Map customDefaultOptions, CompilationProgress compilationProgress) {
+protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean systemExit, Map<String, String> customDefaultOptions, CompilationProgress compilationProgress) {
 	this.logger = new Logger(this, outWriter, errWriter);
 	this.proceed = true;
 	this.out = outWriter;
@@ -4064,8 +4089,8 @@ protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean 
 	if (customDefaultOptions != null) {
 		this.didSpecifySource = customDefaultOptions.get(CompilerOptions.OPTION_Source) != null;
 		this.didSpecifyTarget = customDefaultOptions.get(CompilerOptions.OPTION_TargetPlatform) != null;
-		for (Iterator iter = customDefaultOptions.entrySet().iterator(); iter.hasNext();) {
-			Map.Entry entry = (Map.Entry) iter.next();
+		for (Iterator<Map.Entry<String, String>> iter = customDefaultOptions.entrySet().iterator(); iter.hasNext();) {
+			Map.Entry<String, String> entry = iter.next();
 			this.options.put(entry.getKey(), entry.getValue());
 		}
 	} else {
@@ -4075,17 +4100,16 @@ protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean 
 	this.classNames = null;
 }
 protected void initializeAnnotationProcessorManager() {
+	String className = "org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch.BatchAnnotationProcessorManager"; //$NON-NLS-1$
 	try {
-		Class c = Class.forName("org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch.BatchAnnotationProcessorManager"); //$NON-NLS-1$
+		Class c = Class.forName(className);
 		AbstractAnnotationProcessorManager annotationManager = (AbstractAnnotationProcessorManager) c.newInstance();
 		annotationManager.configure(this, this.expandedCommandLine);
 		annotationManager.setErr(this.err);
 		annotationManager.setOut(this.out);
 		this.batchCompiler.annotationProcessorManager = annotationManager;
-	} catch (ClassNotFoundException e) {
-		// ignore
-	} catch (InstantiationException e) {
-		// should not happen
+	} catch (ClassNotFoundException | InstantiationException e) {
+		this.logger.logUnavaibleAPT(className);
 		throw new org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation();
 	} catch (IllegalAccessException e) {
 		// should not happen
@@ -4781,75 +4805,75 @@ protected void validateOptions(boolean didSpecifyCompliance) {
 		}
 	}
 
-	final Object sourceVersion = this.options.get(CompilerOptions.OPTION_Source);
-	final Object compliance = this.options.get(CompilerOptions.OPTION_Compliance);
+	final String sourceVersion = this.options.get(CompilerOptions.OPTION_Source);
+	final String compliance = this.options.get(CompilerOptions.OPTION_Compliance);
 	if (sourceVersion.equals(CompilerOptions.VERSION_1_8)
 			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_8) {
 		// compliance must be 1.8 if source is 1.8
-		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_8)); //$NON-NLS-1$
+		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_8)); //$NON-NLS-1$
 	} else if (sourceVersion.equals(CompilerOptions.VERSION_1_7)
 			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_7) {
 		// compliance must be 1.7 if source is 1.7
-		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_7)); //$NON-NLS-1$
+		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_7)); //$NON-NLS-1$
 	} else if (sourceVersion.equals(CompilerOptions.VERSION_1_6)
 			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_6) {
 		// compliance must be 1.6 if source is 1.6
-		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_6)); //$NON-NLS-1$
+		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_6)); //$NON-NLS-1$
 	} else if (sourceVersion.equals(CompilerOptions.VERSION_1_5)
 			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_5) {
 		// compliance must be 1.5 if source is 1.5
-		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_5)); //$NON-NLS-1$
+		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_5)); //$NON-NLS-1$
 	} else if (sourceVersion.equals(CompilerOptions.VERSION_1_4)
 			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_4) {
 		// compliance must be 1.4 if source is 1.4
-		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_4)); //$NON-NLS-1$
+		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_4)); //$NON-NLS-1$
 	}
 
 	// check and set compliance/source/target compatibilities
 	if (this.didSpecifyTarget) {
-		final Object targetVersion = this.options.get(CompilerOptions.OPTION_TargetPlatform);
+		final String targetVersion = this.options.get(CompilerOptions.OPTION_TargetPlatform);
 		// tolerate jsr14 target
 		if (CompilerOptions.VERSION_JSR14.equals(targetVersion)) {
 			// expecting source >= 1.5
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) < ClassFileConstants.JDK1_5) {
-				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForGenericSource", (String) targetVersion, (String) sourceVersion)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForGenericSource", targetVersion, sourceVersion)); //$NON-NLS-1$
 			}
 		} else if (CompilerOptions.VERSION_CLDC1_1.equals(targetVersion)) {
 			if (this.didSpecifySource && CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_4) {
-				throw new IllegalArgumentException(this.bind("configure.incompatibleSourceForCldcTarget", (String) targetVersion, (String) sourceVersion)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleSourceForCldcTarget", targetVersion, sourceVersion)); //$NON-NLS-1$
 			}
 			if (CompilerOptions.versionToJdkLevel(compliance) >= ClassFileConstants.JDK1_5) {
-				throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForCldcTarget", (String) targetVersion, (String) sourceVersion)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForCldcTarget", targetVersion, sourceVersion)); //$NON-NLS-1$
 			}
 		} else {
 			// target must be 1.8 if source is 1.8
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_8
 					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_8){
-				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", (String) targetVersion, CompilerOptions.VERSION_1_8)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", targetVersion, CompilerOptions.VERSION_1_8)); //$NON-NLS-1$
 			}
 			// target must be 1.7 if source is 1.7
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_7
 					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_7){
-				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", (String) targetVersion, CompilerOptions.VERSION_1_7)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", targetVersion, CompilerOptions.VERSION_1_7)); //$NON-NLS-1$
 			}
 			// target must be 1.6 if source is 1.6
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_6
 					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_6){
-				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", (String) targetVersion, CompilerOptions.VERSION_1_6)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", targetVersion, CompilerOptions.VERSION_1_6)); //$NON-NLS-1$
 			}
 			// target must be 1.5 if source is 1.5
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_5
 					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_5){
-				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", (String) targetVersion, CompilerOptions.VERSION_1_5)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", targetVersion, CompilerOptions.VERSION_1_5)); //$NON-NLS-1$
 			}
 			// target must be 1.4 if source is 1.4
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_4
 					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_4){
-				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", (String) targetVersion, CompilerOptions.VERSION_1_4)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", targetVersion, CompilerOptions.VERSION_1_4)); //$NON-NLS-1$
 			}
 			// target cannot be greater than compliance level
 			if (CompilerOptions.versionToJdkLevel(compliance) < CompilerOptions.versionToJdkLevel(targetVersion)){
-				throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForTarget", (String)this.options.get(CompilerOptions.OPTION_Compliance), (String) targetVersion)); //$NON-NLS-1$
+				throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForTarget", this.options.get(CompilerOptions.OPTION_Compliance), targetVersion)); //$NON-NLS-1$
 			}
 		}
 	}

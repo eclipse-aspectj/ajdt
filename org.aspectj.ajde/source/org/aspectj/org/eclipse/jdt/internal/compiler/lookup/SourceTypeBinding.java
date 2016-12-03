@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -62,11 +62,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference.AnnotationPosition;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
@@ -125,6 +127,8 @@ public class SourceTypeBinding extends ReferenceBinding {
 	  this.prototype = this;
   }
   // End AspectJ Extension
+	
+	public ExternalAnnotationProvider externalAnnotationProvider;
 	
 public SourceTypeBinding(char[][] compoundName, PackageBinding fPackage, ClassScope scope) {
 	this.compoundName = compoundName;
@@ -658,6 +662,40 @@ public SyntheticMethodBinding addSyntheticMethod(LambdaExpression lambda) {
 	
 	// Create a $deserializeLambda$ method if necessary, one is shared amongst all lambdas
 	if (lambda.isSerializable) {
+		addDeserializeLambdaMethod();
+	}
+	
+	return lambdaMethod;
+}
+/*
+ * Add a synthetic method for the reference expression as a place holder for code generation
+ * only if the reference expression's target is serializable 
+ * 
+ */
+public SyntheticMethodBinding addSyntheticMethod(ReferenceExpression ref) {
+	if (!isPrototype()) throw new IllegalStateException();
+	if (!ref.isSerializable)
+		return null;
+	if (this.synthetics == null)
+		this.synthetics = new HashMap[MAX_SYNTHETICS];
+	if (this.synthetics[SourceTypeBinding.METHOD_EMUL] == null)
+		this.synthetics[SourceTypeBinding.METHOD_EMUL] = new HashMap(5);
+	
+	SyntheticMethodBinding lambdaMethod = null;
+	SyntheticMethodBinding[] lambdaMethods = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(ref);
+	if (lambdaMethods == null) {
+		lambdaMethod = new SyntheticMethodBinding(ref, this);
+		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(ref, lambdaMethods = new SyntheticMethodBinding[1]);
+		lambdaMethods[0] = lambdaMethod;
+	} else {
+		lambdaMethod = lambdaMethods[0];
+	}
+
+	// Create a $deserializeLambda$ method, one is shared amongst all lambdas
+	addDeserializeLambdaMethod();	
+	return lambdaMethod;
+}
+private void addDeserializeLambdaMethod() {
 		SyntheticMethodBinding[] deserializeLambdaMethods = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(TypeConstants.DESERIALIZE_LAMBDA);
 		if (deserializeLambdaMethods == null) {
 			SyntheticMethodBinding deserializeLambdaMethod = new SyntheticMethodBinding(this);
@@ -665,10 +703,6 @@ public SyntheticMethodBinding addSyntheticMethod(LambdaExpression lambda) {
 			deserializeLambdaMethods[0] = deserializeLambdaMethod;
 		}
 	}
-	
-	return lambdaMethod;
-}
-
 /* Add a new synthetic access method for access to <targetMethod>.
  * Must distinguish access method used for super access from others (need to use invokespecial bytecode)
 	Answer the new method or the existing method if one already existed.
@@ -822,11 +856,11 @@ public SyntheticMethodBinding addSyntheticBridgeMethod(MethodBinding inheritedMe
 	if (accessors == null) {
 		accessMethod = new SyntheticMethodBinding(inheritedMethodToBridge, this);
 		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(inheritedMethodToBridge, accessors = new SyntheticMethodBinding[2]);
-		accessors[0] = accessMethod;
+		accessors[1] = accessMethod;
 	} else {
-		if ((accessMethod = accessors[0]) == null) {
+		if ((accessMethod = accessors[1]) == null) {
 			accessMethod = new SyntheticMethodBinding(inheritedMethodToBridge, this);
-			accessors[0] = accessMethod;
+			accessors[1] = accessMethod;
 		}
 	}
 	return accessMethod;
@@ -1856,7 +1890,7 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 					// enum constants neither have a type declaration nor can they be null
 					field.tagBits |= TagBits.AnnotationNonNull;
 				} else {
-					if (hasNonNullDefaultFor(DefaultLocationField, sourceLevel >= ClassFileConstants.JDK1_8)) {
+					if (hasNonNullDefaultFor(DefaultLocationField, this.environment.usesNullTypeAnnotations())) {
 						field.fillInDefaultNonNullness(fieldDecl, initializationScope);
 					}
 					// validate null annotation:
@@ -1866,6 +1900,9 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 			}
 		} finally {
 		    initializationScope.initializedField = previousField;
+		}
+		if (this.externalAnnotationProvider != null) {
+			ExternalAnnotationSuperimposer.annotateFieldBinding(field, this.externalAnnotationProvider, this.environment);
 		}
 		return field;
 	}
@@ -2050,6 +2087,13 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 					rejectTypeAnnotatedVoidMethod(methodDecl);
 			}
 		}
+	} else {
+		if (sourceLevel >= ClassFileConstants.JDK1_8) {
+			Annotation [] annotations = methodDecl.annotations;
+			if (annotations != null && annotations.length != 0) {
+				ASTNode.copySE8AnnotationsToType(methodDecl.scope, method, methodDecl.annotations, false);
+	}
+		}
 	}
 	if (foundArgProblem) {
 		methodDecl.binding = null;
@@ -2084,6 +2128,9 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 		return method; // but its still unresolved with a null return type & is still connected to its method declaration
 
 	method.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
+	if (this.externalAnnotationProvider != null) {
+		ExternalAnnotationSuperimposer.annotateMethodBinding(method, this.externalAnnotationProvider, this.environment);
+	}
 	return method;
 }
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=391108
@@ -2129,8 +2176,7 @@ public void evaluateNullAnnotations() {
 		for (int i = 0; i < annotations.length; i++) {
 			ReferenceBinding annotationType = annotations[i].getCompilerAnnotation().getAnnotationType();
 			if (annotationType != null) {
-				if (annotationType.id == TypeIds.T_ConfiguredAnnotationNonNull
-						|| annotationType.id == TypeIds.T_ConfiguredAnnotationNullable) {
+				if (annotationType.hasNullBit(TypeIds.BitNonNullAnnotation|TypeIds.BitNullableAnnotation)) {
 					this.scope.problemReporter().nullAnnotationUnsupportedLocation(annotations[i]);
 					this.tagBits &= ~TagBits.AnnotationNullMASK;
 				}
@@ -2142,10 +2188,7 @@ public void evaluateNullAnnotations() {
 	PackageBinding pkg = getPackage();
 	boolean isInDefaultPkg = (pkg.compoundName == CharOperation.NO_CHAR_CHAR);
 	if (!isPackageInfo) {
-		boolean isInNullnessAnnotationPackage = 
-				pkg == this.scope.environment().nonnullAnnotationPackage
-				|| pkg == this.scope.environment().nullableAnnotationPackage
-				|| pkg == this.scope.environment().nonnullByDefaultAnnotationPackage;
+		boolean isInNullnessAnnotationPackage = this.scope.environment().isNullnessAnnotationPackage(pkg);
 		if (pkg.defaultNullness == NO_NULL_DEFAULT && !isInDefaultPkg && !isInNullnessAnnotationPackage && !(this instanceof NestedTypeBinding)) {
 			ReferenceBinding packageInfo = pkg.getType(TypeConstants.PACKAGE_INFO_NAME);
 			if (packageInfo == null) {
@@ -2154,7 +2197,19 @@ public void evaluateNullAnnotations() {
 				pkg.defaultNullness = NULL_UNSPECIFIED_BY_DEFAULT;
 			} else {
 				// if pkgInfo has no default annot. - complain
+					if (packageInfo instanceof SourceTypeBinding
+							&& (packageInfo.tagBits & TagBits.EndHierarchyCheck) == 0) {
+						CompilationUnitScope pkgCUS = ((SourceTypeBinding) packageInfo).scope.compilationUnitScope();
+						boolean current = pkgCUS.connectingHierarchy;
+						pkgCUS.connectingHierarchy = true;
+						try {
 				packageInfo.getAnnotationTagBits();
+						} finally {
+							pkgCUS.connectingHierarchy = current;
+						}
+					} else {
+						packageInfo.getAnnotationTagBits();
+					}
 			}
 		}
 	}

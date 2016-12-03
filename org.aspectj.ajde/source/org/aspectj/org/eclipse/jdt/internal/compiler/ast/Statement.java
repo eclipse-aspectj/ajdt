@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,6 +40,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching.CheckMode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.flow.*;
@@ -192,6 +193,11 @@ void internalAnalyseOneArgument18(BlockScope currentScope, FlowContext flowConte
 		// immediate reporting:
 		currentScope.problemReporter().nullityMismatchingTypeAnnotation(argument, argument.resolvedType, expectedType, annotationStatus);
 	} else if (annotationStatus.isAnyMismatch() || (statusFromAnnotatedNull & FlowInfo.POTENTIALLY_NULL) != 0) {
+		if (!expectedType.hasNullTypeAnnotations() && expectedNonNullness == Boolean.TRUE) {
+			// improve problem rendering when using a declaration annotation in a 1.8 setting
+			LookupEnvironment env = currentScope.environment();
+			expectedType = env.createAnnotatedType(expectedType, new AnnotationBinding[] {env.getNonNullAnnotation()});
+		}
 		flowContext.recordNullityMismatch(currentScope, argument, argument.resolvedType, expectedType, flowInfo, nullStatus, annotationStatus);
 	}
 }
@@ -209,11 +215,15 @@ protected void checkAgainstNullTypeAnnotation(BlockScope scope, TypeBinding requ
 }
 private void internalCheckAgainstNullTypeAnnotation(BlockScope scope, TypeBinding requiredType, Expression expression,
 		int nullStatus, FlowContext flowContext, FlowInfo flowInfo) {
-	NullAnnotationMatching annotationStatus = NullAnnotationMatching.analyse(requiredType, expression.resolvedType, nullStatus);
+	NullAnnotationMatching annotationStatus = NullAnnotationMatching.analyse(requiredType, expression.resolvedType, null, null, nullStatus, expression, CheckMode.COMPATIBLE);
 	if (annotationStatus.isDefiniteMismatch()) {
 		scope.problemReporter().nullityMismatchingTypeAnnotation(expression, expression.resolvedType, requiredType, annotationStatus);
-	} else if (annotationStatus.isUnchecked()) {
-		flowContext.recordNullityMismatch(scope, expression, expression.resolvedType, requiredType, flowInfo, nullStatus, annotationStatus);
+	} else {
+		if (annotationStatus.wantToReport())
+			annotationStatus.report(scope);
+		if (annotationStatus.isUnchecked()) {
+			flowContext.recordNullityMismatch(scope, expression, expression.resolvedType, requiredType, flowInfo, nullStatus, annotationStatus);
+		}
 	}
 }
 
@@ -331,7 +341,7 @@ public void generateArguments(MethodBinding binding, Expression[] arguments, Blo
 			TypeBinding lastType = arguments[varArgIndex].resolvedType;
 			if (lastType == TypeBinding.NULL
 				|| (varArgsType.dimensions() == lastType.dimensions()
-					&& lastType.isCompatibleWith(varArgsType))) {
+					&& lastType.isCompatibleWith(codeGenVarArgsType))) {
 				// foo(1, new int[]{2, 3}) or foo(1, null) --> last arg is passed as-is
 				arguments[varArgIndex].generateCode(currentScope, codeStream, true);
 			} else {

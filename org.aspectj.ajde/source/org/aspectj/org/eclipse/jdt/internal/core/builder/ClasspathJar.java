@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,21 +13,26 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
-
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
 
 @SuppressWarnings("rawtypes")
 public class ClasspathJar extends ClasspathLocation {
@@ -165,12 +170,18 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 	if (!isPackage(qualifiedPackageName)) return null; // most common case
 
 	try {
-		ClassFileReader reader = ClassFileReader.read(this.zipFile, qualifiedBinaryFileName);
+		IBinaryType reader = ClassFileReader.read(this.zipFile, qualifiedBinaryFileName);
 		if (reader != null) {
 			String fileNameWithoutExtension = qualifiedBinaryFileName.substring(0, qualifiedBinaryFileName.length() - SuffixConstants.SUFFIX_CLASS.length);
 			if (this.externalAnnotationPath != null) {
 				try {
-					this.annotationZipFile = reader.setExternalAnnotationProvider(this.externalAnnotationPath, fileNameWithoutExtension, this.annotationZipFile, null);
+					if (this.annotationZipFile == null) {
+						this.annotationZipFile = ExternalAnnotationDecorator
+								.getAnnotationZipFile(this.externalAnnotationPath, null);
+					}
+
+					reader = ExternalAnnotationDecorator.create(reader, this.externalAnnotationPath,
+							fileNameWithoutExtension, this.annotationZipFile);
 				} catch (IOException e) {
 					// don't let error on annotations fail class reading
 				}

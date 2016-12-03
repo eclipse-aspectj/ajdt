@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IIndexConstants;
 
 public class HierarchyBinaryType implements IBinaryType {
@@ -52,6 +53,23 @@ public HierarchyBinaryType(int modifiers, char[] qualification, char[] sourceNam
 	this.typeParameterSignatures = typeParameterSignatures;
 	CharOperation.replace(this.name, '.', '/');
 }
+
+public HierarchyBinaryType(int modifiers, char[] binaryName, char[] sourceName, char[] enclosingTypeBinaryName, char[][] typeParameterSignatures) {
+	this.modifiers = modifiers;
+	this.sourceName = sourceName;
+	this.name = binaryName;
+	this.enclosingTypeName = enclosingTypeBinaryName;
+	this.typeParameterSignatures = typeParameterSignatures;
+
+	if (typeParameterSignatures != null) {
+		for (char[] next : typeParameterSignatures) {
+			if (next == null) {
+				throw new IllegalArgumentException("Parameter's type signature must not be null"); //$NON-NLS-1$
+			}
+		}
+	}
+}
+
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType
  */
@@ -196,6 +214,7 @@ public boolean isMember() {
 	return false;  // index did not record this information (since unused for hierarchies)
 }
 
+
 public void recordSuperType(char[] superTypeName, char[] superQualification, char superClassOrInterface){
 
 	// index encoding of p.A$B was B/p.A$, rebuild the proper name
@@ -214,17 +233,25 @@ public void recordSuperType(char[] superTypeName, char[] superQualification, cha
 		if (TypeDeclaration.kind(this.modifiers) == TypeDeclaration.INTERFACE_DECL) return;
 		char[] encodedName = CharOperation.concat(superQualification, superTypeName, '/');
 		CharOperation.replace(encodedName, '.', '/');
-		this.superclass = encodedName;
+		recordSuperclass(encodedName);
 	} else {
 		char[] encodedName = CharOperation.concat(superQualification, superTypeName, '/');
 		CharOperation.replace(encodedName, '.', '/');
-		if (this.superInterfaces == NoInterface){
-			this.superInterfaces = new char[][] { encodedName };
-		} else {
-			int length = this.superInterfaces.length;
-			System.arraycopy(this.superInterfaces, 0, this.superInterfaces = new char[length+1][], 0, length);
-			this.superInterfaces[length] = encodedName;
-		}
+		recordInterface(encodedName);
+	}
+}
+
+public void recordSuperclass(char[] binaryName) {
+	this.superclass = binaryName;
+}
+
+public void recordInterface(char[] binaryName) {
+	if (this.superInterfaces == NoInterface){
+		this.superInterfaces = new char[][] { binaryName };
+	} else {
+		int length = this.superInterfaces.length;
+		System.arraycopy(this.superInterfaces, 0, this.superInterfaces = new char[length+1][], 0, length);
+		this.superInterfaces[length] = binaryName;
 	}
 }
 
@@ -234,6 +261,7 @@ public void recordSuperType(char[] superTypeName, char[] superQualification, cha
 public char[] sourceFileName() {
 	return null;
 }
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer();
 	if (this.modifiers == ClassFileConstants.AccPublic) {
@@ -271,5 +299,9 @@ public String toString() {
 }
 public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(ITypeAnnotationWalker walker, Object member, LookupEnvironment environment) {
 	return walker;
+}
+@Override
+public ExternalAnnotationStatus getExternalAnnotationStatus() {
+	return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
 }
 }

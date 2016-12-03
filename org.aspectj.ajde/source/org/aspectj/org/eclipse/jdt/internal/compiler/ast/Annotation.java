@@ -320,11 +320,13 @@ public abstract class Annotation extends Expression {
 			case TypeIds.T_JavaLangAnnotationRetention :
 				if (valueAttribute != null) {
 					Expression expr = valueAttribute.value;
-					if ((expr.bits & Binding.VARIABLE) == Binding.FIELD && expr instanceof Reference) { // anything but Reference would be a type error anyway
+					if ((expr.bits & Binding.VARIABLE) == Binding.FIELD) {
+						if (expr instanceof Reference) { // New AspectJ Extension (pr148537)
 						FieldBinding field = ((Reference)expr).fieldBinding();
 						if (field != null && field.declaringClass.id == T_JavaLangAnnotationRetentionPolicy) {
 							tagBits |= getRetentionPolicy(field.name);
 						}
+						} // New AspectJ Extension - end of if()
 					}
 				}
 				break;
@@ -388,34 +390,32 @@ public abstract class Annotation extends Expression {
 			case TypeIds.T_JavaLangInvokeMethodHandlePolymorphicSignature :
 				tagBits |= TagBits.AnnotationPolymorphicSignature;
 				break;
-			case TypeIds.T_ConfiguredAnnotationNullable :
-				tagBits |= TagBits.AnnotationNullable;
-				break;
-			case TypeIds.T_ConfiguredAnnotationNonNull :
-				tagBits |= TagBits.AnnotationNonNull;
-				break;
-			case TypeIds.T_ConfiguredAnnotationNonNullByDefault :
-				// seeing this id implies that null annotation analysis is enabled
-				Object value = null;
-				if (valueAttribute != null) {
-					if (valueAttribute.compilerElementPair != null)
-						value = valueAttribute.compilerElementPair.value;
-				} else { // fetch default value  - TODO: cache it?
-					MethodBinding[] methods = annotationType.methods();
-					if (methods != null && methods.length == 1)
-						value = methods[0].getDefaultValue();
-					else
-						tagBits |= TagBits.AnnotationNonNullByDefault; // custom unconfigurable NNBD
-				}
-				if (value instanceof BooleanConstant) {
-					// boolean value is used for declaration annotations, signal using the annotation tag bit:
-					tagBits |= ((BooleanConstant)value).booleanValue() ? TagBits.AnnotationNonNullByDefault : TagBits.AnnotationNullUnspecifiedByDefault;
-				} else if (value != null) {
-					// non-boolean value signals type annotations, evaluate from DefaultLocation[] to bitvector a la Binding#NullnessDefaultMASK:
-					tagBits |= nullLocationBitsFromAnnotationValue(value);
-				}
-				break;
 		}
+		if (annotationType.hasNullBit(TypeIds.BitNullableAnnotation)) {
+			tagBits |= TagBits.AnnotationNullable;
+		} else if (annotationType.hasNullBit(TypeIds.BitNonNullAnnotation)) {
+			tagBits |= TagBits.AnnotationNonNull;
+		} else if (annotationType.hasNullBit(TypeIds.BitNonNullByDefaultAnnotation)) {
+			Object value = null;
+			if (valueAttribute != null) {
+				if (valueAttribute.compilerElementPair != null)
+					value = valueAttribute.compilerElementPair.value;
+			} else { // fetch default value  - TODO: cache it?
+				MethodBinding[] methods = annotationType.methods();
+				if (methods != null && methods.length == 1)
+					value = methods[0].getDefaultValue();
+				else
+					tagBits |= TagBits.AnnotationNonNullByDefault; // custom unconfigurable NNBD
+			}
+			if (value instanceof BooleanConstant) {
+				// boolean value is used for declaration annotations, signal using the annotation tag bit:
+				tagBits |= ((BooleanConstant)value).booleanValue() ? TagBits.AnnotationNonNullByDefault : TagBits.AnnotationNullUnspecifiedByDefault;
+			} else if (value != null) {
+				// non-boolean value signals type annotations, evaluate from DefaultLocation[] to bitvector a la Binding#NullnessDefaultMASK:
+				tagBits |= nullLocationBitsFromAnnotationValue(value);
+			}
+		}
+		
 		return tagBits;
 	}
 
@@ -1160,8 +1160,7 @@ public abstract class Annotation extends Expression {
 							QualifiedTypeReference.rejectAnnotationsOnStaticMemberQualififer(scope, currentType, new Annotation [] { annotation });
 							continue nextAnnotation;
 						} else {
-							int id = annotation.resolvedType.id;
-							if (id == TypeIds.T_ConfiguredAnnotationNonNull || id == TypeIds.T_ConfiguredAnnotationNullable) {
+							if (annotation.hasNullBit(TypeIds.BitNonNullAnnotation|TypeIds.BitNullableAnnotation)) {
 								scope.problemReporter().nullAnnotationUnsupportedLocation(annotation);
 								continue nextAnnotation;
 							}
@@ -1170,6 +1169,10 @@ public abstract class Annotation extends Expression {
 					}
 				}
 			}
+	}
+
+	public boolean hasNullBit(int bit) {
+		return this.resolvedType instanceof ReferenceBinding && ((ReferenceBinding) this.resolvedType).hasNullBit(bit);
 	}
 
 	public abstract void traverse(ASTVisitor visitor, BlockScope scope);

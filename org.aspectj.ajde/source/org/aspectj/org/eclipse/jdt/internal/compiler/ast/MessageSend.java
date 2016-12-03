@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,6 +52,7 @@
  *								Bug 452788 - [1.8][compiler] Type not correctly inferred in lambda expression
  *								Bug 456487 - [1.8][null] @Nullable type variant of @NonNull-constrained type parameter causes grief
  *								Bug 407414 - [compiler][null] Incorrect warning on a primitive type being null
+ *								Bug 472618 - [compiler][null] assertNotNull vs. Assert.assertNotNull
  *								Bug 470958 - [1.8] Unable to convert lambda 
  *     Jesper S Moller - Contributions for
  *								Bug 378674 - "The method can be declared as static" is wrong
@@ -76,6 +77,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
@@ -126,7 +128,7 @@ public class MessageSend extends Expression implements IPolyExpression, Invocati
 	public TypeBinding valueCast; // extra reference type cast to perform on method returned value
 	public TypeReference[] typeArguments;
 	public TypeBinding[] genericTypeArguments;
-	private ExpressionContext expressionContext = VANILLA_CONTEXT;
+	public ExpressionContext expressionContext = VANILLA_CONTEXT;
 
 	 // hold on to this context from invocation applicability inference until invocation type inference (per method candidate):
 	private SimpleLookupTable/*<PGMB,InferenceContext18>*/ inferenceContexts;
@@ -170,7 +172,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	}
 
 	if (nonStatic) {
-		this.receiver.checkNPE(currentScope, flowContext, flowInfo);
+		int timeToLive = ((this.bits & ASTNode.InsideExpressionStatement) != 0) ? 3 : 2;
+		this.receiver.checkNPE(currentScope, flowContext, flowInfo, timeToLive);
 	}
 
 	if (this.arguments != null) {
@@ -242,8 +245,9 @@ private int detectAssertionUtility(int argumentIdx) {
 	TypeBinding[] parameters = this.binding.original().parameters;
 	if (argumentIdx < parameters.length) {
 		TypeBinding parameterType = parameters[argumentIdx];
-		if (this.actualReceiverType != null && parameterType != null) {
-			switch (this.actualReceiverType.id) {
+		TypeBinding declaringClass = this.binding.declaringClass;
+		if (declaringClass != null && parameterType != null) {
+			switch (declaringClass.id) {
 				case TypeIds.T_OrgEclipseCoreRuntimeAssert:
 					if (parameterType.id == TypeIds.T_boolean)
 						return TRUE_ASSERTION;
@@ -376,10 +380,20 @@ private FlowInfo analyseNullAssertion(BlockScope currentScope, Expression argume
 	return flowInfo;
 }
 
-public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
 	// message send as a receiver
-	if ((nullStatus(flowInfo, flowContext) & FlowInfo.POTENTIALLY_NULL) != 0) // note that flowInfo is not used inside nullStatus(..)
-		scope.problemReporter().messageSendPotentialNullReference(this.binding, this);
+	int nullStatus = nullStatus(flowInfo, flowContext); // note that flowInfo is not used inside nullStatus(..)
+	if ((nullStatus & FlowInfo.POTENTIALLY_NULL) != 0) {
+		if(this.binding.returnType.isTypeVariable() && nullStatus == FlowInfo.FREE_TYPEVARIABLE && scope.environment().globalOptions.pessimisticNullAnalysisForFreeTypeVariablesEnabled) {
+			scope.problemReporter().methodReturnTypeFreeTypeVariableReference(this.binding, this);			
+		} else {
+			scope.problemReporter().messageSendPotentialNullReference(this.binding, this);
+		}
+	} else if ((this.resolvedType.tagBits & TagBits.AnnotationNonNull) != 0) {
+		NullAnnotationMatching nonNullStatus = NullAnnotationMatching.okNonNullStatus(this);
+		if (nonNullStatus.wantToReport())
+			nonNullStatus.report(scope);
+	}
 	return true; // done all possible checking
 }
 /**
@@ -393,16 +407,16 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 		MethodBinding originalBinding = this.binding.original();
 		TypeBinding originalType = originalBinding.returnType;
 	    // extra cast needed if method return type is type variable
-		if (originalType.leafComponentType().isTypeVariable()) {
+		if (ArrayBinding.isArrayClone(this.actualReceiverType, this.binding)
+				&& runtimeTimeType.id != TypeIds.T_JavaLangObject
+				&& scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
+			// from 1.5 source level on, array#clone() resolves to array type, but codegen to #clone()Object - thus require extra inserted cast
+			this.valueCast = runtimeTimeType;
+		} else if (originalType.leafComponentType().isTypeVariable()) {
 	    	TypeBinding targetType = (!compileTimeType.isBaseType() && runtimeTimeType.isBaseType())
 	    		? compileTimeType  // unboxing: checkcast before conversion
 	    		: runtimeTimeType;
 	        this.valueCast = originalType.genericCast(targetType);
-		} 	else if (this.binding == scope.environment().arrayClone
-				&& runtimeTimeType.id != TypeIds.T_JavaLangObject
-				&& scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
-					// from 1.5 source level on, array#clone() resolves to array type, but codegen to #clone()Object - thus require extra inserted cast
-			this.valueCast = runtimeTimeType;
 		}
         if (this.valueCast instanceof ReferenceBinding) {
 			ReferenceBinding referenceCast = (ReferenceBinding) this.valueCast;
@@ -426,6 +440,7 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
  * @param valueRequired boolean
  */
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
+	cleanUpInferenceContexts();
 	int pc = codeStream.position;
 	// generate receiver/enclosing instance access
 	MethodBinding codegenBinding = this.binding instanceof PolymorphicMethodBinding ? this.binding : this.binding.original();
@@ -474,7 +489,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 		codeStream.invoke(Opcodes.OPC_invokestatic, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
 		} else {
 			codeStream.invoke(Opcodes.OPC_invokevirtual, this.syntheticAccessor, null /* default declaringClass */, this.typeArguments);
-		}
+		    }
 		// End AspectJ extension
 	}
 	// required cast must occur even if no value is required
@@ -579,7 +594,10 @@ public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
 		// try to retrieve null status of this message send from an annotation of the called method:
 		long tagBits = this.binding.tagBits;
 		if ((tagBits & TagBits.AnnotationNullMASK) == 0L) // alternatively look for type annotation (will only be present in 1.8+):
-			tagBits = this.binding.returnType.tagBits;
+			tagBits = this.binding.returnType.tagBits & TagBits.AnnotationNullMASK;
+		if(tagBits == 0L && this.binding.returnType.isFreeTypeVariable()) {
+			return FlowInfo.FREE_TYPEVARIABLE;
+		}
 		return FlowInfo.tagBitsToNullStatus(tagBits);
 	}
 	return FlowInfo.UNKNOWN;
@@ -665,10 +683,10 @@ public TypeBinding resolveType(BlockScope scope) {
 //		scope.problemReporter().genericInferenceError("Receiver was unexpectedly found resolved", this); //$NON-NLS-1$
 	// AspectJ Extension: End
 	this.actualReceiverType = this.receiver.resolveType(scope);
-		if (this.actualReceiverType instanceof InferenceVariable) {
-			return null; // not yet ready for resolving
-		}
-		this.receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
+	if (this.actualReceiverType instanceof InferenceVariable) {
+		return null; // not yet ready for resolving
+	}
+	this.receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
 	if (receiverCast && this.actualReceiverType != null) {
 		 // due to change of declaring class with receiver type, only identity cast should be notified
 		if (TypeBinding.equalsEquals(((CastExpression)this.receiver).expression.resolvedType, this.actualReceiverType)) {
@@ -682,7 +700,7 @@ public TypeBinding resolveType(BlockScope scope) {
 		this.genericTypeArguments = new TypeBinding[length];
 		for (int i = 0; i < length; i++) {
 			TypeReference typeReference = this.typeArguments[i];
-			if ((this.genericTypeArguments[i] = typeReference.resolveType(scope, true /* check bounds*/)) == null) {
+				if ((this.genericTypeArguments[i] = typeReference.resolveType(scope, true /* check bounds*/, Binding.DefaultLocationTypeArgument)) == null) {
 					this.argumentsHaveErrors = true;
 			}
 				if (this.argumentsHaveErrors && typeReference instanceof Wildcard) {
@@ -840,7 +858,7 @@ public TypeBinding resolveType(BlockScope scope) {
 			if (this.binding instanceof ParameterizedGenericMethodBinding && this.typeArguments != null) {
 				TypeVariableBinding[] typeVariables = this.binding.original().typeVariables();
 				for (int i = 0; i < this.typeArguments.length; i++)
-					this.typeArguments[i].checkNullConstraints(scope, typeVariables, i);
+					this.typeArguments[i].checkNullConstraints(scope, (ParameterizedGenericMethodBinding) this.binding, typeVariables, i);
 			}
 		}
 	}
@@ -895,10 +913,6 @@ public TypeBinding resolveType(BlockScope scope) {
 	if (isMethodUseDeprecated(this.binding, scope, true))
 		scope.problemReporter().deprecatedMethod(this.binding, this);
 
-	// from 1.5 source level on, array#clone() returns the array type (but binding still shows Object)
-	if (this.binding == scope.environment().arrayClone && compilerOptions.sourceLevel >= ClassFileConstants.JDK1_5) {
-		this.resolvedType = this.actualReceiverType;
-	} else {
 		TypeBinding returnType;
 		if ((this.bits & ASTNode.Unchecked) != 0 && this.genericTypeArguments == null) {
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=277643, align with javac on JLS 15.12.2.6
@@ -913,7 +927,6 @@ public TypeBinding resolveType(BlockScope scope) {
 			}
 		}
 		this.resolvedType = returnType;
-	}
 	if (this.receiver.isSuper() && compilerOptions.getSeverity(CompilerOptions.OverridingMethodWithoutSuperInvocation) != ProblemSeverities.Ignore) {
 		final ReferenceContext referenceContext = scope.methodScope().referenceContext;
 		if (referenceContext instanceof AbstractMethodDeclaration) {
@@ -1032,9 +1045,7 @@ public boolean isCompatibleWith(TypeBinding targetType, final Scope scope) {
 		TypeBinding returnType;
 		if (method == null || !method.isValidBinding() || (returnType = method.returnType) == null || !returnType.isValidBinding())
 			return false;
-		if (method == scope.environment().arrayClone)
-			returnType = this.actualReceiverType;
-		return returnType != null && returnType.capture(scope, this.sourceStart, this.sourceEnd).isCompatibleWith(targetType, scope);
+		return returnType.capture(scope, this.sourceStart, this.sourceEnd).isCompatibleWith(targetType, scope);
 	} finally {
 		this.expectedType = originalExpectedType;
 	}
@@ -1124,6 +1135,17 @@ public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method)
 	if (this.inferenceContexts == null)
 		return null;
 	return (InferenceContext18) this.inferenceContexts.get(method);
+}
+@Override
+public void cleanUpInferenceContexts() {
+	if (this.inferenceContexts == null)
+		return;
+	for (Object value : this.inferenceContexts.valueTable)
+		if (value != null)
+			((InferenceContext18) value).cleanUp();
+	this.inferenceContexts = null;
+	this.outerInferenceContext = null;
+	this.solutionsPerTargetType = null;
 }
 public Expression[] arguments() {
 	return this.arguments;

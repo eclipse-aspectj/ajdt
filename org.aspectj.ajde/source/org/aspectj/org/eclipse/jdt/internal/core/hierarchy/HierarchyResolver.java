@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubMonitor;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.Signature;
@@ -73,6 +74,7 @@ public class HierarchyResolver implements ITypeRequestor {
 	private CompilerOptions options;
 	HierarchyBuilder builder;
 	private ReferenceBinding[] typeBindings;
+	private BindingMap<IGenericType> bindingMap = new BindingMap<>();
 
 	private int typeIndex;
 	private IGenericType[] typeModels;
@@ -211,10 +213,9 @@ private IType findSuperClass(IGenericType type, ReferenceBinding typeBinding) {
 				}
 			}
 		}
-		for (int t = this.typeIndex; t >= 0; t--) {
-			if (TypeBinding.equalsEquals(this.typeBindings[t], superBinding)) {
-				return this.builder.getHandle(this.typeModels[t], superBinding);
-			}
+		IGenericType typeModel = this.bindingMap.get(superBinding);
+		if (typeModel != null) {
+			return this.builder.getHandle(typeModel, superBinding);
 		}
 	}
 	return null;
@@ -290,13 +291,12 @@ private IType[] findSuperInterfaces(IGenericType type, ReferenceBinding typeBind
 			// ensure that the binding corresponds to the interface defined by the user
 			if (CharOperation.equals(simpleName, interfaceBinding.sourceName)) {
 				bindingIndex++;
-				for (int t = this.typeIndex; t >= 0; t--) {
-					if (TypeBinding.equalsEquals(this.typeBindings[t], interfaceBinding)) {
-						IType handle = this.builder.getHandle(this.typeModels[t], interfaceBinding);
-						if (handle != null) {
-							superinterfaces[index++] = handle;
-							continue next;
-						}
+				IGenericType genericType = this.bindingMap.get(interfaceBinding);
+				if (genericType != null) {
+					IType handle = this.builder.getHandle(genericType, interfaceBinding);
+					if (handle != null) {
+						superinterfaces[index++] = handle;
+						continue next;
 					}
 				}
 			}
@@ -392,6 +392,7 @@ private void remember(IGenericType suppliedType, ReferenceBinding typeBinding) {
 	}
 	this.typeModels[this.typeIndex] = suppliedType;
 	this.typeBindings[this.typeIndex] = typeBinding;
+	this.bindingMap.put(typeBinding, suppliedType);
 }
 private void remember(IType type, ReferenceBinding typeBinding) {
 	if (((CompilationUnit)type.getCompilationUnit()).isOpen()) {
@@ -581,6 +582,7 @@ private void reset(){
 	this.typeIndex = -1;
 	this.typeModels = new IGenericType[5];
 	this.typeBindings = new ReferenceBinding[5];
+	this.bindingMap.clear();
 }
 
 /**
@@ -648,6 +650,7 @@ public void resolve(IGenericType suppliedType) {
  * @param monitor
  */
 public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor monitor) {
+	SubMonitor subMonitor = SubMonitor.convert(monitor, 3);
 	try {
 		int openablesLength = openables.length;
 		CompilationUnitDeclaration[] parsedUnits = new CompilationUnitDeclaration[openablesLength];
@@ -667,6 +670,7 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 			}
 		}
 
+		subMonitor.split(1);
 		// build type bindings
 		Parser parser = new Parser(this.lookupEnvironment.problemReporter, true);
 		final boolean isJava8 = this.options.sourceLevel >= ClassFileConstants.JDK1_8;
@@ -793,14 +797,14 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 			}
 		}
 
+		SubMonitor unitLoopMonitor = subMonitor.split(1).setWorkRemaining(unitsIndex);
 		// complete type bindings (i.e. connect super types)
 		for (int i = 0; i < unitsIndex; i++) {
+			unitLoopMonitor.split(1);
 			CompilationUnitDeclaration parsedUnit = parsedUnits[i];
 			if (parsedUnit != null) {
 				try {
 					if (hasLocalType[i]) { // NB: no-op if method bodies have been already parsed
-						if (monitor != null && monitor.isCanceled())
-							throw new OperationCanceledException();
 						parser.getMethodBodies(parsedUnit);
 					}
 				} catch (AbortCompilation e) {
@@ -813,15 +817,17 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 		// (in this case the constructor is needed when resolving local types)
 		// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=145333)
 		try {
+			SubMonitor completeLoopMonitor = subMonitor.split(1).setWorkRemaining(unitsIndex);
 			this.lookupEnvironment.completeTypeBindings(parsedUnits, hasLocalType, unitsIndex);
 			// remember type bindings
 			for (int i = 0; i < unitsIndex; i++) {
+				completeLoopMonitor.split(1);
 				CompilationUnitDeclaration parsedUnit = parsedUnits[i];
-				if (parsedUnit != null && !parsedUnit.hasErrors()) {
+				// https://bugs.eclipse.org/bugs/show_bug.cgi?id=462158
+				// Certain assist features require type hierarchy even with code with compiler errors.
+				if (parsedUnit != null) {
 					boolean containsLocalType = hasLocalType[i];
 					if (containsLocalType) {
-						if (monitor != null && monitor.isCanceled())
-							throw new OperationCanceledException();
 						parsedUnit.scope.faultInTypes();
 						parsedUnit.resolve();
 					}
@@ -832,8 +838,6 @@ public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor m
 		} catch (AbortCompilation e) {
 			// skip it silently
 		}
-		worked(monitor, 1);
-
 
 		// if no potential subtype was a real subtype of the binary focus type, no need to go further
 		// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=54043)
@@ -865,6 +869,7 @@ private void setEnvironment(LookupEnvironment lookupEnvironment, HierarchyBuilde
 	this.typeIndex = -1;
 	this.typeModels = new IGenericType[5];
 	this.typeBindings = new ReferenceBinding[5];
+	this.bindingMap.clear();
 }
 
 /*

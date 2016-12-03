@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,7 +29,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
  * A code snippet evaluator compiles and returns class file for a code snippet.
  * Or it reports problems against the code snippet.
  */
-@SuppressWarnings({ "rawtypes" })
 public class CodeSnippetEvaluator extends Evaluator implements EvaluationConstants {
 	/**
 	 * Whether the code snippet support classes should be found in the provided name environment
@@ -49,14 +48,14 @@ public class CodeSnippetEvaluator extends Evaluator implements EvaluationConstan
 /**
  * Creates a new code snippet evaluator.
  */
-CodeSnippetEvaluator(char[] codeSnippet, EvaluationContext context, INameEnvironment environment, Map options, IRequestor requestor, IProblemFactory problemFactory) {
+CodeSnippetEvaluator(char[] codeSnippet, EvaluationContext context, INameEnvironment environment, Map<String, String> options, IRequestor requestor, IProblemFactory problemFactory) {
 	super(context, environment, options, requestor, problemFactory);
 	this.codeSnippet = codeSnippet;
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.eval.Evaluator
  */
-protected void addEvaluationResultForCompilationProblem(Map resultsByIDs, CategorizedProblem problem, char[] cuSource) {
+protected void addEvaluationResultForCompilationProblem(Map<char[], EvaluationResult> resultsByIDs, CategorizedProblem problem, char[] cuSource) {
 	CodeSnippetToCuMapper sourceMapper = getMapper();
 	int pbLineNumber = problem.getSourceLineNumber();
 	int evaluationType = sourceMapper.getEvaluationType(pbLineNumber);
@@ -95,7 +94,7 @@ protected void addEvaluationResultForCompilationProblem(Map resultsByIDs, Catego
 			break;
 	}
 
-	EvaluationResult result = (EvaluationResult)resultsByIDs.get(evaluationID);
+	EvaluationResult result = resultsByIDs.get(evaluationID);
 	if (result == null) {
 		resultsByIDs.put(evaluationID, new EvaluationResult(evaluationID, evaluationType, new CategorizedProblem[] {problem}));
 	} else {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2015 GK Software AG.
+ * Copyright (c) 2014, 2016 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.classfmt;
 
@@ -28,7 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 public class ExternalAnnotationProvider {
 
-	public static final String ANNOTION_FILE_EXTENSION= "eea"; //$NON-NLS-1$
+	public static final String ANNOTATION_FILE_EXTENSION= "eea"; //$NON-NLS-1$
 	public static final String CLASS_PREFIX = "class "; //$NON-NLS-1$
 	public static final String SUPER_PREFIX = "super "; //$NON-NLS-1$
 
@@ -44,7 +46,7 @@ public class ExternalAnnotationProvider {
 	 */
 	public static final char NO_ANNOTATION = '@';
 
-	static final String ANNOTATION_FILE_SUFFIX = ".eea"; //$NON-NLS-1$
+	public static final String ANNOTATION_FILE_SUFFIX = ".eea"; //$NON-NLS-1$
 
 	private static final String TYPE_PARAMETER_PREFIX = " <"; //$NON-NLS-1$
 
@@ -67,8 +69,7 @@ public class ExternalAnnotationProvider {
 	}
 
 	private void initialize(InputStream input) throws IOException {
-		LineNumberReader reader = new LineNumberReader(new InputStreamReader(input));
-		try {
+		try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(input))) {
 			assertClassHeader(reader.readLine(), this.typeName);
 
 			String line;
@@ -123,20 +124,18 @@ public class ExternalAnnotationProvider {
 				annotSig = trimTail(annotSig);
 				if (isSuper) {
 					if (this.supertypeAnnotationSources == null)
-						this.supertypeAnnotationSources = new HashMap<String, String>();
+						this.supertypeAnnotationSources = new HashMap<>();
 					this.supertypeAnnotationSources.put('L'+selector+rawSig+';', annotSig);
 				} else if (rawSig.contains("(")) { //$NON-NLS-1$
 					if (this.methodAnnotationSources == null)
-						this.methodAnnotationSources = new HashMap<String, String>();
+						this.methodAnnotationSources = new HashMap<>();
 					this.methodAnnotationSources.put(selector+rawSig, annotSig);
 				} else {
 					if (this.fieldAnnotationSources == null)
-						this.fieldAnnotationSources = new HashMap<String, String>();
+						this.fieldAnnotationSources = new HashMap<>();
 					this.fieldAnnotationSources.put(selector+':'+rawSig, annotSig);
 				}
 			} while (((line = pendingLine) != null) || (line = reader.readLine()) != null);
-		} finally {
-			reader.close();
 		}
 	}
 
@@ -144,7 +143,7 @@ public class ExternalAnnotationProvider {
 	 * Assert that the given line is a class header for 'typeName' (slash-separated qualified name).
 	 */
 	public static void assertClassHeader(String line, String typeName) throws IOException {
-		if (line.startsWith(CLASS_PREFIX)) {
+		if (line != null && line.startsWith(CLASS_PREFIX)) {
 			line = line.substring(CLASS_PREFIX.length());
 		} else {
 			throw new IOException("missing class header in annotation file"); //$NON-NLS-1$
@@ -400,7 +399,7 @@ public class ExternalAnnotationProvider {
 						}
 				}				
 			}
-			return null;
+			return NO_ANNOTATIONS;
 		}
 	}
 
@@ -438,6 +437,25 @@ public class ExternalAnnotationProvider {
 							case Util.C_NAME_END :
 								if ((depth == 0) && (i +1 < length) && (this.source[i+1] != Util.C_COLON))
 									pendingVariable = true;
+								break;
+							case Util.C_COLON :
+								if (depth == 0)
+									pendingVariable = true; // end of variable name
+								// skip optional bound ReferenceTypeSignature
+								i++; // peek next
+								while (i < length && this.source[i] == Util.C_ARRAY)
+									i++;
+								if (i < length && this.source[i] == Util.C_RESOLVED) {
+									int currentdepth = depth;
+									while (i < length && (currentdepth != depth || this.source[i] != Util.C_NAME_END)) {
+										if(this.source[i] == Util.C_GENERIC_START)
+											currentdepth++;
+										if(this.source[i] == Util.C_GENERIC_END)
+											currentdepth--;
+										i++;
+									}
+								}
+								i--; // unget
 								break;
 							default:
 								if (pendingVariable) {

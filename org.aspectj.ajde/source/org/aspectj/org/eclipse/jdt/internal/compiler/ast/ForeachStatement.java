@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -94,9 +94,9 @@ public class ForeachStatement extends Statement {
 		int initialComplaintLevel = (flowInfo.reachMode() & FlowInfo.UNREACHABLE) != 0 ? Statement.COMPLAINED_FAKE_REACHABLE : Statement.NOT_COMPLAINED;
 
 		// process the element variable and collection
-		this.collection.checkNPE(currentScope, flowContext, flowInfo);
 		flowInfo = this.elementVariable.analyseCode(this.scope, flowContext, flowInfo);		
 		FlowInfo condInfo = this.collection.analyseCode(this.scope, flowContext, flowInfo.copy());
+		this.collection.checkNPE(currentScope, flowContext, condInfo.copy(), 1);
 		LocalVariableBinding elementVarBinding = this.elementVariable.binding;
 
 		// element variable will be assigned when iterating
@@ -113,7 +113,7 @@ public class ForeachStatement extends Statement {
 			condInfo.nullInfoLessUnconditionalCopy();
 		actionInfo.markAsDefinitelyUnknown(elementVarBinding);
 		if (currentScope.compilerOptions().isAnnotationBasedNullAnalysisEnabled) {
-			int elementNullStatus = FlowInfo.tagBitsToNullStatus(this.collectionElementType.tagBits);
+			int elementNullStatus = NullAnnotationMatching.nullStatusFromExpressionType(this.collectionElementType);
 			int nullStatus = NullAnnotationMatching.checkAssignment(currentScope, flowContext, elementVarBinding, null, // have no useful flowinfo for element var
 																		elementNullStatus, this.collection, this.collectionElementType);
 			if ((elementVarBinding.type.tagBits & TagBits.IsBaseType) == 0) {
@@ -427,7 +427,7 @@ public class ForeachStatement extends Statement {
 			boolean isTargetJsr14 = this.scope.compilerOptions().targetJDK == ClassFileConstants.JDK1_4;
 			if (collectionType.isCapture()) {
 				TypeBinding upperBound = ((CaptureBinding)collectionType).firstBound;
-				if (upperBound.isArrayType())
+				if (upperBound != null && upperBound.isArrayType())
 					collectionType = upperBound; // partially anticipating the fix for https://bugs.openjdk.java.net/browse/JDK-8013843
 			}
 			if (collectionType.isArrayType()) { // for(E e : E[])

@@ -55,7 +55,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 	public AnnotationDiscoveryVisitor(BaseProcessingEnvImpl env) {
 		_env = env;
 		_factory = env.getFactory();
-		_annoToElement = new ManyToMany<TypeElement, Element>();
+		_annoToElement = new ManyToMany<>();
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 					argument.binding = new AptSourceLocalVariableBinding(argument.binding, binding);
 				}
 			}
-			if (annotations != null) {
+			if (annotations != null && argument.binding != null) {
 				this.resolveAnnotations(
 						scope,
 						annotations,

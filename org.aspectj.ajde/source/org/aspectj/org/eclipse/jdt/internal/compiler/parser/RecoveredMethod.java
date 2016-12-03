@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,7 +40,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
  * Internal method structure for parsing recovery
  */
 
-@SuppressWarnings("rawtypes")
 public class RecoveredMethod extends RecoveredElement implements TerminalTokens {
 
 	public AbstractMethodDeclaration methodDeclaration;
@@ -97,7 +96,11 @@ public RecoveredElement add(Block nestedBlockDeclaration, int bracketBalanceValu
 		this.bracketBalance++;
 	}
 
-	this.methodBody = new RecoveredBlock(nestedBlockDeclaration, this, bracketBalanceValue);
+	if (this.methodBody != null) {
+		this.methodBody.addBlockStatement(new RecoveredBlock(nestedBlockDeclaration, this, bracketBalanceValue));
+	} else {
+		this.methodBody = new RecoveredBlock(nestedBlockDeclaration, this, bracketBalanceValue);
+	}
 	if (nestedBlockDeclaration.sourceEnd == 0) return this.methodBody;
 	return this;
 }
@@ -338,7 +341,7 @@ public void updateBodyStart(int bodyStart){
 	this.foundOpeningBrace = true;
 	this.methodDeclaration.bodyStart = bodyStart;
 }
-public AbstractMethodDeclaration updatedMethodDeclaration(int depth, Set knownTypes){
+public AbstractMethodDeclaration updatedMethodDeclaration(int depth, Set<TypeDeclaration> knownTypes){
 	/* update annotations */
 	if (this.modifiers != 0) {
 		this.methodDeclaration.modifiers |= this.modifiers;
@@ -577,7 +580,7 @@ public RecoveredElement updateOnOpeningBrace(int braceStart, int braceEnd){
 	return super.updateOnOpeningBrace(braceStart, braceEnd);
 }
 public void updateParseTree(){
-	updatedMethodDeclaration(0, new HashSet());
+	updatedMethodDeclaration(0, new HashSet<TypeDeclaration>());
 }
 /*
  * Update the declarationSourceEnd of the corresponding parse node

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 GK Software AG.
+ * Copyright (c) 2015, 2016 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -62,13 +64,13 @@ public class ExternalAnnotationTracker implements IResourceChangeListener {
 
 		Map<IPath, DirectoryNode> getChildren() {
 			if (this.children == null)
-				this.children = new HashMap<IPath, DirectoryNode>();
+				this.children = new HashMap<>();
 			return this.children;
 		}
 
 		void registerClassFile(IPath relativeAnnotationPath, ClassFile classFile) {
 			if (this.classFiles == null)
-				this.classFiles = new HashMap<IPath, ClassFile>();
+				this.classFiles = new HashMap<>();
 			this.classFiles.put(relativeAnnotationPath, classFile);
 			if (this.modelRoot == null)
 				this.modelRoot = classFile.getPackageFragmentRoot();
@@ -147,7 +149,7 @@ public class ExternalAnnotationTracker implements IResourceChangeListener {
 		if (baseDepth == 0) {
 			Util.log(new IllegalArgumentException("annotationBase cannot be empty")); //$NON-NLS-1$
 		} else {
-			relativeAnnotationPath = relativeAnnotationPath.addFileExtension(ExternalAnnotationProvider.ANNOTION_FILE_EXTENSION);
+			relativeAnnotationPath = relativeAnnotationPath.addFileExtension(ExternalAnnotationProvider.ANNOTATION_FILE_EXTENSION);
 			DirectoryNode base = singleton.getAnnotationBase(singleton.tree, annotationBase, baseDepth, 1);
 			base.registerClassFile(relativeAnnotationPath, classFile);
 		}
@@ -164,7 +166,7 @@ public class ExternalAnnotationTracker implements IResourceChangeListener {
 		if (baseDepth == 0) {
 			Util.log(new IllegalArgumentException("annotationBase cannot be empty")); //$NON-NLS-1$
 		} else {
-			relativeAnnotationPath = relativeAnnotationPath.addFileExtension(ExternalAnnotationProvider.ANNOTION_FILE_EXTENSION);
+			relativeAnnotationPath = relativeAnnotationPath.addFileExtension(ExternalAnnotationProvider.ANNOTATION_FILE_EXTENSION);
 			DirectoryNode base = singleton.getAnnotationBase(singleton.tree, annotationBase, baseDepth, 1);
 			base.unregisterClassFile(relativeAnnotationPath);
 		}

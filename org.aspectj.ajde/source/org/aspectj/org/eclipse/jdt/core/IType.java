@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * The children are of type <code>IMember</code>, which includes <code>IField</code>,
  * <code>IMethod</code>, <code>IInitializer</code> and <code>IType</code>.
  * The children are listed in the order in which they appear in the source or class file.
+ * </p>
+ * <p>
+ * Caveat: The {@link #getChildren() children} of a {@link #isBinary() binary} type include
+ * nested types. However, the {@link #getParent() parent} of such a nested binary type is
+ * <em>not</em> the enclosing type, but that nested type's {@link IClassFile}!
  * </p>
  *
  * @noimplement This interface is not intended to be implemented by clients.
@@ -624,6 +629,8 @@ public interface IType extends IMember, IAnnotatable {
 	 * The type signatures may be either unresolved (for source types)
 	 * or resolved (for binary types), and either basic (for basic types)
 	 * or rich (for parameterized types). See {@link Signature} for details.
+	 * Note that the parameter type signatures for binary methods are expected 
+	 * to be dot-based.
 	 * </p>
 	 *
 	 * @param name the given name

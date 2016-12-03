@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -69,7 +70,7 @@ public class CodeSnippetSkeleton implements IBinaryType, EvaluationConstants {
 		public int getModifiers() {
 			return ClassFileConstants.AccPublic;
 		}
-		public IBinaryAnnotation[] getParameterAnnotations(int index) {
+		public IBinaryAnnotation[] getParameterAnnotations(int index, char[] classFileName) {
 			return null;
 		}
 		public int getAnnotatedParametersCount() {
@@ -196,5 +197,9 @@ public char[] sourceFileName() {
 }
 public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(ITypeAnnotationWalker walker, Object member, LookupEnvironment environment) {
 	return walker;
+}
+@Override
+public ExternalAnnotationStatus getExternalAnnotationStatus() {
+	return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
 }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - inconsistent initialization of classpath container backed by external class folder, see https://bugs.eclipse.org/320618
  *     Thirumala Reddy Mutchukota <thirumala@google.com> - Contribution to bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=411423
  *     Terry Parker <tparker@google.com> - [performance] Low hit rates in JavaModel caches - https://bugs.eclipse.org/421165
+ *     Andrey Loskutov <loskutov@gmx.de> - ExternalFoldersManager.RefreshJob interrupts auto build job - https://bugs.eclipse.org/476059
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
@@ -31,6 +32,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -62,14 +64,14 @@ public class ExternalFoldersManager {
 			getFolders();
 		}
 	}
-	
+
 	public static synchronized ExternalFoldersManager getExternalFoldersManager() {
 		if (MANAGER == null) {
 			 MANAGER = new ExternalFoldersManager();
 		}
 		return MANAGER;
 	}
-	
+
 	/**
 	 * Returns a set of external paths to external folders referred to on the given classpath.
 	 * Returns <code>null</code> if there are none.
@@ -150,8 +152,8 @@ public class ExternalFoldersManager {
 		knownFolders.put(externalFolderPath, result);
 		return result;
 	}
-	
-	/** 
+
+	/**
 	 * Try to remove the argument from the list of folders pending for creation.
 	 * @param externalPath to link to
 	 * @return true if the argument was found in the list of pending folders and could be removed from it.
@@ -169,7 +171,7 @@ public class ExternalFoldersManager {
 
 	private IFolder createLinkFolder(IPath externalFolderPath, boolean refreshIfExistAlready,
 									IProject externalFoldersProject, IProgressMonitor monitor) throws CoreException {
-		
+
 		IFolder result = addFolder(externalFolderPath, externalFoldersProject, false);
 		if (!result.exists())
 			result.createLink(externalFolderPath, IResource.ALLOW_MISSING_LOCAL, monitor);
@@ -182,7 +184,7 @@ public class ExternalFoldersManager {
 		synchronized (this) {
 			if (this.pendingFolders == null || this.pendingFolders.isEmpty()) return;
 		}
-		
+
 		IProject externalFoldersProject = null;
 		try {
 			externalFoldersProject = createExternalFoldersProject(monitor);
@@ -192,7 +194,7 @@ public class ExternalFoldersManager {
 		}
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=368152
 		// To avoid race condition (from addFolder and removeFolder, load the map elements into an array and clear the map immediately.
-		// The createLinkFolder being in the synchronized block can cause a deadlock and hence keep it out of the synchronized block. 
+		// The createLinkFolder being in the synchronized block can cause a deadlock and hence keep it out of the synchronized block.
 		Object[] arrayOfFolders = null;
 		synchronized (this.pendingFolders) {
 			arrayOfFolders = this.pendingFolders.toArray();
@@ -207,7 +209,7 @@ public class ExternalFoldersManager {
 			}
 		}
 	}
-	
+
 	public void cleanUp(IProgressMonitor monitor) throws CoreException {
 		ArrayList toDelete = getFoldersToCleanUp(monitor);
 		if (toDelete == null)
@@ -273,7 +275,7 @@ public class ExternalFoldersManager {
 			project.open(monitor);
 		} catch (CoreException e1) {
 			if (e1.getStatus().getCode() == IResourceStatus.FAILED_READ_METADATA) {
-				// workspace was moved 
+				// workspace was moved
 				// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=241400 and https://bugs.eclipse.org/bugs/show_bug.cgi?id=252571 )
 				project.delete(false/*don't delete content*/, true/*force*/, monitor);
 				createExternalFoldersProject(project, monitor);
@@ -351,7 +353,7 @@ public class ExternalFoldersManager {
 		}
 		return this.folders;
 	}
-	
+
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=313153
 	// Use the same RefreshJob if the job is still available
 	private void runRefreshJob(Collection paths) {
@@ -389,15 +391,15 @@ public class ExternalFoldersManager {
 					continue;
 
 				HashSet foldersInProject = getExternalFolders(((JavaProject) JavaCore.create(sourceProjects[index])).getResolvedClasspath());
-				
+
 				if (foldersInProject == null || foldersInProject.size() == 0)
 					continue;
 				if (externalFolders == null)
 					externalFolders = new HashSet();
-				
+
 				externalFolders.addAll(foldersInProject);
 			}
-			if (externalFolders == null) 
+			if (externalFolders == null)
 				return;
 
 			runRefreshJob(externalFolders);
@@ -417,7 +419,7 @@ public class ExternalFoldersManager {
 			HashSet externalFolders = getExternalFolders(((JavaProject) JavaCore.create(source)).getResolvedClasspath());
 			if (externalFolders == null)
 				return;
-			
+
 			runRefreshJob(externalFolders);
 		} catch (CoreException e) {
 			Util.log(e, "Exception while refreshing external project"); //$NON-NLS-1$
@@ -434,19 +436,23 @@ public class ExternalFoldersManager {
 		RefreshJob(Vector externalFolders){
 			super(Messages.refreshing_external_folders);
 			this.externalFolders = externalFolders;
+			// bug 476059: don't interrupt autobuild by using rule and system flag.
+			setSystem(true);
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			setRule(workspace.getRuleFactory().refreshRule(workspace.getRoot()));
 		}
-		
+
 		public boolean belongsTo(Object family) {
 			return family == ResourcesPlugin.FAMILY_MANUAL_REFRESH;
 		}
-		
+
 		/*
-		 * Add the collection of paths to be refreshed to the already 
-		 * existing list of paths.  
+		 * Add the collection of paths to be refreshed to the already
+		 * existing list of paths.
 		 */
 		public void addFoldersToRefresh(Collection paths) {
 			if (!paths.isEmpty() && this.externalFolders == null) {
-				this.externalFolders = new Vector(); 
+				this.externalFolders = new Vector();
 			}
 			Iterator it = paths.iterator();
 			while(it.hasNext()) {
@@ -456,10 +462,10 @@ public class ExternalFoldersManager {
 				}
 			}
 		}
-		
+
 		protected IStatus run(IProgressMonitor pm) {
 			try {
-				if (this.externalFolders == null) 
+				if (this.externalFolders == null)
 					return Status.OK_STATUS;
 				IPath externalPath = null;
 				for (int index = 0; index < this.externalFolders.size(); index++ ) {
@@ -481,5 +487,5 @@ public class ExternalFoldersManager {
 			return Status.OK_STATUS;
 		}
 	}
-	
+
 }

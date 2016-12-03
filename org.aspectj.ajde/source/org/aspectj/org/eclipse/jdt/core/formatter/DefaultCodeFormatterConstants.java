@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -67,6 +67,17 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.0
 	 */
 	public static final String FORMATTER_ALIGN_TYPE_MEMBERS_ON_COLUMNS = JavaCore.PLUGIN_ID + ".formatter.align_type_members_on_columns";	 //$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to align groups of members independently if they are separated by a certain number of blank lines
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.align_fields_grouping_blank_lines"
+	 *     - possible values:   "&lt;n&gt;", where n is a positive integer
+	 *     - default:           {@code Integer.MAX_VALUE}
+	 * </pre>
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_ALIGN_FIELDS_GROUPING_BLANK_LINES = JavaCore.PLUGIN_ID + ".formatter.align_fields_grouping_blank_lines";	 //$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -202,6 +213,18 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_ARRAY_INITIALIZER = JavaCore.PLUGIN_ID + ".formatter.alignment_for_expressions_in_array_initializer";	 //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option for alignment of initialization, termination, and increment expressions in 'for'
+	 *             loop header
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_for_loop_header"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_FOR_LOOP_HEADER = JavaCore.PLUGIN_ID + ".formatter.alignment_for_expressions_in_for_loop_header";	 //$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option for alignment of method declaration
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_method_declaration"
 	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
@@ -222,6 +245,18 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.0
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_MULTIPLE_FIELDS = JavaCore.PLUGIN_ID + ".formatter.alignment_for_multiple_fields";//$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of type arguments in parameterized type references
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_parameterized_type_references"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_PARAMETERIZED_TYPE_REFERENCES = JavaCore.PLUGIN_ID + ".formatter.alignment_for_parameterized_type_references";	 //$NON-NLS-1$
+
 	/**
 	 * <pre>
 	 * FORMATTER / Option for alignment of parameters in constructor declaration
@@ -321,6 +356,28 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.0
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_THROWS_CLAUSE_IN_METHOD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.alignment_for_throws_clause_in_method_declaration";	 //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of type arguments in method invocations and references
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_type_arguments"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.alignment_for_type_arguments";	 //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of type parameters in method and type declarations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_type_parameters"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_NO_SPLIT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_TYPE_PARAMETERS = JavaCore.PLUGIN_ID + ".formatter.alignment_for_type_parameters";	 //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option for alignment of exceptions declared in a Union Type in the argument of a multicatch statement
@@ -625,6 +682,161 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.10
 	 */
 	public static final String FORMATTER_BRACE_POSITION_FOR_LAMBDA_BODY = JavaCore.PLUGIN_ID + ".formatter.brace_position_for_lambda_body";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in method declarations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_method_declaration"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_NOT_EMPTY, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_NOT_EMPTY
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_method_delcaration";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in method invocations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_method_invocation"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_NOT_EMPTY, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_NOT_EMPTY
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_method_invocation";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in enum constant declarations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_enum_constant_declaration"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_NOT_EMPTY, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_NOT_EMPTY
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_enum_constant_declaration";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in 'if' and 'while' statements
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_if_while_statement"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_if_while_statement";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in 'for' statements
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_for_statement"
+	 *     - possible values:   { COMMON_LINES,  SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_for_statment";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in 'switch' statements
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_switch_statement"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_switch_statement";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in try clauses
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_try_clause"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_TRY_CLAUSE = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_try_clause";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in catch clauses
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_catch_clause"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_CATCH_CLAUSE = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_catch_clause";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in annotations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_annotation"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_NOT_EMPTY, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_NOT_EMPTY
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_annotation";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to position parentheses in lambda declarations
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.parentheses_positions_in_lambda_declaration"
+	 *     - possible values:   { COMMON_LINES, SEPARATE_LINES_IF_NOT_EMPTY, SEPARATE_LINES_IF_WRAPPED, SEPARATE_LINES, PRESERVE_POSITIONS }
+	 *     - default:           COMMON_LINES
+	 * </pre>
+	 * @see #COMMON_LINES
+	 * @see #SEPARATE_LINES_IF_NOT_EMPTY
+	 * @see #SEPARATE_LINES_IF_WRAPPED
+	 * @see #SEPARATE_LINES
+	 * @see #PRESERVE_POSITIONS
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.parentheses_positions_in_lambda_declaration";	//$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -1353,6 +1565,19 @@ public class DefaultCodeFormatterConstants {
 
 	/**
 	 * <pre>
+	 * FORMATTER / Option to insert a new line after an annotation on an enum constant declaration
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_enum_constant"
+	 *     - possible values:   { INSERT, DO_NOT_INSERT }
+	 *     - default:           INSERT
+	 * </pre>
+	 * @see JavaCore#INSERT
+	 * @see JavaCore#DO_NOT_INSERT
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_ENUM_CONSTANT = JavaCore.PLUGIN_ID + ".formatter.insert_new_line_after_annotation_on_enum_constant";//$NON-NLS-1$
+
+	/**
+	 * <pre>
 	 * FORMATTER / Option to insert a new line after an annotation on a field declaration
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_field"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
@@ -1685,10 +1910,10 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_binary_operator"; //$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after the closing angle bracket in type arguments
+	 * FORMATTER / Option to insert a space after the closing angle bracket in explicit type arguments on method/constructor invocations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_closing_angle_bracket_in_type_arguments"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
-	 *     - default:           INSERT
+	 *     - default:           DO_NOT_INSERT
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
@@ -1697,7 +1922,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_CLOSING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_closing_angle_bracket_in_type_arguments"; //$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after the closing angle bracket in type parameters
+	 * FORMATTER / Option to insert a space after the closing angle bracket in type parameter declarations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_closing_angle_bracket_in_type_parameters"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           INSERT
@@ -1997,7 +2222,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_SUPERINTERFACES = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_comma_in_superinterfaces"; //$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after the comma in type arguments
+	 * FORMATTER / Option to insert a space after the comma in explicit type arguments on method/constructor invocations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_comma_in_type_arguments"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           INSERT
@@ -2009,7 +2234,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_comma_in_type_arguments"; //$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after the comma in type parameters
+	 * FORMATTER / Option to insert a space after the comma in type parameter declarations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_comma_in_type_parameters"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           INSERT
@@ -2057,7 +2282,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_OPENING_ANGLE_BRACKET_IN_PARAMETERIZED_TYPE_REFERENCE = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_opening_angle_bracket_in_parameterized_type_reference";//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after the opening angle bracket in type arguments
+	 * FORMATTER / Option to insert a space after the opening angle bracket in explicit type arguments on method/constructor invocations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_opening_angle_bracket_in_type_arguments"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -2069,7 +2294,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_AFTER_OPENING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_opening_angle_bracket_in_type_arguments";//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space after the opening angle bracket in type parameters
+	 * FORMATTER / Option to insert a space after the opening angle bracket in type parameter declarations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_after_opening_angle_bracket_in_type_parameters"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -2430,7 +2655,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_CLOSING_ANGLE_BRACKET_IN_PARAMETERIZED_TYPE_REFERENCE = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_closing_angle_bracket_in_parameterized_type_reference";		//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space before the closing angle bracket in type arguments
+	 * FORMATTER / Option to insert a space before the closing angle bracket in explicit type arguments on method/constructor invocations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_closing_angle_bracket_in_type_arguments"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -2442,7 +2667,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_CLOSING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_closing_angle_bracket_in_type_arguments";		//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space before the closing angle bracket in type parameters
+	 * FORMATTER / Option to insert a space before the closing angle bracket in type parameter declarations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_closing_angle_bracket_in_type_parameters"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -2934,7 +3159,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_SUPERINTERFACES = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_comma_in_superinterfaces";	//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space before comma in type arguments
+	 * FORMATTER / Option to insert a space before comma in explicit type arguments on method/constructor invocations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_comma_in_type_arguments"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -2946,7 +3171,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_comma_in_type_arguments";	//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space before comma in type parameters
+	 * FORMATTER / Option to insert a space before comma in type parameter declarations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_comma_in_type_parameters"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -2994,7 +3219,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_ANGLE_BRACKET_IN_PARAMETERIZED_TYPE_REFERENCE  = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_angle_bracket_in_parameterized_type_reference";	//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space before the opening angle bracket in type arguments
+	 * FORMATTER / Option to insert a space before the opening angle bracket in explicit type arguments on method/constructor invocations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_opening_angle_bracket_in_type_arguments"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -3006,7 +3231,7 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_ANGLE_BRACKET_IN_TYPE_ARGUMENTS = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_angle_bracket_in_type_arguments";	//$NON-NLS-1$
 	/**
 	 * <pre>
-	 * FORMATTER / Option to insert a space before the opening angle bracket in type parameters
+	 * FORMATTER / Option to insert a space before the opening angle bracket in type parameter declarations
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.insert_space_before_opening_angle_bracket_in_type_parameters"
 	 *     - possible values:   { INSERT, DO_NOT_INSERT }
 	 *     - default:           DO_NOT_INSERT
@@ -3805,6 +4030,32 @@ public class DefaultCodeFormatterConstants {
 	public static final String FORMATTER_WRAP_BEFORE_OR_OPERATOR_MULTICATCH = JavaCore.PLUGIN_ID + ".formatter.wrap_before_or_operator_multicatch"; //$NON-NLS-1$
 	/**
 	 * <pre>
+	 * FORMATTER / Option to wrap before the '?' and ':' operators in conditional expressions
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.wrap_before_conditional_operator"
+	 *     - possible values:   { TRUE, FALSE }
+	 *     - default:           TRUE
+	 * </pre>
+	 * This option is used only if the option {@link #FORMATTER_ALIGNMENT_FOR_CONDITIONAL_EXPRESSION} is set.
+	 * @see #TRUE
+	 * @see #FALSE
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_WRAP_BEFORE_CONDITIONAL_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.wrap_before_conditional_operator"; //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option to wrap before the assignment operator
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.wrap_before_assignment_operator"
+	 *     - possible values:   { TRUE, FALSE }
+	 *     - default:           TRUE
+	 * </pre>
+	 * This option is used only if the option {@link #FORMATTER_ALIGNMENT_FOR_ASSIGNMENT} is set.
+	 * @see #TRUE
+	 * @see #FALSE
+	 * @since 3.12
+	 */
+	public static final String FORMATTER_WRAP_BEFORE_ASSIGNMENT_OPERATOR = JavaCore.PLUGIN_ID + ".formatter.wrap_before_assignment_operator"; //$NON-NLS-1$
+	/**
+	 * <pre>
 	 * FORMATTER / Option to wrap outer expressions in nested expressions
 	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.wrap_outer_expressions_when_nested"
 	 *     - possible values:   { TRUE, FALSE }
@@ -3929,6 +4180,98 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.0
 	 */
 	public static final String NEXT_LINE_SHIFTED = "next_line_shifted";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Value to set opening and closing parentheses location in common lines with
+	 *             their contents (or simply a single line if the parentheses are empty).
+	 * </pre>
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_TRY_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_CATCH_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION
+	 * @since 3.12
+	 */
+	public static final String COMMON_LINES = "common_lines";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Value to set opening and closing parentheses location on a common line
+	 *             if the parentheses are empty and otherwise in separate lines from their contents.
+	 * </pre>
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION
+	 * @since 3.12
+	 */
+	public static final String SEPARATE_LINES_IF_NOT_EMPTY = "separate_lines_if_not_empty";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Value to set opening and closing parentheses location on separate lines from their
+	 *             contents if the contents are wrapped, and in common line if they fit in line width.
+	 * </pre>
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_TRY_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_CATCH_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION
+	 * @since 3.12
+	 */
+	public static final String SEPARATE_LINES_IF_WRAPPED = "separate_lines_if_wrapped";	//$NON-NLS-1$
+	
+	/**
+	 * <pre>
+	 * FORMATTER / Value to set parentheses location on separate lines from their contents,
+	 *             that is put a line break after the opening parenthesis and before
+	 *             the closing parenthesis.
+	 * </pre>
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_TRY_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_CATCH_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION
+	 * @since 3.12
+	 */
+	public static final String SEPARATE_LINES = "separate_lines";	//$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Value to set opening and closing parentheses location to be preserved
+	 *             from the original source.
+	 * </pre>
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_METHOD_INVOCATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ENUM_CONSTANT_DECLARATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_IF_WHILE_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_FOR_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_SWITCH_STATEMENT
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_TRY_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_CATCH_CLAUSE
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_ANNOTATION
+	 * @see #FORMATTER_PARENTHESES_POSITIONS_IN_LAMBDA_DECLARATION
+	 * @since 3.12
+	 */
+	public static final String PRESERVE_POSITIONS = "preserve_positions";	//$NON-NLS-1$
+
 	/**
 	 * <pre>
 	 * FORMATTER / Value to set an option to true.
@@ -3983,10 +4326,6 @@ public class DefaultCodeFormatterConstants {
 	 */
 	public static final int WRAP_ONE_PER_LINE= 3;
 
-	/*
-	 * Private constants. Not in javadoc
-	 */
-	private static final IllegalArgumentException WRONG_ARGUMENT = new IllegalArgumentException();
 	/**
 	 * Create a new alignment value according to the given values. This must be used to set up
 	 * the alignment options.
@@ -4065,14 +4404,11 @@ public class DefaultCodeFormatterConstants {
 	 * doesn't have a valid format.
 	 */
 	public static boolean getForceWrapping(String value) {
-		if (value == null) {
-			throw WRONG_ARGUMENT;
-		}
 		try {
 			int existingValue = Integer.parseInt(value);
 			return (existingValue & Alignment.M_FORCE) != 0;
 		} catch (NumberFormatException e) {
-			throw WRONG_ARGUMENT;
+			throw new IllegalArgumentException("Alignment value is not an integer: " + value); //$NON-NLS-1$
 		}
 	}
 
@@ -4089,9 +4425,6 @@ public class DefaultCodeFormatterConstants {
 	 * doesn't have a valid format.
 	 */
 	public static int getIndentStyle(String value) {
-		if (value == null) {
-			throw WRONG_ARGUMENT;
-		}
 		try {
 			int existingValue = Integer.parseInt(value);
 			if ((existingValue & Alignment.M_INDENT_BY_ONE) != 0) {
@@ -4102,7 +4435,7 @@ public class DefaultCodeFormatterConstants {
 				return INDENT_DEFAULT;
 			}
 		} catch (NumberFormatException e) {
-			throw WRONG_ARGUMENT;
+			throw new IllegalArgumentException("Alignment value is not an integer: " + value); //$NON-NLS-1$
 		}
 	}
 
@@ -4128,9 +4461,6 @@ public class DefaultCodeFormatterConstants {
 	 * doesn't have a valid format.
 	 */
 	public static int getWrappingStyle(String value) {
-		if (value == null) {
-			throw WRONG_ARGUMENT;
-		}
 		try {
 			int existingValue = Integer.parseInt(value) & Alignment.SPLIT_MASK;
 			switch(existingValue) {
@@ -4148,7 +4478,7 @@ public class DefaultCodeFormatterConstants {
 					return WRAP_NO_SPLIT;
 			}
 		} catch (NumberFormatException e) {
-			throw WRONG_ARGUMENT;
+			throw new IllegalArgumentException("Alignment value is not an integer: " + value); //$NON-NLS-1$
 		}
 	}
 	/**
@@ -4165,9 +4495,6 @@ public class DefaultCodeFormatterConstants {
 	 * doesn't have a valid format.
 	 */
 	public static String setForceWrapping(String value, boolean force) {
-		if (value == null) {
-			throw WRONG_ARGUMENT;
-		}
 		try {
 			int existingValue = Integer.parseInt(value);
 			// clear existing force bit
@@ -4177,7 +4504,7 @@ public class DefaultCodeFormatterConstants {
 			}
 			return String.valueOf(existingValue);
 		} catch (NumberFormatException e) {
-			throw WRONG_ARGUMENT;
+			throw new IllegalArgumentException("Alignment value is not an integer: " + value); //$NON-NLS-1$
 		}
 	}
 
@@ -4199,16 +4526,13 @@ public class DefaultCodeFormatterConstants {
 	 * alignment value doesn't have a valid format.
 	 */
 	public static String setIndentStyle(String value, int indentStyle) {
-		if (value == null) {
-			throw WRONG_ARGUMENT;
-		}
 		switch(indentStyle) {
 			case INDENT_BY_ONE :
 			case INDENT_DEFAULT :
 			case INDENT_ON_COLUMN :
 				break;
 			default :
-				throw WRONG_ARGUMENT;
+				throw new IllegalArgumentException("Unrecognized indent style: " + indentStyle); //$NON-NLS-1$;
 		}
 		try {
 			int existingValue = Integer.parseInt(value);
@@ -4223,7 +4547,7 @@ public class DefaultCodeFormatterConstants {
 			}
 			return String.valueOf(existingValue);
 		} catch (NumberFormatException e) {
-			throw WRONG_ARGUMENT;
+			throw new IllegalArgumentException("Alignment value is not an integer: " + value); //$NON-NLS-1$
 		}
 	}
 	/**
@@ -4247,9 +4571,6 @@ public class DefaultCodeFormatterConstants {
 	 * alignment value doesn't have a valid format.
 	 */
 	public static String setWrappingStyle(String value, int wrappingStyle) {
-		if (value == null) {
-			throw WRONG_ARGUMENT;
-		}
 		switch(wrappingStyle) {
 			case WRAP_COMPACT :
 			case WRAP_COMPACT_FIRST_BREAK :
@@ -4259,7 +4580,7 @@ public class DefaultCodeFormatterConstants {
 			case WRAP_ONE_PER_LINE :
 				break;
 			default:
-				throw WRONG_ARGUMENT;
+				throw new IllegalArgumentException("Unrecognized wrapping style: " + value); //$NON-NLS-1$
 		}
 		try {
 			int existingValue = Integer.parseInt(value);
@@ -4284,7 +4605,7 @@ public class DefaultCodeFormatterConstants {
 			}
 			return String.valueOf(existingValue);
 		} catch (NumberFormatException e) {
-			throw WRONG_ARGUMENT;
+			throw new IllegalArgumentException("Alignment value is not an integer: " + value); //$NON-NLS-1$
 		}
 	}
 }

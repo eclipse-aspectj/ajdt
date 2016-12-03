@@ -539,8 +539,8 @@ public class SpacePreparator extends ASTVisitor {
 		if (this.options.insert_space_after_closing_brace_in_block
 				&& (parent instanceof Statement || parent instanceof CatchClause)) {
 			int closeBraceIndex = this.tm.lastIndexIn(node, TokenNameRBRACE);
-					this.tm.get(closeBraceIndex).spaceAfter();
-			}
+			this.tm.get(closeBraceIndex).spaceAfter();
+		}
 		return true;
 	}
 
@@ -614,7 +614,7 @@ public class SpacePreparator extends ASTVisitor {
 	@Override
 	public boolean visit(MethodInvocation node) {
 		handleTypeArguments(node.typeArguments());
-		handleInvocation(node, node.getName(), node.typeArguments());
+		handleInvocation(node, node.getName());
 		handleCommas(node.arguments(), this.options.insert_space_before_comma_in_method_invocation_arguments,
 				this.options.insert_space_after_comma_in_method_invocation_arguments);
 		return true;
@@ -622,7 +622,8 @@ public class SpacePreparator extends ASTVisitor {
 
 	@Override
 	public boolean visit(SuperMethodInvocation node) {
-		handleInvocation(node, node.getName(), node.typeArguments());
+		handleTypeArguments(node.typeArguments());
+		handleInvocation(node, node.getName());
 		handleCommas(node.arguments(), this.options.insert_space_before_comma_in_method_invocation_arguments,
 				this.options.insert_space_after_comma_in_method_invocation_arguments);
 		return true;
@@ -630,7 +631,12 @@ public class SpacePreparator extends ASTVisitor {
 
 	@Override
 	public boolean visit(ClassInstanceCreation node) {
-		handleInvocation(node, node.getType(), node.typeArguments(), node.getAnonymousClassDeclaration());
+		List<Type> typeArguments = node.typeArguments();
+		handleTypeArguments(typeArguments);
+		handleInvocation(node, node.getType(), node.getAnonymousClassDeclaration());
+		if (!typeArguments.isEmpty()) {
+			handleTokenBefore(typeArguments.get(0), TokenNamenew, false, true); // fix for: new<Integer>A<String>()
+		}
 		handleCommas(node.arguments(), this.options.insert_space_before_comma_in_allocation_expression,
 				this.options.insert_space_after_comma_in_allocation_expression);
 		return true;
@@ -638,7 +644,8 @@ public class SpacePreparator extends ASTVisitor {
 
 	@Override
 	public boolean visit(ConstructorInvocation node) {
-		handleInvocation(node, node, node.typeArguments());
+		handleTypeArguments(node.typeArguments());
+		handleInvocation(node, node);
 		handleCommas(node.arguments(),
 				this.options.insert_space_before_comma_in_explicit_constructor_call_arguments,
 				this.options.insert_space_after_comma_in_explicit_constructor_call_arguments);
@@ -647,18 +654,19 @@ public class SpacePreparator extends ASTVisitor {
 
 	@Override
 	public boolean visit(SuperConstructorInvocation node) {
-		handleInvocation(node, node, node.typeArguments());
+		handleTypeArguments(node.typeArguments());
+		handleInvocation(node, node);
 		handleCommas(node.arguments(),
 				this.options.insert_space_before_comma_in_explicit_constructor_call_arguments,
 				this.options.insert_space_after_comma_in_explicit_constructor_call_arguments);
 		return true;
 	}
 
-	private void handleInvocation(ASTNode invocationNode, ASTNode nodeBeforeOpeningParen, List<Type> typeArguments) {
-		handleInvocation(invocationNode, nodeBeforeOpeningParen, typeArguments, null);
+	private void handleInvocation(ASTNode invocationNode, ASTNode nodeBeforeOpeningParen) {
+		handleInvocation(invocationNode, nodeBeforeOpeningParen, null);
 	}
 
-	private void handleInvocation(ASTNode invocationNode, ASTNode nodeBeforeOpeningParen, List<Type> typeArguments,
+	private void handleInvocation(ASTNode invocationNode, ASTNode nodeBeforeOpeningParen,
 			ASTNode nodeAfterClosingParen) {
 		if (handleEmptyParens(nodeBeforeOpeningParen,
 				this.options.insert_space_between_empty_parens_in_method_invocation)) {
@@ -674,14 +682,6 @@ public class SpacePreparator extends ASTVisitor {
 						: this.tm.firstTokenBefore(nodeAfterClosingParen, TokenNameRPAREN);
 				closingParen.spaceBefore();
 			}
-		}
-
-		if (!typeArguments.isEmpty()) {
-			handleTokenAfter(typeArguments.get(typeArguments.size() - 1), TokenNameGREATER, false,
-					this.options.insert_space_after_closing_angle_bracket_in_type_arguments);
-			handleCommas(typeArguments,
-					this.options.insert_space_before_comma_in_parameterized_type_reference,
-					this.options.insert_space_after_comma_in_parameterized_type_reference);
 		}
 	}
 
@@ -859,10 +859,11 @@ public class SpacePreparator extends ASTVisitor {
 	@Override
 	public boolean visit(ParameterizedType node) {
 		List<Type> typeArguments = node.typeArguments();
-		if (!typeArguments.isEmpty()) {
+		boolean hasArguments = !typeArguments.isEmpty();
 		handleTokenAfter(node.getType(), TokenNameLESS,
 				this.options.insert_space_before_opening_angle_bracket_in_parameterized_type_reference,
-				this.options.insert_space_after_opening_angle_bracket_in_parameterized_type_reference);
+				hasArguments && this.options.insert_space_after_opening_angle_bracket_in_parameterized_type_reference);
+		if (hasArguments) {
 			handleTokenAfter(typeArguments.get(typeArguments.size() - 1), TokenNameGREATER,
 					this.options.insert_space_before_closing_angle_bracket_in_parameterized_type_reference, false);
 			handleCommas(node.typeArguments(),

@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -203,40 +204,33 @@ public abstract class AbstractMethodDeclaration
 	/**
 	 * Feed null information from argument annotations into the analysis and mark arguments as assigned.
 	 */
-	static void analyseArguments(FlowInfo flowInfo, Argument[] methodArguments, MethodBinding methodBinding) {
+	static void analyseArguments(LookupEnvironment environment, FlowInfo flowInfo, Argument[] methodArguments, MethodBinding methodBinding) {
 		if (methodArguments != null) {
-			for (int i = 0, count = methodArguments.length; i < count; i++) {
-				if (methodBinding.parameterNonNullness != null) {
-					// leverage null-info from parameter annotations:
-					Boolean nonNullNess = methodBinding.parameterNonNullness[i];
-					if (nonNullNess != null) {
-						if (nonNullNess.booleanValue())
-							flowInfo.markAsDefinitelyNonNull(methodArguments[i].binding);
-						else
-							flowInfo.markPotentiallyNullBit(methodArguments[i].binding);
-					}
-				}
-				// tag parameters as being set:
-				flowInfo.markAsDefinitelyAssigned(methodArguments[i].binding);
-			}
-		}
-	}
-
-	/**
-	 * Feed null information from argument annotations into the analysis and mark arguments as assigned.
-	 * Variant for Java 8 using type annotations
-	 */
-	static void analyseArguments18(FlowInfo flowInfo, Argument[] methodArguments, MethodBinding methodBinding) {
-		if (methodArguments != null) {
+			boolean usesNullTypeAnnotations = environment.usesNullTypeAnnotations();
 			int length = Math.min(methodBinding.parameters.length, methodArguments.length);
 			for (int i = 0; i < length; i++) {
-				// leverage null type annotations:
-				long tagBits = methodBinding.parameters[i].tagBits & TagBits.AnnotationNullMASK;
-				if (tagBits == TagBits.AnnotationNonNull)
-					flowInfo.markAsDefinitelyNonNull(methodArguments[i].binding);
-				else if (tagBits == TagBits.AnnotationNullable)
-					flowInfo.markPotentiallyNullBit(methodArguments[i].binding);
-	
+				if (usesNullTypeAnnotations) {
+					// leverage null type annotations:
+					long tagBits = methodBinding.parameters[i].tagBits & TagBits.AnnotationNullMASK;
+					if (tagBits == TagBits.AnnotationNonNull)
+						flowInfo.markAsDefinitelyNonNull(methodArguments[i].binding);
+					else if (tagBits == TagBits.AnnotationNullable)
+						flowInfo.markPotentiallyNullBit(methodArguments[i].binding);
+					else if (methodBinding.parameters[i].isFreeTypeVariable()) {
+						flowInfo.markNullStatus(methodArguments[i].binding, FlowInfo.FREE_TYPEVARIABLE);
+					}
+				} else {					
+					if (methodBinding.parameterNonNullness != null) {
+						// leverage null-info from parameter annotations:
+						Boolean nonNullNess = methodBinding.parameterNonNullness[i];
+						if (nonNullNess != null) {
+							if (nonNullNess.booleanValue())
+								flowInfo.markAsDefinitelyNonNull(methodArguments[i].binding);
+							else
+								flowInfo.markPotentiallyNullBit(methodArguments[i].binding);
+						}
+					}
+				}
 				// tag parameters as being set:
 				flowInfo.markAsDefinitelyAssigned(methodArguments[i].binding);
 			}
@@ -546,7 +540,7 @@ public abstract class AbstractMethodDeclaration
 			resolveReceiver();
 			bindThrownExceptions();
 			resolveJavadoc();
-			resolveAnnotations(this.scope, this.annotations, this.binding);
+			resolveAnnotations(this.scope, this.annotations, this.binding, this.isConstructor());
 			
 			long sourceLevel = this.scope.compilerOptions().sourceLevel;
 			if (sourceLevel < ClassFileConstants.JDK1_8) // otherwise already checked via Argument.createBinding

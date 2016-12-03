@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Invocation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullAnnotationMatching;
@@ -48,6 +49,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
     public boolean wasInferred; // only set to true for instances resulting from method invocation inferrence
     public boolean isRaw; // set to true for method behaving as raw for substitution purpose
     private MethodBinding tiebreakMethod;
+	public boolean inferredWithUncheckedConversion;
 
 	/**
 	 * Perform inference of generic method type parameters and/or expected type
@@ -168,8 +170,8 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 		    }
 		    
 		    if (uncheckedArguments != null && uncheckedArguments[i] == null) continue; // only bound check if inferred through 15.12.2.6
-			switch (typeVariable.boundCheck(substitution, substituteForChecks, scope)) {
-				case TypeConstants.MISMATCH :
+			switch (typeVariable.boundCheck(substitution, substituteForChecks, scope, null)) {
+				case MISMATCH :
 			        // incompatible due to bound check
 					int argLength = arguments.length;
 					TypeBinding[] augmentedArguments = new TypeBinding[argLength + 2]; // append offending substitute and typeVariable
@@ -177,9 +179,11 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 					augmentedArguments[argLength] = substitute;
 					augmentedArguments[argLength+1] = typeVariable;
 			        return new ProblemMethodBinding(methodSubstitute, originalMethod.selector, augmentedArguments, ProblemReasons.ParameterBoundMismatch);
-				case TypeConstants.UNCHECKED :
+				case UNCHECKED :
 					// tolerate unchecked bounds
 					methodSubstitute.tagBits |= TagBits.HasUncheckedTypeArgumentForBoundCheck;
+					break;
+				default:
 					break;
 			}
 		}
@@ -263,9 +267,10 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 				// assemble the solution etc:
 				TypeBinding[] solutions = infCtx18.getSolutions(typeVariables, invocationSite, result);
 				if (solutions != null) {
-					methodSubstitute = scope.environment().createParameterizedGenericMethod(originalMethod, solutions);
+					methodSubstitute = scope.environment().createParameterizedGenericMethod(originalMethod, solutions, infCtx18.usesUncheckedConversion, hasReturnProblem);
 					if (invocationSite instanceof Invocation)
 						infCtx18.forwardResults(result, (Invocation) invocationSite, methodSubstitute, expectedType);
+					try {
 					if (hasReturnProblem) { // illegally working from the provisional result?
 						MethodBinding problemMethod = infCtx18.getReturnProblemMethodIfNeeded(expectedType, methodSubstitute);
 						if (problemMethod instanceof ProblemMethodBinding) {
@@ -275,17 +280,19 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 					if (invocationTypeInferred) {
 						if (compilerOptions.isAnnotationBasedNullAnalysisEnabled)
 							NullAnnotationMatching.checkForContradictions(methodSubstitute, invocationSite, scope);
-						MethodBinding problemMethod = methodSubstitute.boundCheck18(scope, arguments);
+							MethodBinding problemMethod = methodSubstitute.boundCheck18(scope, arguments, invocationSite);
 						if (problemMethod != null) {
 							return problemMethod;
 						}
 					} else {
 						methodSubstitute = new PolyParameterizedGenericMethodBinding(methodSubstitute);
 					}
+					} finally {
 					if (invocationSite instanceof Invocation)
 						((Invocation) invocationSite).registerInferenceContext(methodSubstitute, infCtx18); // keep context so we can finish later
 					else if (invocationSite instanceof ReferenceExpression)
 						((ReferenceExpression) invocationSite).registerInferenceContext(methodSubstitute, infCtx18); // keep context so we can finish later
+					}
 					return methodSubstitute; 
 				}
 			}
@@ -299,7 +306,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 		}
 	}
 	
-	MethodBinding boundCheck18(Scope scope, TypeBinding[] arguments) {
+	MethodBinding boundCheck18(Scope scope, TypeBinding[] arguments, InvocationSite site) {
 		Substitution substitution = this;
 		ParameterizedGenericMethodBinding methodSubstitute = this;
 		TypeVariableBinding[] originalTypeVariables = this.originalMethod.typeVariables;
@@ -307,19 +314,10 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 		for (int i = 0, length = originalTypeVariables.length; i < length; i++) {
 		    TypeVariableBinding typeVariable = originalTypeVariables[i];
 		    TypeBinding substitute = methodSubstitute.typeArguments[i]; // retain for diagnostics
-		    /* https://bugs.eclipse.org/bugs/show_bug.cgi?id=375394, To avoid spurious bounds check failures due to circularity in formal bounds, 
-		       we should eliminate only the lingering embedded type variable references after substitution, not alien type variable references
-		       that constitute the inference per se.
-		     */ 
-		    TypeBinding substituteForChecks;
-		    if (substitute instanceof TypeVariableBinding) {
-		    	substituteForChecks = substitute;
-		    } else {
-		    	substituteForChecks = Scope.substitute(new LingeringTypeVariableEliminator(originalTypeVariables, null, scope), substitute); // while using this for bounds check
-		    }
 		    
-			switch (typeVariable.boundCheck(substitution, substituteForChecks, scope)) {
-				case TypeConstants.MISMATCH :
+			ASTNode location = site instanceof ASTNode ? (ASTNode) site : null;
+			switch (typeVariable.boundCheck(substitution, substitute, scope, location)) {
+				case MISMATCH :
 			        // incompatible due to bound check
 					int argLength = arguments.length;
 					TypeBinding[] augmentedArguments = new TypeBinding[argLength + 2]; // append offending substitute and typeVariable
@@ -327,9 +325,11 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 					augmentedArguments[argLength] = substitute;
 					augmentedArguments[argLength+1] = typeVariable;
 			        return new ProblemMethodBinding(methodSubstitute, this.originalMethod.selector, augmentedArguments, ProblemReasons.ParameterBoundMismatch);
-				case TypeConstants.UNCHECKED :
+				case UNCHECKED :
 					// tolerate unchecked bounds
 					methodSubstitute.tagBits |= TagBits.HasUncheckedTypeArgumentForBoundCheck;
+					break;
+				default:
 					break;
 			}
 		}
@@ -529,11 +529,15 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
     /**
      * Create method of parameterized type, substituting original parameters with type arguments.
      */
-	public ParameterizedGenericMethodBinding(MethodBinding originalMethod, TypeBinding[] typeArguments, LookupEnvironment environment) {
+	public ParameterizedGenericMethodBinding(MethodBinding originalMethod, TypeBinding[] typeArguments, LookupEnvironment environment, boolean inferredWithUncheckConversion, boolean hasReturnProblem) {
 	    this.environment = environment;
+		this.inferredWithUncheckedConversion = inferredWithUncheckConversion;
 		this.modifiers = originalMethod.modifiers;
 		this.selector = originalMethod.selector;
 		this.declaringClass = originalMethod.declaringClass;
+		if (inferredWithUncheckConversion && originalMethod.isConstructor() && this.declaringClass.isParameterizedType()) {
+			this.declaringClass = (ReferenceBinding) environment.convertToRawType(this.declaringClass.erasure(), false); // for diamond invocations
+		}
 	    this.typeVariables = Binding.NO_TYPE_VARIABLES;
 	    this.typeArguments = typeArguments;
 	    this.isRaw = false;
@@ -541,8 +545,16 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	    this.originalMethod = originalMethod;
 	    this.parameters = Scope.substitute(this, originalMethod.parameters);
 	    // error case where exception type variable would have been substituted by a non-reference type (207573)
+	    if (inferredWithUncheckConversion) { // JSL 18.5.2: "If unchecked conversion was necessary..."
+	    	this.returnType = getErasure18_5_2(originalMethod.returnType, environment, hasReturnProblem); // propagate simulation of Bug JDK_8026527
+	    	this.thrownExceptions = new ReferenceBinding[originalMethod.thrownExceptions.length];
+	    	for (int i = 0; i < originalMethod.thrownExceptions.length; i++) {
+	    		this.thrownExceptions[i] = (ReferenceBinding) getErasure18_5_2(originalMethod.thrownExceptions[i], environment, false); // no excuse for exceptions
+			}
+	    } else {
 	    this.returnType = Scope.substitute(this, originalMethod.returnType);
 	    this.thrownExceptions = Scope.substitute(this, originalMethod.thrownExceptions);
+	    }
 	    if (this.thrownExceptions == null) this.thrownExceptions = Binding.NO_EXCEPTIONS;
 		checkMissingType: {
 			if ((this.tagBits & TagBits.HasMissingType) != 0)
@@ -580,6 +592,16 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	    		}
 	    	}
 	    }
+	}
+
+	TypeBinding getErasure18_5_2(TypeBinding type, LookupEnvironment env, boolean substitute) {
+		// opportunistic interpretation of (JLS 18.5.2):
+		// "If unchecked conversion was necessary ..., then ... 
+		// the return type and thrown types of the invocation type of m are given by
+		// the erasure of the return type and thrown types of m's type."
+		if (substitute)
+			type = Scope.substitute(this, type);
+		return env.convertToRawType(type.erasure(), true);
 	}
 
 	/*
@@ -721,6 +743,11 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 			}
 		}
 	    return this;
+	}
+
+	@Override
+	public boolean isParameterizedGeneric() {
+		return true;
 	}
 
 	/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=347600 && https://bugs.eclipse.org/bugs/show_bug.cgi?id=242159

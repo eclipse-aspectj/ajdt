@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -47,22 +47,30 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	return flowInfo;
 }
 
-public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
 	if (flowContext.isNullcheckedFieldAccess(this)) {
 		return true; // enough seen
 	}
-	return super.checkNPE(scope, flowContext, flowInfo);
+	return super.checkNPE(scope, flowContext, flowInfo, ttlForFieldCheck);
 }
 
-protected boolean checkNullableFieldDereference(Scope scope, FieldBinding field, long sourcePosition) {
-	// preference to type annotations if we have any
-	if ((field.type.tagBits & TagBits.AnnotationNullable) != 0) {
-		scope.problemReporter().dereferencingNullableExpression(sourcePosition, scope.environment());
-		return true;
-	}
-	if ((field.tagBits & TagBits.AnnotationNullable) != 0) {
-		scope.problemReporter().nullableFieldDereference(field, sourcePosition);
-		return true;
+protected boolean checkNullableFieldDereference(Scope scope, FieldBinding field, long sourcePosition, FlowContext flowContext, int ttlForFieldCheck) {
+	if (field != null) {
+		if (ttlForFieldCheck > 0 && scope.compilerOptions().enableSyntacticNullAnalysisForFields)
+			flowContext.recordNullCheckedFieldReference(this, ttlForFieldCheck);
+		// preference to type annotations if we have any
+		if ((field.type.tagBits & TagBits.AnnotationNullable) != 0) {
+			scope.problemReporter().dereferencingNullableExpression(sourcePosition, scope.environment());
+			return true;
+		} 
+		if (field.type.isFreeTypeVariable()) {
+			scope.problemReporter().fieldFreeTypeVariableReference(field, sourcePosition);
+			return true;
+		}
+		if ((field.tagBits & TagBits.AnnotationNullable) != 0) {
+			scope.problemReporter().nullableFieldDereference(field, sourcePosition);
+			return true;
+		}
 	}
 	return false;
 }
@@ -145,6 +153,8 @@ public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
 			return FlowInfo.NON_NULL;
 		} else if (fieldBinding.isNullable()) {
 			return FlowInfo.POTENTIALLY_NULL;
+		} else if (fieldBinding.type.isFreeTypeVariable()) {
+			return FlowInfo.FREE_TYPEVARIABLE;
 		}
 	}
 	if (this.resolvedType != null) {

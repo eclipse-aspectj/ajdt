@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -114,10 +114,10 @@ public class ASTConverter {
 	// AspectJ Extension - raised to protected
 	protected DefaultCommentMapper commentMapper;
 
-	public ASTConverter(Map options, boolean resolveBindings, IProgressMonitor monitor) {
+	public ASTConverter(Map<String,String> options, boolean resolveBindings, IProgressMonitor monitor) {
 		this.resolveBindings = resolveBindings;
 		this.referenceContext = null;
-		Object sourceModeSetting = options.get(JavaCore.COMPILER_SOURCE);
+		String sourceModeSetting = options.get(JavaCore.COMPILER_SOURCE);
 		long sourceLevel = CompilerOptions.versionToJdkLevel(sourceModeSetting);
 		if (sourceLevel == 0) {
 			// unknown sourceModeSetting
@@ -494,6 +494,10 @@ public class ASTConverter {
 			throw new OperationCanceledException();
 	}
 
+	private int checkLength(int start, int end) {
+		int len = end - start + 1;
+		return len > 0 ? len : 0;
+	}
 	protected void completeRecord(ArrayType arrayType, org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode astNode) {
 		ArrayType array = arrayType;
 		this.recordNodes(arrayType, astNode);
@@ -631,7 +635,7 @@ public class ASTConverter {
 		}
 		int declarationSourceStart = methodDeclaration.declarationSourceStart;
 		int bodyEnd = methodDeclaration.bodyEnd;
-		methodDecl.setSourceRange(declarationSourceStart, bodyEnd - declarationSourceStart + 1);
+		methodDecl.setSourceRange(declarationSourceStart, checkLength(declarationSourceStart, bodyEnd));
 		int declarationSourceEnd = methodDeclaration.declarationSourceEnd;
 		int rightBraceOrSemiColonPositionStart = bodyEnd == declarationSourceEnd ? bodyEnd : bodyEnd + 1;
 		int closingPosition = retrieveRightBraceOrSemiColonPosition(rightBraceOrSemiColonPositionStart, declarationSourceEnd);
@@ -695,13 +699,13 @@ public class ASTConverter {
 					}
 				}
 				int startPosition = methodDecl.getStartPosition();
-				methodDecl.setSourceRange(startPosition, end - startPosition + 1);
+				methodDecl.setSourceRange(startPosition, checkLength(startPosition, end));
 				if (start != -1 && end != -1) {
 					/*
 					 * start or end can be equal to -1 if we have an interface's method.
 					 */
 					Block block = new Block(this.ast);
-					block.setSourceRange(start, end - start + 1);
+					block.setSourceRange(start, checkLength(start, end));
 					methodDecl.setBody(block);
 				}
 			}
@@ -816,8 +820,7 @@ public class ASTConverter {
 				 			temp = (InfixExpression) temp.getLeftOperand();
 				 		}
 				 	}
-					int startPosition = infixExpression.getLeftOperand().getStartPosition();
-					infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+				 	setInfixSourcePositions(infixExpression, expression.sourceStart);
 					if (this.resolveBindings) {
 						this.recordNodes(infixExpression, expression);
 					}
@@ -829,16 +832,14 @@ public class ASTConverter {
 			Expression leftExpression = convert(leftOperand);
 			infixExpression.setLeftOperand(leftExpression);
 			infixExpression.setRightOperand((Expression)infixExpression.extendedOperands().remove(0));
-			int startPosition = leftExpression.getStartPosition();
-			infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+		 	setInfixSourcePositions(infixExpression, expression.sourceStart);
 			return infixExpression;
 		}
 		Expression leftExpression = convert(expression.left);
 		infixExpression.setLeftOperand(leftExpression);
 		infixExpression.setRightOperand(convert(expression.right));
 		infixExpression.setOperator(InfixExpression.Operator.CONDITIONAL_AND);
-		int startPosition = leftExpression.getStartPosition();
-		infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+	 	setInfixSourcePositions(infixExpression, expression.sourceStart);
 		return infixExpression;
 	}
 
@@ -1241,8 +1242,7 @@ public class ASTConverter {
 				 			temp = (InfixExpression) temp.getLeftOperand();
 				 		}
 				 	}
-					int startPosition = infixExpression.getLeftOperand().getStartPosition();
-					infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+					setInfixSourcePositions(infixExpression, infixExpression.getLeftOperand().getStartPosition());
 					if (this.resolveBindings) {
 						this.recordNodes(infixExpression, expression);
 					}
@@ -1255,7 +1255,7 @@ public class ASTConverter {
 			infixExpression.setLeftOperand(leftExpression);
 			infixExpression.setRightOperand((Expression)infixExpression.extendedOperands().remove(0));
 			int startPosition = leftExpression.getStartPosition();
-			infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+			setInfixSourcePositions(infixExpression, startPosition);
 			return infixExpression;
 		} else if (expression.left instanceof StringLiteralConcatenation
 				&& ((expression.left.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.ParenthesizedMASK) == 0)
@@ -1269,14 +1269,14 @@ public class ASTConverter {
 			}
 			infixExpression.extendedOperands().add(convert(expression.right));
 			int startPosition = literal.sourceStart;
-			infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+			setInfixSourcePositions(infixExpression, startPosition);
 			return infixExpression;
 		}
 		Expression leftExpression = convert(expression.left);
 		infixExpression.setLeftOperand(leftExpression);
 		infixExpression.setRightOperand(convert(expression.right));
 		int startPosition = leftExpression.getStartPosition();
-		infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+		setInfixSourcePositions(infixExpression, startPosition);
 		return infixExpression;
 	}
 
@@ -1527,10 +1527,11 @@ public class ASTConverter {
 		if (this.resolveBindings) {
 			recordNodes(conditionalExpression, expression);
 		}
-		conditionalExpression.setSourceRange(expression.sourceStart, expression.sourceEnd - expression.sourceStart + 1);
 		conditionalExpression.setExpression(convert(expression.condition));
 		conditionalExpression.setThenExpression(convert(expression.valueIfTrue));
-		conditionalExpression.setElseExpression(convert(expression.valueIfFalse));
+		Expression elseExpression = convert(expression.valueIfFalse);
+		conditionalExpression.setElseExpression(elseExpression);
+		conditionalExpression.setSourceRange(expression.sourceStart, elseExpression.getStartPosition() + elseExpression.getLength() - expression.sourceStart);
 		return conditionalExpression;
 	}
 
@@ -1634,7 +1635,7 @@ public class ASTConverter {
 		infixExpression.setLeftOperand(leftExpression);
 		infixExpression.setRightOperand(convert(expression.right));
 		int startPosition = leftExpression.getStartPosition();
-		infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+		setInfixSourcePositions(infixExpression, startPosition);
 		switch ((expression.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.OperatorMASK) >> org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.OperatorSHIFT) {
 			case org.aspectj.org.eclipse.jdt.internal.compiler.ast.OperatorIds.EQUAL_EQUAL :
 				infixExpression.setOperator(InfixExpression.Operator.EQUALS);
@@ -2441,8 +2442,7 @@ public class ASTConverter {
 				 			temp = (InfixExpression) temp.getLeftOperand();
 				 		}
 				 	}
-					int startPosition = infixExpression.getLeftOperand().getStartPosition();
-					infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+				 	setInfixSourcePositions(infixExpression, expression.sourceStart);
 					if (this.resolveBindings) {
 						this.recordNodes(infixExpression, expression);
 					}
@@ -2454,17 +2454,24 @@ public class ASTConverter {
 			Expression leftExpression = convert(leftOperand);
 			infixExpression.setLeftOperand(leftExpression);
 			infixExpression.setRightOperand((Expression)infixExpression.extendedOperands().remove(0));
-			int startPosition = leftExpression.getStartPosition();
-			infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+		 	setInfixSourcePositions(infixExpression, expression.sourceStart);
 			return infixExpression;
 		}
 		Expression leftExpression = convert(expression.left);
 		infixExpression.setLeftOperand(leftExpression);
 		infixExpression.setRightOperand(convert(expression.right));
 		infixExpression.setOperator(InfixExpression.Operator.CONDITIONAL_OR);
-		int startPosition = leftExpression.getStartPosition();
-		infixExpression.setSourceRange(startPosition, expression.sourceEnd - startPosition + 1);
+	 	setInfixSourcePositions(infixExpression, expression.sourceStart);
 		return infixExpression;
+	}
+
+	private void setInfixSourcePositions(InfixExpression infixExpression, int sourceStart) {
+		int n = infixExpression.extendedOperands().size();
+		Expression rightMostExp = n <= 0 ? infixExpression.getRightOperand() : (Expression) infixExpression.extendedOperands().get(n - 1);
+		int rightSourceEnd = rightMostExp.getStartPosition() + rightMostExp.getLength() - 1;
+		int infixSourceEnd = infixExpression.getStartPosition() + infixExpression.getLength() - 1;
+		infixSourceEnd = rightSourceEnd > infixSourceEnd ? rightSourceEnd : infixSourceEnd;
+		infixExpression.setSourceRange(sourceStart, infixSourceEnd - sourceStart + 1);
 	}
 
 	public PostfixExpression convert(org.aspectj.org.eclipse.jdt.internal.compiler.ast.PostfixExpression expression) {
@@ -3456,12 +3463,24 @@ public class ASTConverter {
 	private void setTypeAnnotationsAndSourceRangeOnArray(ArrayType arrayType, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation[][] annotationsOnDimensions) {
 		List dimensions = arrayType.dimensions();
 		Type elementType = arrayType.getElementType();
+
+		// Object[] a
+		// ^
 		int start = elementType.getStartPosition();
-		int endElement = start + elementType.getLength() - 1;
-		int end = retrieveProperRightBracketPosition(dimensions.size(), endElement);
+
+		// Object[] a
+		//       ^
+		int startArray = start + elementType.getLength();
+
+		// Object[] a
+		//        ^
+		int end = retrieveProperRightBracketPosition(dimensions.size(), startArray);
+		if (end == -1) {
+			end = startArray - 1;
+		}
 		arrayType.setSourceRange(start, end - start + 1);
 		
-		start = endElement + 1;
+		start = startArray;
 		for (int i = 0; i < dimensions.size(); i++) {
 			Dimension currentDimension = (Dimension) dimensions.get(i);
 			setTypeAnnotationsOnDimension(currentDimension, annotationsOnDimensions, i);

@@ -1,18 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
+ *     Timo Kinnunen - Contributions for bug 377373 - [subwords] known limitations with JDT 3.8
+ *     							Bug 420953 - [subwords] Constructors that don't match prefix not found
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
  *								Bug 400874 - [1.8][compiler] Inference infrastructure should evolve to meet JLS8 18.x (Part G of JSR335 spec)
+ *     Gábor Kövesdán - Contribution for Bug 350000 - [content assist] Include non-prefix matches in auto-complete suggestions
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -36,41 +40,171 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.*;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionNodeDetector;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionNodeFound;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnAnnotationOfType;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnArgumentName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnBranchStatementLabel;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnClassLiteralAccess;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnExplicitConstructorCall;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnFieldName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnFieldType;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnImportReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadoc;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocAllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocFieldReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocMessageSend;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocParamNameReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocQualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocSingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocTag;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnJavadocTypeParamReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnKeyword;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnKeyword3;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnLocalName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMarkerAnnotationName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMemberAccess;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMemberValueName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMessageSend;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMessageSendName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMethodName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnMethodReturnType;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnPackageReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnParameterizedQualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnQualifiedAllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnQualifiedNameReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnQualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnReferenceExpressionName;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnSingleNameReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnSingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionOnStringLiteral;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionParser;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.CompletionScanner;
+import org.aspectj.org.eclipse.jdt.internal.codeassist.complete.InvalidCursorLocation;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.AssistParser;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.Engine;
 import org.aspectj.org.eclipse.jdt.internal.codeassist.impl.Keywords;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ExtraFlags;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AssertStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Assignment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.BinaryExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CaseStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExpressionContext;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ForStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IfStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Initializer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocImplicitTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.OperatorExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.OperatorIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TryStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.WhileStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImportBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.JavadocTagConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.SourceTypeConverter;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.JavadocTagConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSetOfCharArray;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.ObjectVector;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSetOfCharArray;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.BasicCompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.core.BinaryTypeConverter;
 import org.aspectj.org.eclipse.jdt.internal.core.INamingRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.InternalNamingConventions;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
+import org.aspectj.org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceMethod;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceType;
-import org.aspectj.org.eclipse.jdt.internal.core.BinaryTypeConverter;
-import org.aspectj.org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceTypeElementInfo;
-import org.aspectj.org.eclipse.jdt.internal.core.search.matching.JavaSearchNameEnvironment;
+import org.aspectj.org.eclipse.jdt.internal.core.search.matching.IndexBasedJavaSearchEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -541,7 +675,7 @@ public final class CompletionEngine
 	CompletionRequestor requestor;
 	CompletionProblemFactory problemFactory;
 	ProblemReporter problemReporter;
-	private JavaSearchNameEnvironment noCacheNameEnvironment;
+	private INameEnvironment noCacheNameEnvironment;
 	char[] source;
 	char[] completionToken;
 	char[] qualifiedCompletionToken;
@@ -1630,6 +1764,8 @@ public final class CompletionEngine
 			if (completionOnQualifiedTypeReference.isConstructorType){
 						context.setTokenLocation(CompletionContext.TL_CONSTRUCTOR_START);
 			}
+		} else if (astNode instanceof CompletionOnKeyword3 && ((CompletionOnKeyword3) astNode).afterTryOrCatch()) {
+				context.setTokenLocation(CompletionContext.TL_STATEMENT_START);
 		} else {
 			ReferenceContext referenceContext = scope.referenceContext();
 			if (referenceContext instanceof AbstractMethodDeclaration) {
@@ -2807,9 +2943,9 @@ public final class CompletionEngine
 			
 			TypeBinding receiverType = (TypeBinding) qualifiedBinding;
 			if (receiverType != null && receiverType instanceof ReferenceBinding) {
+				setSourceAndTokenRange(referenceExpression.nameSourceStart, referenceExpression.sourceEnd);
 				if (!(receiverType.isInterface() || this.requestor.isIgnored(CompletionProposal.KEYWORD))) {
 					this.assistNodeIsConstructor = true;
-					setSourceAndTokenRange(referenceExpression.nameSourceStart, referenceExpression.sourceEnd);
 					findKeywords(this.completionToken, new char[][] { Keywords.NEW }, false, false);
 				}
 				findMethods(
@@ -4098,24 +4234,17 @@ public final class CompletionEngine
 		return 0;
 	}
 	int computeRelevanceForCaseMatching(char[] token, char[] proposalName){
-		if (this.options.camelCaseMatch) {
-			if(CharOperation.equals(token, proposalName, true /* do not ignore case */)) {
-				return R_CASE + R_EXACT_NAME;
-			} else if (CharOperation.prefixEquals(token, proposalName, true /* do not ignore case */)) {
-				return R_CASE;
-			} else if (CharOperation.camelCaseMatch(token, proposalName)){
-				return R_CAMEL_CASE;
-			} else if(CharOperation.equals(token, proposalName, false /* ignore case */)) {
-				return R_EXACT_NAME;
-			}
-		} else if (CharOperation.prefixEquals(token, proposalName, true /* do not ignore case */)) {
-			if(CharOperation.equals(token, proposalName, true /* do not ignore case */)) {
-				return R_CASE + R_EXACT_NAME;
-			} else {
-				return R_CASE;
-			}
-		} else if(CharOperation.equals(token, proposalName, false /* ignore case */)) {
+		if(CharOperation.equals(token, proposalName, true)) {
+			return R_EXACT_NAME + R_CASE;
+		} else if(CharOperation.equals(token, proposalName, false)) {
 			return R_EXACT_NAME;
+		} else if (CharOperation.prefixEquals(token, proposalName, false)) {
+			if (CharOperation.prefixEquals(token, proposalName, true))
+				return R_CASE;
+		} else if (this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, proposalName)){
+				return R_CAMEL_CASE;
+		} else if (this.options.substringMatch && CharOperation.substringMatch(token, proposalName)) {
+			return R_SUBSTRING;
 		}
 		return 0;
 	}
@@ -4842,8 +4971,7 @@ public final class CompletionEngine
 		nextAttribute: for (int i = 0; i < methods.length; i++) {
 			MethodBinding method = methods[i];
 
-			if(!CharOperation.prefixEquals(token, method.selector, false)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, method.selector))) continue nextAttribute;
+			if(isFailedMatch(token, method.selector)) continue nextAttribute;
 
 			int length = attributesFound == null ? 0 : attributesFound.length;
 			for (int j = 0; j < length; j++) {
@@ -5770,8 +5898,7 @@ public final class CompletionEngine
 
 			if (enumConstantLength > field.name.length) continue next;
 
-			if (!CharOperation.prefixEquals(enumConstantName, field.name, false /* ignore case */)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(enumConstantName, field.name)))	continue next;
+			if (isFailedMatch(enumConstantName, field.name))	continue next;
 
 			char[] fieldName = field.name;
 
@@ -5959,8 +6086,7 @@ public final class CompletionEngine
 		if (typeName.length > exceptionType.sourceName.length)
 			return;
 
-		if (!CharOperation.prefixEquals(typeName, exceptionType.sourceName, false/* ignore case */)
-				&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(typeName, exceptionType.sourceName)))
+		if (isFailedMatch(typeName, exceptionType.sourceName))
 			return;
 
 		if (this.options.checkDeprecation &&
@@ -6281,13 +6407,15 @@ public final class CompletionEngine
 			if (fieldBeingCompletedId >= 0 && field.id >= fieldBeingCompletedId) {
 				// Don't propose field which is being declared currently
 				// Don't propose fields declared after the current field declaration statement
-				// Though, if field is static, then it can be still be proposed
-				if (!field.isStatic()) { 
-					continue next;
-				} else if (isFieldBeingCompletedStatic) {
-					// static fields can't be proposed before they are actually declared if the 
-					// field currently being declared is also static
-					continue next;
+				// Though, if field is static or completion happens in Javadoc, then it can be still be proposed
+				if (this.assistNodeInJavadoc == 0) {
+					if (!field.isStatic()) {
+						continue next;
+					} else if (isFieldBeingCompletedStatic) {
+						// static fields can't be proposed before they are actually declared if the
+						// field currently being declared is also static
+						continue next;
+					}
 				}
 			}
 			
@@ -6297,8 +6425,7 @@ public final class CompletionEngine
 
 			if (fieldLength > field.name.length) continue next;
 
-			if (!CharOperation.prefixEquals(fieldName, field.name, false /* ignore case */)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(fieldName, field.name)))	continue next;
+			if (isFailedMatch(fieldName, field.name))	continue next;
 
 			if (this.options.checkDeprecation &&
 					field.isViewedAsDeprecated() &&
@@ -7498,7 +7625,7 @@ public final class CompletionEngine
 							if(proposeMethod && !insideAnnotationAttribute) {
 								MethodBinding methodBinding = (MethodBinding)binding;
 								if ((exactMatch && CharOperation.equals(token, methodBinding.selector)) ||
-										!exactMatch && CharOperation.prefixEquals(token, methodBinding.selector) ||
+										!exactMatch && CharOperation.prefixEquals(token, methodBinding.selector, false) ||
 										(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, methodBinding.selector))) {
 									findLocalMethodsFromStaticImports(
 											token,
@@ -7540,8 +7667,7 @@ public final class CompletionEngine
 
 			if (fieldLength > field.name.length) continue next;
 
-			if (!CharOperation.prefixEquals(fieldName, field.name, false /* ignore case */)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(fieldName, field.name)))	continue next;
+			if (isFailedMatch(fieldName, field.name))	continue next;
 
 			if (this.options.checkDeprecation &&
 					field.isViewedAsDeprecated() &&
@@ -7781,8 +7907,7 @@ public final class CompletionEngine
 			if (typeLength > memberType.sourceName.length)
 				continue next;
 
-			if (!CharOperation.prefixEquals(typeName, memberType.sourceName, false/* ignore case */)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(typeName, memberType.sourceName)))
+			if (isFailedMatch(typeName, memberType.sourceName))
 				continue next;
 
 			if (this.options.checkDeprecation && memberType.isViewedAsDeprecated()) continue next;
@@ -7838,8 +7963,7 @@ public final class CompletionEngine
 			if (!field.isStatic())
 				continue next;
 
-			if (!CharOperation.prefixEquals(fieldName, field.name, false/* ignore case */)
-				&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(fieldName, field.name)))
+			if (isFailedMatch(fieldName, field.name))
 				continue next;
 
 			if (this.options.checkDeprecation && field.isViewedAsDeprecated()) continue next;
@@ -7903,8 +8027,7 @@ public final class CompletionEngine
 			if (methodLength > method.selector.length)
 				continue next;
 
-			if (!CharOperation.prefixEquals(methodName, method.selector, false/* ignore case */)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(methodName, method.selector)))
+			if (isFailedMatch(methodName, method.selector))
 				continue next;
 
 			int length = method.parameters.length;
@@ -8187,9 +8310,8 @@ public final class CompletionEngine
 		if(choices == null || choices.length == 0) return;
 		int length = keyword.length;
 		for (int i = 0; i < choices.length; i++)
-			if (length <= choices[i].length
-			&& CharOperation.prefixEquals(keyword, choices[i], false /* ignore case */
-					)){
+			if (length <= choices[i].length && (CharOperation.prefixEquals(keyword, choices[i], false /* ignore case */)
+					|| (this.options.substringMatch && CharOperation.substringMatch(keyword, choices[i])))) {
 				if (ignorePackageKeyword && CharOperation.equals(choices[i], Keywords.PACKAGE))
 					continue;
 				int relevance = computeBaseRelevance();
@@ -8400,8 +8522,7 @@ public final class CompletionEngine
 				if (methodLength > method.selector.length)
 					continue next;
 
-				if (!CharOperation.prefixEquals(methodName, method.selector, false/* ignore case */)
-						&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(methodName, method.selector)))
+				if (isFailedMatch(methodName, method.selector))
 					continue next;
 			}
 
@@ -8555,8 +8676,7 @@ public final class CompletionEngine
 				}
 			} else {
 				if (methodLength > method.selector.length) continue next;
-				if (!CharOperation.prefixEquals(methodName, method.selector, false /* ignore case */)
-						&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(methodName, method.selector))) {
+				if (isFailedMatch(methodName, method.selector)) {
 					continue next;
 				}
 			}
@@ -8890,8 +9010,7 @@ public final class CompletionEngine
 
 				if (methodLength > method.selector.length) continue next;
 
-				if (!CharOperation.prefixEquals(methodName, method.selector, false /* ignore case */)
-						&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(methodName, method.selector))) {
+				if (isFailedMatch(methodName, method.selector)) {
 					continue next;
 				}
 
@@ -9628,8 +9747,7 @@ public final class CompletionEngine
 			if (typeLength > memberType.sourceName.length)
 				continue next;
 
-			if (!CharOperation.prefixEquals(typeName, memberType.sourceName, false/* ignore case */)
-					&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(typeName, memberType.sourceName)))
+			if (isFailedMatch(typeName, memberType.sourceName))
 				continue next;
 
 			if (this.options.checkDeprecation &&
@@ -9877,6 +9995,7 @@ public final class CompletionEngine
 		}
 		
 		boolean hasPotentialDefaultAbstractMethods = true;
+		boolean java8Plus = this.compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8;
 		while (currentType != null) {
 
 			MethodBinding[] methods = currentType.availableMethods();
@@ -9890,11 +10009,11 @@ public final class CompletionEngine
 					receiverType);
 			}
 
-			if (hasPotentialDefaultAbstractMethods &&
+			if (hasPotentialDefaultAbstractMethods && (java8Plus ||
 					(currentType.isAbstract() ||
 							currentType.isTypeVariable() ||
 							currentType.isIntersectionType() ||
-							currentType.isEnum())){
+							currentType.isEnum()))){
 
 				ReferenceBinding[] superInterfaces = currentType.superInterfaces();
 
@@ -10160,8 +10279,7 @@ public final class CompletionEngine
 
 								if (typeLength > localType.sourceName.length)
 									continue next;
-								if (!CharOperation.prefixEquals(typeName, localType.sourceName, false/* ignore case */)
-										&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(typeName, localType.sourceName)))
+								if (isFailedMatch(typeName, localType.sourceName))
 									continue next;
 
 								for (int j = typesFound.size; --j >= 0;) {
@@ -10254,7 +10372,7 @@ public final class CompletionEngine
 
 	private void findPackages(CompletionOnPackageReference packageStatement) {
 
-		this.completionToken = CharOperation.concatWith(packageStatement.tokens, '.');
+		this.completionToken = CharOperation.concatWithAll(packageStatement.tokens, '.');
 		if (this.completionToken.length == 0)
 			return;
 
@@ -10437,8 +10555,7 @@ public final class CompletionEngine
 
 					if (typeLength > typeParameter.name.length) continue;
 
-					if (!CharOperation.prefixEquals(token, typeParameter.name, false)
-							&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, typeParameter.name))) continue;
+					if (isFailedMatch(token, typeParameter.name)) continue;
 
 					int relevance = computeBaseRelevance();
 					relevance += computeRelevanceForResolution();
@@ -10538,8 +10655,7 @@ public final class CompletionEngine
 
 				if (typeLength > sourceType.sourceName.length) continue next;
 
-				if (!CharOperation.prefixEquals(token, sourceType.sourceName, false)
-						&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, sourceType.sourceName))) continue next;
+				if (isFailedMatch(token, sourceType.sourceName)) continue next;
 
 				if (this.assistNodeIsAnnotation && !hasPossibleAnnotationTarget(sourceType, scope)) {
 					continue next;
@@ -10917,8 +11033,7 @@ public final class CompletionEngine
 					if (typeLength > 0) {
 						if (typeLength > refBinding.sourceName.length) continue next;
 	
-						if (!CharOperation.prefixEquals(token, refBinding.sourceName, false)
-								&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, refBinding.sourceName))) continue next;
+						if (isFailedMatch(token, refBinding.sourceName)) continue next;
 					}
 
 
@@ -11084,8 +11199,7 @@ public final class CompletionEngine
 
 							if (typeLength > typeBinding.sourceName.length)	continue next;
 
-							if (!CharOperation.prefixEquals(token, typeBinding.sourceName, false)
-									&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, typeBinding.sourceName))) continue next;
+							if (isFailedMatch(token, typeBinding.sourceName)) continue next;
 							
 							int accessibility = IAccessRule.K_ACCESSIBLE;
 							if(typeBinding.hasRestrictedAccess()) {
@@ -11209,8 +11323,7 @@ public final class CompletionEngine
 
 							if (typeLength > typeBinding.sourceName.length)	continue;
 
-							if (!CharOperation.prefixEquals(token, typeBinding.sourceName, false)
-									&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, typeBinding.sourceName)))	continue;
+							if (isFailedMatch(token, typeBinding.sourceName))	continue;
 
 							if (typesFound.contains(typeBinding))  continue;
 
@@ -11734,8 +11847,7 @@ public final class CompletionEngine
 							if (tokenLength > local.name.length)
 								continue next;
 
-							if (!CharOperation.prefixEquals(token, local.name, false /* ignore case */)
-									&& !(this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, local.name)))
+							if (isFailedMatch(token, local.name))
 								continue next;
 
 							if (local.isSecret())
@@ -12075,7 +12187,7 @@ public final class CompletionEngine
 	private INameEnvironment getNoCacheNameEnvironment() {
 		if (this.noCacheNameEnvironment == null) {
 			JavaModelManager.getJavaModelManager().cacheZipFiles(this);
-			this.noCacheNameEnvironment = new JavaSearchNameEnvironment(this.javaProject, this.owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(this.owner, true/*add primary WCs*/));
+			this.noCacheNameEnvironment = IndexBasedJavaSearchEnvironment.create(Collections.singletonList(this.javaProject), this.owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(this.owner, true/*add primary WCs*/));
 		}
 		return this.noCacheNameEnvironment;
 	}
@@ -12149,6 +12261,26 @@ public final class CompletionEngine
 	}
 	private boolean isAllowingLongComputationProposals() {
 		return this.monitor != null;
+	}
+	
+	/**
+	 * Checks whether name matches the token according to the current
+	 * code completion settings (substring match, camel case match etc.)
+	 * and sets whether the current match is a suffix proposal.
+	 * 
+	 * @param token the token that is tested
+	 * @param name the name to match
+	 * @return <code>true</code> if the token does not match,
+	 * <code>false</code> otherwise
+	 */
+	private boolean isFailedMatch(char[] token, char[] name) {
+		if ((this.options.substringMatch && CharOperation.substringMatch(token, name))
+				|| (this.options.camelCaseMatch && CharOperation.camelCaseMatch(token, name))
+				|| CharOperation.prefixEquals(token, name, false)) {
+			return false;
+		}
+
+		return true;
 	}
 	private boolean isForbidden(ReferenceBinding binding) {
 		for (int i = 0; i <= this.forbbidenBindingsPtr; i++) {

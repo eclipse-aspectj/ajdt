@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,7 @@ import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IMethod;
+import org.aspectj.org.eclipse.jdt.core.IOpenable;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragment;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
@@ -54,12 +55,14 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ITypeRequestor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfIntValues;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryMember;
+import org.aspectj.org.eclipse.jdt.internal.core.BinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryType;
 import org.aspectj.org.eclipse.jdt.internal.core.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.core.CompilationUnit;
@@ -150,8 +153,10 @@ int progressWorked;
 CompilationUnitScope unitScope;
 SimpleLookupTable bindings;
 
+HashtableOfIntValues inTypeOccurrencesCounts = new HashtableOfIntValues();
 // Cache for method handles
 HashSet methodHandles;
+private TypeBinding unitScopeTypeBinding = null; // cached
 
 private final boolean searchPackageDeclaration;
 private int sourceStartOfMethodToRetain;
@@ -234,11 +239,11 @@ private static HashMap workingCopiesThatCanSeeFocus(org.aspectj.org.eclipse.jdt.
 	return result;
 }
 
-public static ClassFileReader classFileReader(IType type) {
+public static IBinaryType classFileReader(IType type) {
 	IClassFile classFile = type.getClassFile();
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	if (classFile.isOpen())
-		return (ClassFileReader) manager.getInfo(type);
+		return (IBinaryType)manager.getInfo(type);
 
 	PackageFragment pkg = (PackageFragment) type.getPackageFragment();
 	IPackageFragmentRoot root = (IPackageFragmentRoot) pkg.getParent();
@@ -470,7 +475,7 @@ protected IJavaElement createHandle(AbstractMethodDeclaration method, IJavaEleme
 	if (type.isBinary()) {
 		// don't cache the methods of the binary type
 		// fall thru if its a constructor with a synthetic argument... find it the slower way
-		ClassFileReader reader = classFileReader(type);
+		IBinaryType reader = classFileReader(type);
 		if (reader != null) {
 			// build arguments names
 			boolean firstIsSynthetic = false;
@@ -533,7 +538,7 @@ protected IJavaElement createHandle(AbstractMethodDeclaration method, IJavaEleme
  * Create binary method handle
  */
 IMethod createBinaryMethodHandle(IType type, char[] methodSelector, char[][] argumentTypeNames) {
-	ClassFileReader reader = MatchLocator.classFileReader(type);
+	IBinaryType reader = MatchLocator.classFileReader(type);
 	if (reader != null) {
 		IBinaryMethod[] methods = reader.getMethods();
 		if (methods != null) {
@@ -915,6 +920,7 @@ protected TypeBinding getType(Object typeKey, char[] typeName) {
 	// Get binding from unit scope
 	char[][] compoundName = CharOperation.splitOn('.', typeName);
 	TypeBinding typeBinding = this.unitScope.getType(compoundName, compoundName.length);
+	this.unitScopeTypeBinding = typeBinding; //cache.
 	if (typeBinding == null || !typeBinding.isValidBinding()) {
 		typeBinding = this.lookupEnvironment.getType(compoundName);
 	}
@@ -922,6 +928,7 @@ protected TypeBinding getType(Object typeKey, char[] typeName) {
 	return typeBinding != null && typeBinding.isValidBinding() ? typeBinding : null;
 }
 public MethodBinding getMethodBinding(MethodPattern methodPattern) {
+	this.unitScopeTypeBinding = null;
     MethodBinding methodBinding = getMethodBinding0(methodPattern);
     if (methodBinding != null)
     	return methodBinding; // known to be valid.
@@ -950,6 +957,26 @@ public MethodBinding getMethodBinding(MethodPattern methodPattern) {
     					}
     				}
     			}
+    		}
+    	}
+    } else if (methodPattern.focus instanceof BinaryMethod &&
+    		methodPattern.declaringType instanceof BinaryType &&
+    		this.unitScopeTypeBinding instanceof ProblemReferenceBinding) {//Get binding from unit scope for non-visible member of binary type
+    	char[] typeName = PatternLocator.qualifiedPattern(methodPattern.declaringSimpleName, methodPattern.declaringQualification);
+    	if (typeName != null) {
+    		IType type = methodPattern.declaringType;
+    		IType enclosingType = type.getDeclaringType();
+    		while (enclosingType != null) {
+    			type = enclosingType;
+    			enclosingType = type.getDeclaringType();
+    		}
+    		typeName = type.getFullyQualifiedName().toCharArray();
+    		TypeBinding typeBinding = this.unitScopeTypeBinding;
+    		if (typeBinding instanceof ProblemReferenceBinding) {
+    			ProblemReferenceBinding problemReferenceBinding = (ProblemReferenceBinding) this.unitScopeTypeBinding;
+    			ReferenceBinding closestMatch = (problemReferenceBinding.problemId() == ProblemReasons.NotVisible) ?
+    					problemReferenceBinding.closestReferenceMatch() : null;
+    					return closestMatch != null ?  getMethodBinding(methodPattern, closestMatch) : null;
     		}
     	}
     }
@@ -1036,11 +1063,10 @@ private Map<Integer, List<String>> getSplitNames(MethodBinding method) {
  * Selects the most applicable method (though similar but not to be confused with its namesake in jls)
  * All this machinery for that elusive uncommon case referred in bug 431357.
  */
-private MethodBinding getMostApplicableMethod(List<MethodBinding> possibleMethods) {
+private MethodBinding getMostApplicableMethod(List<MethodBinding> possibleMethods, MethodPattern methodPattern) {
 	int size = possibleMethods.size();
 	MethodBinding result = size != 0 ? possibleMethods.get(0) : null;
 	if (size > 1) {
-		MethodPattern methodPattern =  ((MethodPattern) this.pattern);
 		// can cache but may not be worth since this is not a common case
 		Map<Integer, List<String>> methodPatternReverseNames = getSplitNames(methodPattern.parameterQualifications, methodPattern.parameterSimpleNames);
 		int len = possibleMethods.size();
@@ -1058,7 +1084,6 @@ private MethodBinding getMethodBinding0(MethodPattern methodPattern) {
 	if (binding != null) {
 		if (binding instanceof MethodBinding && binding.isValidBinding())
 			return (MethodBinding) binding;
-		return null;
 	}
 	//	Get binding from unit scope
 	char[] typeName = PatternLocator.qualifiedPattern(methodPattern.declaringSimpleName, methodPattern.declaringQualification);
@@ -1073,59 +1098,65 @@ private MethodBinding getMethodBinding0(MethodPattern methodPattern) {
 			declaringTypeBinding = declaringTypeBinding.leafComponentType();
 		}
 		if (!declaringTypeBinding.isBaseType()) {
-			char[][] parameterTypes = methodPattern.parameterSimpleNames;
-			if (parameterTypes == null) return null;
-			int paramTypeslength = parameterTypes.length;
-			ReferenceBinding referenceBinding = (ReferenceBinding) declaringTypeBinding;
-			MethodBinding[] methods = referenceBinding.getMethods(methodPattern.selector);
-			int methodsLength = methods.length;
-			TypeVariableBinding[] refTypeVariables = referenceBinding.typeVariables();
-			int typeVarLength = refTypeVariables==null ? 0 : refTypeVariables.length;
-			List <MethodBinding> possibleMethods = new ArrayList<MethodBinding>(methodsLength);
-			for (int i=0; i<methodsLength; i++) {
-				TypeBinding[] methodParameters = methods[i].parameters;
-				int paramLength = methodParameters==null ? 0 : methodParameters.length;
-				TypeVariableBinding[] methodTypeVariables = methods[i].typeVariables;
-				int methTypeVarLength = methodTypeVariables==null ? 0 : methodTypeVariables.length;
-				boolean found = false;
-				if (methodParameters != null && paramLength == paramTypeslength) {
-					for (int p=0; p<paramLength; p++) {
-						if (CharOperation.equals(methodParameters[p].sourceName(), parameterTypes[p])) {
-							// param erasure match
-							found = true;
-						} else {
-							// type variable
-							found = false;
-							if (refTypeVariables != null) {
-								for (int v=0; v<typeVarLength; v++) {
-									if (!CharOperation.equals(refTypeVariables[v].sourceName, parameterTypes[p])) {
-										found = false;
-										break;
-									}
-									found = true;
-								}
-							}
-							if (!found && methodTypeVariables != null) {
-								for (int v=0; v<methTypeVarLength; v++) {
-									if (!CharOperation.equals(methodTypeVariables[v].sourceName, parameterTypes[p])) {
-										found = false;
-										break;
-									}
-									found = true;
-								}
-							}
-							if (!found) break;
-						}
-					}
-				}
-				if (found) {
-					possibleMethods.add(methods[i]);
-				}
-			}
-			result =  getMostApplicableMethod(possibleMethods);
+			result = getMethodBinding(methodPattern, declaringTypeBinding);
 		}
 	}
 	this.bindings.put(methodPattern, result != null ? result : new ProblemMethodBinding(methodPattern.selector, null, ProblemReasons.NotFound));
+	return result;
+}
+
+private MethodBinding getMethodBinding(MethodPattern methodPattern, TypeBinding declaringTypeBinding) {
+	MethodBinding result;
+	char[][] parameterTypes = methodPattern.parameterSimpleNames;
+	if (parameterTypes == null) return null;
+	int paramTypeslength = parameterTypes.length;
+	ReferenceBinding referenceBinding = (ReferenceBinding) declaringTypeBinding;
+	MethodBinding[] methods = referenceBinding.getMethods(methodPattern.selector);
+	int methodsLength = methods.length;
+	TypeVariableBinding[] refTypeVariables = referenceBinding.typeVariables();
+	int typeVarLength = refTypeVariables==null ? 0 : refTypeVariables.length;
+	List <MethodBinding> possibleMethods = new ArrayList<MethodBinding>(methodsLength);
+	for (int i=0; i<methodsLength; i++) {
+		TypeBinding[] methodParameters = methods[i].parameters;
+		int paramLength = methodParameters==null ? 0 : methodParameters.length;
+		TypeVariableBinding[] methodTypeVariables = methods[i].typeVariables;
+		int methTypeVarLength = methodTypeVariables==null ? 0 : methodTypeVariables.length;
+		boolean found = false;
+		if (methodParameters != null && paramLength == paramTypeslength) {
+			for (int p=0; p<paramLength; p++) {
+				if (CharOperation.equals(methodParameters[p].sourceName(), parameterTypes[p])) {
+					// param erasure match
+					found = true;
+				} else {
+					// type variable
+					found = false;
+					if (refTypeVariables != null) {
+						for (int v=0; v<typeVarLength; v++) {
+							if (!CharOperation.equals(refTypeVariables[v].sourceName, parameterTypes[p])) {
+								found = false;
+								break;
+							}
+							found = true;
+						}
+					}
+					if (!found && methodTypeVariables != null) {
+						for (int v=0; v<methTypeVarLength; v++) {
+							if (!CharOperation.equals(methodTypeVariables[v].sourceName, parameterTypes[p])) {
+								found = false;
+								break;
+							}
+							found = true;
+						}
+					}
+					if (!found) break;
+				}
+			}
+		}
+		if (found) {
+			possibleMethods.add(methods[i]);
+		}
+	}
+	result =  getMostApplicableMethod(possibleMethods, methodPattern);
 	return result;
 }
 protected boolean hasAlreadyDefinedType(CompilationUnitDeclaration parsedUnit) {
@@ -1149,9 +1180,15 @@ public void initialize(JavaProject project, int possibleMatchSize) throws JavaMo
 
 	SearchableEnvironment searchableEnvironment = project.newSearchableNameEnvironment(this.workingCopies);
 
-	this.nameEnvironment = new JavaSearchNameEnvironment(project, this.workingCopies);
-	if (this.pattern.focus != null)  
-		((JavaSearchNameEnvironment) this.nameEnvironment).addProjectClassPath((JavaProject) this.pattern.focus.getJavaProject());
+	List<IJavaProject> projects = new ArrayList<>();
+	projects.add(project);
+	if (this.pattern.focus != null) {
+		IJavaProject focusProject = this.pattern.focus.getJavaProject();
+		if (focusProject != project) {
+			projects.add(focusProject);
+		}
+	}
+	this.nameEnvironment = IndexBasedJavaSearchEnvironment.create(projects, this.workingCopies);
 
 	// create lookup environment
 	Map map = project.getOptions(true);
@@ -2390,23 +2427,25 @@ protected void reportMatching(AbstractMethodDeclaration method, TypeDeclaration 
 		if (enclosingElement == null) {
 			enclosingElement = createHandle(method, parent);
 		}
-		// Traverse method declaration to report matches both in local types declaration
-		// and in local variables declaration
-		ASTNode[] nodes = typeInHierarchy ? nodeSet.matchingNodes(method.declarationSourceStart, method.declarationSourceEnd) : null;
-		boolean report = (this.matchContainer & PatternLocator.METHOD_CONTAINER) != 0 && encloses(enclosingElement);
-		MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this, typeInHierarchy);
-		try {
-			method.traverse(declarationVisitor, (ClassScope) null);
-		} catch (WrappedCoreException e) {
-			throw e.coreException;
-		}
-		// Report all nodes and remove them
-		if (nodes != null) {
-			int length = nodes.length;
-			for (int i = 0; i < length; i++) {
-				Integer level = (Integer) nodeSet.matchingNodes.removeKey(nodes[i]);
-				if (report && level != null) {
-	    	        this.patternLocator.matchReportReference(nodes[i], enclosingElement, declarationVisitor.getLocalElement(i), declarationVisitor.getOtherElements(i), method.binding, level.intValue(), this);
+		if (enclosingElement != null) {
+			// Traverse method declaration to report matches both in local types declaration
+			// and in local variables declaration
+			ASTNode[] nodes = typeInHierarchy ? nodeSet.matchingNodes(method.declarationSourceStart, method.declarationSourceEnd) : null;
+			boolean report = (this.matchContainer & PatternLocator.METHOD_CONTAINER) != 0 && encloses(enclosingElement);
+			MemberDeclarationVisitor declarationVisitor = new MemberDeclarationVisitor(enclosingElement, report ? nodes : null, nodeSet, this, typeInHierarchy);
+			try {
+				method.traverse(declarationVisitor, (ClassScope) null);
+			} catch (WrappedCoreException e) {
+				throw e.coreException;
+			}
+			// Report all nodes and remove them
+			if (nodes != null) {
+				int length = nodes.length;
+				for (int i = 0; i < length; i++) {
+					Integer level = (Integer) nodeSet.matchingNodes.removeKey(nodes[i]);
+					if (report && level != null) {
+						this.patternLocator.matchReportReference(nodes[i], enclosingElement, declarationVisitor.getLocalElement(i), declarationVisitor.getOtherElements(i), method.binding, level.intValue(), this);
+					}
 				}
 			}
 		}
@@ -2664,6 +2703,7 @@ protected void reportMatching(CompilationUnitDeclaration unit, boolean mustResol
 			TypeDeclaration type = types[i];
 			Integer level = (Integer) nodeSet.matchingNodes.removeKey(type);
 			int accuracy = (level != null && matchedUnitContainer) ? level.intValue() : -1;
+			this.inTypeOccurrencesCounts = new HashtableOfIntValues();
 			reportMatching(type, null, accuracy, nodeSet, 1);
 		}
 	}
@@ -2815,7 +2855,24 @@ protected void reportMatching(TypeDeclaration type, IJavaElement parent, int acc
 	} else if (enclosingElement instanceof IMember) {
 	    IMember member = (IMember) parent;
 		if (member.isBinary())  {
-			enclosingElement = ((IClassFile)this.currentPossibleMatch.openable).getType();
+			IOpenable openable = enclosingElement.getOpenable();
+			IJavaElement anonType = null;
+			if (openable instanceof ClassFile) {
+				BinaryType binaryType = (BinaryType)((ClassFile) openable).getType();
+				String fileName = binaryType.getPath().toOSString();
+				if ((type.bits & ASTNode.IsAnonymousType) != 0) {
+					if (fileName != null) {
+						if (fileName.endsWith("jar") || fileName.endsWith(SuffixConstants.SUFFIX_STRING_class)) { //$NON-NLS-1$
+							IClassFile classFile= binaryType.getPackageFragment().getClassFile(binaryType.getTypeQualifiedName() + 
+									"$" + Integer.toString(occurrenceCount) + SuffixConstants.SUFFIX_STRING_class);//$NON-NLS-1$
+							anonType =  classFile.getType();
+						}
+					} else {
+						// TODO: JAVA 9 - JIMAGE to be included later - currently assuming that only .class files will be dealt here.
+					}
+				}
+			}
+			enclosingElement = anonType != null ? anonType : ((IClassFile)this.currentPossibleMatch.openable).getType() ;
 		} else {
 			enclosingElement = member.getType(new String(type.name), occurrenceCount);
 		}

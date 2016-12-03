@@ -13,12 +13,13 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.flow;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+
 /**
  * Reflects the context of code analysis, keeping track of enclosing
  * try statements, exception handlers, etc...
  */
 
-public class ExceptionInferenceFlowContext extends ExceptionHandlingFlowContext {
+public class ExceptionInferenceFlowContext extends FieldInitsFakingFlowContext {
 	public ExceptionInferenceFlowContext(
 			FlowContext parent,
 			ASTNode associatedNode,

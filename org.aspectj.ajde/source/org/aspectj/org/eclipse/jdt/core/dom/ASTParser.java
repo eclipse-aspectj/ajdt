@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2015 IBM Corporation and others.
+ * Copyright (c) 2004, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
@@ -90,7 +91,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
  * @since 3.0
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes"})
 public class ASTParser {
 
     // AspectJ Extension start 
@@ -179,7 +180,7 @@ public class ASTParser {
 	/**
 	 * Compiler options. Defaults to JavaCore.getOptions().
 	 */
-	private Map compilerOptions;
+	private Map<String, String> compilerOptions;
 	
     /**
 	 * The focal point for a partial AST request.
@@ -410,12 +411,12 @@ public class ASTParser {
 	 * value type: <code>String</code>), or <code>null</code>
 	 * to set it back to the default
 	 */
-	public void setCompilerOptions(Map options) {
+	public void setCompilerOptions(Map<String, String> options) {
 		if (options == null) {
 			options = JavaCore.getOptions();
 		} else {
 			// copy client's options so as to not do any side effect on them
-			options = new HashMap(options);
+			options = new HashMap<>(options);
 		}
 		options.remove(JavaCore.COMPILER_TASK_TAGS); // no need to parse task tags
 		this.compilerOptions = options;
@@ -690,7 +691,7 @@ public class ASTParser {
 		this.rawSource = null;
 		if (source != null) {
 			this.project = source.getJavaProject();
-			Map options = this.project.getOptions(true);
+			Map<String, String> options = this.project.getOptions(true);
 			options.remove(JavaCore.COMPILER_TASK_TAGS); // no need to parse task tags
 			this.compilerOptions = options;
 		}
@@ -822,7 +823,7 @@ public class ASTParser {
 	public void setProject(IJavaProject project) {
 		this.project = project;
 		if (project != null) {
-			Map options = project.getOptions(true);
+			Map<String, String> options = project.getOptions(true);
 			options.remove(JavaCore.COMPILER_TASK_TAGS); // no need to parse task tags
 			this.compilerOptions = options;
 		}
@@ -844,17 +845,16 @@ public class ASTParser {
 	 * are insufficient, contradictory, or otherwise unsupported
 	 */
 	public ASTNode createAST(IProgressMonitor monitor) {
+		SubMonitor subMonitor = SubMonitor.convert(monitor, 1);
 		ASTNode result = null;
-		if (monitor != null) monitor.beginTask("", 1); //$NON-NLS-1$
 		try {
 			if (this.rawSource == null && this.typeRoot == null) {
 				throw new IllegalStateException("source not specified"); //$NON-NLS-1$
 			}
-			result = internalCreateAST(monitor);
+			result = internalCreateAST(subMonitor.split(1));
 		} finally {
 			// reset to defaults to allow reuse (and avoid leaking)
 			initializeDefaults();
-			if (monitor != null) monitor.done();
 		}
 		return result;
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,7 +48,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
-@SuppressWarnings("rawtypes")
 public class MethodBinding extends Binding {
 
 	public int modifiers;
@@ -61,6 +60,8 @@ public class MethodBinding extends Binding {
 	public TypeVariableBinding[] typeVariables = Binding.NO_TYPE_VARIABLES;
 	char[] signature;
 	public long tagBits;
+	// Used only for constructors
+	protected AnnotationBinding [] typeAnnotations = Binding.NO_ANNOTATIONS;
 
 	/** Store nullness information from annotation (incl. applicable default). */
 	public Boolean[] parameterNonNullness;  // TRUE means @NonNull declared, FALSE means @Nullable declared, null means nothing declared
@@ -424,12 +425,12 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 		}
 		PackageBinding currentPackage = currentType.fPackage;
 		// package could be null for wildcards/intersection types, ignore and recurse in superclass
-		if (currentPackage != null && currentPackage != declaringPackage) return false;
+		if (!currentType.isCapture() && currentPackage != null && currentPackage != declaringPackage) return false;
 	} while ((currentType = currentType.superclass()) != null);
 	return false;
 }
 
-public List collectMissingTypes(List missingTypes) {
+public List<TypeBinding> collectMissingTypes(List<TypeBinding> missingTypes) {
 	if ((this.tagBits & TagBits.HasMissingType) != 0) {
 		missingTypes = this.returnType.collectMissingTypes(missingTypes);
 		for (int i = 0, max = this.parameters.length; i < max; i++) {
@@ -776,6 +777,22 @@ public TypeVariableBinding getTypeVariable(char[] variableName) {
 	return null;
 }
 
+public TypeVariableBinding[] getAllTypeVariables(boolean isDiamond) {
+	TypeVariableBinding[] allTypeVariables = this.typeVariables;
+	if (isDiamond) {
+		TypeVariableBinding[] classTypeVariables = this.declaringClass.typeVariables();
+		int l1 = allTypeVariables.length;
+		int l2 = classTypeVariables.length;
+		if (l1 == 0) {
+			allTypeVariables = classTypeVariables;
+		} else if (l2 != 0) {
+			System.arraycopy(allTypeVariables, 0, allTypeVariables=new TypeVariableBinding[l1+l2], 0, l1);
+			System.arraycopy(classTypeVariables, 0, allTypeVariables, l1, l2);
+		}
+	}
+	return allTypeVariables;
+}
+
 /**
  * Returns true if method got substituted parameter types
  * (see ParameterizedMethodBinding)
@@ -934,6 +951,9 @@ public final boolean isUsed() {
 public boolean isVarargs() {
 	return (this.modifiers & ClassFileConstants.AccVarargs) != 0;
 }
+public boolean isParameterizedGeneric() {
+	return false;
+}
 public boolean isPolymorphic() {
 	return false;
 }
@@ -984,6 +1004,13 @@ public char[] readableName() /* foo(int, Thread) */ {
 	}
 	buffer.append(')');
 	return buffer.toString().toCharArray();
+}
+final public AnnotationBinding[] getTypeAnnotations() {
+	return this.typeAnnotations;
+}
+
+public void setTypeAnnotations(AnnotationBinding[] annotations) {
+	this.typeAnnotations = annotations;
 }
 public void setAnnotations(AnnotationBinding[] annotations) {
 	this.declaringClass.storeAnnotations(this, annotations);
@@ -1102,7 +1129,7 @@ public final char[] signature() /* (ILjava/lang/Thread;)Ljava/lang/Object; */ {
  *
  * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=171184
  */
-public final char[] signature(ClassFile classFile) {
+public char[] signature(ClassFile classFile) {
 	if (this.signature != null) {
 		if ((this.tagBits & TagBits.ContainsNestedTypeReferences) != 0) {
 			// we need to record inner classes references
@@ -1374,5 +1401,19 @@ public boolean redeclaresPublicObjectMethod(Scope scope) {
 }
 public boolean isVoidMethod() {
 	return this.returnType == TypeBinding.VOID;
+}
+public boolean doesParameterLengthMatch(int suggestedParameterLength) {
+	int len = this.parameters.length;
+	return len <= suggestedParameterLength || (isVarargs() && len == suggestedParameterLength + 1);
+}
+public void updateTypeVariableBinding(TypeVariableBinding previousBinding, TypeVariableBinding updatedBinding) {
+	TypeVariableBinding[] bindings = this.typeVariables;
+	if (bindings != null) {
+		for (int i = 0; i < bindings.length; i++) {
+			if (bindings[i] == previousBinding) { //$IDENTITY-COMPARISON$
+				bindings[i] = updatedBinding;
+			}
+		}
+	}
 }
 }

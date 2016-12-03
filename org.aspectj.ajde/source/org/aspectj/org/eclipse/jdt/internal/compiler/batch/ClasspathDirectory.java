@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,16 +9,11 @@
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
  *								Bug 440687 - [compiler][batch][null] improve command line option for external annotations
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.batch;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.List;
-
-import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
@@ -30,11 +25,19 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotation
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ClasspathDirectory extends ClasspathLocation {
@@ -44,11 +47,13 @@ private String[] missingPackageHolder = new String[1];
 private int mode; // ability to only consider one kind of files (source vs. binaries), by default use both
 private String encoding; // only useful if referenced in the source path
 private Hashtable<String, Hashtable<String, String>> packageSecondaryTypes = null;
+Map options;
 
 ClasspathDirectory(File directory, String encoding, int mode,
-		AccessRuleSet accessRuleSet, String destinationPath) {
+		AccessRuleSet accessRuleSet, String destinationPath, Map options) {
 	super(accessRuleSet, destinationPath);
 	this.mode = mode;
+	this.options = options;
 	try {
 		this.path = directory.getCanonicalPath();
 	} catch (IOException e) {
@@ -149,15 +154,21 @@ public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageN
 	return null;
 }
 public NameEnvironmentAnswer findSecondaryInClass(char[] typeName, String qualifiedPackageName, String qualifiedBinaryFileName) {
-	boolean sourceExists = isPackage(qualifiedPackageName) && ((this.mode & SOURCE) != 0) && doesFileExist( new String(typeName) + SUFFIX_STRING_java, qualifiedPackageName);
-	return sourceExists ? null : findSourceSecondaryType(typeName, qualifiedPackageName, qualifiedBinaryFileName); /* only secondary types */
+	//"package-info" is a reserved class name and can never be a secondary type (it is much faster to stop the search here).
+	if(TypeConstants.PACKAGE_INFO_NAME.equals(typeName)) {
+		return null;
+	}
+
+	String typeNameString = new String(typeName);
+	boolean prereqs = this.options != null && isPackage(qualifiedPackageName) && ((this.mode & SOURCE) != 0) && doesFileExist(typeNameString + SUFFIX_STRING_java, qualifiedPackageName);
+	return prereqs ? null : findSourceSecondaryType(typeNameString, qualifiedPackageName, qualifiedBinaryFileName); /* only secondary types */
 }
 
 @Override
 public boolean hasAnnotationFileFor(String qualifiedTypeName) {
 	int pos = qualifiedTypeName.lastIndexOf('/');
 	if (pos != -1 && (pos + 1 < qualifiedTypeName.length())) {
-		String fileName = qualifiedTypeName.substring(pos + 1) + '.' + ExternalAnnotationProvider.ANNOTION_FILE_EXTENSION;
+		String fileName = qualifiedTypeName.substring(pos + 1) + ExternalAnnotationProvider.ANNOTATION_FILE_SUFFIX;
 		return doesFileExist(fileName, qualifiedTypeName.substring(0, pos));
 	}
 	return false;
@@ -167,8 +178,8 @@ public boolean hasAnnotationFileFor(String qualifiedTypeName) {
 /**
  *  Add all the secondary types in the package
  */
-private Hashtable<String, String> getPackageTypes(char[] typeName, String qualifiedPackageName) {
-	Hashtable<String, String> packageEntry = new Hashtable<String, String>();
+private Hashtable<String, String> getPackageTypes(String qualifiedPackageName) {
+	Hashtable<String, String> packageEntry = new Hashtable<>();
 
 	String[] dirList = (String[]) this.directoryCache.get(qualifiedPackageName);
 	if (dirList == this.missingPackageHolder // package exists in another classpath directory or jar 
@@ -184,14 +195,16 @@ private Hashtable<String, String> getPackageTypes(char[] typeName, String qualif
 		if (f.isDirectory()) continue;
 		String s = f.getAbsolutePath();
 		if (s == null) continue;
+		if (!(s.endsWith(SUFFIX_STRING_java) || s.endsWith(SUFFIX_STRING_JAVA))) continue;
 		CompilationUnit cu = new CompilationUnit(null, s, this.encoding, this.destinationPath);
 		CompilationResult compilationResult = new CompilationResult(cu.getContents(), 1, 1, 10);
 		ProblemReporter problemReporter = 
 				new ProblemReporter(
 					DefaultErrorHandlingPolicies.proceedWithAllProblems(),
-					new CompilerOptions(JavaCore.getOptions()),
+					new CompilerOptions(this.options),
 					new DefaultProblemFactory());
 		Parser parser = new Parser(problemReporter, false);
+		parser.reportSyntaxErrorIsRequired = false;
 
 		CompilationUnitDeclaration unit = parser.parse(cu, compilationResult);
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration[] types = unit != null ? unit.types : null;
@@ -205,15 +218,15 @@ private Hashtable<String, String> getPackageTypes(char[] typeName, String qualif
 	}
 	return packageEntry;
 }
-private NameEnvironmentAnswer findSourceSecondaryType(char[] typeName, String qualifiedPackageName, String qualifiedBinaryFileName) {
+private NameEnvironmentAnswer findSourceSecondaryType(String typeName, String qualifiedPackageName, String qualifiedBinaryFileName) {
 	
-	if (this.packageSecondaryTypes == null) this.packageSecondaryTypes = new Hashtable<String, Hashtable<String,String>>();
+	if (this.packageSecondaryTypes == null) this.packageSecondaryTypes = new Hashtable<>();
 	Hashtable<String, String> packageEntry = this.packageSecondaryTypes.get(qualifiedPackageName);
 	if (packageEntry == null) {
-		packageEntry = 	getPackageTypes(typeName, qualifiedPackageName);
+		packageEntry = 	getPackageTypes(qualifiedPackageName);
 		this.packageSecondaryTypes.put(qualifiedPackageName, packageEntry);
 	}
-	String fileName = packageEntry.get(new String(typeName));
+	String fileName = packageEntry.get(typeName);
 	return fileName != null ? new NameEnvironmentAnswer(new CompilationUnit(null,
 			fileName, this.encoding, this.destinationPath),
 			fetchAccessRestriction(qualifiedBinaryFileName)) : null;

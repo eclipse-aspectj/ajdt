@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 IBM Corporation and others.
+ * Copyright (c) 2008, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -201,6 +201,7 @@ private TypeParameterInfo[] getTypeParameterInfos(TypeParameter[] typeParameters
 		TypeParameter typeParameter = typeParameters[i];
 		char[][] typeParameterBounds = getTypeParameterBounds(typeParameter);
 		ISourceElementRequestor.TypeParameterInfo typeParameterInfo = new ISourceElementRequestor.TypeParameterInfo();
+		typeParameterInfo.typeAnnotated = ((typeParameter.bits & ASTNode.HasTypeAnnotations) != 0);
 		typeParameterInfo.declarationStart = typeParameter.declarationSourceStart;
 		typeParameterInfo.declarationEnd = typeParameter.declarationSourceEnd;
 		typeParameterInfo.name = typeParameter.name;
@@ -367,6 +368,8 @@ protected void notifySourceElementRequestor(AbstractMethodDeclaration methodDecl
 		methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
 		methodInfo.annotations = methodDeclaration.annotations;
 		methodInfo.node = methodDeclaration;
+		methodInfo.enclosingType = declaringType;
+		methodInfo.declaringPackageName = currentPackage == null ? CharOperation.NO_CHAR : CharOperation.concatWith(currentPackage.tokens, '.');
 		this.requestor.enterMethod(methodInfo);
 	}
 

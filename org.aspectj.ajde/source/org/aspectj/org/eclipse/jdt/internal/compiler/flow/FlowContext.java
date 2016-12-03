@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -83,10 +83,10 @@ public class FlowContext implements TypeConstants {
 	public TypeBinding[][] providedExpectedTypes = null;
 
 	// record field references known to be non-null
-	//   this array will never shrink, only grow. reset happens by nulling the first cell
-	//   adding elements after reset ensures that the valid part of the array is always null-terminated
+	//   this array will never shrink, only grow. reset happens by nulling expired entries
+	//   this array grows in lock step with timesToLiveForNullCheckInfo, which controls expiration
 	private Reference[] nullCheckedFieldReferences = null;
-	private int timeToLiveForNullCheckInfo = -1;
+	private int[] timesToLiveForNullCheckInfo = null;
 
 	public static final int DEFER_NULL_DIAGNOSTIC = 0x1;
 	public static final int PREEMPT_NULL_DIAGNOSTIC = 0x2;
@@ -132,6 +132,7 @@ public FlowContext(FlowContext parent, ASTNode associatedNode) {
 		this.initsOnFinally = parent.initsOnFinally;
 		this.conditionalLevel = parent.conditionalLevel;
 		this.nullCheckedFieldReferences = parent.nullCheckedFieldReferences; // re-use list if there is one
+		this.timesToLiveForNullCheckInfo = parent.timesToLiveForNullCheckInfo;
 	}
 }
 
@@ -142,33 +143,35 @@ public FlowContext(FlowContext parent, ASTNode associatedNode) {
  * @param timeToLive control how many expire events are needed to expire this information
  */
 public void recordNullCheckedFieldReference(Reference reference, int timeToLive) {
-	this.timeToLiveForNullCheckInfo = timeToLive;
 	if (this.nullCheckedFieldReferences == null) {
 		// first entry:
-		this.nullCheckedFieldReferences = new Reference[2];
-		this.nullCheckedFieldReferences[0] = reference;
+		this.nullCheckedFieldReferences = new Reference[] { reference, null };
+		this.timesToLiveForNullCheckInfo = new int[] { timeToLive, -1 };
 	} else {
 		int len = this.nullCheckedFieldReferences.length;
 		// insert into first empty slot:
 		for (int i=0; i<len; i++) {
 			if (this.nullCheckedFieldReferences[i] == null) {
 				this.nullCheckedFieldReferences[i] = reference;
-				if (i+1 < len) {
-					this.nullCheckedFieldReferences[i+1] = null; // lazily mark next as empty
-				}
+				this.timesToLiveForNullCheckInfo[i] = timeToLive;
 				return;
 			}
 		}
-		// grow array:
+		// grow arrays:
 		System.arraycopy(this.nullCheckedFieldReferences, 0, this.nullCheckedFieldReferences=new Reference[len+2], 0, len);
+		System.arraycopy(this.timesToLiveForNullCheckInfo, 0, this.timesToLiveForNullCheckInfo=new int[len+2], 0, len);
 		this.nullCheckedFieldReferences[len] = reference;
+		this.timesToLiveForNullCheckInfo[len] = timeToLive;
 	}
 }
 
 /** If a null checked field has been recorded recently, increase its time to live. */
 public void extendTimeToLiveForNullCheckedField(int t) {
-	if (this.timeToLiveForNullCheckInfo > 0)
-		this.timeToLiveForNullCheckInfo += t;
+	if (this.timesToLiveForNullCheckInfo != null) {
+		for (int i = 0; i < this.timesToLiveForNullCheckInfo.length; i++)
+			if (this.timesToLiveForNullCheckInfo[i] > 0)
+				this.timesToLiveForNullCheckInfo[i] += t;
+}
 }
 
 /**
@@ -179,8 +182,9 @@ public void extendTimeToLiveForNullCheckedField(int t) {
  */	 
 public void expireNullCheckedFieldInfo() {
 	if (this.nullCheckedFieldReferences != null) {
-		if (--this.timeToLiveForNullCheckInfo == 0) {
-			this.nullCheckedFieldReferences[0] = null; // lazily wipe
+		for (int i = 0; i < this.nullCheckedFieldReferences.length; i++) {
+			if (--this.timesToLiveForNullCheckInfo[i] == 0)
+				this.nullCheckedFieldReferences[i] = null;
 		}
 	}
 }
@@ -197,7 +201,7 @@ public boolean isNullcheckedFieldAccess(Reference reference) {
 	for (int i=0; i<len; i++) {
 		Reference checked = this.nullCheckedFieldReferences[i];
 		if (checked == null) {
-			return false;
+			continue;
 		}
 		if (checked.isEquivalent(reference)) {
 			return true;
@@ -523,6 +527,9 @@ public FlowInfo getInitsForFinalBlankInitializationCheck(TypeBinding declaringTy
 			inits = initializationContext.initsBeforeContext;
 			current = initializationContext.initializationParent;
 		} else if (current instanceof ExceptionHandlingFlowContext) {
+			if(current instanceof FieldInitsFakingFlowContext) {
+				return FlowInfo.DEAD_END; // isDefinitelyAssigned will return true for all fields
+			}
 			ExceptionHandlingFlowContext exceptionContext = (ExceptionHandlingFlowContext) current;
 			current = exceptionContext.initializationParent == null ? exceptionContext.parent : exceptionContext.initializationParent;
 		} else {
@@ -530,7 +537,7 @@ public FlowInfo getInitsForFinalBlankInitializationCheck(TypeBinding declaringTy
 		}
 	} while (current != null);
 	// not found
-	return null;
+	throw new IllegalStateException(declaringType.debugName());
 }
 
 /*
@@ -956,6 +963,10 @@ public void recordUsingNullReference(Scope scope, LocalVariableBinding local,
 				return;
 			}
 			if (flowInfo.isPotentiallyNull(local)) {
+				if(local.type.isFreeTypeVariable()) {
+					scope.problemReporter().localVariableFreeTypeVariableReference(local, location);
+					return;
+				}
 				scope.problemReporter().localVariablePotentialNullReference(local, location);
 				return;
 			}

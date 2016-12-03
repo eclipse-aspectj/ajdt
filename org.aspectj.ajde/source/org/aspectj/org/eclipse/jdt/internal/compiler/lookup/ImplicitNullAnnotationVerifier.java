@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
@@ -190,11 +191,15 @@ public class ImplicitNullAnnotationVerifier {
 	private void collectOverriddenMethods(MethodBinding original, char[] selector, int suggestedParameterLength,
 			ReferenceBinding superType, Set ifcsSeen, List result) 
 	{
-		MethodBinding [] ifcMethods = superType.getMethods(selector, suggestedParameterLength);
+		MethodBinding [] ifcMethods = superType.unResolvedMethods();
 		int length = ifcMethods.length;
 		boolean added = false;
 		for  (int i=0; i<length; i++) {
 			MethodBinding currentMethod = ifcMethods[i];
+			if (!CharOperation.equals(selector, currentMethod.selector))
+				continue;
+			if (!currentMethod.doesParameterLengthMatch(suggestedParameterLength))
+				continue;
 			if (currentMethod.isStatic())
 				continue;
 			if (MethodVerifier.doesMethodOverride(original, currentMethod, this.environment)) {
@@ -225,6 +230,10 @@ public class ImplicitNullAnnotationVerifier {
 			boolean hasReturnNonNullDefault, boolean hasParameterNonNullDefault, boolean shouldComplain,
 			MethodBinding inheritedMethod, MethodBinding[] allInheritedMethods, Scope scope, InheritedNonNullnessInfo[] inheritedNonNullnessInfos) 
 	{
+		if(currentMethod.declaringClass.id == TypeIds.T_JavaLangObject) {
+			// all method implementations in java.lang.Object return non-null results and accept nullable as parameter.
+			return;
+		}
 		// Note that basically two different flows lead into this method:
 		// (1) during MethodVerifyer15.checkMethods() we want to report errors (against srcMethod or against the current type)
 		//     In this case this method is directly called from MethodVerifier15 (checkAgainstInheritedMethod / checkConcreteInheritedMethod)
@@ -294,7 +303,7 @@ public class ImplicitNullAnnotationVerifier {
 						ParameterizedGenericMethodBinding substitute = this.environment.createParameterizedGenericMethod(currentMethod, typeVariables);
 						substituteReturnType = substitute.returnType;
 					}
-					if (NullAnnotationMatching.analyse(inheritedMethod.returnType, currentMethod.returnType, substituteReturnType, 0, CheckMode.OVERRIDE).isAnyMismatch()) {
+					if (NullAnnotationMatching.analyse(inheritedMethod.returnType, currentMethod.returnType, substituteReturnType, null, 0, null, CheckMode.OVERRIDE_RETURN).isAnyMismatch()) {
 						if (srcMethod != null)
 							scope.problemReporter().illegalReturnRedefinition(srcMethod, inheritedMethod,
 																	this.environment.getNonNullAnnotationName());
@@ -425,12 +434,24 @@ public class ImplicitNullAnnotationVerifier {
 				if (useTypeAnnotations) {
 					TypeBinding inheritedParameter = inheritedMethod.parameters[i];
 					TypeBinding substituteParameter = substituteParameters != null ? substituteParameters[i] : null;
-					if (NullAnnotationMatching.analyse(currentMethod.parameters[i], inheritedParameter, substituteParameter, 0, CheckMode.OVERRIDE).isAnyMismatch()) {
+					if (NullAnnotationMatching.analyse(currentMethod.parameters[i], inheritedParameter, substituteParameter, null, 0, null, CheckMode.OVERRIDE).isAnyMismatch()) {
 						if (currentArgument != null)
 							scope.problemReporter().illegalParameterRedefinition(currentArgument, inheritedMethod.declaringClass, inheritedParameter);
 						else
 							scope.problemReporter().cannotImplementIncompatibleNullness(currentMethod, inheritedMethod, false);
 					}
+				}
+			}
+		}
+
+		if (shouldComplain && useTypeAnnotations && srcMethod != null) {
+			TypeVariableBinding[] currentTypeVariables = currentMethod.typeVariables();
+			TypeVariableBinding[] inheritedTypeVariables = inheritedMethod.typeVariables();
+			if (currentTypeVariables != Binding.NO_TYPE_VARIABLES && currentTypeVariables.length == inheritedTypeVariables.length) {
+				for (int i = 0; i < currentTypeVariables.length; i++) {
+					TypeVariableBinding inheritedVariable = inheritedTypeVariables[i];
+					if (NullAnnotationMatching.analyse(inheritedVariable, currentTypeVariables[i], null, null, -1, null, CheckMode.BOUND_CHECK).isAnyMismatch())
+						scope.problemReporter().cannotRedefineTypeArgumentNullity(inheritedVariable, inheritedMethod, srcMethod.typeParameters()[i]);
 				}
 			}
 		}

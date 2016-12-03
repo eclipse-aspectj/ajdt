@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,14 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public class QualifiedSuperReference extends QualifiedThisReference {
 
@@ -61,11 +68,13 @@ public TypeBinding resolveType(BlockScope scope) {
 			: this.currentCompatibleType.superclass());
 }
 
-int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type) {
+int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, BlockScope scope) {
 	if (type.isInterface()) {
 		// super call to an overridden default method? (not considering outer enclosings)
+		CompilerOptions compilerOptions = scope.compilerOptions();
 		ReferenceBinding[] supers = enclosingType.superInterfaces();
 		int length = supers.length;
+		boolean isJava8 = compilerOptions.complianceLevel >= ClassFileConstants.JDK1_8;
 		boolean isLegal = true; // false => compoundName != null && closestMatch != null
 		char[][] compoundName = null;
 		ReferenceBinding closestMatch = null;
@@ -80,21 +89,33 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type) {
 				// keep looking to ensure we always find the referenced type (even if illegal) 
 			}
 		}
-		if (!isLegal) {
+		if (!isLegal) {// || !isJava8) {
+			// AspectJ
+//			if (isJava8) {
+//				// Allowed inside ITDs
+//				Scope s = scope;
+//				boolean isOK = false;
+//				while (s!=null) {
+//					if (s instanceof InterTypeScope)
+//					s = s.parent;
+//				}
+//				break;
+//			}
+			// End AspectJ
 			this.currentCompatibleType = null;
 			// Please note the slightly unconventional use of the ProblemReferenceBinding:
 			// we use the problem's compoundName to report the type being illegally bypassed,
 			// whereas the closestMatch denotes the resolved (though illegal) target type
 			// for downstream resolving.
 			this.resolvedType =  new ProblemReferenceBinding(compoundName, 
-					closestMatch, ProblemReasons.AttemptToBypassDirectSuper);
+					closestMatch, isJava8 ? ProblemReasons.AttemptToBypassDirectSuper : ProblemReasons.InterfaceMethodInvocationNotBelow18);
 		}
 		// AspectJ: Conditional. Remove 'return 0' and Interface.super refs fail, leave it in and ITD super refs fail
 		if (this.currentCompatibleType != null) 
 		// End AspectJ extension
 		return 0; // never an outer enclosing type
 	}
-	return super.findCompatibleEnclosing(enclosingType, type);
+	return super.findCompatibleEnclosing(enclosingType, type, scope);
 }
 
 public void traverse(

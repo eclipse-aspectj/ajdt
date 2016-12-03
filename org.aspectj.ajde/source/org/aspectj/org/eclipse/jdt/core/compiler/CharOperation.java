@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Luiz-Otavio Zorzella <zorzella at gmail dot com> - Improve CamelCase algorithm
+ *     Gábor Kövesdán - Contribution for Bug 350000 - [content assist] Include non-prefix matches in auto-complete suggestions
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.compiler;
 
@@ -694,6 +695,94 @@ public static final boolean camelCaseMatch(char[] pattern, int patternStart, int
 }
 
 /**
+ * Answers true if the characters of the pattern are contained in the
+ * name as a substring, in a case-insensitive way.
+ *
+ * @param pattern the given pattern
+ * @param name the given name
+ * @return true if the pattern matches the given name, false otherwise
+ * @since 3.12
+ */
+public static final boolean substringMatch(String pattern, String name) {
+	if (pattern == null || pattern.length() == 0) {
+		return true;
+	}
+	if (name == null) {
+		return false;
+	}
+	return checkSubstringMatch(pattern.toCharArray(), name.toCharArray());
+}
+
+/**
+ * Answers true if the characters of the pattern are contained in the
+ * name as a substring, in a case-insensitive way.
+ *
+ * @param pattern the given pattern
+ * @param name the given name
+ * @return true if the pattern matches the given name, false otherwise
+ * @since 3.12
+ */
+public static final boolean substringMatch(char[] pattern, char[] name) {
+	if (pattern == null || pattern.length == 0) {
+		return true;
+	}
+	if (name == null) {
+		return false;
+	}
+	return checkSubstringMatch(pattern, name);
+}
+
+/**
+ * Internal substring matching method; called after the null and length
+ * checks are performed.
+ *
+ * @param pattern the given pattern
+ * @param name the given name
+ * @return true if the pattern matches the given name, false otherwise
+ *
+ * @see CharOperation#substringMatch(char[], char[])
+ */
+private static final boolean checkSubstringMatch(char[] pattern, char[] name) {
+
+/* XXX: to be revised/enabled
+
+	// allow non-consecutive occurrence of pattern characters
+	if (pattern.length >= 3) {
+		int pidx = 0;
+
+		for (int nidx = 0; nidx < name.length; nidx++) {
+			if (Character.toLowerCase(name[nidx]) ==
+					Character.toLowerCase(pattern[pidx]))
+				pidx++;
+			if (pidx == pattern.length)
+				return true;
+		}
+
+	// for short patterns only allow consecutive occurrence
+	} else {
+*/
+		// outer loop iterates on the characters of the name; trying to
+		// match at any possible position
+		outer: for (int nidx = 0; nidx < name.length - pattern.length + 1; nidx++) {
+			// inner loop iterates on pattern characters
+			for (int pidx = 0; pidx < pattern.length; pidx++) {
+				if (Character.toLowerCase(name[nidx + pidx]) !=
+						Character.toLowerCase(pattern[pidx])) {
+					// no match until parameter list; do not match parameter list
+					if ((name[nidx + pidx] == '(') || (name[nidx + pidx] == ':'))
+						return false;
+					continue outer;
+				}
+				if (pidx == pattern.length - 1)
+					return true;
+			}
+		}
+	// XXX: }
+
+	return false;
+}
+
+/**
  * Returns the char arrays as an array of Strings
  *
  * @param charArrays the char array to convert
@@ -1156,6 +1245,148 @@ public static final char[] concat(
 	System.arraycopy(third, 0, result, length1 + length2 + 2, length3);
 	return result;
 }
+/**
+ * Answers the concatenation of the two arrays inserting the separator character between the two arrays.
+ * It answers null if the two arrays are null.
+ * If the first array is null or is empty, then the second array is returned.
+ * If the second array is null or is empty, then the first array is returned.
+ * <br>
+ * <br>
+ * For example:
+ * <ol>
+ * <li><pre>
+ *    first = null
+ *    second = { 'a' }
+ *    separator = '/'
+ *    => result = { ' a' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    first = { ' a' }
+ *    second = null
+ *    separator = '/'
+ *    => result = { ' a' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    first = { ' a' }
+ *    second = { ' b' }
+ *    separator = '/'
+ *    => result = { ' a' , '/', 'b' }
+ * </pre>
+ * </li>
+ *  * <li><pre>
+ *    first = { ' a' }
+ *    second = {  }
+ *    separator = '/'
+ *    => result = { ' a'}
+ * </pre>
+ * </li>
+
+ * </ol>
+ *
+ * @param first the first array to concatenate
+ * @param second the second array to concatenate
+ * @param separator the character to insert
+ * @return the concatenation of the two arrays inserting the separator character
+ * between the two arrays , or null if the two arrays are null.
+ * @since 3.12
+ */
+public static final char[] concatNonEmpty(
+	char[] first,
+	char[] second,
+	char separator) {
+	if (first == null || first.length == 0)
+		return second;
+	if (second == null || second.length == 0)
+		return first;
+	return concat(first, second, separator);
+}
+/**
+ * Answers the concatenation of the three arrays inserting the sep1 character between the
+ * first two arrays and sep2 between the last two.
+ * It answers null if the three arrays are null.
+ * If the first array is null or empty, then it answers the concatenation of second and third inserting
+ * the sep2 character between them.
+ * If the second array is null or empty, then it answers the concatenation of first and third inserting
+ * the sep1 character between them.
+ * If the third array is null or empty, then it answers the concatenation of first and second inserting
+ * the sep1 character between them.
+ * <br>
+ * <br>
+ * For example:
+ * <ol>
+ * <li><pre>
+ *    first = null
+ *    sep1 = '/'
+ *    second = { 'a' }
+ *    sep2 = ':'
+ *    third = { 'b' }
+ *    => result = { ' a' , ':', 'b' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    first = { 'a' }
+ *    sep1 = '/'
+ *    second = null
+ *    sep2 = ':'
+ *    third = { 'b' }
+ *    => result = { ' a' , '/', 'b' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    first = { 'a' }
+ *    sep1 = '/'
+ *    second = { 'b' }
+ *    sep2 = ':'
+ *    third = null
+ *    => result = { ' a' , '/', 'b' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    first = { 'a' }
+ *    sep1 = '/'
+ *    second = { 'b' }
+ *    sep2 = ':'
+ *    third = { 'c' }
+ *    => result = { ' a' , '/', 'b' , ':', 'c' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    first = { 'a' }
+ *    sep1 = '/'
+ *    second = { }
+ *    sep2 = ':'
+ *    third = { 'c' }
+ *    => result = { ' a', ':', 'c' }
+ * </pre>
+ * </li>
+ * </ol>
+ *
+ * @param first the first array to concatenate
+ * @param sep1 the character to insert
+ * @param second the second array to concatenate
+ * @param sep2 the character to insert
+ * @param third the second array to concatenate
+ * @return the concatenation of the three arrays inserting the sep1 character between the
+ * two arrays and sep2 between the last two.
+ * @since 3.12
+ */
+public static final char[] concatNonEmpty(
+	char[] first,
+	char sep1,
+	char[] second,
+	char sep2,
+	char[] third) {
+	if (first == null || first.length  == 0)
+		return concatNonEmpty(second, third, sep2);
+	if (second == null || second.length == 0)
+		return concatNonEmpty(first, third, sep1);
+	if (third == null || third.length == 0)
+		return concatNonEmpty(first, second, sep1);
+
+	return concat(first, sep1, second, sep2, third);
+}
 
 /**
  * Answers a new array with prepending the prefix character and appending the suffix
@@ -1379,6 +1610,65 @@ public static final char[] concatWith(char[][] array, char separator) {
 			if (--size >= 0)
 				result[size] = separator;
 		}
+	}
+	return result;
+}
+
+/**
+ * Answers the concatenation of the given array parts using the given separator between each part 
+ * irrespective of whether an element is a zero length array or not.
+ * <br>
+ * <br>
+ * For example:<br>
+ * <ol>
+ * <li><pre>
+ *    array = { { 'a' }, {}, { 'b' } }
+ *    separator = ''
+ *    => result = { 'a', '/', '/', 'b' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    array = { { 'a' }, { 'b' } }
+ *    separator = '.'
+ *    => result = { 'a', '.', 'b' }
+ * </pre>
+ * </li>
+ * <li><pre>
+ *    array = null
+ *    separator = '.'
+ *    => result = { }
+ * </pre></li>
+ * </ol>
+ *
+ * @param array the given array
+ * @param separator the given separator
+ * @return the concatenation of the given array parts using the given separator between each part
+ * @since 3.12
+ */
+public static final char[] concatWithAll(char[][] array, char separator) {
+	int length = array == null ? 0 : array.length;
+	if (length == 0)
+		return CharOperation.NO_CHAR;
+
+	int size = length - 1;
+	int index = length;
+	while (--index >= 0) {
+		size += array[index].length;
+	}
+	char[] result = new char[size];
+	index = length;
+	while (--index >= 0) {
+		length = array[index].length;
+		if (length > 0) {
+			System.arraycopy(
+				array[index],
+				0,
+				result,
+				(size -= length),
+				length);
+		}
+		if (--size >= 0)
+			result[size] = separator;
 	}
 	return result;
 }
@@ -3552,6 +3842,94 @@ public static final char[][] splitOn(
 	System.arraycopy(array, last, split[currentWord], 0, end - last);
 	return split;
 }
+
+/**
+ * Return a new array which is the split of the given array using the given divider ignoring the
+ * text between (possibly nested) openEncl and closingEncl. If there are no openEncl in the code
+ * this is identical to {@link CharOperation#splitOn(char, char[], int, int)}. The given end
+ * is exclusive and the given start is inclusive.
+ * <br>
+ * <br>
+ * For example:
+ * <ol>
+ * <li><pre>
+ *    divider = ','
+ *    array = { 'A' , '<', 'B', ',', 'C', '>', ',', 'D' }
+ *    start = 0
+ *    end = 8
+ *    result => { {  'A' , '<', 'B', ',', 'C', '>'}, { 'D' }}
+ * </pre>
+ * </li>
+ * </ol>
+ *
+ * @param divider the given divider
+ * @param openEncl the opening enclosure
+ * @param closeEncl the closing enclosure
+ * @param array the given array
+ * @param start the given starting index
+ * @param end the given ending index
+ * @return a new array which is the split of the given array using the given divider
+ * @throws ArrayIndexOutOfBoundsException if start is lower than 0 or end is greater than the array length
+ * @since 3.12
+ */
+public static final char[][] splitOnWithEnclosures(
+		char divider,
+		char openEncl,
+		char closeEncl,
+		char[] array,
+		int start,
+		int end) {
+		int length = array == null ? 0 : array.length;
+		if (length == 0 || start > end)
+			return NO_CHAR_CHAR;
+
+		int wordCount = 1;
+		int enclCount = 0;
+		for (int i = start; i < end; i++) {
+			if (array[i] == openEncl)
+				enclCount++; 
+			else if (array[i] == divider)
+				wordCount++;
+		}
+		if (enclCount == 0)
+			return CharOperation.splitOn(divider, array, start, end);
+		
+		int nesting = 0;
+		if (openEncl == divider || closeEncl == divider) // divider should be distinct
+			return CharOperation.NO_CHAR_CHAR;
+
+		int[][] splitOffsets = new int[wordCount][2]; //maximum
+		int last = start, currentWord = 0, prevOffset = start;
+		for (int i = start; i < end; i++) {
+			if (array[i] == openEncl) {
+				++nesting;
+				continue;
+			}
+			if (array[i] == closeEncl) {
+				if (nesting > 0) 
+					--nesting;
+				continue;
+			}
+			if (array[i] == divider && nesting == 0) {
+				splitOffsets[currentWord][0] = prevOffset;
+				last = splitOffsets[currentWord++][1] = i;
+				prevOffset = last + 1;
+			}
+		}
+		if (last < end - 1) {
+			splitOffsets[currentWord][0] = prevOffset;
+			splitOffsets[currentWord++][1] = end;
+		}
+		char[][] split = new char[currentWord][];
+		for (int i = 0; i < currentWord; ++i) {
+			int sStart = splitOffsets[i][0];
+			int sEnd = splitOffsets[i][1];
+			int size = sEnd - sStart;
+			split[i] = new char[size];
+			System.arraycopy(array, sStart, split[i], 0, size);
+		}
+		return split;
+	}
 
 /**
  * Answers a new array which is a copy of the given array starting at the given start and

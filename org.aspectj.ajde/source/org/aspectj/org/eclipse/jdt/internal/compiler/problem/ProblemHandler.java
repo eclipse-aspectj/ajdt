@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,6 +43,8 @@ public class ProblemHandler {
 	
 	/* When temporarily switching policies, store here the original root policy (for temporary resume). */
 	private IErrorHandlingPolicy rootPolicy;
+
+	protected boolean suppressTagging = false;
 /*
  * Problem handler can be supplied with a policy to specify
  * its behavior in error handling. Also see static methods for
@@ -123,7 +125,7 @@ public void handle(
 		return;
 
 	 boolean mandatory = (severity & (ProblemSeverities.Error | ProblemSeverities.Optional)) == ProblemSeverities.Error;
-	 if (severity < ProblemSeverities.InternalError && this.policy.ignoreAllErrors()) { 
+	 if ((severity & ProblemSeverities.InternalError) == 0 && this.policy.ignoreAllErrors()) { 
 		 // Error is not to be exposed, but clients may need still notification as to whether there are silently-ignored-errors.
 		 // if no reference context, we need to abort from the current compilation process
 		 if (referenceContext == null) {
@@ -193,7 +195,9 @@ public void handle(
 						return;
 					}
 				}
-				referenceContext.tagAsHavingErrors();
+				if (!this.suppressTagging || this.options.treatOptionalErrorAsFatal) {
+					referenceContext.tagAsHavingErrors();
+				}
 				// should abort ?
 				int abortLevel;
 				if ((abortLevel = this.policy.stopOnFirstError() ? ProblemSeverities.AbortCompilation : severity & ProblemSeverities.Abort) != 0) {

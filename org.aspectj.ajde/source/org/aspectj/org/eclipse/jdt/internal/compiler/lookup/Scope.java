@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -489,7 +489,7 @@ public abstract class Scope {
 					ParameterizedTypeBinding originalParameterizedType = (ParameterizedTypeBinding) originalType;
 					ReferenceBinding originalEnclosing = originalType.enclosingType();
 					ReferenceBinding substitutedEnclosing = originalEnclosing;
-					if (originalEnclosing != null) {
+					if (originalEnclosing != null && !originalType.isStatic()) {
 						substitutedEnclosing = (ReferenceBinding) substitute(substitution, originalEnclosing);
 						if (isMemberTypeOfRaw(originalType, substitutedEnclosing))
 							return originalParameterizedType.environment.createRawType(
@@ -570,14 +570,14 @@ public abstract class Scope {
 					}
 	
 				    // treat as if parameterized with its type variables (non generic type gets 'null' arguments)
-					if (substitutedEnclosing != originalEnclosing) { //$IDENTITY-COMPARISON$
+					if (substitutedEnclosing != originalEnclosing && !originalType.isStatic()) { //$IDENTITY-COMPARISON$
 						return substitution.isRawSubstitution()
 							? substitution.environment().createRawType(originalReferenceType, substitutedEnclosing, originalType.getTypeAnnotations())
 							:  substitution.environment().createParameterizedType(originalReferenceType, null, substitutedEnclosing, originalType.getTypeAnnotations());
 					}
 					break;
 				case Binding.GENERIC_TYPE:
-					originalReferenceType = (ReferenceBinding) originalType;
+					originalReferenceType = (ReferenceBinding) originalType.unannotated();
 					originalEnclosing = originalType.enclosingType();
 					substitutedEnclosing = originalEnclosing;
 					if (originalEnclosing != null) {
@@ -756,8 +756,13 @@ public abstract class Scope {
 			} else if (!method.isOverriding() || !isOverriddenMethodGeneric(method)) {
 				return new ProblemMethodBinding(method, method.selector, genericTypeArguments, ProblemReasons.TypeParameterArityMismatch);
 			}
-		} else if (typeVariables == Binding.NO_TYPE_VARIABLES && method instanceof PolyParameterizedGenericMethodBinding) {
-			return method;
+		} else if (typeVariables == Binding.NO_TYPE_VARIABLES && method instanceof ParameterizedGenericMethodBinding) {
+			if (compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8 && invocationSite instanceof Invocation) {
+				Invocation invocation = (Invocation) invocationSite;
+				InferenceContext18 infCtx = invocation.getInferenceContext((ParameterizedGenericMethodBinding) method);
+				if (infCtx != null)
+					return method; // inference is responsible, no need to recheck.
+			}
 		}
 
 		if (tiebreakingVarargsMethods) {
@@ -938,8 +943,14 @@ public abstract class Scope {
 		}
 		// after bounds have been resolved we're ready for resolving the type parameter itself,
 		// which includes resolving/evaluating type annotations and checking for inconsistencies
-		for (int i = 0; i < paramLength; i++)
+		boolean declaresNullTypeAnnotation = false;
+		for (int i = 0; i < paramLength; i++) {
 			resolveTypeParameter(typeParameters[i]);
+			declaresNullTypeAnnotation |= typeParameters[i].binding.hasNullTypeAnnotations();
+		}
+		if (declaresNullTypeAnnotation)
+			for (int i = 0; i < paramLength; i++)
+				typeParameters[i].binding.updateTagBits(); // <T extends List<U>, @NonNull U> --> tag T as having null type annotations 
 		return noProblems;
 	}
 
@@ -1691,7 +1702,8 @@ public abstract class Scope {
 				MethodBinding methodBinding = (MethodBinding) found.elementAt(i);
 				MethodBinding compatibleMethod = computeCompatibleMethod(methodBinding, argumentTypes, invocationSite);
 				if (compatibleMethod != null) {
-					if (compatibleMethod.isValidBinding()) {
+					if (compatibleMethod.isValidBinding() || compatibleMethod.problemId() == ProblemReasons.InvocationTypeInferenceFailure) {
+						// we need to accept methods with InvocationTypeInferenceFailure, because logically overload resolution happens *before* invocation type inference
 						if (foundSize == 1 && compatibleMethod.canBeSeenBy(receiverType, invocationSite, this)) {
 							// return the single visible match now
 							if (searchForDefaultAbstractMethod)
@@ -1822,8 +1834,14 @@ public abstract class Scope {
 				findDefaultAbstractMethod(receiverType, selector, argumentTypes, invocationSite, classHierarchyStart, found, null);
 				if (interfaceMethod != null) return interfaceMethod;
 				MethodBinding candidate = candidates[0];
-				return new ProblemMethodBinding(candidates[0], candidates[0].selector, candidates[0].parameters, 
-						candidate.isStatic() && candidate.declaringClass.isInterface() ? ProblemReasons.NonStaticOrAlienTypeReceiver : ProblemReasons.NotVisible);
+				int reason = ProblemReasons.NotVisible;
+				if (candidate.isStatic() && candidate.declaringClass.isInterface()) {
+					if (soureLevel18)
+						reason = ProblemReasons.NonStaticOrAlienTypeReceiver;
+					else
+						reason = ProblemReasons.InterfaceMethodInvocationNotBelow18;
+				}
+				return new ProblemMethodBinding(candidate, candidate.selector, candidate.parameters, reason);
 			case 1 :
 				if (searchForDefaultAbstractMethod)
 					return findDefaultAbstractMethod(receiverType, selector, argumentTypes, invocationSite, classHierarchyStart, found, new MethodBinding [] { candidates[0] });
@@ -1846,8 +1864,8 @@ public abstract class Scope {
 		if (compilerOptions().sourceLevel >= ClassFileConstants.JDK1_5) {
 			for (int i = 0; i < visiblesCount; i++) {
 				MethodBinding candidate = candidates[i];
-				if (candidate instanceof ParameterizedGenericMethodBinding)
-					candidate = ((ParameterizedGenericMethodBinding) candidate).originalMethod;
+				if (candidate.isParameterizedGeneric())
+					candidate = candidate.shallowOriginal();
 				if (candidate.hasSubstitutedParameters()) {
 					for (int j = i + 1; j < visiblesCount; j++) {
 						MethodBinding otherCandidate = candidates[j];
@@ -1899,7 +1917,7 @@ public abstract class Scope {
 			    switch (selector[0]) {
 			        case 'c':
 			            if (CharOperation.equals(selector, TypeConstants.CLONE)) {
-			            	return environment().computeArrayClone(methodBinding);
+			            	return receiverType.getCloneMethod(methodBinding);
 			            }
 			            break;
 			        case 'g':
@@ -2335,7 +2353,7 @@ public abstract class Scope {
 		
 		if (receiverType.isArrayType()) {
 			if (CharOperation.equals(selector, TypeConstants.CLONE))
-				return environment().computeArrayClone(exactMethod);
+				return ((ArrayBinding) receiverType).getCloneMethod(exactMethod);
 			if (CharOperation.equals(selector, TypeConstants.GETCLASS))
 				return environment().createGetClassMethod(receiverType, exactMethod, this);
 		}
@@ -2736,14 +2754,14 @@ public abstract class Scope {
 								if (compatibleMethod != null) {
 									if (compatibleMethod.isValidBinding()) {
 										if (compatibleMethod.canBeSeenBy(unitScope.fPackage)) {
+											if (!skipOnDemand && !importBinding.onDemand) {
+												visible = null; // forget previous matches from on demand imports
+												skipOnDemand = true;
+											}
 											if (visible == null || !visible.contains(compatibleMethod)) {
 												ImportReference importReference = importBinding.reference;
 												if (importReference != null) {
 													importReference.bits |= ASTNode.Used;
-												}
-												if (!skipOnDemand && !importBinding.onDemand) {
-													visible = null; // forget previous matches from on demand imports
-													skipOnDemand = true;
 												}
 												if (visible == null)
 													visible = new ObjectVector(3);
@@ -3385,7 +3403,7 @@ public abstract class Scope {
 		unitScope.recordSimpleReference(name);
 		if ((mask & Binding.PACKAGE) != 0) {
 			PackageBinding packageBinding = unitScope.environment.getTopLevelPackage(name);
-			if (packageBinding != null) {
+			if (packageBinding != null && (packageBinding.tagBits & TagBits.HasMissingType) == 0) {
 				if (typeOrPackageCache != null)
 					typeOrPackageCache.put(name, packageBinding);
 				return packageBinding;
@@ -3481,9 +3499,7 @@ public abstract class Scope {
 			if (typeBinding.isGenericType()) {
 				qualifiedType = environment().createRawType(typeBinding, qualifiedType);
 			} else {
-				qualifiedType = (qualifiedType != null && (qualifiedType.isRawType() || qualifiedType.isParameterizedType()))
-					? environment().createParameterizedType(typeBinding, null, qualifiedType)
-					: typeBinding;
+				qualifiedType = environment().maybeCreateParameterizedType(typeBinding, qualifiedType);
 			}
 		}
 		return qualifiedType;
@@ -4735,6 +4751,12 @@ public abstract class Scope {
 	
 	// Version that just answers based on inference kind (at 1.8+) when available.
 	public int parameterCompatibilityLevel(MethodBinding method, TypeBinding[] arguments, InvocationSite site) {
+		if (method.problemId() == ProblemReasons.InvocationTypeInferenceFailure) {
+			// we need to accept methods with InvocationTypeInferenceFailure, because logically overload resolution happens *before* invocation type inference
+			method = ((ProblemMethodBinding)method).closestMatch; // for compatibility checks use the actual method
+			if (method == null)
+				return NOT_COMPATIBLE;
+		}
 		if (compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8 && method instanceof ParameterizedGenericMethodBinding) {
 			int inferenceKind = InferenceContext18.CHECK_UNKNOWN;
 			InferenceContext18 context = null;
@@ -4758,9 +4780,15 @@ public abstract class Scope {
 					if (!argument.isFunctionalType())
 						continue;
 					TypeBinding parameter = InferenceContext18.getParameter(method.parameters, i, context.isVarArgs());
-					if (!argument.isCompatibleWith(parameter, this))
+					if (!argument.isCompatibleWith(parameter, this)) {
+						if (argument.isPolyType()) {
+							parameter = InferenceContext18.getParameter(method.original().parameters, i, context.isVarArgs());
+							if (!((PolyTypeBinding)argument).expression.isPertinentToApplicability(parameter, method))
+								continue;
+						}
 						return NOT_COMPATIBLE;
 				}
+			}
 			}
 			switch (inferenceKind) {
 				case InferenceContext18.CHECK_STRICT:

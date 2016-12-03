@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     Mateusz Matela <mateusz.matela@gmail.com> - [formatter] Formatter does not format Java code correctly, especially when max line width is set - https://bugs.eclipse.org/303519
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.formatter.linewrap;
 
@@ -31,7 +33,7 @@ public class CommentWrapExecutor extends TokenTraverser {
 	private final TokenManager tm;
 	private final DefaultCodeFormatterOptions options;
 
-	private final ArrayList<Token> nlsTags = new ArrayList<Token>();
+	private final ArrayList<Token> nlsTags = new ArrayList<>();
 
 	private int lineStartPosition;
 	private List<Token> blockStructure;
@@ -165,6 +167,11 @@ public class CommentWrapExecutor extends TokenTraverser {
 		int lineLenght = this.options.comment_line_length;
 		if (this.wrapDisabled || this.counter <= lineLenght)
 			return false;
+		if (getLineBreaksAfter() == 0 && getNext() != null && getNext().getWrapPolicy() == WrapPolicy.DISABLE_WRAP) {
+			// The next token cannot be wrapped, so there's no need to wrap now.
+			// Let's wait and decide when there's more information available.
+			return false;
+		}
 		if (this.potentialWrapToken != null && this.potentialWrapTokenSubstitute != null
 				&& this.counterIfWrapped > lineLenght && this.counterIfWrappedSubstitute < this.counterIfWrapped) {
 			// there is a normal token to wrap, but the line would overflow anyway - better use substitute

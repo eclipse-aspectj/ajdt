@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,8 @@
  *								Bug 428274 - [1.8] [compiler] Cannot cast from Number to double
  *								Bug 428352 - [1.8][compiler] Resolution errors don't always surface
  *								Bug 452788 - [1.8][compiler] Type not correctly inferred in lambda expression
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -74,7 +76,7 @@ public abstract class Expression extends Statement {
 	public int implicitConversion;
 	public TypeBinding resolvedType;
 	
-	static Expression [] NO_EXPRESSIONS = new Expression[0];
+	public static Expression [] NO_EXPRESSIONS = new Expression[0];
 	
 
 public static final boolean isConstantValueRepresentable(Constant constant, int constantTypeID, int targetTypeID) {
@@ -571,9 +573,10 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
  * @param scope the scope of the analysis
  * @param flowContext the current flow context
  * @param flowInfo the upstream flow info; caveat: may get modified
+ * @param ttlForFieldCheck if this is a reference to a field we will mark that field as nonnull for the specified timeToLive
  * @return could this expression be checked by the current implementation?
  */
-public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
 	boolean isNullable = false;
 	if (this.resolvedType != null) {
 		// 1. priority: @NonNull
@@ -605,6 +608,9 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 		return true;
 	}
 	return false; // not checked
+}
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
+	return checkNPE(scope, flowContext, flowInfo, 0); // default: don't mark field references as checked for null
 }
 
 /** If this expression requires unboxing check if that operation can throw NPE. */
@@ -843,7 +849,7 @@ public void generateOptimizedStringConcatenationCreation(BlockScope blockScope, 
 }
 
 private MethodBinding[] getAllOriginalInheritedMethods(ReferenceBinding binding) {
-	ArrayList<MethodBinding> collector = new ArrayList<MethodBinding>();
+	ArrayList<MethodBinding> collector = new ArrayList<>();
 	getAllInheritedMethods0(binding, collector);
 	for (int i = 0, len = collector.size(); i < len; i++) {
 		collector.set(i, collector.get(i).original());

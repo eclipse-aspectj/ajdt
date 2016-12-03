@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -126,6 +126,7 @@ public interface TypeConstants {
 	// Constant compound names
 	char[][] JAVA_LANG = {JAVA, LANG};
 	char[][] JAVA_IO = {JAVA, IO};
+	char[][] JAVA_LANG_ANNOTATION = {JAVA, LANG, ANNOTATION};
 	char[][] JAVA_LANG_ANNOTATION_ANNOTATION = {JAVA, LANG, ANNOTATION, "Annotation".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_ASSERTIONERROR = {JAVA, LANG, "AssertionError".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_CLASS = {JAVA, LANG, "Class".toCharArray()}; //$NON-NLS-1$
@@ -345,10 +346,25 @@ public interface TypeConstants {
 	int CONSTRAINT_EXTENDS = 1;	// Actual << Formal
 	int CONSTRAINT_SUPER = 2;		// Actual >> Formal
 
-	// Constants used to perform bound checks
-	int OK = 0;
-	int UNCHECKED = 1;
-	int MISMATCH = 2;
+	// status of bound checks
+	public static enum BoundCheckStatus {
+		OK, NULL_PROBLEM, UNCHECKED, MISMATCH;
+		/** true if no problem or only a null problem. */
+		boolean isOKbyJLS() {
+			switch (this) {
+				case OK:
+				case NULL_PROBLEM:
+					return true;
+				default:
+					return false;
+			}
+		}
+		public BoundCheckStatus betterOf(BoundCheckStatus other) {
+			if (this.ordinal() < other.ordinal())
+				return this;
+			return other;
+		}
+	}
 
 	// Synthetics
 	char[] INIT = "<init>".toCharArray(); //$NON-NLS-1$

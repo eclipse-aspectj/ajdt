@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
@@ -49,6 +50,8 @@ public final class ArrayBinding extends TypeBinding {
 	// possible bits are TagBits.AnnotationNonNull and TagBits.AnnotationNullable
 	// (only ever set when CompilerOptions.isAnnotationBasedNullAnalysisEnabled == true):
 	public long[] nullTagBitsPerDimension;
+	
+	private MethodBinding clone;
 
 public ArrayBinding(TypeBinding type, int dimensions, LookupEnvironment environment) {
 	this.tagBits |= TagBits.IsArrayType;
@@ -81,7 +84,7 @@ public TypeBinding closestMatch() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#collectMissingTypes(java.util.List)
  */
-public List collectMissingTypes(List missingTypes) {
+public List<TypeBinding> collectMissingTypes(List<TypeBinding> missingTypes) {
 	if ((this.tagBits & TagBits.HasMissingType) != 0) {
 		missingTypes = this.leafComponentType.collectMissingTypes(missingTypes);
 	}
@@ -400,15 +403,12 @@ public void setTypeAnnotations(AnnotationBinding[] annotations, boolean evalNull
 		for (int i = 0, length = annotations.length; i < length; i++) {
 			AnnotationBinding annotation = annotations[i];
 			if (annotation != null) {
-				switch (annotation.type.id) {
-					case TypeIds.T_ConfiguredAnnotationNullable :
-						nullTagBits  |= TagBits.AnnotationNullable;
-						this.tagBits |= TagBits.HasNullTypeAnnotation;
-						break;
-					case TypeIds.T_ConfiguredAnnotationNonNull :
-						nullTagBits  |= TagBits.AnnotationNonNull;
-						this.tagBits |= TagBits.HasNullTypeAnnotation;
-						break;
+				if (annotation.type.hasNullBit(TypeIds.BitNullableAnnotation)) {
+					nullTagBits  |= TagBits.AnnotationNullable;
+					this.tagBits |= TagBits.HasNullTypeAnnotation;
+				} else if (annotation.type.hasNullBit(TypeIds.BitNonNullAnnotation)) {
+					nullTagBits  |= TagBits.AnnotationNonNull;
+					this.tagBits |= TagBits.HasNullTypeAnnotation;
 				}
 			} else {
 				// null signals end of annotations for the current dimension in the serialized form.
@@ -481,5 +481,54 @@ public TypeBinding uncapture(Scope scope) {
 @Override
 public boolean acceptsNonNullDefault() {
 	return true;
+}
+@Override
+public long updateTagBits() {
+	if (this.leafComponentType != null)
+		this.tagBits |= this.leafComponentType.updateTagBits(); 
+	return super.updateTagBits();
+}
+
+/**
+ * The type of x.clone() is substituted from 'Object' into the type of the receiver array (non-null)
+ */
+public MethodBinding getCloneMethod(final MethodBinding originalMethod) {
+	if (this.clone != null)
+		return this.clone;
+	MethodBinding method = new MethodBinding() {
+		@Override
+		public char[] signature(ClassFile classFile) {
+			return originalMethod.signature(); // for codeGen we need to answer the signature of j.l.Object.clone()
+		}
+	};
+	// AspectJ was:
+	// method.modifiers = originalMethod.modifiers;
+	// now:
+	method.modifiers = (originalMethod.modifiers & ~ClassFileConstants.AccProtected) | ClassFileConstants.AccPublic;
+	// End AspectJ
+	method.selector = originalMethod.selector;
+	method.declaringClass = originalMethod.declaringClass; // cannot set array binding as declaring class, will be tweaked in CodeStream.getConstantPoolDeclaringClass()
+	method.typeVariables = Binding.NO_TYPE_VARIABLES;
+	method.parameters = originalMethod.parameters;
+	method.thrownExceptions = Binding.NO_EXCEPTIONS;
+	method.tagBits = originalMethod.tagBits;
+	method.returnType = this.environment.globalOptions.sourceLevel >= ClassFileConstants.JDK1_5 ? this : originalMethod.returnType;
+	if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
+		if (this.environment.usesNullTypeAnnotations())
+			method.returnType = this.environment.createAnnotatedType(method.returnType, new AnnotationBinding[] { this.environment.getNonNullAnnotation() });
+		else
+			method.tagBits |= TagBits.AnnotationNonNull;
+	}
+	if ((method.returnType.tagBits & TagBits.HasMissingType) != 0) {
+		method.tagBits |=  TagBits.HasMissingType;
+	}
+	return this.clone = method;
+}
+public static boolean isArrayClone(TypeBinding receiverType, MethodBinding binding) {
+	if (receiverType instanceof ArrayBinding) {
+		MethodBinding clone = ((ArrayBinding) receiverType).clone;
+		return clone != null && binding == clone;
+	}
+	return false;
 }
 }

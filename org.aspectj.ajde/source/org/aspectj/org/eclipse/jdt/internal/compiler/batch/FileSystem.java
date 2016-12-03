@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +11,6 @@
  *     Stephan Herrmann - Contribution for
  *								Bug 440687 - [compiler][batch][null] improve command line option for external annotations
  *******************************************************************************/
-// AspectJ
-
 package org.aspectj.org.eclipse.jdt.internal.compiler.batch;
 
 import java.io.File;
@@ -20,11 +19,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipFile;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
@@ -160,13 +161,17 @@ protected FileSystem(Classpath[] paths, String[] initialFileNames, boolean annot
 	this.annotationsFromClasspath = annotationsFromClasspath;
 }
 public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet) {
-	return getClasspath(classpathName, encoding, false, accessRuleSet, null);
+	return getClasspath(classpathName, encoding, false, accessRuleSet, null, null);
 }
+public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet, Map options) {
+	return getClasspath(classpathName, encoding, false, accessRuleSet, null, options);
+}
+
 //New AspectJ Extension
 
 // Uses the mode rather than a boolean, so we can specify JUST binary (ClasspathLocation.BINARY)
-public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet,int mode) {
-	return getClasspath(classpathName, encoding, mode, accessRuleSet, null);
+public static Classpath getClasspath(String classpathName, String encoding, AccessRuleSet accessRuleSet, int mode) {
+	return getClasspath(classpathName, encoding, mode, accessRuleSet, null, null);
 }
 // Reworking of constructor, the original one that takes a boolean now delegates to the new one.
 // Original ctor declaration was:
@@ -175,13 +180,13 @@ public static Classpath getClasspath(String classpathName, String encoding, Acce
 // 		String destinationPath) {
 public static Classpath getClasspath(String classpathName, String encoding,
 		boolean isSourceOnly, AccessRuleSet accessRuleSet,
-		String destinationPath) {
-	return getClasspath(classpathName,encoding,isSourceOnly ? ClasspathLocation.SOURCE :ClasspathLocation.SOURCE|ClasspathLocation.BINARY,accessRuleSet,destinationPath);
+		String destinationPath, Map options) {
+	return getClasspath(classpathName,encoding,isSourceOnly ? ClasspathLocation.SOURCE :ClasspathLocation.SOURCE|ClasspathLocation.BINARY,accessRuleSet,destinationPath, options);
 }
 
 public static Classpath getClasspath(String classpathName, String encoding,
 		int mode, AccessRuleSet accessRuleSet,
-		String destinationPath) {
+		String destinationPath, Map options) {
 	// End AspectJ Extension
 	Classpath result = null;
 	File file = new File(convertPathSeparators(classpathName));
@@ -198,7 +203,7 @@ public static Classpath getClasspath(String classpathName, String encoding,
 					accessRuleSet,
 					destinationPath == null || destinationPath == Main.NONE ?
 						destinationPath : // keep == comparison valid
-						convertPathSeparators(destinationPath));
+						convertPathSeparators(destinationPath), options);
 		}
 	} else {
 		// MERGECONFLICT: didn't have this call in our older version:
@@ -311,9 +316,15 @@ private NameEnvironmentAnswer findClass(String qualifiedTypeName, char[] typeNam
 		for (int i = 0, length = this.classpaths.length; i < length; i++) {
 			Classpath classpathEntry = this.classpaths[i];
 			if (classpathEntry.hasAnnotationFileFor(qualifiedTypeName)) {
+				// in case of 'this.annotationsFromClasspath' we indeed search for .eea entries inside the main zipFile of the entry:
+				@SuppressWarnings("resource")
 				ZipFile zip = classpathEntry instanceof ClasspathJar ? ((ClasspathJar) classpathEntry).zipFile : null;
 				try {
-					((ClassFileReader) answer.getBinaryType()).setExternalAnnotationProvider(classpathEntry.getPath(), qualifiedTypeName, zip, null);
+					if (zip == null) {
+						zip = ExternalAnnotationDecorator.getAnnotationZipFile(classpathEntry.getPath(), null);
+					}
+					answer.setBinaryType(ExternalAnnotationDecorator.create(answer.getBinaryType(), classpathEntry.getPath(), 
+							qualifiedTypeName, zip));
 					break;
 				} catch (IOException e) {
 					// ignore broken entry, keep searching

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007 - 2012 BEA Systems, Inc. and others
+ * Copyright (c) 2007 - 2015 BEA Systems, Inc. and others
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *    Walter Harley - initial API and implementation
- *    IBM Corporation - fix for 342598
+ *    IBM Corporation - fix for 342598, 382590
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.internal.compiler.apt.model;
@@ -64,11 +64,11 @@ public class TypesImpl implements Types {
     @Override
     public Element asElement(TypeMirror t) {
         switch(t.getKind()) {
-            case DECLARED :
-            case TYPEVAR :
-                return _env.getFactory().newElement(((TypeMirrorImpl)t).binding());
-            default:
-            	break;
+        case DECLARED :
+        case TYPEVAR :
+            return _env.getFactory().newElement(((TypeMirrorImpl)t).binding());
+        default:
+            break;
         }
         return null;
     }
@@ -84,12 +84,12 @@ public class TypesImpl implements Types {
     		case METHOD :
     			MethodBinding methodBinding = (MethodBinding) elementImpl._binding;
     			while (referenceBinding != null) {
-    			for (MethodBinding method : referenceBinding.methods()) {
-    				if (CharOperation.equals(method.selector, methodBinding.selector)
-    						&& method.areParameterErasuresEqual(methodBinding)) {
-    					return this._env.getFactory().newTypeMirror(method);
-    				}
-    			}
+                    for (MethodBinding method : referenceBinding.methods()) {
+                        if (CharOperation.equals(method.selector, methodBinding.selector) &&
+                                (method.original() == methodBinding || method.areParameterErasuresEqual(methodBinding))) {
+                            return this._env.getFactory().newTypeMirror(method);
+                        }
+                    }
                     referenceBinding = referenceBinding.superclass();
                 }
     			break;
@@ -97,11 +97,11 @@ public class TypesImpl implements Types {
     		case ENUM_CONSTANT:
     			FieldBinding fieldBinding = (FieldBinding) elementImpl._binding;
                 while (referenceBinding != null) {
-    			for (FieldBinding field : referenceBinding.fields()) {
-    				if (CharOperation.equals(field.name, fieldBinding.name)) {
-    					return this._env.getFactory().newTypeMirror(field);
-    				}
-    			}
+                    for (FieldBinding field : referenceBinding.fields()) {
+                        if (CharOperation.equals(field.name, fieldBinding.name)) {
+                            return this._env.getFactory().newTypeMirror(field);
+                        }
+                    }
                     referenceBinding = referenceBinding.superclass();
                 }
     			break;
@@ -117,15 +117,15 @@ public class TypesImpl implements Types {
                     for (ReferenceBinding memberReferenceBinding : referenceBinding.memberTypes()) {
                         if (CharOperation.equals(elementBinding.compoundName, memberReferenceBinding.compoundName)) {
                             return this._env.getFactory().newTypeMirror(memberReferenceBinding);
-    			}
-    				}
+                        }
+                    }
                     referenceBinding = referenceBinding.superclass();
-    			}
+                }
     			break;
     		default:
                 throw new IllegalArgumentException("element " + element + //$NON-NLS-1$
                         " has unrecognized element kind " + element.getKind()); //$NON-NLS-1$
-    	}
+            }
             throw new IllegalArgumentException("element " + element + //$NON-NLS-1$
                     " is not a member of the containing type " + containing +  //$NON-NLS-1$
                     " nor any of its superclasses"); //$NON-NLS-1$
@@ -146,64 +146,71 @@ public class TypesImpl implements Types {
 
     @Override
     public boolean contains(TypeMirror t1, TypeMirror t2) {
-    	switch(t1.getKind()) {
-    		case EXECUTABLE :
-    		case PACKAGE :
-    			throw new IllegalArgumentException("Executable and package are illegal argument for Types.contains(..)"); //$NON-NLS-1$
-    		default:
-    			break;
-    	}
-    	switch(t2.getKind()) {
-    		case EXECUTABLE :
-    		case PACKAGE :
-    			throw new IllegalArgumentException("Executable and package are illegal argument for Types.contains(..)"); //$NON-NLS-1$
-    		default:
-    			break;
-    	}
+        switch(t1.getKind()) {
+        case EXECUTABLE :
+        case PACKAGE :
+            throw new IllegalArgumentException("Executable and package are illegal argument for Types.contains(..)"); //$NON-NLS-1$
+        default:
+            break;
+        }
+        switch(t2.getKind()) {
+        case EXECUTABLE :
+        case PACKAGE :
+            throw new IllegalArgumentException("Executable and package are illegal argument for Types.contains(..)"); //$NON-NLS-1$
+        default:
+            break;
+        }
         throw new UnsupportedOperationException("NYI: TypesImpl.contains(" + t1 + ", " + t2 + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     @Override
     public List<? extends TypeMirror> directSupertypes(TypeMirror t) {
         switch(t.getKind()) {
-            case PACKAGE :
-            case EXECUTABLE :
-                throw new IllegalArgumentException("Invalid type mirror for directSupertypes"); //$NON-NLS-1$
-            default:
-                break;
+        case PACKAGE :
+        case EXECUTABLE :
+            throw new IllegalArgumentException("Invalid type mirror for directSupertypes"); //$NON-NLS-1$
+        default:
+            break;
         }
         TypeMirrorImpl typeMirrorImpl = (TypeMirrorImpl) t;
         Binding binding = typeMirrorImpl._binding;
         if (binding instanceof ReferenceBinding) {
-        	ReferenceBinding referenceBinding = (ReferenceBinding) binding;
-        	ArrayList<TypeMirror> list = new ArrayList<TypeMirror>();
-        	ReferenceBinding superclass = referenceBinding.superclass();
-			if (superclass != null) {
-        		list.add(this._env.getFactory().newTypeMirror(superclass));
-        	}
-			for (ReferenceBinding interfaceBinding : referenceBinding.superInterfaces()) {
-        		list.add(this._env.getFactory().newTypeMirror(interfaceBinding));
-			}
-			return Collections.unmodifiableList(list);
+            ReferenceBinding referenceBinding = (ReferenceBinding) binding;
+            ArrayList<TypeMirror> list = new ArrayList<>();
+            ReferenceBinding superclass = referenceBinding.superclass();
+            if (superclass != null) {
+                list.add(this._env.getFactory().newTypeMirror(superclass));
+            }
+            for (ReferenceBinding interfaceBinding : referenceBinding.superInterfaces()) {
+                list.add(this._env.getFactory().newTypeMirror(interfaceBinding));
+            }
+            return Collections.unmodifiableList(list);
         }
         return Collections.emptyList();
     }
 
     @Override
     public TypeMirror erasure(TypeMirror t) {
-    	TypeMirrorImpl typeMirrorImpl = (TypeMirrorImpl) t;
-    	Binding binding = typeMirrorImpl._binding;
-    	if (binding instanceof ReferenceBinding) {
-    		return _env.getFactory().newTypeMirror(((ReferenceBinding) binding).erasure());
-    	}
-    	if (binding instanceof ArrayBinding) {
-    		TypeBinding typeBinding = (TypeBinding) binding;
-    		return _env.getFactory().newTypeMirror(
-    				this._env.getLookupEnvironment().createArrayType(
-    						typeBinding.leafComponentType().erasure(),
-    						typeBinding.dimensions()));
-    	}
-    	return t;
+        TypeMirrorImpl typeMirrorImpl = (TypeMirrorImpl) t;
+        Binding binding = typeMirrorImpl._binding;
+        if (binding instanceof ReferenceBinding) {
+        	TypeBinding type = ((ReferenceBinding) binding).erasure();
+        	if (type.isGenericType()) {
+        		type = _env.getLookupEnvironment().convertToRawType(type, false);
+        	}
+            return _env.getFactory().newTypeMirror(type);
+        }
+        if (binding instanceof ArrayBinding) {
+            TypeBinding typeBinding = (TypeBinding) binding;
+            TypeBinding leafType = typeBinding.leafComponentType().erasure();
+            if (leafType.isGenericType()) {
+            	leafType = _env.getLookupEnvironment().convertToRawType(leafType, false);
+            }
+            return _env.getFactory().newTypeMirror(
+                    this._env.getLookupEnvironment().createArrayType(leafType,
+                            typeBinding.dimensions()));
+        }
+        return t;
     }
 
     @Override
@@ -211,15 +218,15 @@ public class TypesImpl implements Types {
         TypeMirrorImpl typeMirrorImpl = (TypeMirrorImpl) componentType;
         TypeBinding typeBinding = (TypeBinding) typeMirrorImpl._binding;
         return (ArrayType) _env.getFactory().newTypeMirror(
-        		this._env.getLookupEnvironment().createArrayType(
-        				typeBinding.leafComponentType(),
-        				typeBinding.dimensions() + 1));
+                this._env.getLookupEnvironment().createArrayType(
+                        typeBinding.leafComponentType(),
+                        typeBinding.dimensions() + 1));
     }
 
     /*
      * (non-Javadoc)
      * Create a type instance by parameterizing a type element. If the element is a member type,
-     * its container must not be generic (if it were, you would need to use the form of
+     * its container won't be parameterized (if it needs to be, you would need to use the form of
      * getDeclaredType that takes a container TypeMirror). If typeArgs is empty, and typeElem
      * is not generic, then you should use TypeElem.asType().  If typeArgs is empty and typeElem
      * is generic, this method will create the raw type.
@@ -249,8 +256,14 @@ public class TypesImpl implements Types {
             }
             typeArguments[i] = (TypeBinding) binding;
         }
+
+        ReferenceBinding enclosing = elementBinding.enclosingType();
+        if (enclosing != null) {
+            enclosing = this._env.getLookupEnvironment().createRawType(enclosing, null);
+        }
+
         return (DeclaredType) _env.getFactory().newTypeMirror(
-                this._env.getLookupEnvironment().createParameterizedType(elementBinding, typeArguments, null));
+                this._env.getLookupEnvironment().createParameterizedType(elementBinding, typeArguments, enclosing));
     }
 
     /* (non-Javadoc)
@@ -322,12 +335,12 @@ public class TypesImpl implements Types {
             TypeMirrorImpl extendsBoundMirrorType = (TypeMirrorImpl) extendsBound;
             TypeBinding typeBinding = (TypeBinding) extendsBoundMirrorType._binding;
             return (WildcardType) _env.getFactory().newTypeMirror(
-            		this._env.getLookupEnvironment().createWildcard(
-	                    null,
-	                    0,
-	                    typeBinding,
-	                    null,
-	                    Wildcard.EXTENDS));
+                    this._env.getLookupEnvironment().createWildcard(
+                            null,
+                            0,
+                            typeBinding,
+                            null,
+                            Wildcard.EXTENDS));
         }
         if (superBound != null) {
             TypeMirrorImpl superBoundMirrorType = (TypeMirrorImpl) superBound;
@@ -371,10 +384,10 @@ public class TypesImpl implements Types {
 
     @Override
     public boolean isSameType(TypeMirror t1, TypeMirror t2) {
-    	if (t1.getKind() == TypeKind.WILDCARD || t2.getKind() == TypeKind.WILDCARD) {
+        if (t1.getKind() == TypeKind.WILDCARD || t2.getKind() == TypeKind.WILDCARD) {
             // Wildcard types are never equal, according to the spec of this method
-    		return false;
-    	}
+            return false;
+        }
         if (t1 == t2) {
             return true;
         }
@@ -399,26 +412,26 @@ public class TypesImpl implements Types {
 
     @Override
     public boolean isSubsignature(ExecutableType m1, ExecutableType m2) {
-		MethodBinding methodBinding1 = (MethodBinding) ((ExecutableTypeImpl) m1)._binding;
-		MethodBinding methodBinding2 = (MethodBinding) ((ExecutableTypeImpl) m2)._binding;
-		if (!CharOperation.equals(methodBinding1.selector, methodBinding2.selector))
-			return false;
-		return methodBinding1.areParameterErasuresEqual(methodBinding2) && methodBinding1.areTypeVariableErasuresEqual(methodBinding2);
-	}
+        MethodBinding methodBinding1 = (MethodBinding) ((ExecutableTypeImpl) m1)._binding;
+        MethodBinding methodBinding2 = (MethodBinding) ((ExecutableTypeImpl) m2)._binding;
+        if (!CharOperation.equals(methodBinding1.selector, methodBinding2.selector))
+            return false;
+        return methodBinding1.areParameterErasuresEqual(methodBinding2) && methodBinding1.areTypeVariableErasuresEqual(methodBinding2);
+    }
 
     /* (non-Javadoc)
      * @return true if t1 is a subtype of t2, or if t1 == t2.
      */
     @Override
     public boolean isSubtype(TypeMirror t1, TypeMirror t2) {
-    	if (t1 instanceof NoTypeImpl) {
-    		if (t2 instanceof NoTypeImpl) {
-    			return ((NoTypeImpl) t1).getKind() == ((NoTypeImpl) t2).getKind();
-    		}
-    		return false;
-    	} else if (t2 instanceof NoTypeImpl) {
-    		return false;
-    	}
+        if (t1 instanceof NoTypeImpl) {
+            if (t2 instanceof NoTypeImpl) {
+                return ((NoTypeImpl) t1).getKind() == ((NoTypeImpl) t2).getKind();
+            }
+            return false;
+        } else if (t2 instanceof NoTypeImpl) {
+            return false;
+        }
         if (!(t1 instanceof TypeMirrorImpl) || !(t2 instanceof TypeMirrorImpl)) {
             return false;
         }

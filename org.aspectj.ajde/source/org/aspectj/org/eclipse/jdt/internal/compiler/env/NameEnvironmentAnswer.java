@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ public class NameEnvironmentAnswer {
 	ICompilationUnit compilationUnit;
 	ISourceType[] sourceTypes;
 	AccessRestriction accessRestriction;
+	String externalAnnotationPath; // should be an absolute file system path
 
 	public NameEnvironmentAnswer(IBinaryType binaryType, AccessRestriction accessRestriction) {
 		this.binaryType = binaryType;
@@ -28,19 +29,49 @@ public class NameEnvironmentAnswer {
 		this.accessRestriction = accessRestriction;
 	}
 
-	public NameEnvironmentAnswer(ISourceType[] sourceTypes, AccessRestriction accessRestriction) {
+	public NameEnvironmentAnswer(ISourceType[] sourceTypes, AccessRestriction accessRestriction, String externalAnnotationPath) {
 		this.sourceTypes = sourceTypes;
 		this.accessRestriction = accessRestriction;
+		this.externalAnnotationPath = externalAnnotationPath;
 	}
+	
+	@Override
+	public String toString() {
+		String baseString = ""; //$NON-NLS-1$
+		if (this.binaryType != null) {
+			char[] fileNameChars = this.binaryType.getFileName();
+			String fileName = fileNameChars == null ? "" : new String(fileNameChars); //$NON-NLS-1$
+			baseString = "IBinaryType " + fileName; //$NON-NLS-1$
+		}
+		if (this.compilationUnit != null) {
+			baseString = "ICompilationUnit " + this.compilationUnit.toString(); //$NON-NLS-1$
+		}
+		if (this.sourceTypes != null) {
+			baseString = this.sourceTypes.toString();
+		}
+		if (this.accessRestriction != null) {
+			baseString += " " + this.accessRestriction.toString(); //$NON-NLS-1$
+		}
+		if (this.externalAnnotationPath != null) {
+			baseString += " extPath=" + this.externalAnnotationPath.toString(); //$NON-NLS-1$
+		}
+		return baseString;
+	}
+	
 	/**
 	 * Returns the associated access restriction, or null if none.
 	 */
 	public AccessRestriction getAccessRestriction() {
 		return this.accessRestriction;
 	}
+
+	public void setBinaryType(IBinaryType newType) {
+		this.binaryType = newType;
+	}
+
 	/**
-	 * Answer the resolved binary form for the type or null if the
-	 * receiver represents a compilation unit or source type.
+	 * Answer the resolved binary form for the type or null if the receiver represents a compilation unit or source
+	 * type.
 	 */
 	public IBinaryType getBinaryType() {
 		return this.binaryType;
@@ -52,6 +83,10 @@ public class NameEnvironmentAnswer {
 	 */
 	public ICompilationUnit getCompilationUnit() {
 		return this.compilationUnit;
+	}
+
+	public String getExternalAnnotationPath() {
+		return this.externalAnnotationPath;
 	}
 
 	/**

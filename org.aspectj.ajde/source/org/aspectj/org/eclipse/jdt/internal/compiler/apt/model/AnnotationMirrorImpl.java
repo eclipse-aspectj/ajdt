@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2014 IBM Corporation and others.
+ * Copyright (c) 2005, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,15 +44,15 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
 public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler {
-	
+
 	public final BaseProcessingEnvImpl _env;
 	public final AnnotationBinding _binding;
-	
+
 	/* package */ AnnotationMirrorImpl(BaseProcessingEnvImpl env, AnnotationBinding binding) {
 		_env = env;
 		_binding = binding;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof AnnotationMirrorImpl) {
@@ -103,7 +103,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 	public DeclaredType getAnnotationType() {
 		return (DeclaredType) _env.getFactory().newTypeMirror(_binding.getAnnotationType());
 	}
-	
+
 	/**
 	 * @return all the members of this annotation mirror that have explicit values.
 	 * Default values are not included.
@@ -115,7 +115,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		}
 		ElementValuePair[] pairs = _binding.getElementValuePairs();
 		Map<ExecutableElement, AnnotationValue> valueMap =
-			new LinkedHashMap<ExecutableElement, AnnotationValue>(pairs.length);
+			new LinkedHashMap<>(pairs.length);
 		for (ElementValuePair pair : pairs) {
 			MethodBinding method = pair.getMethodBinding();
 			if (method == null) {
@@ -128,7 +128,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		}
 		return Collections.unmodifiableMap(valueMap);
 	}
-	
+
 	/**
 	 * @see javax.lang.model.util.Elements#getElementValuesWithDefaults(AnnotationMirror)
 	 * @return all the members of this annotation mirror that have explicit or default
@@ -141,7 +141,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		ElementValuePair[] pairs = _binding.getElementValuePairs();
 		ReferenceBinding annoType = _binding.getAnnotationType();
 		Map<ExecutableElement, AnnotationValue> valueMap =
-			new LinkedHashMap<ExecutableElement, AnnotationValue>();
+			new LinkedHashMap<>();
 		for (MethodBinding method : annoType.methods()) {
 			// if binding is in ElementValuePair list, then get value from there
 			boolean foundExplicitValue = false;
@@ -167,7 +167,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		}
 		return Collections.unmodifiableMap(valueMap);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		if (this._binding == null) return this._env.hashCode();
@@ -193,7 +193,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
         final String methodName = method.getName();
         if ( args == null || args.length == 0 ) {
             if( methodName.equals("hashCode") ) { //$NON-NLS-1$
-                return new Integer( hashCode() );
+                return Integer.valueOf(hashCode());
             }
             else if( methodName.equals("toString") ) { //$NON-NLS-1$
                 return toString();
@@ -203,9 +203,9 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
             }
         }
         else if ( args.length == 1 && methodName.equals("equals") ) { //$NON-NLS-1$
-            return new Boolean( equals( args[0] ) );
+            return Boolean.valueOf(equals(args[0]));
         }
-        
+
         // If it's not one of the above methods, it must be an annotation member, so it cannot take any arguments
         if ( args != null && args.length != 0 ) {
             throw new NoSuchMethodException("method " + method.getName() + formatArgs(args) + " does not exist on annotation " + toString()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -256,8 +256,8 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 			sb.append(')');
 		}
 		return sb.toString();
-	}
-	
+    }
+
 	/**
 	 * Used for constructing exception message text.
 	 * @return a string like "(a, b, c)".
@@ -269,14 +269,14 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
         builder.append('(');
         for( int i=0; i<args.length; i++ )
         {
-            if( i > 0 ) 
+            if( i > 0 )
             	builder.append(", "); //$NON-NLS-1$
             builder.append(args[i].getClass().getName());
         }
         builder.append(')');
         return builder.toString();
     }
-    
+
 	/**
 	 * Find a particular annotation member by name.
 	 * @return a compiler method binding, or null if no member was found.
@@ -300,11 +300,11 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 	 * Only certain types are permitted as member values.  Specifically, a member must be a constant,
 	 * and must be either a primitive type, String, Class, an enum constant, an annotation, or an
 	 * array of any of those.  Multidimensional arrays are not permitted.
-	 * 
+	 *
 	 * @param actualValue the value as represented by {@link ElementValuePair#getValue()}
 	 * @param actualType the return type of the corresponding {@link MethodBinding}
 	 * @param expectedType the type that the reflective method invoker is expecting
-	 * @return an object of the expected type representing the annotation member value, 
+	 * @return an object of the expected type representing the annotation member value,
 	 * or an appropriate dummy value (such as null) if no value is available
 	 */
 	private Object getReflectionValue(Object actualValue, TypeBinding actualType, Class<?> expectedType)
@@ -320,16 +320,27 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		if (expectedType.isArray()) {
 			if (Class.class.equals(expectedType.getComponentType())) {
 				// package Class[]-valued return as a MirroredTypesException
-				if (actualType.isArrayType() && actualValue instanceof Object[] &&
-						((ArrayBinding)actualType).leafComponentType.erasure().id == TypeIds.T_JavaLangClass) {
-					Object[] bindings = (Object[])actualValue;
-					List<TypeMirror> mirrors = new ArrayList<TypeMirror>(bindings.length);
-					for (int i = 0; i < bindings.length; ++i) {
-						if (bindings[i] instanceof TypeBinding) {
-							mirrors.add(_env.getFactory().newTypeMirror((TypeBinding)bindings[i]));
-						}
+				if (actualType.isArrayType() && ((ArrayBinding)actualType).leafComponentType.erasure().id == TypeIds.T_JavaLangClass) {
+					
+					Object[] bindings;
+					if(actualValue instanceof Object[]) {
+						bindings = (Object[]) actualValue;
+					} else if(actualValue instanceof TypeBinding) {
+						// when a single class element is passed to array: @AnnotationType(Something.class)
+						bindings = new Object[] {actualValue};
+					} else {
+						bindings = null;
 					}
-					throw new MirroredTypesException(mirrors);
+					
+					if(bindings != null) {
+						List<TypeMirror> mirrors = new ArrayList<>(bindings.length);
+						for (int i = 0; i < bindings.length; ++i) {
+							if (bindings[i] instanceof TypeBinding) {
+								mirrors.add(_env.getFactory().newTypeMirror((TypeBinding)bindings[i]));
+							}
+						}
+						throw new MirroredTypesException(mirrors);
+					}
 				}
 				// TODO: actual value is not a TypeBinding[].  Should we return a TypeMirror[] around an ErrorType?
 				return null;
@@ -508,7 +519,7 @@ public class AnnotationMirrorImpl implements AnnotationMirror, InvocationHandler
 		else if (expectedType.isEnum()) {
 			Object returnVal = null;
 	        if (actualType != null && actualType.isEnum() && jdtValue instanceof FieldBinding) {
-	        	
+
 	        	FieldBinding binding = (FieldBinding)jdtValue;
 	        	try {
 	        		Field returnedField = null;

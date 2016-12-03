@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2013 IBM Corporation and others.
+ * Copyright (c) 2006, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.apt.dispatch.BaseProcessingEnvImpl;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -53,14 +54,14 @@ public class ExecutableTypeImpl extends TypeMirrorImpl implements ExecutableType
 			if (length == 2) {
 				return Collections.emptyList();
 			}
-			ArrayList<TypeMirror> list = new ArrayList<TypeMirror>();
+			ArrayList<TypeMirror> list = new ArrayList<>();
 			for (int i = 2; i < length; i++) {
 				list.add(_env.getFactory().newTypeMirror(parameters[i]));
 			}
 			return Collections.unmodifiableList(list);
 		}
 		if (length != 0) {
-			ArrayList<TypeMirror> list = new ArrayList<TypeMirror>();
+			ArrayList<TypeMirror> list = new ArrayList<>();
 			for (TypeBinding typeBinding : parameters) {
 				list.add(_env.getFactory().newTypeMirror(typeBinding));
 			}
@@ -77,12 +78,16 @@ public class ExecutableTypeImpl extends TypeMirrorImpl implements ExecutableType
 		return _env.getFactory().newTypeMirror(((MethodBinding) this._binding).returnType);
 	}
 
+	protected AnnotationBinding[] getAnnotationBindings() {
+		return ((MethodBinding) this._binding).returnType.getTypeAnnotations();
+	}
+
 	/* (non-Javadoc)
 	 * @see javax.lang.model.type.ExecutableType#getThrownTypes()
 	 */
 	@Override
 	public List<? extends TypeMirror> getThrownTypes() {
-		ArrayList<TypeMirror> list = new ArrayList<TypeMirror>();
+		ArrayList<TypeMirror> list = new ArrayList<>();
 		ReferenceBinding[] thrownExceptions = ((MethodBinding) this._binding).thrownExceptions;
 		if (thrownExceptions.length != 0) {
 			for (ReferenceBinding referenceBinding : thrownExceptions) {
@@ -97,7 +102,7 @@ public class ExecutableTypeImpl extends TypeMirrorImpl implements ExecutableType
 	 */
 	@Override
 	public List<? extends TypeVariable> getTypeVariables() {
-		ArrayList<TypeVariable> list = new ArrayList<TypeVariable>();
+		ArrayList<TypeVariable> list = new ArrayList<>();
 		TypeVariableBinding[] typeVariables = ((MethodBinding) this._binding).typeVariables();
 		if (typeVariables.length != 0) {
 			for (TypeVariableBinding typeVariableBinding : typeVariables) {
@@ -125,5 +130,9 @@ public class ExecutableTypeImpl extends TypeMirrorImpl implements ExecutableType
 
 	public TypeMirror getReceiverType() {
 		return _env.getFactory().getReceiverType((MethodBinding) _binding);
+	}
+	@Override
+	public String toString() {
+		return new String(((MethodBinding) this._binding).returnType.readableName());
 	}
 }

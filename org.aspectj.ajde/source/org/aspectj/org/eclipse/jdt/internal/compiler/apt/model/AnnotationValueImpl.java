@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2014 IBM Corporation and others.
+ * Copyright (c) 2005, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,25 +38,25 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 public class AnnotationValueImpl implements AnnotationValue, TypeIds {
-	
+
 	/*
-	 * Additions to T_* constants in TypeIds. 
+	 * Additions to T_* constants in TypeIds.
 	 */
 	private static final int T_AnnotationMirror = -1;
 	private static final int T_EnumConstant = -2;
 	private static final int T_ClassObject = -3;
 	private static final int T_ArrayType = -4;
-	
+
 	private final BaseProcessingEnvImpl _env;
-	
+
 	/**
 	 * The annotation value, as it would be returned by
 	 * {@link #getValue()}.  For instance, an Integer (for an int
 	 * constant), a VariableElement (for an enum constant), or
-	 * a List<AnnotationValueImpl> containing multiple such (for an array type).  
+	 * a List<AnnotationValueImpl> containing multiple such (for an array type).
 	 */
 	private final Object _value;
-	
+
 	/**
 	 * The type stored in _value, represented as a T_* value from {@link TypeIds}
 	 * or one of the additional T_* values defined in this class.
@@ -96,12 +96,12 @@ public class AnnotationValueImpl implements AnnotationValue, TypeIds {
 			TypeBinding valueType = ((ArrayBinding)type).elementsType();
 			if (value instanceof Object[]) {
 				Object[] values = (Object[])value;
-				convertedValues = new ArrayList<AnnotationValue>(values.length);
+				convertedValues = new ArrayList<>(values.length);
 				for (Object oneValue : values) {
 					convertedValues.add(new AnnotationValueImpl(_env, oneValue, valueType));
 				}
 			} else {
-				convertedValues = new ArrayList<AnnotationValue>(1);
+				convertedValues = new ArrayList<>(1);
 				convertedValues.add(new AnnotationValueImpl(_env, value, valueType));
 			}
 			_value = Collections.unmodifiableList(convertedValues);
@@ -111,7 +111,7 @@ public class AnnotationValueImpl implements AnnotationValue, TypeIds {
 			_kind = kind[0];
 		}
 	}
-	
+
 	/**
 	 * Convert the JDT representation of a single constant into its javax.lang.model
 	 * representation.  For instance, convert a StringConstant into a String, or
@@ -268,7 +268,7 @@ public class AnnotationValueImpl implements AnnotationValue, TypeIds {
 			sb.append('"');
 			for (int i = 0; i < value.length(); i++) {
 				Util.appendEscapedChar(sb, value.charAt(i), true);
-		}
+			}
 			sb.append('"');
 			return sb.toString();
 		} else if (_value instanceof Character) {
@@ -299,7 +299,7 @@ public class AnnotationValueImpl implements AnnotationValue, TypeIds {
 		} else if (_value instanceof TypeMirror) {
 			return _value.toString() + ".class"; //$NON-NLS-1$
 		} else {
-		return _value.toString();
+			return _value.toString();
+		}
 	}
-}
 }

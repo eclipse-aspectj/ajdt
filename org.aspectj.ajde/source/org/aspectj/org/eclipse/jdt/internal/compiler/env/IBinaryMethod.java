@@ -47,8 +47,9 @@ Object getDefaultValue();
 char[][] getExceptionTypeNames();
 
 /**
- * Answer the receiver's signature which describes the parameter &
- * return types as specified in section 4.4.4 of the Java 2 VM spec.
+ * Answer the receiver's MethodSignature, which describes the type parameters,
+ * parameter types, return type, and exception types
+ * as specified in "4.7.9.1 Signatures" of the Java SE 8 VM spec.
  */
 char[] getGenericSignature();
 
@@ -65,13 +66,14 @@ char[] getMethodDescriptor();
 /**
  * Answer the annotations on the <code>index</code>th parameter or null if none
  * @param index the index of the parameter of interest
+ * @param classFileName (file) name of the declaring class for error reporting
  */
-IBinaryAnnotation[] getParameterAnnotations(int index);
+IBinaryAnnotation[] getParameterAnnotations(int index, char[] classFileName);
 
 /**
  * Answer the number of parameter annotations that can be retrieved
- * using {@link #getParameterAnnotations(int)}.
- * @return one beyond the highest legal argument to {@link #getParameterAnnotations(int)}.
+ * using {@link #getParameterAnnotations(int, char[])}.
+ * @return one beyond the highest legal argument to {@link #getParameterAnnotations(int, char[])}.
  */
 int getAnnotatedParametersCount();
 

@@ -1110,7 +1110,7 @@ public class Util implements SuffixConstants {
 
 	public static void collectRunningVMBootclasspath(List bootclasspaths) {
 		for (String filePath : collectFilesNames()) {
-			FileSystem.Classpath currentClasspath = FileSystem.getClasspath(filePath, null, null);
+			FileSystem.Classpath currentClasspath = FileSystem.getClasspath(filePath, null, null, null);
 			if (currentClasspath != null) {
 				bootclasspaths.add(currentClasspath);
 			}
@@ -1476,10 +1476,6 @@ public class Util implements SuffixConstants {
 				return start;
 			case C_SUPER :
 			case C_EXTENDS :
-				// need a minimum 3 chars "+[I"
-				if (start >= string.length - 2) {
-					throw new IllegalArgumentException();
-				}
 				break;
 			default :
 				// must start in "+/-"
@@ -1487,6 +1483,9 @@ public class Util implements SuffixConstants {
 	
 		}
 		c = string[++start];
+		if (c != C_STAR && start >= string.length -1) { // unless "-*" we need at least one more char, e.g. after "+[", other variants are even longer
+			throw new IllegalArgumentException();
+		}
 		switch (c) {
 			case C_CAPTURE :
 				return scanCaptureTypeSignature(string, start);

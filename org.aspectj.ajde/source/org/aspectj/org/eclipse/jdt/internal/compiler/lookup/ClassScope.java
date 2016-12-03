@@ -24,6 +24,8 @@
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
  *                          Bug 415821 - [1.8][compiler] CLASS_EXTENDS target type annotation missing for anonymous classes
  *     het@google.com - Bug 456986 - Bogus error when annotation processor generates annotation type
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -509,7 +511,9 @@ public class ClassScope extends Scope {
 		ReferenceBinding enclosingType = sourceType.enclosingType();
 		boolean isMemberType = sourceType.isMemberType();
 		if (isMemberType) {
-			modifiers |= (enclosingType.modifiers & (ExtraCompilerModifiers.AccGenericSignature|ClassFileConstants.AccStrictfp));
+			if (!sourceType.isStatic())
+				modifiers |= (enclosingType.modifiers & ExtraCompilerModifiers.AccGenericSignature);
+			modifiers |= (enclosingType.modifiers & ClassFileConstants.AccStrictfp);
 			// checks for member types before local types to catch local members
 			if (enclosingType.isInterface())
 				modifiers |= ClassFileConstants.AccPublic;
@@ -1057,7 +1061,7 @@ public class ClassScope extends Scope {
 		sourceType.tagBits |= (superType.tagBits & TagBits.HierarchyHasProblems); // propagate if missing supertpye
 		sourceType.setSuperClass(superType);
 		// bound check (in case of bogus definition of Enum type)
-		if (refTypeVariables[0].boundCheck(superType, sourceType, this) != TypeConstants.OK) {
+		if (!refTypeVariables[0].boundCheck(superType, sourceType, this, null).isOKbyJLS()) {
 			problemReporter().typeMismatchError(rootEnumType, refTypeVariables[0], sourceType, null);
 		}
 		return !foundCycle;
@@ -1184,7 +1188,7 @@ public class ClassScope extends Scope {
 	public boolean deferCheck(Runnable check) {
 		if (compilationUnitScope().connectingHierarchy) {
 			if (this.deferredBoundChecks == null)
-				this.deferredBoundChecks = new ArrayList<Object>();
+				this.deferredBoundChecks = new ArrayList<>();
 			this.deferredBoundChecks.add(check);
 			return true;
 		} else {

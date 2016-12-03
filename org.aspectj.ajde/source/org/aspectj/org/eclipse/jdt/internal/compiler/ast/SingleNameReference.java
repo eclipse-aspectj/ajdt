@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -124,7 +124,7 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 				} else {
 					currentScope.problemReporter().cannotAssignToFinalField(fieldBinding, this);
 				}
-			} else if (!isCompound && fieldBinding.isNonNull()
+			} else if (!isCompound && (fieldBinding.isNonNull() || fieldBinding.type.isTypeVariable())
 						&& TypeBinding.equalsEquals(fieldBinding.declaringClass, currentScope.enclosingReceiverType())) { // inherited fields are not tracked here
 				// record assignment for detecting uninitialized non-null fields:
 				flowInfo.markAsDefinitelyAssigned(fieldBinding);
@@ -254,14 +254,12 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 
 }
 
-public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
-	if (!super.checkNPE(scope, flowContext, flowInfo)) {
+public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
+	if (!super.checkNPE(scope, flowContext, flowInfo, ttlForFieldCheck)) {
 		CompilerOptions compilerOptions = scope.compilerOptions();
 		if (compilerOptions.isAnnotationBasedNullAnalysisEnabled) {
-			VariableBinding var = nullAnnotatedVariableBinding(compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8);
-			if (var instanceof FieldBinding) {
-				checkNullableFieldDereference(scope, (FieldBinding) var, ((long)this.sourceStart<<32)+this.sourceEnd);
-				return true;
+			if (this.binding instanceof FieldBinding) {
+				return checkNullableFieldDereference(scope, (FieldBinding) this.binding, ((long)this.sourceStart<<32)+this.sourceEnd, flowContext, ttlForFieldCheck);
 			}
 		}
 	}

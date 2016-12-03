@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2011 BEA Systems, Inc. 
+ * Copyright (c) 2006, 2015 BEA Systems, Inc. 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,24 +36,24 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
  * dependencies.
  */
 public class BatchFilerImpl implements Filer {
-
+	
 	protected final BaseAnnotationProcessorManager _dispatchManager;
 	protected final BaseProcessingEnvImpl _env;
 	protected final JavaFileManager _fileManager;
 	protected final HashSet<URI> _createdFiles;
 
-	public BatchFilerImpl(BaseAnnotationProcessorManager dispatchManager, BatchProcessingEnvImpl env)
+	public BatchFilerImpl(BaseAnnotationProcessorManager dispatchManager, BatchProcessingEnvImpl env) 
 	{
 		_dispatchManager = dispatchManager;
 		_fileManager = env._fileManager;
 		_env = env;
-		_createdFiles = new HashSet<URI>();
+		_createdFiles = new HashSet<>();
 	}
 
 	public void addNewUnit(ICompilationUnit unit) {
 		_env.addNewUnit(unit);
 	}
-
+	
 	public void addNewClassFile(ReferenceBinding binding) {
 		_env.addNewClassFile(binding);
 	}
@@ -71,9 +71,9 @@ public class BatchFilerImpl implements Filer {
 			throw new FilerException("Class file already created : " + name); //$NON-NLS-1$
 		}
 
-    _createdFiles.add(uri);
-    return new HookedJavaFileObject(jfo, jfo.getName(), name.toString(), this);
-  }
+		_createdFiles.add(uri);
+		return new HookedJavaFileObject(jfo, jfo.getName(), name.toString(), this);
+	}
 
 	/* (non-Javadoc)
 	 * @see javax.annotation.processing.Filer#createResource(javax.tools.JavaFileManager.Location, java.lang.CharSequence, java.lang.CharSequence, javax.lang.model.element.Element[])
@@ -90,8 +90,8 @@ public class BatchFilerImpl implements Filer {
 			throw new FilerException("Resource already created : " + location + '/' + pkg + '/' + relativeName); //$NON-NLS-1$
 		}
 
-    _createdFiles.add(uri);
-    return fo;
+		_createdFiles.add(uri);
+		return fo;
 	}
 
 	private static void validateName(CharSequence relativeName) {
@@ -140,11 +140,11 @@ public class BatchFilerImpl implements Filer {
 			throw new FilerException("Source file already created : " + name); //$NON-NLS-1$
 		}
 
-    _createdFiles.add(uri);
-    // hook the file object's writers to create compilation unit and add to addedUnits()
+		_createdFiles.add(uri);
+		// hook the file object's writers to create compilation unit and add to addedUnits()
 		return new HookedJavaFileObject(jfo, jfo.getName(), name.toString(), this);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see javax.annotation.processing.Filer#getResource(javax.tools.JavaFileManager.Location, java.lang.CharSequence, java.lang.CharSequence)
 	 */
@@ -162,8 +162,8 @@ public class BatchFilerImpl implements Filer {
 			throw new FilerException("Resource already created : " + location + '/' + pkg + '/' + relativeName); //$NON-NLS-1$
 		}
 
-    _createdFiles.add(uri);
-    return fo;
+		_createdFiles.add(uri);
+		return fo;
 	}
 
 }

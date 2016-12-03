@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,27 +10,48 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search.indexing;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
 import java.util.zip.CRC32;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
-import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
+import org.aspectj.org.eclipse.jdt.core.IJavaProject;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.core.search.*;
+import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.aspectj.org.eclipse.jdt.core.search.SearchDocument;
+import org.aspectj.org.eclipse.jdt.core.search.SearchEngine;
+import org.aspectj.org.eclipse.jdt.core.search.SearchParticipant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
-import org.aspectj.org.eclipse.jdt.internal.core.*;
-import org.aspectj.org.eclipse.jdt.internal.core.index.*;
+import org.aspectj.org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaModel;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
+import org.aspectj.org.eclipse.jdt.internal.core.index.DiskIndex;
+import org.aspectj.org.eclipse.jdt.internal.core.index.FileIndexLocation;
+import org.aspectj.org.eclipse.jdt.internal.core.index.Index;
+import org.aspectj.org.eclipse.jdt.internal.core.index.IndexLocation;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.Indexer;
 import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.aspectj.org.eclipse.jdt.internal.core.search.PatternSearchJob;
 import org.aspectj.org.eclipse.jdt.internal.core.search.processing.IJob;
@@ -58,11 +79,11 @@ public class IndexManager extends JobManager implements IIndexConstants {
 	private File savedIndexNamesFile = new File(getSavedIndexesDirectory(), "savedIndexNames.txt"); //$NON-NLS-1$
 	private File participantIndexNamesFile = new File(getSavedIndexesDirectory(), "participantsIndexNames.txt"); //$NON-NLS-1$
 	private boolean javaLikeNamesChanged = true;
-	public static final Integer SAVED_STATE = new Integer(0);
-	public static final Integer UPDATING_STATE = new Integer(1);
-	public static final Integer UNKNOWN_STATE = new Integer(2);
-	public static final Integer REBUILDING_STATE = new Integer(3);
-	public static final Integer REUSE_STATE = new Integer(4);
+	public static final Integer SAVED_STATE = 0;
+	public static final Integer UPDATING_STATE = 1;
+	public static final Integer UNKNOWN_STATE = 2;
+	public static final Integer REBUILDING_STATE = 3;
+	public static final Integer REUSE_STATE = 4;
 	
 	// search participants who register indexes with the index manager
 	private SimpleLookupTable participantsContainers = null;
@@ -77,6 +98,8 @@ public class IndexManager extends JobManager implements IIndexConstants {
 
 
 public synchronized void aboutToUpdateIndex(IPath containerPath, Integer newIndexState) {
+	// TODO(sxenos): Find a more appropriate and more specific place to trigger re-indexing
+	Indexer.getInstance().rescanAll();
 	// newIndexState is either UPDATING_STATE or REBUILDING_STATE
 	// must tag the index as inconsistent, in case we exit before the update job is started
 	IndexLocation indexLocation = computeIndexLocation(containerPath);

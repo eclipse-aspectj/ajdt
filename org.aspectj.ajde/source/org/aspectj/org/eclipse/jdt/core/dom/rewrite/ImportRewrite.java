@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,8 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.core.dom.rewrite;
@@ -22,8 +24,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.aspectj.org.eclipse.jdt.core.Flags;
 import org.aspectj.org.eclipse.jdt.core.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.IImportDeclaration;
@@ -66,8 +67,8 @@ import org.aspectj.org.eclipse.jdt.core.dom.StringLiteral;
 import org.aspectj.org.eclipse.jdt.core.dom.Type;
 import org.aspectj.org.eclipse.jdt.core.dom.TypeLiteral;
 import org.aspectj.org.eclipse.jdt.core.dom.WildcardType;
-import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.imports.ImportRewriteConfiguration;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.imports.ImportRewriteAnalyzer;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.imports.ImportRewriteConfiguration;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.imports.ImportRewriteConfiguration.ImplicitImportIdentification;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.imports.ImportRewriteConfiguration.ImportContainerSorting;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
@@ -296,10 +297,10 @@ public final class ImportRewrite {
 				return findInImports(qualifier, name, kind);
 			}
 		};
-		this.addedImports= new ArrayList<String>();
-		this.removedImports= new ArrayList<String>();
-		this.typeExplicitSimpleNames = new HashSet<String>();
-		this.staticExplicitSimpleNames = new HashSet<String>();
+		this.addedImports= new ArrayList<>();
+		this.removedImports= new ArrayList<>();
+		this.typeExplicitSimpleNames = new HashSet<>();
+		this.staticExplicitSimpleNames = new HashSet<>();
 		this.createdImports= null;
 		this.createdStaticImports= null;
 
@@ -1008,7 +1009,7 @@ public final class ImportRewrite {
 			context= this.defaultContext;
 		}
 		int kind= isField ? ImportRewriteContext.KIND_STATIC_FIELD : ImportRewriteContext.KIND_STATIC_METHOD;
-		this.importsKindMap.put(key, new Integer(kind));
+		this.importsKindMap.put(key, Integer.valueOf(kind));
 		int res= context.findInContext(declaringTypeName, simpleName, kind);
 		if (res == ImportRewriteContext.RES_NAME_CONFLICT) {
 			return key;
@@ -1129,61 +1130,55 @@ public final class ImportRewrite {
 	 * @throws CoreException the exception is thrown if the rewrite fails.
 	 */
 	public final TextEdit rewriteImports(IProgressMonitor monitor) throws CoreException {
-		if (monitor == null) {
-			monitor= new NullProgressMonitor();
+
+		SubMonitor subMonitor = SubMonitor.convert(monitor,
+				Messages.bind(Messages.importRewrite_processDescription), 2);
+		if (!hasRecordedChanges()) {
+			this.createdImports= CharOperation.NO_STRINGS;
+			this.createdStaticImports= CharOperation.NO_STRINGS;
+			return new MultiTextEdit();
 		}
 
-		try {
-			monitor.beginTask(Messages.bind(Messages.importRewrite_processDescription), 2);
-			if (!hasRecordedChanges()) {
-				this.createdImports= CharOperation.NO_STRINGS;
-				this.createdStaticImports= CharOperation.NO_STRINGS;
-				return new MultiTextEdit();
-			}
-
-			CompilationUnit usedAstRoot= this.astRoot;
-			if (usedAstRoot == null) {
-				ASTParser parser= ASTParser.newParser(AST.JLS8);
-				parser.setSource(this.compilationUnit);
-				parser.setFocalPosition(0); // reduced AST
-				parser.setResolveBindings(false);
-				usedAstRoot= (CompilationUnit) parser.createAST(new SubProgressMonitor(monitor, 1));
-			}
-
-			ImportRewriteConfiguration config= buildImportRewriteConfiguration();
-
-			ImportRewriteAnalyzer computer=
-				new ImportRewriteAnalyzer(this.compilationUnit, usedAstRoot, config);
-
-			for (String addedImport : this.addedImports) {
-				boolean isStatic = STATIC_PREFIX == addedImport.charAt(0);
-				String qualifiedName = addedImport.substring(1);
-				computer.addImport(isStatic, qualifiedName);
-			}
-
-			for (String removedImport : this.removedImports) {
-				boolean isStatic = STATIC_PREFIX == removedImport.charAt(0);
-				String qualifiedName = removedImport.substring(1);
-				computer.removeImport(isStatic, qualifiedName);
-			}
-
-			for (String typeExplicitSimpleName : this.typeExplicitSimpleNames) {
-				computer.requireExplicitImport(false, typeExplicitSimpleName);
-			}
-
-			for (String staticExplicitSimpleName : this.staticExplicitSimpleNames) {
-				computer.requireExplicitImport(true, staticExplicitSimpleName);
-			}
-
-			ImportRewriteAnalyzer.RewriteResult result= computer.analyzeRewrite(new SubProgressMonitor(monitor, 1));
-
-			this.createdImports= result.getCreatedImports();
-			this.createdStaticImports= result.getCreatedStaticImports();
-
-			return result.getTextEdit();
-		} finally {
-			monitor.done();
+		CompilationUnit usedAstRoot= this.astRoot;
+		if (usedAstRoot == null) {
+			ASTParser parser= ASTParser.newParser(AST.JLS8);
+			parser.setSource(this.compilationUnit);
+			parser.setFocalPosition(0); // reduced AST
+			parser.setResolveBindings(false);
+			usedAstRoot= (CompilationUnit) parser.createAST(subMonitor.split(1));
 		}
+
+		ImportRewriteConfiguration config= buildImportRewriteConfiguration();
+
+		ImportRewriteAnalyzer computer=
+			new ImportRewriteAnalyzer(this.compilationUnit, usedAstRoot, config);
+
+		for (String addedImport : this.addedImports) {
+			boolean isStatic = STATIC_PREFIX == addedImport.charAt(0);
+			String qualifiedName = addedImport.substring(1);
+			computer.addImport(isStatic, qualifiedName);
+		}
+
+		for (String removedImport : this.removedImports) {
+			boolean isStatic = STATIC_PREFIX == removedImport.charAt(0);
+			String qualifiedName = removedImport.substring(1);
+			computer.removeImport(isStatic, qualifiedName);
+		}
+
+		for (String typeExplicitSimpleName : this.typeExplicitSimpleNames) {
+			computer.requireExplicitImport(false, typeExplicitSimpleName);
+		}
+
+		for (String staticExplicitSimpleName : this.staticExplicitSimpleNames) {
+			computer.requireExplicitImport(true, staticExplicitSimpleName);
+		}
+
+		ImportRewriteAnalyzer.RewriteResult result= computer.analyzeRewrite(subMonitor.split(1));
+
+		this.createdImports= result.getCreatedImports();
+		this.createdStaticImports= result.getCreatedStaticImports();
+
+		return result.getTextEdit();
 	}
 
 	private ImportRewriteConfiguration buildImportRewriteConfiguration() {
@@ -1287,7 +1282,7 @@ public final class ImportRewrite {
 		if (imports == null) {
 			return CharOperation.NO_STRINGS;
 		}
-		List<String> res= new ArrayList<String>();
+		List<String> res= new ArrayList<>();
 		for (String curr : imports) {
 			if (prefix == curr.charAt(0)) {
 				res.add(curr.substring(1));
@@ -1389,7 +1384,7 @@ public final class ImportRewrite {
 		} else {
 			normalizedBinding= normalizeTypeBinding(binding);
 			if (normalizedBinding == null) {
-				type = ast.newSimpleType(ast.newSimpleName("invalid")); //$NON-NLS-1$
+				 return ast.newSimpleType(ast.newSimpleName("invalid")); //$NON-NLS-1$
 			} else if (normalizedBinding.isTypeVariable()) {
 					// no import
 				type = ast.newSimpleType(ast.newSimpleName(binding.getName()));

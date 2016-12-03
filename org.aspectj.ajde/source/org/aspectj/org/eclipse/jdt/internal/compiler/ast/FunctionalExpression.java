@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 IBM Corporation and others.
+ * Copyright (c) 2013, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImplicitNullAnnotationVerifier;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
@@ -45,8 +46,10 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RawTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBindingVisitor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 public abstract class FunctionalExpression extends Expression {
@@ -60,8 +63,10 @@ public abstract class FunctionalExpression extends Expression {
 	public CompilationResult compilationResult;
 	public BlockScope enclosingScope;
 	public int bootstrapMethodNumber = -1;
+	public boolean shouldCaptureInstance = false; // Whether the expression needs access to instance data of enclosing type
 	protected static IErrorHandlingPolicy silentErrorHandlingPolicy = DefaultErrorHandlingPolicies.ignoreAllProblems();
 	private boolean hasReportedSamProblem = false;
+	public boolean isSerializable;
 
 	public FunctionalExpression(CompilationResult compilationResult) {
 		this.compilationResult = compilationResult;
@@ -130,7 +135,7 @@ public abstract class FunctionalExpression extends Expression {
 		// we simulate an *invocation* of this functional expression,
 		// where the expected type of the expression is the return type of the sam:
 		MethodBinding sam = this.expectedType.getSingleAbstractMethod(this.enclosingScope, true);
-		if (sam != null) {
+		if (sam != null && sam.problemId() != ProblemReasons.NoSuchSingleAbstractMethod) {
 			if (sam.isConstructor())
 				return sam.declaringClass;
 			else
@@ -167,6 +172,10 @@ public abstract class FunctionalExpression extends Expression {
 	}
 
 	public TypeBinding resolveType(BlockScope blockScope) {
+		return resolveType(blockScope, false);
+	}
+
+	public TypeBinding resolveType(BlockScope blockScope, boolean skipKosherCheck) {
 		this.constant = Constant.NotAConstant;
 		this.enclosingScope = blockScope;
 		MethodBinding sam = this.expectedType == null ? null : this.expectedType.getSingleAbstractMethod(blockScope, argumentsTypeElided());
@@ -179,9 +188,26 @@ public abstract class FunctionalExpression extends Expression {
 		}
 		
 		this.descriptor = sam;
-		if (kosherDescriptor(blockScope, sam, true)) {
-			if (blockScope.environment().globalOptions.isAnnotationBasedNullAnalysisEnabled)
+		if (skipKosherCheck || kosherDescriptor(blockScope, sam, true)) {
+			if (this.expectedType instanceof IntersectionTypeBinding18) {
+				ReferenceBinding[] intersectingTypes =  ((IntersectionTypeBinding18)this.expectedType).intersectingTypes;
+				for (int t = 0, max = intersectingTypes.length; t < max; t++) {
+					if (intersectingTypes[t].findSuperTypeOriginatingFrom(TypeIds.T_JavaIoSerializable, false /*Serializable is not a class*/) != null) {
+						this.isSerializable = true;
+						break;
+					}
+				}
+			} else if (this.expectedType.findSuperTypeOriginatingFrom(TypeIds.T_JavaIoSerializable, false /*Serializable is not a class*/) != null) {
+				this.isSerializable = true;
+			}
+			LookupEnvironment environment = blockScope.environment();
+			if (environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
+				if ((sam.tagBits & TagBits.IsNullnessKnown) == 0) {
+					new ImplicitNullAnnotationVerifier(environment, environment.globalOptions.inheritNullAnnotations)
+							.checkImplicitNullAnnotations(sam, null, false, blockScope);
+				}
 				NullAnnotationMatching.checkForContradictions(sam, this, blockScope);
+			}
 			return this.resolvedType = this.expectedType;		
 		}
 		
@@ -198,10 +224,6 @@ public abstract class FunctionalExpression extends Expression {
 				break;
 			case ProblemReasons.NotAWellFormedParameterizedType:
 				blockScope.problemReporter().illFormedParameterizationOfFunctionalInterface(this);
-				this.hasReportedSamProblem = true;
-				break;
-			case ProblemReasons.IntersectionHasMultipleFunctionalInterfaces:
-				blockScope.problemReporter().multipleFunctionalInterfaces(this);
 				this.hasReportedSamProblem = true;
 				break;
 		}
@@ -268,7 +290,7 @@ public abstract class FunctionalExpression extends Expression {
 			status = false;
 		if (!inspector.visible(sam.thrownExceptions))
 			status = false;
-		if (!inspector.visible(sam.declaringClass))
+		if (!inspector.visible(this.expectedType))
 			status = false;
 		return status;
 	}
@@ -296,7 +318,7 @@ public abstract class FunctionalExpression extends Expression {
 				this.selector = method.selector;
 				this.environment = FunctionalExpression.this.enclosingScope.environment();
 				this.scope = FunctionalExpression.this.enclosingScope;
-				collectBridges(functionalType.superInterfaces());
+				collectBridges(new ReferenceBinding[]{functionalType});
 			}
 			
 			void collectBridges(ReferenceBinding[] interfaces) {
@@ -310,7 +332,7 @@ public abstract class FunctionalExpression extends Expression {
 						MethodBinding inheritedMethod = methods[j];
 						if (inheritedMethod == null || this.method == inheritedMethod)  // descriptor declaring class may not be same functional interface target type.
 							continue;
-						if (inheritedMethod.isStatic() || inheritedMethod.isDefaultMethod() || inheritedMethod.redeclaresPublicObjectMethod(this.scope)) 
+						if (inheritedMethod.isStatic() || inheritedMethod.redeclaresPublicObjectMethod(this.scope)) 
 							continue;
 						inheritedMethod = MethodVerifier.computeSubstituteMethod(inheritedMethod, this.method, this.environment);
 						if (inheritedMethod == null || !MethodVerifier.isSubstituteParameterSubsignature(this.method, inheritedMethod, this.environment) ||

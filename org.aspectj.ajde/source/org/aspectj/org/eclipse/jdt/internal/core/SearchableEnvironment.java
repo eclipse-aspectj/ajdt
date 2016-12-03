@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.*;
@@ -28,6 +29,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessConstructorRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessTypeRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager;
+import org.aspectj.org.eclipse.jdt.internal.core.search.processing.IJob;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -135,7 +137,7 @@ public class SearchableEnvironment
 						if (!otherType.equals(topLevelType) && index < length) // check that the index is in bounds (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=62861)
 							sourceTypes[index++] = otherType;
 					}
-					return new NameEnvironmentAnswer(sourceTypes, answer.restriction);
+					return new NameEnvironmentAnswer(sourceTypes, answer.restriction, getExternalAnnotationPath(answer.entry));
 				} catch (JavaModelException jme) {
 					if (jme.isDoesNotExist() && String.valueOf(TypeConstants.PACKAGE_INFO_NAME).equals(typeName)) {
 						// in case of package-info.java the type doesn't exist in the model,
@@ -147,6 +149,15 @@ public class SearchableEnvironment
 			}
 		}
 		return null;
+	}
+
+	private String getExternalAnnotationPath(IClasspathEntry entry) {
+		if (entry == null)
+			return null;
+		IPath path = ClasspathEntry.getExternalAnnotationPath(entry, this.project.getProject(), true);
+		if (path == null)
+			return null;
+		return path.toOSString();
 	}
 
 	/**
@@ -589,16 +600,34 @@ public class SearchableEnvironment
 			if (camelCaseMatch) matchRule |= SearchPattern.R_CAMELCASE_MATCH;
 			if (monitor != null) {
 				IndexManager indexManager = JavaModelManager.getIndexManager();
-				while (indexManager.awaitingJobsCount() > 0) {
-					try {
-						Thread.sleep(50); // indexes are not ready,  sleep 50ms...
-					} catch (InterruptedException e) {
-						// Do nothing
+				// Wait for the end of indexing or a cancel
+				indexManager.performConcurrentJob(new IJob() {
+					@Override
+					public boolean belongsTo(String jobFamily) {
+						return true;
 					}
-					if (monitor.isCanceled()) {
-						throw new OperationCanceledException();
+
+					@Override
+					public void cancel() {
+						// job is cancelled through progress
 					}
-				}
+
+					@Override
+					public void ensureReadyToRun() {
+						// always ready
+					}
+
+					@Override
+					public boolean execute(IProgressMonitor progress) {
+						return progress == null || !progress.isCanceled();
+					}
+
+					@Override
+					public String getJobFamily() {
+						return ""; //$NON-NLS-1$
+					}
+				
+				}, IJob.WaitUntilReady, monitor);
 				new BasicSearchEngine(this.workingCopies).searchAllConstructorDeclarations(
 						qualification,
 						simpleName,

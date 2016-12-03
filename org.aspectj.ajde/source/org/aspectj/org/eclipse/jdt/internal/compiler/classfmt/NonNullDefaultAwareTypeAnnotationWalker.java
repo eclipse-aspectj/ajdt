@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 GK Software AG.
+ * Copyright (c) 2014, 2016 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -116,14 +116,21 @@ public class NonNullDefaultAwareTypeAnnotationWalker extends TypeAnnotationWalke
 
 	@Override
 	public ITypeAnnotationWalker toMethodParameter(short index) {
-		// don't set nextIsDefaultLocation, because signature-level nullness is handled by ImplicitNullAnnotationVerifier
+		// don't set nextIsDefaultLocation, because signature-level nullness is handled by ImplicitNullAnnotationVerifier (triggered per invocation via MessageSend.resolveType() et al)
 		if (this.isEmpty) return restrict(this.matches, this.pathPtr);
 		return super.toMethodParameter(index);
 	}
 
 	@Override
+	public ITypeAnnotationWalker toField() {
+		// don't set nextIsDefaultLocation, because field-level nullness is handled by BinaryTypeBinding.scanFieldForNullAnnotation
+		if (this.isEmpty) return restrict(this.matches, this.pathPtr);
+		return super.toField();
+	}
+	
+	@Override
 	public ITypeAnnotationWalker toMethodReturn() {
-		// don't set nextIsDefaultLocation, because signature-level nullness is handled by ImplicitNullAnnotationVerifier
+		// don't set nextIsDefaultLocation, because signature-level nullness is handled by ImplicitNullAnnotationVerifier (triggered per invocation via MessageSend.resolveType() et al)
 		if (this.isEmpty) return restrict(this.matches, this.pathPtr);
 		return super.toMethodReturn();
 	}
@@ -176,7 +183,7 @@ public class NonNullDefaultAwareTypeAnnotationWalker extends TypeAnnotationWalke
 
 	@Override
 	public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId) {
-		IBinaryAnnotation[] normalAnnotations = this.isEmpty ? null : super.getAnnotationsAtCursor(currentTypeId);
+		IBinaryAnnotation[] normalAnnotations = this.isEmpty ? NO_ANNOTATIONS : super.getAnnotationsAtCursor(currentTypeId);
 		if (this.atDefaultLocation &&
 				!(currentTypeId == -1) && // never apply default on type variable use or wildcard
 				!(this.atTypeBound && currentTypeId == TypeIds.T_JavaLangObject)) // for CLIMB-to-top consider a j.l.Object type bound as no explicit type bound

@@ -42,6 +42,9 @@ public interface Invocation extends InvocationSite {
 	 */
 	InferenceContext18 getInferenceContext(ParameterizedMethodBinding method);
 
+	/** Discard any state from type inference when compilation is done. */
+	void cleanUpInferenceContexts();
+
 	/** Record result against target type */
 	void registerResult(TypeBinding targetType, MethodBinding method);
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -289,6 +289,9 @@ public interface ITypeBinding extends IBinding {
 	 * Returns the binding representing the element type of this array type,
 	 * or <code>null</code> if this is not an array type binding. The element
 	 * type of an array type is never itself an array type.
+	 * 
+	 * To get the type annotations on dimensions, clients should repeatedly
+	 *  call getComponentType() and get the type annotations from there. 
 	 *
 	 * @return the element type binding, or <code>null</code> if this is
 	 *   not an array type
@@ -553,6 +556,9 @@ public interface ITypeBinding extends IBinding {
 	 * <li>java.lang.String</li>
 	 * </ul>
 	 * </p>
+	 * To get the type annotations on dimensions, clients should repeatedly call 
+	 * {@link #getComponentType()} and get the type annotations from there. 
+
 	 * @return type annotations specified on this type reference, or an empty array if
 	 * no type use annotations are found.
 	 * @see #getTypeDeclaration()
@@ -584,8 +590,8 @@ public interface ITypeBinding extends IBinding {
 	public ITypeBinding[] getTypeArguments();
 
 	/**
-	 * Returns the upper type bounds of this type variable, wildcard, or capture. If the
-	 * variable, wildcard, or capture had no explicit bound, then it returns an empty list.
+	 * Returns the upper type bounds of this type variable, wildcard, capture, or intersectionType. 
+	 * If the variable, wildcard, or capture had no explicit bound, then it returns an empty list.
      * <p>
      * Note that per construction, it can only contain one class or array type,
      * at most, and then it is located in first position.
@@ -595,11 +601,12 @@ public interface ITypeBinding extends IBinding {
      * binding, e.g. <code>capture-of ? extends Object[]</code>
      * </p>
 	 *
-	 * @return the list of upper bounds for this type variable, wildcard, or capture,
+	 * @return the list of upper bounds for this type variable, wildcard, capture, or intersection type
      * or otherwise the empty list
      * @see #isTypeVariable()
      * @see #isWildcardType()
 	 * @see #isCapture()
+	 * @see #isIntersectionType()
 	 * @since 3.1
 	 */
 	public ITypeBinding[] getTypeBounds();
@@ -817,6 +824,28 @@ public interface ITypeBinding extends IBinding {
 	 *    and <code>false</code> otherwise
 	 */
 	public boolean isInterface();
+
+	/**
+	 * Returns whether this type binding represents an intersection binding.
+	 * <p>
+	 * Intersection types can be derived from type parameter bounds and cast
+	 * expressions; they also arise in the processes of capture conversion 
+	 * and least upper bound computation as specified in section 4.9 of 
+	 * <em>The Java Language Specification, Java SE 8 Edition</em> (JLS8).
+	 * </p>
+	 * <p>
+	 * All the types in the intersection type can be accessed using
+	 * {@link #getTypeBounds()}. Wildcard types with more than one
+	 * bound will also be reported as intersection type. To check whether this
+	 * is a wildcard type, use {@link #isWildcardType()}.
+	 * </p>
+	 * @return <code>true</code> if this type binding is an intersecting type,
+	 *   and <code>false</code> otherwise
+	 * @see #getTypeBounds()
+	 * @see ITypeBinding#isWildcardType()
+	 * @since 3.12
+	 */
+	public boolean isIntersectionType();
 
 	/**
 	 * Returns whether this type binding represents a local class.

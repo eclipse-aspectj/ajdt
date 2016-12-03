@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,11 +34,15 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaNames;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.model.BinaryTypeDescriptor;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.model.BinaryTypeFactory;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.util.CharArrayUtils;
 import org.aspectj.org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -89,8 +93,9 @@ public ICompilationUnit becomeWorkingCopy(IProblemRequestor problemRequestor, Wo
  * @see Openable
  * @see Signature
  */
+@Override
 protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-	IBinaryType typeInfo = getBinaryTypeInfo((IFile) underlyingResource);
+	IBinaryType typeInfo = getBinaryTypeInfo();
 	if (typeInfo == null) {
 		// The structure of a class file is unknown if a class file format errors occurred
 		//during the creation of the diet class file representative of this ClassFile.
@@ -112,6 +117,7 @@ protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, 
  * @see ICodeAssist#codeComplete(int, ICompletionRequestor)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(int offset, ICompletionRequestor requestor) throws JavaModelException {
 	codeComplete(offset, requestor, DefaultWorkingCopyOwner.PRIMARY);
 }
@@ -119,6 +125,7 @@ public void codeComplete(int offset, ICompletionRequestor requestor) throws Java
  * @see ICodeAssist#codeComplete(int, ICompletionRequestor, WorkingCopyOwner)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(int offset, ICompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
 	if (requestor == null) {
 		throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
@@ -185,9 +192,11 @@ public IJavaElement[] codeSelect(int offset, int length, WorkingCopyOwner owner)
 /**
  * Returns a new element info for this element.
  */
+@Override
 protected Object createElementInfo() {
 	return new ClassFileInfo();
 }
+@Override
 public boolean equals(Object o) {
 	if (!(o instanceof ClassFile)) return false;
 	ClassFile other = (ClassFile) o;
@@ -215,7 +224,7 @@ public boolean existsUsingJarTypeCache() {
 			return false;
 		}
 		try {
-			info = getJarBinaryTypeInfo((PackageFragment) getParent(), true/*fully initialize so as to not keep a reference to the byte array*/);
+			info = getJarBinaryTypeInfo();
 		} catch (CoreException e) {
 			// leave info null
 		} catch (IOException e) {
@@ -265,6 +274,7 @@ public IType findPrimaryType() {
 	}
 	return null;
 }
+@Override
 public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelException {
 	return getType().getAttachedJavadoc(monitor);
 }
@@ -280,40 +290,26 @@ public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelExcep
  * @exception JavaModelException when the IFile resource or JAR is not available
  * or when this class file is not present in the JAR
  */
-public IBinaryType getBinaryTypeInfo(IFile file) throws JavaModelException {
-	return getBinaryTypeInfo(file, true/*fully initialize so as to not keep a reference to the byte array*/);
-}
-public IBinaryType getBinaryTypeInfo(IFile file, boolean fullyInitialize) throws JavaModelException {
-	JavaElement pkg = (JavaElement) getParent();
-	if (pkg instanceof JarPackageFragment) {
-		try {
-			IBinaryType info = getJarBinaryTypeInfo((PackageFragment) pkg, fullyInitialize);
-			if (info == null) {
-				throw newNotPresentException();
-			}
-			return info;
-		} catch (ClassFormatException cfe) {
-			//the structure remains unknown
-			if (JavaCore.getPlugin().isDebugging()) {
-				cfe.printStackTrace(System.err);
-			}
-			return null;
-		} catch (IOException ioe) {
-			throw new JavaModelException(ioe, IJavaModelStatusConstants.IO_EXCEPTION);
-		} catch (CoreException e) {
-			if (e instanceof JavaModelException) {
-				throw (JavaModelException)e;
-			} else {
-				throw new JavaModelException(e);
-			}
+public IBinaryType getBinaryTypeInfo() throws JavaModelException {
+	try {
+		IBinaryType info = getJarBinaryTypeInfo();
+		if (info == null) {
+			throw newNotPresentException();
 		}
-	} else {
-		byte[] contents = Util.getResourceContentsAsByteArray(file);
-		try {
-			return new ClassFileReader(contents, file.getFullPath().toString().toCharArray(), fullyInitialize);
-		} catch (ClassFormatException cfe) {
-			//the structure remains unknown
-			return null;
+		return info;
+	} catch (ClassFormatException cfe) {
+		//the structure remains unknown
+		if (JavaCore.getPlugin().isDebugging()) {
+			cfe.printStackTrace(System.err);
+		}
+		return null;
+	} catch (IOException ioe) {
+		throw new JavaModelException(ioe, IJavaModelStatusConstants.IO_EXCEPTION);
+	} catch (CoreException e) {
+		if (e instanceof JavaModelException) {
+			throw (JavaModelException)e;
+		} else {
+			throw new JavaModelException(e);
 		}
 	}
 }
@@ -347,71 +343,97 @@ public byte[] getBytes() throws JavaModelException {
 		return Util.getResourceContentsAsByteArray(file);
 	}
 }
-private IBinaryType getJarBinaryTypeInfo(PackageFragment pkg, boolean fullyInitialize) throws CoreException, IOException, ClassFormatException {
-	JarPackageFragmentRoot root = (JarPackageFragmentRoot) pkg.getParent();
-	ZipFile zip = null;
-	ZipFile annotationZip = null;
-	try {
-		zip = root.getJar();
-		String entryName = Util.concatWith(pkg.names, getElementName(), '/');
-		ZipEntry ze = zip.getEntry(entryName);
-		if (ze != null) {
-			byte contents[] = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
-			String fileName = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
-			ClassFileReader reader = new ClassFileReader(contents, fileName.toCharArray(), fullyInitialize);
-			if (root.getKind() == IPackageFragmentRoot.K_BINARY) {
-				JavaProject javaProject = (JavaProject) getAncestor(IJavaElement.JAVA_PROJECT);
-				IClasspathEntry entry = javaProject.getClasspathEntryFor(getPath());
-				if (entry != null) {
-					IProject project = javaProject.getProject();
-					IPath externalAnnotationPath = ClasspathEntry.getExternalAnnotationPath(entry, project, false);
-					if (externalAnnotationPath != null)
-						setupExternalAnnotationProvider(project, externalAnnotationPath, annotationZip, reader, 
-								entryName.substring(0, entryName.length() - SuffixConstants.SUFFIX_CLASS.length));
-				}
-			} 
-			return reader;
-		}
-	} finally {
-		JavaModelManager.getJavaModelManager().closeZipFile(zip);
-		JavaModelManager.getJavaModelManager().closeZipFile(annotationZip);
-	}
-	return null;
+
+public String getName() {
+	return this.name;
 }
 
-private void setupExternalAnnotationProvider(IProject project, final IPath externalAnnotationPath,
-		ZipFile annotationZip, ClassFileReader reader, final String typeName)
+private IBinaryType getJarBinaryTypeInfo() throws CoreException, IOException, ClassFormatException {
+	BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(this);
+
+	if (descriptor == null) {
+		return null;
+	}
+
+	IBinaryType result = BinaryTypeFactory.readType(descriptor, null);
+
+	if (result == null) {
+		return null;
+	}
+
+	// TODO(sxenos): setup the external annotation provider if the IBinaryType came from the index
+	// TODO(sxenos): the old code always passed null as the third argument to setupExternalAnnotationProvider,
+	// but this looks like a bug. I've preserved it for now but we need to figure out what was supposed to go
+	// there.
+	PackageFragment pkg = (PackageFragment) getParent();
+	IJavaElement grandparent = pkg.getParent();
+	if (grandparent instanceof JarPackageFragmentRoot) {
+		JarPackageFragmentRoot root = (JarPackageFragmentRoot) grandparent;
+
+		if (root.getKind() == IPackageFragmentRoot.K_BINARY) {
+			JavaProject javaProject = (JavaProject) getAncestor(IJavaElement.JAVA_PROJECT);
+			IClasspathEntry entry = javaProject.getClasspathEntryFor(getPath());
+			if (entry != null) {
+				String entryName = new String(CharArrayUtils.concat(
+						JavaNames.fieldDescriptorToBinaryName(descriptor.fieldDescriptor), SuffixConstants.SUFFIX_CLASS));
+				IProject project = javaProject.getProject();
+				IPath externalAnnotationPath = ClasspathEntry.getExternalAnnotationPath(entry, project, false); // unresolved for use in ExternalAnnotationTracker
+				if (externalAnnotationPath != null) {
+					result = setupExternalAnnotationProvider(project, externalAnnotationPath, null, result, 
+						entryName.substring(0, entryName.length() - SuffixConstants.SUFFIX_CLASS.length));
+				} else if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					result = new ExternalAnnotationDecorator(result, true);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+private IBinaryType setupExternalAnnotationProvider(IProject project, final IPath externalAnnotationPath,
+		ZipFile annotationZip, IBinaryType reader, final String typeName)
 {
+	IBinaryType result = reader;
 	// try resolve path within the workspace:
 	IWorkspaceRoot root = project.getWorkspace().getRoot();
-	IResource resource = externalAnnotationPath.segmentCount() == 1
-			? root.getProject(externalAnnotationPath.lastSegment())
-			: root.getFolder(externalAnnotationPath);
-	if (!resource.exists())
-		resource = root.getFile(externalAnnotationPath);
+	IResource resource;
+	if (externalAnnotationPath.segmentCount() == 1) {
+		resource = root.getProject(externalAnnotationPath.lastSegment());
+	} else {
+		resource = root.getFolder(externalAnnotationPath);
+		if (!resource.exists())
+			resource = root.getFile(externalAnnotationPath);
+	}
 	String resolvedPath;
 	if (resource.exists()) {
 		if (resource.isVirtual()) {
-			Util.log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, 
+			Util.log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID,
 					"Virtual resource "+externalAnnotationPath+" cannot be used as annotationpath for project "+project.getName())); //$NON-NLS-1$ //$NON-NLS-2$
-			return;
+			return reader;
 		}
 		resolvedPath = resource.getLocation().toString(); // workspace lookup succeeded -> resolve it
 	} else {
 		resolvedPath = externalAnnotationPath.toString(); // not in workspace, use as is
 	}
 	try {
-		annotationZip = reader.setExternalAnnotationProvider(resolvedPath, typeName, annotationZip, new ClassFileReader.ZipFileProducer() {
-			@Override public ZipFile produce() throws IOException {
-				try {
-					return JavaModelManager.getJavaModelManager().getZipFile(externalAnnotationPath); // use (absolute, but) unresolved path here
-				} catch (CoreException e) {
-					throw new IOException("Failed to read annotation file for "+typeName+" from "+externalAnnotationPath.toString(), e); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-			}});
+		if (annotationZip == null) {
+			annotationZip = ExternalAnnotationDecorator.getAnnotationZipFile(resolvedPath, new ExternalAnnotationDecorator.ZipFileProducer() {
+				@Override public ZipFile produce() throws IOException {
+					try {
+						return JavaModelManager.getJavaModelManager().getZipFile(externalAnnotationPath); // use (absolute, but) unresolved path here
+					} catch (CoreException e) {
+						throw new IOException("Failed to read annotation file for "+typeName+" from "+externalAnnotationPath.toString(), e); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+				}});
+		}
+
+		ExternalAnnotationProvider annotationProvider = ExternalAnnotationDecorator
+				.externalAnnotationProvider(resolvedPath, typeName, annotationZip);
+		result = new ExternalAnnotationDecorator(reader, annotationProvider);
 	} catch (IOException e) {
 		Util.log(e);
-		return;
+		return result;
 	}
 	if (annotationZip == null) {
 		// Additional change listening for individual types only when annotations are in individual files.
@@ -419,6 +441,7 @@ private void setupExternalAnnotationProvider(IProject project, final IPath exter
 		this.externalAnnotationBase = externalAnnotationPath; // remember so we can unregister later
 		ExternalAnnotationTracker.registerClassFile(externalAnnotationPath, new Path(typeName), this);
 	}
+	return result;
 }
 void closeAndRemoveFromJarTypeCache() throws JavaModelException {
 	super.close();
@@ -433,6 +456,7 @@ public void close() throws JavaModelException {
 	}
 	super.close();
 }
+@Override
 public IBuffer getBuffer() throws JavaModelException {
 	IStatus status = validateClassFile();
 	if (status.isOK()) {
@@ -450,6 +474,7 @@ public IBuffer getBuffer() throws JavaModelException {
 /**
  * @see IMember
  */
+@Override
 public IClassFile getClassFile() {
 	return this;
 }
@@ -465,6 +490,7 @@ public ITypeRoot getTypeRoot() {
  *
  * @see IJavaElement
  */
+@Override
 public IResource getCorrespondingResource() throws JavaModelException {
 	IPackageFragmentRoot root= (IPackageFragmentRoot)getParent().getParent();
 	if (root.isArchive()) {
@@ -536,6 +562,7 @@ public IJavaElement getElementAtConsideringSibling(int position) throws JavaMode
 		return null;
 	}
 }
+@Override
 public String getElementName() {
 	return this.name + SuffixConstants.SUFFIX_STRING_class;
 }
@@ -548,6 +575,7 @@ public int getElementType() {
 /*
  * @see JavaElement
  */
+@Override
 public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner owner) {
 	switch (token.charAt(0)) {
 		case JEM_TYPE:
@@ -561,6 +589,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 /**
  * @see JavaElement#getHandleMemento()
  */
+@Override
 protected char getHandleMementoDelimiter() {
 	return JavaElement.JEM_CLASSFILE;
 }
@@ -578,6 +607,7 @@ public IPath getPath() {
 /*
  * @see IJavaElement
  */
+@Override
 public IResource resource(PackageFragmentRoot root) {
 	return ((IContainer) ((Openable) this.parent).resource(root)).getFile(new Path(getElementName()));
 }
@@ -650,15 +680,18 @@ public ICompilationUnit getWorkingCopy(WorkingCopyOwner owner, IProgressMonitor 
  * @see IClassFile
  * @deprecated
  */
+@Deprecated
 public IJavaElement getWorkingCopy(IProgressMonitor monitor, org.aspectj.org.eclipse.jdt.core.IBufferFactory factory) throws JavaModelException {
 	return getWorkingCopy(BufferFactoryWrapper.create(factory), monitor);
 }
 /**
  * @see Openable
  */
+@Override
 protected boolean hasBuffer() {
 	return true;
 }
+@Override
 public int hashCode() {
 	return Util.combineHashCodes(this.name.hashCode(), this.parent.hashCode());
 }
@@ -677,6 +710,7 @@ public boolean isInterface() throws JavaModelException {
 /**
  * Returns true - class files are always read only.
  */
+@Override
 public boolean isReadOnly() {
 	return true;
 }
@@ -699,6 +733,7 @@ private IStatus validateClassFile() {
  *
  * @see Openable
  */
+@Override
 protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelException {
 	// Check the cache for the top-level type first
 	IType outerMostEnclosingType = getOuterMostEnclosingType();
@@ -839,6 +874,7 @@ public static char[] translatedName(char[] name) {
  * @see ICodeAssist#codeComplete(int, ICodeCompletionRequestor)
  * @deprecated - should use codeComplete(int, ICompletionRequestor) instead
  */
+@Deprecated
 public void codeComplete(int offset, final org.aspectj.org.eclipse.jdt.core.ICodeCompletionRequestor requestor) throws JavaModelException {
 
 	if (requestor == null){
@@ -894,6 +930,7 @@ public void codeComplete(int offset, final org.aspectj.org.eclipse.jdt.core.ICod
 		});
 }
 
+@Override
 protected IStatus validateExistence(IResource underlyingResource) {
 	// check whether the class file can be opened
 	IStatus status = validateClassFile();

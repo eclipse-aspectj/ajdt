@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,6 +47,8 @@
  *                          Bug 409245 - [1.8][compiler] Type annotations dropped when call is routed through a synthetic bridge method
  *     Till Brychcy - Contributions for
  *     						bug 413460 - NonNullByDefault is not inherited to Constructors when accessed via Class File
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
@@ -130,7 +133,10 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	if (currentScope.compilerOptions().analyseResourceLeaks && FakedTrackingVariable.isAnyCloseable(this.resolvedType))
 		FakedTrackingVariable.analyseCloseableAllocation(currentScope, flowInfo, this);
 
-	if (this.binding.declaringClass.isMemberType() && !this.binding.declaringClass.isStatic()) {
+	ReferenceBinding declaringClass = this.binding.declaringClass;
+	MethodScope methodScope = currentScope.methodScope();
+	if ((declaringClass.isMemberType() && !declaringClass.isStatic()) || 
+			(declaringClass.isLocalType() && !methodScope.isStatic && methodScope.isLambdaScope())) {
 		// allocating a non-static member type without an enclosing instance of parent type
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=335845
 		currentScope.tagAsAccessingEnclosingInstanceStateOf(this.binding.declaringClass.enclosingType(), false /* type variable access */);
@@ -168,6 +174,7 @@ public Expression enclosingInstance() {
 }
 
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
+	cleanUpInferenceContexts();
 	if (!valueRequired)
 		currentScope.problemReporter().unusedObjectAllocation(this);
 
@@ -516,9 +523,13 @@ public TypeBinding resolveType(BlockScope scope) {
 			if (this.binding instanceof ParameterizedGenericMethodBinding && this.typeArguments != null) {
 				TypeVariableBinding[] typeVariables = this.binding.original().typeVariables();
 				for (int i = 0; i < this.typeArguments.length; i++)
-					this.typeArguments[i].checkNullConstraints(scope, typeVariables, i);
+					this.typeArguments[i].checkNullConstraints(scope, (ParameterizedGenericMethodBinding) this.binding, typeVariables, i);
 			}
 		}
+	}
+	if (compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8 &&
+			this.binding.getTypeAnnotations() != Binding.NO_ANNOTATIONS) {
+		this.resolvedType = scope.environment().createAnnotatedType(this.resolvedType, this.binding.getTypeAnnotations());
 	}
 	return this.resolvedType;
 }
@@ -571,22 +582,10 @@ public MethodBinding inferConstructorOfElidedParameterizedType(final Scope scope
 		if (cached != null)
 			return cached;
 	}
-	ReferenceBinding genericType = ((ParameterizedTypeBinding) this.resolvedType).genericType();
-	ReferenceBinding enclosingType = this.resolvedType.enclosingType();
-	ParameterizedTypeBinding allocationType = scope.environment().createParameterizedType(genericType, genericType.typeVariables(), enclosingType);
-	
-	// Given the allocation type and the arguments to the constructor, see if we can infer the constructor of the elided parameterized type.
-	MethodBinding factory = scope.getStaticFactory(allocationType, enclosingType, this.argumentTypes, this);
-	if (factory instanceof ParameterizedGenericMethodBinding && factory.isValidBinding()) {
-		ParameterizedGenericMethodBinding genericFactory = (ParameterizedGenericMethodBinding) factory;
-		this.inferredReturnType = genericFactory.inferredReturnType;
-		SyntheticFactoryMethodBinding sfmb = (SyntheticFactoryMethodBinding) factory.original();
-		TypeVariableBinding[] constructorTypeVariables = sfmb.getConstructor().typeVariables();
-		TypeBinding [] constructorTypeArguments = constructorTypeVariables != null ? new TypeBinding[constructorTypeVariables.length] : Binding.NO_TYPES;
-		if (constructorTypeArguments.length > 0)
-			System.arraycopy(((ParameterizedGenericMethodBinding)factory).typeArguments, sfmb.typeVariables().length - constructorTypeArguments.length , 
-												constructorTypeArguments, 0, constructorTypeArguments.length);
-		MethodBinding constructor = sfmb.applyTypeArgumentsOnConstructor(((ParameterizedTypeBinding)factory.returnType).arguments, constructorTypeArguments);
+	boolean[] inferredReturnTypeOut = new boolean[1];
+	MethodBinding constructor = inferDiamondConstructor(scope, this, this.resolvedType, this.argumentTypes, inferredReturnTypeOut);
+	if (constructor != null) {
+		this.inferredReturnType = inferredReturnTypeOut[0];
 		if (constructor instanceof ParameterizedGenericMethodBinding && scope.compilerOptions().sourceLevel >= ClassFileConstants.JDK1_8) {
 			// force an inference context to be established for nested poly allocations (to be able to transfer b2), but avoid tunneling through overload resolution. We know this is the MSMB.
 			if (this.expressionContext == INVOCATION_CONTEXT && this.typeExpected == null)
@@ -594,7 +593,27 @@ public MethodBinding inferConstructorOfElidedParameterizedType(final Scope scope
 		}
 		if (this.typeExpected != null)
 			registerResult(this.typeExpected, constructor);
-		return constructor;
+	}
+	return constructor;
+}
+
+public static MethodBinding inferDiamondConstructor(Scope scope, InvocationSite site, TypeBinding type, TypeBinding[] argumentTypes, boolean[] inferredReturnTypeOut) {
+	ReferenceBinding genericType = ((ParameterizedTypeBinding) type).genericType();
+	ReferenceBinding enclosingType = type.enclosingType();
+	ParameterizedTypeBinding allocationType = scope.environment().createParameterizedType(genericType, genericType.typeVariables(), enclosingType);
+	
+	// Given the allocation type and the arguments to the constructor, see if we can infer the constructor of the elided parameterized type.
+	MethodBinding factory = scope.getStaticFactory(allocationType, enclosingType, argumentTypes, site);
+	if (factory instanceof ParameterizedGenericMethodBinding && factory.isValidBinding()) {
+		ParameterizedGenericMethodBinding genericFactory = (ParameterizedGenericMethodBinding) factory;
+		inferredReturnTypeOut[0] = genericFactory.inferredReturnType;
+		SyntheticFactoryMethodBinding sfmb = (SyntheticFactoryMethodBinding) factory.original();
+		TypeVariableBinding[] constructorTypeVariables = sfmb.getConstructor().typeVariables();
+		TypeBinding [] constructorTypeArguments = constructorTypeVariables != null ? new TypeBinding[constructorTypeVariables.length] : Binding.NO_TYPES;
+		if (constructorTypeArguments.length > 0)
+			System.arraycopy(((ParameterizedGenericMethodBinding)factory).typeArguments, sfmb.typeVariables().length - constructorTypeArguments.length , 
+												constructorTypeArguments, 0, constructorTypeArguments.length);
+		return sfmb.applyTypeArgumentsOnConstructor(((ParameterizedTypeBinding)factory.returnType).arguments, constructorTypeArguments, genericFactory.inferredWithUncheckedConversion);
 	}
 	return null;
 }
@@ -738,7 +757,7 @@ public void registerInferenceContext(ParameterizedGenericMethodBinding method, I
 public void registerResult(TypeBinding targetType, MethodBinding method) {
 	if (method != null && method.isConstructor()) { // ignore the factory.
 		if (this.solutionsPerTargetType == null)
-			this.solutionsPerTargetType = new HashMap<TypeBinding, MethodBinding>();
+			this.solutionsPerTargetType = new HashMap<>();
 		this.solutionsPerTargetType.put(targetType, method);
 	}
 }
@@ -748,6 +767,19 @@ public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method)
 		return null;
 	return (InferenceContext18) this.inferenceContexts.get(method);
 }
+
+@Override
+public void cleanUpInferenceContexts() {
+	if (this.inferenceContexts == null)
+		return;
+	for (Object value : this.inferenceContexts.valueTable)
+		if (value != null)
+			((InferenceContext18) value).cleanUp();
+	this.inferenceContexts = null;
+	this.outerInferenceContext = null;
+	this.solutionsPerTargetType = null;
+}
+
 //-- interface InvocationSite: --
 public ExpressionContext getExpressionContext() {
 	return this.expressionContext;

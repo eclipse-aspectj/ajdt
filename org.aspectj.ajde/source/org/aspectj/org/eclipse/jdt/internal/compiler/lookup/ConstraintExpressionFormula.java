@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 GK Software AG.
+ * Copyright (c) 2013, 2016 GK Software AG.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Contributions for
+ *     						Bug 473178
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
@@ -108,11 +110,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 							return ConstraintTypeFormula.create(exprType, this.right, COMPATIBLE, this.isSoft);
 						}
 						if (innerCtx.stepCompleted >= InferenceContext18.APPLICABILITY_INFERRED) {
-							inferenceContext.currentBounds.addBounds(innerCtx.b2, inferenceContext.environment);
-							inferenceContext.inferenceVariables = innerCtx.inferenceVariables;
-							inferenceContext.inferenceKind = innerCtx.inferenceKind;
-							innerCtx.outerContext = inferenceContext;
-							inferenceContext.usesUncheckedConversion = innerCtx.usesUncheckedConversion;
+							inferenceContext.integrateInnerInferenceB2(innerCtx);
 						} else {
 							return FALSE; // should not reach here.
 						}
@@ -123,7 +121,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 						inferInvocationApplicability(inferenceContext, method, argumentTypes, isDiamond, inferenceContext.inferenceKind);
 						// b2 has been lifted, inferring poly invocation type amounts to lifting b3.
 					}
-					if (!inferPolyInvocationType(inferenceContext, invocation, this.right, method))
+					if (!inferenceContext.computeB3(invocation, this.right, method))
 						return FALSE;
 					return null; // already incorporated
 				} finally {
@@ -168,7 +166,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 					if (!lambda.isValueCompatible())
 						return FALSE;
 				}
-				List<ConstraintFormula> result = new ArrayList<ConstraintFormula>();
+				List<ConstraintFormula> result = new ArrayList<>();
 				if (!lambda.argumentsTypeElided()) {
 					Argument[] arguments = lambda.arguments();
 					for (int i = 0; i < parameters.length; i++)
@@ -246,7 +244,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 		if (potentiallyApplicable == null)
 			return FALSE;
 		if (reference.isExactMethodReference()) {
-			List<ConstraintFormula> newConstraints = new ArrayList<ConstraintFormula>();
+			List<ConstraintFormula> newConstraints = new ArrayList<>();
 			TypeBinding[] p = functionType.parameters;
 			int n = p.length;
 			TypeBinding[] pPrime = potentiallyApplicable.parameters;
@@ -283,27 +281,24 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 				return TRUE;
 			// ignore parameterization of resolve result and do a fresh start:
 			MethodBinding original = compileTimeDecl.shallowOriginal();
-			TypeBinding compileTypeReturn = original.isConstructor() ? original.declaringClass : original.returnType;
-			if (reference.typeArguments == null
-					&& ((original.typeVariables() != Binding.NO_TYPE_VARIABLES && compileTypeReturn.mentionsAny(original.typeVariables(), -1))
-						|| (original.isConstructor() && compileTimeDecl.declaringClass.isRawType())))
-							// not checking r.mentionsAny for constructors, because A::new resolves to the raw type
-							// whereas in fact the type of all expressions of this shape depends on their type variable (if any)
-			{
-				SuspendedInferenceRecord prevInvocation = inferenceContext.enterPolyInvocation(reference, reference.createPseudoExpressions(functionType.parameters));
+			if (needsInference(reference, original)) {
+				TypeBinding[] argumentTypes;
+				if (t.isParameterizedType()) {
+					MethodBinding capturedFunctionType = ((ParameterizedTypeBinding)t).getSingleAbstractMethod(inferenceContext.scope, true, reference.sourceStart, reference.sourceEnd);
+					argumentTypes = capturedFunctionType.parameters;
+				} else {
+					argumentTypes = functionType.parameters;
+				}
+				SuspendedInferenceRecord prevInvocation = inferenceContext.enterPolyInvocation(reference, reference.createPseudoExpressions(argumentTypes));
 
 				// Invocation Applicability Inference: 18.5.1 & Invocation Type Inference: 18.5.2
 				try {
-					InferenceContext18 innerContex = reference.getInferenceContext((ParameterizedMethodBinding) compileTimeDecl);
-					int innerInferenceKind = innerContex != null ? innerContex.inferenceKind : InferenceContext18.CHECK_STRICT;
-					inferInvocationApplicability(inferenceContext, original, functionType.parameters, original.isConstructor()/*mimic a diamond?*/, innerInferenceKind);
-					if (!inferPolyInvocationType(inferenceContext, reference, r, original))
+					InferenceContext18 innerContext = reference.getInferenceContext((ParameterizedMethodBinding) compileTimeDecl);
+					int innerInferenceKind = determineInferenceKind(compileTimeDecl, argumentTypes, innerContext);
+					inferInvocationApplicability(inferenceContext, original, argumentTypes, original.isConstructor()/*mimic a diamond?*/, innerInferenceKind);
+					if (!inferenceContext.computeB3(reference, r, original))
 						return FALSE;
-					if (!original.isConstructor() 
-							|| reference.receiverType.isRawType()  // note: rawtypes may/may not have typeArguments() depending on initialization state
-							|| reference.receiverType.typeArguments() == null)
-						return null; // already incorporated
-					// for Foo<Bar>::new we need to (illegally) add one more constraint below to get to the Bar
+					return null; // already incorporated
 				} catch (InferenceFailureException e) {
 					return FALSE;
 				} finally {
@@ -317,22 +312,51 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 		}
 	}
 
+	private boolean needsInference(ReferenceExpression reference, MethodBinding original) {
+		if (reference.typeArguments != null)
+			return false;
+		TypeBinding compileTimeReturn;
+		if (original.isConstructor()) {
+			// not checking r.mentionsAny for constructors, because A::new resolves to the raw type
+			// whereas in fact the type of all expressions of this shape depend on their type variable (if any)
+			if (original.declaringClass.typeVariables() != Binding.NO_TYPE_VARIABLES
+					&& reference.receiverType.isRawType())
+				return true; // diamond
+			compileTimeReturn = original.declaringClass;
+		} else {
+			compileTimeReturn =  original.returnType;
+		}
+		return (original.typeVariables() != Binding.NO_TYPE_VARIABLES 
+				&& compileTimeReturn.mentionsAny(original.typeVariables(), -1));
+	}
+
+	private int determineInferenceKind(MethodBinding original, TypeBinding[] argumentTypes, InferenceContext18 innerContext) {
+		if (innerContext != null)
+			return innerContext.inferenceKind;
+		if (original.isVarargs()) {
+			int expectedLen = original.parameters.length;
+			int providedLen = argumentTypes.length;
+			if (expectedLen < providedLen) {
+				return InferenceContext18.CHECK_VARARG;
+			} else if (expectedLen == providedLen) {
+				TypeBinding providedLast = argumentTypes[expectedLen-1];
+				TypeBinding expectedLast = original.parameters[expectedLen-1];
+				if (!providedLast.isCompatibleWith(expectedLast)) {
+					if (expectedLast.isArrayType()) {
+						expectedLast = expectedLast.leafComponentType();
+						if (providedLast.isCompatibleWith(expectedLast))
+							return InferenceContext18.CHECK_VARARG;
+					}
+				}
+			}
+		}
+		return InferenceContext18.CHECK_STRICT;
+	}
+
 	static void inferInvocationApplicability(InferenceContext18 inferenceContext, MethodBinding method, TypeBinding[] arguments, boolean isDiamond, int checkType)
 	{
 		// 18.5.1
-		TypeVariableBinding[] typeVariables = method.typeVariables;
-		if (isDiamond) {
-			TypeVariableBinding[] classTypeVariables = method.declaringClass.typeVariables();
-			int l1 = typeVariables.length;
-			int l2 = classTypeVariables.length;
-			if (l1 == 0) {
-				typeVariables = classTypeVariables;
-			} else if (l2 != 0) {
-				System.arraycopy(typeVariables, 0, typeVariables=new TypeVariableBinding[l1+l2], 0, l1);
-				System.arraycopy(classTypeVariables, 0, typeVariables, l1, l2);
-			}				
-		}
-		TypeBinding[] parameters = method.parameters;
+		TypeVariableBinding[] typeVariables = method.getAllTypeVariables(isDiamond);
 		InferenceVariable[] inferenceVariables = inferenceContext.createInitialBoundSet(typeVariables); // creates initial bound set B
 
 		// check if varargs need special treatment:
@@ -342,10 +366,11 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 			int varArgPos = paramLength-1;
 			varArgsType = method.parameters[varArgPos];
 		}
-		inferenceContext.createInitialConstraintsForParameters(parameters, checkType==InferenceContext18.CHECK_VARARG, varArgsType, method);
+		inferenceContext.createInitialConstraintsForParameters(method.parameters, checkType==InferenceContext18.CHECK_VARARG, varArgsType, method);
 		inferenceContext.addThrowsContraints(typeVariables, inferenceVariables, method.thrownExceptions);
 	}
 
+	/** Perform steps from JLS 18.5.2. needed for computing the bound set B3. */
 	static boolean inferPolyInvocationType(InferenceContext18 inferenceContext, InvocationSite invocationSite, TypeBinding targetType, MethodBinding method) 
 				throws InferenceFailureException 
 	{
@@ -360,11 +385,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 				// spec says erasure, but we don't really have compatibility rules for erasure, use raw type instead:
 				TypeBinding erasure = inferenceContext.environment.convertToRawType(returnType, false);
 				ConstraintTypeFormula newConstraint = ConstraintTypeFormula.create(erasure, targetType, COMPATIBLE);
-				if (!inferenceContext.reduceAndIncorporate(newConstraint))
-					return false;
-				// continuing at true is not spec'd but needed for javac-compatibility,
-				// see org.aspectj.org.eclipse.jdt.core.tests.compiler.regression.GenericsRegressionTest_1_8.testBug428198()
-				// and org.aspectj.org.eclipse.jdt.core.tests.compiler.regression.GenericsRegressionTest_1_8.testBug428264()
+				return inferenceContext.reduceAndIncorporate(newConstraint);
 			}
 			TypeBinding rTheta = inferenceContext.substitute(returnType);
 			ParameterizedTypeBinding parameterizedType = InferenceContext18.parameterizedWithWildcard(rTheta);
@@ -427,8 +448,16 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 			}
 			if (this.right.isFunctionalInterface(context.scope)) {
 				LambdaExpression lambda = (LambdaExpression) this.left;
-				MethodBinding sam = this.right.getSingleAbstractMethod(context.scope, true); // TODO derive with target type?
-				final Set<InferenceVariable> variables = new HashSet<InferenceVariable>();
+				ReferenceBinding targetType = (ReferenceBinding) this.right;
+				ParameterizedTypeBinding withWildCards = InferenceContext18.parameterizedWithWildcard(targetType);
+				if (withWildCards != null) {
+					targetType = ConstraintExpressionFormula.findGroundTargetType(context, lambda.enclosingScope, lambda, withWildCards);
+				}
+				if (targetType == null) {
+					return EMPTY_VARIABLE_LIST;
+				}
+				MethodBinding sam = targetType.getSingleAbstractMethod(context.scope, true);
+				final Set<InferenceVariable> variables = new HashSet<>();
 				if (lambda.argumentsTypeElided()) {
 					// i)
 					int len = sam.parameters.length;
@@ -453,7 +482,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 			}
 			if (this.right.isFunctionalInterface(context.scope) && !this.left.isExactMethodReference()) {
 				MethodBinding sam = this.right.getSingleAbstractMethod(context.scope, true);
-				final Set<InferenceVariable> variables = new HashSet<InferenceVariable>();
+				final Set<InferenceVariable> variables = new HashSet<>();
 				int len = sam.parameters.length;
 				for (int i = 0; i < len; i++) {
 					sam.parameters[i].collectInferenceVariables(variables);
@@ -462,7 +491,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 			}			
 		} else if (this.left instanceof ConditionalExpression && this.left.isPolyExpression()) {
 			ConditionalExpression expr = (ConditionalExpression) this.left;
-			Set<InferenceVariable> variables = new HashSet<InferenceVariable>();
+			Set<InferenceVariable> variables = new HashSet<>();
 			variables.addAll(new ConstraintExpressionFormula(expr.valueIfTrue, this.right, COMPATIBLE).inputVariables(context));
 			variables.addAll(new ConstraintExpressionFormula(expr.valueIfFalse, this.right, COMPATIBLE).inputVariables(context));
 			return variables;
