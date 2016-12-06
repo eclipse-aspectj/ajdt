@@ -777,9 +777,10 @@ public class AspectJCorePreferences {
 				// on the path.
 				if (!attributeFound && useResolvedPath && cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
 					List<IClasspathEntry> containerEntries = resolveClasspathContainer(cp[i], project);
-
+					AJLog.log("internalGetProjectPath: Couldn't find it on first look, so looking here: "+containerEntries);
 					for (IClasspathEntry containerEntry : containerEntries) {
 						if (isOnPath(containerEntry, isAspectPathAttribute(attribute))) {
+							AJLog.log("internalGetProjectPath: isOnPath  for "+containerEntry);
 							pathString += containerEntry.getPath().toPortableString() + File.pathSeparator;
 							contentString += containerEntry.getContentKind() + File.pathSeparator;
 							entryString += containerEntry.getEntryKind() + File.pathSeparator;
