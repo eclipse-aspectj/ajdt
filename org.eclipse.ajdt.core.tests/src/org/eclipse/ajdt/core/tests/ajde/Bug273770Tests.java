@@ -31,7 +31,7 @@ public class Bug273770Tests extends AJDTCoreTestCase {
         project2 = createPredefinedProject("Bug273770Part2");
     }
     
-    public void testExtraAspectpathEntry() throws Exception {
+    public void xtestExtraAspectpathEntry() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectAspectPath(project);
         // note that the trailing ':' is actually a path separator character
         // should filter out the hamcrest jar, but keep the junit jar
@@ -54,7 +54,7 @@ public class Bug273770Tests extends AJDTCoreTestCase {
     }
     
     // first test the original project
-    public void testExtraAspectpathEntry2() throws Exception {
+    public void xtestExtraAspectpathEntry2() throws Exception {
         String[] entries = AspectJCorePreferences.getResolvedProjectAspectPath(project2);
         assertTrue("Should not have found org.eclipse.jdt on the resolved aspectpath", valueNotFound(entries[0], "org.eclipse.jdt_"));
         assertEquals("Should have found org.eclipse.jdt.apt.core on the resolved aspectpath", "org.eclipse.jdt.apt.core", findValue(entries[0], "org.eclipse.jdt.apt.core"));
