@@ -1894,6 +1894,12 @@ void setSourceStart(int sourceStart);
 	int IllegalDefaultModifierSpecification = MethodRelated + 1058;
 	/** @since 3.13 */
 	int CannotInferInvocationType = TypeRelated + 1059;
+	
+	/** @since 3.13 */
+	int TypeAnnotationAtQualifiedName = Internal + Syntax + 1060;
+
+	/** @since 3.13 */
+	int NullAnnotationAtQualifyingType = Internal + Syntax + 1061;
 
 	/** @since 3.10 */
 	int GenericInferenceError = 1100; 	// FIXME: This is just a stop-gap measure, be more specific via https://bugs.eclipse.org/404675
@@ -1901,4 +1907,6 @@ void setSourceStart(int sourceStart);
 	/** @deprecated - problem is no longer generated (implementation issue has been resolved)
 	 * @since 3.10 */
 	int LambdaShapeComputationError = 1101;
+	/** @since 3.13 */
+	int ProblemNotAnalysed = 1102;
 }

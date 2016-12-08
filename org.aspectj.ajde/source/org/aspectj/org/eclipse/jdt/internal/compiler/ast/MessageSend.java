@@ -670,13 +670,13 @@ public TypeBinding resolveType(BlockScope scope) {
 	// Answer the signature return type, answers PolyTypeBinding if a poly expression and there is no target type  
 	// Base type promotion
 	if (this.constant != Constant.NotAConstant) {
-	this.constant = Constant.NotAConstant;
-	long sourceLevel = scope.compilerOptions().sourceLevel;
-	boolean receiverCast = false;
-	if (this.receiver instanceof CastExpression) {
-		this.receiver.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
-		receiverCast = true;
-	}
+		this.constant = Constant.NotAConstant;
+		long sourceLevel = scope.compilerOptions().sourceLevel;
+		boolean receiverCast = false;
+		if (this.receiver instanceof CastExpression) {
+			this.receiver.bits |= ASTNode.DisableUnnecessaryCastCheck; // will check later on
+			receiverCast = true;
+		}
 	// AspectJ Extension: commenting this out for now. An InterTypeScope has been observed
 	// to have an already resolved receiver
 //	if (this.receiver.resolvedType != null)
@@ -689,8 +689,11 @@ public TypeBinding resolveType(BlockScope scope) {
 	this.receiverIsType = this.receiver instanceof NameReference && (((NameReference) this.receiver).bits & Binding.TYPE) != 0;
 	if (receiverCast && this.actualReceiverType != null) {
 		 // due to change of declaring class with receiver type, only identity cast should be notified
-		if (TypeBinding.equalsEquals(((CastExpression)this.receiver).expression.resolvedType, this.actualReceiverType)) {
-			scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
+			TypeBinding resolvedType2 = ((CastExpression)this.receiver).expression.resolvedType;
+			if (TypeBinding.equalsEquals(resolvedType2, this.actualReceiverType)) {
+				if (!scope.environment().usesNullTypeAnnotations() || !NullAnnotationMatching.analyse(this.actualReceiverType, resolvedType2, -1).isAnyMismatch()) {
+				scope.problemReporter().unnecessaryCast((CastExpression)this.receiver);
+			}
 		}
 	}
 	// resolve type arguments (for generic constructor call)

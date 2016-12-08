@@ -984,7 +984,6 @@ public class TypeVariableBinding extends ReferenceBinding {
 			TypeBinding [] annotatedTypes = getDerivedTypesForDeferredInitialization();
 			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
 				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
-				if (annotatedType.firstBound == null)
 					annotatedType.firstBound = firstBound;
 			}
 		}
@@ -1001,7 +1000,6 @@ public class TypeVariableBinding extends ReferenceBinding {
 			TypeBinding [] annotatedTypes = getDerivedTypesForDeferredInitialization();
 			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
 				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
-				if (annotatedType.superclass == null)
 					annotatedType.superclass = superclass;
 			}
 		}
@@ -1016,7 +1014,6 @@ public class TypeVariableBinding extends ReferenceBinding {
 			TypeBinding [] annotatedTypes = getDerivedTypesForDeferredInitialization();
 			for (int i = 0, length = annotatedTypes == null ? 0 : annotatedTypes.length; i < length; i++) {
 				TypeVariableBinding annotatedType = (TypeVariableBinding) annotatedTypes[i];
-				if (annotatedType.superInterfaces == null)
 					annotatedType.superInterfaces = superInterfaces;
 			}
 		}
