@@ -99,11 +99,6 @@
 				<exclude name="bin/**"/>
 			</fileset>
 		</copy>
-		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.mylyn.ui">
-			<fileset dir="${workdir}/org.eclipse.ajdt.mylyn.ui">
-				<exclude name="bin/**"/>
-			</fileset>
-		</copy>
 		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.doc.user">
 			<fileset dir="${workdir}/org.eclipse.ajdt.doc.user">
 				<exclude name="bin/**"/>

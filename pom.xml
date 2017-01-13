@@ -19,7 +19,6 @@
 		<module>org.eclipse.ajdt.examples</module>
 		<module>org.eclipse.ajdt.ui</module>
 		<module>org.eclipse.aspectj</module>
-		<module>org.eclipse.ajdt.mylyn.ui</module>
 		<module>org.eclipse.contribution.weaving.jdt</module>
 		<module>org.eclipse.contribution.visualiser</module>
 		<module>org.eclipse.contribution.xref.core</module>
@@ -36,7 +35,6 @@
 		<!-- Tests -->
 		<module>org.eclipse.ajdt.core.tests</module>
 		<module>org.eclipse.ajdt.ui.tests</module>
-		<module>org.eclipse.ajdt.mylyn.ui.tests</module>
 
 		<module>org.eclipse.contribution.weaving.jdt.tests</module>
 		<module>org.eclipse.contribution.visualiser.tests</module>
@@ -84,6 +82,31 @@
 					<id>neon</id>
 					<layout>p2</layout>
 					<url>http://download.eclipse.org/releases/neon/</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
+			<id>e47</id>
+			<properties>
+				<platform.version>e47</platform.version>
+				<weaving.hook.version>1.1.200.v20150730-1648</weaving.hook.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>oxygen-milestones</id>
+					<layout>p2</layout>
+					<url>http://download.eclipse.org/eclipse/updates/4.7milestones</url>
+				</repository>
+				<repository>
+					<id>oxygen-releases</id>
+					<layout>p2</layout>
+					<url>http://download.eclipse.org/releases/oxygen/</url>
+				</repository>
+				<repository>
+					<id>mars</id>
+					<layout>p2</layout>
+					<url>http://download.eclipse.org/releases/mars/</url>
 				</repository>
 			</repositories>
 		</profile>

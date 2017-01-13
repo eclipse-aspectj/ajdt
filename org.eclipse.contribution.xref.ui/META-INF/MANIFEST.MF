@@ -9,7 +9,7 @@ Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.internal.ui.help;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.internal.ui.inplace;x-friends:="org.eclipse.contribution.xref.ui.tests",
- org.eclipse.contribution.xref.internal.ui.providers;x-friends:="org.eclipse.contribution.xref.ui.tests,org.eclipse.ajdt.mylyn.ui",
+ org.eclipse.contribution.xref.internal.ui.providers;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.internal.ui.ras;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.internal.ui.text;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.internal.ui.utils;x-friends:="org.eclipse.contribution.xref.ui.tests",
