@@ -94,19 +94,9 @@
 			</properties>
 			<repositories>
 				<repository>
-					<id>oxygen-milestones</id>
-					<layout>p2</layout>
-					<url>http://download.eclipse.org/eclipse/updates/4.7milestones</url>
-				</repository>
-				<repository>
 					<id>oxygen-releases</id>
 					<layout>p2</layout>
 					<url>http://download.eclipse.org/releases/oxygen/</url>
-				</repository>
-				<repository>
-					<id>mars</id>
-					<layout>p2</layout>
-					<url>http://download.eclipse.org/releases/mars/</url>
 				</repository>
 			</repositories>
 		</profile>
