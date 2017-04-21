@@ -71,6 +71,7 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.TokenScanner;
 import org.eclipse.jdt.internal.corext.refactoring.StubTypeContext;
 import org.eclipse.jdt.internal.corext.refactoring.TypeContextChecker;
+import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
 import org.eclipse.jdt.internal.corext.template.java.JavaContext;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.corext.util.JavaConventionsUtil;
@@ -229,7 +230,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				
 		/* package */ void create(boolean needsSave, IProgressMonitor monitor) throws CoreException {
 			TextEdit edit= fImportsRewrite.rewriteImports(monitor);
-			JavaModelUtil.applyEdit(fImportsRewrite.getCompilationUnit(), edit, needsSave, null);
+			JavaElementUtil.applyEdit(fImportsRewrite.getCompilationUnit(), edit, needsSave, null);
 		}
 		
 		/* package */ void removeImport(String qualifiedName) {

@@ -90,7 +90,7 @@
 			<id>e47</id>
 			<properties>
 				<platform.version>e47</platform.version>
-				<weaving.hook.version>1.1.200.v20150730-1648</weaving.hook.version>
+				<weaving.hook.version>1.2.0.v20160929-1449</weaving.hook.version>
 			</properties>
 			<repositories>
 				<repository>

@@ -65,6 +65,7 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.Strings;
 import org.eclipse.jdt.internal.corext.util.TypeNameMatchCollector;
+import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
 import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
 import org.eclipse.jdt.ui.SharedASTProvider;
@@ -496,7 +497,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			}
 			
 			TextEdit edit= importsRewrite.rewriteImports(new SubProgressMonitor(monitor, 3));
-			JavaModelUtil.applyEdit(fCompilationUnit, edit, fDoSave, new SubProgressMonitor(monitor, 1));
+			JavaElementUtil.applyEdit(fCompilationUnit, edit, fDoSave, new SubProgressMonitor(monitor, 1));
 						
 			determineImportDifferences(importsRewrite, oldSingleImports, oldDemandImports);
 			processor= null;
