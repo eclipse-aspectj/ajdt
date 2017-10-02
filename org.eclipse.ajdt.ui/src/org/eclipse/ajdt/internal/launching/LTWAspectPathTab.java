@@ -95,9 +95,9 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		
 		fClasspathViewer = new RuntimeClasspathViewer(comp);
 		fClasspathViewer.addEntriesChangedListener(this);
-		fClasspathViewer.getControl().setFont(font);
-		fClasspathViewer.setLabelProvider(new ClasspathLabelProvider());
-		fClasspathViewer.setContentProvider(new ClasspathContentProvider(this));
+		fClasspathViewer.getTreeViewer().getControl().setFont(font);
+		fClasspathViewer.getTreeViewer().setLabelProvider(new ClasspathLabelProvider());
+		fClasspathViewer.getTreeViewer().setContentProvider(new ClasspathContentProvider(this));
 
 		Composite pathButtonComp = new Composite(comp, SWT.NONE);
 		GridLayout pathButtonLayout = new GridLayout();
@@ -204,7 +204,7 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 	 */
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		refresh(configuration);
-		fClasspathViewer.expandToLevel(2);
+		fClasspathViewer.getTreeViewer().expandToLevel(2);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class LTWAspectPathTab extends JavaClasspathTab {
 		}
 		
 		fClasspathViewer.setLaunchConfiguration(configuration);
-		fClasspathViewer.setInput(fModel);
+		fClasspathViewer.getTreeViewer().setInput(fModel);
 		setDirty(false);
 	}
 
