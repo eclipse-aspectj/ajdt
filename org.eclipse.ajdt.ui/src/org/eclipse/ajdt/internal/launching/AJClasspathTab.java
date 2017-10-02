@@ -112,11 +112,11 @@ public class AJClasspathTab extends JavaClasspathTab {
 
         fClasspathViewer = new RuntimeClasspathViewer(comp);
         fClasspathViewer.addEntriesChangedListener(this);
-        fClasspathViewer.getControl().setFont(font);
-        fClasspathViewer.setLabelProvider(new ClasspathLabelProvider());
-        fClasspathViewer.setContentProvider(new ClasspathContentProvider(this));
+        fClasspathViewer.getTreeViewer().getControl().setFont(font);
+        fClasspathViewer.getTreeViewer().setLabelProvider(new ClasspathLabelProvider());
+        fClasspathViewer.getTreeViewer().setContentProvider(new ClasspathContentProvider(this));
         if (!isShowBootpath()) {
-            fClasspathViewer.addFilter(new BootpathFilter());
+            fClasspathViewer.getTreeViewer().addFilter(new BootpathFilter());
         }
 
         Composite pathButtonComp = new Composite(comp, SWT.NONE);
@@ -205,7 +205,7 @@ public class AJClasspathTab extends JavaClasspathTab {
     public void initializeFrom(ILaunchConfiguration configuration) {
         refresh(configuration);
         updateClassPathWithAspectPathAndOutJar(configuration);
-        fClasspathViewer.expandToLevel(2);
+        fClasspathViewer.getTreeViewer().expandToLevel(2);
     }
 
     /**
@@ -276,7 +276,7 @@ public class AJClasspathTab extends JavaClasspathTab {
                     return;
                 }
             }
-            fClasspathViewer.refresh();
+            fClasspathViewer.getTreeViewer().refresh();
         } catch (CoreException e) {}
     }
 
@@ -313,7 +313,7 @@ public class AJClasspathTab extends JavaClasspathTab {
         }
 
         fClasspathViewer.setLaunchConfiguration(configuration);
-        fClasspathViewer.setInput(fModel);
+        fClasspathViewer.getTreeViewer().setInput(fModel);
         setDirty(false);
     }
 
