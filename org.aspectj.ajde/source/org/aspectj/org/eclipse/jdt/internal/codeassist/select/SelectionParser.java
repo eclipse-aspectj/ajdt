@@ -1,10 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -41,6 +45,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
@@ -789,7 +795,7 @@ protected void consumeReferenceExpression(ReferenceExpression referenceExpressio
 	this.colonColonStart = -1;
 	if (this.selectionStart == kolonKolonStart || this.selectionStart == kolonKolonEnd) {
 		if (this.selectionEnd == kolonKolonStart || this.selectionEnd == kolonKolonEnd) {
-			referenceExpression = new SelectionOnReferenceExpression(referenceExpression);
+			referenceExpression = new SelectionOnReferenceExpression(referenceExpression, this.scanner);
 		}
 	}
 	super.consumeReferenceExpression(referenceExpression);
@@ -1258,8 +1264,16 @@ protected void consumeTypeImportOnDemandDeclarationName() {
 protected SelectionParser createSnapShotParser() {
 	return new SelectionParser(this.problemReporter);
 }
+public ImportReference createAssistPackageVisibilityReference(char[][] tokens, long[] positions){
+	return new SelectionOnPackageVisibilityReference(tokens, positions);
+}
 public ImportReference createAssistImportReference(char[][] tokens, long[] positions, int mod){
 	return new SelectionOnImportReference(tokens, positions, mod);
+}
+@Override
+public ModuleDeclaration createAssistModuleDeclaration(CompilationResult compilationResult, char[][] tokens,
+		long[] positions) {
+	return new SelectionOnModuleDeclaration(compilationResult, tokens, positions);
 }
 public ImportReference createAssistPackageReference(char[][] tokens, long[] positions){
 	return new SelectionOnPackageReference(tokens, positions);
@@ -1417,7 +1431,7 @@ public ReferenceExpression newReferenceExpression() {
 	if (selector != assistIdentifier()){
 		return super.newReferenceExpression();
 	}
-	ReferenceExpression referenceExpression = new SelectionOnReferenceExpressionName();
+	ReferenceExpression referenceExpression = new SelectionOnReferenceExpressionName(this.scanner);
 	this.assistNode = referenceExpression;
 	return referenceExpression;
 }
@@ -1590,5 +1604,18 @@ public  String toString() {
 	}
 	s = s + "}\n"; //$NON-NLS-1$
 	return s + super.toString();
+}
+@Override
+public ModuleReference createAssistModuleReference(int index) {
+	// ignore index, all segments of the module name are part of a single identifier.
+	/* retrieve identifiers subset and whole positions, the assist node positions
+	should include the entire replaced source. */
+	int length;
+	char[][] tokens = new char[length = this.identifierLengthStack[this.identifierLengthPtr--]][];
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(this.identifierStack, this.identifierPtr + 1, tokens, 0, length);
+	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
+	return new SelectionOnModuleReference(tokens, positions);
 }
 }

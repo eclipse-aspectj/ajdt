@@ -1,9 +1,14 @@
+//AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,7 +41,7 @@ public class ClassLiteralAccess extends Expression {
 		FlowInfo flowInfo) {
 
 		// if reachable, request the addition of a synthetic field for caching the class descriptor
-		SourceTypeBinding sourceType = currentScope.outerMostClassScope().enclosingSourceType();
+		SourceTypeBinding sourceType = currentScope.outerMostClassScope().invocationType(); // AspectJ Extension - was .enclosingSourceType()
 		// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=22334
 		if (!sourceType.isInterface()
 				&& !this.targetType.isBaseType()
@@ -107,7 +112,7 @@ public class ClassLiteralAccess extends Expression {
 			// Integer.class --> Class<Integer>, perform boxing of base types (int.class --> Class<Integer>)
 			TypeBinding boxedType = null;
 			if (this.targetType.id == T_void) {
-				boxedType = environment.getResolvedType(JAVA_LANG_VOID, scope);
+				boxedType = environment.getResolvedJavaBaseType(JAVA_LANG_VOID, scope);
 			} else {
 				boxedType = scope.boxing(this.targetType);
 			}

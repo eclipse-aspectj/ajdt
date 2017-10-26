@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -286,6 +290,8 @@ public abstract class Annotation extends Expression {
 			case 'M' :
 				if (CharOperation.equals(elementName, TypeConstants.UPPER_METHOD))
 					return TagBits.AnnotationForMethod;
+				else if (CharOperation.equals(elementName, TypeConstants.UPPER_MODULE))
+					return TagBits.AnnotationForModule;
 				break;
 			case 'P' :
 				if (CharOperation.equals(elementName, TypeConstants.UPPER_PARAMETER))
@@ -320,13 +326,11 @@ public abstract class Annotation extends Expression {
 			case TypeIds.T_JavaLangAnnotationRetention :
 				if (valueAttribute != null) {
 					Expression expr = valueAttribute.value;
-					if ((expr.bits & Binding.VARIABLE) == Binding.FIELD) {
-						if (expr instanceof Reference) { // New AspectJ Extension (pr148537)
+					if ((expr.bits & Binding.VARIABLE) == Binding.FIELD && expr instanceof Reference) { // anything but Reference would be a type error anyway
 						FieldBinding field = ((Reference)expr).fieldBinding();
 						if (field != null && field.declaringClass.id == T_JavaLangAnnotationRetentionPolicy) {
 							tagBits |= getRetentionPolicy(field.name);
 						}
-						} // New AspectJ Extension - end of if()
 					}
 				}
 				break;
@@ -365,6 +369,15 @@ public abstract class Annotation extends Expression {
 			// marker annotations
 			case TypeIds.T_JavaLangDeprecated :
 				tagBits |= TagBits.AnnotationDeprecated;
+				if (scope.compilerOptions().complianceLevel >= ClassFileConstants.JDK9) {
+					for (MemberValuePair memberValuePair : memberValuePairs()) {
+						if (CharOperation.equals(memberValuePair.name, TypeConstants.FOR_REMOVAL)) {
+							if (memberValuePair.value instanceof TrueLiteral)
+								tagBits |= TagBits.AnnotationTerminallyDeprecated;
+							break;
+						}
+					}
+				}
 				break;
 			case TypeIds.T_JavaLangAnnotationDocumented :
 				tagBits |= TagBits.AnnotationDocumented;
@@ -396,26 +409,32 @@ public abstract class Annotation extends Expression {
 		} else if (annotationType.hasNullBit(TypeIds.BitNonNullAnnotation)) {
 			tagBits |= TagBits.AnnotationNonNull;
 		} else if (annotationType.hasNullBit(TypeIds.BitNonNullByDefaultAnnotation)) {
-			Object value = null;
-			if (valueAttribute != null) {
-				if (valueAttribute.compilerElementPair != null)
-					value = valueAttribute.compilerElementPair.value;
-			} else { // fetch default value  - TODO: cache it?
-				MethodBinding[] methods = annotationType.methods();
-				if (methods != null && methods.length == 1)
-					value = methods[0].getDefaultValue();
-				else
-					tagBits |= TagBits.AnnotationNonNullByDefault; // custom unconfigurable NNBD
-			}
-			if (value instanceof BooleanConstant) {
-				// boolean value is used for declaration annotations, signal using the annotation tag bit:
-				tagBits |= ((BooleanConstant)value).booleanValue() ? TagBits.AnnotationNonNullByDefault : TagBits.AnnotationNullUnspecifiedByDefault;
-			} else if (value != null) {
-				// non-boolean value signals type annotations, evaluate from DefaultLocation[] to bitvector a la Binding#NullnessDefaultMASK:
-				tagBits |= nullLocationBitsFromAnnotationValue(value);
-			}
+			tagBits |= determineNonNullByDefaultTagBits(annotationType, valueAttribute);
 		}
 		
+		return tagBits;
+	}
+
+	private long determineNonNullByDefaultTagBits(ReferenceBinding annotationType, MemberValuePair valueAttribute) {
+		long tagBits = 0;
+		Object value = null;
+		if (valueAttribute != null) {
+			if (valueAttribute.compilerElementPair != null)
+				value = valueAttribute.compilerElementPair.value;
+		} else { // fetch default value  - TODO: cache it?
+			MethodBinding[] methods = annotationType.methods();
+			if (methods != null && methods.length == 1)
+				value = methods[0].getDefaultValue();
+			else
+				tagBits |= TagBits.AnnotationNonNullByDefault; // custom unconfigurable NNBD
+		}
+		if (value instanceof BooleanConstant) {
+			// boolean value is used for declaration annotations, signal using the annotation tag bit:
+			tagBits |= ((BooleanConstant)value).booleanValue() ? TagBits.AnnotationNonNullByDefault : TagBits.AnnotationNullUnspecifiedByDefault;
+		} else if (value != null) {
+			// non-boolean value signals type annotations, evaluate from DefaultLocation[] to bitvector a la Binding#NullnessDefaultMASK:
+			tagBits |= nullLocationBitsFromAnnotationValue(value);
+		}
 		return tagBits;
 	}
 
@@ -630,6 +649,7 @@ public abstract class Annotation extends Expression {
 			builder.check(TagBits.AnnotationForPackage, TypeConstants.UPPER_PACKAGE);
 			builder.check(TagBits.AnnotationForTypeParameter, TypeConstants.TYPE_PARAMETER_TARGET);
 			builder.check(TagBits.AnnotationForTypeUse, TypeConstants.TYPE_USE_TARGET);
+			builder.check(TagBits.AnnotationForModule, TypeConstants.UPPER_MODULE);
 			if (builder.hasError()) {
 				repeatableAnnotationType.tagAsHavingDefectiveContainerType();
 				scope.problemReporter().repeatableAnnotationTypeTargetMismatch(culpritNode, repeatableAnnotationType, containerType, builder.toString());
@@ -791,11 +811,16 @@ public abstract class Annotation extends Expression {
 			return this.resolvedType;
 		this.constant = Constant.NotAConstant;
 
-		TypeBinding typeBinding = this.type.resolveType(scope);
-		if (typeBinding == null) {
-			return null;
+		TypeBinding typeBinding;
+		if (this.resolvedType == null) {
+			typeBinding = this.type.resolveType(scope);
+			if (typeBinding == null) {
+				return null;
+			}
+			this.resolvedType = typeBinding;
+		} else {
+			typeBinding = this.resolvedType;
 		}
-		this.resolvedType = typeBinding;
 		// ensure type refers to an annotation type
 		if (!typeBinding.isAnnotationType() && typeBinding.isValidBinding()) {
 			scope.problemReporter().notAnnotationType(typeBinding, this.type);
@@ -930,6 +955,15 @@ public abstract class Annotation extends Expression {
 							FieldDeclaration fieldDeclaration = sourceType.scope.referenceContext.declarationOf(sourceField);
 							recordSuppressWarnings(scope, fieldDeclaration.declarationSourceStart, fieldDeclaration.declarationSourceEnd, scope.compilerOptions().suppressWarnings);
 						}
+						if (defaultNullness != 0) {
+							sourceType = (SourceTypeBinding) sourceField.declaringClass;
+							FieldDeclaration fieldDeclaration = sourceType.scope.referenceContext.declarationOf(sourceField);
+							Binding target = scope.checkRedundantDefaultNullness(defaultNullness, fieldDeclaration.sourceStart);
+							scope.recordNonNullByDefault(fieldDeclaration.binding, defaultNullness, this, fieldDeclaration.declarationSourceStart, fieldDeclaration.declarationSourceEnd);
+							if (target != null) {
+								scope.problemReporter().nullDefaultAnnotationIsRedundant(fieldDeclaration, new Annotation[]{this}, target);
+							}
+						}
 						// fields don't yet have their type resolved, in 1.8 null annotations
 						// will be transfered from the field to its type during STB.resolveTypeFor().
 						if ((sourceField.tagBits & TagBits.AnnotationNullMASK) == TagBits.AnnotationNullMASK) {
@@ -948,6 +982,7 @@ public abstract class Annotation extends Expression {
 							LocalDeclaration localDeclaration = variable.declaration;
 							recordSuppressWarnings(scope, localDeclaration.declarationSourceStart, localDeclaration.declarationSourceEnd, scope.compilerOptions().suppressWarnings);
 						}
+						// note: defaultNullness for local declarations has been already been handled earlier by handleNonNullByDefault() 
 						break;
 				}
 			} 
@@ -961,6 +996,64 @@ public abstract class Annotation extends Expression {
 		return this.resolvedType;
 	}
 
+	public void handleNonNullByDefault(BlockScope scope, LocalDeclaration localDeclaration) {
+		TypeBinding typeBinding = this.resolvedType;
+		if (typeBinding == null) {
+			typeBinding = this.type.resolveType(scope);
+			if (typeBinding == null) {
+				return;
+			}
+			this.resolvedType = typeBinding;
+		}
+		if (!typeBinding.isAnnotationType()) {
+			return;
+		}
+
+		ReferenceBinding annotationType = (ReferenceBinding) typeBinding;
+		
+		if (!annotationType.hasNullBit(TypeIds.BitNonNullByDefaultAnnotation)) {
+			return;
+		}
+
+		MethodBinding[] methods = annotationType.methods();
+		// clone valuePairs to keep track of unused ones
+		MemberValuePair[] pairs = memberValuePairs();
+		MemberValuePair valueAttribute = null; // remember the first 'value' pair
+		int pairsLength = pairs.length;
+
+		for (int i = 0, requiredLength = methods.length; i < requiredLength; i++) {
+			MethodBinding method = methods[i];
+			char[] selector = method.selector;
+			nextPair: for (int j = 0; j < pairsLength; j++) {
+				MemberValuePair pair = pairs[j];
+				if (pair == null) continue nextPair;
+				char[] name = pair.name;
+				if (CharOperation.equals(name, selector)) {
+					if (valueAttribute == null && CharOperation.equals(name, TypeConstants.VALUE)) {
+						valueAttribute = pair;
+						pair.binding = method;
+						pair.resolveTypeExpecting(scope, method.returnType);
+					}
+				}
+			}
+		}
+		// recognize standard annotations ?
+		long tagBits = determineNonNullByDefaultTagBits(annotationType, valueAttribute);
+		int defaultNullness = (int)(tagBits & Binding.NullnessDefaultMASK);
+
+		if (defaultNullness != 0) {
+			// the actual localDeclaration.binding is not set yet. fake one for problemreporter.			
+			LocalVariableBinding binding = new LocalVariableBinding(localDeclaration, null, 0, false);
+			Binding target = scope.checkRedundantDefaultNullness(defaultNullness, localDeclaration.sourceStart);
+			boolean recorded = scope.recordNonNullByDefault(binding, defaultNullness, this, this.sourceStart, localDeclaration.declarationSourceEnd);
+			 if (recorded) {
+				if (target != null) {
+					scope.problemReporter().nullDefaultAnnotationIsRedundant(localDeclaration, new Annotation[]{this}, target);
+				}
+			}
+		} 
+	}
+	
 	public enum AnnotationTargetAllowed {
 		YES, TYPE_ANNOTATION_ON_QUALIFIED_NAME, NO;
 	}
@@ -1056,6 +1149,12 @@ public abstract class Annotation extends Expression {
 				if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) != 0) {
 					return AnnotationTargetAllowed.YES;
 				}
+				break;
+			case Binding.MODULE:
+				if ((metaTagBits & (TagBits.AnnotationForModule)) != 0) {
+					return AnnotationTargetAllowed.YES;
+				}
+				break;
 		}
 		return AnnotationTargetAllowed.NO;
 	}
@@ -1073,6 +1172,8 @@ public abstract class Annotation extends Expression {
 		long metaTagBits = annotationType.getAnnotationTagBits(); // could be forward reference
 		if ((metaTagBits & TagBits.AnnotationTargetMASK) == 0) {
 			// does not specify any target restriction - all locations supported in Java 7 and before are possible
+			// TBD - revisit for modules - as per 9.6.4.1, annotation without target is applicable for module declaration
+			// which is listed as a declaration context, but javac does not allow this
 			if (kind == Binding.TYPE_PARAMETER || kind == Binding.TYPE_USE) {
 				scope.problemReporter().explitAnnotationTargetRequired(annotation);
 			}

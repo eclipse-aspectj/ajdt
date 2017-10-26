@@ -34,6 +34,8 @@ import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalToken
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNamesuper;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNamethis;
 import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNamethrows;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameto;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNamewith;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +57,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.aspectj.org.eclipse.jdt.core.dom.CreationReference;
 import org.aspectj.org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.aspectj.org.eclipse.jdt.core.dom.ExportsDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.Expression;
 import org.aspectj.org.eclipse.jdt.core.dom.ExpressionMethodReference;
 import org.aspectj.org.eclipse.jdt.core.dom.FieldAccess;
@@ -67,8 +70,11 @@ import org.aspectj.org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.aspectj.org.eclipse.jdt.core.dom.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.MethodInvocation;
+import org.aspectj.org.eclipse.jdt.core.dom.Name;
 import org.aspectj.org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.aspectj.org.eclipse.jdt.core.dom.OpensDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.ParameterizedType;
+import org.aspectj.org.eclipse.jdt.core.dom.ProvidesDirective;
 import org.aspectj.org.eclipse.jdt.core.dom.QualifiedName;
 import org.aspectj.org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.aspectj.org.eclipse.jdt.core.dom.Statement;
@@ -779,6 +785,34 @@ public class WrapPreparator extends ASTVisitor {
 		handleWrap(this.options.alignment_for_type_arguments);
 	}
 
+	@Override
+	public boolean visit(ExportsDirective node) {
+		handleModuleStatement(node.modules(), TokenNameto);
+		return true;
+	}
+
+	@Override
+	public boolean visit(OpensDirective node) {
+		handleModuleStatement(node.modules(), TokenNameto);
+		return true;
+	}
+
+	@Override
+	public boolean visit(ProvidesDirective node) {
+		handleModuleStatement(node.implementations(), TokenNamewith);
+		return true;
+	}
+
+	private void handleModuleStatement(List<Name> names, int joiningTokenType) {
+		if (names.isEmpty())
+			return;
+		int joiningTokenIndex = this.tm.firstIndexBefore(names.get(0), joiningTokenType);
+		this.wrapParentIndex = this.tm.firstIndexBefore(names.get(0), TokenNameIdentifier);
+		this.wrapIndexes.add(joiningTokenIndex);
+		prepareElementsList(names, TokenNameCOMMA, -1);
+		handleWrap(this.options.alignment_for_module_statements, PREFERRED);
+	}
+
 	/**
 	 * Makes sure all new lines within given node will have wrap policy so that
 	 * wrap executor will fix their indentation if necessary.
@@ -906,6 +940,12 @@ public class WrapPreparator extends ASTVisitor {
 				Token previous = this.tm.get(i);
 				if (!previous.isComment())
 					break;
+				if (this.options.never_indent_line_comments_on_first_column
+						&& previous.tokenType == TokenNameCOMMENT_LINE && previous.getIndent() == 0)
+					break;
+				if (this.options.never_indent_block_comments_on_first_column
+						&& previous.tokenType == TokenNameCOMMENT_BLOCK && previous.getIndent() == 0)
+					break;
 				if (previous.getLineBreaksAfter() == 0 && i == index - 1)
 					index = i;
 				if (previous.getLineBreaksBefore() > 0)
@@ -988,10 +1028,9 @@ public class WrapPreparator extends ASTVisitor {
 				penaltyMultiplier, isFirst, indentOnColumn);
 	}
 
-	public void finishUp(ASTNode astRoot, IRegion[] regions) {
+	public void finishUp(ASTNode astRoot, List<IRegion> regions) {
 		preserveExistingLineBreaks();
-		if (regions != null)
-			applyBreaksOutsideRegions(regions);
+		applyBreaksOutsideRegions(regions);
 		new WrapExecutor(this.tm, this.options).executeWraps();
 		this.fieldAligner.alignComments();
 		wrapComments();
@@ -1025,7 +1064,7 @@ public class WrapPreparator extends ASTVisitor {
 		int endingBreaks = getLineBreaksToPreserve(last, null, false);
 		if (endingBreaks > 0) {
 			last.putLineBreaksAfter(endingBreaks);
-		} else if ((this.kind & CodeFormatter.K_COMPILATION_UNIT) != 0
+		} else if ((this.kind & (CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.K_MODULE_INFO)) != 0
 				&& this.options.insert_new_line_at_end_of_file_if_missing) {
 			last.breakAfter();
 		}
@@ -1052,7 +1091,7 @@ public class WrapPreparator extends ASTVisitor {
 		return Math.min(lineBreaks, toPreserve);
 	}
 
-	private void applyBreaksOutsideRegions(IRegion[] regions) {
+	private void applyBreaksOutsideRegions(List<IRegion> regions) {
 		String source = this.tm.getSource();
 		int previousRegionEnd = 0;
 		for (IRegion region : regions) {

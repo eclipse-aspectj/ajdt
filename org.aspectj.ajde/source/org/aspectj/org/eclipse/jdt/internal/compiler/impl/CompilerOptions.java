@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +24,7 @@
  *								bug 381443 - [compiler][null] Allow parameter widening from @NonNull to unannotated
  *								bug 383368 - [compiler][null] syntactic null analysis for field references
  *								Bug 435805 - [1.8][compiler][null] Java 8 compiler does not recognize declaration style null annotations
+ *								Bug 410218 - Optional warning for arguments of "unexpected" types to Map#get(Object), Collection#remove(Object) et al.
  *     Jesper Steen Moller - Contributions for
  *								bug 404146 - [1.7][compiler] nested try-catch-finally-blocks leads to unrunnable Java byte code
  *								bug 407297 - [1.8][compiler] Control generation of parameter names by option
@@ -56,6 +61,7 @@ public class CompilerOptions {
 	public static final String OPTION_ReportMethodWithConstructorName = "org.eclipse.jdt.core.compiler.problem.methodWithConstructorName"; //$NON-NLS-1$
 	public static final String OPTION_ReportOverridingPackageDefaultMethod = "org.eclipse.jdt.core.compiler.problem.overridingPackageDefaultMethod"; //$NON-NLS-1$
 	public static final String OPTION_ReportDeprecation = "org.eclipse.jdt.core.compiler.problem.deprecation"; //$NON-NLS-1$
+	public static final String OPTION_ReportTerminalDeprecation = "org.eclipse.jdt.core.compiler.problem.terminalDeprecation"; //$NON-NLS-1$
 	public static final String OPTION_ReportDeprecationInDeprecatedCode = "org.eclipse.jdt.core.compiler.problem.deprecationInDeprecatedCode"; //$NON-NLS-1$
 	public static final String OPTION_ReportDeprecationWhenOverridingDeprecatedMethod = "org.eclipse.jdt.core.compiler.problem.deprecationWhenOverridingDeprecatedMethod"; //$NON-NLS-1$
 	public static final String OPTION_ReportHiddenCatchBlock = "org.eclipse.jdt.core.compiler.problem.hiddenCatchBlock"; //$NON-NLS-1$
@@ -187,6 +193,12 @@ public class CompilerOptions {
 	public static final String OPTION_PessimisticNullAnalysisForFreeTypeVariables = "org.eclipse.jdt.core.compiler.problem.pessimisticNullAnalysisForFreeTypeVariables";  //$NON-NLS-1$
 	public static final String OPTION_ReportNonNullTypeVariableFromLegacyInvocation = "org.eclipse.jdt.core.compiler.problem.nonnullTypeVariableFromLegacyInvocation"; //$NON-NLS-1$
 	
+	public static final String OPTION_ReportUnlikelyCollectionMethodArgumentType = "org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentType"; //$NON-NLS-1$
+	public static final String OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict = "org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"; //$NON-NLS-1$
+	public static final String OPTION_ReportUnlikelyEqualsArgumentType = "org.eclipse.jdt.core.compiler.problem.unlikelyEqualsArgumentType"; //$NON-NLS-1$
+
+	public static final String OPTION_ReportAPILeak = "org.eclipse.jdt.core.compiler.problem.APILeak"; //$NON-NLS-1$
+
 	/**
 	 * Possible values for configurable options
 	 */
@@ -204,7 +216,7 @@ public class CompilerOptions {
 	public static final String VERSION_1_6 = "1.6"; //$NON-NLS-1$
 	public static final String VERSION_1_7 = "1.7"; //$NON-NLS-1$
 	public static final String VERSION_1_8 = "1.8"; //$NON-NLS-1$
-	public static final String VERSION_1_9 = "1.9"; //$NON-NLS-1$
+	public static final String VERSION_9 = "9"; //$NON-NLS-1$
 	public static final String ERROR = "error"; //$NON-NLS-1$
 	public static final String WARNING = "warning"; //$NON-NLS-1$
 	public static final String INFO = "info"; //$NON-NLS-1$
@@ -309,10 +321,15 @@ public class CompilerOptions {
 	public static final int UnusedExceptionParameter = IrritantSet.GROUP2 | ASTNode.Bit19;
 	public static final int PessimisticNullAnalysisForFreeTypeVariables = IrritantSet.GROUP2 | ASTNode.Bit20;
 	public static final int NonNullTypeVariableFromLegacyInvocation = IrritantSet.GROUP2 | ASTNode.Bit21;
+	public static final int UnlikelyCollectionMethodArgumentType = IrritantSet.GROUP2 | ASTNode.Bit22;
+	public static final int UnlikelyEqualsArgumentType = IrritantSet.GROUP2 | ASTNode.Bit23;
+	public static final int UsingTerminallyDeprecatedAPI = IrritantSet.GROUP2 | ASTNode.Bit24;
+	public static final int APILeak = IrritantSet.GROUP2 | ASTNode.Bit25;
 
 	// AspectJ Extension
+	// Not sure we need this anymore...
 	public static final String OPTION_ReportSwallowedExceptionInCatchBlock = "org.eclipse.jdt.core.compiler.problem.swallowedExceptionInCatchBlock"; //$NON-NLS-1$
-	public static final int SwallowedExceptionInCatchBlock = IrritantSet.GROUP2 | ASTNode.Bit22;
+	public static final int SwallowedExceptionInCatchBlock = IrritantSet.GROUP2 | ASTNode.Bit26;
 	// when picking up a later version of this class, if new constants have been added to 
 	// the above list, then AjCompilerOptions will need updating also.
 	// End AspectJ Extension
@@ -322,12 +339,12 @@ public class CompilerOptions {
 	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_ERRORS} 
 	 * @see #resetDefaults()
 	 */
-	public IrritantSet errorThreshold; // AspectJ Extension - raised to public from protected
+	public IrritantSet errorThreshold; // AspectJ raised visibility
 	/** 
 	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_WARNINGS}
 	 * @see #resetDefaults()
 	 */
-	public IrritantSet warningThreshold; // AspectJ Extension - raised to public from protected
+	public IrritantSet warningThreshold; // AspectJ raised visibility
 	/** 
 	 * Defaults defined at {@link IrritantSet#COMPILER_DEFAULT_INFOS}
 	 * @see #resetDefaults()
@@ -335,13 +352,13 @@ public class CompilerOptions {
 	protected IrritantSet infoThreshold;
 	
 	/**
-	 * Default settings are to be defined in {@lnk CompilerOptions#resetDefaults()}
+	 * Default settings are to be defined in {@link CompilerOptions#resetDefaults()}
 	 */
 	
 	/** Classfile debug information, may contain source file name, line numbers, local variable tables, etc... */
 	public int produceDebugAttributes; 
-	/** Classfile method patameters information as per JEP 118... */
-	public boolean produceMethodParameters; 
+	/** Classfile method parameters information as per JEP 118... */
+	public boolean produceMethodParameters;
 	/** Indicates whether generic signature should be generated for lambda expressions */
 	public boolean generateGenericSignatureForLambdaExpressions;
 	/** Compliance level for the compiler, refers to a JDK version, e.g. {@link ClassFileConstants#JDK1_4} */
@@ -476,6 +493,9 @@ public class CompilerOptions {
 	/** Should missing enum cases be reported even if a default case exists in the same switch? */
 	public boolean reportMissingEnumCaseDespiteDefault;
 	
+	/** When checking for unlikely argument types of of Map.get() et al, perform strict analysis against the expected type */
+	public boolean reportUnlikelyCollectionMethodArgumentTypeStrict;
+
 	/** Should the compiler tolerate illegal ambiguous varargs invocation in compliance < 1.7 
 	 * to be bug compatible with javac? (bug 383780) */
 	public static boolean tolerateIllegalAmbiguousVarargsInvocation;
@@ -501,6 +521,7 @@ public class CompilerOptions {
 
 	/** Not directly configurable, derived from other options by LookupEnvironment.usesNullTypeAnnotations() */
 	public Boolean useNullTypeAnnotations = null;
+	
 
 	// keep in sync with warningTokenToIrritant and warningTokenFromIrritant
 	public final static String[] warningTokens = {
@@ -509,6 +530,7 @@ public class CompilerOptions {
 		"cast", //$NON-NLS-1$
 		"dep-ann", //$NON-NLS-1$
 		"deprecation", //$NON-NLS-1$
+		"exports",  //$NON-NLS-1$
 		"fallthrough", //$NON-NLS-1$
 		"finally", //$NON-NLS-1$
 		"hiding", //$NON-NLS-1$
@@ -517,6 +539,7 @@ public class CompilerOptions {
 		"nls", //$NON-NLS-1$
 		"null", //$NON-NLS-1$
 		"rawtypes", //$NON-NLS-1$
+		"removal", //$NON-NLS-1$
 		"resource", //$NON-NLS-1$
 		"restriction", //$NON-NLS-1$		
 		"serial", //$NON-NLS-1$
@@ -526,6 +549,7 @@ public class CompilerOptions {
 		"synthetic-access", //$NON-NLS-1$
 		"sync-override",	//$NON-NLS-1$
 		"unchecked", //$NON-NLS-1$
+		"unlikely-arg-type", //$NON-NLS-1$
 		"unqualified-field-access", //$NON-NLS-1$
 		"unused", //$NON-NLS-1$
 	};
@@ -571,6 +595,9 @@ public class CompilerOptions {
 			case UsingDeprecatedAPI :
 			case (InvalidJavadoc | UsingDeprecatedAPI) :
 				return OPTION_ReportDeprecation;
+			case UsingTerminallyDeprecatedAPI :
+			case (InvalidJavadoc | UsingTerminallyDeprecatedAPI) :
+				return OPTION_ReportTerminalDeprecation;
 			case MaskedCatchBlock  :
 				return OPTION_ReportHiddenCatchBlock;
 			case UnusedLocalVariable :
@@ -721,6 +748,12 @@ public class CompilerOptions {
 				return OPTION_PessimisticNullAnalysisForFreeTypeVariables;
 			case NonNullTypeVariableFromLegacyInvocation:
 				return OPTION_ReportNonNullTypeVariableFromLegacyInvocation;
+			case UnlikelyCollectionMethodArgumentType:
+				return OPTION_ReportUnlikelyCollectionMethodArgumentType;
+			case UnlikelyEqualsArgumentType:
+				return OPTION_ReportUnlikelyEqualsArgumentType;
+			case APILeak:
+				return OPTION_ReportAPILeak;
 		}
 		return null;
 	}
@@ -759,9 +792,9 @@ public class CompilerOptions {
 				if (jdkLevel == ClassFileConstants.JDK1_8)
 					return VERSION_1_8;
 				break;
-			case ClassFileConstants.MAJOR_VERSION_1_9 :
-				if (jdkLevel == ClassFileConstants.JDK1_9)
-					return VERSION_1_9;
+			case ClassFileConstants.MAJOR_VERSION_9 :
+				if (jdkLevel == ClassFileConstants.JDK9)
+					return VERSION_9;
 				break;
 		}
 		return Util.EMPTY_STRING; // unknown version
@@ -769,8 +802,9 @@ public class CompilerOptions {
 
 	public static long versionToJdkLevel(String versionID) {
 		String version = versionID;
-			// verification is optimized for all versions with same length and same "1." prefix
-		if (version != null && version.length() == 3 && version.charAt(0) == '1' && version.charAt(1) == '.') {
+		// verification is optimized for all versions with same length and same "1." prefix
+		if (version != null && version.length() > 0) {
+			if (version.length() >= 3 && version.charAt(0) == '1' && version.charAt(1) == '.') {
 				switch (version.charAt(2)) {
 					case '1':
 						return ClassFileConstants.JDK1_1;
@@ -788,18 +822,23 @@ public class CompilerOptions {
 						return ClassFileConstants.JDK1_7;
 					case '8':
 						return ClassFileConstants.JDK1_8;
-					case '9':
-						return ClassFileConstants.JDK1_9;
 					default:
 						return 0; // unknown
 				}
+			} else {
+				switch (version.charAt(0)) {
+					case '9':
+						return ClassFileConstants.JDK9;
+					// No default - let it go through the remaining checks.
+				}
 			}
-			if (VERSION_JSR14.equals(versionID)) {
-				return ClassFileConstants.JDK1_4;
-			}
-			if (VERSION_CLDC1_1.equals(versionID)) {
-				return ClassFileConstants.CLDC_1_1;
-			}
+		}
+		if (VERSION_JSR14.equals(versionID)) {
+			return ClassFileConstants.JDK1_4;
+		}
+		if (VERSION_CLDC1_1.equals(versionID)) {
+			return ClassFileConstants.CLDC_1_1;
+		}
 		return 0; // unknown
 	}
 
@@ -912,7 +951,10 @@ public class CompilerOptions {
 			OPTION_SyntacticNullAnalysisForFields,
 			OPTION_ReportUnusedTypeParameter,
 			OPTION_InheritNullAnnotations,
-			OPTION_ReportNonnullParameterAnnotationDropped
+			OPTION_ReportNonnullParameterAnnotationDropped,
+			OPTION_ReportUnlikelyCollectionMethodArgumentType,
+			OPTION_ReportUnlikelyEqualsArgumentType,
+			OPTION_ReportAPILeak,
 		};
 		return result;
 	}
@@ -926,6 +968,9 @@ public class CompilerOptions {
 			case (InvalidJavadoc | UsingDeprecatedAPI) :
 			case UsingDeprecatedAPI :
 				return "deprecation"; //$NON-NLS-1$
+			case (InvalidJavadoc | UsingTerminallyDeprecatedAPI) :
+			case UsingTerminallyDeprecatedAPI :
+				return "removal"; //$NON-NLS-1$
 			case FinallyBlockNotCompleting :
 				return "finally"; //$NON-NLS-1$
 			case FieldHiding :
@@ -1004,6 +1049,11 @@ public class CompilerOptions {
 				return "javadoc"; //$NON-NLS-1$
 			case MissingSynchronizedModifierInInheritedMethod:
 				return "sync-override";	 //$NON-NLS-1$
+			case UnlikelyEqualsArgumentType:
+			case UnlikelyCollectionMethodArgumentType:
+				return "unlikely-arg-type"; //$NON-NLS-1$
+			case APILeak:
+				return "exports"; //$NON-NLS-1$
 		}
 		return null;
 	}
@@ -1029,6 +1079,10 @@ public class CompilerOptions {
 					return IrritantSet.DEPRECATION;
 				if ("dep-ann".equals(warningToken)) //$NON-NLS-1$
 					return IrritantSet.DEP_ANN;
+				break;
+			case 'e' :
+				if ("exports".equals(warningToken)) //$NON-NLS-1$
+					return IrritantSet.API_LEAK;
 				break;
 			case 'f' :
 				if ("fallthrough".equals(warningToken)) //$NON-NLS-1$
@@ -1061,6 +1115,8 @@ public class CompilerOptions {
 					return IrritantSet.RESOURCE;
 				if ("restriction".equals(warningToken)) //$NON-NLS-1$
 					return IrritantSet.RESTRICTION;
+				if ("removal".equals(warningToken)) //$NON-NLS-1$
+					return IrritantSet.TERMINAL_DEPRECATION;
 				break;
 			case 's' :
 				if ("serial".equals(warningToken)) //$NON-NLS-1$
@@ -1084,6 +1140,8 @@ public class CompilerOptions {
 					return IrritantSet.UNCHECKED;
 				if ("unqualified-field-access".equals(warningToken)) //$NON-NLS-1$
 					return IrritantSet.UNQUALIFIED_FIELD_ACCESS;
+				if ("unlikely-arg-type".equals(warningToken)) //$NON-NLS-1$
+					return IrritantSet.UNLIKELY_ARGUMENT_TYPE;
 				break;
 		}
 		return null;
@@ -1102,6 +1160,7 @@ public class CompilerOptions {
 		optionsMap.put(OPTION_ReportMethodWithConstructorName, getSeverityString(MethodWithConstructorName));
 		optionsMap.put(OPTION_ReportOverridingPackageDefaultMethod, getSeverityString(OverriddenPackageDefaultMethod));
 		optionsMap.put(OPTION_ReportDeprecation, getSeverityString(UsingDeprecatedAPI));
+		optionsMap.put(OPTION_ReportTerminalDeprecation, getSeverityString(UsingTerminallyDeprecatedAPI));
 		optionsMap.put(OPTION_ReportDeprecationInDeprecatedCode, this.reportDeprecationInsideDeprecatedCode ? ENABLED : DISABLED);
 		optionsMap.put(OPTION_ReportDeprecationWhenOverridingDeprecatedMethod, this.reportDeprecationWhenOverridingDeprecatedMethod ? ENABLED : DISABLED);
 		optionsMap.put(OPTION_ReportHiddenCatchBlock, getSeverityString(MaskedCatchBlock));
@@ -1229,6 +1288,10 @@ public class CompilerOptions {
 		optionsMap.put(OPTION_ReportUninternedIdentityComparison, this.complainOnUninternedIdentityComparison ? ENABLED : DISABLED);
 		optionsMap.put(OPTION_PessimisticNullAnalysisForFreeTypeVariables, getSeverityString(PessimisticNullAnalysisForFreeTypeVariables));
 		optionsMap.put(OPTION_ReportNonNullTypeVariableFromLegacyInvocation, getSeverityString(NonNullTypeVariableFromLegacyInvocation));
+		optionsMap.put(OPTION_ReportUnlikelyCollectionMethodArgumentType, getSeverityString(UnlikelyCollectionMethodArgumentType));
+		optionsMap.put(OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict, this.reportUnlikelyCollectionMethodArgumentTypeStrict ? ENABLED : DISABLED);
+		optionsMap.put(OPTION_ReportUnlikelyEqualsArgumentType, getSeverityString(UnlikelyEqualsArgumentType));
+		optionsMap.put(OPTION_ReportAPILeak, getSeverityString(APILeak));
 		return optionsMap;
 	}
 
@@ -1511,7 +1574,7 @@ public class CompilerOptions {
 			if (this.targetJDK >= ClassFileConstants.JDK1_5) this.inlineJsrBytecode = true; // forced from 1.5 mode on
 		}
 		if ((optionValue = optionsMap.get(OPTION_Encoding)) != null) {
-				this.defaultEncoding = null;
+			this.defaultEncoding = null;
 			String stringValue = optionValue;
 			if (stringValue.length() > 0){
 				try {
@@ -1520,8 +1583,8 @@ public class CompilerOptions {
 				} catch(UnsupportedEncodingException e){
 					// ignore unsupported encoding
 				}
-				}
 			}
+		}
 		if ((optionValue = optionsMap.get(OPTION_ReportUnusedParameterWhenImplementingAbstract)) != null) {
 			if (ENABLED.equals(optionValue)) {
 				this.reportUnusedParameterWhenImplementingAbstract = true;
@@ -1566,29 +1629,29 @@ public class CompilerOptions {
 		}		
 		if ((optionValue = optionsMap.get(OPTION_MaxProblemPerUnit)) != null) {
 			String stringValue = optionValue;
-				try {
-					int val = Integer.parseInt(stringValue);
-					if (val >= 0) this.maxProblemsPerUnit = val;
-				} catch(NumberFormatException e){
-					// ignore ill-formatted limit
-				}
+			try {
+				int val = Integer.parseInt(stringValue);
+				if (val >= 0) this.maxProblemsPerUnit = val;
+			} catch(NumberFormatException e){
+				// ignore ill-formatted limit
 			}
+		}
 		if ((optionValue = optionsMap.get(OPTION_TaskTags)) != null) {
 			String stringValue = optionValue;
-				if (stringValue.length() == 0) {
-					this.taskTags = null;
-				} else {
-					this.taskTags = CharOperation.splitAndTrimOn(',', stringValue.toCharArray());
-				}
+			if (stringValue.length() == 0) {
+				this.taskTags = null;
+			} else {
+				this.taskTags = CharOperation.splitAndTrimOn(',', stringValue.toCharArray());
 			}
+		}
 		if ((optionValue = optionsMap.get(OPTION_TaskPriorities)) != null) {
 			String stringValue = optionValue;
-				if (stringValue.length() == 0) {
-					this.taskPriorities = null;
-				} else {
-					this.taskPriorities = CharOperation.splitAndTrimOn(',', stringValue.toCharArray());
-				}
+			if (stringValue.length() == 0) {
+				this.taskPriorities = null;
+			} else {
+				this.taskPriorities = CharOperation.splitAndTrimOn(',', stringValue.toCharArray());
 			}
+		}
 		if ((optionValue = optionsMap.get(OPTION_TaskCaseSensitive)) != null) {
 			if (ENABLED.equals(optionValue)) {
 				this.isTaskCaseSensitive = true;
@@ -1664,6 +1727,7 @@ public class CompilerOptions {
 		if ((optionValue = optionsMap.get(OPTION_ReportMethodWithConstructorName)) != null) updateSeverity(MethodWithConstructorName, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportOverridingPackageDefaultMethod)) != null) updateSeverity(OverriddenPackageDefaultMethod, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportDeprecation)) != null) updateSeverity(UsingDeprecatedAPI, optionValue);
+		if ((optionValue = optionsMap.get(OPTION_ReportTerminalDeprecation)) != null) updateSeverity(UsingTerminallyDeprecatedAPI, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportHiddenCatchBlock)) != null) updateSeverity(MaskedCatchBlock, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportUnusedLocal)) != null) updateSeverity(UnusedLocalVariable, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportUnusedParameter)) != null) updateSeverity(UnusedArgument, optionValue);
@@ -1734,6 +1798,11 @@ public class CompilerOptions {
 		if ((optionValue = optionsMap.get(OPTION_ReportPotentiallyUnclosedCloseable)) != null) updateSeverity(PotentiallyUnclosedCloseable, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportExplicitlyClosedAutoCloseable)) != null) updateSeverity(ExplicitlyClosedAutoCloseable, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_ReportUnusedTypeParameter)) != null) updateSeverity(UnusedTypeParameter, optionValue);
+		if ((optionValue = optionsMap.get(OPTION_ReportUnlikelyCollectionMethodArgumentType)) != null) updateSeverity(UnlikelyCollectionMethodArgumentType, optionValue);
+		if ((optionValue = optionsMap.get(OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict)) != null) {
+			this.reportUnlikelyCollectionMethodArgumentTypeStrict = ENABLED.equals(optionValue);
+		}
+		if ((optionValue = optionsMap.get(OPTION_ReportUnlikelyEqualsArgumentType)) != null) updateSeverity(UnlikelyEqualsArgumentType, optionValue);
 		if (getSeverity(UnclosedCloseable) == ProblemSeverities.Ignore
 				&& getSeverity(PotentiallyUnclosedCloseable) == ProblemSeverities.Ignore
 				&& getSeverity(ExplicitlyClosedAutoCloseable) == ProblemSeverities.Ignore) {
@@ -1741,6 +1810,7 @@ public class CompilerOptions {
 		} else {
 			this.analyseResourceLeaks = true;
 		}
+		if ((optionValue = optionsMap.get(OPTION_ReportAPILeak)) != null) updateSeverity(APILeak, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_AnnotationBasedNullAnalysis)) != null) {
 			this.isAnnotationBasedNullAnalysisEnabled = ENABLED.equals(optionValue);
 		}
@@ -1963,6 +2033,7 @@ public class CompilerOptions {
 		buf.append("\n\t- method with constructor name: ").append(getSeverityString(MethodWithConstructorName)); //$NON-NLS-1$
 		buf.append("\n\t- overridden package default method: ").append(getSeverityString(OverriddenPackageDefaultMethod)); //$NON-NLS-1$
 		buf.append("\n\t- deprecation: ").append(getSeverityString(UsingDeprecatedAPI)); //$NON-NLS-1$
+		buf.append("\n\t- removal: ").append(getSeverityString(UsingTerminallyDeprecatedAPI)); //$NON-NLS-1$
 		buf.append("\n\t- masked catch block: ").append(getSeverityString(MaskedCatchBlock)); //$NON-NLS-1$
 		buf.append("\n\t- unused local variable: ").append(getSeverityString(UnusedLocalVariable)); //$NON-NLS-1$
 		buf.append("\n\t- unused parameter: ").append(getSeverityString(UnusedArgument)); //$NON-NLS-1$
@@ -2064,6 +2135,10 @@ public class CompilerOptions {
 		buf.append("\n\t- Unused Type Parameter: ").append(getSeverityString(UnusedTypeParameter)); //$NON-NLS-1$
 		buf.append("\n\t- pessimistic null analysis for free type variables: ").append(getSeverityString(PessimisticNullAnalysisForFreeTypeVariables)); //$NON-NLS-1$
 		buf.append("\n\t- report unsafe nonnull return from legacy method: ").append(getSeverityString(NonNullTypeVariableFromLegacyInvocation)); //$NON-NLS-1$
+		buf.append("\n\t- unlikely argument type for collection methods: ").append(getSeverityString(UnlikelyCollectionMethodArgumentType)); //$NON-NLS-1$
+		buf.append("\n\t- unlikely argument type for collection methods, strict check against expected type: ").append(this.reportUnlikelyCollectionMethodArgumentTypeStrict ? ENABLED : DISABLED); //$NON-NLS-1$
+		buf.append("\n\t- unlikely argument types for equals(): ").append(getSeverityString(UnlikelyEqualsArgumentType)); //$NON-NLS-1$
+		buf.append("\n\t- API leak: ").append(getSeverityString(APILeak)); //$NON-NLS-1$
 		return buf.toString();
 	}
 	

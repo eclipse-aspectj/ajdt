@@ -1,9 +1,14 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -84,11 +89,13 @@ public class BinaryTypeBinding extends SourceTypeBinding {
 //	protected MethodBinding[] methods;
 //	protected ReferenceBinding[] memberTypes;
 //	protected TypeVariableBinding[] typeVariables;
+//  protected ModuleBinding module;
 // End AspectJ Extension
 	private BinaryTypeBinding prototype;
 
 	// For the link with the principle structure
-	protected LookupEnvironment environment;
+	// AspectJ don't shadow SourceTypeBinding.environment
+//	protected LookupEnvironment environment;
 
 	protected SimpleLookupTable storedAnnotations = null; // keys are this ReferenceBinding & its fields and methods, value is an AnnotationHolder
 
@@ -269,7 +276,6 @@ public BinaryTypeBinding(PackageBinding packageBinding, IBinaryType binaryType, 
 	this.environment = environment;
 	this.fPackage = packageBinding;
 	this.fileName = binaryType.getFileName();
-
 	/* https://bugs.eclipse.org/bugs/show_bug.cgi?id=324850, even in a 1.4 project, we
 	   must internalize type variables and observe any parameterization of super class
 	   and/or super interfaces in order to be able to detect overriding in the presence
@@ -308,7 +314,10 @@ public BinaryTypeBinding(PackageBinding packageBinding, IBinaryType binaryType, 
 	if (needFieldsAndMethods)
 		cachePartsFrom(binaryType, true);
 }
-
+public boolean canBeSeenBy(Scope sco) {
+	ModuleBinding mod = sco.module();
+	return mod.canAccess(this.fPackage) && super.canBeSeenBy(sco);
+}
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding#availableFields()
  */
@@ -532,12 +541,14 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 					FieldBinding field = this.fields[i];
 					if (!field.isDeprecated()) {
 						field.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+						field.tagBits |= this.tagBits & TagBits.AnnotationTerminallyDeprecated;
 					}
 				}
 				for (int i = 0, max = this.methods.length; i < max; i++) {
 					MethodBinding method = this.methods[i];
 					if (!method.isDeprecated()) {
 						method.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+						method.tagBits |= this.tagBits & TagBits.AnnotationTerminallyDeprecated;
 					}
 				}
 			}
@@ -549,7 +560,7 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 						if (sourceLevel < ClassFileConstants.JDK1_8)
 							fieldWalker = binaryType.enrichWithExternalAnnotationsFor(walker, iFields[i], this.environment);
 						scanFieldForNullAnnotation(iFields[i], this.fields[i], this.isEnum(), fieldWalker);
-					}
+				}
 				}
 				if (iMethods != null) {
 					for (int i = 0; i < iMethods.length; i++) {
@@ -620,7 +631,7 @@ private void createFields(IBinaryField[] iFields, IBinaryType binaryType, long s
 			for (int i = 0; i < size; i++) {
 				IBinaryField binaryField = iFields[i];
 				char[] fieldSignature = use15specifics ? binaryField.getGenericSignature() : null;
-				ITypeAnnotationWalker walker = getTypeAnnotationWalker(binaryField.getTypeAnnotations(), Binding.NO_NULL_DEFAULT);
+				ITypeAnnotationWalker walker = getTypeAnnotationWalker(binaryField.getTypeAnnotations(), getNullDefaultFrom(binaryField.getAnnotations()));
 				if (sourceLevel >= ClassFileConstants.JDK1_8) { // below 1.8, external annotations will be attached later
 					walker = binaryType.enrichWithExternalAnnotationsFor(walker, iFields[i], this.environment);
 				}
@@ -674,7 +685,8 @@ private MethodBinding createMethod(IBinaryMethod method, IBinaryType binaryType,
 		methodModifiers &= ~ClassFileConstants.AccVarargs; // vararg methods are not recognized until 1.5
 	if (isInterface() && (methodModifiers & ClassFileConstants.AccAbstract) == 0) {
 		// see https://bugs.eclipse.org/388954 superseded by https://bugs.eclipse.org/390889
-		if ((methodModifiers & ClassFileConstants.AccStatic) == 0) {
+		if (((methodModifiers & ClassFileConstants.AccStatic) == 0
+				&& (methodModifiers & ClassFileConstants.AccPrivate) == 0)) {
 			// i.e. even at 1.7- we record AccDefaultMethod when reading a 1.8+ interface to avoid errors caused by default methods added to a library
 			methodModifiers |= ExtraCompilerModifiers.AccDefaultMethod;
 		}
@@ -884,16 +896,17 @@ private MethodBinding createMethod(IBinaryMethod method, IBinaryType binaryType,
 		? new MethodBinding(methodModifiers, parameters, exceptions, this)
 		: new MethodBinding(methodModifiers, method.getSelector(), returnType, parameters, exceptions, this);
 	
-	IBinaryAnnotation[] receiverAnnotations = walker.toReceiver().getAnnotationsAtCursor(this.id);
+	IBinaryAnnotation[] receiverAnnotations = walker.toReceiver().getAnnotationsAtCursor(this.id, false);
 	if (receiverAnnotations != null && receiverAnnotations.length > 0) {
 		result.receiver = this.environment.createAnnotatedType(this, createAnnotations(receiverAnnotations, this.environment, missingTypeNames));
 	}
 
 	if (this.environment.globalOptions.storeAnnotations) {
 		IBinaryAnnotation[] annotations = method.getAnnotations();
-	    if (annotations == null || annotations.length == 0)
-	    	if (method.isConstructor())
-	    		annotations = walker.toMethodReturn().getAnnotationsAtCursor(this.id); // FIXME: When both exist, order could become an issue.
+		if (method.isConstructor()) {
+			IBinaryAnnotation[] tAnnotations = walker.toMethodReturn().getAnnotationsAtCursor(this.id, false);
+			result.setTypeAnnotations(createAnnotations(tAnnotations, this.environment, missingTypeNames));
+		}
 		result.setAnnotations(
 			createAnnotations(annotations, this.environment, missingTypeNames),
 			paramAnnotations,
@@ -1007,7 +1020,7 @@ private TypeVariableBinding[] createTypeVariables(SignatureWrapper wrapper, bool
 						int colon = CharOperation.indexOf(Util.C_COLON, typeSignature, i);
 						char[] variableName = CharOperation.subarray(typeSignature, i, colon);
 						TypeVariableBinding typeVariable = new TypeVariableBinding(variableName, this, rank, this.environment);
-						AnnotationBinding [] annotations = BinaryTypeBinding.createAnnotations(walker.toTypeParameter(isClassTypeParameter, rank++).getAnnotationsAtCursor(0), 
+						AnnotationBinding [] annotations = BinaryTypeBinding.createAnnotations(walker.toTypeParameter(isClassTypeParameter, rank++).getAnnotationsAtCursor(0, false), 
 																										this.environment, missingTypeNames);
 						if (annotations != null && annotations != Binding.NO_ANNOTATIONS)
 							typeVariable.setTypeAnnotations(annotations, this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled);
@@ -1374,7 +1387,7 @@ private void initializeTypeVariable(TypeVariableBinding variable, TypeVariableBi
 	ReferenceBinding type, firstBound = null;
 	short rank = 0;
 	if (wrapper.signature[wrapper.start] == Util.C_COLON) {
-		type = this.environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null);
+		type = this.environment.getResolvedJavaBaseType(TypeConstants.JAVA_LANG_OBJECT, null);
 		rank++;
 	} else {
 		TypeBinding typeFromTypeSignature = this.environment.getTypeFromTypeSignature(wrapper, existingVariables, this, missingTypeNames, walker.toTypeBound(rank++));
@@ -1382,7 +1395,7 @@ private void initializeTypeVariable(TypeVariableBinding variable, TypeVariableBi
 			type = (ReferenceBinding) typeFromTypeSignature;
 		} else {
 			// this should only happen if the signature is corrupted (332423)
-			type = this.environment.getResolvedType(TypeConstants.JAVA_LANG_OBJECT, null);
+			type = this.environment.getResolvedJavaBaseType(TypeConstants.JAVA_LANG_OBJECT, null);
 		}
 		firstBound = type;
 	}
@@ -1628,9 +1641,14 @@ private void scanFieldForNullAnnotation(IBinaryField field, FieldBinding fieldBi
 		if (fieldType != null
 				&& !fieldType.isBaseType()
 				&& (fieldType.tagBits & TagBits.AnnotationNullMASK) == 0
-				&& fieldType.acceptsNonNullDefault()
-				&& hasNonNullDefaultFor(DefaultLocationField, true)) {
-			fieldBinding.type = this.environment.createAnnotatedType(fieldType, new AnnotationBinding[]{this.environment.getNonNullAnnotation()});
+				&& fieldType.acceptsNonNullDefault()) {
+				int nullDefaultFromField = getNullDefaultFrom(field.getAnnotations());
+				if (nullDefaultFromField == Binding.NO_NULL_DEFAULT
+						? hasNonNullDefaultFor(DefaultLocationField, true, -1)
+						: (nullDefaultFromField & DefaultLocationField) != 0) {
+					fieldBinding.type = this.environment.createAnnotatedType(fieldType,
+							new AnnotationBinding[] { this.environment.getNonNullAnnotation() });
+		}
 		}
 		return; // not using fieldBinding.tagBits when we have type annotations.
 	}
@@ -1642,7 +1660,7 @@ private void scanFieldForNullAnnotation(IBinaryField field, FieldBinding fieldBi
 
 	boolean explicitNullness = false;
 	IBinaryAnnotation[] annotations = externalAnnotationWalker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER
-											? externalAnnotationWalker.getAnnotationsAtCursor(fieldBinding.type.id) 
+											? externalAnnotationWalker.getAnnotationsAtCursor(fieldBinding.type.id, false) 
 											: field.getAnnotations();
 	if (annotations != null) {
 		for (int i = 0; i < annotations.length; i++) {
@@ -1688,14 +1706,14 @@ private void scanMethodForNullAnnotation(IBinaryMethod method, MethodBinding met
 				this.environment.deferredEnumMethods.add(methodBinding);
 			else
 				SyntheticMethodBinding.markNonNull(methodBinding, purpose, this.environment);
-			return;
+		return;
 		}
 	}
 
 	// return:
 	ITypeAnnotationWalker returnWalker = externalAnnotationWalker.toMethodReturn();
 	IBinaryAnnotation[] annotations = returnWalker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER
-								? returnWalker.getAnnotationsAtCursor(methodBinding.returnType.id)
+								? returnWalker.getAnnotationsAtCursor(methodBinding.returnType.id, false)
 								: method.getAnnotations();
 	if (annotations != null) {
 		for (int i = 0; i < annotations.length; i++) {
@@ -1712,7 +1730,7 @@ private void scanMethodForNullAnnotation(IBinaryMethod method, MethodBinding met
 					if (methodBinding.defaultNullness == Binding.NONNULL_BY_DEFAULT && this.environment.usesNullTypeAnnotations()) {
 						// reading a decl-nnbd in a project using type annotations, mimic corresponding semantics by enumerating:
 						methodBinding.defaultNullness |= Binding.DefaultLocationParameter | Binding.DefaultLocationReturnType;
-					}
+			}
 				}
 			} else if (typeBit == TypeIds.BitNonNullAnnotation) {
 					methodBinding.tagBits |= TagBits.AnnotationNonNull;
@@ -1728,9 +1746,9 @@ private void scanMethodForNullAnnotation(IBinaryMethod method, MethodBinding met
 					if (methodBinding.returnType != null && !methodBinding.returnType.hasNullTypeAnnotations()) {
 						methodBinding.returnType = this.environment.createAnnotatedType(methodBinding.returnType,
 								new AnnotationBinding[] { this.environment.getNullableAnnotation() });
+					}
+				}
 			}
-		}
-	}
 		}
 	}
 
@@ -1746,7 +1764,7 @@ private void scanMethodForNullAnnotation(IBinaryMethod method, MethodBinding met
 				int startIndex = numParamAnnotations - numVisibleParams;
 				ITypeAnnotationWalker parameterWalker = externalAnnotationWalker.toMethodParameter((short) (j+startIndex));
 				IBinaryAnnotation[] paramAnnotations = parameterWalker != ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER
-															? parameterWalker.getAnnotationsAtCursor(parameters[j].id)
+															? parameterWalker.getAnnotationsAtCursor(parameters[j].id, false)
 															: method.getParameterAnnotations(j+startIndex, this.fileName);
 				if (paramAnnotations != null) {
 					for (int i = 0; i < paramAnnotations.length; i++) {
@@ -1832,11 +1850,11 @@ private void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBin
 					if (nullness == Binding.NONNULL_BY_DEFAULT && this.environment.usesNullTypeAnnotations()) {
 						// reading a decl-nnbd in a project using type annotations, mimic corresponding semantics by enumerating:
 						nullness |= Binding.DefaultLocationParameter | Binding.DefaultLocationReturnType | Binding.DefaultLocationField;
-					}
 					}	
-					this.defaultNullness = nullness;
-					break;
 				}
+				this.defaultNullness = nullness;
+				break;
+			}
 		}
 		if (annotationBit != 0L) {
 			this.tagBits |= annotationBit;
@@ -1861,7 +1879,7 @@ private void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBin
 			&& ((this.typeBits & (TypeIds.BitAnyNullAnnotation)) == 0))
 	{
 		// this will scan the annotations in package-info
-		ReferenceBinding packageInfo = packageBinding.getType(TypeConstants.PACKAGE_INFO_NAME);
+		ReferenceBinding packageInfo = packageBinding.getType(TypeConstants.PACKAGE_INFO_NAME, packageBinding.enclosingModule);
 		if (packageInfo == null) {
 			packageBinding.defaultNullness = Binding.NO_NULL_DEFAULT;
 		}
@@ -1885,7 +1903,7 @@ boolean setNullDefault(long oldNullTagBits, int newNullDefault) {
 	} else if ((oldNullTagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0) {
 		this.tagBits |= TagBits.AnnotationNullUnspecifiedByDefault;
 		return true;
-}
+	}
 	return false;
 }
 
@@ -1897,7 +1915,7 @@ int getNonNullByDefaultValue(IBinaryAnnotation annotation) {
 	IBinaryElementValuePair[] elementValuePairs = annotation.getElementValuePairs();
 	if (elementValuePairs == null || elementValuePairs.length == 0 ) {
 		// no argument: apply default default
-		ReferenceBinding annotationType = this.environment.getType(typeName);
+		ReferenceBinding annotationType = this.environment.getType(typeName, this.environment.UnNamedModule); // TODO(SHMOD): null annotations from a module?
 		if (annotationType == null) return 0;
 		if (annotationType.isUnresolvedType())
 			annotationType = ((UnresolvedReferenceBinding) annotationType).resolve(this.environment, false);
@@ -2152,11 +2170,17 @@ public FieldBinding[] unResolvedFields() {
 	
 	return this.fields;
 }
+public ModuleBinding module() {
+	if (!isPrototype())
+		return this.prototype.module;
+	return this.module;
+}
 
 //AspectJ Extension
 public MethodBinding[] methods() {
 	   if (memberFinder!=null) return memberFinder.methods(this);
 	   else return methodsBase();
 }
+
 //End AspectJ Extension
 }

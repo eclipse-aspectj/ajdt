@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -497,7 +501,7 @@ public Binding getBinding(char[][] compoundName, int mask, InvocationSite invoca
 		PackageBinding packageBinding = (PackageBinding) binding;
 		while (currentIndex < length) {
 			unitScope.recordReference(packageBinding.compoundName, compoundName[currentIndex]);
-			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++]);
+			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++], module());
 			invocationSite.setFieldIndex(currentIndex);
 			if (binding == null) {
 				if (currentIndex == length) {
@@ -643,7 +647,7 @@ public final Binding getBinding(char[][] compoundName, InvocationSite invocation
 	foundType : if (binding instanceof PackageBinding) {
 		while (currentIndex < length) {
 			PackageBinding packageBinding = (PackageBinding) binding;
-			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++]);
+			binding = packageBinding.getTypeOrPackage(compoundName[currentIndex++], module());
 			if (binding == null) {
 				if (currentIndex == length) {
 					// must be a type if its the last name, otherwise we have no idea if its a package or type
@@ -1075,7 +1079,7 @@ public void checkUnclosedCloseables(FlowInfo flowInfo, FlowContext flowContext, 
 	if (!compilerOptions().analyseResourceLeaks) return;
 	if (this.trackingVariables == null) {
 		// at a method return we also consider enclosing scopes
-		if (location != null && this.parent instanceof BlockScope)
+		if (location != null && this.parent instanceof BlockScope && !isLambdaScope())
 			((BlockScope) this.parent).checkUnclosedCloseables(flowInfo, flowContext, location, locationScope);
 		return;
 	}
@@ -1086,7 +1090,7 @@ public void checkUnclosedCloseables(FlowInfo flowInfo, FlowContext flowContext, 
 
 	// iterate variables according to the priorities defined in FakedTrackingVariable.IteratorForReporting.Stage
 	Iterator<FakedTrackingVariable> iterator = new FakedTrackingVariable.IteratorForReporting(this.trackingVariables, this, location != null);
-	while (iterator.hasNext()) {
+	while (iterator.hasNext()) { 
 		FakedTrackingVariable trackingVar = iterator.next();
 
 		if (returnVar != null && trackingVar.isResourceBeingReturned(returnVar)) {
@@ -1235,8 +1239,5 @@ private boolean checkAppropriate(MethodBinding compileTimeDeclaration, MethodBin
 	}
 	return true;
 }
-@Override
-public boolean hasDefaultNullnessFor(int location) {
-	return this.parent.hasDefaultNullnessFor(location);
-}
+
 }

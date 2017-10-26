@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryElementValuePair;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
@@ -145,6 +150,15 @@ private IMemberValuePair[] getTargetElementTypes(long tagBits) {
 	}
 	if ((tagBits & TagBits.AnnotationForPackage) != 0) {
 		values.add(elementType + new String(TypeConstants.UPPER_PACKAGE));
+	}
+	if ((tagBits & TagBits.AnnotationForTypeUse) != 0) {
+		values.add(elementType + new String(TypeConstants.TYPE_USE_TARGET));
+	}
+	if ((tagBits & TagBits.AnnotationForTypeParameter) != 0) {
+		values.add(elementType + new String(TypeConstants.TYPE_PARAMETER_TARGET));
+	}
+	if ((tagBits & TagBits.AnnotationForModule) != 0) {
+		values.add(elementType + new String(TypeConstants.UPPER_MODULE));
 	}
 	final Object value;
 	if (values.size() == 0) {
@@ -399,13 +413,6 @@ private void generateTypeParameterInfos(BinaryMember parent, char[] signature, H
 	}
 }
 /**
- * Returns true iff the <code>readBinaryChildren</code> has already
- * been called.
- */
-boolean hasReadBinaryChildren() {
-	return this.binaryChildren != null;
-}
-/**
  * Creates the handles for <code>BinaryMember</code>s defined in this
  * <code>ClassFile</code> and adds them to the
  * <code>JavaModelManager</code>'s cache.
@@ -431,6 +438,21 @@ protected void readBinaryChildren(ClassFile classFile, HashMap newElements, IBin
 		this.typeParameters = new ITypeParameter[typeParameterHandleSize];
 		typeParameterHandles.toArray(this.typeParameters);
 	}
+}
+protected BinaryModule readBinaryModule(AbstractClassFile classFile, HashMap newElements, IBinaryModule modDecl) {
+	this.binaryChildren = JavaElement.NO_ELEMENTS;
+	this.typeParameters = TypeParameter.NO_TYPE_PARAMETERS;
+	if (modDecl != null) {//may not be a valid class file
+		// TODO: The following needs fix once we can get ModuleDeclaration from IndexBinaryType
+		char[] modName = modDecl.name();
+		BinaryModule handle = new BinaryModule(classFile, new String(modName));
+		ModuleDescriptionInfo moduleInfo = ModuleDescriptionInfo.createModule(modDecl);
+		setModule(handle);
+		newElements.put(handle, moduleInfo);
+		this.binaryChildren = new JavaElement[] { handle };
+		return handle;
+	}
+	return null;
 }
 /**
  * Removes the binary children handles and remove their infos from

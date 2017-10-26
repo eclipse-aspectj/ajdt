@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -124,14 +128,21 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.Compiler;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.ObjectVector;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProjectElementInfo.ProjectCache;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.SourceRangeVerifier;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.IReader;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.Nd;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.db.Database;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.Indexer;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdResourceFile;
 import org.aspectj.org.eclipse.jdt.internal.core.search.AbstractSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.search.BasicSearchEngine;
 import org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessTypeRequestor;
@@ -362,12 +373,16 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	private static final String SEARCH_DEBUG = JavaCore.PLUGIN_ID + "/debug/search" ; //$NON-NLS-1$
 	private static final String SOURCE_MAPPER_DEBUG_VERBOSE = JavaCore.PLUGIN_ID + "/debug/sourcemapper" ; //$NON-NLS-1$
 	private static final String FORMATTER_DEBUG = JavaCore.PLUGIN_ID + "/debug/formatter" ; //$NON-NLS-1$
+	private static final String INDEX_DEBUG_LARGE_CHUNKS = JavaCore.PLUGIN_ID + "/debug/index/freespacetest" ; //$NON-NLS-1$
+	private static final String INDEX_DEBUG_PAGE_CACHE = JavaCore.PLUGIN_ID + "/debug/index/pagecache" ; //$NON-NLS-1$
 	private static final String INDEX_INDEXER_DEBUG = JavaCore.PLUGIN_ID + "/debug/index/indexer" ; //$NON-NLS-1$
 	private static final String INDEX_INDEXER_INSERTIONS = JavaCore.PLUGIN_ID + "/debug/index/insertions" ; //$NON-NLS-1$
+	private static final String INDEX_INDEXER_SCHEDULING = JavaCore.PLUGIN_ID + "/debug/index/scheduling" ; //$NON-NLS-1$
 	private static final String INDEX_INDEXER_SELFTEST = JavaCore.PLUGIN_ID + "/debug/index/selftest" ; //$NON-NLS-1$
 	private static final String INDEX_LOCKS_DEBUG = JavaCore.PLUGIN_ID + "/debug/index/locks" ; //$NON-NLS-1$
 	private static final String INDEX_INDEXER_SPACE = JavaCore.PLUGIN_ID + "/debug/index/space" ; //$NON-NLS-1$
 	private static final String INDEX_INDEXER_TIMING = JavaCore.PLUGIN_ID + "/debug/index/timing" ; //$NON-NLS-1$
+	private static final String INDEX_INDEXER_LOG_SIZE_MEGS = JavaCore.PLUGIN_ID + "/debug/index/logsizemegs"; //$NON-NLS-1$
 
 	public static final String COMPLETION_PERF = JavaCore.PLUGIN_ID + "/perf/completion" ; //$NON-NLS-1$
 	public static final String SELECTION_PERF = JavaCore.PLUGIN_ID + "/perf/selection" ; //$NON-NLS-1$
@@ -402,7 +417,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 
 	public static class CompilationParticipants {
 
-		private final static int MAX_SOURCE_LEVEL = 8; // 1.1 to 1.8
+		private final static int MAX_SOURCE_LEVEL = 9; // 1.1 to 1.8 and 9
 
 		/*
 		 * The registered compilation participants (a table from int (source level) to Object[])
@@ -528,6 +543,8 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		 * ...
 		 * 1.6 -> 5
 		 * 1.7 -> 6
+		 * 1.8 -> 7
+		 * 9 -> 8
 		 * null -> 0
 		 */
 		private int indexForSourceLevel(String sourceLevel) {
@@ -548,6 +565,8 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					return 6;
 				case ClassFileConstants.MAJOR_VERSION_1_8:
 					return 7;
+				case ClassFileConstants.MAJOR_VERSION_9:
+					return 8;
 				default:
 					// all other cases including ClassFileConstants.MAJOR_VERSION_1_1
 					return 0;
@@ -1051,6 +1070,9 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			PackageFragmentRoot root = (PackageFragmentRoot) project.getPackageFragmentRoot(file.getParent());
 			pkg = root.getPackageFragment(CharOperation.NO_STRINGS);
 		}
+		String fileName = file.getName();
+		if (TypeConstants.MODULE_INFO_CLASS_NAME_STRING.equals(fileName))
+			return pkg.getModularClassFile();
 		return pkg.getClassFile(file.getName());
 	}
 
@@ -1237,6 +1259,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		public Map rootPathToRawEntries; // reverse map from a package fragment root's path to the raw entry
 		public Map rootPathToResolvedEntries; // map from a package fragment root's path to the resolved entry
 		public IPath outputLocation;
+		public Map<IPath, ObjectVector> jrtRoots; // A map between a JRT file system (as a string) and the package fragment roots found in it.
 
 		public IEclipsePreferences preferences;
 		public Hashtable options;
@@ -1354,6 +1377,11 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			if (this.rawTimeStamp != timeStamp)
 				return null;
 			return setClasspath(this.rawClasspath, referencedEntries, this.outputLocation, this.rawClasspathStatus, newResolvedClasspath, newRootPathToRawEntries, newRootPathToResolvedEntries, newUnresolvedEntryStatus, addClasspathChange);
+		}
+
+		public synchronized void setJrtPackageRoots(IPath jrtPath, ObjectVector roots) {
+			if (this.jrtRoots == null) this.jrtRoots = new HashMap<>();
+			this.jrtRoots.put(jrtPath, roots);
 		}
 
 		/**
@@ -1540,6 +1568,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	public static boolean CP_RESOLVE_VERBOSE_ADVANCED = false;
 	public static boolean CP_RESOLVE_VERBOSE_FAILURE = false;
 	public static boolean ZIP_ACCESS_VERBOSE = false;
+	public static boolean JRT_ACCESS_VERBOSE = false;
 	
 	/**
 	 * A cache of opened zip files per thread.
@@ -1548,7 +1577,8 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 	private ThreadLocal zipFiles = new ThreadLocal();
 
 	private UserLibraryManager userLibraryManager;
-	
+
+	private ModuleSourcePathManager modulePathManager;
 	/*
 	 * A set of IPaths for jars that are known to not contain a chaining (through MANIFEST.MF) to another library
 	 */
@@ -1831,11 +1861,15 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 				JavaModelManager.ZIP_ACCESS_VERBOSE = debug && options.getBooleanOption(ZIP_ACCESS_DEBUG, false);
 				SourceMapper.VERBOSE = debug && options.getBooleanOption(SOURCE_MAPPER_DEBUG_VERBOSE, false);
 				DefaultCodeFormatter.DEBUG = debug && options.getBooleanOption(FORMATTER_DEBUG, false);
+				Database.DEBUG_FREE_SPACE = debug && options.getBooleanOption(INDEX_DEBUG_LARGE_CHUNKS, false);
+				Database.DEBUG_PAGE_CACHE = debug && options.getBooleanOption(INDEX_DEBUG_PAGE_CACHE, false);
 				Indexer.DEBUG = debug && options.getBooleanOption(INDEX_INDEXER_DEBUG, false);
 				Indexer.DEBUG_INSERTIONS = debug  && options.getBooleanOption(INDEX_INDEXER_INSERTIONS, false);
 				Indexer.DEBUG_ALLOCATIONS = debug && options.getBooleanOption(INDEX_INDEXER_SPACE, false);
 				Indexer.DEBUG_TIMING = debug && options.getBooleanOption(INDEX_INDEXER_TIMING, false);
+				Indexer.DEBUG_SCHEDULING = debug && options.getBooleanOption(INDEX_INDEXER_SCHEDULING, false);
 				Indexer.DEBUG_SELFTEST = debug && options.getBooleanOption(INDEX_INDEXER_SELFTEST, false);
+				Indexer.DEBUG_LOG_SIZE_MB = debug ? options.getIntegerOption(INDEX_INDEXER_LOG_SIZE_MEGS, 0) : 0;
 				Nd.sDEBUG_LOCKS = debug && options.getBooleanOption(INDEX_LOCKS_DEBUG, false);
 		
 				// configure performance options
@@ -2712,6 +2746,17 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		return MANAGER.userLibraryManager;
 	}
 
+	public static ModuleSourcePathManager getModulePathManager() {
+		if (MANAGER.modulePathManager == null) {
+			ModuleSourcePathManager modulePathManager = new ModuleSourcePathManager();
+			synchronized(MANAGER) {
+				if (MANAGER.modulePathManager == null) { // ensure another library manager was not set while creating the instance above
+					MANAGER.modulePathManager = modulePathManager;
+				}
+			}
+		}
+		return MANAGER.modulePathManager;
+	}
 	/*
 	 * Returns all the working copies which have the given owner.
 	 * Adds the working copies of the primary owner if specified.
@@ -2753,8 +2798,38 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 		return this.workspaceScope;
 	}
 
+	public static boolean isJrt(IPath path) {
+		return path.toString().endsWith(JRTUtil.JRT_FS_JAR);
+	}
+
+	public static boolean isJrt(String path) {
+		return isJrt(new Path(path));
+	}
+
 	public void verifyArchiveContent(IPath path) throws CoreException {
+		// TODO: we haven't finalized what path the JRT is represented by. Don't attempt to validate it.
+		if (isJrt(path)) {
+			return;
+		}
 		throwExceptionIfArchiveInvalid(path);
+		// Check if we can determine the archive's validity by examining the index
+		if (JavaIndex.isEnabled()) {
+			JavaIndex index = JavaIndex.getIndex();
+			String location = JavaModelManager.getLocalFile(path).getAbsolutePath();
+			try (IReader reader = index.getNd().acquireReadLock()) {
+				NdResourceFile resourceFile = index.getResourceFile(location.toCharArray());
+				if (index.isUpToDate(resourceFile)) {
+					// We have this file in the index and the index is up-to-date, so we can determine the file's
+					// validity without touching the filesystem.
+					if (resourceFile.isCorruptedZipFile()) {
+						throw new CoreException(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, -1,
+								Messages.status_IOException, new ZipException()));
+					}
+					return;
+				}
+			}
+		}
+
 		ZipFile file = getZipFile(path);
 		closeZipFile(file);
 	}
@@ -5246,7 +5321,7 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 					| IResourceChangeEvent.PRE_REFRESH);
 
 			Indexer.getInstance().addListener(this.deltaState);
-
+			
 			// listen to resource changes affecting external annotations
 			ExternalAnnotationTracker.start(workspace);
 
@@ -5282,7 +5357,11 @@ public class JavaModelManager implements ISaveParticipant, IContentTypeChangeLis
 			processSavedState.setPriority(Job.SHORT); // process asap
 			processSavedState.schedule();
 		} catch (RuntimeException e) {
-			shutdown();
+			try {
+				shutdown();
+			} catch (RuntimeException e2) {
+				e.addSuppressed(e2);
+			}
 			throw e;
 		}
 	}

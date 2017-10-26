@@ -247,6 +247,10 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         // can ignore
     }
 
+    public void acceptModule(char[] a, char[] b, int c, int d) {
+        // can ignore
+    }
+
     public void acceptType(char[] packageName, char[] annotationName,
             int modifiers, boolean isDeclaration, char[] genericTypeSignature,
             int start, int end) {

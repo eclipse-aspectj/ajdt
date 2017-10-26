@@ -192,7 +192,7 @@ public class AJClasspathModel extends ClasspathModel {
 	/**
 	 * Copied from super class - create an entry
 	 */
-	private ClasspathGroup createGroupEntry(IRuntimeClasspathEntry[] entries,
+	public ClasspathGroup createGroupEntry(IRuntimeClasspathEntry[] entries,
 			ClasspathGroup entryParent, String name, boolean canBeRemoved,
 			boolean addEntry) {
 

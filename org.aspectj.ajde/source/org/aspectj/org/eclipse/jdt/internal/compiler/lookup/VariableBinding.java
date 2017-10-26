@@ -23,7 +23,7 @@ public abstract class VariableBinding extends Binding {
 	public int modifiers;
 	public TypeBinding type;
 	public char[] name;
-	public Constant constant; // AspectJ Extension, raise visibility
+	protected Constant constant;
 	public int id; // for flow-analysis (position in flowInfo bit vector)
 	public long tagBits;
 
@@ -40,7 +40,7 @@ public abstract class VariableBinding extends Binding {
 	public Constant constant() {
 		return this.constant;
 	}
-
+	
 	/**
 	 * Call this variant during resolve / analyse, so we can handle the case 
 	 * when a tentative lambda resolve triggers resolving of outside code.

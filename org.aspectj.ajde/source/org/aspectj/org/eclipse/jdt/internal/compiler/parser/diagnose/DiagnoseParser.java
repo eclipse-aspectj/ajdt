@@ -1,3 +1,4 @@
+// ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -2561,5 +2562,11 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 		   error. See that this is not a problem for the regular/normal parser.
 		*/ 
 		return (token == TokenNameLPAREN || token == TokenNameAT || (token == TokenNameLESS && !this.lexStream.awaitingColonColon()));
+	}
+
+	@Override
+	public boolean isParsingModuleDeclaration() {
+		//
+		return this.parser.isParsingModuleDeclaration();
 	}
 }

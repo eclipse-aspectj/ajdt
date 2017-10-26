@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Google, Inc and others.
+ * Copyright (c) 2016, 2017 Google, Inc and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,7 +42,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdConstantClass;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdConstantEnum;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdMethod;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdMethodException;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdMethodId;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdMethodParameter;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdResourceFile;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdType;
@@ -53,7 +52,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdTypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdTypeSignature;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdVariable;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.java.TypeRef;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.util.CharArrayUtils;
 import org.aspectj.org.eclipse.jdt.internal.core.util.CharArrayBuffer;
 
 /**
@@ -264,7 +262,7 @@ public class IndexBinaryType implements IBinaryType {
 		try (IReader rl = this.typeRef.lock()) {
 			NdType type = this.typeRef.get();
 			if (type != null) {
-				List<NdMethod> methods = type.getMethods();
+				List<NdMethod> methods = type.getMethodsInDeclarationOrder();
 
 				if (methods.isEmpty()) {
 					return null;
@@ -381,17 +379,15 @@ public class IndexBinaryType implements IBinaryType {
 	}
 
 	private IBinaryMethod createBinaryMethod(NdMethod ndMethod) {
-		NdMethodId methodId = ndMethod.getMethodId();
-
 		return IndexBinaryMethod.create().setAnnotations(toAnnotationArray(ndMethod.getAnnotations()))
-				.setModifiers(ndMethod.getModifiers()).setIsConstructor(methodId.isConstructor())
+				.setModifiers(ndMethod.getModifiers()).setIsConstructor(ndMethod.isConstructor())
 				.setArgumentNames(getArgumentNames(ndMethod)).setDefaultValue(unpackValue(ndMethod.getDefaultValue()))
 				.setExceptionTypeNames(getExceptionTypeNames(ndMethod))
 				.setGenericSignature(getGenericSignatureFor(ndMethod))
-				.setMethodDescriptor(methodId.getMethodDescriptor())
+				.setMethodDescriptor(ndMethod.getMethodDescriptor())
 				.setParameterAnnotations(getParameterAnnotations(ndMethod))
-				.setSelector(ndMethod.getMethodId().getSelector()).setTagBits(ndMethod.getTagBits())
-				.setIsClInit(methodId.isClInit()).setTypeAnnotations(createBinaryTypeAnnotations(ndMethod.getTypeAnnotations()));
+				.setSelector(ndMethod.getSelector()).setTagBits(ndMethod.getTagBits())
+				.setIsClInit(ndMethod.isClInit()).setTypeAnnotations(createBinaryTypeAnnotations(ndMethod.getTypeAnnotations()));
 	}
 
 	private static IBinaryTypeAnnotation[] createBinaryTypeAnnotations(List<? extends NdTypeAnnotation> typeAnnotations) {
@@ -423,7 +419,7 @@ public class IndexBinaryType implements IBinaryType {
 				case AnnotationTargetTypeConstants.METHOD_RECEIVER:
 					break;
 				case AnnotationTargetTypeConstants.METHOD_FORMAL_PARAMETER :
-					info = next.getTargetInfoArg0();
+					info = next.getTarget();
 					break;
 				case AnnotationTargetTypeConstants.THROWS :
 					info = next.getTarget();
@@ -593,13 +589,12 @@ public class IndexBinaryType implements IBinaryType {
 			try (IReader rl = this.typeRef.lock()) {
 				NdType type = this.typeRef.get();
 				if (type != null) {
-					NdMethodId methodId = type.getDeclaringMethod();
+					IString declaringMethod = type.getDeclaringMethod();
 
-					if (methodId != null) {
-						char[] methodName = methodId.getMethodName().getChars();
-						int startIdx = CharArrayUtils.lastIndexOf('#', methodName);
-						this.enclosingMethod = CharArrayUtils.subarray(methodName, startIdx + 1);
-						this.enclosingType = CharArrayUtils.subarray(methodName, 1, startIdx);
+					if (declaringMethod.length() != 0) {
+						char[] methodName = declaringMethod.getChars();
+						this.enclosingMethod = methodName;
+						this.enclosingType = type.getDeclaringType().getBinaryName();
 					} else {
 						NdTypeId typeId = type.getDeclaringType();
 
@@ -668,5 +663,11 @@ public class IndexBinaryType implements IBinaryType {
 	@Override
 	public ExternalAnnotationStatus getExternalAnnotationStatus() {
 		return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
+	}
+
+	@Override
+	public char[] getModule() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

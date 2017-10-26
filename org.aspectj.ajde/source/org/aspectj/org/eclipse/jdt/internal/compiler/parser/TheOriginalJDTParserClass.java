@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,98 +48,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AND_AND_Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AnnotationMethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AssertStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Assignment;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.BinaryExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Block;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.BreakStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CaseStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CastExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CharLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CombinedBinaryExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompoundAssignment;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConditionalExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.DoStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.EmptyStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.EqualExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ForStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IfStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Initializer;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntersectionCastTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Javadoc;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LabeledStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LongLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NullLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.OR_OR_Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.OperatorIds;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.PostfixExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.PrefixExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedSuperReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedThisReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Receiver;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Reference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.StringLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SuperReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SynchronizedStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TryStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.WhileStatement;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
@@ -212,7 +125,7 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 
 	public static final int RoundBracket = 0;
 
-    public static byte scope_la[] = null;
+    public static char scope_la[] = null;
     public static char scope_lhs[] = null;
 
 	public static char scope_prefix[] = null;
@@ -227,7 +140,7 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 	protected final static int StackIncrement = 255;
 
 	public static char term_action[] = null;
-	public static byte term_check[] = null;
+	public static char term_check[] = null; // Promoted to char as > 128 terminals
 
 	public static char terminal_index[] = null;
 
@@ -635,8 +548,8 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 		buildFileOfIntFor(prefix + (++i) + ".rsc", "in_symb", tokens); //$NON-NLS-2$ //$NON-NLS-1$
 	
 		byte[] newRhs = buildFileOfByteFor(prefix + (++i) + ".rsc", "rhs", tokens); //$NON-NLS-2$ //$NON-NLS-1$
-		buildFileOfByteFor(prefix + (++i) + ".rsc", "term_check", tokens); //$NON-NLS-2$ //$NON-NLS-1$
-		buildFileOfByteFor(prefix + (++i) + ".rsc", "scope_la", tokens); //$NON-NLS-2$ //$NON-NLS-1$
+		buildFileOfIntFor(prefix + (++i) + ".rsc", "term_check", tokens); //$NON-NLS-2$ //$NON-NLS-1$
+		buildFileOfIntFor(prefix + (++i) + ".rsc", "scope_la", tokens); //$NON-NLS-2$ //$NON-NLS-1$
 	
 		String[] newName = buildFileForName(prefix + (++i) + ".rsc", new String(contents)); //$NON-NLS-1$
 	
@@ -737,8 +650,8 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 		in_symb = readTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
 	
 		rhs = readByteTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
-		term_check = readByteTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
-		scope_la = readByteTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
+		term_check = readTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
+		scope_la = readTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
 	
 		name = readNameTable(parserClass,prefix + (++i) + ".rsc"); //$NON-NLS-1$
 	
@@ -1038,6 +951,7 @@ public org.aspectj.org.eclipse.jdt.internal.compiler.ReadManager readManager;
 protected int valueLambdaNestDepth = -1;
 protected /*private*/ int stateStackLengthStack[] = new int[0]; // AspectJ Extension: made protected
 protected boolean parsingJava8Plus;
+protected boolean parsingJava9Plus;
 protected int unstackedAct = ERROR_ACTION;
 private boolean haltOnSyntaxError = false;
 private boolean tolerateDefaultClassMethods = false;
@@ -1055,6 +969,7 @@ public TheOriginalJDTParserClass(ProblemReporter problemReporter, boolean optimi
 	this.optimizeStringLiterals = optimizeStringLiterals;
 	initializeScanner();
 	this.parsingJava8Plus = this.options.sourceLevel >= ClassFileConstants.JDK1_8;
+	this.parsingJava9Plus = this.options.sourceLevel >= ClassFileConstants.JDK9;
 	this.astLengthStack = new int[50];
 	this.expressionLengthStack = new int[30];
 	this.typeAnnotationLengthStack = new int[30];
@@ -4811,7 +4726,8 @@ protected void consumeInterfaceMethodDeclaration(boolean hasSemicolonBody) {
 	
 	boolean isDefault = (md.modifiers & ExtraCompilerModifiers.AccDefaultMethod) != 0;
 	boolean isStatic = (md.modifiers & ClassFileConstants.AccStatic) != 0;
-	boolean bodyAllowed = isDefault || isStatic;
+	boolean isPrivate = (md.modifiers & ClassFileConstants.AccPrivate) != 0;
+	boolean bodyAllowed = (this.parsingJava9Plus && isPrivate) || isDefault || isStatic;
 	if (this.parsingJava8Plus) {
 		if (bodyAllowed && hasSemicolonBody) {
 			md.modifiers |= ExtraCompilerModifiers.AccSemicolonBody; // avoid complaints regarding undocumented empty body
@@ -5642,6 +5558,466 @@ protected void consumePackageComment() {
 		resetModifiers();
 	}
 }
+protected void consumeInternalCompilationUnitWithModuleDeclaration() {
+	this.compilationUnit.moduleDeclaration = (ModuleDeclaration)this.astStack[this.astPtr--];
+	this.astLengthStack[this.astLengthPtr--] = 0;
+}
+protected void consumeRequiresStatement() {
+	RequiresStatement req = (RequiresStatement) this.astStack[this.astPtr];
+	req.declarationEnd = req.declarationSourceEnd = this.endStatementPosition;
+	// recovery
+	if (this.currentElement instanceof RecoveredModule) {
+		this.lastCheckPoint = req.declarationSourceEnd + 1;
+		this.currentElement = this.currentElement.add(req, 0);
+		this.lastIgnoredToken = -1;
+		this.restartRecovery = true; // used to avoid branching back into the regular automaton
+	}
+}
+protected void consumeSingleRequiresModuleName() {
+	ModuleReference impt;
+	int length;
+	char[][] tokens = new char[length = this.identifierLengthStack[this.identifierLengthPtr--]][];
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(this.identifierStack, this.identifierPtr + 1, tokens, 0, length);
+	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
+	RequiresStatement req = new RequiresStatement(impt = new ModuleReference(tokens, positions));
+	if (this.currentToken == TokenNameSEMICOLON){
+		req.declarationSourceEnd = impt.sourceEnd + 1;
+	} else {
+		req.declarationSourceEnd = impt.sourceEnd;
+	}
+	req.declarationEnd = req.declarationSourceEnd;
+	req.modifiersSourceStart = this.intStack[this.intPtr--];
+	req.modifiers |= this.intStack[this.intPtr--];
+	req.sourceStart = req.declarationSourceStart = this.intStack[this.intPtr--];
+	req.sourceEnd = impt.sourceEnd;
+	pushOnAstStack(req);
+	// recovery
+	if (this.currentElement instanceof RecoveredModule){
+		this.lastCheckPoint = req.declarationSourceEnd;
+	}
+}
+protected void consumeExportsStatement() {
+	ExportsStatement expt = (ExportsStatement) this.astStack[this.astPtr];
+	expt.declarationSourceEnd = this.endStatementPosition;
+	expt.declarationEnd = expt.declarationSourceEnd;
+	// recovery
+	if (this.currentElement instanceof RecoveredPackageVisibilityStatement) {
+		this.lastCheckPoint = expt.declarationSourceEnd + 1;
+		this.currentElement = this.currentElement.parent;
+		this.lastIgnoredToken = -1;
+		this.restartRecovery = true;
+		// used to avoid branching back into the regular automaton
+	}
+}
+protected void consumeExportsHeader() {
+	ImportReference impt = (ImportReference) this.astStack[this.astPtr];
+	impt.bits |= ASTNode.inModule;
+	ExportsStatement expt = new ExportsStatement(impt);
+	expt.declarationSourceStart = this.intStack[this.intPtr--];
+	expt.sourceStart = expt.declarationSourceStart;
+	expt.sourceEnd = impt.sourceEnd;
+	if (this.currentToken == TokenNameSEMICOLON){
+		expt.declarationSourceEnd = this.scanner.currentPosition - 1;
+	} else {
+		expt.declarationSourceEnd = expt.sourceEnd;
+	}
+	expt.declarationEnd = expt.declarationSourceEnd;
+	this.astStack[this.astPtr] = expt; // replace with ExportsStatement
+	// recovery
+	if (this.currentElement instanceof RecoveredModule) {
+		this.lastCheckPoint = expt.declarationSourceEnd + 1;
+		this.currentElement = this.currentElement.add(expt, 0);
+	}
+}
+protected void consumeOpensHeader() {
+	ImportReference impt = (ImportReference) this.astStack[this.astPtr];
+	impt.bits |= ASTNode.inModule;
+	OpensStatement stmt = new OpensStatement(impt);
+	stmt.declarationSourceStart = this.intStack[this.intPtr--];
+	stmt.sourceStart = stmt.declarationSourceStart;
+	stmt.sourceEnd = impt.sourceEnd;
+	if (this.currentToken == TokenNameSEMICOLON){
+		stmt.declarationSourceEnd = this.scanner.currentPosition - 1;
+	} else {
+		stmt.declarationSourceEnd = stmt.sourceEnd;
+	}
+	stmt.declarationEnd = stmt.declarationSourceEnd;
+	this.astStack[this.astPtr] = stmt; // replace with OpensStatement
+	// recovery
+	if (this.currentElement instanceof RecoveredModule) {
+		this.lastCheckPoint = stmt.declarationSourceEnd + 1;
+		this.lastCheckPoint = stmt.declarationSourceEnd + 1;
+		this.currentElement = this.currentElement.add(stmt, 0);
+	}
+}
+protected void consumeOpensStatement() {
+	OpensStatement expt = (OpensStatement) this.astStack[this.astPtr];
+	expt.declarationSourceEnd = this.endStatementPosition;
+	expt.declarationEnd = expt.declarationSourceEnd;
+	// recovery
+	if (this.currentElement instanceof RecoveredPackageVisibilityStatement) {
+		this.lastCheckPoint = expt.declarationSourceEnd + 1;
+		this.currentElement = this.currentElement.parent;
+		this.lastIgnoredToken = -1;
+		this.restartRecovery = true;
+		// used to avoid branching back into the regular automaton
+	}
+}
+protected void consumeSingleTargetModuleName() {
+	ModuleReference reference;
+	int length;
+	char[][] tokens = new char[length = this.identifierLengthStack[this.identifierLengthPtr--]][];
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(this.identifierStack, this.identifierPtr + 1, tokens, 0, length);
+	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
+	pushOnAstStack(reference = new ModuleReference(tokens, positions));
+
+	// recovery
+	if (this.currentElement != null) {
+		this.lastCheckPoint = reference.sourceEnd + 1;
+	}
+
+}
+protected void consumeTargetModuleList() {
+	int length = this.astLengthStack[this.astLengthPtr--];
+	this.astPtr -= length;
+	PackageVisibilityStatement node = (PackageVisibilityStatement) this.astStack[this.astPtr];
+	if (length > 0) {
+	System.arraycopy(
+		this.astStack,
+		this.astPtr + 1,
+		node.targets = new ModuleReference[length],
+		0,
+		length);
+		node.sourceEnd = node.targets[length - 1].sourceEnd;
+		if (this.currentToken == TokenNameSEMICOLON){
+			node.declarationSourceEnd = node.sourceEnd + 1;
+		} else {
+			node.declarationSourceEnd = node.sourceEnd;
+		}
+	}
+	
+	this.listLength = 0; // reset after having read target modules list
+	// recovery TBD
+	if (this.currentElement != null) { // is recovering
+		this.lastCheckPoint = node.sourceEnd;
+	}
+}
+protected void consumeTargetModuleNameList() {
+	this.listLength++;
+	optimizedConcatNodeLists();
+}
+protected void consumeSinglePkgName() {
+	ImportReference impt;
+	int length;
+	char[][] tokens = new char[length = this.identifierLengthStack[this.identifierLengthPtr--]][];
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(this.identifierStack, this.identifierPtr + 1, tokens, 0, length);
+	System.arraycopy(this.identifierPositionStack, this.identifierPtr + 1, positions, 0, length);
+	pushOnAstStack(impt = new ImportReference(tokens, positions, false, ClassFileConstants.AccDefault));
+
+	// recovery
+	if (this.currentElement instanceof RecoveredModule){
+		this.lastCheckPoint = impt.sourceEnd + 1;
+	}
+}
+protected void consumeUsesStatement() {
+	UsesStatement stmt = (UsesStatement) this.astStack[this.astPtr];
+	stmt.declarationEnd = stmt.declarationSourceEnd = this.endStatementPosition;
+	// recovery
+	if (this.currentElement instanceof RecoveredModule){
+		this.lastCheckPoint = stmt.declarationSourceEnd;
+		this.lastIgnoredToken = -1;
+		this.restartRecovery = true;
+	}
+}
+protected void consumeUsesHeader() {
+	pushOnGenericsIdentifiersLengthStack(this.identifierLengthStack[this.identifierLengthPtr]);
+	pushOnGenericsLengthStack(0);
+	TypeReference siName = getTypeReference(0);
+	if (siName.annotations != null) {
+		for (int j = 0; j < siName.annotations.length; j++) {
+			Annotation[] qualifierAnnot = siName.annotations[j];
+			if (qualifierAnnot != null && qualifierAnnot.length > 0) {
+				problemReporter().misplacedTypeAnnotations(qualifierAnnot[0], qualifierAnnot[qualifierAnnot.length - 1]);
+				siName.annotations[j] = null;
+			}
+		}
+	}
+	UsesStatement stmt = new UsesStatement(siName);
+	if (this.currentToken == TokenNameSEMICOLON){
+		stmt.declarationSourceEnd = siName.sourceEnd + 1;
+	} else {
+		stmt.declarationSourceEnd = siName.sourceEnd;
+	}
+	stmt.declarationEnd = stmt.declarationSourceEnd;
+	stmt.sourceStart = stmt.declarationSourceStart = this.intStack[this.intPtr--];
+	stmt.sourceEnd = siName.sourceEnd;
+	pushOnAstStack(stmt);
+	// recovery
+	if (this.currentElement instanceof RecoveredModule){
+		this.lastCheckPoint = stmt.sourceEnd + 1;
+		this.currentElement = this.currentElement.add(stmt, 0);
+	}
+}
+protected void consumeProvidesInterface() {
+	pushOnGenericsIdentifiersLengthStack(this.identifierLengthStack[this.identifierLengthPtr]);
+	pushOnGenericsLengthStack(0);
+	TypeReference siName = getTypeReference(0);
+	if (siName.annotations != null) {
+		for (int j = 0; j < siName.annotations.length; j++) {
+			Annotation[] qualifierAnnot = siName.annotations[j];
+			if (qualifierAnnot != null && qualifierAnnot.length > 0) {
+				problemReporter().misplacedTypeAnnotations(qualifierAnnot[0], qualifierAnnot[qualifierAnnot.length - 1]);
+				siName.annotations[j] = null;
+			}
+		}
+	}
+	ProvidesStatement ref = new ProvidesStatement();
+	ref.serviceInterface = siName;
+	pushOnAstStack(ref);
+	ref.declarationSourceStart = this.intStack[this.intPtr--];
+	ref.sourceStart = ref.declarationSourceStart;
+	ref.sourceEnd = siName.sourceEnd;
+	ref.declarationSourceEnd = ref.sourceEnd;
+	// recovery
+	if (this.currentElement instanceof RecoveredModule) {
+		this.lastCheckPoint = siName.sourceEnd + 1;
+		this.currentElement = this.currentElement.add(ref, 0);
+		this.lastIgnoredToken = -1;
+	}
+}
+protected void consumeSingleServiceImplName() {
+	pushOnGenericsIdentifiersLengthStack(this.identifierLengthStack[this.identifierLengthPtr]);
+	pushOnGenericsLengthStack(0);
+	TypeReference siName = getTypeReference(0);
+	if (siName.annotations != null) {
+		for (int j = 0; j < siName.annotations.length; j++) {
+			Annotation[] qualifierAnnot = siName.annotations[j];
+			if (qualifierAnnot != null && qualifierAnnot.length > 0) {
+				problemReporter().misplacedTypeAnnotations(qualifierAnnot[0], qualifierAnnot[qualifierAnnot.length - 1]);
+				siName.annotations[j] = null;
+			}
+		}
+	}
+	pushOnAstStack(siName);
+	// recovery
+	if (this.currentElement instanceof RecoveredModule) {
+		this.lastCheckPoint = siName.sourceEnd + 1;
+	}
+
+}
+protected void consumeServiceImplNameList() {
+	this.listLength++;
+	optimizedConcatNodeLists();
+}
+protected void consumeProvidesStatement() {
+	ProvidesStatement ref = (ProvidesStatement) this.astStack[this.astPtr];
+	ref.declarationEnd = ref.declarationSourceEnd = this.endStatementPosition;
+	//recovery
+	if (this.currentElement instanceof RecoveredProvidesStatement) {
+		this.lastIgnoredToken = -1;
+		this.currentElement = this.currentElement.parent;
+		this.restartRecovery = true; // used to avoid branching back into the regular automaton
+	}
+}
+protected void consumeWithClause() {
+	int length = this.astLengthStack[this.astLengthPtr--];
+	this.astPtr -= length;
+
+	ProvidesStatement service = (ProvidesStatement) this.astStack[this.astPtr];
+	System.arraycopy(
+		this.astStack,
+		this.astPtr + 1,
+		service.implementations = new TypeReference[length],
+		0,
+		length);
+
+	service.sourceEnd = service.implementations[length - 1].sourceEnd;
+
+	if (this.currentToken == TokenNameSEMICOLON){
+		service.declarationSourceEnd = service.sourceEnd + 1;
+	} else {
+		service.declarationSourceEnd = service.sourceEnd;
+	}
+	this.listLength = 0; // reset after having read super-interfaces
+	// recovery
+	if (this.currentElement instanceof RecoveredProvidesStatement) { // is recovering
+		this.lastCheckPoint = service.declarationSourceEnd;
+	}
+}
+protected void consumeEmptyModuleStatementsOpt() {
+	pushOnAstLengthStack(0);
+}
+protected void consumeModuleStatements() {
+	concatNodeLists();
+}
+protected void consumeModuleModifiers() {
+	checkComment(); // might update modifiers with AccDeprecated
+	// Merge with other modifiers
+	this.intStack[this.intPtr -1] |= this.modifiers;
+	resetModifiers();
+	// Account for the possible presence of annotations as well
+	this.expressionLengthStack[this.expressionLengthPtr - 1] += this.expressionLengthStack[this.expressionLengthPtr--];
+}
+protected void consumeModuleHeader() {
+	// ModuleHeader ::= 'module' Name
+	
+	int length;
+	char[][] tokens =
+		new char[length = this.identifierLengthStack[this.identifierLengthPtr--]][];
+	this.identifierPtr -= length;
+	long[] positions = new long[length];
+	System.arraycopy(this.identifierStack, ++this.identifierPtr, tokens, 0, length);
+	System.arraycopy(
+		this.identifierPositionStack,
+		this.identifierPtr--,
+		positions,
+		0,
+		length);
+
+	ModuleDeclaration typeDecl = new ModuleDeclaration(this.compilationUnit.compilationResult, tokens, positions);
+	//compute the declaration source too
+	typeDecl.declarationSourceStart = this.intStack[this.intPtr--];
+	typeDecl.bodyStart = typeDecl.sourceEnd + 1;
+	typeDecl.modifiersSourceStart = this.intStack[this.intPtr--];
+	typeDecl.modifiers = this.intStack[this.intPtr--];
+	if (typeDecl.modifiersSourceStart >= 0) {
+		typeDecl.declarationSourceStart = typeDecl.modifiersSourceStart;
+	}
+//	int otherModifiersStart = this.intStack[this.intPtr--];
+//	int otherModifiers = this.intStack[this.intPtr--];
+//	if (otherModifiersStart >= 0) {
+//		typeDecl.declarationSourceStart = typeDecl.modifiersSourceStart = otherModifiersStart;
+//	}
+	// Merge with other modifiers
+//	typeDecl.modifiers |= otherModifiers;
+	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
+		System.arraycopy(
+			this.expressionStack,
+			(this.expressionPtr -= length) + 1,
+			typeDecl.annotations = new Annotation[length],
+			0,
+			length);
+	}
+	pushOnAstStack(typeDecl);
+
+	this.listLength = 0;
+	// recovery
+	if (this.currentElement != null){
+		this.lastCheckPoint = typeDecl.bodyStart;
+		this.currentElement = this.currentElement.add(typeDecl, 0);
+		this.lastIgnoredToken = -1;
+	}
+		// javadoc
+//		typeDecl.javadoc = this.javadoc;
+//		this.javadoc = null;
+}
+protected void consumeModuleDeclaration() {
+	// ModuleDeclaration ::= ModuleHeader ModuleBody
+	int length = this.astLengthStack[this.astLengthPtr--];
+	int[] flag = new int[length + 1]; //plus one -- see <HERE>
+	int size1 = 0, size2 = 0, size3 = 0, size4 = 0, size5 = 0;
+	if (length != 0) {
+		//there are length declarations
+		//dispatch according to the type of the declarations
+		for (int i = length - 1; i >= 0; i--) {
+			ASTNode astNode = this.astStack[this.astPtr--];
+			if (astNode instanceof RequiresStatement) {
+				flag[i] = 1;
+				size1++;
+			} else if (astNode instanceof ExportsStatement) {
+				flag[i] = 2;
+				size2++;
+			} else if (astNode instanceof UsesStatement) {
+				//field
+				flag[i] = 3;
+				size3++;
+			} else if (astNode instanceof ProvidesStatement){
+				flag[i] = 4;
+				size4++;
+			} else if (astNode instanceof OpensStatement) {
+				flag[i] = 5;
+				size5++;
+			}
+		}
+	}
+	ModuleDeclaration modul = (ModuleDeclaration) this.astStack[this.astPtr];
+	modul.requiresCount = size1;
+	modul.exportsCount = size2;
+	modul.usesCount = size3;
+	modul.servicesCount = size4;
+	modul.opensCount = size5;
+	modul.requires = new RequiresStatement[size1];
+	modul.exports = new ExportsStatement[size2];
+	modul.uses = new UsesStatement[size3];
+	modul.services = new ProvidesStatement[size4];
+	modul.opens = new OpensStatement[size5];
+	//arrays fill up
+	size1 = size2 = size3 = size4 = size5 = 0;
+	int flagI = flag[0], start = 0;
+	int length2;
+	for (int end = 0; end <= length; end++) //<HERE> the plus one allows to
+		{
+		if (flagI != flag[end]) //treat the last element as a ended flag.....
+			{ //array copy
+			switch (flagI) {
+				case 1 :
+					size1 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						modul.requires,
+						size1 - length2,
+						length2);
+					break;
+				case 2 :
+					size2 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						modul.exports,
+						size2 - length2,
+						length2);
+					break;
+				case 3 :
+					size3 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						modul.uses,
+						size3 - length2,
+						length2);
+					break;
+				case 4 :
+					size4 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						modul.services,
+						size4 - length2,
+						length2);
+					break;
+				case 5 :
+					size5 += (length2 = end - start);
+					System.arraycopy(
+						this.astStack,
+						this.astPtr + start + 1,
+						modul.opens,
+						size5 - length2,
+						length2);
+					break;
+			}
+			flagI = flag[start = end];
+		}
+	}
+	modul.bodyEnd = this.endStatementPosition;
+	modul.declarationSourceEnd = flushCommentsDefinedPriorTo(this.endStatementPosition);
+}
 protected void consumePackageDeclaration() {
 	// PackageDeclaration ::= 'package' Name ';'
 	/* build an ImportRef build from the last name
@@ -5804,9 +6180,6 @@ protected void rejectIllegalLeadingTypeAnnotations(TypeReference typeReference) 
 	}
 }
 private void rejectIllegalTypeAnnotations(TypeReference typeReference) {
-	rejectIllegalTypeAnnotations(typeReference, false);
-}
-private void rejectIllegalTypeAnnotations(TypeReference typeReference, boolean tolerateAnnotationsOnDimensions) {
 	// Reject misplaced annotations on type reference; Used when grammar is permissive enough to allow them in the first place.
 	Annotation [][]  annotations = typeReference.annotations;
 	Annotation[] misplacedAnnotations;
@@ -5817,24 +6190,16 @@ private void rejectIllegalTypeAnnotations(TypeReference typeReference, boolean t
 		}
 	}
 	annotations = typeReference.getAnnotationsOnDimensions(true);
-	boolean tolerated = false;
 	for (int i = 0, length = annotations == null ? 0 : annotations.length; i < length; i++) {
 		misplacedAnnotations = annotations[i];
 		if (misplacedAnnotations != null) {
-			if (tolerateAnnotationsOnDimensions) {
-				problemReporter().toleratedMisplacedTypeAnnotations(misplacedAnnotations[0], misplacedAnnotations[misplacedAnnotations.length - 1]);
-				tolerated = true;
-			}
-			else 
 				problemReporter().misplacedTypeAnnotations(misplacedAnnotations[0], misplacedAnnotations[misplacedAnnotations.length - 1]);
 		}
 	}
-	if (!tolerated) {
 		typeReference.annotations = null;
 		typeReference.setAnnotationsOnDimensions(null);
 		typeReference.bits &= ~ASTNode.HasTypeAnnotations;
 	}
-}
 protected void consumeQualifiedSuperReceiver() {
 	// QualifiedSuperReceiver ::= Name '.' 'super'
 	// handle type arguments
@@ -5869,7 +6234,7 @@ protected void consumePrimaryNoNewArrayPrimitiveArrayType() {
 	ClassLiteralAccess cla;
 	pushOnExpressionStack(
 		cla = new ClassLiteralAccess(this.intStack[this.intPtr--], getTypeReference(this.intStack[this.intPtr--])));
-	rejectIllegalTypeAnnotations(cla.type, true /* tolerate annotations on dimensions for bug compatibility for now */);
+	rejectIllegalTypeAnnotations(cla.type);
 }
 protected void consumePrimaryNoNewArrayPrimitiveType() {
 	// PrimaryNoNewArray ::= PrimitiveType '.' 'class'
@@ -6012,6 +6377,20 @@ protected void consumeReferenceType2() {
 protected void consumeReferenceType3() {
 	pushOnGenericsStack(getTypeReference(this.intStack[this.intPtr--]));
 }
+
+protected void consumeResourceAsLocalVariable() {
+	// Resource ::= Name
+	NameReference ref = getUnspecifiedReference(true);
+	//ref.bits |= ASTNode.IsCapturedOuterLocal;
+	pushOnAstStack(ref);
+ }
+protected void consumeResourceAsFieldAccess() {
+	// Resource ::= FieldAccess
+	FieldReference ref = (FieldReference) this.expressionStack[this.expressionPtr--];
+	//NameReference ref = getUnspecifiedReference(true);
+	//ref.bits |= ASTNode.IsCapturedOuterLocal;
+	pushOnAstStack(ref);
+ }
 protected void consumeResourceAsLocalVariableDeclaration() {
 	// Resource ::= Type PushModifiers VariableDeclaratorId EnterVariable '=' ForceNoDiet VariableInitializer RestoreDiet ExitVariableWithInitialization
 	// Resource ::= Modifiers Type PushRealModifiers VariableDeclaratorId EnterVariable '=' ForceNoDiet VariableInitializer RestoreDiet ExitVariableWithInitialization
@@ -6022,9 +6401,12 @@ protected void consumeResourceSpecification() {
 }
 protected void consumeResourceOptionalTrailingSemiColon(boolean punctuated) {
 	// TrailingSemiColon ::= ';'
-	LocalDeclaration localDeclaration = (LocalDeclaration) this.astStack[this.astPtr];
+	Statement statement = (Statement) this.astStack[this.astPtr];
+	
 	if (punctuated) {
-		localDeclaration.declarationSourceEnd = this.endStatementPosition;
+		if (statement instanceof LocalDeclaration) {
+			((LocalDeclaration) statement).declarationSourceEnd = this.endStatementPosition;
+		}
 	}
 }
 protected void consumeRestoreDiet() {
@@ -6260,7 +6642,7 @@ protected void consumeEmptyTypeArguments() {
 }
 
 public ReferenceExpression newReferenceExpression() {
-	return new ReferenceExpression();
+	return new ReferenceExpression(this.scanner);
 }
 
 protected void consumeReferenceExpressionTypeForm(boolean isPrimitive) { // actually Name or Type form.
@@ -6839,16 +7221,26 @@ protected void consumeStatementTry(boolean withFinally, boolean hasResources) {
 	if (hasResources) {
 		// get the resources
 		length = this.astLengthStack[this.astLengthPtr--];
-		LocalDeclaration[] resources = new LocalDeclaration[length];
+		Statement[] stmts  = new Statement[length];
 		System.arraycopy(
 				this.astStack,
 				(this.astPtr -= length) + 1,
-				resources,
+		stmts,
 				0,
 				length);
-		tryStmt.resources = resources;
+
+		tryStmt.resources = stmts;
+			
 		if (this.options.sourceLevel < ClassFileConstants.JDK1_7) {
-			problemReporter().autoManagedResourcesNotBelow17(resources);
+			problemReporter().autoManagedResourcesNotBelow17(stmts);
+		}
+		if (this.options.sourceLevel < ClassFileConstants.JDK9) {
+			for (int i = 0, l = stmts.length; i < l; ++i) {
+				Statement stmt = stmts[i];
+				if (stmt instanceof FieldReference || stmt instanceof NameReference) {
+					problemReporter().autoManagedVariableResourcesNotBelow9((Expression) stmt);
+		}
+	}
 		}
 	}
 	//positions
@@ -7038,6 +7430,10 @@ protected void consumeToken(int type) {
 			checkAndSetModifiers(ClassFileConstants.AccNative);
 			pushOnExpressionStackLengthStack(0);
 			break;
+		case TokenNameopen :
+			checkAndSetModifiers(ClassFileConstants.ACC_OPEN);
+			pushOnExpressionStackLengthStack(0);
+			break;
 		case TokenNameprivate :
 			checkAndSetModifiers(ClassFileConstants.AccPrivate);
 			pushOnExpressionStackLengthStack(0);
@@ -7054,12 +7450,19 @@ protected void consumeToken(int type) {
 			checkAndSetModifiers(ClassFileConstants.AccTransient);
 			pushOnExpressionStackLengthStack(0);
 			break;
+		case TokenNametransitive :
+			checkAndSetModifiers(ClassFileConstants.ACC_TRANSITIVE);
+			pushOnExpressionStackLengthStack(0);
+			break;
 		case TokenNamevolatile :
 			checkAndSetModifiers(ClassFileConstants.AccVolatile);
 			pushOnExpressionStackLengthStack(0);
 			break;
 		case TokenNamestatic :
-			checkAndSetModifiers(ClassFileConstants.AccStatic);
+			if (isParsingModuleDeclaration())
+				checkAndSetModifiers(ClassFileConstants.ACC_STATIC_PHASE);
+			else
+				checkAndSetModifiers(ClassFileConstants.AccStatic);
 			pushOnExpressionStackLengthStack(0);
 			break;
 		case TokenNamesynchronized :
@@ -7208,6 +7611,12 @@ protected void consumeToken(int type) {
 		case TokenNamecontinue :
 		case TokenNamereturn :
 		case TokenNamecase :
+		case TokenNamemodule:
+		case TokenNamerequires:
+		case TokenNameexports:
+		case TokenNameopens:
+		case TokenNameuses:
+		case TokenNameprovides:
 			pushOnIntStack(this.scanner.startPosition);
 			break;
 		case TokenNamenew :
@@ -8599,6 +9008,7 @@ public void goForHeaders(){
 		this.firstToken = TokenNameUNSIGNED_RIGHT_SHIFT;
 	}
 	this.scanner.recordLineSeparator = true; // recovery goals must record line separators
+	this.scanner.scanContext = null;
 }
 public void goForImportDeclaration(){
 	//tells the scanner to go for import declaration parsing
@@ -8625,10 +9035,13 @@ public void goForMethodBody(){
 	this.scanner.recordLineSeparator = false;
 }
 public void goForPackageDeclaration() {
+	goForPackageDeclaration(true);
+}
+public void goForPackageDeclaration(boolean recordLineSeparators) {
 	//tells the scanner to go for package declaration parsing
 
 	this.firstToken = TokenNameQUESTION;
-	this.scanner.recordLineSeparator = true;
+	this.scanner.recordLineSeparator = recordLineSeparators;
 }
 public void goForTypeDeclaration() {
 	//tells the scanner to go for type (interface or class) declaration parsing
@@ -9754,6 +10167,29 @@ public Expression parseLambdaExpression(char[] source, int offset, int length, C
 	return parseExpression(source, offset, length, unit, recordLineSeparators);
 }
 
+public char[][] parsePackageDeclaration(char[] source, CompilationResult result) {
+	initialize();
+	goForPackageDeclaration(false);
+	this.referenceContext =
+			this.compilationUnit =
+				new CompilationUnitDeclaration(
+					problemReporter(),
+					result,
+					source.length);
+	this.scanner.setSource(source);
+	try {
+		parse();
+	} catch (AbortCompilation ex) {
+		this.lastAct = ERROR_ACTION;
+	}
+
+	if (this.lastAct == ERROR_ACTION) {
+		return null;
+	}
+
+	return this.compilationUnit.currentPackage == null ? null : this.compilationUnit.currentPackage.getImportName();
+
+}
 public Expression parseExpression(char[] source, int offset, int length, CompilationUnitDeclaration unit, boolean recordLineSeparators) {
 
 	initialize();
@@ -9905,7 +10341,7 @@ protected void pushIdentifier(char [] identifier, long position) {
 	}
 	this.identifierLengthStack[this.identifierLengthPtr] = 1;
 	if (this.parsingJava8Plus && identifier.length == 1 && identifier[0] == '_' && !this.processingLambdaParameterList) {
-		problemReporter().illegalUseOfUnderscoreAsAnIdentifier((int) (position >>> 32), (int) position, false /* not a lambda parameter */);
+		problemReporter().illegalUseOfUnderscoreAsAnIdentifier((int) (position >>> 32), (int) position, this.parsingJava9Plus);
 	}
 }
 protected void pushIdentifier() {
@@ -10740,5 +11176,11 @@ public boolean automatonWillShift(int token, int lastAction) {
 		return lastAction != ERROR_ACTION;
 	}
 }
+@Override
+public boolean isParsingModuleDeclaration() {
+	// It can be a null in case of a Vanguard parser, which means no module to be dealt with.
+	return (this.parsingJava9Plus && this.compilationUnit != null && this.compilationUnit.isModuleInfo());
+}
+
 protected boolean shouldTryToRecover() { return true; } // AspectJ Extension - to be overridden
 }

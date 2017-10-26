@@ -501,11 +501,7 @@ public MethodBinding getCloneMethod(final MethodBinding originalMethod) {
 			return originalMethod.signature(); // for codeGen we need to answer the signature of j.l.Object.clone()
 		}
 	};
-	// AspectJ was:
-	// method.modifiers = originalMethod.modifiers;
-	// now:
-	method.modifiers = (originalMethod.modifiers & ~ClassFileConstants.AccProtected) | ClassFileConstants.AccPublic;
-	// End AspectJ
+	method.modifiers = originalMethod.modifiers;
 	method.selector = originalMethod.selector;
 	method.declaringClass = originalMethod.declaringClass; // cannot set array binding as declaring class, will be tweaked in CodeStream.getConstantPoolDeclaringClass()
 	method.typeVariables = Binding.NO_TYPE_VARIABLES;

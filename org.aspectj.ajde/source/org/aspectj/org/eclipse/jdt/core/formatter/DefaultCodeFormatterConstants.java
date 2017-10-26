@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -234,6 +234,17 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.6
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_METHOD_DECLARATION = JavaCore.PLUGIN_ID + ".formatter.alignment_for_method_declaration";	 //$NON-NLS-1$
+	/**
+	 * <pre>
+	 * FORMATTER / Option for alignment of module statements
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.alignment_for_module_statements"
+	 *     - possible values:   values returned by <code>createAlignmentValue(boolean, int, int)</code> call
+	 *     - default:           createAlignmentValue(false, WRAP_COMPACT, INDENT_DEFAULT)
+	 * </pre>
+	 * @see #createAlignmentValue(boolean, int, int)
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public static final String FORMATTER_ALIGNMENT_FOR_MODULE_STATEMENTS = JavaCore.PLUGIN_ID + ".formatter.alignment_for_module_statements";	 //$NON-NLS-1$
 	/**
 	 * <pre>
 	 * FORMATTER / Option for alignment of multiple fields
@@ -1064,6 +1075,17 @@ public class DefaultCodeFormatterConstants {
 	 * @since 3.1
 	 */
 	public final static String FORMATTER_COMMENT_LINE_LENGTH = "org.aspectj.org.eclipse.jdt.core.formatter.comment.line_length"; //$NON-NLS-1$
+
+	/**
+	 * <pre>
+	 * FORMATTER / Option to control whether comments' line length will be counted from their starting position
+	 *     - option id:         "org.aspectj.org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position"
+	 *     - possible values:   { TRUE, FALSE }
+	 *     - default:           TRUE
+	 * </pre>
+	 * @since 3.13
+	 */
+	public final static String FORMATTER_COMMENT_COUNT_LINE_LENGTH_FROM_STARTING_POSITION = "org.aspectj.org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position"; //$NON-NLS-1$
 
 	/**
 	 * <pre>
@@ -4378,6 +4400,7 @@ public class DefaultCodeFormatterConstants {
 	public static Map getEclipse21Settings() {
 		DefaultCodeFormatterOptions options = DefaultCodeFormatterOptions.getDefaultSettings();
 		options.page_width = 80; // changed with bug 356841
+		options.comment_count_line_length_from_starting_position = false;
 		return options.getMap();
 	}
 

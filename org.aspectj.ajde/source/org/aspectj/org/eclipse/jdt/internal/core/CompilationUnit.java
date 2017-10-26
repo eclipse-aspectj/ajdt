@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,6 +28,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.SourceElementParser;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
@@ -742,6 +747,11 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 			String typeName = memento.nextToken();
 			JavaElement type = (JavaElement)getType(typeName);
 			return type.getHandleFromMemento(memento, workingCopyOwner);
+		case JEM_MODULE:
+			if (!memento.hasMoreTokens()) return this;
+			String modName = memento.nextToken();
+			JavaElement mod = new SourceModule(this, modName);
+			return mod.getHandleFromMemento(memento, workingCopyOwner);
 	}
 	return null;
 }
@@ -1135,39 +1145,43 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 
 	// synchronize to ensure that 2 threads are not putting 2 different buffers at the same time
 	// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=146331
+	IBuffer existingBuffer;
 	synchronized(bufManager) {
-		IBuffer existingBuffer = bufManager.getBuffer(this);
-		if (existingBuffer != null)
-			return existingBuffer;
-
-		// set the buffer source
-		if (buffer.getCharacters() == null) {
-			if (isWorkingCopy) {
-				if (mustSetToOriginalContent) {
-					buffer.setContents(original.getSource());
+		existingBuffer = bufManager.getBuffer(this);
+		if (existingBuffer == null) {
+			// set the buffer source
+			if (buffer.getCharacters() == null) {
+				if (isWorkingCopy) {
+					if (mustSetToOriginalContent) {
+						buffer.setContents(original.getSource());
+					} else {
+						IFile file = (IFile)getResource();
+						if (file == null || !file.exists()) {
+							// initialize buffer with empty contents
+							buffer.setContents(CharOperation.NO_CHAR);
+						} else {
+							buffer.setContents(Util.getResourceContentsAsCharArray(file));
+						}
+					}
 				} else {
 					IFile file = (IFile)getResource();
-					if (file == null || !file.exists()) {
-						// initialize buffer with empty contents
-						buffer.setContents(CharOperation.NO_CHAR);
-					} else {
-						buffer.setContents(Util.getResourceContentsAsCharArray(file));
-					}
+					if (file == null || !file.exists()) throw newNotPresentException();
+					buffer.setContents(Util.getResourceContentsAsCharArray(file));
 				}
-			} else {
-				IFile file = (IFile)getResource();
-				if (file == null || !file.exists()) throw newNotPresentException();
-				buffer.setContents(Util.getResourceContentsAsCharArray(file));
 			}
+	
+			// add buffer to buffer cache
+			// note this may cause existing buffers to be removed from the buffer cache, but only primary compilation unit's buffer
+			// can be closed, thus no call to a client's IBuffer#close() can be done in this synchronized block.
+			bufManager.addBuffer(buffer);
+	
+			// listen to buffer changes
+			buffer.addBufferChangedListener(this);
 		}
-
-		// add buffer to buffer cache
-		// note this may cause existing buffers to be removed from the buffer cache, but only primary compilation unit's buffer
-		// can be closed, thus no call to a client's IBuffer#close() can be done in this synchronized block.
-		bufManager.addBuffer(buffer);
-
-		// listen to buffer changes
-		buffer.addBufferChangedListener(this);
+	}
+	if(existingBuffer != null) {
+		buffer.close();
+		return existingBuffer;
 	}
 	return buffer;
 }
@@ -1347,6 +1361,31 @@ protected IStatus validateExistence(IResource underlyingResource) {
 }
 
 public ISourceRange getNameRange() {
+	return null;
+}
+
+
+@Override
+public IModuleDescription getModule() throws JavaModelException {
+	if (TypeConstants.MODULE_INFO_FILE_NAME_STRING.equals(getElementName()))
+		return ((CompilationUnitElementInfo) getElementInfo()).getModule();
+	return null;
+}
+
+@Override
+public char[] getModuleName() {
+	try {
+		IModuleDescription module = getModule();
+		if (module == null) {
+			JavaProject project = (JavaProject) getAncestor(IJavaElement.JAVA_PROJECT);
+			module = project.getModuleDescription();
+		}
+		if (module != null)
+			return module.getElementName().toCharArray();
+	} catch (JavaModelException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 	return null;
 }
 }

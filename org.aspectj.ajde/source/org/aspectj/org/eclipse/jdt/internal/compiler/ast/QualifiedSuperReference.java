@@ -1,3 +1,4 @@
+// ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -17,12 +18,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.*;
 
 public class QualifiedSuperReference extends QualifiedThisReference {
 
@@ -89,19 +85,8 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, Bl
 				// keep looking to ensure we always find the referenced type (even if illegal) 
 			}
 		}
-		if (!isLegal) {// || !isJava8) {
-			// AspectJ
-//			if (isJava8) {
-//				// Allowed inside ITDs
-//				Scope s = scope;
-//				boolean isOK = false;
-//				while (s!=null) {
-//					if (s instanceof InterTypeScope)
-//					s = s.parent;
-//				}
-//				break;
-//			}
-			// End AspectJ
+		// AspectJ
+		if (!isLegal || (!isJava8 && !isWithinInterTypeScope(scope))) {
 			this.currentCompatibleType = null;
 			// Please note the slightly unconventional use of the ProblemReferenceBinding:
 			// we use the problem's compoundName to report the type being illegally bypassed,
@@ -117,6 +102,24 @@ int findCompatibleEnclosing(ReferenceBinding enclosingType, TypeBinding type, Bl
 	}
 	return super.findCompatibleEnclosing(enclosingType, type, scope);
 }
+
+// AspectJ - start
+/**
+ * @param scope the scope to check
+ * @return true if the specified scope is nested within an inter type declaration scope
+ */
+private boolean isWithinInterTypeScope(Scope scope) {
+	Scope s = scope;
+	while (s != null) {
+		if (s.isInterTypeScope()) {
+			return true;
+		}
+		s = s.parent;
+	}
+	return false;
+}
+//AspectJ - end
+
 
 public void traverse(
 	ASTVisitor visitor,

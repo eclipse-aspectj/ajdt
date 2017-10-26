@@ -1,9 +1,14 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -35,8 +41,10 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.FileSystem.Classpath;
 import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -45,7 +53,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class Util implements SuffixConstants {
 
 	/**
@@ -232,6 +239,10 @@ public class Util implements SuffixConstants {
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator"); //$NON-NLS-1$
 
 	public static final String EMPTY_STRING = new String(CharOperation.NO_CHAR);
+	/**
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public static final String COMMA_SEPARATOR = new String(CharOperation.COMMA_SEPARATOR);
 	public static final int[] EMPTY_INT_ARRAY= new int[0];
 
 	/**
@@ -742,6 +753,51 @@ public class Util implements SuffixConstants {
 		}
 		return true; // it is neither a ".java" file nor a ".class" file, so this is a potential archive name
 	}
+	
+	public static final int ZIP_FILE = 0;
+	public static final int JMOD_FILE = 1;
+	
+	/**
+	 * Returns the kind of archive this file is. The format is one of
+	 * #ZIP_FILE or {@link #JMOD_FILE}
+	 */
+	public final static int archiveFormat(String name) {
+		int lastDot = name.lastIndexOf('.');
+		if (lastDot == -1)
+			return -1; // no file extension, it cannot be a zip archive name
+		if (name.lastIndexOf(File.separatorChar) > lastDot)
+			return -1; // dot was before the last file separator, it cannot be a zip archive name
+		int length = name.length();
+		int extensionLength = length - lastDot - 1;
+		
+		if (extensionLength == EXTENSION_java.length()) {
+			for (int i = extensionLength-1; i >=0; i--) {
+				if (Character.toLowerCase(name.charAt(length - extensionLength + i)) != EXTENSION_java.charAt(i)) {
+					break; // not a ".java" file, check ".class" file case below
+				}
+				if (i == 0) {
+					return -1; // it is a ".java" file, it cannot be a zip archive name
+				}
+			}
+		}
+		if (extensionLength == EXTENSION_class.length()) {
+			for (int i = extensionLength-1; i >=0; i--) {
+				if (Character.toLowerCase(name.charAt(length - extensionLength + i)) != EXTENSION_class.charAt(i)) {
+					return ZIP_FILE; // not a ".class" file, so this is a potential archive name
+				}
+			}
+			return -1; // it is a ".class" file, it cannot be a zip archive name
+		}
+		if (extensionLength == EXTENSION_jmod.length()) {
+			for (int i = extensionLength-1; i >=0; i--) {
+				if (Character.toLowerCase(name.charAt(length - extensionLength + i)) != EXTENSION_jmod.charAt(i)) {
+					return ZIP_FILE; // not a ".jmod" file, so this is a potential archive name
+				}
+			}
+			return JMOD_FILE;
+		}
+		return ZIP_FILE; // it is neither a ".java" file nor a ".class" file, so this is a potential archive name
+	}
 
 	/**
 	 * Returns true iff str.toLowerCase().endsWith(".class")
@@ -865,6 +921,14 @@ public class Util implements SuffixConstants {
 		return true;
 	}
 	// End AspectJ Extension
+
+	/**
+	 * Returns true iff str.toLowerCase().endsWith("jrt-fs.jar")
+	 * implementation is not creating extra strings.
+	 */
+	public final static boolean isJrt(String name) {
+		return name.endsWith(JRTUtil.JRT_FS_JAR);
+	}
 
 	public static void reverseQuickSort(char[][] list, int left, int right) {
 		int original_left= left;
@@ -1022,6 +1086,7 @@ public class Util implements SuffixConstants {
 			output.close();
 		}
 	}
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void recordNestedType(ClassFile classFile, TypeBinding typeBinding) {
 		if (classFile.visitedTypes == null) {
 			classFile.visitedTypes = new HashSet(3);
@@ -1108,24 +1173,42 @@ public class Util implements SuffixConstants {
 		return null;
 	}
 
-	public static void collectRunningVMBootclasspath(List bootclasspaths) {
-		for (String filePath : collectFilesNames()) {
-			FileSystem.Classpath currentClasspath = FileSystem.getClasspath(filePath, null, null, null);
-			if (currentClasspath != null) {
-				bootclasspaths.add(currentClasspath);
-			}
-		}
+	public static void collectVMBootclasspath(List<Classpath> bootclasspaths, File javaHome) {
+		List<Classpath> classpaths = collectPlatformLibraries(javaHome);
+		bootclasspaths.addAll(classpaths);
 	}
-
-	public static List<String> collectFilesNames() {
+	public static void collectRunningVMBootclasspath(List<Classpath> bootclasspaths) {
+		collectVMBootclasspath(bootclasspaths, null);
+			}
+	public static long getJDKLevel(File javaHome) {
+		String version = System.getProperty("java.version"); //$NON-NLS-1$
+		return CompilerOptions.versionToJdkLevel(version);
+		}
+	public static List<FileSystem.Classpath> collectFilesNames() {
+		return collectPlatformLibraries(null);
+	}
+	public static List<FileSystem.Classpath> collectPlatformLibraries(File javaHome) {
 		/* no bootclasspath specified
 		 * we can try to retrieve the default librairies of the VM used to run
 		 * the batch compiler
 		 */
-		String javaversion = System.getProperty("java.version");//$NON-NLS-1$
+		String javaversion = null;
+		javaversion = System.getProperty("java.version"); //$NON-NLS-1$
+		// Surely, this ain't required anymore?
 		if (javaversion != null && javaversion.equalsIgnoreCase("1.1.8")) { //$NON-NLS-1$
 			throw new IllegalStateException();
 		}
+		long jdkLevel = CompilerOptions.versionToJdkLevel(javaversion);
+			if (jdkLevel >= ClassFileConstants.JDK9) {
+			List<FileSystem.Classpath> filePaths = new ArrayList<>();
+			if (javaHome == null) {
+				javaHome = getJavaHome();
+			}
+				if (javaHome != null) {
+				filePaths.add(FileSystem.getJrtClasspath(javaHome.getAbsolutePath(), null, null, null));
+					return filePaths;
+				}
+			}
 
 		/*
 		 * Handle >= JDK 1.2.2 settings: retrieve the bootclasspath
@@ -1140,7 +1223,7 @@ public class Util implements SuffixConstants {
 				bootclasspathProperty = System.getProperty("org.apache.harmony.boot.class.path"); //$NON-NLS-1$
 			}
 		}
-		List<String> filePaths = new ArrayList<>();
+		Set<String> filePaths = new HashSet<>();
 		if ((bootclasspathProperty != null) && (bootclasspathProperty.length() != 0)) {
 			StringTokenizer tokenizer = new StringTokenizer(bootclasspathProperty, File.pathSeparator);
 			while (tokenizer.hasMoreTokens()) {
@@ -1148,7 +1231,9 @@ public class Util implements SuffixConstants {
 			}
 		} else {
 			// try to get all jars inside the lib folder of the java home
-			final File javaHome = getJavaHome();
+			if (javaHome == null) {
+				javaHome = getJavaHome();
+			}
 			if (javaHome != null) {
 				File[] directoriesToCheck = null;
 				if (System.getProperty("os.name").startsWith("Mac")) {//$NON-NLS-1$//$NON-NLS-2$
@@ -1174,7 +1259,14 @@ public class Util implements SuffixConstants {
 				}
 			}
 		}
-		return filePaths;
+		List<FileSystem.Classpath> classpaths = new ArrayList<>();
+		for (String filePath : filePaths) {
+			FileSystem.Classpath currentClasspath = FileSystem.getClasspath(filePath, null, null, null);
+			if (currentClasspath != null) {
+				classpaths.add(currentClasspath);
+			}
+		}
+		return classpaths;
 	}
 	public static int getParameterCount(char[] methodSignature) {
 		try {
@@ -1643,5 +1735,4 @@ public class Util implements SuffixConstants {
 				}
 		}
 	}
-
 }

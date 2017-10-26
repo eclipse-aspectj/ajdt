@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -299,6 +303,33 @@ private void enterInterface(TypeInfo typeInfo) {
 	addDefaultConstructorIfNecessary(typeInfo);
 	pushTypeName(typeInfo.name);
 }
+
+public void enterModule(ModuleInfo moduleInfo) {
+	this.indexer.addModuleDeclaration(moduleInfo.moduleName);
+	if (moduleInfo.requires != null) {
+		for (ISourceElementRequestor.RequiresInfo req : moduleInfo.requires) {
+			if (req == null || req.moduleName == null || req.moduleName.equals(CharOperation.NO_CHAR)) continue;
+			this.indexer.addModuleReference(req.moduleName);
+		}
+	}
+	enterPackageVisibilityInfo(moduleInfo.exports);
+	enterPackageVisibilityInfo(moduleInfo.opens); 
+	/* note: provides and uses directives processed automatically on IParser (SEParser) */
+}
+private void enterPackageVisibilityInfo(ISourceElementRequestor.PackageExportInfo[] packInfos) {
+	if (packInfos == null)
+		return;
+	for (ISourceElementRequestor.PackageExportInfo packInfo : packInfos) {
+		if (packInfo == null || packInfo.pkgName == null || packInfo.pkgName.equals(CharOperation.NO_CHAR)) continue;
+		this.indexer.addModuleExportedPackages(packInfo.pkgName);
+		char[][] tgts = packInfo.targets;
+		if (tgts == null || tgts.equals(CharOperation.NO_CHAR_CHAR)) continue;
+		for (char[] tgt : tgts) {
+			if (tgt != null && !tgt.equals(CharOperation.NO_CHAR)) 
+				this.indexer.addModuleReference(tgt);
+		}
+	}
+}
 /**
  * @see ISourceElementRequestor#enterMethod(ISourceElementRequestor.MethodInfo)
  */
@@ -306,7 +337,10 @@ public void enterMethod(MethodInfo methodInfo) {
 	this.indexer.addMethodDeclaration(methodInfo.name, methodInfo.parameterTypes, methodInfo.returnType, methodInfo.exceptionTypes);
 	int argCount = methodInfo.parameterTypes == null ? 0 : methodInfo.parameterTypes.length;
 	char[] typeName = methodInfo.enclosingType != null ? methodInfo.enclosingType.name : null;
-	if (typeName == null || typeName.length == 0) return;
+	if (typeName == null || typeName.length == 0)  {
+		this.methodDepth++;
+		return;
+	}
 	this.indexer.addMethodDeclaration(
 			typeName,
 			getDeclaringQualification(methodInfo.enclosingType),

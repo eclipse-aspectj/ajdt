@@ -1,9 +1,14 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,6 +59,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
@@ -71,6 +77,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
@@ -102,7 +109,7 @@ public class SourceTypeBinding extends ReferenceBinding {
 	public ClassScope scope;
 	protected SourceTypeBinding prototype;
 	LookupEnvironment environment;
-
+	public ModuleBinding module;
 	// Synthetics are separated into 4 categories: methods, super methods, fields, class literals and bridge methods
 	// if a new category is added, also increment MAX_SYNTHETICS
 	private final static int METHOD_EMUL = 0;
@@ -118,7 +125,6 @@ public class SourceTypeBinding extends ReferenceBinding {
 
 	public int defaultNullness;
 	private int nullnessDefaultInitialized = 0; // 0: nothing; 1: type; 2: package
-	private int lambdaOrdinal = 0;
 	private ReferenceBinding containerAnnotationType = null;
   // AspectJ Extension
   // for AspectJ... (because we extend this type with BinaryTypeBinding)
@@ -168,7 +174,6 @@ public SourceTypeBinding(SourceTypeBinding prototype) {
 	this.storedAnnotations = prototype.storedAnnotations;
 	this.defaultNullness = prototype.defaultNullness;
 	this.nullnessDefaultInitialized= prototype.nullnessDefaultInitialized;
-	this.lambdaOrdinal = prototype.lambdaOrdinal;
 	this.containerAnnotationType = prototype.containerAnnotationType;
 	this.tagBits |= TagBits.HasUnresolvedMemberTypes; // see memberTypes()
 }
@@ -653,7 +658,7 @@ public SyntheticMethodBinding addSyntheticMethod(LambdaExpression lambda) {
 	SyntheticMethodBinding lambdaMethod = null;
 	SyntheticMethodBinding[] lambdaMethods = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(lambda);
 	if (lambdaMethods == null) {
-		lambdaMethod = new SyntheticMethodBinding(lambda, CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.lambdaOrdinal++).toCharArray()), this);
+		lambdaMethod = new SyntheticMethodBinding(lambda, CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(lambda.ordinal).toCharArray()), this);
 		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(lambda, lambdaMethods = new SyntheticMethodBinding[1]);
 		lambdaMethods[0] = lambdaMethod;
 	} else {
@@ -737,7 +742,7 @@ public SyntheticMethodBinding addSyntheticMethod(MethodBinding targetMethod, boo
 	}
 	return accessMethod;
 }
-public SyntheticMethodBinding addSyntheticArrayMethod(ArrayBinding arrayType, int purpose) {
+public SyntheticMethodBinding addSyntheticArrayMethod(ArrayBinding arrayType, int purpose, char[] selector) {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.synthetics == null)
 		this.synthetics = new HashMap[MAX_SYNTHETICS];
@@ -747,27 +752,24 @@ public SyntheticMethodBinding addSyntheticArrayMethod(ArrayBinding arrayType, in
 	SyntheticMethodBinding arrayMethod = null;
 	SyntheticMethodBinding[] arrayMethods = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(arrayType);
 	if (arrayMethods == null) {
-		char [] selector = CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.lambdaOrdinal++).toCharArray());
 		arrayMethod = new SyntheticMethodBinding(purpose, arrayType, selector, this);
 		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(arrayType, arrayMethods = new SyntheticMethodBinding[2]);
 		arrayMethods[purpose == SyntheticMethodBinding.ArrayConstructor ? 0 : 1] = arrayMethod;
 	} else {
 		if ((arrayMethod = arrayMethods[purpose == SyntheticMethodBinding.ArrayConstructor ? 0 : 1]) == null) {
-			char [] selector = CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.lambdaOrdinal++).toCharArray());
 			arrayMethod = new SyntheticMethodBinding(purpose, arrayType, selector, this);
 			arrayMethods[purpose == SyntheticMethodBinding.ArrayConstructor ? 0 : 1] = arrayMethod;
 		}
 	}
 	return arrayMethod;
 }
-public SyntheticMethodBinding addSyntheticFactoryMethod(MethodBinding privateConstructor, MethodBinding publicConstructor, TypeBinding [] enclosingInstances) {
+public SyntheticMethodBinding addSyntheticFactoryMethod(MethodBinding privateConstructor, MethodBinding publicConstructor, TypeBinding [] enclosingInstances, char[] selector) {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.synthetics == null)
 		this.synthetics = new HashMap[MAX_SYNTHETICS];
 	if (this.synthetics[SourceTypeBinding.METHOD_EMUL] == null)
 		this.synthetics[SourceTypeBinding.METHOD_EMUL] = new HashMap(5);
 
-	char [] selector = CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.lambdaOrdinal++).toCharArray());
 	SyntheticMethodBinding factory = new SyntheticMethodBinding(privateConstructor, publicConstructor, selector, enclosingInstances, this);
 	this.synthetics[SourceTypeBinding.METHOD_EMUL].put(selector, new SyntheticMethodBinding[] { factory });
 	return factory;
@@ -932,8 +934,10 @@ private void checkAnnotationsInType() {
 	// check @Deprecated annotation
 	getAnnotationTagBits(); // marks as deprecated by side effect
 	ReferenceBinding enclosingType = enclosingType();
-	if (enclosingType != null && enclosingType.isViewedAsDeprecated() && !isDeprecated())
+	if (enclosingType != null && enclosingType.isViewedAsDeprecated() && !isDeprecated()) {
 		this.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+		this.tagBits |= (enclosingType.tagBits & TagBits.AnnotationTerminallyDeprecated);
+	}
 
 	for (int i = 0, length = this.memberTypes.length; i < length; i++)
 		((SourceTypeBinding) this.memberTypes[i]).checkAnnotationsInType();
@@ -1551,7 +1555,13 @@ public boolean isRepeatableAnnotationType() {
 public boolean isTaggedRepeatable() {  // tagged but not necessarily repeatable. see isRepeatableAnnotationType.
 	return (this.tagBits & TagBits.AnnotationRepeatable) != 0;
 }
-
+public boolean canBeSeenBy(Scope sco) {
+	SourceTypeBinding invocationType = sco.enclosingSourceType();
+	if (TypeBinding.equalsEquals(invocationType, this)) 
+		return true;
+	return ((this.environment.canTypeBeAccessed(this, sco)) &&
+			super.canBeSeenBy(sco));
+}
 public ReferenceBinding[] memberTypes() {
 	if (!isPrototype()) {
 		if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) == 0)
@@ -1830,8 +1840,10 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 		if ((field.getAnnotationTagBits() & TagBits.AnnotationDeprecated) != 0)
 			field.modifiers |= ClassFileConstants.AccDeprecated;
 	}
-	if (isViewedAsDeprecated() && !field.isDeprecated())
+	if (isViewedAsDeprecated() && !field.isDeprecated()) {
 		field.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+		field.tagBits |= this.tagBits & TagBits.AnnotationTerminallyDeprecated;
+	}
 	if (hasRestrictedAccess())
 		field.modifiers |= ExtraCompilerModifiers.AccRestrictedAccess;
 	FieldDeclaration[] fieldDecls = this.scope.referenceContext.fields;
@@ -1890,7 +1902,7 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 					// enum constants neither have a type declaration nor can they be null
 					field.tagBits |= TagBits.AnnotationNonNull;
 				} else {
-					if (hasNonNullDefaultFor(DefaultLocationField, this.environment.usesNullTypeAnnotations())) {
+					if (hasNonNullDefaultFor(DefaultLocationField, this.environment.usesNullTypeAnnotations(), fieldDecl.sourceStart)) {
 						field.fillInDefaultNonNullness(fieldDecl, initializationScope);
 					}
 					// validate null annotation:
@@ -1898,6 +1910,8 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 						field.tagBits &= ~TagBits.AnnotationNullMASK;
 				}
 			}
+			if (initializationScope.shouldCheckAPILeaks(this, field.isPublic()) && fieldDecl.type != null) // fieldDecl.type is null for enum constants
+				initializationScope.detectAPILeaks(fieldDecl.type, fieldType);
 		} finally {
 		    initializationScope.initializedField = previousField;
 		}
@@ -1909,7 +1923,16 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 	return null; // should never reach this point
 }
 public MethodBinding resolveTypesFor(MethodBinding method) {
+	ProblemReporter problemReporter = this.scope.problemReporter();
+	IErrorHandlingPolicy suspendedPolicy = problemReporter.suspendTempErrorHandlingPolicy();
+	try {
+		return resolveTypesWithSuspendedTempErrorHandlingPolicy(method);
+	} finally {
+		problemReporter.resumeTempErrorHandlingPolicy(suspendedPolicy);
+	}
+}
 	
+private MethodBinding resolveTypesWithSuspendedTempErrorHandlingPolicy(MethodBinding method) {
 	if (!isPrototype())
 		return this.prototype.resolveTypesFor(method);
 	
@@ -1926,8 +1949,10 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 		if ((method.getAnnotationTagBits() & TagBits.AnnotationDeprecated) != 0)
 			method.modifiers |= ClassFileConstants.AccDeprecated;
 	}
-	if (isViewedAsDeprecated() && !method.isDeprecated())
+	if (isViewedAsDeprecated() && !method.isDeprecated()) {
 		method.modifiers |= ExtraCompilerModifiers.AccDeprecatedImplicitly;
+		method.tagBits |= this.tagBits & TagBits.AnnotationTerminallyDeprecated;
+	}
 	if (hasRestrictedAccess())
 		method.modifiers |= ExtraCompilerModifiers.AccRestrictedAccess;
 
@@ -1982,6 +2007,7 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 	}
 	final boolean reportUnavoidableGenericTypeProblems = this.scope.compilerOptions().reportUnavoidableGenericTypeProblems;
 	boolean foundArgProblem = false;
+	boolean checkAPIleak = methodDecl.scope.shouldCheckAPILeaks(this, method.isPublic());
 	Argument[] arguments = methodDecl.arguments;
 	if (arguments != null) {
 		int size = arguments.length;
@@ -2019,6 +2045,8 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 				if (leafType instanceof ReferenceBinding && (((ReferenceBinding) leafType).modifiers & ExtraCompilerModifiers.AccGenericSignature) != 0)
 					method.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 				newParameters[i] = parameterType;
+				if (checkAPIleak)
+					methodDecl.scope.detectAPILeaks(arg.type, parameterType);
 				arg.binding = new LocalVariableBinding(arg, parameterType, arg.modifiers, methodDecl.scope);
 			}
 		}
@@ -2033,7 +2061,8 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 		if ((method.tagBits & TagBits.AnnotationSafeVarargs) != 0) {
 			if (!method.isVarargs()) {
 				methodDecl.scope.problemReporter().safeVarargsOnFixedArityMethod(method);
-			} else if (!method.isStatic() && !method.isFinal() && !method.isConstructor()) {
+			} else if (!method.isStatic() && !method.isFinal() && !method.isConstructor() 
+					&& !(sourceLevel >= ClassFileConstants.JDK9 && method.isPrivate())) {
 				methodDecl.scope.problemReporter().safeVarargsOnNonFinalInstanceMethod(method);
 			}
 		} else if (method.parameters != null && method.parameters.length > 0 && method.isVarargs()) { // https://bugs.eclipse.org/bugs/show_bug.cgi?id=337795
@@ -2085,6 +2114,8 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 					method.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 				else if (leafType == TypeBinding.VOID && methodDecl.annotations != null)
 					rejectTypeAnnotatedVoidMethod(methodDecl);
+				if (checkAPIleak)
+					methodDecl.scope.detectAPILeaks(returnType, methodType);
 			}
 		}
 	} else {
@@ -2092,7 +2123,7 @@ public MethodBinding resolveTypesFor(MethodBinding method) {
 			Annotation [] annotations = methodDecl.annotations;
 			if (annotations != null && annotations.length != 0) {
 				ASTNode.copySE8AnnotationsToType(methodDecl.scope, method, methodDecl.annotations, false);
-	}
+			}
 		}
 	}
 	if (foundArgProblem) {
@@ -2167,8 +2198,9 @@ private void createArgumentBindings(MethodBinding method, CompilerOptions compil
 public void evaluateNullAnnotations() {
 	
 	if (!isPrototype()) throw new IllegalStateException();
+	
 	// AspectJ added guard for null scope (happens for aspects in the 'BcelWorld.hasUnsatisfiedDependency' chain call
-	if (this.nullnessDefaultInitialized > 0 || this.scope==null || !this.scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled)
+	if (this.nullnessDefaultInitialized > 0 || this.scope == null || !this.scope.compilerOptions().isAnnotationBasedNullAnalysisEnabled)
 		return;
 
 	if ((this.tagBits & TagBits.AnnotationNullMASK) != 0) {
@@ -2190,7 +2222,7 @@ public void evaluateNullAnnotations() {
 	if (!isPackageInfo) {
 		boolean isInNullnessAnnotationPackage = this.scope.environment().isNullnessAnnotationPackage(pkg);
 		if (pkg.defaultNullness == NO_NULL_DEFAULT && !isInDefaultPkg && !isInNullnessAnnotationPackage && !(this instanceof NestedTypeBinding)) {
-			ReferenceBinding packageInfo = pkg.getType(TypeConstants.PACKAGE_INFO_NAME);
+			ReferenceBinding packageInfo = pkg.getType(TypeConstants.PACKAGE_INFO_NAME, this.module);
 			if (packageInfo == null) {
 				// no pkgInfo - complain
 				this.scope.problemReporter().missingNonNullByDefaultAnnotation(this.scope.referenceContext);
@@ -2221,7 +2253,10 @@ public void evaluateNullAnnotations() {
 				pkg.defaultNullness = this.defaultNullness;
 			} else {
 				TypeDeclaration typeDecl = this.scope.referenceContext;
-				checkRedundantNullnessDefaultRecurse(typeDecl, typeDecl.annotations, this.defaultNullness, true);
+				Binding target = this.scope.parent.checkRedundantDefaultNullness(this.defaultNullness, typeDecl.declarationSourceStart);
+				if(target != null) {
+					this.scope.problemReporter().nullDefaultAnnotationIsRedundant(typeDecl, typeDecl.annotations, target);
+				}
 			}
 		} else if (isPackageInfo || (isInDefaultPkg && !(this instanceof NestedTypeBinding))) {
 			this.scope.problemReporter().missingNonNullByDefaultAnnotation(this.scope.referenceContext);
@@ -2243,7 +2278,7 @@ public void evaluateNullAnnotations() {
 				newDefaultNullness = NULL_UNSPECIFIED_BY_DEFAULT;
 			} else {
 				annotationTagBits = TagBits.AnnotationNonNullByDefault;
-			newDefaultNullness = NONNULL_BY_DEFAULT;
+				newDefaultNullness = NONNULL_BY_DEFAULT;
 			}
 		}
 		if (newDefaultNullness != NO_NULL_DEFAULT) {
@@ -2265,10 +2300,10 @@ public void evaluateNullAnnotations() {
 }
 
 private void maybeMarkTypeParametersNonNull() {
-	// when creating type variables we didn't yet have the defaultNullness, fill it in now:
-	if (this.scope == null || !this.scope.hasDefaultNullnessFor(DefaultLocationTypeParameter))
-		return;
 	if (this.typeVariables != null && this.typeVariables.length > 0) {
+	// when creating type variables we didn't yet have the defaultNullness, fill it in now:
+		if (this.scope == null || !this.scope.hasDefaultNullnessFor(DefaultLocationTypeParameter, this.sourceStart()))
+		return;
 		AnnotationBinding[] annots = new AnnotationBinding[]{ this.environment.getNonNullAnnotation() };
 		for (int i = 0; i < this.typeVariables.length; i++) {
 			TypeVariableBinding tvb = this.typeVariables[i];
@@ -2321,7 +2356,8 @@ protected boolean checkRedundantNullnessDefaultOne(ASTNode location, Annotation[
 	return true;
 }
 
-boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations) {
+@Override
+boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations, int sourceStart) {
 	
 	if (!isPrototype()) throw new IllegalStateException();
 	
@@ -2330,7 +2366,10 @@ boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations) {
 		if (this.scope == null) {
 			return (this.defaultNullness & location) != 0;
 		}
-		return this.scope.hasDefaultNullnessFor(location);
+		Scope skope = this.scope.referenceContext.initializerScope; // for @NNBD on a field
+		if (skope == null)
+			skope = this.scope;
+		return skope.hasDefaultNullnessFor(location, sourceStart);
 	}
 
 	// find the applicable default inside->out:
@@ -2741,6 +2780,12 @@ public void tagIndirectlyAccessibleMembers() {
 		if (this.superclass instanceof SourceTypeBinding)  // should always be true because private super type can only be accessed in same CU
 			((SourceTypeBinding) this.superclass).tagIndirectlyAccessibleMembers();
 }
+public ModuleBinding module() {
+	if (!isPrototype())
+		return this.prototype.module;
+	return this.module;
+}
+
 //AspectJ Extension
 public void addField(FieldBinding binding) {
    if (fields == null) {

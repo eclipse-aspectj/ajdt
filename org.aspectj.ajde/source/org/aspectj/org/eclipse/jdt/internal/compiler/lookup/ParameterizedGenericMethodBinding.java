@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,10 +61,8 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	public static MethodBinding computeCompatibleMethod(MethodBinding originalMethod, TypeBinding[] arguments, Scope scope,	InvocationSite invocationSite)
 	{
 		LookupEnvironment environment = scope.environment();
-		if ((originalMethod.tagBits & TagBits.IsNullnessKnown) == 0) {
-			// ensure nullness of originalMethod is known (but we are not interested in reporting problems against originalMethod)
-			new ImplicitNullAnnotationVerifier(environment, environment.globalOptions.inheritNullAnnotations)
-					.checkImplicitNullAnnotations(originalMethod, null/*srcMethod*/, false, scope);
+		if(environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
+			ImplicitNullAnnotationVerifier.ensureNullnessIsKnown(originalMethod, scope);
 		}
 		ParameterizedGenericMethodBinding methodSubstitute;
 		TypeVariableBinding[] typeVariables = originalMethod.typeVariables;
@@ -88,33 +86,33 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 			CompilerOptions compilerOptions = scope.compilerOptions();
 			if (compilerOptions.sourceLevel >= ClassFileConstants.JDK1_8)
 				return computeCompatibleMethod18(originalMethod, arguments, scope, invocationSite);
-							
+
 			// 1.7- only.
-				inferenceContext = new InferenceContext(originalMethod);
-				methodSubstitute = inferFromArgumentTypes(scope, originalMethod, arguments, parameters, inferenceContext);
+			inferenceContext = new InferenceContext(originalMethod);
+			methodSubstitute = inferFromArgumentTypes(scope, originalMethod, arguments, parameters, inferenceContext);
+			if (methodSubstitute == null)
+				return null;
+
+			// substitutes may hold null to denote unresolved vars, but null arguments got replaced with respective original variable in param method
+			// 15.12.2.8 - inferring unresolved type arguments
+			if (inferenceContext.hasUnresolvedTypeArgument()) {
+				if (inferenceContext.isUnchecked) { // only remember unchecked status post 15.12.2.7
+					int length = inferenceContext.substitutes.length;
+					System.arraycopy(inferenceContext.substitutes, 0, uncheckedArguments = new TypeBinding[length], 0, length);
+				}
+				if (methodSubstitute.returnType != TypeBinding.VOID) {
+					TypeBinding expectedType = invocationSite.invocationTargetType();
+					if (expectedType != null) {
+						// record it was explicit from context, as opposed to assumed by default (see below)
+						inferenceContext.hasExplicitExpectedType = true;
+					} else {
+						expectedType = scope.getJavaLangObject(); // assume Object by default
+					}
+					inferenceContext.expectedType = expectedType;
+				}
+				methodSubstitute = methodSubstitute.inferFromExpectedType(scope, inferenceContext);
 				if (methodSubstitute == null)
 					return null;
-				
-				// substitutes may hold null to denote unresolved vars, but null arguments got replaced with respective original variable in param method
-				// 15.12.2.8 - inferring unresolved type arguments
-				if (inferenceContext.hasUnresolvedTypeArgument()) {
-					if (inferenceContext.isUnchecked) { // only remember unchecked status post 15.12.2.7
-						int length = inferenceContext.substitutes.length;
-						System.arraycopy(inferenceContext.substitutes, 0, uncheckedArguments = new TypeBinding[length], 0, length);
-					}
-					if (methodSubstitute.returnType != TypeBinding.VOID) {
-						TypeBinding expectedType = invocationSite.invocationTargetType();
-						if (expectedType != null) {
-							// record it was explicit from context, as opposed to assumed by default (see below)
-							inferenceContext.hasExplicitExpectedType = true;
-						} else {
-							expectedType = scope.getJavaLangObject(); // assume Object by default
-						}
-						inferenceContext.expectedType = expectedType;
-					}
-					methodSubstitute = methodSubstitute.inferFromExpectedType(scope, inferenceContext);
-					if (methodSubstitute == null)
-						return null;
 			} else if (compilerOptions.sourceLevel == ClassFileConstants.JDK1_7) {
 				// bug 425203 - consider additional constraints to conform to buggy javac behavior
 				if (methodSubstitute.returnType != TypeBinding.VOID) {
@@ -213,12 +211,14 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 		CompilerOptions compilerOptions = scope.compilerOptions();
 		boolean invocationTypeInferred = false;
 		boolean requireBoxing = false;
+		boolean allArgumentsAreProper = true;
 		
 		// See if we should start in loose inference mode.
 		TypeBinding [] argumentsCopy = new TypeBinding[arguments.length];
 		for (int i = 0, length = arguments.length, parametersLength = parameters.length ; i < length; i++) {
 			TypeBinding parameter = i < parametersLength ? parameters[i] : parameters[parametersLength - 1];
 			final TypeBinding argument = arguments[i];
+			allArgumentsAreProper &= argument.isProperType(true);
 			if (argument.isPrimitiveType() != parameter.isPrimitiveType()) { // Scope.cCM incorrectly but harmlessly uses isBaseType which answers true for null.
 				argumentsCopy[i] = scope.environment().computeBoxingType(argument);
 				requireBoxing = true; // can't be strict mode, needs at least loose.
@@ -264,7 +264,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 				// ---- 18.5.2 (Invocation type): ----
 				provisionalResult = result;
 				result = infCtx18.inferInvocationType(expectedType, invocationSite, originalMethod);
-				invocationTypeInferred = true;
+				invocationTypeInferred = infCtx18.stepCompleted == InferenceContext18.TYPE_INFERRED_FINAL;
 				hasReturnProblem |= result == null;
 				if (hasReturnProblem)
 					result = provisionalResult; // let's prefer a type error regarding the return type over reporting no match at all
@@ -274,30 +274,32 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 				TypeBinding[] solutions = infCtx18.getSolutions(typeVariables, invocationSite, result);
 				if (solutions != null) {
 					methodSubstitute = scope.environment().createParameterizedGenericMethod(originalMethod, solutions, infCtx18.usesUncheckedConversion, hasReturnProblem);
-					if (invocationSite instanceof Invocation)
+					if (invocationSite instanceof Invocation && allArgumentsAreProper)
 						infCtx18.forwardResults(result, (Invocation) invocationSite, methodSubstitute, expectedType);
 					try {
-					if (hasReturnProblem) { // illegally working from the provisional result?
-						MethodBinding problemMethod = infCtx18.getReturnProblemMethodIfNeeded(expectedType, methodSubstitute);
-						if (problemMethod instanceof ProblemMethodBinding) {
-							return problemMethod;
+						if (hasReturnProblem) { // illegally working from the provisional result?
+							MethodBinding problemMethod = infCtx18.getReturnProblemMethodIfNeeded(expectedType, methodSubstitute);
+							if (problemMethod instanceof ProblemMethodBinding) {
+								return problemMethod;
+							}
 						}
-					}
-					if (invocationTypeInferred) {
-						if (compilerOptions.isAnnotationBasedNullAnalysisEnabled)
-							NullAnnotationMatching.checkForContradictions(methodSubstitute, invocationSite, scope);
+						if (invocationTypeInferred) {
+							if (compilerOptions.isAnnotationBasedNullAnalysisEnabled)
+								NullAnnotationMatching.checkForContradictions(methodSubstitute, invocationSite, scope);
 							MethodBinding problemMethod = methodSubstitute.boundCheck18(scope, arguments, invocationSite);
-						if (problemMethod != null) {
-							return problemMethod;
+							if (problemMethod != null) {
+								return problemMethod;
+							}
+						} else {
+							methodSubstitute = new PolyParameterizedGenericMethodBinding(methodSubstitute);
 						}
-					} else {
-						methodSubstitute = new PolyParameterizedGenericMethodBinding(methodSubstitute);
-					}
 					} finally {
-					if (invocationSite instanceof Invocation)
-						((Invocation) invocationSite).registerInferenceContext(methodSubstitute, infCtx18); // keep context so we can finish later
-					else if (invocationSite instanceof ReferenceExpression)
-						((ReferenceExpression) invocationSite).registerInferenceContext(methodSubstitute, infCtx18); // keep context so we can finish later
+						if (allArgumentsAreProper) {
+						if (invocationSite instanceof Invocation)
+							((Invocation) invocationSite).registerInferenceContext(methodSubstitute, infCtx18); // keep context so we can finish later
+						else if (invocationSite instanceof ReferenceExpression)
+							((ReferenceExpression) invocationSite).registerInferenceContext(methodSubstitute, infCtx18); // keep context so we can finish later
+					}
 					}
 					return methodSubstitute; 
 				}
@@ -558,8 +560,8 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	    		this.thrownExceptions[i] = (ReferenceBinding) getErasure18_5_2(originalMethod.thrownExceptions[i], environment, false); // no excuse for exceptions
 			}
 	    } else {
-	    this.returnType = Scope.substitute(this, originalMethod.returnType);
-	    this.thrownExceptions = Scope.substitute(this, originalMethod.thrownExceptions);
+	    	this.returnType = Scope.substitute(this, originalMethod.returnType);
+	    	this.thrownExceptions = Scope.substitute(this, originalMethod.thrownExceptions);
 	    }
 	    if (this.thrownExceptions == null) this.thrownExceptions = Binding.NO_EXCEPTIONS;
 		checkMissingType: {
@@ -842,5 +844,4 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 		return originalMethod.getAccessMethod(staticReference);
     }
 	// End AspectJ Extension
-	
 }

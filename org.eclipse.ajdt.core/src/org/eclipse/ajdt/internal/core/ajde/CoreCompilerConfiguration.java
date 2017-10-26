@@ -680,4 +680,14 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 		}
 		return fcp.toString();
     }
+
+	public String getModulepath() {
+		// not yet implemented
+		return null;
+	}
+
+	public String getModuleSourcepath() {
+		// not yet implemented
+		return null;
+	}
 }

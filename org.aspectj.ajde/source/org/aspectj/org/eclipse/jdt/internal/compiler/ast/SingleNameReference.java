@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -274,7 +275,8 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 		return;
 	if (this.binding != null && this.binding.isValidBinding()) {
 		TypeBinding originalType = null;
-		if ((this.bits & Binding.FIELD) != 0 && (this.binding instanceof FieldBinding)) { // AspectJ extension - - new guard (ajc_aroundClosure does this) ??
+			if (this.binding instanceof FieldBinding) { // AspectJ Extension - new guard (ajc_aroundClosure does this) ??
+		if ((this.bits & Binding.FIELD) != 0) {
 		// set the generic cast after the fact, once the type expectation is fully known (no need for strict cast)
 		FieldBinding field = (FieldBinding) this.binding;
 		FieldBinding originalBinding = field.original();
@@ -299,6 +301,7 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 								ProblemReasons.NotVisible));
 				}
 	        }
+		        }// AspectJ Extension - close the new if()		        
 		}
 	}
 	super.computeConversion(scope, runtimeTimeType, compileTimeType);
@@ -884,6 +887,10 @@ public void manageEnclosingInstanceAccessIfNecessary(BlockScope currentScope, Fl
 		if (localVariableBinding != null) {
 			if ((localVariableBinding.tagBits & TagBits.NotInitialized) != 0) {
 				// local was tagged as uninitialized
+				return;
+			}
+			if ((localVariableBinding.tagBits & TagBits.IsEffectivelyFinal) == 0) {
+				// local was tagged as not effectively final
 				return;
 			}
 			switch(localVariableBinding.useFlag) {

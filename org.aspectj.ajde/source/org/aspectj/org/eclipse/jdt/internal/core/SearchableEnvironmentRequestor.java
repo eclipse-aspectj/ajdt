@@ -13,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core;
 import org.aspectj.org.eclipse.jdt.core.IInitializer;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragment;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
@@ -84,6 +85,9 @@ public void acceptInitializer(IInitializer initializer) {
  */
 public void acceptPackageFragment(IPackageFragment packageFragment) {
 	this.requestor.acceptPackage(packageFragment.getElementName().toCharArray());
+}
+public void acceptModule(IModuleDescription module) {
+	this.requestor.acceptModule(module.getElementName().toCharArray());
 }
 /**
  * @see IJavaElementRequestor

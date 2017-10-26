@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 BEA Systems, Inc. 
+ * Copyright (c) 2007, 2017 BEA Systems, Inc. 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *    wharley@bea.com - initial API and implementation
@@ -16,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -68,14 +73,25 @@ public class PackageElementImpl extends ElementImpl implements PackageElement {
 		char[][][] typeNames = null;
 		INameEnvironment nameEnvironment = binding.environment.nameEnvironment;
 		if (nameEnvironment instanceof FileSystem) {
-			typeNames = ((FileSystem) nameEnvironment).findTypeNames(binding.compoundName);
+			typeNames = ((FileSystem) nameEnvironment).findTypeNames(binding.compoundName, new String[] { null });
 		}
 		HashSet<Element> set = new HashSet<>(); 
+		Set<ReferenceBinding> types = new HashSet<>();
 		if (typeNames != null) {
 			for (char[][] typeName : typeNames) {
+				if (typeName == null) continue;
 				ReferenceBinding type = environment.getType(typeName);
 				if (type != null && type.isValidBinding()) {
 					set.add(_env.getFactory().newElement(type));
+					types.add(type);
+				}
+			}
+		}
+		ReferenceBinding[] knownTypes = binding.knownTypes.valueTable;
+		for (ReferenceBinding referenceBinding : knownTypes) {
+			if (referenceBinding != null && referenceBinding.isValidBinding() && referenceBinding.enclosingType() == null) {
+				if (!types.contains(referenceBinding)) {
+					set.add(_env.getFactory().newElement(referenceBinding));
 				}
 			}
 		}

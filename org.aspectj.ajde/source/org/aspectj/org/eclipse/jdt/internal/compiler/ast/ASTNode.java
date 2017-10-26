@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -62,8 +66,10 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedGenericMethodBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ParameterizedMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -284,6 +290,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	// for import reference
 	public static final int OnDemand = Bit18;
 	public static final int Used = Bit2;
+	public static final int inModule = Bit19;
 
 	// for parameterized qualified/single type ref
 	public static final int DidResolve = Bit19;
@@ -444,9 +451,9 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 				|| uncheckedBoundCheck
 				|| ((invocationStatus & INVOCATION_ARGUMENT_UNCHECKED) != 0)) {
 			if (method instanceof ParameterizedGenericMethodBinding) {
-				scope.problemReporter().unsafeRawGenericMethodInvocation((ASTNode)invocationSite, method, argumentTypes);
-				return true;
-			}
+			scope.problemReporter().unsafeRawGenericMethodInvocation((ASTNode)invocationSite, method, argumentTypes);
+			return true;
+		}
 			if (sourceLevel >= ClassFileConstants.JDK1_8)
 				return true; // signal to erase return type and exceptions, while keeping javac compatibility at 1.7-
 		}
@@ -658,7 +665,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	 * After method lookup has produced 'methodBinding' but when poly expressions have been seen as arguments,
 	 * inspect the arguments to trigger another round of resolving with improved target types from the methods parameters.
 	 * If this resolving produces better types for any arguments, update the 'argumentTypes' array in-place as an
-	 * intended side effect that will feed better type information in checkInvocationArguments() and others. 
+	 * intended side effect that will feed better type information in checkInvocationArguments() and others.
 	 * @param invocation the outer invocation which is being resolved
 	 * @param method the method produced by lookup (possibly involving type inference).
 	 * @param argumentTypes the argument types as collected from first resolving the invocation arguments and as used for the method lookup.
@@ -668,21 +675,21 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		MethodBinding candidateMethod = method.isValidBinding() ? method : method instanceof ProblemMethodBinding ? ((ProblemMethodBinding) method).closestMatch : null;
 		if (candidateMethod == null)
 			return;
-		boolean variableArity = candidateMethod.isVarargs();
-		final TypeBinding[] parameters = candidateMethod.parameters;
+			boolean variableArity = candidateMethod.isVarargs();
+			final TypeBinding[] parameters = candidateMethod.parameters;
 		Expression[] arguments = invocation.arguments();
 		if (variableArity && arguments != null && parameters.length == arguments.length) {
 			if (arguments[arguments.length-1].isCompatibleWith(parameters[parameters.length-1], scope)) {
-				variableArity = false;
+					variableArity = false;
+				}
 			}
-		}
-		for (int i = 0, length = arguments == null ? 0 : arguments.length; i < length; i++) {
-			Expression argument = arguments[i];
-			TypeBinding parameterType = InferenceContext18.getParameter(parameters, i, variableArity);
+			for (int i = 0, length = arguments == null ? 0 : arguments.length; i < length; i++) {
+				Expression argument = arguments[i];
+				TypeBinding parameterType = InferenceContext18.getParameter(parameters, i, variableArity);
 			if (parameterType == null)
-				continue; // not much we can do without a target type, assume it only happens after some resolve error
+					continue; // not much we can do without a target type, assume it only happens after some resolve error
 			if (argumentTypes[i] != null && argumentTypes[i].isPolyType()) {
-				argument.setExpectedType(parameterType);
+								argument.setExpectedType(parameterType);
 				TypeBinding updatedArgumentType; 
 				if (argument instanceof LambdaExpression) {
 					LambdaExpression lambda = (LambdaExpression) argument;
@@ -696,11 +703,16 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					updatedArgumentType = argument.resolveType(scope);
 				}
 				if (updatedArgumentType != null && updatedArgumentType.kind() != Binding.POLY_TYPE) {
-					argumentTypes[i] = updatedArgumentType;
+						argumentTypes[i] = updatedArgumentType;
 					if (candidateMethod.isPolymorphic())
 						candidateMethod.parameters[i] = updatedArgumentType;
+					}
 				}
 			}
+		if (method instanceof ParameterizedGenericMethodBinding) {
+			InferenceContext18 ic18 = invocation.getInferenceContext((ParameterizedMethodBinding) method);
+			if (ic18 != null)
+				ic18.flushBoundOutbox(); // overload resolution is done, now perform the push of bounds from inner to outer
 		}
 	}
 
@@ -766,6 +778,11 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 				case Binding.TYPE_USE :
 					// deliberately don't set the annotation resolved tagbits, it is not material and also we are working with a dummy static object.
 					annotations = new AnnotationBinding[length];
+					break;
+				case Binding.MODULE:
+					ModuleBinding module = (ModuleBinding)recipient;
+					if ((module.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
+					module.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					break;
 				default :
 					return annotations;
@@ -837,22 +854,17 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 				return annotations;
 			} else {
 				annotation.recipient = recipient;
-				// AspectJ Extension - do not re-resolve (211052)
-				if (annotation.resolvedType==null)
-				// End AspectJ Extension
-					annotation.resolveType(scope);
-
+				// MERGECONFLICT:
+//				// AspectJ Extension - don't re-resolve (pr211052)
+//			    // old code:
+//			    // annotationTypes[i] = annotation.resolveType(scope);
+//			    // new code:
+//			    annotationTypes[i] =(annotation.resolvedType==null?annotation.resolveType(scope):annotation.resolvedType);
+//			    // End AspectJ Extension
+				if (annotation.resolvedType==null) 
+				annotation.resolveType(scope);
 				// null if receiver is a package binding
 				if (annotations != null) {
-					// AspectJ Extension - even if already resolved, set this compilerAnnotation if necessary (485448)
-					if (annotation.compilerAnnotation == null) {
-						try {
-						    annotation.compilerAnnotation = scope.environment().createAnnotation((ReferenceBinding) annotation.resolvedType, annotation.computeElementValuePairs());
-						} catch (Exception e) {
-							new RuntimeException("Unexpected problem initialization compiler annotation: ",e).printStackTrace();
-						}
-					}
-					// End AspectJ Extension
 					annotations[i] = annotation.getCompilerAnnotation();
 				}
 			}
@@ -951,6 +963,24 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		return scope.environment().createAnnotatedType(type, annotationBindings);
 	}
 
+	/**
+	 * "early" handling of NonNullByDefault because for local variables annotations are resolved after their type because of bug
+	 * 96991.
+	 * @param localDeclaration 
+	 */
+	public static void handleNonNullByDefault(BlockScope scope, Annotation[] sourceAnnotations, LocalDeclaration localDeclaration) {
+		if (sourceAnnotations == null || sourceAnnotations.length == 0) {
+			return;
+		}
+		int length = sourceAnnotations.length;
+		for (int i = 0; i < length; i++) {
+			Annotation annotation = sourceAnnotations[i];
+			annotation.handleNonNullByDefault(scope, localDeclaration);
+		}
+	}
+
+
+	
 	// When SE8 annotations feature in SE7 locations, they get attributed to the declared entity. Copy/move these to the type of the declared entity (field, local, argument etc.)
 	public static void copySE8AnnotationsToType(BlockScope scope, Binding recipient, Annotation[] annotations, boolean annotatingEnumerator) {
 		
@@ -1045,8 +1075,8 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 							method.returnType = mergeAnnotationsIntoType(scope, se8Annotations, se8nullBits, se8NullAnnotation, methodDecl.returnType, method.returnType);
 							if(scope.environment().usesNullTypeAnnotations()) {
 								method.tagBits &= ~(se8nullBits);
-							}
 						}
+					}
 					} else {
 						method.setTypeAnnotations(se8Annotations);
 					}
@@ -1078,6 +1108,14 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		
 		// for arrays: @T X[] SE7 associates @T to the type, but in SE8 it affects the leaf component type
 		TypeBinding oldLeafType = (unionRef == null) ? existingType.leafComponentType() : unionRef.resolvedType;
+		if (se8nullBits != 0) {
+			if (typeRef instanceof ArrayTypeReference) { // NOTE: no corresponding code for ArrayQualifiedTypeReference is necessary
+				ArrayTypeReference arrayTypeReference = (ArrayTypeReference) typeRef;
+				if(arrayTypeReference.leafComponentTypeWithoutDefaultNullness != null) {
+					oldLeafType=arrayTypeReference.leafComponentTypeWithoutDefaultNullness;
+				}
+			}
+		}
 		if (se8nullBits != 0 && oldLeafType.isBaseType()) {
 			scope.problemReporter().illegalAnnotationForBaseType(typeRef, new Annotation[] { se8NullAnnotation }, se8nullBits);
 			return existingType;
@@ -1087,11 +1125,11 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		if ((prevNullBits | se8nullBits) == TagBits.AnnotationNullMASK) { // contradiction after merge?
 			if (!(oldLeafType instanceof TypeVariableBinding)) { // let type-use annotations override annotations on the type parameter declaration
 				if (prevNullBits != TagBits.AnnotationNullMASK && se8nullBits != TagBits.AnnotationNullMASK) { // conflict caused by the merge?
-					scope.problemReporter().contradictoryNullAnnotations(se8NullAnnotation);
-				}
+				scope.problemReporter().contradictoryNullAnnotations(se8NullAnnotation);
+			}
 				se8Annotations = Binding.NO_ANNOTATIONS;
 				se8nullBits = 0;
-			}
+		}
 			oldLeafType = oldLeafType.withoutToplevelNullAnnotation();
 		}
 
@@ -1148,28 +1186,38 @@ public static void resolveDeprecatedAnnotations(BlockScope scope, Annotation[] a
 					if (!CharOperation.equals(TypeConstants.JAVA_LANG_DEPRECATED[2], annotationTypeRef.getLastToken())) continue;
 					TypeBinding annotationType = annotations[i].type.resolveType(scope);
 					if(annotationType != null && annotationType.isValidBinding() && annotationType.id == TypeIds.T_JavaLangDeprecated) {
+						long deprecationTagBits = TagBits.AnnotationDeprecated | TagBits.DeprecatedAnnotationResolved;
+						if (scope.compilerOptions().complianceLevel >= ClassFileConstants.JDK9) {
+							for (MemberValuePair memberValuePair : annotations[i].memberValuePairs()) {
+								if (CharOperation.equals(memberValuePair.name, TypeConstants.FOR_REMOVAL)) {
+									if (memberValuePair.value instanceof TrueLiteral)
+										deprecationTagBits |= TagBits.AnnotationTerminallyDeprecated;
+									break;
+								}
+							}
+						}
 						switch (kind) {
 							case Binding.PACKAGE :
 								PackageBinding packageBinding = (PackageBinding) recipient;
-								packageBinding.tagBits |= (TagBits.AnnotationDeprecated | TagBits.DeprecatedAnnotationResolved);
+								packageBinding.tagBits |= deprecationTagBits;
 								return;
 							case Binding.TYPE :
 							case Binding.GENERIC_TYPE :
 							case Binding.TYPE_PARAMETER :
 								ReferenceBinding type = (ReferenceBinding) recipient;
-								type.tagBits |= (TagBits.AnnotationDeprecated | TagBits.DeprecatedAnnotationResolved);
+								type.tagBits |= deprecationTagBits;
 								return;
 							case Binding.METHOD :
 								MethodBinding method = (MethodBinding) recipient;
-								method.tagBits |= (TagBits.AnnotationDeprecated | TagBits.DeprecatedAnnotationResolved);
+								method.tagBits |= deprecationTagBits;
 								return;
 							case Binding.FIELD :
 								FieldBinding field = (FieldBinding) recipient;
-								field.tagBits |= (TagBits.AnnotationDeprecated | TagBits.DeprecatedAnnotationResolved);
+								field.tagBits |= deprecationTagBits;
 								return;
 							case Binding.LOCAL :
 								LocalVariableBinding local = (LocalVariableBinding) recipient;
-								local.tagBits |= (TagBits.AnnotationDeprecated | TagBits.DeprecatedAnnotationResolved);
+								local.tagBits |= deprecationTagBits;
 								return;
 							default:
 								return;

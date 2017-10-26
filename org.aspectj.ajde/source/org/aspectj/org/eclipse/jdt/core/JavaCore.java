@@ -1,10 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - added the following constants:
@@ -98,6 +102,8 @@
  *									COMPILER_INHERIT_NULL_ANNOTATIONS
  *									COMPILER_PB_NONNULL_PARAMETER_ANNOTATION_DROPPED
  *									COMPILER_PB_SYNTACTIC_NULL_ANALYSIS_FOR_FIELDS
+ *									COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE
+ *									COMPILER_PB_UNLIKELY_EQUALS_ARGUMENT_TYPE
  *     Jesper S Moller   - Contributions for bug 381345 : [1.8] Take care of the Java 8 major version
  *                       - added the following constants:
  *									COMPILER_CODEGEN_METHOD_PARAMETERS_ATTR
@@ -147,6 +153,7 @@ import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.core.search.SearchEngine;
 import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
 import org.aspectj.org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.aspectj.org.eclipse.jdt.core.util.IAttributeNamesConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -167,11 +174,13 @@ import org.aspectj.org.eclipse.jdt.internal.core.Region;
 import org.aspectj.org.eclipse.jdt.internal.core.SetContainerOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.SetVariablesOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
+import org.aspectj.org.eclipse.jdt.internal.core.builder.ModuleInfoBuilder;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.State;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.Indexer;
 import org.aspectj.org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.aspectj.org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
+import org.aspectj.org.eclipse.jdt.internal.core.util.ModuleUtil;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 import org.osgi.framework.BundleContext;
 
@@ -237,6 +246,11 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.0
 	 */
 	public static final String USER_LIBRARY_CONTAINER_ID= "org.aspectj.org.eclipse.jdt.USER_LIBRARY"; //$NON-NLS-1$
+
+	/**
+	 * @since 3.13
+	 */
+	public static final String MODULE_PATH_CONTAINER_ID = "org.aspectj.org.eclipse.jdt.MODULE_PATH"; //$NON-NLS-1$
 
 	// Begin configurable option IDs {
 
@@ -311,7 +325,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <p><code>"cldc1.1"</code> requires the source version to be <code>"1.3"</code> and the compliance version to be <code>"1.4"</code> or lower.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.targetPlatform"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.2"</code></dd>
 	 * </dl>
 	 * @category CompilerOptionID
@@ -403,6 +417,19 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_DEPRECATION = PLUGIN_ID + ".compiler.problem.deprecation"; //$NON-NLS-1$
+	/**
+	 * Compiler option ID: Reporting Terminal Deprecation.
+	 * <p>When enabled, the compiler will signal use of terminally deprecated API either as an
+	 *    error or a warning.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.terminalDeprecation"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * @since 3.13 BETA_JAVA9
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_TERMINAL_DEPRECATION = PLUGIN_ID + ".compiler.problem.terminalDeprecation"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Reporting Deprecation Inside Deprecated Code.
 	 * <p>When enabled, the compiler will signal use of deprecated API inside deprecated code.</p>
@@ -1514,6 +1541,84 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_EXPLICITLY_CLOSED_AUTOCLOSEABLE = PLUGIN_ID + ".compiler.problem.explicitlyClosedAutoCloseable"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Reporting a method invocation providing an argument of an unlikely type.
+	 * <p>When enabled, the compiler will issue an error or warning when certain well-known Collection methods
+	 *    that take an 'Object', like e.g. {@link Map#get(Object)}, are used with an argument type
+	 *    that seems to be not related to the corresponding type argument of the Collection.</p>
+	 * <p>By default, this analysis will apply some heuristics to determine whether or not two
+	 *    types may or may not be related, which can be changed via option
+	 *    {@link #COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE_STRICT}.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentType"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * @since 3.13
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE = PLUGIN_ID + ".compiler.problem.unlikelyCollectionMethodArgumentType"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Perform strict analysis against the expected type of collection methods.
+	 * <p>This is a sub-option of {@link #COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE},
+	 *    which will replace the heuristics with strict compatibility checks,
+	 *    i.e., each argument that is not strictly compatible with the expected type will trigger an error or warning.</p>
+	 * <p>This option has no effect if {@link #COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE} is set to <code>"ignore"</code>.</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
+	 * </dl>
+	 * @since 3.13
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNLIKELY_COLLECTION_METHOD_ARGUMENT_TYPE_STRICT = PLUGIN_ID + ".compiler.problem.unlikelyCollectionMethodArgumentTypeStrict"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Reporting a method invocation providing an argument of an unlikely type to method 'equals'.
+	 * <p>
+	 * When enabled, the compiler will issue an error or warning when {@link java.lang.Object#equals(Object)} is used with an argument type 
+	 * that seems to be not related to the receiver's type, or correspondingly when the arguments of {@link java.util.Objects#equals(Object, Object)}
+	 * have types that seem to be not related to each other.
+	 * </p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unlikelyEqualsArgumentType"</code></dd>
+	 * <dt>Possible values:</dt>
+	 * <dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"info"</code></dd>
+	 * </dl>
+	 * 
+	 * @since 3.13
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNLIKELY_EQUALS_ARGUMENT_TYPE = PLUGIN_ID + ".compiler.problem.unlikelyEqualsArgumentType"; //$NON-NLS-1$
+
+	/**
+	 * Compiler option ID: Reporting when public API uses a non-API type.
+	 * <p>
+	 * This option is relevant only when compiling code in a named module (at compliance 9 or greater).
+	 * <p>
+	 * When enabled, the compiler will issue an error or warning when public API mentions a type that is not
+	 * accessible to clients. Here, public API refers to signatures of public fields and methods declared
+	 * by a public type in an exported package.
+	 * In these positions types are complained against that are either not public or not in an exported package.
+	 * Export qualification is not taken into account.
+	 * If a type in one of these positions is declared in another module that is required by the current module,
+	 * but without the {@code transitive} modifier, this is reported as a problem, too.
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.APILeak"</code></dd>
+	 * <dt>Possible values:</dt>
+	 * <dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * 
+	 * @since 3.13 BETA_JAVA9
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_API_LEAKS = PLUGIN_ID + ".compiler.problem.APILeak"; //$NON-NLS-1$
+	
 	/**
 	 * Compiler option ID: Annotation-based Null Analysis.
 	 * <p>This option controls whether the compiler will use null annotations for
@@ -1919,7 +2024,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    set to the same version as the source level.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.source"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.3"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -1937,7 +2042,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    should match the compliance setting.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.compliance"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.4"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -2836,6 +2941,12 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @category OptionValue
 	 */
 	public static final String VERSION_1_8 = "1.8"; //$NON-NLS-1$
+	/**
+	 * Configurable option value: {@value}.
+	 * @since 3.13 BETA_JAVA9
+	 * @category OptionValue
+	 */
+	public static final String VERSION_9 = "9"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
 	 * @since 3.4
@@ -4190,143 +4301,143 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.1
 	 */
 	public static void initializeAfterLoad(IProgressMonitor monitor) throws CoreException {
-		SubMonitor mainMonitor = SubMonitor.convert(monitor, Messages.javamodel_initialization, 100);
-		mainMonitor.subTask(Messages.javamodel_configuring_classpath_containers);
-
-		// initialize all containers and variables
-		JavaModelManager manager = JavaModelManager.getJavaModelManager();
-		try {
-			SubMonitor subMonitor = mainMonitor.split(50).setWorkRemaining(100); // 50% of the time is spent in initializing containers and variables
-			subMonitor.split(5); // give feedback to the user that something is happening
-			manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(subMonitor);
-			if (manager.forceBatchInitializations(true/*initAfterLoad*/)) { // if no other thread has started the batch container initializations
-				manager.getClasspathContainer(Path.EMPTY, null); // force the batch initialization
-			} else { // else wait for the batch initialization to finish
-				while (manager.batchContainerInitializations == JavaModelManager.BATCH_INITIALIZATION_IN_PROGRESS) {
-					subMonitor.subTask(manager.batchContainerInitializationsProgress.subTaskName);
-					subMonitor.split(manager.batchContainerInitializationsProgress.getWorked());
-					synchronized(manager) {
-						try {
-							manager.wait(100);
-						} catch (InterruptedException e) {
-							// continue
-						}
-					}
-				}
-			}
-		} finally {
-			manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(null);
-		}
-
-		// avoid leaking source attachment properties (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=183413 )
-		// and recreate links for external folders if needed
-		mainMonitor.subTask(Messages.javamodel_resetting_source_attachment_properties);
-		final IJavaProject[] projects = manager.getJavaModel().getJavaProjects();
-		HashSet visitedPaths = new HashSet();
-		ExternalFoldersManager externalFoldersManager = JavaModelManager.getExternalManager();
-		for (int i = 0, length = projects.length; i < length; i++) {
-			JavaProject javaProject = (JavaProject) projects[i];
-			IClasspathEntry[] classpath;
+			SubMonitor mainMonitor = SubMonitor.convert(monitor, Messages.javamodel_initialization, 100);
+			mainMonitor.subTask(Messages.javamodel_configuring_classpath_containers);
+	
+			// initialize all containers and variables
+			JavaModelManager manager = JavaModelManager.getJavaModelManager();
 			try {
-				classpath = javaProject.getResolvedClasspath();
-			} catch (JavaModelException e) {
-				// project no longer exist: ignore
-				continue;
-			}
-			if (classpath != null) {
-				for (int j = 0, length2 = classpath.length; j < length2; j++) {
-					IClasspathEntry entry = classpath[j];
-					if (entry.getSourceAttachmentPath() != null) {
-						IPath entryPath = entry.getPath();
-						if (visitedPaths.add(entryPath)) {
-							Util.setSourceAttachmentProperty(entryPath, null);
+				SubMonitor subMonitor = mainMonitor.split(50).setWorkRemaining(100); // 50% of the time is spent in initializing containers and variables
+			subMonitor.split(5); // give feedback to the user that something is happening
+				manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(subMonitor);
+				if (manager.forceBatchInitializations(true/*initAfterLoad*/)) { // if no other thread has started the batch container initializations
+					manager.getClasspathContainer(Path.EMPTY, null); // force the batch initialization
+				} else { // else wait for the batch initialization to finish
+					while (manager.batchContainerInitializations == JavaModelManager.BATCH_INITIALIZATION_IN_PROGRESS) {
+						subMonitor.subTask(manager.batchContainerInitializationsProgress.subTaskName);
+					subMonitor.split(manager.batchContainerInitializationsProgress.getWorked());
+						synchronized(manager) {
+							try {
+								manager.wait(100);
+							} catch (InterruptedException e) {
+								// continue
+							}
 						}
 					}
-					// else source might have been attached by IPackageFragmentRoot#attachSource(...), we keep it
-					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-						IPath entryPath = entry.getPath();
-						if (ExternalFoldersManager.isExternalFolderPath(entryPath) && externalFoldersManager.getFolder(entryPath) == null) {
-							externalFoldersManager.addFolder(entryPath, true);
+				}
+			} finally {
+				manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(null);
+			}
+	
+			// avoid leaking source attachment properties (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=183413 )
+			// and recreate links for external folders if needed
+			mainMonitor.subTask(Messages.javamodel_resetting_source_attachment_properties);
+			final IJavaProject[] projects = manager.getJavaModel().getJavaProjects();
+			HashSet visitedPaths = new HashSet();
+			ExternalFoldersManager externalFoldersManager = JavaModelManager.getExternalManager();
+			for (int i = 0, length = projects.length; i < length; i++) {
+				JavaProject javaProject = (JavaProject) projects[i];
+				IClasspathEntry[] classpath;
+				try {
+					classpath = javaProject.getResolvedClasspath();
+				} catch (JavaModelException e) {
+					// project no longer exist: ignore
+					continue;
+				}
+				if (classpath != null) {
+					for (int j = 0, length2 = classpath.length; j < length2; j++) {
+						IClasspathEntry entry = classpath[j];
+						if (entry.getSourceAttachmentPath() != null) {
+							IPath entryPath = entry.getPath();
+							if (visitedPaths.add(entryPath)) {
+								Util.setSourceAttachmentProperty(entryPath, null);
+							}
+						}
+						// else source might have been attached by IPackageFragmentRoot#attachSource(...), we keep it
+						if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+							IPath entryPath = entry.getPath();
+							if (ExternalFoldersManager.isExternalFolderPath(entryPath) && externalFoldersManager.getFolder(entryPath) == null) {
+								externalFoldersManager.addFolder(entryPath, true);
+							}
 						}
 					}
 				}
 			}
-		}
-		try {
-			externalFoldersManager.createPendingFolders(mainMonitor.split(1));
-		}
-		catch(JavaModelException jme) {
-			// Creation of external folder project failed. Log it and continue;
-			Util.log(jme, "Error while processing external folders"); //$NON-NLS-1$
-		}
-
-		// ensure external jars are refreshed (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=93668)
-		// before search is initialized (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=405051)
-		final JavaModel model = manager.getJavaModel();
-		try {
-			mainMonitor.subTask(Messages.javamodel_refreshing_external_jars);
-			model.refreshExternalArchives(
-				null/*refresh all projects*/,
-				mainMonitor.split(1) // 1% of the time is spent in jar refresh
-			);
-		} catch (JavaModelException e) {
-			// refreshing failed: ignore
-		}
-
-		// initialize delta state
-		mainMonitor.subTask(Messages.javamodel_initializing_delta_state);
-		manager.deltaState.rootsAreStale = true; // in case it was already initialized before we cleaned up the source attachment properties
-		manager.deltaState.initializeRoots(true/*initAfteLoad*/);
-
-		// dummy query for waiting until the indexes are ready
-		mainMonitor.subTask(Messages.javamodel_configuring_searchengine);
+			try {
+				externalFoldersManager.createPendingFolders(mainMonitor.split(1));
+			}
+			catch(JavaModelException jme) {
+				// Creation of external folder project failed. Log it and continue;
+				Util.log(jme, "Error while processing external folders"); //$NON-NLS-1$
+			}
+	
+			// ensure external jars are refreshed (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=93668)
+			// before search is initialized (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=405051)
+			final JavaModel model = manager.getJavaModel();
+			try {
+				mainMonitor.subTask(Messages.javamodel_refreshing_external_jars);
+				model.refreshExternalArchives(
+					null/*refresh all projects*/,
+					mainMonitor.split(1) // 1% of the time is spent in jar refresh
+				);
+			} catch (JavaModelException e) {
+				// refreshing failed: ignore
+			}
+	
+			// initialize delta state
+			mainMonitor.subTask(Messages.javamodel_initializing_delta_state);
+			manager.deltaState.rootsAreStale = true; // in case it was already initialized before we cleaned up the source attachment properties
+			manager.deltaState.initializeRoots(true/*initAfteLoad*/);
+	
+			// dummy query for waiting until the indexes are ready
+			mainMonitor.subTask(Messages.javamodel_configuring_searchengine);
 		// 47% of the time is spent in the dummy search
 		updateLegacyIndex(mainMonitor.split(47));
-
-		// check if the build state version number has changed since last session
-		// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=98969)
-		mainMonitor.subTask(Messages.javamodel_getting_build_state_number);
-		QualifiedName qName = new QualifiedName(JavaCore.PLUGIN_ID, "stateVersionNumber"); //$NON-NLS-1$
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		String versionNumber = null;
-		try {
-			versionNumber = root.getPersistentProperty(qName);
-		} catch (CoreException e) {
-			// could not read version number: consider it is new
-		}
-		String newVersionNumber = Byte.toString(State.VERSION);
-		if (!newVersionNumber.equals(versionNumber)) {
-			// build state version number has changed: touch every projects to force a rebuild
-			if (JavaBuilder.DEBUG)
-				System.out.println("Build state version number has changed"); //$NON-NLS-1$
-			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-				public void run(IProgressMonitor progressMonitor2) throws CoreException {
-					for (int i = 0, length = projects.length; i < length; i++) {
-						IJavaProject project = projects[i];
-						try {
-							if (JavaBuilder.DEBUG)
-								System.out.println("Touching " + project.getElementName()); //$NON-NLS-1$
-							new ClasspathValidation((JavaProject) project).validate(); // https://bugs.eclipse.org/bugs/show_bug.cgi?id=287164
-							project.getProject().touch(progressMonitor2);
-						} catch (CoreException e) {
-							// could not touch this project: ignore
+	
+			// check if the build state version number has changed since last session
+			// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=98969)
+			mainMonitor.subTask(Messages.javamodel_getting_build_state_number);
+			QualifiedName qName = new QualifiedName(JavaCore.PLUGIN_ID, "stateVersionNumber"); //$NON-NLS-1$
+			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+			String versionNumber = null;
+			try {
+				versionNumber = root.getPersistentProperty(qName);
+			} catch (CoreException e) {
+				// could not read version number: consider it is new
+			}
+			String newVersionNumber = Byte.toString(State.VERSION);
+			if (!newVersionNumber.equals(versionNumber)) {
+				// build state version number has changed: touch every projects to force a rebuild
+				if (JavaBuilder.DEBUG)
+					System.out.println("Build state version number has changed"); //$NON-NLS-1$
+				IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+					public void run(IProgressMonitor progressMonitor2) throws CoreException {
+						for (int i = 0, length = projects.length; i < length; i++) {
+							IJavaProject project = projects[i];
+							try {
+								if (JavaBuilder.DEBUG)
+									System.out.println("Touching " + project.getElementName()); //$NON-NLS-1$
+								new ClasspathValidation((JavaProject) project).validate(); // https://bugs.eclipse.org/bugs/show_bug.cgi?id=287164
+								project.getProject().touch(progressMonitor2);
+							} catch (CoreException e) {
+								// could not touch this project: ignore
+							}
 						}
 					}
+				};
+				mainMonitor.subTask(Messages.javamodel_building_after_upgrade);
+				try {
+					ResourcesPlugin.getWorkspace().run(runnable, mainMonitor.split(1));
+				} catch (CoreException e) {
+					// could not touch all projects
 				}
-			};
-			mainMonitor.subTask(Messages.javamodel_building_after_upgrade);
-			try {
-				ResourcesPlugin.getWorkspace().run(runnable, mainMonitor.split(1));
-			} catch (CoreException e) {
-				// could not touch all projects
+				try {
+					root.setPersistentProperty(qName, newVersionNumber);
+				} catch (CoreException e) {
+					Util.log(e, "Could not persist build state version number"); //$NON-NLS-1$
+				}
 			}
-			try {
-				root.setPersistentProperty(qName, newVersionNumber);
-			} catch (CoreException e) {
-				Util.log(e, "Could not persist build state version number"); //$NON-NLS-1$
 			}
-		}
-	}
 
 	private static void updateLegacyIndex(IProgressMonitor monitor) {
 		SearchEngine engine = new SearchEngine();
@@ -4417,8 +4528,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			if (element.equals(markerElement)) return true; // external elements may still be equal with different handleIDs.
 
 			// cycle through enclosing types in case marker is associated with a classfile (15568)
-			if (markerElement instanceof IClassFile){
-				IType enclosingType = ((IClassFile)markerElement).getType().getDeclaringType();
+			if (markerElement instanceof IOrdinaryClassFile){
+				IType enclosingType = ((IOrdinaryClassFile)markerElement).getType().getDeclaringType();
 				if (enclosingType != null){
 					markerElement = enclosingType.getClassFile(); // retry with immediate enclosing classfile
 					continue;
@@ -4460,8 +4571,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			if (element.equals(markerElement)) return true; // external elements may still be equal with different handleIDs.
 
 			// cycle through enclosing types in case marker is associated with a classfile (15568)
-			if (markerElement instanceof IClassFile){
-				IType enclosingType = ((IClassFile)markerElement).getType().getDeclaringType();
+			if (markerElement instanceof IOrdinaryClassFile){
+				IType enclosingType = ((IOrdinaryClassFile)markerElement).getType().getDeclaringType();
 				if (enclosingType != null){
 					markerElement = enclosingType.getClassFile(); // retry with immediate enclosing classfile
 					continue;
@@ -4635,10 +4746,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 		} else if (containerPath.segmentCount() < 1) {
 			throw new ClasspathEntry.AssertionFailedException("Illegal classpath container path: \'" + containerPath.makeRelative().toString() + "\', must have at least one segment (containerID+hints)"); //$NON-NLS-1$//$NON-NLS-2$
 		}
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length == 0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length == 0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 		return new ClasspathEntry(
@@ -4834,10 +4945,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			boolean isExported) {
 
 		if (path == null) throw new ClasspathEntry.AssertionFailedException("Library path cannot be null"); //$NON-NLS-1$
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length==0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length==0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 		boolean hasDotDot = ClasspathEntry.hasDotDot(path);
@@ -4965,10 +5076,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 			boolean isExported) {
 
 		if (!path.isAbsolute()) throw new ClasspathEntry.AssertionFailedException("Path for IClasspathEntry must be absolute"); //$NON-NLS-1$
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length == 0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length == 0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 		return new ClasspathEntry(
@@ -5329,10 +5440,10 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 		if (variablePath.segmentCount() < 1) {
 			throw new ClasspathEntry.AssertionFailedException("Illegal classpath variable path: \'" + variablePath.makeRelative().toString() + "\', must have at least one segment"); //$NON-NLS-1$//$NON-NLS-2$
 		}
-		if (accessRules == null) {
+		if (accessRules == null || accessRules.length == 0) {
 			accessRules = ClasspathEntry.NO_ACCESS_RULES;
 		}
-		if (extraAttributes == null) {
+		if (extraAttributes == null || extraAttributes.length == 0) {
 			extraAttributes = ClasspathEntry.NO_EXTRA_ATTRIBUTES;
 		}
 
@@ -5461,7 +5572,8 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	}
 
 	/**
-	 * Deletes and rebuilds the java index.
+	 * Deletes the index, then rebuilds any portions of the index that are
+	 * currently needed by the workspace.
 	 * 
 	 * @param monitor a progress monitor, or <code>null</code> if progress
 	 *    reporting and cancellation are not desired
@@ -5469,12 +5581,12 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.13
 	 */
 	public static void rebuildIndex(IProgressMonitor monitor) throws CoreException {
-		SubMonitor subMonitor = SubMonitor.convert(monitor, 10);
+		SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 		IndexManager manager = JavaModelManager.getIndexManager();
 		manager.deleteIndexFiles(subMonitor.split(1));
 		manager.reset();
-		Indexer.getInstance().rebuildIndex(subMonitor.split(7));
-		updateLegacyIndex(subMonitor.split(2));
+		Indexer.getInstance().rebuildIndex(subMonitor.split(95));
+		updateLegacyIndex(subMonitor.split(4));
 	}
 
 
@@ -5790,6 +5902,14 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
 				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
 				break;
+			case ClassFileConstants.MAJOR_VERSION_9:
+				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
+				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
+				options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
+				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
+				break;
 		}
 	}
 
@@ -5831,6 +5951,61 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 */
 	public static int compareJavaVersions(String first, String second) {
 		return Long.compare(CompilerOptions.versionToJdkLevel(first), CompilerOptions.versionToJdkLevel(second));
+	}
+	/**
+	 * Returns an array of module names referenced by this project indirectly. 
+	 * This is a helper method that can be used to construct a Java module 
+	 * description of an existing project. The referenced modules can either be 
+	 * system modules or user modules found in project build path in the form of 
+	 * libraries.
+	 * The prerequisites for this to be effective are:
+	 * <ul>
+	 * <li>the project is already in compliance level 9 or above.
+	 * <li>the system library on the build path of the project is a modularized Java Runtime.
+	 * </ul>
+	 *
+	 * @param project
+	 *            the project whose referenced modules to be computed
+	 * @return an array of String containing module names
+	 * @throws CoreException
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public static String[] getReferencedModules(IJavaProject project) throws CoreException {
+		return ModuleUtil.getReferencedModules(project);
+	}
+
+	/**
+	 * Compile the given module description in the context of its enclosing Java project
+	 * and add class file attributes using the given map of attribute values.
+	 * <p>In this map, the following keys are supported</p>
+	 * <dl>
+	 * <dt>{@link IAttributeNamesConstants#MODULE_MAIN_CLASS}</dt>
+	 * <dd>The associated value will be used for the <code>ModuleMainClass</code> attribute.</dd>
+	 * <dt>{@link IAttributeNamesConstants#MODULE_PACKAGES}</dt>
+	 * <dd>If the associated value is an empty string, then the compiler will generate a
+	 * <code>ModulePackages</code> attribute with a list of packages that is computed from
+	 * <ul>
+	 * <li>all <code>exports</code> directives
+	 * <li>all <code>opens</code> directives
+	 * <li>the implementation classes of all <code>provides</code> directives.
+	 * </ul>
+	 * If the associated value is not empty, it must be a comma-separated list of package names,
+	 * which will be added to the computed list.
+	 * </dl>
+	 * <p>No other keys are supported in this version, but more keys may be added in the future.</p>
+	 *
+	 * @param module handle for the <code>module-info.java</code> file to be compiled.
+	 * @param classFileAttributes map of attribute names and values to be used during class file generation
+	 * @return the compiled byte code
+	 *
+	 * @throws JavaModelException
+	 * @throws IllegalArgumentException if the map of classFileAttributes contains an unsupported key.
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public static byte[] compileWithAttributes(IModuleDescription module, Map<String,String> classFileAttributes)
+			throws JavaModelException, IllegalArgumentException
+	{
+		return new ModuleInfoBuilder().compileWithAttributes(module, classFileAttributes);
 	}
 
 	/* (non-Javadoc)

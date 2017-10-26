@@ -1,17 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -20,9 +27,18 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
-import org.aspectj.org.eclipse.jdt.core.*;
+import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.IReader;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdResourceFile;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdType;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdZipEntry;
 import org.aspectj.org.eclipse.jdt.internal.core.util.HashtableOfArrayToObject;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
@@ -39,7 +55,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class JarPackageFragmentRoot extends PackageFragmentRoot {
 
-	private final static ArrayList EMPTY_LIST = new ArrayList();
+	protected final static ArrayList EMPTY_LIST = new ArrayList();
 
 	/**
 	 * The path to the jar file
@@ -72,23 +88,57 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	 * by the path of class files contained in the jar of this package fragment root.
 	 */
 	protected boolean computeChildren(OpenableElementInfo info, IResource underlyingResource) throws JavaModelException {
-		HashtableOfArrayToObject rawPackageInfo = new HashtableOfArrayToObject();
+		final HashtableOfArrayToObject rawPackageInfo = new HashtableOfArrayToObject();
 		IJavaElement[] children;
-		ZipFile jar = null;
 		try {
-			Object file = JavaModel.getTarget(getPath(), true);
-			long level = Util.getJdkLevel(file);
-			String compliance = CompilerOptions.versionFromJdkLevel(level);
-			jar = getJar();
-
 			// always create the default package
 			rawPackageInfo.put(CharOperation.NO_STRINGS, new ArrayList[] { EMPTY_LIST, EMPTY_LIST });
 
-			for (Enumeration e= jar.entries(); e.hasMoreElements();) {
-				ZipEntry member= (ZipEntry) e.nextElement();
-				initRawPackageInfo(rawPackageInfo, member.getName(), member.isDirectory(), compliance);
+			boolean usedIndex = false;
+			if (JavaIndex.isEnabled()) {
+				JavaIndex index = JavaIndex.getIndex();
+				try (IReader reader = index.getNd().acquireReadLock()) {
+					IPath resourcePath = JavaIndex.getLocationForElement(this); 
+					if (!resourcePath.isEmpty()) {
+						NdResourceFile resourceFile = index.getResourceFile(resourcePath.toString().toCharArray());
+						if (index.isUpToDate(resourceFile)) {
+							usedIndex = true;
+							long level = resourceFile.getJdkLevel();
+							String compliance = CompilerOptions.versionFromJdkLevel(level);
+							// Locate all the non-classfile entries
+							for (NdZipEntry next : resourceFile.getZipEntries()) {
+								String filename = next.getFileName().getString();
+								initRawPackageInfo(rawPackageInfo, filename, filename.endsWith("/"), compliance); //$NON-NLS-1$
+							}
+	
+							// Locate all the classfile entries
+							for (NdType type : resourceFile.getTypes()) {	
+								String path = new String(type.getTypeId().getBinaryName()) + ".class"; //$NON-NLS-1$
+								initRawPackageInfo(rawPackageInfo, path, false, compliance);
+							}
+						}
+					}
+				}
 			}
 
+			// If we weren't able to compute the set of children from the index (either the index was disabled or didn't
+			// contain an up-to-date entry for this .jar) then fetch it directly from the .jar
+			if (!usedIndex) {
+				Object file = JavaModel.getTarget(getPath(), true);
+				long level = Util.getJdkLevel(file);
+				String compliance = CompilerOptions.versionFromJdkLevel(level);
+				ZipFile jar = null;
+				try {
+					jar = getJar();
+
+					for (Enumeration e= jar.entries(); e.hasMoreElements();) {
+						ZipEntry member= (ZipEntry) e.nextElement();
+						initRawPackageInfo(rawPackageInfo, member.getName(), member.isDirectory(), compliance);
+					}
+				}  finally {
+					JavaModelManager.getJavaModelManager().closeZipFile(jar);
+				}
+			}
 			// loop through all of referenced packages, creating package fragments if necessary
 			// and cache the entry names in the rawPackageInfo table
 			children = new IJavaElement[rawPackageInfo.size()];
@@ -108,13 +158,24 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 			} else {
 				throw new JavaModelException(e);
 			}
-		} finally {
-			JavaModelManager.getJavaModelManager().closeZipFile(jar);
 		}
 
 		info.setChildren(children);
 		((JarPackageFragmentRootInfo) info).rawPackageInfo = rawPackageInfo;
 		return true;
+	}
+	protected IJavaElement[] createChildren(final HashtableOfArrayToObject rawPackageInfo) {
+		IJavaElement[] children;
+		// loop through all of referenced packages, creating package fragments if necessary
+		// and cache the entry names in the rawPackageInfo table
+		children = new IJavaElement[rawPackageInfo.size()];
+		int index = 0;
+		for (int i = 0, length = rawPackageInfo.keyTable.length; i < length; i++) {
+			String[] pkgName = (String[]) rawPackageInfo.keyTable[i];
+			if (pkgName == null) continue;
+			children[index++] = getPackageFragment(pkgName);
+		}
+		return children;
 	}
 	/**
 	 * Returns a new element info for this element.
@@ -183,6 +244,9 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	public PackageFragment getPackageFragment(String[] pkgName) {
 		return new JarPackageFragment(this, pkgName);
 	}
+	public PackageFragment getPackageFragment(String[] pkgName, String mod) {
+		return new JarPackageFragment(this, pkgName); // Overridden in JImageModuleFragmentBridge
+	}
 	public IPath internalPath() {
 		if (isExternal()) {
 			return this.jarPath;
@@ -213,8 +277,17 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	public int hashCode() {
 		return this.jarPath.hashCode();
 	}
-	private void initRawPackageInfo(HashtableOfArrayToObject rawPackageInfo, String entryName, boolean isDirectory, String compliance) {
-		int lastSeparator = isDirectory ? entryName.length()-1 : entryName.lastIndexOf('/');
+	protected void initRawPackageInfo(HashtableOfArrayToObject rawPackageInfo, String entryName, boolean isDirectory, String compliance) {
+		int lastSeparator;
+		if (isDirectory) {
+			if (entryName.charAt(entryName.length() - 1) == '/') {
+				lastSeparator = entryName.length() - 1;
+			} else {
+				lastSeparator = entryName.length();
+			}
+		} else {
+			lastSeparator = entryName.lastIndexOf('/');
+		}
 		String[] pkgName = Util.splitOn('/', entryName, 0, lastSeparator);
 		String[] existing = null;
 		int length = pkgName.length;
@@ -274,7 +347,6 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	public boolean isReadOnly() {
 		return true;
 	}
-
 	/**
 	 * Returns whether the corresponding resource or associated file exists
 	 */
@@ -307,4 +379,28 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 		return null;
 	}
 
+	@Override
+	public Manifest getManifest() {
+		ZipFile jar = null;
+		try {
+			jar = getJar();
+			ZipEntry mfEntry = jar.getEntry(TypeConstants.META_INF_MANIFEST_MF);
+			if (mfEntry != null)
+				return new Manifest(jar.getInputStream(mfEntry));
+		} catch (CoreException | IOException e) {
+			// must do without manifest
+		} finally {
+			JavaModelManager.getJavaModelManager().closeZipFile(jar);
+		}
+		return null;
+	}
+
+//	@Override
+//	public boolean isModule() {
+//	 	try {
+//	 		return ((PackageFragmentRootInfo) getElementInfo()).isModule(resource(), this);
+//	 	} catch (JavaModelException e) {
+//	 		return false;
+//	 	}
+//	}
 }

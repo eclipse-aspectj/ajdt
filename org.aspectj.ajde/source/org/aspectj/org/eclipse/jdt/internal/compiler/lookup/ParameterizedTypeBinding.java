@@ -1,3 +1,4 @@
+// ASPECTJ
 /*******************************************************************************
  * Copyright (c) 2005, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -115,6 +116,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 			boolean hasErrors = false;
 			TypeVariableBinding[] typeVariables = this.type.typeVariables();
 			if (this.arguments != null && typeVariables != null) { // arguments may be null in error cases
+				// per JLS 4.5 we should capture 'this'
 				for (int i = 0, length = typeVariables.length; i < length; i++) {
 				    BoundCheckStatus checkStatus = typeVariables[i].boundCheck(this, this.arguments[i], scope, argumentReferences[i]);
 				    hasErrors |= checkStatus != BoundCheckStatus.OK;
@@ -1410,7 +1412,7 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 		return this.fields;
 	}
 	@Override
-	protected MethodBinding[] getInterfaceAbstractContracts(Scope scope, boolean replaceWildcards) throws InvalidInputException {
+	protected MethodBinding[] getInterfaceAbstractContracts(Scope scope, boolean replaceWildcards, boolean filterDefaultMethods) throws InvalidInputException {
 		if (replaceWildcards) {
 			TypeBinding[] types = getNonWildcardParameterization(scope);
 			if (types == null)
@@ -1424,11 +1426,11 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 						if (!typeParameters[j].boundCheck(declaringType, types[j], scope, null).isOKbyJLS())
 							return new MethodBinding[] { new ProblemMethodBinding(TypeConstants.ANONYMOUS_METHOD, null, ProblemReasons.NotAWellFormedParameterizedType) };			
 					}
-					return declaringType.getInterfaceAbstractContracts(scope, replaceWildcards);
+					return declaringType.getInterfaceAbstractContracts(scope, replaceWildcards, filterDefaultMethods);
 				}
 			}
 		}
-		return super.getInterfaceAbstractContracts(scope, replaceWildcards);
+		return super.getInterfaceAbstractContracts(scope, replaceWildcards, filterDefaultMethods);
 	}
 	public MethodBinding getSingleAbstractMethod(final Scope scope, boolean replaceWildcards) {
 		return getSingleAbstractMethod(scope, replaceWildcards, -1, -1 /* do not capture */);
@@ -1550,7 +1552,6 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 		}
 		return types;
 	}
-	
 	@Override
 	public long updateTagBits() {
 		if (this.arguments != null)
@@ -1558,22 +1559,6 @@ public class ParameterizedTypeBinding extends ReferenceBinding implements Substi
 				this.tagBits |= argument.updateTagBits();
 		return super.updateTagBits();
 	}
-	/* need this still?
-	static boolean typeParametersMentioned(TypeBinding upperBound) {
-		class MentionListener extends TypeBindingVisitor {
-			private boolean typeParametersMentioned = false;
-			public boolean visit(TypeVariableBinding typeVariable) {
-				this.typeParametersMentioned = true;
-				return false;
-			}
-			public boolean typeParametersMentioned() {
-				return this.typeParametersMentioned;
-			}
-		}
-		MentionListener mentionListener = new MentionListener();
-		TypeBindingVisitor.visit(mentionListener, upperBound);
-		return mentionListener.typeParametersMentioned();
-	}*/
 	// AspectJ extension - delegate to the source type (the generic type) as it has a memberFinder for resolving ITDs
 		public FieldBinding getField(char[] fieldName, boolean resolve, InvocationSite site, Scope scope) {
 			FieldBinding fb = null;

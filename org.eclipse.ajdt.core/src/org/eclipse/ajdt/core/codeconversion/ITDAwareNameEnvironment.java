@@ -112,7 +112,7 @@ public class ITDAwareNameEnvironment extends
                             sourceTypes[index++] = newOtherInfo; // AspectJ Change
                         }
                     }
-                    return new NameEnvironmentAnswer(sourceTypes, getRestriction(answer), null);
+                    return new NameEnvironmentAnswer(sourceTypes, getRestriction(answer), null, null);
                 } catch (JavaModelException npe) {
                     return null;
                 }

@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -99,6 +100,7 @@ public MethodBinding(MethodBinding initialMethodBinding, ReferenceBinding declar
 	this.parameters = initialMethodBinding.parameters;
 	this.thrownExceptions = initialMethodBinding.thrownExceptions;
 	this.declaringClass = declaringClass;
+	// AspectJ
 	if (declaringClass!=null) declaringClass.storeAnnotationHolder(this, initialMethodBinding.declaringClass.retrieveAnnotationHolder(initialMethodBinding, true)); // New AspectJ Extension - check for null
 }
 /* Answer true if the argument types & the receiver's parameters have the same erasure
@@ -192,9 +194,16 @@ public MethodBinding asRawMethod(LookupEnvironment env) {
 	int length = this.typeVariables.length;
 	TypeBinding[] arguments = new TypeBinding[length];
 	for (int i = 0; i < length; i++) {
-		TypeVariableBinding var = this.typeVariables[i];
+		arguments[i] = makeRawArgument(env, this.typeVariables[i]);
+	}
+	return env.createParameterizedGenericMethod(this, arguments);
+}
+private TypeBinding makeRawArgument(LookupEnvironment env, TypeVariableBinding var) {
 		if (var.boundsCount() <= 1) {
-			arguments[i] = env.convertToRawType(var.upperBound(), false /*do not force conversion of enclosing types*/);
+		TypeBinding upperBound = var.upperBound();
+		if (upperBound.isTypeVariable())
+			return makeRawArgument(env, (TypeVariableBinding) upperBound);
+		return env.convertToRawType(upperBound, false /*do not force conversion of enclosing types*/);
 		} else {
 			// use an intersection type to retain full bound information if more than 1 bound
 			TypeBinding[] itsSuperinterfaces = var.superInterfaces();
@@ -212,10 +221,8 @@ public MethodBinding asRawMethod(LookupEnvironment env) {
 				for (int s = 0; s < superLength; s++)
 					rawOtherBounds[s] = env.convertToRawType(itsSuperinterfaces[s], false);
 			}
-			arguments[i] = env.createWildcard(null, 0, rawFirstBound, rawOtherBounds, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard.EXTENDS);
-		}
+		return env.createWildcard(null, 0, rawFirstBound, rawOtherBounds, org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard.EXTENDS);
 	}
-	return env.createParameterizedGenericMethod(this, arguments);
 }
 /* Answer true if the receiver is visible to the type provided by the scope.
 * InvocationSite implements isSuperAccess() to provide additional information
@@ -314,7 +321,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
 
 	SourceTypeBinding invocationType = scope.invocationType(); // AspectJ Extension - was scope.enclosingSourceType()
 
-	if (this.declaringClass.isInterface() && isStatic()) {
+	if (this.declaringClass.isInterface() && isStatic() && !isPrivate()) {
 		// Static interface methods can be explicitly invoked only through the type reference of the declaring interface or implicitly in the interface itself or via static import.
 		if (scope.compilerOptions().sourceLevel < ClassFileConstants.JDK1_8)
 			return false;
@@ -573,7 +580,7 @@ protected void fillInDefaultNonNullness18(AbstractMethodDeclaration sourceMethod
 	if(original == null) {
 		return;
 	}
-	if (hasNonNullDefaultFor(DefaultLocationParameter, true)) {
+	if (hasNonNullDefaultFor(DefaultLocationParameter, true, sourceMethod)) {
 		boolean added = false;
 		int length = this.parameters.length;
 		for (int i = 0; i < length; i++) {
@@ -596,7 +603,7 @@ protected void fillInDefaultNonNullness18(AbstractMethodDeclaration sourceMethod
 		if (added)
 			this.tagBits |= TagBits.HasParameterAnnotations;
 	}
-	if (original.returnType != null && hasNonNullDefaultFor(DefaultLocationReturnType, true) && original.returnType.acceptsNonNullDefault()) {
+	if (original.returnType != null && hasNonNullDefaultFor(DefaultLocationReturnType, true, sourceMethod) && original.returnType.acceptsNonNullDefault()) {
 		if ((this.returnType.tagBits & TagBits.AnnotationNullMASK) == 0) {
 			this.returnType = env.createAnnotatedType(this.returnType, new AnnotationBinding[]{env.getNonNullAnnotation()});
 		} else if (sourceMethod instanceof MethodDeclaration && (this.returnType.tagBits & TagBits.AnnotationNonNull) != 0 
@@ -697,9 +704,16 @@ public long getAnnotationTagBits() {
 				long nullDefaultBits = usesNullTypeAnnotations ? this.defaultNullness
 						: this.tagBits & (TagBits.AnnotationNonNullByDefault|TagBits.AnnotationNullUnspecifiedByDefault);
 				if (nullDefaultBits != 0 && this.declaringClass instanceof SourceTypeBinding) {
-					SourceTypeBinding declaringSourceType = (SourceTypeBinding) this.declaringClass;
-					if (declaringSourceType.checkRedundantNullnessDefaultOne(methodDecl, methodDecl.annotations, nullDefaultBits, usesNullTypeAnnotations)) {
-						declaringSourceType.checkRedundantNullnessDefaultRecurse(methodDecl, methodDecl.annotations, nullDefaultBits, usesNullTypeAnnotations);
+					if (usesNullTypeAnnotations) {
+						Binding target = scope.checkRedundantDefaultNullness(this.defaultNullness, typeDecl.declarationSourceStart);
+						if (target != null) {
+							methodDecl.scope.problemReporter().nullDefaultAnnotationIsRedundant(methodDecl, methodDecl.annotations, target);
+						}
+					} else {
+						SourceTypeBinding declaringSourceType = (SourceTypeBinding) this.declaringClass;
+						if (declaringSourceType.checkRedundantNullnessDefaultOne(methodDecl, methodDecl.annotations, nullDefaultBits, usesNullTypeAnnotations)) {
+							declaringSourceType.checkRedundantNullnessDefaultRecurse(methodDecl, methodDecl.annotations, nullDefaultBits, usesNullTypeAnnotations);
+						}
 					}
 				}
 			}
@@ -1303,8 +1317,7 @@ public LambdaExpression sourceLambda() {
 public final int sourceStart() {
 	AbstractMethodDeclaration method = sourceMethod();
 	if (method == null) {
-		// AspectJ Extension - add check to ensure not asking binary for positions (AJ462782)
-		if (this.declaringClass instanceof SourceTypeBinding && !(this.declaringClass instanceof BinaryTypeBinding))
+		if (this.declaringClass instanceof SourceTypeBinding)
 			return ((SourceTypeBinding) this.declaringClass).sourceStart();
 		return 0;
 	}
@@ -1376,7 +1389,7 @@ public TypeVariableBinding[] typeVariables() {
 	return this.typeVariables;
 }
 //pre: null annotation analysis is enabled
-public boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations) {
+public boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations, AbstractMethodDeclaration srcMethod) {
 	if ((this.modifiers & ExtraCompilerModifiers.AccIsDefaultConstructor) != 0)
 		return false;
 	if (useTypeAnnotations) {
@@ -1388,7 +1401,7 @@ public boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations) {
 		if ((this.tagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0)
 			return false;
 	}
-	return this.declaringClass.hasNonNullDefaultFor(location, useTypeAnnotations);
+	return this.declaringClass.hasNonNullDefaultFor(location, useTypeAnnotations, srcMethod == null ? -1 : srcMethod.declarationSourceStart);
 }
 
 public boolean redeclaresPublicObjectMethod(Scope scope) {

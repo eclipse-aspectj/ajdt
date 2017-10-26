@@ -1,10 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Terry Parker <tparker@google.com> - DeltaProcessor misses state changes in archive files, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=357425
@@ -15,6 +19,9 @@
  *                              Bug 465296 - precedence of extra attributes on a classpath container
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
+
+import static org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.UTF_8;
+import static org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getInputStreamAsCharArray;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,7 +68,11 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.ManifestAnalyzer;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.IReader;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.JavaIndex;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.java.NdResourceFile;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 import org.w3c.dom.DOMException;
@@ -317,7 +328,7 @@ public class ClasspathEntry implements IClasspathEntry {
 //		}
 
 		this.combineAccessRules = combineAccessRules;
-		this.extraAttributes = extraAttributes;
+		this.extraAttributes = extraAttributes.length > 0 ? extraAttributes : NO_EXTRA_ATTRIBUTES;
 
 	    if (inclusionPatterns != INCLUDE_ALL && inclusionPatterns.length > 0) {
 			this.fullInclusionPatternChars = UNINIT_PATTERNS;
@@ -348,8 +359,15 @@ public class ClasspathEntry implements IClasspathEntry {
 			int lenRefer = referringExtraAttributes.length;
 			if (lenRefer > 0) {
 				int lenEntry = combinedAttributes.length;
-				System.arraycopy(combinedAttributes, 0, combinedAttributes=new IClasspathAttribute[lenEntry+lenRefer], lenRefer, lenEntry);
-				System.arraycopy(referringExtraAttributes, 0, combinedAttributes, 0, lenRefer);
+				if (referringEntry.path.isPrefixOf(this.path)) {
+					// consider prefix location as less specific, put to back (e.g.: referring to a library via a project):
+					System.arraycopy(combinedAttributes, 0, combinedAttributes=new IClasspathAttribute[lenEntry+lenRefer], 0, lenEntry);
+					System.arraycopy(referringExtraAttributes, 0, combinedAttributes, lenEntry, lenRefer);
+				} else {
+					// otherwise consider the referring entry as more specific than the referee:
+					System.arraycopy(combinedAttributes, 0, combinedAttributes=new IClasspathAttribute[lenEntry+lenRefer], lenRefer, lenEntry);
+					System.arraycopy(referringExtraAttributes, 0, combinedAttributes, 0, lenRefer);
+				}
 			}
 			return new ClasspathEntry(
 								getContentKind(),
@@ -965,23 +983,60 @@ public class ClasspathEntry implements IClasspathEntry {
 		}
 	}
 
+	private static char[] getManifestContents(IPath jarPath) throws CoreException, IOException {
+		// Try to read a cached manifest from the index
+		if (JavaIndex.isEnabled()) {
+			JavaIndex index = JavaIndex.getIndex();
+			String location = JavaModelManager.getLocalFile(jarPath).getAbsolutePath();
+			try (IReader reader = index.getNd().acquireReadLock()) {
+				NdResourceFile resourceFile = index.getResourceFile(location.toCharArray());
+				if (index.isUpToDate(resourceFile)) {
+					char[] manifestContent = resourceFile.getManifestContent().getChars();
+					if (manifestContent.length == 0) {
+						return null;
+					}
+					return manifestContent;
+				}
+			}
+		}
+
+		ZipFile zip = null;
+		InputStream inputStream = null;
+		JavaModelManager manager = JavaModelManager.getJavaModelManager();
+		try {
+			zip = manager.getZipFile(jarPath);
+			ZipEntry manifest = zip.getEntry(TypeConstants.META_INF_MANIFEST_MF);
+			if (manifest == null) {
+				return null;
+			}
+			inputStream = zip.getInputStream(manifest);
+			char[] chars = getInputStreamAsCharArray(inputStream, -1, UTF_8);
+			return chars;
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					// best effort
+				}
+			}
+			manager.closeZipFile(zip);
+		}
+	}
+
 	private static List getCalledFileNames(IPath jarPath) {
 		Object target = JavaModel.getTarget(jarPath, true/*check existence, otherwise the manifest cannot be read*/);
 		if (!(target instanceof IFile || target instanceof File))
 			return null;
-		JavaModelManager manager = JavaModelManager.getJavaModelManager();
-		ZipFile zip = null;
-		InputStream inputStream = null;
+
 		List calledFileNames = null;
 		try {
-			zip = manager.getZipFile(jarPath);
-			ZipEntry manifest = zip.getEntry("META-INF/MANIFEST.MF"); //$NON-NLS-1$
-			if (manifest == null) 
+			char[] manifestContents = getManifestContents(jarPath);
+			if (manifestContents == null) 
 				return null;
 			// non-null implies regular file
 			ManifestAnalyzer analyzer = new ManifestAnalyzer();
-			inputStream = zip.getInputStream(manifest);
-			boolean success = analyzer.analyzeManifestContents(inputStream);
+			boolean success = analyzer.analyzeManifestContents(manifestContents);
 			calledFileNames = analyzer.getCalledFileNames();
 			if (!success || analyzer.getClasspathSectionsCount() == 1 && calledFileNames == null) {
 				if (JavaModelManager.CP_RESOLVE_VERBOSE_FAILURE) {
@@ -1006,19 +1061,10 @@ public class ClasspathEntry implements IClasspathEntry {
 				Util.verbose("Could not read Class-Path header in manifest of jar file: " + jarPath.toOSString()); //$NON-NLS-1$
 				e.printStackTrace();
 			}
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					// best effort
-				}
-			}
-			manager.closeZipFile(zip);
 		}
 		return calledFileNames;
 	}
-	
+
 	/*
 	 * Resolves the ".." in the given path. Returns the given path if it contains no ".." segment.
 	 */
@@ -1322,14 +1368,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * @return the attached external annotation path, or null.
 	 */
 	static String getRawExternalAnnotationPath(IClasspathEntry entry) {
-		IClasspathAttribute[] extraAttributes = entry.getExtraAttributes();
-		for (int i = 0, length = extraAttributes.length; i < length; i++) {
-			IClasspathAttribute attribute = extraAttributes[i];
-			if (IClasspathAttribute.EXTERNAL_ANNOTATION_PATH.equals(attribute.getName())) {
-				return attribute.getValue();
-			}
-		}
-		return null;
+		return getExtraAttribute(entry, IClasspathAttribute.EXTERNAL_ANNOTATION_PATH);
 	}
 
 	private static void invalidExternalAnnotationPath(IProject project) {
@@ -1367,6 +1406,17 @@ public class ClasspathEntry implements IClasspathEntry {
 						new String[] { annotationPath.toString(), project.getName(), this.path.toString()}));
 	}
 
+	public static String getExtraAttribute(IClasspathEntry entry, String attributeName) {
+		IClasspathAttribute[] extraAttributes = entry.getExtraAttributes();
+		for (int i = 0, length = extraAttributes.length; i < length; i++) {
+			IClasspathAttribute attribute = extraAttributes[i];
+			if (attributeName.equals(attribute.getName())) {
+				return attribute.getValue();
+			}
+		}
+		return null;
+	}
+
 	public IClasspathEntry getReferencingEntry() {
 		return this.referencingEntry;
 	}
@@ -1389,6 +1439,14 @@ public class ClasspathEntry implements IClasspathEntry {
 		for (int i = 0, length = this.extraAttributes.length; i < length; i++) {
 			IClasspathAttribute attribute = this.extraAttributes[i];
 			if (IClasspathAttribute.OPTIONAL.equals(attribute.getName()) && "true".equals(attribute.getValue())) //$NON-NLS-1$
+				return true;
+		}
+		return false;
+	}
+	public boolean isModular() {
+		for (int i = 0, length = this.extraAttributes.length; i < length; i++) {
+			IClasspathAttribute attribute = this.extraAttributes[i];
+			if (IClasspathAttribute.MODULE.equals(attribute.getName()) && "true".equals(attribute.getValue())) //$NON-NLS-1$
 				return true;
 		}
 		return false;

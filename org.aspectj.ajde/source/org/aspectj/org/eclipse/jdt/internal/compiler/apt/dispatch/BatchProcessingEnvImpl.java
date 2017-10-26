@@ -90,6 +90,7 @@ public class BatchProcessingEnvImpl extends BaseProcessingEnvImpl {
 			_fileManager = manager;
 		}
 		_processorOptions = Collections.unmodifiableMap(parseProcessorOptions(commandLineArguments));
+		// AspectJ: use AjBatchFilerImpl
 		_filer = new AjBatchFilerImpl(_dispatchManager, this);
 		_messager = new BatchMessagerImpl(this, _compilerOwner);
 	}

@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,6 +38,7 @@ import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.SourceElementParser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.JavaBuilder;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
@@ -495,7 +500,7 @@ public class DeltaProcessor {
 						this.manager.removePerProjectInfo(javaProject, true /* remove external jar files indexes and timestamps*/);
 						// remove container cache for this project
 						this.manager.containerRemove(javaProject);
-
+						JavaModelManager.getModulePathManager().removeEntry(javaProject);
 						this.state.rootsAreStale = true;
 						break;
 				}
@@ -507,13 +512,12 @@ public class DeltaProcessor {
 					case IResourceDelta.REMOVED:
 						// Close the containing package fragment root to reset its cached children.
 						// See http://bugs.eclipse.org/500714
-						IPackageFragmentRoot root = findContainingPackageFragmentRoot(resource);
-						if (root != null && root.isOpen()) {
-							try {
+						try {
+							IPackageFragmentRoot root = findContainingPackageFragmentRoot(resource);
+							if (root != null && root.isOpen())
 								root.close();
-							} catch (JavaModelException e) {
-								Util.log(e);
-							}
+						} catch (JavaModelException e) {
+							Util.log(e);
 						}
 						break;
 
@@ -534,7 +538,7 @@ public class DeltaProcessor {
 							int flags = delta.getFlags();
 							if ((flags & IResourceDelta.CONTENT) == 0  // only consider content change
 								&& (flags & IResourceDelta.ENCODING) == 0 // and encoding change
-								&& (flags & IResourceDelta.MOVED_FROM) == 0) {// and also move and overide scenario (see http://dev.eclipse.org/bugs/show_bug.cgi?id=21420)
+								&& (flags & IResourceDelta.MOVED_FROM) == 0) {// and also move and override scenario (see http://dev.eclipse.org/bugs/show_bug.cgi?id=21420)
 								break;
 							}
 						//$FALL-THROUGH$
@@ -553,6 +557,28 @@ public class DeltaProcessor {
 					javaProject = (JavaProject)JavaCore.create(file.getProject());
 					javaProject.resetResolvedClasspath();
 					this.state.rootsAreStale = true;
+				} else if (file.getName().toLowerCase().contains(new String(TypeConstants.MODULE_INFO_FILE_NAME))) {
+					switch(kind) {
+						case IResourceDelta.CHANGED :
+							int flags = delta.getFlags();
+							if ((flags & IResourceDelta.CONTENT) == 0)
+								break;
+							javaProject = (JavaProject)JavaCore.create(file.getProject());
+							this.manager.removePerProjectInfo(javaProject, false);
+							this.state.rootsAreStale = true;
+							break;
+							//$FALL-THROUGH$
+						case IResourceDelta.ADDED :
+						case IResourceDelta.REMOVED :
+							javaProject = (JavaProject)JavaCore.create(file.getProject());
+							try {
+								// Make sure module description is read
+								javaProject.close();
+							} catch (JavaModelException e) {
+								// do nothing
+							}
+							break;
+					}
 				}
 				break;
 
@@ -564,22 +590,24 @@ public class DeltaProcessor {
 		}
 	}
 
-	private IPackageFragmentRoot findContainingPackageFragmentRoot(IResource resource) {
+	private IPackageFragmentRoot findContainingPackageFragmentRoot(IResource resource) throws JavaModelException {
 		IProject project = resource.getProject();
 		if (JavaProject.hasJavaNature(project)) {
 			IJavaProject javaProject = JavaCore.create(project);
-			try {
-				IPath path = resource.getProjectRelativePath();
-				IPackageFragmentRoot[] roots = javaProject.getPackageFragmentRoots();
-				for (IPackageFragmentRoot root : roots) {
-					IResource rootResource = root.getUnderlyingResource();
-					if (rootResource != null && !resource.equals(rootResource) &&
-							rootResource.getProjectRelativePath().isPrefixOf(path)) {
-						return root;
-					}
+			IPath path = resource.getProjectRelativePath();
+			IPackageFragmentRoot[] roots = javaProject.getPackageFragmentRoots();
+			for (IPackageFragmentRoot root : roots) {
+				IResource rootResource = null;
+				try {
+					rootResource = root.getUnderlyingResource();
+				} catch (JavaModelException e) {
+					if (!e.isDoesNotExist())
+						throw e;
 				}
-			} catch (JavaModelException e) {
-				Util.log(e);
+				if (rootResource != null && !resource.equals(rootResource) &&
+						rootResource.getProjectRelativePath().isPrefixOf(path)) {
+					return root;
+				}
 			}
 		}
 		return null;
@@ -591,8 +619,8 @@ public class DeltaProcessor {
 	}
 
 	private void checkProjectReferenceChange(IProject project, JavaProject javaProject) {
-		ClasspathChange change = this.state.getClasspathChange(project);
-		this.state.addProjectReferenceChange(javaProject, change == null ? null : change.oldResolvedClasspath);
+		project.clearCachedDynamicReferences();
+		this.state.addProjectReferenceChange(javaProject);
 	}
 
 	private void readRawClasspath(JavaProject javaProject) {
@@ -796,7 +824,10 @@ public class DeltaProcessor {
 							// create class file handle
 							// fileName validation has been done in elementType(IResourceDelta, int, boolean)
 							String fileName = path.lastSegment();
-							element = pkgFragment.getClassFile(fileName);
+							if (TypeConstants.MODULE_INFO_CLASS_NAME_STRING.equals(fileName))
+								element = pkgFragment.getModularClassFile();
+							else
+								element = pkgFragment.getClassFile(fileName);
 						}
 					}
 				}
@@ -1119,6 +1150,7 @@ public class DeltaProcessor {
 					javaProject.computePackageFragmentRoots(
 						javaProject.getResolvedClasspath(),
 						false,
+						true, // respect limit modules
 						null /*no reverse map*/));
 			}
 
@@ -1745,7 +1777,7 @@ public class DeltaProcessor {
 			JavaElementInfo info = (JavaElementInfo)element.getElementInfo();
 			switch (element.getElementType()) {
 				case IJavaElement.JAVA_MODEL :
-					((JavaModelInfo) info).nonJavaResources = null;
+					((JavaModelInfo) info).setNonJavaResources(null);
 					if (!ExternalFoldersManager.isInternalPathForExternalFolder(delta.getFullPath()))
 						currentDelta().addResourceDelta(delta);
 					return;
@@ -2080,7 +2112,8 @@ public class DeltaProcessor {
 										this.state.addClasspathValidation(change.project);
 									}
 									if ((result & ClasspathChange.HAS_PROJECT_CHANGE) != 0) {
-										this.state.addProjectReferenceChange(change.project, change.oldResolvedClasspath);
+										change.project.getProject().clearCachedDynamicReferences();
+										this.state.addProjectReferenceChange(change.project);
 									}
 									if ((result & ClasspathChange.HAS_LIBRARY_CHANGE) != 0) {
 										this.state.addExternalFolderChange(change.project, change.oldResolvedClasspath);
@@ -2145,20 +2178,13 @@ public class DeltaProcessor {
 				}
 
 				// update project references if necessary
-			    ProjectReferenceChange[] projectRefChanges = this.state.removeProjectReferenceChanges();
-				if (projectRefChanges != null) {
-				    for (int i = 0, length = projectRefChanges.length; i < length; i++) {
-				        try {
-					        projectRefChanges[i].updateProjectReferencesIfNecessary();
-				        } catch(JavaModelException e) {
-				            // project doesn't exist any longer, continue with next one
-				        	if (!e.isDoesNotExist())
-				        		Util.log(e, "Exception while updating project references"); //$NON-NLS-1$
-				        }
-				    }
-				}
+				Set<IJavaProject> referencedProjects = this.state.removeProjectReferenceChanges();
+				needCycleValidation = needCycleValidation || !referencedProjects.isEmpty();
 
-				if (needCycleValidation || projectRefChanges != null) {
+				if (needCycleValidation) {
+					for (IJavaProject next : referencedProjects) {
+						next.getProject().clearCachedDynamicReferences();
+					}
 					// update all cycle markers since the project references changes may have affected cycles
 					try {
 						JavaProject.validateCycles(null);

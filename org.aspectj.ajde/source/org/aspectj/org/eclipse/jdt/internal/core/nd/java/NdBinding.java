@@ -17,8 +17,7 @@ import org.aspectj.org.eclipse.jdt.core.Flags;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.Nd;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.NdNode;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldInt;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldManyToOne;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldOneToMany;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldList;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.field.StructDef;
 import org.aspectj.org.eclipse.jdt.internal.core.util.CharArrayBuffer;
 
@@ -27,9 +26,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.CharArrayBuffer;
  */
 public abstract class NdBinding extends NdNode implements IAdaptable {
 	public static final FieldInt MODIFIERS;
-	public static final FieldOneToMany<NdTypeParameter> TYPE_PARAMETERS;
-	public static final FieldManyToOne<NdResourceFile> FILE;
-	public static final FieldOneToMany<NdVariable> VARIABLES;
+	public static final FieldList<NdTypeParameter> TYPE_PARAMETERS;
 
 	@SuppressWarnings("hiding")
 	public static final StructDef<NdBinding> type;
@@ -37,9 +34,7 @@ public abstract class NdBinding extends NdNode implements IAdaptable {
 	static {
 		type = StructDef.create(NdBinding.class, NdNode.type);
 		MODIFIERS = type.addInt();
-		TYPE_PARAMETERS = FieldOneToMany.create(type, NdTypeParameter.PARENT);
-		FILE = FieldManyToOne.createOwner(type, NdResourceFile.ALL_NODES);
-		VARIABLES = FieldOneToMany.create(type, NdVariable.PARENT);
+		TYPE_PARAMETERS = FieldList.create(type, NdTypeParameter.type);
 		type.done();
 	}
 
@@ -47,14 +42,8 @@ public abstract class NdBinding extends NdNode implements IAdaptable {
 		super(nd, address);
 	}
 
-	public NdBinding(Nd nd, NdResourceFile resource) {
+	public NdBinding(Nd nd) {
 		super(nd);
-
-		FILE.put(nd, this.address, resource);
-	}
-
-	public List<NdVariable> getVariables() {
-		return VARIABLES.asList(getNd(), this.address);
 	}
 
 	/**
@@ -88,14 +77,6 @@ public abstract class NdBinding extends NdNode implements IAdaptable {
 		return getNodeType();
 	}
 
-	public void setFile(NdResourceFile file) {
-		FILE.put(getNd(), this.address, file);
-	}
-
-	public NdResourceFile getFile() {
-		return FILE.get(getNd(), this.address);
-	}
-
 	public char[][] getTypeParameterSignatures() {
 		List<NdTypeParameter> parameters = getTypeParameters();
 		char[][] result = new char[parameters.size()][];
@@ -118,5 +99,13 @@ public abstract class NdBinding extends NdNode implements IAdaptable {
 
 	public List<NdTypeParameter> getTypeParameters() {
 		return TYPE_PARAMETERS.asList(getNd(), this.address);
+	}
+
+	public NdTypeParameter createTypeParameter() {
+		return TYPE_PARAMETERS.append(getNd(), getAddress());
+	}
+
+	public void allocateTypeParameters(int elements) {
+		TYPE_PARAMETERS.allocate(getNd(), getAddress(), elements);
 	}
 }

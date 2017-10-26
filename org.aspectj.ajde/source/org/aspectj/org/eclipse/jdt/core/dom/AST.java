@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -114,7 +118,7 @@ public class AST {
      * </p>
      *
 	 * @since 3.0
-	 * @deprecated Clients should use the {@link #JLS8} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
 	 */
 	public static final int JLS2 = 2;
 
@@ -138,7 +142,7 @@ public class AST {
      * </p>
      *
 	 * @since 3.1
-	 * @deprecated Clients should use the {@link #JLS8} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
 	 */
 	public static final int JLS3 = 3;
 	
@@ -162,7 +166,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.7.1
-	 * @deprecated Clients should use the {@link #JLS8} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
 	 */
 	public static final int JLS4 = 4;
 	
@@ -186,8 +190,39 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.10
+	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
 	 */
 	public static final int JLS8 = 8;
+
+	/**
+	 * Internal synonym for {@link #JLS8}. Use to alleviate
+	 * deprecation warnings.
+	 * @since 3.13 BETA_JAVA9
+	 */
+	/*package*/ static final int JLS8_INTERNAL = JLS8;
+	
+	/**
+	 * Constant for indicating the AST API that handles JLS9.
+	 * <p>
+	 * This API is capable of handling all constructs in the
+	 * Java language as described in the Java Language
+	 * Specification, Java SE 9 Edition (JLS9).
+	 * JLS9 is a superset of all earlier versions of the
+	 * Java language, and the JLS9 API can be used to manipulate
+	 * programs written in all versions of the Java language
+	 * up to and including Java SE 9 (aka JDK 9).
+	 * </p>
+	 *
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public static final int JLS9 = 9;
+
+	/**
+	 * Internal synonym for {@link #JLS9}. Use to alleviate
+	 * deprecation warnings once JLS9 is deprecated
+	 * @since 3.13 BETA_JAVA9
+	 */
+	/*package*/ static final int JLS9_INTERNAL = JLS9;
 
 	/*
 	 * Must not collide with a value for ICompilationUnit constants
@@ -284,7 +319,7 @@ public class AST {
 	 * Creates a new Java abstract syntax tree
      * (AST) following the specified set of API rules.
      * <p>
-     * Clients should use this method specifying {@link #JLS8} as the
+     * Clients should use this method specifying {@link #JLS9} as the
      * AST level in all cases, even when dealing with source of earlier JDK versions like 1.3 or 1.4.
      * </p>
      *
@@ -664,8 +699,8 @@ public class AST {
 	 * Creates a new, empty abstract syntax tree using default options.
 	 *
 	 * @see JavaCore#getDefaultOptions()
-	 * @deprecated Clients should port their code to use the new JLS4 AST API and call
-	 *    {@link #newAST(int) AST.newAST(AST.JLS4)} instead of using this constructor.
+	 * @deprecated Clients should port their code to use the latest JLS* AST API and call
+	 *    {@link #newAST(int) AST.newAST(AST.JLS9)} instead of using this constructor.
 	 */
 	public AST() {
 		this(JavaCore.getDefaultOptions());
@@ -707,7 +742,7 @@ public class AST {
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
 				break;
-			case JLS8 :
+			case JLS8_INTERNAL :
 				this.apiLevel = level;
 				// initialize a scanner
 				this.scanner = new Scanner(
@@ -716,6 +751,19 @@ public class AST {
 						false /*nls*/,
 						ClassFileConstants.JDK1_8 /*sourceLevel*/,
 						ClassFileConstants.JDK1_8 /*complianceLevel*/,
+						null/*taskTag*/,
+						null/*taskPriorities*/,
+						true/*taskCaseSensitive*/);
+				break;	
+			case JLS9 :
+				this.apiLevel = level;
+				// initialize a scanner
+				this.scanner = new Scanner(
+						true /*comment*/,
+						true /*whitespace*/,
+						false /*nls*/,
+						ClassFileConstants.JDK9   /*sourceLevel*/,
+						ClassFileConstants.JDK9 /*complianceLevel*/,
 						null/*taskTag*/,
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
@@ -746,8 +794,8 @@ public class AST {
 	 * @param options the table of options (key type: <code>String</code>;
 	 *    value type: <code>String</code>)
 	 * @see JavaCore#getDefaultOptions()
-	 * @deprecated Clients should port their code to use the new JLS4 AST API and call
-	 *    {@link #newAST(int) AST.newAST(AST.JLS4)} instead of using this constructor.
+	 * @deprecated Clients should port their code to use the latest JLS* AST API and call
+	 *    {@link #newAST(int) AST.newAST(AST.JLS9)} instead of using this constructor.
 	 */
 	public AST(Map options) {
 		this(JLS2);
@@ -1135,7 +1183,7 @@ public class AST {
 	 */
 	public ArrayType newArrayType(Type elementType) {
 		ArrayType result;
-		if (this.apiLevel < AST.JLS8) {
+		if (this.apiLevel < JLS8_INTERNAL) {
 			result = new ArrayType(this);
 			setArrayComponentType(result, elementType);
 			return result;
@@ -1179,7 +1227,7 @@ public class AST {
 			throw new IllegalArgumentException();
 		}
 		ArrayType result;
-		if (this.apiLevel < AST.JLS8) {
+		if (this.apiLevel < JLS8_INTERNAL) {
 			if (dimensions < 1) {
 				throw new IllegalArgumentException();
 			}
@@ -1463,6 +1511,19 @@ public class AST {
 	 */
 	public EnumDeclaration newEnumDeclaration() {
 		EnumDeclaration result = new EnumDeclaration(this);
+		return result;
+	}
+
+	/**
+	 * Creates and returns a new unparented exports directive
+	 * node for an unspecified, but legal, name; no target modules
+	 *
+	 * @return a new unparented exports directive node
+	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public ExportsDirective newExportsStatement() {
+		ExportsDirective result = new ExportsDirective(this);
 		return result;
 	}
 
@@ -1826,6 +1887,23 @@ public class AST {
 	}
 
 	/**
+	 * Creates and returns a new unparented module modifier node for the given
+	 * module modifier.
+	 *
+	 * @param keyword one of the module modifier keyword constants
+	 * @return a new unparented module modifier node
+	 * @exception IllegalArgumentException if the primitive type code is invalid
+	 * @exception UnsupportedOperationException if this operation is used in
+	 * an AST with level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public ModuleModifier newModuleModifier(ModuleModifier.ModuleModifierKeyword keyword) {
+		ModuleModifier result = new ModuleModifier(this);
+		result.setKeyword(keyword);
+		return result;
+	}
+
+	/**
 	 * Creates and returns a list of new unparented modifier nodes
 	 * for the given modifier flags. When multiple modifiers are
 	 * requested, the modifier nodes will appear in the following order:
@@ -1883,6 +1961,20 @@ public class AST {
 		if (Modifier.isVolatile(flags)) {
 			result.add(newModifier(Modifier.ModifierKeyword.VOLATILE_KEYWORD));
 		}
+		return result;
+	}
+
+	/**
+	 * Creates and returns a new unparented module declaration
+	 * node for an unspecified, but legal, name; no modifiers; no javadoc;
+	 * and an empty list of statements.
+	 *
+	 * @return a new unparented module declaration node
+	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public ModuleDeclaration newModuleDeclaration() {
+		ModuleDeclaration result = new ModuleDeclaration(this);
 		return result;
 	}
 
@@ -2050,6 +2142,19 @@ public class AST {
 	}
 
 	/**
+	 * Creates and returns a new unparented opens directive
+	 * node for an unspecified, but legal, name; no target modules
+	 *
+	 * @return a new unparented opens directive node
+	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public OpensDirective newOpensDirective() {
+		OpensDirective result = new OpensDirective(this);
+		return result;
+	}
+
+	/**
 	 * Creates an unparented package declaration node owned by this AST.
 	 * The package declaration initially declares a package with an
 	 * unspecified name.
@@ -2133,6 +2238,19 @@ public class AST {
 	}
 
 	/**
+	 * Creates and returns a new unparented provides directive
+	 * node for an unspecified, but legal, type; no target types
+	 *
+	 * @return a new unparented provides directive node
+	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public ProvidesDirective newProvidesDirective() {
+		ProvidesDirective result = new ProvidesDirective(this);
+		return result;
+	}
+
+	/**
 	 * Creates and returns a new unparented qualified name node for the given
 	 * qualifier and simple name child node.
 	 *
@@ -2175,6 +2293,19 @@ public class AST {
 		QualifiedType result = new QualifiedType(this);
 		result.setQualifier(qualifier);
 		result.setName(name);
+		return result;
+	}
+
+	/**
+	 * Creates and returns a new unparented requires directive
+	 * node for an unspecified, but legal, name;
+	 *
+	 * @return a new unparented requires directive node
+	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public RequiresDirective newRequiresDirective() {
+		RequiresDirective result = new RequiresDirective(this);
 		return result;
 	}
 
@@ -2548,6 +2679,19 @@ public class AST {
 	 */
 	public UnionType newUnionType() {
 		return new UnionType(this);
+	}
+
+	/**
+	 * Creates and returns a new unparented uses directive
+	 * node for an unspecified, but legal, name;
+	 *
+	 * @return a new unparented uses directive node
+	 * @exception UnsupportedOperationException if this operation is used in level less than JLS9
+	 * @since 3.13 BETA_JAVA9
+	 */
+	public UsesDirective newUsesDirective() {
+		UsesDirective result = new UsesDirective(this);
+		return result;
 	}
 
 	/**

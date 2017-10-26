@@ -1,3 +1,4 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials

@@ -14,6 +14,8 @@ import java.io.File;
 import java.util.List;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -21,6 +23,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.Nd;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.NdNode;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.NdNodeTypeRegistry;
@@ -30,20 +33,22 @@ import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldSearchIndex;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldSearchIndex.IResultRank;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.field.FieldSearchIndex.SearchCriteria;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.field.StructDef;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.indexer.FileStateCache;
 import org.aspectj.org.eclipse.jdt.internal.core.nd.util.CharArrayUtils;
 
 public class JavaIndex {
 	// Version constants
-	static final int CURRENT_VERSION = Nd.version(1, 38);
-	static final int MAX_SUPPORTED_VERSION = Nd.version(1, 38);
-	static final int MIN_SUPPORTED_VERSION = Nd.version(1, 38);
+	static final int CURRENT_VERSION = Nd.version(1, 49);
+	static final int MAX_SUPPORTED_VERSION = Nd.version(1, 49);
+	static final int MIN_SUPPORTED_VERSION = Nd.version(1, 49);
+
+	public static final String ENABLE_NEW_JAVA_INDEX = "enableNewJavaIndex"; //$NON-NLS-1$
+	public static final boolean ENABLE_NEW_JAVA_INDEX_DEFAULT = false;
 
 	// Fields for the search header
 	public static final FieldSearchIndex<NdResourceFile> FILES;
 	public static final FieldSearchIndex<NdTypeId> SIMPLE_INDEX;
 	public static final FieldSearchIndex<NdTypeId> TYPES;
-	public static final FieldSearchIndex<NdMethodId> METHODS;
-
 	public static final StructDef<JavaIndex> type;
 
 	static {
@@ -51,7 +56,6 @@ public class JavaIndex {
 		FILES = FieldSearchIndex.create(type, NdResourceFile.FILENAME);
 		SIMPLE_INDEX = FieldSearchIndex.create(type, NdTypeId.SIMPLE_NAME);
 		TYPES = FieldSearchIndex.create(type, NdTypeId.FIELD_DESCRIPTOR);
-		METHODS = FieldSearchIndex.create(type, NdMethodId.METHOD_NAME);
 		type.done();
 
 		// This struct needs to fit within the first database chunk.
@@ -96,26 +100,31 @@ public class JavaIndex {
 
 	/**
 	 * Returns true iff the given resource file is up-to-date with the filesystem. Returns false
-	 * if the argument is out-of-date with the file system or null.
+	 * if the argument is null or there is a possibility it being out-of-date with the file system.
 	 * 
 	 * @param file the index file to look up or null
 	 * @throws CoreException 
 	 */
 	public boolean isUpToDate(NdResourceFile file) throws CoreException {
 		if (file != null && file.isDoneIndexing()) {
-			// TODO(sxenos): It would be much more efficient to mark files as being in one
-			// of three states: unknown, dirty, or clean. Files would start in the unknown
-			// state and move into the dirty state when we see them in a java model change
-			// event. They would move into the clean state after passing this sort of
-			// fingerprint test... but by caching the state of all tested files (in memory),
-			// it would eliminate the vast majority of these (slow) fingerprint tests.
-			
-			Path locationPath = new Path(file.getLocation().getString());
-			if (file.getFingerprint().test(locationPath, null).matches()) {
-				return true;
+			String location = file.getLocation().getString();
+
+			FileStateCache cache = FileStateCache.getCache(getNd());
+			Boolean cachedResult = cache.isUpToDate(location);
+			if (cachedResult != null) {
+				return cachedResult;
 			}
+
+			Path locationPath = new Path(location);
+			boolean result = file.getFingerprint().test(locationPath, null).matches();
+			cache.put(location, result);
+			return result;
 		}
 		return false;
+	}
+
+	public void dirty(String location) {
+		FileStateCache.getCache(getNd()).clear();
 	}
 
 	public List<NdResourceFile> findResourcesWithPath(String thePath) {
@@ -129,6 +138,16 @@ public class JavaIndex {
 	public NdTypeId findType(char[] fieldDescriptor) {
 		SearchCriteria searchCriteria = SearchCriteria.create(fieldDescriptor);
 		return TYPES.findBest(this.nd, this.address, searchCriteria, this.anyResult);
+	}
+
+	public List<NdTypeId> findTypesBySimpleName(char[] query) {
+		SearchCriteria searchCriteria = SearchCriteria.create(query).prefix(true);
+		return SIMPLE_INDEX.findAll(this.nd, this.address, searchCriteria);
+	}
+
+	public List<NdTypeId> findTypesBySimpleName(char[] query, int count) {
+		SearchCriteria searchCriteria = SearchCriteria.create(query).prefix(true);
+		return SIMPLE_INDEX.findAll(this.nd, this.address, searchCriteria, count);
 	}
 
 	public boolean visitFieldDescriptorsStartingWith(char[] fieldDescriptorPrefix, FieldSearchIndex.Visitor<NdTypeId> visitor) {
@@ -166,30 +185,36 @@ public class JavaIndex {
 		return this.nd;
 	}
 
-	public NdMethodId findMethodId(char[] methodId) {
-		SearchCriteria searchCriteria = SearchCriteria.create(methodId);
+	/**
+	 * Converts a JDT-style path (which may be a resource-relative path or absolute filesystem location) into a location
+	 * (which is unconditionally a filesystem location) or null if none.
+	 * <p>
+	 * The logic used in {@link #getLocationForPath(IPath)}, {@link #getLocationForElement(IJavaElement)}, and
+	 * {@link JavaModelManager#getLocalFile(IPath)} should be equivalent.
+	 */
+	public static IPath getLocationForPath(IPath path) {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 
-		return METHODS.findBest(this.nd, this.address, searchCriteria, this.anyResult);
-	}
+		IResource resource = root.findMember(path);
 
-	public NdMethodId createMethodId(char[] methodId) {
-		NdMethodId existingMethod = findMethodId(methodId);
-
-		if (existingMethod != null) {
-			return existingMethod;
+		if (resource != null) {
+			return resource.getLocation();
 		}
 
-		return new NdMethodId(this.nd, methodId);
+		return path;
 	}
 
 	/**
-	 * Returns the absolute filesystem location of the given element or null if none
+	 * Returns the absolute filesystem location of the given element or the empty path if none
+	 * <p>
+	 * The logic used in {@link #getLocationForPath(IPath)}, {@link #getLocationForElement(IJavaElement)}, and
+	 * {@link JavaModelManager#getLocalFile(IPath)} should be equivalent.
 	 */
 	public static IPath getLocationForElement(IJavaElement next) {
 		IResource resource = next.getResource();
 
 		if (resource != null) {
-			return resource.getLocation() == null ? new Path("") : resource.getLocation(); //$NON-NLS-1$
+			return resource.getLocation() == null ? Path.EMPTY : resource.getLocation();
 		}
 
 		return next.getPath();
@@ -200,7 +225,7 @@ public class JavaIndex {
 		if (preferenceService == null) {
 			return true;
 		}
-		return !preferenceService.getBoolean(JavaCore.PLUGIN_ID, "disableNewJavaIndex", false, //$NON-NLS-1$
+		return preferenceService.getBoolean(JavaCore.PLUGIN_ID, ENABLE_NEW_JAVA_INDEX, ENABLE_NEW_JAVA_INDEX_DEFAULT,
 				null);
 	}
 
@@ -248,13 +273,7 @@ public class JavaIndex {
 
 	static NdNodeTypeRegistry<NdNode> createTypeRegistry() {
 		NdNodeTypeRegistry<NdNode> registry = new NdNodeTypeRegistry<>();
-		registry.register(0x0001, NdAnnotation.type.getFactory());
-		registry.register(0x0004, NdAnnotationInConstant.type.getFactory());
-		registry.register(0x0008, NdAnnotationInMethod.type.getFactory());
-		registry.register(0x000c, NdAnnotationInMethodParameter.type.getFactory());
-		registry.register(0x0010, NdAnnotationInType.type.getFactory());
-		registry.register(0x0014, NdAnnotationInVariable.type.getFactory());
-		registry.register(0x0020, NdAnnotationValuePair.type.getFactory());
+
 		registry.register(0x0028, NdBinding.type.getFactory());
 		registry.register(0x0030, NdComplexTypeSignature.type.getFactory());
 		registry.register(0x0038, NdConstant.type.getFactory());
@@ -272,20 +291,11 @@ public class JavaIndex {
 		registry.register(0x00F0, NdConstantShort.type.getFactory());
 		registry.register(0x0100, NdConstantString.type.getFactory());
 		registry.register(0x0110, NdMethod.type.getFactory());
-		registry.register(0x0120, NdMethodException.type.getFactory());
-		registry.register(0x0130, NdMethodId.type.getFactory());
-		registry.register(0x0140, NdMethodParameter.type.getFactory());
+		registry.register(0x0118, NdMethodAnnotationData.type.getFactory());
 		registry.register(0x0150, NdResourceFile.type.getFactory());
-		registry.register(0x0160, NdTreeNode.type.getFactory());
 		registry.register(0x0170, NdType.type.getFactory());
-		registry.register(0x0180, NdTypeAnnotation.type.getFactory());
-		registry.register(0x0184, NdTypeAnnotationInMethod.type.getFactory());
-		registry.register(0x0188, NdTypeAnnotationInType.type.getFactory());
-		registry.register(0x018c, NdTypeAnnotationInVariable.type.getFactory());
 		registry.register(0x0190, NdTypeArgument.type.getFactory());
-		registry.register(0x0194, NdTypeBound.type.getFactory());
 		registry.register(0x01A0, NdTypeInterface.type.getFactory());
-		registry.register(0x01B0, NdTypeParameter.type.getFactory());
 		registry.register(0x01C0, NdTypeSignature.type.getFactory());
 		registry.register(0x01D0, NdTypeId.type.getFactory());
 		registry.register(0x01E0, NdTypeInterface.type.getFactory());

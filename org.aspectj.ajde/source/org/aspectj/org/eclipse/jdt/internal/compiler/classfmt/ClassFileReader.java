@@ -1,9 +1,14 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +17,7 @@
  *								Bug 440477 - [null] Infrastructure for feeding external annotations into compilation
  *								Bug 440687 - [compiler][batch][null] improve command line option for external annotations
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
- *         bug 407191 - [1.8] Binary access support for type annotations
+ *         						bug 407191 - [1.8] Binary access support for type annotations
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.classfmt;
 
@@ -24,19 +29,13 @@ import java.util.Arrays;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AttributeNamesConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryElementValuePair;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryField;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryNestedType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
 public class ClassFileReader extends ClassFileStruct implements IBinaryType {
@@ -49,6 +48,8 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 	private AnnotationInfo[] annotations;
 	private TypeAnnotationInfo[] typeAnnotations;
 	private FieldInfo[] fields;
+	private IBinaryModule moduleDeclaration;
+	public char[] moduleName;
 	private int fieldsCount;
 
 	// initialized in case the .class file is a nested type
@@ -117,6 +118,29 @@ public static ClassFileReader read(
 		return read(zip, filename, false);
 }
 
+public static ClassFileReader readFromJimage(
+		File jrt,
+		String filename)
+		throws ClassFormatException, java.io.IOException {
+
+		return readFromModule(jrt, null, filename);
+	}
+public static ClassFileReader readFromJrt(
+		File jrt,
+		IModule module,
+		String filename)
+
+		throws ClassFormatException, java.io.IOException {
+		return JRTUtil.getClassfile(jrt, filename, module);
+	}
+public static ClassFileReader readFromModule(
+		File jrt,
+		String moduleName,
+		String filename)
+
+		throws ClassFormatException, java.io.IOException {
+		return JRTUtil.getClassfile(jrt, filename, moduleName);
+}
 public static ClassFileReader read(
 	java.util.zip.ZipFile zip,
 	String filename,
@@ -237,6 +261,14 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 					this.constantPoolOffsets[i] = readOffset;
 					readOffset += ClassFileConstants.ConstantInvokeDynamicFixedSize;
 					break;
+				case ClassFileConstants.ModuleTag:
+					this.constantPoolOffsets[i] = readOffset;
+					readOffset += ClassFileConstants.ConstantModuleFixedSize;
+					break;
+				case ClassFileConstants.PackageTag:
+					this.constantPoolOffsets[i] = readOffset;
+					readOffset += ClassFileConstants.ConstantPackageFixedSize;
+					break;
 			}
 		}
 		// Read and validate access flags
@@ -245,7 +277,9 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 
 		// Read the classname, use exception handlers to catch bad format
 		this.classNameIndex = u2At(readOffset);
+		if (this.classNameIndex != 0) {
 		this.className = getConstantClassNameAt(this.classNameIndex);
+		}
 		readOffset += 2;
 
 		// Read the superclass name, can be null for java.lang.Object
@@ -393,6 +427,9 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 								missingTypeOffset += 2;
 							}
 						}
+					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.ModuleName)) {
+						this.moduleDeclaration = ModuleInfo.createModule(this.className, this.reference, this.constantPoolOffsets, readOffset);
+						this.moduleName = this.moduleDeclaration.name();
 					}
 			}
 			readOffset += (6 + u4At(readOffset + 2));
@@ -413,7 +450,6 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 public ExternalAnnotationStatus getExternalAnnotationStatus() {
 	return ExternalAnnotationStatus.NOT_EEA_CONFIGURED;
 }
-
 /**
  * Conditionally add external annotations to the mix.
  * If 'member' is given it must be either of IBinaryField or IBinaryMethod, in which case we're seeking annotations for that member.
@@ -562,6 +598,21 @@ public char[] getEnclosingTypeName() {
  */
 public IBinaryField[] getFields() {
 	return this.fields;
+}
+/**
+ * @see IBinaryType#getModule()
+ */
+public char[] getModule() {
+	return this.moduleName;
+}
+/**
+ * Returns the module declaration that this class file represents. This will be 
+ * null for non module-info class files.
+ * 
+ * @return the module declaration this represents
+ */
+public IBinaryModule getModuleDeclaration() {
+	return this.moduleDeclaration;
 }
 
 /**
@@ -1331,6 +1382,8 @@ public String toString() {
 	print.println(getClass().getName() + "{"); //$NON-NLS-1$
 	print.println(" this.className: " + new String(getName())); //$NON-NLS-1$
 	print.println(" this.superclassName: " + (getSuperclassName() == null ? "null" : new String(getSuperclassName()))); //$NON-NLS-2$ //$NON-NLS-1$
+	if (this.moduleName != null)
+		print.println(" this.moduleName: " + (new String(this.moduleName))); //$NON-NLS-1$
 	print.println(" access_flags: " + printTypeModifiers(accessFlags()) + "(" + accessFlags() + ")"); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
 	print.flush();
 	return out.toString();

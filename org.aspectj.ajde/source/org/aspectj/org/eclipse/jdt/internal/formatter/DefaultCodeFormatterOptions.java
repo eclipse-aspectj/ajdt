@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -124,6 +124,7 @@ public class DefaultCodeFormatterOptions {
 	public int alignment_for_expressions_in_array_initializer;
 	public int alignment_for_expressions_in_for_loop_header;
 	public int alignment_for_method_declaration;
+	public int alignment_for_module_statements;
 	// TODO following option cannot be set in preferences dialog (but it's used by old.CodeFormatter)
 	public int alignment_for_multiple_fields;
 	public int alignment_for_parameterized_type_references;
@@ -200,6 +201,7 @@ public class DefaultCodeFormatterOptions {
 	public boolean comment_insert_new_line_for_parameter;
 	public boolean comment_preserve_white_space_between_code_and_line_comments;
 	public int comment_line_length;
+	public boolean comment_count_line_length_from_starting_position;
 
 	public boolean use_tags;
 	public char[] disabling_tag;
@@ -459,6 +461,7 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_ARRAY_INITIALIZER, getAlignment(this.alignment_for_expressions_in_array_initializer));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_FOR_LOOP_HEADER, getAlignment(this.alignment_for_expressions_in_for_loop_header));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_METHOD_DECLARATION, getAlignment(this.alignment_for_method_declaration));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MODULE_STATEMENTS, getAlignment(this.alignment_for_module_statements));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLE_FIELDS, getAlignment(this.alignment_for_multiple_fields));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_PARAMETERIZED_TYPE_REFERENCES, getAlignment(this.alignment_for_parameterized_type_references));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_PARAMETERS_IN_CONSTRUCTOR_DECLARATION, getAlignment(this.alignment_for_parameters_in_constructor_declaration));
@@ -514,6 +517,7 @@ public class DefaultCodeFormatterOptions {
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INSERT_NEW_LINE_FOR_PARAMETER, this.comment_insert_new_line_for_parameter ? JavaCore.INSERT : JavaCore.DO_NOT_INSERT);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_PRESERVE_WHITE_SPACE_BETWEEN_CODE_AND_LINE_COMMENT, this.comment_preserve_white_space_between_code_and_line_comments ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_LINE_LENGTH, Integer.toString(this.comment_line_length));
+		options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_COUNT_LINE_LENGTH_FROM_STARTING_POSITION, this.comment_count_line_length_from_starting_position ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
 		options.put(DefaultCodeFormatterConstants.FORMATTER_CONTINUATION_INDENTATION, Integer.toString(this.continuation_indentation));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_CONTINUATION_INDENTATION_FOR_ARRAY_INITIALIZER, Integer.toString(this.continuation_indentation_for_array_initializer));
 		options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AFTER_IMPORTS, Integer.toString(this.blank_lines_after_imports));
@@ -895,6 +899,10 @@ public class DefaultCodeFormatterOptions {
 				this.alignment_for_method_declaration = Alignment.M_COMPACT_SPLIT;
 			}
 		}
+		final Object alignmentForModuleStatementsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MODULE_STATEMENTS);
+		if (alignmentForModuleStatementsOption != null)
+			this.alignment_for_module_statements = toInt(alignmentForModuleStatementsOption, Alignment.M_COMPACT_SPLIT);
+
 		final Object alignmentForMultipleFieldsOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLE_FIELDS);
 		if (alignmentForMultipleFieldsOption != null) {
 			try {
@@ -1371,6 +1379,10 @@ public class DefaultCodeFormatterOptions {
 			} catch(ClassCastException e) {
 				this.comment_line_length = 80;
 			}
+		}
+		final Object commentCountLineLengthFromStartingPositionOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_COUNT_LINE_LENGTH_FROM_STARTING_POSITION);
+		if (commentCountLineLengthFromStartingPositionOption != null) {
+			this.comment_count_line_length_from_starting_position = DefaultCodeFormatterConstants.TRUE.equals(commentCountLineLengthFromStartingPositionOption);
 		}
 		final Object commentNewLinesAtBlockBoundariesOption = settings.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_NEW_LINES_AT_BLOCK_BOUNDARIES);
 		if (commentNewLinesAtBlockBoundariesOption != null) {
@@ -2424,6 +2436,7 @@ public class DefaultCodeFormatterOptions {
 		this.alignment_for_expressions_in_array_initializer = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_expressions_in_for_loop_header = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_method_declaration = Alignment.M_NO_ALIGNMENT;
+		this.alignment_for_module_statements = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_multiple_fields = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_parameterized_type_references = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_parameters_in_constructor_declaration = Alignment.M_COMPACT_SPLIT;
@@ -2478,6 +2491,7 @@ public class DefaultCodeFormatterOptions {
 		this.comment_new_lines_at_block_boundaries = true;
 		this.comment_new_lines_at_javadoc_boundaries = true;
 		this.comment_line_length = 80;
+		this.comment_count_line_length_from_starting_position = true;
 		this.comment_preserve_white_space_between_code_and_line_comments= false; 
 		this.continuation_indentation = 2;
 		this.continuation_indentation_for_array_initializer = 2;
@@ -2733,6 +2747,7 @@ public class DefaultCodeFormatterOptions {
 		this.alignment_for_expressions_in_array_initializer = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_expressions_in_for_loop_header = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_method_declaration = Alignment.M_NO_ALIGNMENT;
+		this.alignment_for_module_statements = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_multiple_fields = Alignment.M_COMPACT_SPLIT;
 		this.alignment_for_parameterized_type_references = Alignment.M_NO_ALIGNMENT;
 		this.alignment_for_parameters_in_constructor_declaration = Alignment.M_COMPACT_SPLIT;
@@ -2787,6 +2802,7 @@ public class DefaultCodeFormatterOptions {
 		this.comment_new_lines_at_block_boundaries = true;
 		this.comment_new_lines_at_javadoc_boundaries = true;
 		this.comment_line_length = 80;
+		this.comment_count_line_length_from_starting_position = true;
 		this.comment_preserve_white_space_between_code_and_line_comments= false; 
 		this.continuation_indentation = 2;
 		this.continuation_indentation_for_array_initializer = 2;

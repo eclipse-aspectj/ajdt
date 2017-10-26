@@ -10,12 +10,45 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.nd.db;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
+
 public final class ChunkCache {
-	private static ChunkCache sSharedInstance= new ChunkCache();
+	private static ChunkCache sSharedInstance;
 
 	private Chunk[] fPageTable;
 	private boolean fTableIsFull;
 	private int fPointer;
+
+	public static final String CHUNK_CACHE_SIZE_MB = "chunkCacheSizeMb"; //$NON-NLS-1$
+	public static final String CHUNK_CACHE_SIZE_PERCENT = "chunkCacheSizePercent"; //$NON-NLS-1$
+
+	public static final double CHUNK_CACHE_SIZE_MB_DEFAULT = 128.0;
+	public static final double CHUNK_CACHE_SIZE_PERCENT_DEFAULT = 5.0;
+
+	static {
+		IEclipsePreferences node = InstanceScope.INSTANCE.getNode(JavaCore.PLUGIN_ID);
+		long chunkSize = getChunkCacheSize(node);
+		sSharedInstance= new ChunkCache(chunkSize);
+		node.addPreferenceChangeListener(event -> {
+			String key = event.getKey();
+			if (key.equals(CHUNK_CACHE_SIZE_MB) | key.equals(CHUNK_CACHE_SIZE_PERCENT)) {
+				sSharedInstance.setMaxSize(getChunkCacheSize(node));
+			}
+		});
+	}
+
+	private static long getChunkCacheSize(IEclipsePreferences node) {
+		double maxSizeMb = node.getDouble(CHUNK_CACHE_SIZE_MB, CHUNK_CACHE_SIZE_MB_DEFAULT);
+		double maxSizePercent = node.getDouble(CHUNK_CACHE_SIZE_PERCENT, CHUNK_CACHE_SIZE_PERCENT_DEFAULT);
+
+		maxSizePercent = Math.max(1.0, Math.min(50.0, maxSizePercent));
+		maxSizeMb = Math.max(maxSizeMb, 1.0);
+
+		long m1= (long) (Runtime.getRuntime().maxMemory() / 100.0 * maxSizePercent);
+		return Math.min(m1, (long) (maxSizeMb * 1024.0 * 1024.0));
+	}
 
 	public static ChunkCache getSharedInstance() {
 		return sSharedInstance;
@@ -29,10 +62,7 @@ public final class ChunkCache {
 		this.fPageTable= new Chunk[computeLength(maxSize)];
 	}
 
-	public synchronized void add(Chunk chunk, boolean locked) {
-		if (locked) {
-			chunk.fLocked= true;
-		}
+	public synchronized void add(Chunk chunk) {
 		if (chunk.fCacheIndex >= 0) {
 			chunk.fCacheHitFlag= true;
 			return;
@@ -69,11 +99,11 @@ public final class ChunkCache {
 		while (true) {
 			Chunk chunk = this.fPageTable[this.fPointer];
 			if (chunk.fCacheHitFlag) {
-				chunk.fCacheHitFlag= false;
-				this.fPointer= (this.fPointer + 1) % this.fPageTable.length;
+				chunk.fCacheHitFlag = false;
+				this.fPointer = (this.fPointer + 1) % this.fPageTable.length;
 			} else {
-				chunk.fDatabase.releaseChunk(chunk);
-				chunk.fCacheIndex= -1;
+				chunk.fCacheIndex = -1;
+				chunk.fDatabase.checkIfChunkReleased(chunk);
 				this.fPageTable[this.fPointer] = null;
 				return;
 			}
@@ -119,10 +149,10 @@ public final class ChunkCache {
 			this.fPointer= oldLength;
 			this.fPageTable= newTable;
 		} else {
-			for (int i= newLength; i < oldLength; i++) {
-				final Chunk chunk= this.fPageTable[i];
-				chunk.fDatabase.releaseChunk(chunk);
-				chunk.fCacheIndex= -1;
+			for (int i = newLength; i < oldLength; i++) {
+				Chunk chunk = this.fPageTable[i];
+				chunk.fCacheIndex = -1;
+				chunk.fDatabase.checkIfChunkReleased(chunk);
 			}
 			Chunk[] newTable= new Chunk[newLength];
 			System.arraycopy(this.fPageTable, 0, newTable, 0, newLength);
@@ -135,5 +165,19 @@ public final class ChunkCache {
 	private int computeLength(long maxSize) {
 		long maxLength= Math.min(maxSize / Database.CHUNK_SIZE, Integer.MAX_VALUE);
 		return Math.max(1, (int) maxLength);
+	}
+
+	public synchronized void clear() {
+		for (int i = 0; i < this.fPageTable.length; i++) {
+			Chunk chunk = this.fPageTable[i];
+			if (chunk == null) {
+				continue;
+			}
+			chunk.fCacheIndex = -1;
+			chunk.fDatabase.checkIfChunkReleased(chunk);
+			this.fPageTable[i] = null;
+		}
+		this.fTableIsFull = false;
+		this.fPointer = 0;
 	}
 }

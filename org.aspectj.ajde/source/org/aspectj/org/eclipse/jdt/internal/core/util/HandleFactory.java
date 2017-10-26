@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,6 +42,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.*;
 import org.aspectj.org.eclipse.jdt.internal.core.search.AbstractJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
@@ -60,6 +65,8 @@ public class HandleFactory {
 	private HashtableOfArrayToObject packageHandles;
 
 	private JavaModel javaModel;
+
+	private HashtableOfObjectToInt localOccurrenceCounts = new HashtableOfObjectToInt(5);
 
 	public HandleFactory() {
 		this.javaModel = JavaModelManager.getJavaModelManager().getJavaModel();
@@ -94,6 +101,12 @@ public class HandleFactory {
 				this.packageHandles= new HashtableOfArrayToObject(5);
 			}
 			// create handle
+			String module = null;
+			String rootPath = this.lastPkgFragmentRoot.getPath().toOSString();
+			if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
+				module = resourcePath.substring(separatorIndex + 1, 
+						(separatorIndex = resourcePath.lastIndexOf(IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR)));
+			}
 			String classFilePath= resourcePath.substring(separatorIndex + 1);
 			String[] simpleNames = new Path(classFilePath).segments();
 			String[] pkgName;
@@ -106,7 +119,7 @@ public class HandleFactory {
 			}
 			IPackageFragment pkgFragment= (IPackageFragment) this.packageHandles.get(pkgName);
 			if (pkgFragment == null) {
-				pkgFragment= this.lastPkgFragmentRoot.getPackageFragment(pkgName);
+				pkgFragment= this.lastPkgFragmentRoot.getPackageFragment(pkgName, module);
 				this.packageHandles.put(pkgName, pkgFragment);
 			}
 			IClassFile classFile= pkgFragment.getClassFile(simpleNames[length]);
@@ -166,6 +179,21 @@ public class HandleFactory {
 	 */
 	public IJavaElement createLambdaTypeElement(LambdaExpression expression, ICompilationUnit unit, HashSet existingElements, HashMap knownScopes) {
 		return createElement(expression.scope, expression.sourceStart(), unit, existingElements, knownScopes).getParent();
+	}
+	protected void resolveDuplicates(IJavaElement handle) {
+
+		// For anonymous source types, the occurrence count should be in the context
+		// of the enclosing type.
+		if (handle instanceof SourceType && ((SourceType) handle).isAnonymous()) {
+			Object key = handle.getParent().getAncestor(IJavaElement.TYPE);
+			int occurenceCount = this.localOccurrenceCounts.get(key);
+			if (occurenceCount == -1)
+				this.localOccurrenceCounts.put(key, 1);
+			else {
+				this.localOccurrenceCounts.put(key, ++occurenceCount);
+				((SourceType)handle).localOccurrenceCount = occurenceCount;
+			}
+		}
 	}
 	/**
 	 * Create handle by adding child to parent obtained by recursing into parent scopes.
@@ -257,6 +285,7 @@ public class HandleFactory {
 				newElement = createElement(scope.parent, elementPosition, unit, existingElements, knownScopes);
 				break;
 		}
+		resolveDuplicates(newElement);
 		return newElement;
 	}
 	/**

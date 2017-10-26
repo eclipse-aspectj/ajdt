@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 IBM Corporation and others.
+ * Copyright (c) 2006, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * This is an implementation of an early-draft specification developed under the Java
+ * Community Process (JCP) and is made available for testing and evaluation purposes
+ * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -62,6 +66,7 @@ public class EclipseFileManager implements StandardJavaFileManager {
 	Charset charset;
 	Locale locale;
 	Map<String, Iterable<? extends File>> locations;
+	final Map<Location, URLClassLoader> classloaders;
 	int flags;
 	public ResourceBundle bundle;
 	
@@ -69,6 +74,7 @@ public class EclipseFileManager implements StandardJavaFileManager {
 		this.locale = locale == null ? Locale.getDefault() : locale;
 		this.charset = charset == null ? Charset.defaultCharset() : charset;
 		this.locations = new HashMap<>();
+		this.classloaders = new HashMap<>();
 		this.archivesCache = new HashMap<>();
 		try {
 			this.setLocation(StandardLocation.PLATFORM_CLASS_PATH, getDefaultBootclasspath());
@@ -95,6 +101,10 @@ public class EclipseFileManager implements StandardJavaFileManager {
 			archive.close();
 		}
 		this.archivesCache.clear();
+		for (URLClassLoader cl : this.classloaders.values()) {
+			cl.close();
+		}
+		this.classloaders.clear();
 	}
 	
 	private void collectAllMatchingFiles(File file, String normalizedPackageName, Set<Kind> kinds, boolean recurse, ArrayList<JavaFileObject> collector) {
@@ -136,24 +146,26 @@ public class EclipseFileManager implements StandardJavaFileManager {
 			if (recurse) {
 				for (String packageName : archive.allPackages()) {
 					if (packageName.startsWith(key)) {
-						List<String> types = archive.getTypes(packageName);
+						List<String[]> types = archive.getTypes(packageName);
 						if (types != null) {
-							for (String typeName : types) {
-								final Kind kind = getKind(getExtension(typeName));
+							for (String[] entry : types) {
+								final Kind kind = getKind(getExtension(entry[0]));
 								if (kinds.contains(kind)) {
-									collector.add(archive.getArchiveFileObject(packageName + typeName, this.charset));
+									// TODO BETA_JAVA9 - entry[1] contains the module, use it.
+									collector.add(archive.getArchiveFileObject(packageName + entry[0],  this.charset));
 								}
 							}
 						}
 					}
 				}
 			} else {
-				List<String> types = archive.getTypes(key);
+				List<String[]> types = archive.getTypes(key);
 				if (types != null) {
-					for (String typeName : types) {
-						final Kind kind = getKind(getExtension(typeName));
+					for (String[] entry : types) {
+						final Kind kind = getKind(getExtension(entry[0]));
 						if (kinds.contains(kind)) {
-							collector.add(archive.getArchiveFileObject(key + typeName, this.charset));
+							// TODO BETA_JAVA9 - entry[1] contains the module, use it.
+							collector.add(archive.getArchiveFileObject(key + entry[0], this.charset));
 						}
 					}
 				}
@@ -216,17 +228,22 @@ public class EclipseFileManager implements StandardJavaFileManager {
 			// location is unknown
 			return null;
 		}
-		ArrayList<URL> allURLs = new ArrayList<>();
-		for (File f : files) {
-			try {
-				allURLs.add(f.toURI().toURL());
-			} catch (MalformedURLException e) {
-				// the url is malformed - this should not happen
-				throw new RuntimeException(e);
+		URLClassLoader cl = this.classloaders.get(location);
+		if (cl == null) {
+			ArrayList<URL> allURLs = new ArrayList<>();
+			for (File f : files) {
+				try {
+					allURLs.add(f.toURI().toURL());
+				} catch (MalformedURLException e) {
+					// the url is malformed - this should not happen
+					throw new RuntimeException(e);
+				}
 			}
+			URL[] result = new URL[allURLs.size()];
+			cl = new URLClassLoader(allURLs.toArray(result), getClass().getClassLoader());
+			this.classloaders.put(location, cl);
 		}
-		URL[] result = new URL[allURLs.size()];
-		return new URLClassLoader(allURLs.toArray(result), getClass().getClassLoader());
+		return cl;
 	}
 
 	private Iterable<? extends File> getPathsFrom(String path) {
@@ -254,8 +271,8 @@ public class EclipseFileManager implements StandardJavaFileManager {
 			return null;
 		}
 
-		for (String fileName : org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.collectFilesNames()) {
-			files.add(new File(fileName));
+		for (FileSystem.Classpath classpath : org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.collectFilesNames()) {
+			files.add(new File(classpath.getPath()));
 		}
 		return files;
 	}

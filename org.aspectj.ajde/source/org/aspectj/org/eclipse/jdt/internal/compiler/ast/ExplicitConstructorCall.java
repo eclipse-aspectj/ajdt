@@ -1,3 +1,4 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -407,7 +408,7 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 					if ((argumentTypes[i] = argument.resolveType(scope)) == null) {
 						argHasError = true;
 					}
-				}
+					}
 				if (argHasError) {
 					if (receiverType == null) {
 						return;
@@ -520,9 +521,8 @@ public class ExplicitConstructorCall extends Statement implements Invocation {
 	public void registerResult(TypeBinding targetType, MethodBinding method) {
 		// Nothing to do.
 	}
-	
 	public InferenceContext18 getInferenceContext(ParameterizedMethodBinding method) {
-		return null;
+			return null;
 	}
 	
 	@Override

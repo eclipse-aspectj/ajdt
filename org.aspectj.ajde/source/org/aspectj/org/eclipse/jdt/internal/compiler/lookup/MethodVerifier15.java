@@ -1,5 +1,6 @@
+// ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -80,8 +81,8 @@ void checkConcreteInheritedMethod(MethodBinding concreteMethod, MethodBinding[] 
 	if (analyseNullAnnotations && this.type.equals(concreteMethod.declaringClass)) // is currentMethod from the current type?
 		srcMethod = concreteMethod.sourceMethod();
 	boolean useTypeAnnotations = this.environment.usesNullTypeAnnotations();
-	boolean hasReturnNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultFor(Binding.DefaultLocationReturnType, useTypeAnnotations);
-	boolean hasParameterNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultFor(Binding.DefaultLocationParameter, useTypeAnnotations);
+	boolean hasReturnNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultFor(Binding.DefaultLocationReturnType, useTypeAnnotations, srcMethod);
+	boolean hasParameterNonNullDefault = analyseNullAnnotations && concreteMethod.hasNonNullDefaultFor(Binding.DefaultLocationParameter, useTypeAnnotations, srcMethod);
 
 	for (int i = 0, l = abstractMethods.length; i < l; i++) {
 		MethodBinding abstractMethod = abstractMethods[i];
@@ -397,8 +398,8 @@ void checkAgainstInheritedMethods(MethodBinding currentMethod, MethodBinding[] m
 		if (this.type.equals(currentMethod.declaringClass)) // is currentMethod from the current type?
 			srcMethod = currentMethod.sourceMethod();
 		boolean useTypeAnnotations = this.environment.usesNullTypeAnnotations();
-		boolean hasReturnNonNullDefault = currentMethod.hasNonNullDefaultFor(Binding.DefaultLocationReturnType, useTypeAnnotations);
-		boolean hasParameterNonNullDefault = currentMethod.hasNonNullDefaultFor(Binding.DefaultLocationParameter, useTypeAnnotations);
+		boolean hasReturnNonNullDefault = currentMethod.hasNonNullDefaultFor(Binding.DefaultLocationReturnType, useTypeAnnotations, srcMethod);
+		boolean hasParameterNonNullDefault = currentMethod.hasNonNullDefaultFor(Binding.DefaultLocationParameter, useTypeAnnotations, srcMethod);
 		for (int i = length; --i >= 0;)
 			if (!currentMethod.isStatic() && !methods[i].isStatic())
 				checkNullSpecInheritance(currentMethod, srcMethod, hasReturnNonNullDefault, hasParameterNonNullDefault, true, methods[i], methods, this.type.scope, null);
@@ -960,7 +961,7 @@ boolean isInterfaceMethodImplemented(MethodBinding inheritedMethod, MethodBindin
 	if (inheritedMethod == null	|| !doesMethodOverride(existingMethod, inheritedMethod))
 		return false;
 	return TypeBinding.equalsEquals(inheritedMethod.returnType, existingMethod.returnType)
-			|| (TypeBinding.notEquals(this.type, existingMethod.declaringClass) // ... not if inheriting the bridge situation from a superclass
+			|| (TypeBinding.notEquals(this.type, existingMethod.declaringClass) 			// ... not if inheriting the bridge situation from a superclass
 				&& !existingMethod.declaringClass.isInterface()
 				&& areReturnTypesCompatible(existingMethod, inheritedMethod)); // may have to report incompatible return type
 }

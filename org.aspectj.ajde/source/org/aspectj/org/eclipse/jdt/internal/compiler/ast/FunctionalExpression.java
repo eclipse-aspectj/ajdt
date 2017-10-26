@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2016 IBM Corporation and others.
+ * Copyright (c) 2013, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,7 +35,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ImplicitNullAnnotationVerifier;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
@@ -46,7 +45,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.RawTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBindingVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
@@ -67,6 +65,7 @@ public abstract class FunctionalExpression extends Expression {
 	protected static IErrorHandlingPolicy silentErrorHandlingPolicy = DefaultErrorHandlingPolicies.ignoreAllProblems();
 	private boolean hasReportedSamProblem = false;
 	public boolean isSerializable;
+	public int ordinal;
 
 	public FunctionalExpression(CompilationResult compilationResult) {
 		this.compilationResult = compilationResult;
@@ -202,10 +201,6 @@ public abstract class FunctionalExpression extends Expression {
 			}
 			LookupEnvironment environment = blockScope.environment();
 			if (environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
-				if ((sam.tagBits & TagBits.IsNullnessKnown) == 0) {
-					new ImplicitNullAnnotationVerifier(environment, environment.globalOptions.inheritNullAnnotations)
-							.checkImplicitNullAnnotations(sam, null, false, blockScope);
-				}
 				NullAnnotationMatching.checkForContradictions(sam, this, blockScope);
 			}
 			return this.resolvedType = this.expectedType;		
