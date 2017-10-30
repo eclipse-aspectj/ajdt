@@ -432,6 +432,11 @@ public class ITDAwareSelectionRequestor implements ISelectionRequestor {
         return (IJavaElement[]) accepted.toArray(new IJavaElement[accepted.size()]);
     }
 
+	public void acceptModule(char[] arg0, char[] arg1, int arg2, int arg3) {
+		// TODO Auto-generated method stub
+		
+	}
+
     /**
      * Converts from a 'Q' kind of signature to an 'L' kind of signature.
      * This is actually quite tricky.

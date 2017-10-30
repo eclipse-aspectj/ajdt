@@ -39,6 +39,7 @@ import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.SourceMapper;
 import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.corext.fix.CleanUpConstants;
@@ -142,14 +143,21 @@ public class SourceTransformerTests extends WeavingTestCase {
     class MockSourceMaper extends SourceMapper {
         boolean sourceMapped = false;
         
-        @Override
-        public void mapSource(IType type, char[] contents, IBinaryType info) {
-            // ensure that the contents have been transformed
+        public void mapSource(NamedMember typeOrModule, char[] contents, IBinaryType info) {
+        	// ensure that the contents have been transformed
             if (new String(contents).equals(
                     new String(new MockSourceTransformer().convert(new char[0])))) {
                 sourceMapped = true;
             }
         }
+        
+//        public void mapSource(IType type, char[] contents, IBinaryType info) {
+//            // ensure that the contents have been transformed
+//            if (new String(contents).equals(
+//                    new String(new MockSourceTransformer().convert(new char[0])))) {
+//                sourceMapped = true;
+//            }
+//        }
     }
 
     class MockBinaryInfo implements IBinaryType {
@@ -245,6 +253,10 @@ public class SourceTransformerTests extends WeavingTestCase {
 		}
 
 		public ExternalAnnotationStatus getExternalAnnotationStatus() {
+			return null;
+		}
+
+		public char[] getModule() {
 			return null;
 		}
     }

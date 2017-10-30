@@ -156,4 +156,8 @@ public class BinaryAspectElementInfo /*extends ClassFileReader*/ implements IBin
 		return null;
 	}
 
+	public char[] getModule() {
+		return null;
+	}
+
 }
