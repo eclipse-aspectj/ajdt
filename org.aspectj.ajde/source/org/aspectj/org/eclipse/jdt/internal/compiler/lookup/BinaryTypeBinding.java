@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -53,10 +49,12 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationProvider.IMethodAnnotationWalker;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.MethodInfoWithAnnotations;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.NonNullDefaultAwareTypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.TypeAnnotationWalker;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.BooleanConstant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -148,6 +146,7 @@ static Object convertMemberValue(Object binaryValue, LookupEnvironment env, char
 	throw new IllegalStateException();
 }
 
+@Override
 public TypeBinding clone(TypeBinding outerType) {
 	BinaryTypeBinding copy = new BinaryTypeBinding(this);
 	copy.enclosingType = (ReferenceBinding) outerType;
@@ -175,8 +174,10 @@ static AnnotationBinding createAnnotation(IBinaryAnnotation annotationInfo, Look
 		pairs[i] = new ElementValuePair(binaryPairs[i].getName(), convertMemberValue(binaryPairs[i].getValue(), env, missingTypeNames, false), null);
 
 	char[] typeName = annotationInfo.getTypeName();
-	ReferenceBinding annotationType = env.getTypeFromConstantPoolName(typeName, 1, typeName.length - 1, false, missingTypeNames);
-	return env.createUnresolvedAnnotation(annotationType, pairs);
+	LookupEnvironment env2 = annotationInfo.isExternalAnnotation() ? env.root : env;
+	ReferenceBinding annotationType = env2.getTypeFromConstantPoolName(typeName, 1, typeName.length - 1, false,
+			missingTypeNames);
+	return env2.createUnresolvedAnnotation(annotationType, pairs);
 }
 
 public static AnnotationBinding[] createAnnotations(IBinaryAnnotation[] annotationInfos, LookupEnvironment env, char[][][] missingTypeNames) {
@@ -314,6 +315,7 @@ public BinaryTypeBinding(PackageBinding packageBinding, IBinaryType binaryType, 
 	if (needFieldsAndMethods)
 		cachePartsFrom(binaryType, true);
 }
+@Override
 public boolean canBeSeenBy(Scope sco) {
 	ModuleBinding mod = sco.module();
 	return mod.canAccess(this.fPackage) && super.canBeSeenBy(sco);
@@ -321,6 +323,7 @@ public boolean canBeSeenBy(Scope sco) {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding#availableFields()
  */
+@Override
 public FieldBinding[] availableFields() {
 	
 	if (!isPrototype()) {
@@ -381,6 +384,7 @@ private TypeVariableBinding[] addMethodTypeVariables(TypeVariableBinding[] metho
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding#availableMethods()
  */
+@Override
 public MethodBinding[] availableMethods() {
 	
 	if (!isPrototype()) {
@@ -573,8 +577,27 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 			}
 		}
 		}
-		if (this.environment.globalOptions.storeAnnotations)
-			setAnnotations(createAnnotations(binaryType.getAnnotations(), this.environment, missingTypeNames));
+		if (this.environment.globalOptions.storeAnnotations) {
+			setAnnotations(createAnnotations(binaryType.getAnnotations(), this.environment, missingTypeNames), false);
+		} else if (sourceLevel >= ClassFileConstants.JDK9 && isDeprecated() && binaryType.getAnnotations() != null) {
+			// prior to Java 9 all standard annotations were marker annotations, not needing to be stored,
+			// but since Java 9 we need more information from the @Deprecated annotation:
+			for (IBinaryAnnotation annotation : binaryType.getAnnotations()) {
+				if (annotation.isDeprecatedAnnotation()) {
+					AnnotationBinding[] annotationBindings = createAnnotations(new IBinaryAnnotation[] { annotation }, this.environment, missingTypeNames);
+					setAnnotations(annotationBindings, true); // force storing
+					for (ElementValuePair elementValuePair : annotationBindings[0].getElementValuePairs()) {
+						if (CharOperation.equals(elementValuePair.name, TypeConstants.FOR_REMOVAL)) {
+							if (elementValuePair.value instanceof BooleanConstant && ((BooleanConstant) elementValuePair.value).booleanValue()) {
+								this.tagBits |= TagBits.AnnotationTerminallyDeprecated;
+								markImplicitTerminalDeprecation(this);
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
 		if (this.isAnnotationType())
 			scanTypeForContainerAnnotation(binaryType, missingTypeNames);
 	} finally {
@@ -584,6 +607,21 @@ void cachePartsFrom(IBinaryType binaryType, boolean needFieldsAndMethods) {
 		if (this.methods == null)
 			this.methods = Binding.NO_METHODS;
 	}
+}
+void markImplicitTerminalDeprecation(ReferenceBinding type) {
+	for (ReferenceBinding member : type.memberTypes()) {
+		member.tagBits |= TagBits.AnnotationTerminallyDeprecated;
+		markImplicitTerminalDeprecation(member);
+	}
+	MethodBinding[] methodsOfType = type.unResolvedMethods();
+	if (methodsOfType != null)
+		for (MethodBinding methodBinding : methodsOfType)
+			methodBinding.tagBits |= TagBits.AnnotationTerminallyDeprecated;
+
+	FieldBinding[] fieldsOfType = type.unResolvedFields();
+	if (fieldsOfType != null)
+		for (FieldBinding fieldBinding : fieldsOfType)
+			fieldBinding.tagBits |= TagBits.AnnotationTerminallyDeprecated;
 }
 
 /* When creating a method we need to pass in any default 'nullness' from a @NNBD immediately on this method. */
@@ -612,7 +650,7 @@ private int getNullDefaultFrom(IBinaryAnnotation[] declAnnotations) {
 		for (IBinaryAnnotation annotation : declAnnotations) {
 			char[][] typeName = signature2qualifiedTypeName(annotation.getTypeName());
 			if (this.environment.getNullAnnotationBit(typeName) == TypeIds.BitNonNullByDefaultAnnotation)
-				return getNonNullByDefaultValue(annotation);
+				return getNonNullByDefaultValue(annotation, this.environment);
 		}
 	}
 	return Binding.NO_NULL_DEFAULT;
@@ -646,10 +684,16 @@ private void createFields(IBinaryField[] iFields, IBinaryType binaryType, long s
 						binaryField.getModifiers() | ExtraCompilerModifiers.AccUnresolved,
 						this,
 						binaryField.getConstant());
+				boolean forceStoreAnnotations = !this.environment.globalOptions.storeAnnotations
+						&& (this.environment.globalOptions.sourceLevel >= ClassFileConstants.JDK9
+						&& binaryField.getAnnotations() != null
+						&& (binaryField.getTagBits() & TagBits.AnnotationDeprecated) != 0);
 				if (firstAnnotatedFieldIndex < 0
-						&& this.environment.globalOptions.storeAnnotations
+						&& (this.environment.globalOptions.storeAnnotations || forceStoreAnnotations)
 						&& binaryField.getAnnotations() != null) {
 					firstAnnotatedFieldIndex = i;
+					if (forceStoreAnnotations)
+						storedAnnotations(true, true); // for Java 9 @Deprecated we need to force storing annotations
 				}
 				field.id = i; // ordinal
 				if (use15specifics)
@@ -665,7 +709,7 @@ private void createFields(IBinaryField[] iFields, IBinaryType binaryType, long s
 			if (firstAnnotatedFieldIndex >= 0) {
 				for (int i = firstAnnotatedFieldIndex; i <size; i++) {
 					IBinaryField binaryField = iFields[i];
-					this.fields[i].setAnnotations(createAnnotations(binaryField.getAnnotations(), this.environment, missingTypeNames));
+					this.fields[i].setAnnotations(createAnnotations(binaryField.getAnnotations(), this.environment, missingTypeNames), false);
 				}
 			}
 		}
@@ -901,7 +945,13 @@ private MethodBinding createMethod(IBinaryMethod method, IBinaryType binaryType,
 		result.receiver = this.environment.createAnnotatedType(this, createAnnotations(receiverAnnotations, this.environment, missingTypeNames));
 	}
 
-	if (this.environment.globalOptions.storeAnnotations) {
+	boolean forceStoreAnnotations = !this.environment.globalOptions.storeAnnotations
+										&& (this.environment.globalOptions.sourceLevel >= ClassFileConstants.JDK9
+										&& method instanceof MethodInfoWithAnnotations
+										&& (method.getTagBits() & TagBits.AnnotationDeprecated) != 0);
+	if (this.environment.globalOptions.storeAnnotations || forceStoreAnnotations) {
+		if (forceStoreAnnotations)
+			storedAnnotations(true, true); // for Java 9 @Deprecated we need to force storing annotations
 		IBinaryAnnotation[] annotations = method.getAnnotations();
 		if (method.isConstructor()) {
 			IBinaryAnnotation[] tAnnotations = walker.toMethodReturn().getAnnotationsAtCursor(this.id, false);
@@ -1048,6 +1098,7 @@ private TypeVariableBinding[] createTypeVariables(SignatureWrapper wrapper, bool
 *
 * NOTE: enclosingType of a binary type is resolved when needed
 */
+@Override
 public ReferenceBinding enclosingType() {  // should not delegate to prototype.
 	if ((this.tagBits & TagBits.HasUnresolvedEnclosingType) == 0)
 		return this.enclosingType;
@@ -1058,6 +1109,7 @@ public ReferenceBinding enclosingType() {  // should not delegate to prototype.
 	return this.enclosingType;
 }
 // NOTE: the type of each field of a binary type is resolved when needed
+@Override
 public FieldBinding[] fields() {
 	
 	if (!isPrototype()) {
@@ -1140,6 +1192,7 @@ private MethodBinding findMethod(char[] methodDescriptor, char[][][] missingType
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding#genericTypeSignature()
  */
+@Override
 public char[] genericTypeSignature() {
 	if (!isPrototype())
 		return this.prototype.computeGenericTypeSignature(this.typeVariables);
@@ -1147,6 +1200,7 @@ public char[] genericTypeSignature() {
 }
 
 //NOTE: the return type, arg & exception types of each method of a binary type are resolved when needed
+@Override
 public MethodBinding getExactConstructor(TypeBinding[] argumentTypes) {
 
 	if (!isPrototype())
@@ -1179,6 +1233,7 @@ public MethodBinding getExactConstructor(TypeBinding[] argumentTypes) {
 
 //NOTE: the return type, arg & exception types of each method of a binary type are resolved when needed
 //searches up the hierarchy as long as no potential (but not exact) match was found.
+@Override
 public MethodBinding getExactMethod(char[] selector, TypeBinding[] argumentTypes, CompilationUnitScope refScope) {
 	// sender from refScope calls recordTypeReference(this)
 
@@ -1227,6 +1282,7 @@ public MethodBinding getExactMethod(char[] selector, TypeBinding[] argumentTypes
 	return null;
 }
 //NOTE: the type of a field of a binary type is resolved when needed
+@Override
 public FieldBinding getFieldBase(char[] fieldName, boolean needResolve) { // AspectJ Extension - added Base to name
 	if (!isPrototype())
 		return this.prototype.getField(fieldName, needResolve);
@@ -1244,6 +1300,7 @@ public FieldBinding getFieldBase(char[] fieldName, boolean needResolve) { // Asp
 /**
  *  Rewrite of default memberTypes() to avoid resolving eagerly all member types when one is requested
  */
+@Override
 public ReferenceBinding getMemberType(char[] typeName) {
 
 	if (!isPrototype()) {
@@ -1266,7 +1323,8 @@ public ReferenceBinding getMemberType(char[] typeName) {
 	return null;
 }
 // NOTE: the return type, arg & exception types of each method of a binary type are resolved when needed
-public MethodBinding[] getMethodsBase(char[] selector) { // AspectJ Extension - added Base to name
+@Override
+public MethodBinding[] getMethodsBase(char[] selector) { // AspectJ Extension - added Base to name 
 
 	if (!isPrototype())
 		return this.prototype.getMethods(selector);
@@ -1347,12 +1405,15 @@ public MethodBinding[] getMethodsBase(char[] selector, int suggestedParameterLen
 	}
 	return Binding.NO_METHODS;
 }
+
+@Override
 public boolean hasMemberTypes() {
 	if (!isPrototype())
 		return this.prototype.hasMemberTypes();
     return this.memberTypes.length > 0;
 }
 // NOTE: member types of binary types are resolved when needed
+@Override
 public TypeVariableBinding getTypeVariable(char[] variableName) {
 	if (!isPrototype())
 		return this.prototype.getTypeVariable(variableName);
@@ -1361,6 +1422,7 @@ public TypeVariableBinding getTypeVariable(char[] variableName) {
 	if (variable!=null) variable.resolve(); // AspectJ Extension - guard added
 	return variable;
 }
+@Override
 public boolean hasTypeBit(int bit) {
 	
 	if (!isPrototype())
@@ -1425,6 +1487,7 @@ private void initializeTypeVariable(TypeVariableBinding variable, TypeVariableBi
  * Returns true if a type is identical to another one,
  * or for generic types, true if compared to its raw type.
  */
+@Override
 public boolean isEquivalentTo(TypeBinding otherType) {
 	
 	if (TypeBinding.equalsEquals(this, otherType)) return true;
@@ -1446,6 +1509,7 @@ public boolean isEquivalentTo(TypeBinding otherType) {
 	}
 	return false;
 }
+@Override
 public boolean isGenericType() {
 	
 	if (!isPrototype())
@@ -1453,6 +1517,7 @@ public boolean isGenericType() {
 	
     return this.typeVariables != Binding.NO_TYPE_VARIABLES;
 }
+@Override
 public boolean isHierarchyConnected() {
 	
 	if (!isPrototype())
@@ -1460,10 +1525,12 @@ public boolean isHierarchyConnected() {
 	
 	return (this.tagBits & (TagBits.HasUnresolvedSuperclass | TagBits.HasUnresolvedSuperinterfaces)) == 0;
 }
+@Override
 public boolean isRepeatableAnnotationType() {
 	if (!isPrototype()) throw new IllegalStateException();
 	return this.containerAnnotationType != null;
 }
+@Override
 public int kind() {
 	
 	if (!isPrototype())
@@ -1474,6 +1541,7 @@ public int kind() {
 	return Binding.TYPE;
 }
 // NOTE: member types of binary types are resolved when needed
+@Override
 public ReferenceBinding[] memberTypes() {
  	if (!isPrototype()) {
 		if ((this.tagBits & TagBits.HasUnresolvedMemberTypes) == 0)
@@ -1498,6 +1566,7 @@ public ReferenceBinding[] memberTypes() {
 	return this.memberTypes;
 }
 // NOTE: the return type, arg & exception types of each method of a binary type are resolved when needed
+@Override
 public MethodBinding[] methodsBase() { // AspectJ Extension - added Base suffix
 	
 	if (!isPrototype()) {
@@ -1520,15 +1589,18 @@ public MethodBinding[] methodsBase() { // AspectJ Extension - added Base suffix
 	return this.methods;
 }
 
+@Override
 public TypeBinding prototype() {
 	return this.prototype;
 }
 
-// AspectJ Extension: made public
-public /*private*/ boolean isPrototype() {
+// AspectJ Extension: made public not private
+@Override
+public boolean isPrototype() {
 	return this == this.prototype; //$IDENTITY-COMPARISON$
 }
 
+@Override
 public ReferenceBinding containerAnnotationType() {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.containerAnnotationType instanceof UnresolvedReferenceBinding) {
@@ -1538,6 +1610,7 @@ public ReferenceBinding containerAnnotationType() {
 }
 
 // AspectJ extension - raised to public from private
+@Override
 public FieldBinding resolveTypeFor(FieldBinding field) {
 	
 	if (!isPrototype())
@@ -1554,6 +1627,7 @@ public FieldBinding resolveTypeFor(FieldBinding field) {
 	field.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
 	return field;
 }
+@Override
 public MethodBinding resolveTypesFor(MethodBinding method) { // AspectJ Extension - raised to public
 	
 	if (!isPrototype())
@@ -1589,6 +1663,7 @@ public MethodBinding resolveTypesFor(MethodBinding method) { // AspectJ Extensio
 	method.modifiers &= ~ExtraCompilerModifiers.AccUnresolved;
 	return method;
 }
+@Override
 AnnotationBinding[] retrieveAnnotations(Binding binding) {
 	
 	if (!isPrototype())
@@ -1597,30 +1672,34 @@ AnnotationBinding[] retrieveAnnotations(Binding binding) {
 	return AnnotationBinding.addStandardAnnotations(super.retrieveAnnotations(binding), binding.getAnnotationTagBits(), this.environment);
 }
 
+@Override
 public void setContainerAnnotationType(ReferenceBinding value) {
 	if (!isPrototype()) throw new IllegalStateException();
 	this.containerAnnotationType = value;
 }
 
+@Override
 public void tagAsHavingDefectiveContainerType() {
 	if (!isPrototype()) throw new IllegalStateException();
 	if (this.containerAnnotationType != null && this.containerAnnotationType.isValidBinding())
 		this.containerAnnotationType = new ProblemReferenceBinding(this.containerAnnotationType.compoundName, this.containerAnnotationType, ProblemReasons.DefectiveContainerAnnotationType);
 }
 
-SimpleLookupTable storedAnnotations(boolean forceInitialize) {
+@Override
+SimpleLookupTable storedAnnotations(boolean forceInitialize, boolean forceStore) {
 	
 	if (!isPrototype())
-		return this.prototype.storedAnnotations(forceInitialize);
+		return this.prototype.storedAnnotations(forceInitialize, forceStore);
 	
 	if (forceInitialize && this.storedAnnotations == null) {
-		if (!this.environment.globalOptions.storeAnnotations)
+		if (!this.environment.globalOptions.storeAnnotations && !forceStore)
 			return null; // not supported during this compile
 		this.storedAnnotations = new SimpleLookupTable(3);
 	}
 	return this.storedAnnotations;
 }
 // AspectJ Extension - empty implementation here to stop super implementation running
+@Override
 public void initializeDeprecatedAnnotationTagBits() {
 	// this method intentionally left empty
 }
@@ -1722,7 +1801,7 @@ private void scanMethodForNullAnnotation(IBinaryMethod method, MethodBinding met
 				continue;
 			int typeBit = this.environment.getNullAnnotationBit(signature2qualifiedTypeName(annotationTypeName));
 			if (typeBit == TypeIds.BitNonNullByDefaultAnnotation) {
-					methodBinding.defaultNullness = getNonNullByDefaultValue(annotations[i]);
+				methodBinding.defaultNullness = getNonNullByDefaultValue(annotations[i], this.environment);
 				if (methodBinding.defaultNullness == Binding.NULL_UNSPECIFIED_BY_DEFAULT) {
 					methodBinding.tagBits |= TagBits.AnnotationNullUnspecifiedByDefault;
 				} else if (methodBinding.defaultNullness != 0) {
@@ -1842,7 +1921,7 @@ private void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBin
 			int typeBit = this.environment.getNullAnnotationBit(signature2qualifiedTypeName(annotationTypeName));
 			if (typeBit == TypeIds.BitNonNullByDefaultAnnotation) {
 					// using NonNullByDefault we need to inspect the details of the value() attribute:
-					nullness = getNonNullByDefaultValue(annotations[i]);
+				nullness = getNonNullByDefaultValue(annotations[i], this.environment);
 					if (nullness == NULL_UNSPECIFIED_BY_DEFAULT) {
 						annotationBit = TagBits.AnnotationNullUnspecifiedByDefault;
 					} else if (nullness != 0) {
@@ -1859,13 +1938,13 @@ private void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBin
 		if (annotationBit != 0L) {
 			this.tagBits |= annotationBit;
 			if (isPackageInfo)
-				packageBinding.defaultNullness = nullness;
+				packageBinding.setDefaultNullness(nullness);
 			return;
 		}
 	}
 	if (isPackageInfo) {
 		// no default annotations found in package-info
-		packageBinding.defaultNullness = Binding.NO_NULL_DEFAULT;
+		packageBinding.setDefaultNullness(Binding.NO_NULL_DEFAULT);
 		return;
 	}
 	ReferenceBinding enclosingTypeBinding = this.enclosingType;
@@ -1875,17 +1954,17 @@ private void scanTypeForNullDefaultAnnotation(IBinaryType binaryType, PackageBin
 			}
 	// no annotation found on the type or its enclosing types
 	// check the package-info for default annotation if not already done before
-	if (packageBinding.defaultNullness == Binding.NO_NULL_DEFAULT && !isPackageInfo
+	if (packageBinding.getDefaultNullness() == Binding.NO_NULL_DEFAULT && !isPackageInfo
 			&& ((this.typeBits & (TypeIds.BitAnyNullAnnotation)) == 0))
 	{
 		// this will scan the annotations in package-info
 		ReferenceBinding packageInfo = packageBinding.getType(TypeConstants.PACKAGE_INFO_NAME, packageBinding.enclosingModule);
 		if (packageInfo == null) {
-			packageBinding.defaultNullness = Binding.NO_NULL_DEFAULT;
+			packageBinding.setDefaultNullness(Binding.NO_NULL_DEFAULT);
 		}
 	}
 	// no @NonNullByDefault at type level, check containing package:
-	setNullDefault(0L, packageBinding.defaultNullness);
+	setNullDefault(0L, packageBinding.getDefaultNullness());
 		}
 
 boolean setNullDefault(long oldNullTagBits, int newNullDefault) {
@@ -1909,16 +1988,16 @@ boolean setNullDefault(long oldNullTagBits, int newNullDefault) {
 
 /** given an application of @NonNullByDefault convert the annotation argument (if any) into a bitvector a la {@link Binding#NullnessDefaultMASK} */
 // pre: null annotation analysis is enabled
-int getNonNullByDefaultValue(IBinaryAnnotation annotation) {
+static int getNonNullByDefaultValue(IBinaryAnnotation annotation, LookupEnvironment environment) {
 	char[] annotationTypeName = annotation.getTypeName();
 	char[][] typeName = signature2qualifiedTypeName(annotationTypeName);
 	IBinaryElementValuePair[] elementValuePairs = annotation.getElementValuePairs();
 	if (elementValuePairs == null || elementValuePairs.length == 0 ) {
 		// no argument: apply default default
-		ReferenceBinding annotationType = this.environment.getType(typeName, this.environment.UnNamedModule); // TODO(SHMOD): null annotations from a module?
+		ReferenceBinding annotationType = environment.getType(typeName, environment.UnNamedModule); // TODO(SHMOD): null annotations from a module?
 		if (annotationType == null) return 0;
 		if (annotationType.isUnresolvedType())
-			annotationType = ((UnresolvedReferenceBinding) annotationType).resolve(this.environment, false);
+			annotationType = ((UnresolvedReferenceBinding) annotationType).resolve(environment, false);
 		MethodBinding[] annotationMethods = annotationType.methods();
 		if (annotationMethods != null && annotationMethods.length == 1) {
 			Object value = annotationMethods[0].getDefaultValue();
@@ -1937,7 +2016,7 @@ int getNonNullByDefaultValue(IBinaryAnnotation annotation) {
 	}
 }
 
-private char[][] signature2qualifiedTypeName(char[] typeSignature) {
+static char[][] signature2qualifiedTypeName(char[] typeSignature) {
 	return CharOperation.splitOn('/', typeSignature, 1, typeSignature.length-1); // cut off leading 'L' and trailing ';'
 }
 
@@ -1971,6 +2050,7 @@ private void scanTypeForContainerAnnotation(IBinaryType binaryType, char[][][] m
 *
 * NOTE: superclass of a binary type is resolved when needed
 */
+@Override
 public ReferenceBinding superclass() {
 	
 	if (!isPrototype()) {
@@ -2002,6 +2082,7 @@ public ReferenceBinding superclass() {
 	return this.superclass;
 }
 // NOTE: superInterfaces of binary types are resolved when needed
+@Override
 public ReferenceBinding[] superInterfaces() {
 	
 	if (!isPrototype()) {
@@ -2039,6 +2120,7 @@ public ReferenceBinding[] superInterfaces() {
 	this.tagBits &= ~TagBits.HasUnresolvedSuperinterfaces;
 	return this.superInterfaces;
 }
+@Override
 public TypeVariableBinding[] typeVariables() {
 	
 	if (!isPrototype()) {
@@ -2052,6 +2134,7 @@ public TypeVariableBinding[] typeVariables() {
 	this.tagBits &= ~TagBits.HasUnresolvedTypeVariables;
 	return this.typeVariables;
 }
+@Override
 public String toString() {
 	
 	if (this.hasTypeAnnotations())
@@ -2143,9 +2226,11 @@ public String toString() {
 	return buffer.toString();
 }
 
+@Override
 public TypeBinding unannotated() {
 	return this.prototype;
 }
+@Override
 public TypeBinding withoutToplevelNullAnnotation() {
 		if (!hasNullTypeAnnotations())
 			return this;
@@ -2154,7 +2239,7 @@ public TypeBinding withoutToplevelNullAnnotation() {
 			return this.environment.createAnnotatedType(this.prototype, newAnnotations);
 	return this.prototype;
 }
-
+@Override
 MethodBinding[] unResolvedMethods() { // for the MethodVerifier so it doesn't resolve types
 	
 	if (!isPrototype())
@@ -2163,6 +2248,7 @@ MethodBinding[] unResolvedMethods() { // for the MethodVerifier so it doesn't re
 	return this.methods;
 }
 
+@Override
 public FieldBinding[] unResolvedFields() {
 	
 	if (!isPrototype())
@@ -2170,6 +2256,7 @@ public FieldBinding[] unResolvedFields() {
 	
 	return this.fields;
 }
+@Override
 public ModuleBinding module() {
 	if (!isPrototype())
 		return this.prototype.module;
@@ -2177,6 +2264,7 @@ public ModuleBinding module() {
 }
 
 //AspectJ Extension
+@Override
 public MethodBinding[] methods() {
 	   if (memberFinder!=null) return memberFinder.methods(this);
 	   else return methodsBase();

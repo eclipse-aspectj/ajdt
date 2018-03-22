@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann <stephan@cs.tu-berlin.de> - Contributions for 
@@ -505,6 +501,7 @@ public class ClassScope extends Scope {
 		sourceType.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
 	}
 
+	@Override
 	void resolveTypeParameter(TypeParameter typeParameter) {
 		typeParameter.resolve(this);
 	}
@@ -1366,9 +1363,11 @@ public class ClassScope extends Scope {
 				}
 			}
 		}
-		if ((superType.tagBits & TagBits.BeginHierarchyCheck) == 0)
+		if ((superType.tagBits & TagBits.BeginHierarchyCheck) == 0) {
 			// ensure if this is a source superclass that it has already been checked
+			if (superType.isValidBinding() && !superType.isUnresolvedType())
 			((SourceTypeBinding) superType).scope.connectTypeHierarchyWithoutMembers();
+		}
 		if ((superType.tagBits & TagBits.HierarchyHasProblems) != 0)
 			sourceType.tagBits |= TagBits.HierarchyHasProblems;
 		return false;
@@ -1401,6 +1400,7 @@ public class ClassScope extends Scope {
 	* (unit, type or method) in case the problem handler decides it is necessary
 	* to abort.
 	*/
+	@Override
 	public ProblemReporter problemReporter() {
 		MethodScope outerMethodScope;
 		if ((outerMethodScope = outerMostMethodScope()) == null) {
@@ -1450,6 +1450,7 @@ public class ClassScope extends Scope {
 		return this.parent.checkRedundantDefaultNullness(nullBits, sourceStart);
 	}
 	
+	@Override
 	public String toString() {
 		if (this.referenceContext != null)
 			return "--- Class Scope ---\n\n"  //$NON-NLS-1$
@@ -1462,6 +1463,7 @@ public class ClassScope extends Scope {
 		return 1;
     }
     
+	@Override
 	public SourceTypeBinding invocationType() {
 		return referenceContext.binding;
 	}

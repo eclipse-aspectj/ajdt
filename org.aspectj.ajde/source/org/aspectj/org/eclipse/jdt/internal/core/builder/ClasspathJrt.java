@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 IBM Corporation and others.
+ * Copyright (c) 2016, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,6 +28,7 @@ import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
@@ -50,9 +47,13 @@ private static HashMap<String, Set<IModule>> ModulesCache = new HashMap<>();
 private String externalAnnotationPath;
 private ZipFile annotationZipFile;
 String zipFilename; // keep for equals
+AccessRuleSet accessRuleSet;
 
-public ClasspathJrt(String zipFilename, IPath externalAnnotationPath) {
+static final Set<String> NO_LIMIT_MODULES = new HashSet<>();
+
+public ClasspathJrt(String zipFilename, AccessRuleSet accessRuleSet, IPath externalAnnotationPath) {
 	this.zipFilename = zipFilename;
+	this.accessRuleSet = accessRuleSet;
 	if (externalAnnotationPath != null)
 		this.externalAnnotationPath = externalAnnotationPath.toString();
 	loadModules(this);
@@ -101,7 +102,7 @@ static HashMap<String, SimpleSet> findPackagesInModules(final ClasspathJrt jrt) 
 			}
 		}, JRTUtil.NOTIFY_PACKAGES | JRTUtil.NOTIFY_MODULES);
 	} catch (IOException e) {
-		// TODO: BETA_JAVA9 Should report better
+		// TODO: Java 9 Should report better
 	}
 	return packagesInModule;
 }
@@ -141,7 +142,7 @@ public static void loadModules(final ClasspathJrt jrt) {
 				}
 			}, JRTUtil.NOTIFY_MODULES);
 		} catch (IOException e) {
-			// TODO: BETA_JAVA9 Should report better
+			// TODO: Java 9 Should report better
 		}
 	} else {
 //		for (IModuleDeclaration iModule : cache) {
@@ -169,6 +170,7 @@ void acceptModule(byte[] content) {
 		}
 	}
 }
+@Override
 public void cleanup() {
 	if (this.annotationZipFile != null) {
 		try {
@@ -179,11 +181,15 @@ public void cleanup() {
 	}
 }
 
+@Override
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathJrt)) return false;
 	ClasspathJrt jar = (ClasspathJrt) o;
-	return this.zipFilename.endsWith(jar.zipFilename);
+	if (this.accessRuleSet != jar.accessRuleSet)
+		if (this.accessRuleSet == null || !this.accessRuleSet.equals(jar.accessRuleSet))
+			return false;
+	return this.zipFilename.endsWith(jar.zipFilename) && areAllModuleOptionsEqual(jar);
 }
 
 @Override
@@ -193,8 +199,8 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 	try {
 		IBinaryType reader = ClassFileReader.readFromModule(new File(this.zipFilename), moduleName, qualifiedBinaryFileName);
 		if (reader != null) {
+			String fileNameWithoutExtension = qualifiedBinaryFileName.substring(0, qualifiedBinaryFileName.length() - SuffixConstants.SUFFIX_CLASS.length);
 			if (this.externalAnnotationPath != null) {
-				String fileNameWithoutExtension = qualifiedBinaryFileName.substring(0, qualifiedBinaryFileName.length() - SuffixConstants.SUFFIX_CLASS.length);
 				try {
 					if (this.annotationZipFile == null) {
 						this.annotationZipFile = ExternalAnnotationDecorator.getAnnotationZipFile(this.externalAnnotationPath, null);
@@ -204,7 +210,11 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 					// don't let error on annotations fail class reading
 				}
 			}
-			return new NameEnvironmentAnswer(reader, null, reader.getModule());
+			if (this.accessRuleSet == null)
+				return new NameEnvironmentAnswer(reader, null, reader.getModule());
+			return new NameEnvironmentAnswer(reader, 
+					this.accessRuleSet.getViolatedRestriction(fileNameWithoutExtension.toCharArray()), 
+					reader.getModule());
 		}
 	} catch (IOException e) { // treat as if class file is missing
 	} catch (ClassFormatException e) { // treat as if class file is missing
@@ -212,10 +222,12 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 	return null;
 }
 
+@Override
 public IPath getProjectRelativePath() {
 	return null;
 }
 
+@Override
 public int hashCode() {
 	return this.zipFilename == null ? super.hashCode() : this.zipFilename.hashCode();
 }
@@ -233,14 +245,17 @@ public boolean isPackage(String qualifiedPackageName, String moduleName) {
 	return JRTUtil.getModulesDeclaringPackage(new File(this.zipFilename), qualifiedPackageName, moduleName) != null;
 }
 
+@Override
 public String toString() {
 	String start = "Classpath jrt file " + this.zipFilename; //$NON-NLS-1$
 	return start;
 }
 
+@Override
 public String debugPathString() {
 	return this.zipFilename;
 }
+@Override
 public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 	String fileName = new String(typeName);
 	return findClass(fileName, qualifiedPackageName, moduleName, qualifiedBinaryFileName, asBinaryOnly);
@@ -270,7 +285,9 @@ public Collection<String> getModuleNames(Collection<String> limitModules) {
 
 private Collection<String> selectModules(Set<String> keySet, Collection<String> limitModules) {
 	Collection<String> rootModules;
-	if (limitModules != null) {
+	if (limitModules == NO_LIMIT_MODULES) {
+		rootModules = new HashSet<>(keySet);
+	} else if (limitModules != null) {
 		Set<String> result = new HashSet<>(keySet);
 		result.retainAll(limitModules);
 		rootModules = result;

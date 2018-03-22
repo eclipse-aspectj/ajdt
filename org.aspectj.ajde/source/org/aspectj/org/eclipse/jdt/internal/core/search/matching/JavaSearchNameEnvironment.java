@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -47,7 +43,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaElementRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModel;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
-import org.aspectj.org.eclipse.jdt.internal.core.ModuleDescriptionInfo;
 import org.aspectj.org.eclipse.jdt.internal.core.NameLookup;
 import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathJar;
@@ -104,6 +99,7 @@ public static Map<String, org.aspectj.org.eclipse.jdt.core.ICompilationUnit> get
 	return result;
 }
 
+@Override
 public void cleanup() {
 	this.locationSet.clear();
 }
@@ -161,7 +157,7 @@ private ClasspathLocation mapToClassPathLocation(JavaModelManager manager, Packa
 		if (root.isArchive()) {
 			ClasspathEntry rawClasspathEntry = (ClasspathEntry) root.getRawClasspathEntry();
 			cp = JavaModelManager.isJrt(path) ? 
-					new ClasspathJrt(path.toOSString(), 
+					new ClasspathJrt(path.toOSString(), rawClasspathEntry.getAccessRuleSet(), 
 							ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry, ((IJavaProject)root.getParent()).getProject(), true)) :
 						new ClasspathJar(manager.getZipFile(path), rawClasspathEntry.getAccessRuleSet(),
 								ClasspathEntry.getExternalAnnotationPath(rawClasspathEntry,
@@ -376,7 +372,7 @@ public IModule getModule(char[] moduleName) {
 	IModule module = null;
 	try {
 		if (moduleDesc != null)
-			module =  ((ModuleDescriptionInfo)((JavaElement) moduleDesc).getElementInfo());
+			module =  (IModule)((JavaElement) moduleDesc).getElementInfo();
 	} catch (JavaModelException e) {
 		// do nothing
 	}

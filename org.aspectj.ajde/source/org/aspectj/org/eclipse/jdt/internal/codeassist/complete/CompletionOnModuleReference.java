@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     
@@ -28,6 +24,7 @@ public class CompletionOnModuleReference extends ModuleReference {
 		super(tokens, sourcePositions);
 	}
 
+	@Override
 	public ModuleBinding resolve(Scope scope) {
 		super.resolve(scope);
 //		if (this.binding != null) {
@@ -36,6 +33,7 @@ public class CompletionOnModuleReference extends ModuleReference {
 			throw new CompletionNodeFound();
 		//}
 	}
+	@Override
 	public StringBuffer print(int indent, StringBuffer output) {
 
 		printIndent(indent, output).append("<CompleteOnModuleReference:"); //$NON-NLS-1$

@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Erling Ellingsen -  patch for bug 125570
@@ -705,6 +701,7 @@ public int nextCaptureID() {
 * (unit, type or method) in case the problem handler decides it is necessary
 * to abort.
 */
+@Override
 public ProblemReporter problemReporter() {
 	ProblemReporter problemReporter = this.referenceContext.problemReporter;
 	problemReporter.referenceContext = this.referenceContext;
@@ -887,6 +884,7 @@ public void storeDependencyInfo() {
 		rootRefs[i] = this.rootReferences.elementAt(i);
 	this.referenceContext.compilationResult.rootReferences = rootRefs;
 }
+@Override
 public String toString() {
 	return "--- CompilationUnit Scope : " + new String(this.referenceContext.getFileName()); //$NON-NLS-1$
 }
@@ -1068,7 +1066,7 @@ public boolean hasDefaultNullnessFor(int location, int sourceStart) {
 		return (nonNullByDefaultValue & location) != 0;
 	}
 	if (this.fPackage != null)
-		return (this.fPackage.defaultNullness & location) != 0;
+		return (this.fPackage.getDefaultNullness() & location) != 0;
 	return false;
 }
 
@@ -1079,7 +1077,7 @@ public /* @Nullable */ Binding checkRedundantDefaultNullness(int nullBits, int s
 		return target;
 	}
 	if (this.fPackage != null) {
-		return (this.fPackage.defaultNullness == nullBits) ? this.fPackage : null;
+		return this.fPackage.findDefaultNullnessTarget(n -> n == nullBits);
 	}
 
 	return null;

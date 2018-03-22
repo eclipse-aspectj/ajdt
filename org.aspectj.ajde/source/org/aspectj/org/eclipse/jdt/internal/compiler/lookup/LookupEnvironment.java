@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - contributions for
@@ -185,8 +181,7 @@ public LookupEnvironment(ITypeRequestor typeRequestor, CompilerOptions globalOpt
 }
 
 /** Construct a specific LookupEnvironment, corresponding to the given module. */
-// AspectJ Extension - from default to protected
-protected LookupEnvironment(LookupEnvironment rootEnv, ModuleBinding module) {
+public LookupEnvironment(LookupEnvironment rootEnv, ModuleBinding module) { // AspectJ: raised to public from default
 	this.root = rootEnv;
 	this.UnNamedModule = rootEnv.UnNamedModule;
 	this.module = module;
@@ -220,7 +215,8 @@ public ModuleBinding getModule(char[] name) {
 		if (this.useModuleSystem) {
 			IModule mod = ((IModuleAwareNameEnvironment) this.nameEnvironment).getModule(name);
 		if (mod != null) {
-				moduleBinding = BinaryModuleBinding.create(mod, this);
+				this.typeRequestor.accept(mod, this);
+				moduleBinding = this.root.knownModules.get(name);
 		}
 		} else 
 			return this.UnNamedModule;
@@ -228,10 +224,6 @@ public ModuleBinding getModule(char[] name) {
 	return moduleBinding;
 }
 
-@Deprecated
-public ReferenceBinding askForType(char[][] compoundName) {
-	return askForType(compoundName, this.UnNamedModule);
-}
 /**
  * Ask the name environment for a type which corresponds to the compoundName.
  * Answer null if the name cannot be found.
@@ -785,6 +777,11 @@ private PackageBinding computePackageFrom(char[][] constantPoolName, boolean isM
 			packageBinding = parent.addPackage(packageBinding, this.module, true);
 		}
 	}
+	if (packageBinding instanceof SplitPackageBinding) {
+		PackageBinding incarnation = ((SplitPackageBinding) packageBinding).getIncarnation(this.module);
+		if (incarnation != null)
+			packageBinding = incarnation;
+	}
 	return packageBinding;
 }
 
@@ -859,20 +856,24 @@ public TypeBinding convertToRawType(TypeBinding type, boolean forceRawEnclosingT
 		convertedType = needToConvert ? createRawType((ReferenceBinding)originalType.erasure(), null) : originalType;
 	} else {
 		ReferenceBinding convertedEnclosing;
+		if(((ReferenceBinding)originalType).isStatic()) {
+			convertedEnclosing = (ReferenceBinding) originalEnclosing.original();
+		} else {
 		if (originalEnclosing.kind() == Binding.RAW_TYPE) {
-			needToConvert |= !((ReferenceBinding)originalType).isStatic();
 			convertedEnclosing = originalEnclosing;
+				needToConvert = true;
 		} else if (forceRawEnclosingType && !needToConvert/*stop recursion when conversion occurs*/) {
 			convertedEnclosing = (ReferenceBinding) convertToRawType(originalEnclosing, forceRawEnclosingType);
 			needToConvert = TypeBinding.notEquals(originalEnclosing, convertedEnclosing); // only convert generic or parameterized types
-		} else if (needToConvert || ((ReferenceBinding)originalType).isStatic()) {
+			} else if (needToConvert) {
 			convertedEnclosing = (ReferenceBinding) convertToRawType(originalEnclosing, false);
 		} else {
 			convertedEnclosing = convertToParameterizedType(originalEnclosing);
 		}
+		}
 		if (needToConvert) {
 			convertedType = createRawType((ReferenceBinding) originalType.erasure(), convertedEnclosing);
-		} else if (TypeBinding.notEquals(originalEnclosing, convertedEnclosing) && !originalType.isStatic()) {
+		} else if (TypeBinding.notEquals(originalEnclosing, convertedEnclosing)) {
 			convertedType = createParameterizedType((ReferenceBinding) originalType.erasure(), null, convertedEnclosing);
 		} else {
 			convertedType = originalType;
@@ -1003,7 +1004,7 @@ public TypeBinding createIntersectionType18(ReferenceBinding[] intersectingTypes
 			@Override
 			public int compare(TypeBinding o1, TypeBinding o2) {
 				//
-				return o1.isClass() ? -1 : (o2.isClass() ? 1 : 0);
+				return o1.isClass() ? -1 : (o2.isClass() ? 1 : CharOperation.compareTo(o1.readableName(), o2.readableName()));
 			}
 		});
 	}
@@ -1156,10 +1157,13 @@ public ParameterizedGenericMethodBinding createParameterizedGenericMethod(Method
 }
 
 public ParameterizedGenericMethodBinding createParameterizedGenericMethod(MethodBinding genericMethod, TypeBinding[] typeArguments) {
-	return createParameterizedGenericMethod(genericMethod, typeArguments, false, false);
+	return createParameterizedGenericMethod(genericMethod, typeArguments, null);
+}
+public ParameterizedGenericMethodBinding createParameterizedGenericMethod(MethodBinding genericMethod, TypeBinding[] typeArguments, TypeBinding targetType) {
+	return createParameterizedGenericMethod(genericMethod, typeArguments, false, false, targetType);
 }
 public ParameterizedGenericMethodBinding createParameterizedGenericMethod(MethodBinding genericMethod, TypeBinding[] typeArguments,
-																			boolean inferredWithUncheckedConversion, boolean hasReturnProblem)
+																			boolean inferredWithUncheckedConversion, boolean hasReturnProblem, TypeBinding targetType)
 {
 	// cached info is array of already created parameterized types for this type
 	ParameterizedGenericMethodBinding[] cachedInfo = (ParameterizedGenericMethodBinding[])this.uniqueParameterizedGenericMethodBindings.get(genericMethod);
@@ -1173,6 +1177,7 @@ public ParameterizedGenericMethodBinding createParameterizedGenericMethod(Method
 				ParameterizedGenericMethodBinding cachedMethod = cachedInfo[index];
 				if (cachedMethod == null) break nextCachedMethod;
 				if (cachedMethod.isRaw) continue nextCachedMethod;
+				if (cachedMethod.targetType != targetType) continue nextCachedMethod; //$IDENTITY-COMPARISON$
 				if (cachedMethod.inferredWithUncheckedConversion != inferredWithUncheckedConversion) continue nextCachedMethod;
 				TypeBinding[] cachedArguments = cachedMethod.typeArguments;
 				int cachedArgLength = cachedArguments == null ? 0 : cachedArguments.length;
@@ -1202,7 +1207,7 @@ public ParameterizedGenericMethodBinding createParameterizedGenericMethod(Method
 	}
 	// add new binding
 	ParameterizedGenericMethodBinding parameterizedGenericMethod =
-			new ParameterizedGenericMethodBinding(genericMethod, typeArguments, this, inferredWithUncheckedConversion, hasReturnProblem);
+			new ParameterizedGenericMethodBinding(genericMethod, typeArguments, this, inferredWithUncheckedConversion, hasReturnProblem, targetType);
 	cachedInfo[index] = parameterizedGenericMethod;
 	return parameterizedGenericMethod;
 }
@@ -1436,6 +1441,9 @@ public ReferenceBinding getCachedType(char[][] compoundName) {
 public AnnotationBinding getNullableAnnotation() {
 	if (this.nullableAnnotation != null)
 		return this.nullableAnnotation;
+	if (this.root != this) {
+		return this.nullableAnnotation = this.root.getNullableAnnotation();
+	}
 	ReferenceBinding nullable = getResolvedType(this.globalOptions.nullableAnnotationName, null);
 	return this.nullableAnnotation = this.typeSystem.getAnnotationType(nullable, true);
 }
@@ -1447,6 +1455,9 @@ public char[][] getNullableAnnotationName() {
 public AnnotationBinding getNonNullAnnotation() {
 	if (this.nonNullAnnotation != null) 
 		return this.nonNullAnnotation;
+	if (this.root != this) {
+		return this.nonNullAnnotation = this.root.getNonNullAnnotation();
+	}
 	ReferenceBinding nonNull = getResolvedType(this.globalOptions.nonNullAnnotationName, null);
 	return this.nonNullAnnotation = this.typeSystem.getAnnotationType(nonNull, true);
 }
@@ -1489,6 +1500,9 @@ public boolean isNullnessAnnotationPackage(PackageBinding pkg) {
 }
 
 public boolean usesNullTypeAnnotations() {
+	if(this.root != this) {
+		return this.root.usesNullTypeAnnotations();
+	}
 	if (this.globalOptions.useNullTypeAnnotations != null)
 		return this.globalOptions.useNullTypeAnnotations;
 
@@ -1511,8 +1525,19 @@ private void initializeUsesNullTypeAnnotation() {
 	this.globalOptions.useNullTypeAnnotations = Boolean.FALSE;
 	if (!this.globalOptions.isAnnotationBasedNullAnalysisEnabled || this.globalOptions.originalSourceLevel < ClassFileConstants.JDK1_8)
 		return;
-	ReferenceBinding nullable = this.nullableAnnotation != null ? this.nullableAnnotation.getAnnotationType() : getType(this.getNullableAnnotationName(), this.UnNamedModule); //FIXME(SHMOD) module for null annotations??
-	ReferenceBinding nonNull = this.nonNullAnnotation != null ? this.nonNullAnnotation.getAnnotationType() : getType(this.getNonNullAnnotationName(), this.UnNamedModule);
+	ReferenceBinding nullable;
+	ReferenceBinding nonNull;
+	boolean origMayTolerateMissingType = this.mayTolerateMissingType;
+	this.mayTolerateMissingType = true;
+	try {
+		nullable = this.nullableAnnotation != null ? this.nullableAnnotation.getAnnotationType()
+				: getType(this.getNullableAnnotationName(), this.UnNamedModule); // FIXME(SHMOD) module for null
+																					// annotations??
+		nonNull = this.nonNullAnnotation != null ? this.nonNullAnnotation.getAnnotationType()
+				: getType(this.getNonNullAnnotationName(), this.UnNamedModule);
+	} finally {
+		this.mayTolerateMissingType = origMayTolerateMissingType;
+	}
 	if (nullable == null && nonNull == null)
 		return;
 	if (nullable == null || nonNull == null)
@@ -2172,9 +2197,10 @@ public boolean containsNullTypeAnnotation(AnnotationBinding[] typeAnnotations) {
 	}
 	return false;	
 }
-// AspectJ extension
-  public LookupEnvironment wrapInModuleEnvironment(ModuleBinding moduleBinding) {
+
+//AspectJ extension
+public LookupEnvironment wrapInModuleEnvironment(ModuleBinding moduleBinding) {
 	  return new LookupEnvironment(this, moduleBinding);
-  }
-// End AspectJ
+}
+//End AspectJ
 }

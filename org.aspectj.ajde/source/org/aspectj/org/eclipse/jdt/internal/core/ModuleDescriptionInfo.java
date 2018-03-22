@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 IBM Corporation.
+ * Copyright (c) 2016, 2018 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,10 +21,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ProvidesStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.RequiresStatement;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UsesStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 
-public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
+public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceModule {
 
 	protected static final char[][] NO_USES = new char[0][0];
 	protected static final ModuleReferenceInfo[] NO_REQUIRES = new ModuleReferenceInfo[0];
@@ -50,9 +49,11 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
 	static class ModuleReferenceInfo extends MemberElementInfo implements IModule.IModuleReference {
 		char[] name;
 		int modifiers;
+		@Override
 		public char[] name() {
 			return this.name;
 		}
+		@Override
 		public int getModifiers() {
 			return this.modifiers;
 		}
@@ -60,6 +61,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
 	static class PackageExportInfo extends MemberElementInfo implements IModule.IPackageExport {
 		char[] pack;
 		char[][] target;
+		@Override
 		public String toString() {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(this.pack);
@@ -95,6 +97,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
 		public char[][] with() {
 			return this.implNames;
 		}
+		@Override
 		public String toString() {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(this.serviceName);
@@ -108,103 +111,14 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
 			return buffer.toString();
 		}
 	}
-	
-	public static ModuleDescriptionInfo createModule(IModule module) {
-		ModuleDescriptionInfo mod = new ModuleDescriptionInfo();
-		mod.children = JavaElement.NO_ELEMENTS;
-		mod.name = module.name();
-		mod.isOpen = module.isOpen();
-		if (module.requires().length > 0) {
-			IModuleReference[] refs = module.requires();
-			mod.requires = new ModuleReferenceInfo[refs.length];
-			for (int i = 0; i < refs.length; i++) {
-				mod.requires[i] = new ModuleReferenceInfo();
-				mod.requires[i].name = refs[i].name(); // Check why ModuleReference#tokens must be a char[][] and not a char[] or String;
-				mod.requires[i].modifiers = refs[i].getModifiers();
-			}
-		} else {
-			mod.requires = NO_REQUIRES;
-		}
-		if (module.exports().length > 0) {
-			IPackageExport[] refs = module.exports();
-			mod.exports = new PackageExportInfo[refs.length];
-			for (int i = 0; i < refs.length; i++) {
-				PackageExportInfo exp = createPackageExport(refs[i]);
-				mod.exports[i] = exp;
-			}
-		} else {
-			mod.exports = NO_EXPORTS;
-		}
-		if (module.uses().length > 0) {
-			char[][] uses = module.uses();
-			mod.usedServices = new char[uses.length][];
-			for (int i = 0; i < uses.length; i++) {
-				mod.usedServices[i] = uses[i];
-			}
-		} else {
-			mod.usedServices = NO_USES;
-		}
-		if (module.provides().length > 0) {
-			IService[] provides = module.provides();
-			mod.services = new ServiceInfo[provides.length];
-			for (int i = 0; i < provides.length; i++) {
-				mod.services[i] = createService(provides[i]);
-			}
-		} else {
-			mod.services = NO_PROVIDES;
-		}
-		if (module.opens().length > 0) {
-			IPackageExport[] opens = module.opens();
-			mod.opens = new PackageExportInfo[opens.length];
-			for (int i = 0; i < opens.length; i++) {
-				PackageExportInfo op = createOpensInfo(opens[i]);
-				mod.opens[i] = op;
-			}
-		} else {
-			mod.opens = NO_OPENS;
-		}
-		return mod;
-	}
-	private static PackageExportInfo createPackageExport(IModule.IPackageExport ref) {
-		PackageExportInfo exp = new PackageExportInfo();
-		exp.pack = ref.name();
-		char[][] targets = ref.targets();
-		if (targets != null) {
-			exp.target = new char[targets.length][];
-			for(int j = 0; j < targets.length; j++) {
-				exp.target[j] = targets[j];
-			}
-		}
-		return exp;
-	}
-	private static PackageExportInfo createOpensInfo(IModule.IPackageExport opens) {
-		PackageExportInfo open = new PackageExportInfo();
-		open.pack = opens.name();
-		char[][] targets = opens.targets();
-		if (targets != null) {
-			open.target = new char[targets.length][];
-			for(int j = 0; j < targets.length; j++) {
-				open.target[j] = targets[j];
-			}
-		}
-		return open;
-	}
-
-	private static ServiceInfo createService(IModule.IService provides) {
-		ServiceInfo info = new ServiceInfo();
-		info.serviceName = provides.name();
-		char[][] implementations = provides.with();
-		info.implNames = new char[implementations.length][];
-		for(int i = 0; i < implementations.length; i++) {
-			info.implNames[i] = implementations[i];
-		}
-		return info;
-	}
 
 	public static ModuleDescriptionInfo createModule(ModuleDeclaration module) {
 		ModuleDescriptionInfo mod = new ModuleDescriptionInfo();
 		mod.name = module.moduleName;
-		mod.isOpen = module.isOpen();
+		if (module.isOpen()) {
+			mod.isOpen = true;
+			mod.setFlags(ClassFileConstants.ACC_OPEN);
+		}
 		if (module.requiresCount > 0) {
 			RequiresStatement[] refs = module.requires;
 			mod.requires = new ModuleReferenceInfo[refs.length+1];
@@ -306,8 +220,21 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
 		this.handle = handle;
 	}
 
+	public IModuleDescription getHandle() {
+		return this.handle;
+	}
+
+	@Override
 	public IJavaElement[] getChildren() {
 		return this.children;
+	}
+
+	@Override
+	public ICompilationUnit getCompilationUnit() {
+		IJavaElement parent = this.handle.getParent();
+		if (parent instanceof CompilationUnit)
+			return (CompilationUnit) parent;
+		return null;
 	}
 
 	@Override
@@ -344,6 +271,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements IModule {
 		return this.opens;
 	}
 
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer(getClass().getName());
 		toStringContent(buffer);

@@ -16,10 +16,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     
@@ -33,6 +29,7 @@ public class ModuleLocator extends PatternLocator {
 		super(pattern);
 		this.pattern = pattern;
 	}
+	@Override
 	public int match(ModuleDeclaration node, MatchingNodeSet nodeSet) {
 		if (!this.pattern.findDeclarations) return IMPOSSIBLE_MATCH;
 		if (!matchesName(this.pattern.name, node.moduleName)) return IMPOSSIBLE_MATCH;
@@ -53,6 +50,7 @@ public class ModuleLocator extends PatternLocator {
 	protected int matchContainer() {
 		return COMPILATION_UNIT_CONTAINER;
 	}
+	@Override
 	public int resolveLevel(ASTNode possibleMatchingNode) {
 		if (this.pattern.findDeclarations && possibleMatchingNode instanceof ModuleDeclaration) {
 			return resolveLevel(((ModuleDeclaration) possibleMatchingNode).binding);

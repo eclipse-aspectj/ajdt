@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *
@@ -22,12 +18,14 @@ public class RecoveredUsesStatement extends RecoveredModuleStatement {
 	public RecoveredUsesStatement(UsesStatement usesStatement, RecoveredElement parent, int bracketBalance) {
 		super(usesStatement, parent, bracketBalance);
 	}
+	@Override
 	public String toString(int tab) {
 		return tabString(tab) + "Recovered Uses: " + super.toString(); //$NON-NLS-1$
 	}
 	public UsesStatement updatedUsesStatement(){
 		return (UsesStatement)this.moduleStatement;
 	}
+	@Override
 	public void updateParseTree(){
 		updatedUsesStatement();
 	}

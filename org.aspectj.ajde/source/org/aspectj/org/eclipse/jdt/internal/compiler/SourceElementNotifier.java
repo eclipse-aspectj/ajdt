@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -80,10 +76,12 @@ public class SourceElementNotifier {
 			if (size == 0) return null;
 			return (TypeDeclaration) this.declaringTypes.get(size-1);
 		}
+		@Override
 		public boolean visit(TypeDeclaration typeDeclaration, BlockScope scope) {
 			notifySourceElementRequestor(typeDeclaration, true, peekDeclaringType(), this.currentPackage);
 			return false; // don't visit members as this was done during notifySourceElementRequestor(...)
 		}
+		@Override
 		public boolean visit(TypeDeclaration typeDeclaration, ClassScope scope) {
 			notifySourceElementRequestor(typeDeclaration, true, peekDeclaringType(), this.currentPackage);
 			return false; // don't visit members as this was done during notifySourceElementRequestor(...)

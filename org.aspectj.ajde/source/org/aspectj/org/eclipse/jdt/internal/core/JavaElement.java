@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -171,6 +167,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 *
 	 * @see Object#equals
 	 */
+	@Override
 	public boolean equals(Object o) {
 
 		if (this == o) return true;
@@ -222,6 +219,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public boolean exists() {
 
 		try {
@@ -249,6 +247,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaElement getAncestor(int ancestorType) {
 
 		IJavaElement element = this;
@@ -326,6 +325,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IAdaptable
 	 */
+	@Override
 	public String getElementName() {
 		return ""; //$NON-NLS-1$
 	}
@@ -347,6 +347,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public String getHandleIdentifier() {
 		return getHandleMemento();
 	}
@@ -371,6 +372,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaModel getJavaModel() {
 		IJavaElement current = this;
 		do {
@@ -382,6 +384,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaProject getJavaProject() {
 		IJavaElement current = this;
 		do {
@@ -389,9 +392,8 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		} while ((current = current.getParent()) != null);
 		return null;
 	}
-	/*
-	 * @see IJavaElement
-	 */
+
+	@Override
 	public IOpenable getOpenable() {
 		return getOpenableParent();
 	}
@@ -407,12 +409,12 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IJavaElement getParent() {
 		return this.parent;
 	}
-	/*
-	 * @see IJavaElement#getPrimaryElement()
-	 */
+
+	@Override
 	public IJavaElement getPrimaryElement() {
 		return getPrimaryElement(true);
 	}
@@ -423,6 +425,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public IJavaElement getPrimaryElement(boolean checkOwner) {
 		return this;
 	}
+	@Override
 	public IResource getResource() {
 		return resource();
 	}
@@ -483,9 +486,8 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	public SourceMapper getSourceMapper() {
 		return ((JavaElement)getParent()).getSourceMapper();
 	}
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.IJavaElement#getSchedulingRule()
-	 */
+
+	@Override
 	public ISchedulingRule getSchedulingRule() {
 		IResource resource = resource();
 		if (resource == null) {
@@ -494,6 +496,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 				public NoResourceSchedulingRule(IPath path) {
 					this.path = path;
 				}
+				@Override
 				public boolean contains(ISchedulingRule rule) {
 					if (rule instanceof NoResourceSchedulingRule) {
 						return this.path.isPrefixOf(((NoResourceSchedulingRule)rule).path);
@@ -501,6 +504,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 						return false;
 					}
 				}
+				@Override
 				public boolean isConflicting(ISchedulingRule rule) {
 					if (rule instanceof NoResourceSchedulingRule) {
 						IPath otherPath = ((NoResourceSchedulingRule)rule).path;
@@ -535,6 +539,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * and parent's hash code. Elements with other requirements must
 	 * override this method.
 	 */
+	@Override
 	public int hashCode() {
 		if (this.parent == null) return super.hashCode();
 		return Util.combineHashCodes(getElementName().hashCode(), this.parent.hashCode());
@@ -554,6 +559,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public boolean isReadOnly() {
 		return false;
 	}
@@ -583,7 +589,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		boolean hadTemporaryCache = manager.hasTemporaryCache();
 		try {
-			HashMap newElements = manager.getTemporaryCache();
+			HashMap<IJavaElement, Object> newElements = manager.getTemporaryCache();
 			generateInfos(info, newElements, monitor);
 			if (info == null) {
 				info = newElements.get(this);
@@ -635,6 +641,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	/**
 	 *  Debugging purposes
 	 */
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		toString(0, buffer);
@@ -769,9 +776,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 		return null;
 	}
 
-	/*
-	 * @see IJavaElement#getAttachedJavadoc(IProgressMonitor)
-	 */
+	@Override
 	public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelException {
 		return null;
 	}

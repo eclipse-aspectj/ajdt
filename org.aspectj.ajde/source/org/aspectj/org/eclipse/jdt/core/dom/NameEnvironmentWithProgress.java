@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -45,9 +41,11 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 			throw new AbortCompilation(true/*silent*/, new OperationCanceledException());
 		}
 	}
+	@Override
 	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, char[] moduleName) {
 		return findType(typeName, packageName, true, moduleName);
 	}
+	@Override
 	public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName, boolean searchWithSecondaryTypes, char[] moduleName) {
 		checkCanceled();
 		NameEnvironmentAnswer answer = super.findType(typeName, packageName, moduleName);
@@ -79,15 +77,18 @@ class NameEnvironmentWithProgress extends FileSystem implements INameEnvironment
 		return answer;
 	}
 
+	@Override
 	public NameEnvironmentAnswer findType(char[][] compoundName) {
 		checkCanceled();
 		return super.findType(compoundName);
 	}
+	@Override
 	public boolean isPackage(char[][] compoundName, char[] packageName) {
 		checkCanceled();
 		return super.isPackage(compoundName, packageName);
 	}
 	
+	@Override
 	public void setMonitor(IProgressMonitor monitor) {
 		this.monitor = monitor;
 	}

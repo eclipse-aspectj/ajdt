@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Jesper Steen Moeller - Contribution for bug 406973 - [compiler] Parse MethodParameters attribute
@@ -68,7 +64,7 @@ public interface IModifierConstants {
 
 	/**
 	 * Indicates a module (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int ACC_MODULE       = 0x8000;
 
@@ -79,19 +75,19 @@ public interface IModifierConstants {
 	int ACC_MANDATED     = 0x8000;
 	/**
 	 * Indicates an open module in module-info file (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int ACC_OPEN			= 0x0020;
 
 	/**
 	 * Indicates a transitive requires in module-info file (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int ACC_TRANSITIVE     = 0x0020;
 
 	/**
 	 * Indicates a static requires in module-info file (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int ACC_STATIC_PHASE	= 0x0040;
 }

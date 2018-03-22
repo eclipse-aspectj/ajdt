@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -126,7 +122,7 @@ public interface IClasspathAttribute {
 	 * entry is considered to be on the module path and will be treated as a
 	 * regular named module or as an automatic module.
 	 *
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	String MODULE = "module"; //$NON-NLS-1$
 
@@ -140,7 +136,7 @@ public interface IClasspathAttribute {
 	 * <p>Classpath entries with this attribute should also have a {@link #MODULE} attribute
 	 * with value <code>"true"</code>.</p>
 	 * 
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	String ADD_EXPORTS = "add-exports"; //$NON-NLS-1$
 
@@ -151,7 +147,7 @@ public interface IClasspathAttribute {
 	 * {@code --add-reads} command line option: {@code <source-module>=<target-module>}.
 	 * The given reads edge will be added at compile time.</p>
 	 * 
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	String ADD_READS = "add-reads"; //$NON-NLS-1$
 
@@ -167,7 +163,7 @@ public interface IClasspathAttribute {
 	 * A classpath entry having this attribute must also have the
 	 * {@link #MODULE} attribute with value <code>"true"</code>.</p>
 	 *
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	String PATCH_MODULE = "patch-module"; //$NON-NLS-1$
 
@@ -184,7 +180,7 @@ public interface IClasspathAttribute {
 	 * A classpath entry having this attribute must also have the
 	 * {@link #MODULE} attribute with value <code>"true"</code>.</p>
 	 *
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	String LIMIT_MODULES = "limit-modules"; //$NON-NLS-1$
 
@@ -197,7 +193,7 @@ public interface IClasspathAttribute {
 	 * It will be used for generating the <code>ModuleMainClass</code> attribute
 	 * in <code>module-info.class</code>.</p>
 	 * 
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	String MODULE_MAIN_CLASS = "module-main-class"; //$NON-NLS-1$
 
@@ -211,6 +207,37 @@ public interface IClasspathAttribute {
 	 * @since 3.11
 	 */
 	String EXTERNAL_ANNOTATION_PATH = "annotationpath"; //$NON-NLS-1$
+
+	/**
+	 * Constant for the name of the test attribute.
+	 * 
+	 * <p>
+	 * The possible values for this attribute are <code>"true"</code> or <code>"false"</code>. When not present,
+	 * <code>"false"</code> is assumed. If the value of this attribute is <code>"true"</code>, and the classpath entry
+	 * is a source folder, it is assumed to contain test sources, otherwise main sources.
+	 * </p>
+	 * </p>
+	 * During the compilation of main sources, only code is visible, that is reachable via classpath entries which do
+	 * not have the test attribute set to to "true". During the compilation of test sources, all code is visible as if
+	 * this attribute didn't exist at all.
+	 * </p>
+	 * 
+	 * @since 3.14
+	 */
+	String TEST = "test"; //$NON-NLS-1$
+
+	/**
+	 * Constant for the name of the without_test_code attribute.
+	 * 
+	 * <p>
+	 * The possible values for this attribute are <code>"true"</code> or <code>"false"</code>. When not present,
+	 * <code>"false"</code> is assumed. If the value of this attribute is <code>"true"</code>, and the classpath entry
+	 * is a project, any test code reachable via that classpath entry will not be visible even to test sources.
+	 * </p>
+	 * 
+	 * @since 3.14
+	 */
+	String WITHOUT_TEST_CODE = "without_test_code"; //$NON-NLS-1$
 
 	/**
 	 * Returns the name of this classpath attribute.

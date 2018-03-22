@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -65,6 +61,7 @@ public abstract class Engine implements ITypeRequestor {
 	/**
 	 * Add an additional binary type
 	 */
+	@Override
 	public void accept(IBinaryType binaryType, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 		this.lookupEnvironment.createBinaryTypeFrom(binaryType, packageBinding, accessRestriction);
 	}
@@ -72,6 +69,7 @@ public abstract class Engine implements ITypeRequestor {
 	/**
 	 * Add an additional compilation unit.
 	 */
+	@Override
 	public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
 		CompilationResult result = new CompilationResult(sourceUnit, 1, 1, this.compilerOptions.maxProblemsPerUnit);
 		
@@ -91,6 +89,7 @@ public abstract class Engine implements ITypeRequestor {
 	 * Add additional source types (the first one is the requested type, the rest is formed by the
 	 * secondary types defined in the same compilation unit).
 	 */
+	@Override
 	public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=479656
 		// In case of the requested type not being a member type (i.e. not being a top level type)

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -57,6 +53,7 @@ public void cleanUp() {
 	}
 	this.nodeSet = null;
 }
+@Override
 public boolean equals(Object obj) {
 	if (this.compoundName == null) return super.equals(obj);
 	if (!(obj instanceof PossibleMatch)) return false;
@@ -65,6 +62,7 @@ public boolean equals(Object obj) {
 	// Even .class files for secondary types and their nested types
 	return CharOperation.equals(this.compoundName, ((PossibleMatch) obj).compoundName);
 }
+@Override
 public char[] getContents() {
 	char[] contents = (this.source == NO_SOURCE_FILE) ? null : this.source;
 	if (this.source == null) {
@@ -99,13 +97,16 @@ public char[] getContents() {
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
  * @see PackageReferenceLocator#isDeclaringPackageFragment(IPackageFragment, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding)
  */
+@Override
 public char[] getFileName() {
 	return this.openable.getElementName().toCharArray();
 }
+@Override
 public char[] getMainTypeName() {
 	// The file is no longer opened to get its name => remove fix for bug 32182
 	return this.compoundName[this.compoundName.length-1];
 }
+@Override
 public char[][] getPackageName() {
 	int length = this.compoundName.length;
 	if (length <= 1) return CharOperation.NO_CHAR_CHAR;
@@ -170,6 +171,7 @@ private String getSourceFileName() {
 boolean hasSimilarMatch() {
 	return this.similarMatch != null && (this.source == NO_SOURCE_FILE || isModuleInfo(this));
 }
+@Override
 public int hashCode() {
 	if (this.compoundName == null) return super.hashCode();
 
@@ -178,6 +180,7 @@ public int hashCode() {
 		hashCode += CharOperation.hashCode(this.compoundName[i]);
 	return hashCode;
 }
+@Override
 public boolean ignoreOptionalProblems() {
 	return false;
 }
@@ -190,6 +193,7 @@ void setSimilarMatch(PossibleMatch possibleMatch) {
 	possibleMatch.source = isModuleInfo(possibleMatch) ? null : NO_SOURCE_FILE;
 	this.similarMatch = possibleMatch;
 }
+@Override
 public String toString() {
 	return this.openable == null ? "Fake PossibleMatch" : this.openable.toString(); //$NON-NLS-1$
 }

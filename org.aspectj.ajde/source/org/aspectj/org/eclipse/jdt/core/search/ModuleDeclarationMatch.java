@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -24,7 +20,7 @@ import org.aspectj.org.eclipse.jdt.core.IJavaElement;
  * This class is intended to be instantiated and subclassed by clients.
  * </p>
  *
- * @since 3.13
+ * @since 3.14
  */
 public class ModuleDeclarationMatch extends SearchMatch {
 

@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -17,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.*;
@@ -25,11 +22,13 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.Compiler;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.SourceTypeConverter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.CommentRecorderParser;
@@ -95,6 +94,7 @@ public class CompilationUnitProblemFinder extends Compiler {
 	/**
 	 * Add additional source types
 	 */
+	@Override
 	public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 		// ensure to jump back to toplevel type for first one (could be a member)
 		while (sourceTypes[0].getEnclosingType() != null) {
@@ -137,6 +137,48 @@ public class CompilationUnitProblemFinder extends Compiler {
 		}
 	}
 
+	@Override
+	public void accept(IModule module, LookupEnvironment environment) {
+		IModuleDescription handle = null;
+		if (module instanceof ModuleDescriptionInfo) {
+			handle = ((ModuleDescriptionInfo) module).getHandle();
+		}
+		if (handle == null) {
+			super.accept(module, environment);
+			return;
+		}
+		CompilationResult result =
+				new CompilationResult(TypeConstants.MODULE_INFO_FILE_NAME, 1, 1, this.options.maxProblemsPerUnit);
+			
+		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=305259, build the compilation unit in its own sand box.
+		final long savedComplianceLevel = this.options.complianceLevel;
+		final long savedSourceLevel = this.options.sourceLevel;
+		
+		if (environment == null)
+			environment = this.lookupEnvironment;
+		
+		try {
+			IJavaProject project = handle.getJavaProject();
+			this.options.complianceLevel = CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true));
+			this.options.sourceLevel = CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_SOURCE, true));
+
+			// need to hold onto this
+			CompilationUnitDeclaration unit =
+				SourceTypeConverter.buildModularCompilationUnit(
+						module,
+						environment.problemReporter,
+						result);
+
+			if (unit != null) {
+				environment.buildTypeBindings(unit, null);
+				environment.completeTypeBindings(unit);
+			}
+		} finally {
+			this.options.complianceLevel = savedComplianceLevel;
+			this.options.sourceLevel = savedSourceLevel;
+		}
+	}
+
 	protected static CompilerOptions getCompilerOptions(Map settings, boolean creatingAST, boolean statementsRecovery) {
 		CompilerOptions compilerOptions = new CompilerOptions(settings);
 		compilerOptions.performMethodsFullRecovery = statementsRecovery;
@@ -159,10 +201,31 @@ public class CompilationUnitProblemFinder extends Compiler {
 	 */
 	protected static ICompilerRequestor getRequestor() {
 		return new ICompilerRequestor() {
+			@Override
 			public void acceptResult(CompilationResult compilationResult) {
 				// default requestor doesn't handle compilation results back
 			}
 		};
+	}
+
+	private static boolean isTestSource(IJavaProject project, ICompilationUnit cu) {
+		try {
+			IClasspathEntry[] resolvedClasspath = project.getResolvedClasspath(true);
+			final IPath resourcePath = cu.getResource().getFullPath();
+			for (IClasspathEntry e : resolvedClasspath) {
+				if (e.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					if (e.isTest()) {
+						if (e.getPath().isPrefixOf(resourcePath)) {
+							return true;
+						}
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+			Util.log(e, "Exception while determining if compilation unit \"" + cu.getElementName() //$NON-NLS-1$
+					+ "\" is test source"); //$NON-NLS-1$
+		}
+		return false;
 	}
 
 	/*
@@ -184,7 +247,7 @@ public class CompilationUnitProblemFinder extends Compiler {
 		CompilationUnitProblemFinder problemFinder = null;
 		CompilationUnitDeclaration unit = null;
 		try {
-			environment = new CancelableNameEnvironment(project, workingCopyOwner, monitor);
+			environment = new CancelableNameEnvironment(project, workingCopyOwner, monitor, !isTestSource(unitElement.getJavaProject(), unitElement));
 			problemFactory = new CancelableProblemFactory(monitor);
 			CompilerOptions compilerOptions = getCompilerOptions(project.getOptions(true), creatingAST, ((reconcileFlags & ICompilationUnit.ENABLE_STATEMENTS_RECOVERY) != 0));
 			boolean ignoreMethodBodies = (reconcileFlags & ICompilationUnit.IGNORE_METHOD_BODIES) != 0;
@@ -284,6 +347,7 @@ public class CompilationUnitProblemFinder extends Compiler {
 	 * Fix for bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=60689.
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.Compiler#initializeParser()
 	 */
+	@Override
 	public void initializeParser() {
 		this.parser = new CommentRecorderParser(this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
 	}

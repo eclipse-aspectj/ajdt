@@ -47,7 +47,7 @@ public FieldBinding(FieldBinding initialFieldBinding, ReferenceBinding declaring
 	super(initialFieldBinding.name, initialFieldBinding.type, initialFieldBinding.modifiers, initialFieldBinding.constant());
 	this.declaringClass = declaringClass;
 	this.id = initialFieldBinding.id;
-    if (declaringClass!=null) setAnnotations(initialFieldBinding.getAnnotations());	// New AspectJ Extension - null guard
+    if (declaringClass!=null) setAnnotations(initialFieldBinding.getAnnotations(), false);	// New AspectJ Extension - null guard
 }
 /* API
 * Answer the receiver's binding type from Binding.BindingID.
@@ -172,6 +172,7 @@ public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSi
  * declaringUniqueKey dot fieldName ) returnTypeUniqueKey
  * p.X { X<T> x} --> Lp/X;.x)p/X<TT;>;
  */
+@Override
 public char[] computeUniqueKey(boolean isLeaf) {
 	// declaring key
 	char[] declaringKey =
@@ -198,6 +199,7 @@ public char[] computeUniqueKey(boolean isLeaf) {
 	System.arraycopy(returnTypeKey, 0, uniqueKey, index, returnTypeLength);
 	return uniqueKey;
 }
+@Override
 public Constant constant() {
 	Constant fieldConstant = this.constant;
 	if (fieldConstant == null) {
@@ -235,6 +237,7 @@ public Constant constant() {
 	return fieldConstant;
 }
 
+@Override
 public Constant constant(Scope scope) {
 	if (this.constant != null)
 		return this.constant;
@@ -279,6 +282,7 @@ public final int getAccessFlags() {
 	return this.modifiers & ExtraCompilerModifiers.AccJustFlag;
 }
 
+@Override
 public AnnotationBinding[] getAnnotations() {
 	FieldBinding originalField = original();
 	ReferenceBinding declaringClassBinding = originalField.declaringClass;
@@ -293,6 +297,7 @@ public AnnotationBinding[] getAnnotations() {
  * lazily resolving corresponding annotation nodes, in case of forward references.
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding#getAnnotationTagBits()
  */
+@Override
 public long getAnnotationTagBits() {
 	FieldBinding originalField = original();
 	if ((originalField.tagBits & TagBits.AnnotationResolved) == 0 && originalField.declaringClass instanceof SourceTypeBinding) {
@@ -397,10 +402,12 @@ public final boolean isViewedAsDeprecated() {
 /* Answer true if the receiver is a volatile field
 */
 
+@Override
 public final boolean isVolatile() {
 	return (this.modifiers & ClassFileConstants.AccVolatile) != 0;
 }
 
+@Override
 public final int kind() {
 	return FIELD;
 }
@@ -412,8 +419,9 @@ public final int kind() {
 public FieldBinding original() {
 	return this;
 }
-public void setAnnotations(AnnotationBinding[] annotations) {
-	this.declaringClass.storeAnnotations(this, annotations);
+@Override
+public void setAnnotations(AnnotationBinding[] annotations, boolean forceStore) {
+	this.declaringClass.storeAnnotations(this, annotations, forceStore);
 }
 public FieldDeclaration sourceField() {
 	SourceTypeBinding sourceType;

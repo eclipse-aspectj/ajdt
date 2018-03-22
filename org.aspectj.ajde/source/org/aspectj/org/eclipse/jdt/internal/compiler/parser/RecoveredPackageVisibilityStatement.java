@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *
@@ -29,6 +25,7 @@ public class RecoveredPackageVisibilityStatement extends RecoveredModuleStatemen
 	public RecoveredPackageVisibilityStatement(PackageVisibilityStatement pvs, RecoveredElement parent, int bracketBalance) {
 		super(pvs, parent, bracketBalance);
 	}
+	@Override
 	public RecoveredElement add(ImportReference pkgRef1,  int bracketBalance1) {
 		this.pkgRef = new RecoveredImport(pkgRef1, this, bracketBalance1);
 		return this;
@@ -52,6 +49,7 @@ public class RecoveredPackageVisibilityStatement extends RecoveredModuleStatemen
 		return this;
 
 	}
+	@Override
 	public String toString(int tab) {
 		return super.toString();
 	}
@@ -74,6 +72,7 @@ public class RecoveredPackageVisibilityStatement extends RecoveredModuleStatemen
 		}
 		return pvs;
 	}
+	@Override
 	public void updateParseTree(){
 		updatedPackageVisibilityStatement();
 	}

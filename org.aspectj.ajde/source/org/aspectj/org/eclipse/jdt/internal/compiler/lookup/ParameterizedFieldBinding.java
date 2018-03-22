@@ -42,6 +42,7 @@ public ParameterizedFieldBinding(ParameterizedTypeBinding parameterizedDeclaring
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding#constant()
  */
+@Override
 public Constant constant() {
 	return this.originalField.constant();
 }
@@ -49,6 +50,7 @@ public Constant constant() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding#original()
  */
+@Override
 public FieldBinding original() {
 	return this.originalField.original();
 }
@@ -56,21 +58,25 @@ public FieldBinding original() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.VariableBinding#constant()
  */
+@Override
 public void setConstant(Constant constant) {
 	this.originalField.setConstant(constant);
 }
 	
 	// AspectJ Extension - delegate to the original method
 	
+	@Override
 	public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSite, Scope scope) {
 		if (alwaysNeedsAccessMethod(true)) 	return originalField.canBeSeenBy(receiverType, invocationSite, scope);
 		else                               return super.canBeSeenBy(receiverType,invocationSite,scope);
 	}
 	
+	@Override
 	public boolean alwaysNeedsAccessMethod(boolean isReadAccess) {
 		return originalField.alwaysNeedsAccessMethod(isReadAccess);
 	}		
 	
+	@Override
 	public SyntheticMethodBinding getAccessMethod(boolean isReadAccess) {
 		return originalField.getAccessMethod(isReadAccess);
 	}

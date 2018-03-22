@@ -31,9 +31,11 @@ IProject currentProject;
 JavaProject javaProject;
 IWorkspaceRoot workspaceRoot;
 CompilationParticipant[] participants;
-protected NameEnvironment nameEnvironment; // AspectJ Extension - made protected
+// AspectJ both made protected
+protected NameEnvironment nameEnvironment;
+protected NameEnvironment testNameEnvironment;
 SimpleLookupTable binaryLocationsPerProject; // maps a project to its binary resources (output folders, class folders, zip/jar files)
-public State lastState; // AspectJ Extension - made public
+public State lastState;
 protected BuildNotifier notifier; // AspectJ Extension - made protected
 char[][] extraResourceFileFilters;
 String[] extraResourceFolderFilters;
@@ -47,7 +49,7 @@ public static boolean SHOW_STATS = false;
  * This list is used to reset the JavaModel.existingExternalFiles cache when a build cycle begins
  * so that deleted external jars are discovered.
  */
-static ArrayList builtProjects = null;
+static LinkedHashSet<String> builtProjects;
 
 public static IMarker[] getProblemsFor(IResource resource) {
 	try {
@@ -154,6 +156,7 @@ public static void writeState(Object state, DataOutputStream out) throws IOExcep
 	((State) state).write(out);
 }
 
+@Override
 protected IProject[] build(int kind, Map ignored, IProgressMonitor monitor) throws CoreException {
 	this.currentProject = getProject();
 	if (this.currentProject == null || !this.currentProject.isAccessible()) return new IProject[0];
@@ -258,14 +261,24 @@ private void buildAll() {
 	if (DEBUG && this.lastState != null)
 		System.out.println("JavaBuilder: Clearing last state : " + this.lastState); //$NON-NLS-1$
 	clearLastState();
-	BatchImageBuilder imageBuilder = getBatchImageBuilder(this, true); // AspectJ Extension - use factory, was 'new BatchImageBuilder(this,true)'
+	BatchImageBuilder imageBuilder = getBatchImageBuilder(this, true, CompilationGroup.MAIN); // AspectJ Extension - use factory, was 'new BatchImageBuilder(this,true)'
+	BatchImageBuilder testImageBuilder  = getBatchImageBuilder2(imageBuilder, true, CompilationGroup.TEST); // AspectJ Extension - use factory, was new BatchImageBuilder(imageBuilder, true, CompilationGroup.TEST);
 	imageBuilder.build();
+	if (testImageBuilder.sourceLocations.length > 0) {
+		// Note: testImageBuilder *MUST* have a separate output folder, or it will delete the files created by imageBuilder.build() 
+		testImageBuilder.build();
+	} else {
+		testImageBuilder.cleanUp();
+	}
 	recordNewState(imageBuilder.newState);
 }
 
 // AspectJ Extension
-protected BatchImageBuilder getBatchImageBuilder(JavaBuilder instance,boolean b) {
-	return new BatchImageBuilder(instance,b);
+protected BatchImageBuilder getBatchImageBuilder(JavaBuilder instance,boolean b, CompilationGroup compilationGroup) {
+	return new BatchImageBuilder(instance, b, compilationGroup);
+}
+protected BatchImageBuilder getBatchImageBuilder2(BatchImageBuilder instance,boolean b, CompilationGroup compilationGroup) {
+	return new BatchImageBuilder(instance, b, compilationGroup);
 }
 // End AspectJ Extension
 
@@ -290,6 +303,7 @@ protected IncrementalImageBuilder getIncrementalImageBuilder() {
 }
 // End AspectJ Extension
 
+@Override
 protected void clean(IProgressMonitor monitor) throws CoreException {
 	this.currentProject = getProject();
 	if (this.currentProject == null || !this.currentProject.isAccessible()) return;
@@ -307,7 +321,8 @@ protected void clean(IProgressMonitor monitor) throws CoreException {
 			System.out.println("JavaBuilder: Clearing last state as part of clean : " + this.lastState); //$NON-NLS-1$
 		clearLastState();
 		removeProblemsAndTasksFor(this.currentProject);
-		new BatchImageBuilder(this, false).cleanOutputFolders(false);
+		new BatchImageBuilder(this, false, CompilationGroup.MAIN).cleanOutputFolders(false);
+		new BatchImageBuilder(this, false, CompilationGroup.TEST).cleanOutputFolders(false);
 	} catch (CoreException e) {
 		Util.log(e, "JavaBuilder handling CoreException while cleaning: " + this.currentProject.getName()); //$NON-NLS-1$
 		createInconsistentBuildMarker(e);
@@ -448,7 +463,7 @@ public State getLastState(IProject project) {
 private IProject[] getRequiredProjects(boolean includeBinaryPrerequisites) {
 	if (this.javaProject == null || this.workspaceRoot == null) return new IProject[0];
 
-	ArrayList projects = new ArrayList();
+	LinkedHashSet<IProject> projects = new LinkedHashSet<>();
 	ExternalFoldersManager externalFoldersManager = JavaModelManager.getExternalManager();
 	try {
 		IClasspathEntry[] entries = this.javaProject.getExpandedClasspath();
@@ -495,8 +510,12 @@ boolean hasBuildpathErrors() throws CoreException {
 }
 
 private boolean hasClasspathChanged() {
-	ClasspathMultiDirectory[] newSourceLocations = this.nameEnvironment.sourceLocations;
-	ClasspathMultiDirectory[] oldSourceLocations = this.lastState.sourceLocations;
+	return hasClasspathChanged(CompilationGroup.MAIN) || hasClasspathChanged(CompilationGroup.TEST);	
+}
+
+private boolean hasClasspathChanged(CompilationGroup compilationGroup) {
+	ClasspathMultiDirectory[] newSourceLocations = (compilationGroup == CompilationGroup.MAIN ? this.nameEnvironment : this.testNameEnvironment).sourceLocations;
+	ClasspathMultiDirectory[] oldSourceLocations = compilationGroup == CompilationGroup.MAIN ? this.lastState.sourceLocations : this.lastState.testSourceLocations;
 	int newLength = newSourceLocations.length;
 	int oldLength = oldSourceLocations.length;
 	int n, o;
@@ -544,8 +563,8 @@ private boolean hasClasspathChanged() {
 		return true;
 	}
 
-	ClasspathLocation[] newBinaryLocations = this.nameEnvironment.binaryLocations;
-	ClasspathLocation[] oldBinaryLocations = this.lastState.binaryLocations;
+	ClasspathLocation[] newBinaryLocations = (compilationGroup == CompilationGroup.MAIN ? this.nameEnvironment : this.testNameEnvironment).binaryLocations;
+	ClasspathLocation[] oldBinaryLocations = compilationGroup == CompilationGroup.MAIN ? this.lastState.binaryLocations : this.lastState.testBinaryLocations;
 	newLength = newBinaryLocations.length;
 	oldLength = oldBinaryLocations.length;
 	for (n = o = 0; n < newLength && o < oldLength; n++, o++) {
@@ -612,13 +631,14 @@ private int initializeBuilder(int kind, boolean forBuild) throws CoreException {
 		// Flush the existing external files cache if this is the beginning of a build cycle
 		String projectName = this.currentProject.getName();
 		if (builtProjects == null || builtProjects.contains(projectName)) {
-			builtProjects = new ArrayList();
+			builtProjects = new LinkedHashSet();
 		}
 		builtProjects.add(projectName);
 	}
 
 	this.binaryLocationsPerProject = new SimpleLookupTable(3);
-	this.nameEnvironment = new NameEnvironment(this.workspaceRoot, this.javaProject, this.binaryLocationsPerProject, this.notifier);
+	this.nameEnvironment = new NameEnvironment(this.workspaceRoot, this.javaProject, this.binaryLocationsPerProject, this.notifier, CompilationGroup.MAIN);
+	this.testNameEnvironment = new NameEnvironment(this.workspaceRoot, this.javaProject, this.binaryLocationsPerProject, this.notifier, CompilationGroup.TEST);
 
 	if (forBuild) {
 		String filterSequence = this.javaProject.getOption(JavaCore.CORE_JAVA_BUILD_RESOURCE_COPY_FILTER, true);
@@ -792,6 +812,7 @@ private void recordNewState(State state) {
 /**
  * String representation for debugging purposes
  */
+@Override
 public String toString() {
 	return this.currentProject == null
 		? "JavaBuilder for unknown project" //$NON-NLS-1$

@@ -155,13 +155,19 @@ Object decodeDefaultValue() {
 	}
 	return value;
 }
+@Override
 public IBinaryElementValuePair[] getElementValuePairs() {
 	if (this.pairs == null)
 		initialize();
 	return this.pairs;
 }
+@Override
 public char[] getTypeName() {
 	return this.typename;
+}
+@Override
+public boolean isDeprecatedAnnotation() {
+	return (this.standardAnnotationTagBits & (TagBits.AnnotationDeprecated | TagBits.AnnotationTerminallyDeprecated)) != 0;
 }
 void initialize() {
 	if (this.pairs == null)
@@ -375,9 +381,11 @@ private int scanElementValue(int offset) {
 	}
 	return currentOffset;
 }
+@Override
 public String toString() {
 	return BinaryTypeFormatter.annotationToString(this);
 }
+@Override
 public int hashCode() {
 	final int prime = 31;
 	int result = 1;
@@ -385,6 +393,7 @@ public int hashCode() {
 	result = prime * result + CharOperation.hashCode(this.typename);
 	return result;
 }
+@Override
 public boolean equals(Object obj) {
 	if (this == obj) {
 		return true;

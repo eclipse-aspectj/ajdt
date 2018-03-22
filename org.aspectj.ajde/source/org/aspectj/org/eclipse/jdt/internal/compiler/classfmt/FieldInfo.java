@@ -18,6 +18,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.*;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 
@@ -32,9 +33,10 @@ public class FieldInfo extends ClassFileStruct implements IBinaryField, Comparab
 	protected int signatureUtf8Offset;
 	protected long tagBits;
 	protected Object wrappedConstantValue;
+	protected long version;
 
-public static FieldInfo createField(byte classFileBytes[], int offsets[], int offset) {
-	FieldInfo fieldInfo = new FieldInfo(classFileBytes, offsets, offset);
+public static FieldInfo createField(byte classFileBytes[], int offsets[], int offset, long version) {
+	FieldInfo fieldInfo = new FieldInfo(classFileBytes, offsets, offset, version);
 	
 	int attributesCount = fieldInfo.u2At(6);
 	int readOffset = 8;
@@ -100,11 +102,13 @@ public static FieldInfo createField(byte classFileBytes[], int offsets[], int of
  * @param classFileBytes byte[]
  * @param offsets int[]
  * @param offset int
+ * @param version class file version
  */
-protected FieldInfo (byte classFileBytes[], int offsets[], int offset) {
+protected FieldInfo (byte classFileBytes[], int offsets[], int offset, long version) {
 	super(classFileBytes, offsets, offset);
 	this.accessFlags = -1;
 	this.signatureUtf8Offset = -1;
+	this.version = version;
 }
 private AnnotationInfo[] decodeAnnotations(int offset, boolean runtimeVisible) {
 	int numberOfAnnotations = u2At(offset + 6);
@@ -120,11 +124,12 @@ private AnnotationInfo[] decodeAnnotations(int offset, boolean runtimeVisible) {
 			long standardTagBits = newInfo.standardAnnotationTagBits;
 			if (standardTagBits != 0) {
 				this.tagBits |= standardTagBits;
-			} else {
-				if (newInfos == null)
-					newInfos = new AnnotationInfo[numberOfAnnotations - i];
-				newInfos[newInfoCount++] = newInfo;
+				if (this.version < ClassFileConstants.JDK9 || (standardTagBits & TagBits.AnnotationDeprecated) == 0)
+					continue;
 			}
+			if (newInfos == null)
+				newInfos = new AnnotationInfo[numberOfAnnotations - i];
+			newInfos[newInfoCount++] = newInfo;
 		}
 		if (newInfos != null) {
 			if (newInfoCount != newInfos.length)
@@ -150,15 +155,18 @@ TypeAnnotationInfo[] decodeTypeAnnotations(int offset, boolean runtimeVisible) {
 	return null;
 }
 
+@Override
 public int compareTo(Object o) {
 	return new String(getName()).compareTo(new String(((FieldInfo) o).getName()));
 }
+@Override
 public boolean equals(Object o) {
 	if (!(o instanceof FieldInfo)) {
 		return false;
 	}
 	return CharOperation.equals(getName(), ((FieldInfo) o).getName());
 }
+@Override
 public int hashCode() {
 	return CharOperation.hashCode(getName());
 }
@@ -167,6 +175,7 @@ public int hashCode() {
  * Return org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant.NotAConstant if there is none.
  * @return org.aspectj.org.eclipse.jdt.internal.compiler.impl.Constant
  */
+@Override
 public Constant getConstant() {
 	if (this.constant == null) {
 		// read constant
@@ -174,6 +183,7 @@ public Constant getConstant() {
 	}
 	return this.constant;
 }
+@Override
 public char[] getGenericSignature() {
 	if (this.signatureUtf8Offset != -1) {
 		if (this.signature == null) {
@@ -190,6 +200,7 @@ public char[] getGenericSignature() {
  * Set the AccDeprecated and AccSynthetic bits if necessary
  * @return int
  */
+@Override
 public int getModifiers() {
 	if (this.accessFlags == -1) {
 		// compute the accessflag. Don't forget the deprecated attribute
@@ -202,6 +213,7 @@ public int getModifiers() {
  * Answer the name of the field.
  * @return char[]
  */
+@Override
 public char[] getName() {
 	if (this.name == null) {
 		// read the name
@@ -210,6 +222,7 @@ public char[] getName() {
 	}
 	return this.name;
 }
+@Override
 public long getTagBits() {
 	return this.tagBits;
 }
@@ -224,6 +237,7 @@ public long getTagBits() {
  *   - an array of floats is [F
  * @return char[]
  */
+@Override
 public char[] getTypeName() {
 	if (this.descriptor == null) {
 		// read the signature
@@ -235,10 +249,12 @@ public char[] getTypeName() {
 /**
  * @return the annotations or null if there is none.
  */
+@Override
 public IBinaryAnnotation[] getAnnotations() {
 	return null;
 }
 
+@Override
 public IBinaryTypeAnnotation[] getTypeAnnotations() {
 	return null;
 }
@@ -404,6 +420,7 @@ public int sizeInBytes() {
 public void throwFormatException() throws ClassFormatException {
 	throw new ClassFormatException(ClassFormatException.ErrBadFieldInfo);
 }
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer(getClass().getName());
 	toStringContent(buffer);

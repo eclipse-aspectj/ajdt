@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -48,6 +44,7 @@ ClasspathMultiDirectory(IContainer sourceFolder, IContainer binaryFolder, char[]
 		this.exclusionPatterns = null;
 }
 
+@Override
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathMultiDirectory)) return false;
@@ -63,6 +60,7 @@ public boolean equals(Object o) {
 		&& CharOperation.equals(this.exclusionPatterns, md.exclusionPatterns);
 }
 
+@Override
 protected boolean isExcluded(IResource resource) {
 	if (this.exclusionPatterns != null || this.inclusionPatterns != null)
 		if (this.sourceFolder.equals(this.binaryFolder))
@@ -70,6 +68,7 @@ protected boolean isExcluded(IResource resource) {
 	return false;
 }
 
+@Override
 public String toString() {
 	return "Source classpath directory " + this.sourceFolder.getFullPath().toString() + //$NON-NLS-1$
 		" with " + super.toString(); //$NON-NLS-1$
@@ -83,6 +82,7 @@ public void acceptModuleInfo(ICompilationUnit cu, Parser parser) {
 		this.module = new BasicModule(unit.moduleDeclaration, null);
 	}
 }
+@Override
 public void setModule(IModule mod) {
 	this.module = mod;
 }

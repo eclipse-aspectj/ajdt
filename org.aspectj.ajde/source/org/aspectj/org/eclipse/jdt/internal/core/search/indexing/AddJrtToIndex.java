@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -62,6 +58,7 @@ public class AddJrtToIndex extends BinaryContainer {
 		this.indexFileURL = indexFile;
 		this.forceIndexUpdate = updateIndex;
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (o instanceof AddJrtToIndex) {
 			if (this.resource != null)
@@ -71,6 +68,7 @@ public class AddJrtToIndex extends BinaryContainer {
 		}
 		return false;
 	}
+	@Override
 	public int hashCode() {
 		if (this.resource != null)
 			return this.resource.hashCode();
@@ -128,6 +126,7 @@ public class AddJrtToIndex extends BinaryContainer {
 			this.indexManager = indexManager;
 		}
 
+		@Override
 		public FileVisitResult visitFile(java.nio.file.Path path, java.nio.file.Path mod, BasicFileAttributes attrs)
 				throws IOException {
 			String name = path.getFileName().toString();
@@ -148,6 +147,7 @@ public class AddJrtToIndex extends BinaryContainer {
 		}
 	}
 
+	@Override
 	public boolean execute(IProgressMonitor progressMonitor) {
 
 		if (this.isCancelled || progressMonitor != null && progressMonitor.isCanceled()) return true;
@@ -288,11 +288,13 @@ public class AddJrtToIndex extends BinaryContainer {
 		}
 		return true;
 	}
+	@Override
 	public String getJobFamily() {
 		if (this.resource != null)
 			return super.getJobFamily();
 		return this.containerPath.toOSString(); // external jar
 	}	
+	@Override
 	protected Integer updatedIndexState() {
 
 		Integer updateState = null;
@@ -304,6 +306,7 @@ public class AddJrtToIndex extends BinaryContainer {
 		}
 		return updateState;
 	}
+	@Override
 	public String toString() {
 		return "indexing " + this.containerPath.toString(); //$NON-NLS-1$
 	}

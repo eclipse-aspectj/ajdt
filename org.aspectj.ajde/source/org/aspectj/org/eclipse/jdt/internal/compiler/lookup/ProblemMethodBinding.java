@@ -47,7 +47,7 @@ public ProblemMethodBinding(MethodBinding closestMatch, char[] selector, TypeBin
 	}
 }
 @Override
-MethodBinding computeSubstitutedMethod(MethodBinding method, LookupEnvironment env) {
+public MethodBinding computeSubstitutedMethod(MethodBinding method, LookupEnvironment env) {
 	return this.closestMatch == null ? this : this.closestMatch.computeSubstitutedMethod(method, env);
 }
 @Override
@@ -84,6 +84,7 @@ public boolean isParameterizedGeneric() {
  * Answer the problem id associated with the receiver.
  * NoError if the receiver is a valid binding.
  */
+@Override
 public final int problemId() {
 	return this.problemReason;
 }

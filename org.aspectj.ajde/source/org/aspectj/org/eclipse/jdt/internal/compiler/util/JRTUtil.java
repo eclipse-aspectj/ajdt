@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -57,7 +53,7 @@ public class JRTUtil {
 	public static int NOTIFY_MODULES = 0x0004;
 	public static int NOTIFY_ALL = NOTIFY_FILES | NOTIFY_PACKAGES | NOTIFY_MODULES;
 
-	// TODO: BETA_JAVA9 Think about clearing the cache too.
+	// TODO: Java 9 Think about clearing the cache too.
 	private static Map<File, JrtFileSystem> images = null;
 
 	private static final Object lock = new Object();

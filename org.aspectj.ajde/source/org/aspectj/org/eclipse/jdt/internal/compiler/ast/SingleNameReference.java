@@ -68,6 +68,7 @@ public SingleNameReference(char[] source, long pos) {
 	this.sourceEnd = (int) pos;
 }
 
+@Override
 public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Assignment assignment, boolean isCompound) {
 	boolean isReachable = (flowInfo.tagBits & FlowInfo.UNREACHABLE) == 0;
 	// compound assignment extra work
@@ -172,10 +173,12 @@ public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowConte
 	return flowInfo;
 }
 
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	return analyseCode(currentScope, flowContext, flowInfo, true);
 }
 
+@Override
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, boolean valueRequired) {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
@@ -255,6 +258,7 @@ public TypeBinding checkFieldAccess(BlockScope scope) {
 
 }
 
+@Override
 public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
 	if (!super.checkNPE(scope, flowContext, flowInfo, ttlForFieldCheck)) {
 		CompilerOptions compilerOptions = scope.compilerOptions();
@@ -270,6 +274,7 @@ public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flow
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression#computeConversion(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding, org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding)
  */
+@Override
 public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBinding compileTimeType) {
 	if (runtimeTimeType == null || compileTimeType == null)
 		return;
@@ -307,6 +312,7 @@ public void computeConversion(Scope scope, TypeBinding runtimeTimeType, TypeBind
 	super.computeConversion(scope, runtimeTimeType, compileTimeType);
 }
 
+@Override
 public void generateAssignment(BlockScope currentScope, CodeStream codeStream, Assignment assignment, boolean valueRequired) {
 	// optimizing assignment like: i = i + 1 or i = 1 + i
 	if (assignment.expression.isCompactableOperation()) {
@@ -405,6 +411,7 @@ public void generateAssignment(BlockScope currentScope, CodeStream codeStream, A
 	}
 }
 
+@Override
 public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 	int pc = codeStream.position;
 	if (this.constant != Constant.NotAConstant) {
@@ -526,6 +533,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
  * The APIs with an extra argument is used whenever there are two references to the same variable which
  * are optimized in one access: e.g "a = a + 1" optimized into "a++".
  */
+@Override
 public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeStream, Expression expression, int operator, int assignmentImplicitConversion, boolean valueRequired) {
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=185682
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
@@ -704,6 +712,7 @@ public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeS
 	}
 }
 
+@Override
 public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream, CompoundAssignment postIncrement, boolean valueRequired) {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // assigning to a field
@@ -825,10 +834,12 @@ public void generateReceiver(CodeStream codeStream) {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite#genericTypeArguments()
  */
+@Override
 public TypeBinding[] genericTypeArguments() {
 	return null;
 }
 
+@Override
 public boolean isEquivalent(Reference reference) {
 	char[] otherToken = null;
 	if (reference instanceof SingleNameReference) {
@@ -846,6 +857,7 @@ public boolean isEquivalent(Reference reference) {
  * Returns the local variable referenced by this node. Can be a direct reference (SingleNameReference)
  * or thru a cast expression etc...
  */
+@Override
 public LocalVariableBinding localVariableBinding() {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
@@ -856,6 +868,7 @@ public LocalVariableBinding localVariableBinding() {
 	return null;
 }
 
+@Override
 public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotations) {
 	switch (this.bits & ASTNode.RestrictiveFlagMASK) {
 		case Binding.FIELD : // reading a field
@@ -867,6 +880,7 @@ public VariableBinding nullAnnotatedVariableBinding(boolean supportTypeAnnotatio
 	return null;
 }
 
+@Override
 public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
 	if ((this.implicitConversion & TypeIds.BOXING) != 0)
 		return FlowInfo.NON_NULL;
@@ -953,6 +967,7 @@ public void manageSyntheticAccessIfNecessary(BlockScope currentScope, FlowInfo f
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression#postConversionType(Scope)
  */
+@Override
 public TypeBinding postConversionType(Scope scope) {
 	TypeBinding convertedType = this.resolvedType;
 	if (this.genericCast != null)
@@ -991,6 +1006,7 @@ public TypeBinding postConversionType(Scope scope) {
 	return convertedType;
 }
 
+@Override
 public StringBuffer printExpression(int indent, StringBuffer output){
 	return output.append(this.token);
 }
@@ -1007,6 +1023,7 @@ public TypeBinding reportError(BlockScope scope) {
 	return null;
 }
 
+@Override
 public TypeBinding resolveType(BlockScope scope) {
 	// for code gen, harm the restrictiveFlag
 
@@ -1070,20 +1087,24 @@ public TypeBinding resolveType(BlockScope scope) {
 	return this.resolvedType = reportError(scope);
 }
 
+@Override
 public void traverse(ASTVisitor visitor, BlockScope scope) {
 	visitor.visit(this, scope);
 	visitor.endVisit(this, scope);
 }
 
+@Override
 public void traverse(ASTVisitor visitor, ClassScope scope) {
 	visitor.visit(this, scope);
 	visitor.endVisit(this, scope);
 }
 
+@Override
 public String unboundReferenceErrorName(){
 	return new String(this.token);
 }
 
+@Override
 public char[][] getName() {
 	return new char[][] {this.token};
 }

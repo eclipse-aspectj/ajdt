@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -52,6 +48,7 @@ public class JavaElementFinder extends BindingKeyParser {
 		this.owner = owner;
 	}
 
+	@Override
 	public void consumeAnnotation() {
 		if (!(this.element instanceof IAnnotatable)) return;
 		int size = this.types.size();
@@ -60,11 +57,13 @@ public class JavaElementFinder extends BindingKeyParser {
 		this.element = ((IAnnotatable) this.element).getAnnotation(annotationType.getElementName());
 	}
 
+	@Override
 	public void consumeField(char[] fieldName) {
 		if (!(this.element instanceof IType)) return;
 		this.element = ((IType) this.element).getField(new String(fieldName));
 	}
 
+	@Override
 	public void consumeFullyQualifiedName(char[] fullyQualifiedName) {
 		try {
 			this.element = this.project.findType(new String(CharOperation.replaceOnCopy(fullyQualifiedName, '/', '.')), this.owner);
@@ -73,6 +72,7 @@ public class JavaElementFinder extends BindingKeyParser {
 		}
 	}
 
+	@Override
 	public void consumeLocalType(char[] uniqueKey) {
 		if (this.element == null) return;
 		if (this.element instanceof BinaryType) {
@@ -96,11 +96,13 @@ public class JavaElementFinder extends BindingKeyParser {
 		}
 	}
 
+	@Override
 	public void consumeMemberType(char[] simpleTypeName) {
 		if (!(this.element instanceof IType)) return;
 		this.element = ((IType) this.element).getType(new String(simpleTypeName));
 	}
 
+	@Override
 	public void consumeMethod(char[] selector, char[] signature) {
 		if (!(this.element instanceof IType)) return;
 		String[] parameterTypes = Signature.getParameterTypes(new String(signature));
@@ -111,6 +113,7 @@ public class JavaElementFinder extends BindingKeyParser {
 			this.element = methods[0];
 	}
 
+	@Override
 	public void consumePackage(char[] pkgName) {
 		pkgName = CharOperation.replaceOnCopy(pkgName, '/', '.');
 		try {
@@ -120,10 +123,12 @@ public class JavaElementFinder extends BindingKeyParser {
 		}
 	}
 
+	@Override
 	public void consumeParser(BindingKeyParser parser) {
 		this.types.add(parser);
 	}
 
+	@Override
 	public void consumeSecondaryType(char[] simpleTypeName) {
 		if (this.element == null) return;
 		IOpenable openable = this.element.getOpenable();
@@ -131,6 +136,7 @@ public class JavaElementFinder extends BindingKeyParser {
 		this.element = ((ICompilationUnit) openable).getType(new String(simpleTypeName));
 	}
 
+	@Override
 	public void consumeTypeVariable(char[] position, char[] typeVariableName) {
 		if (this.element == null) return;
 		switch (this.element.getElementType()) {
@@ -152,6 +158,7 @@ public class JavaElementFinder extends BindingKeyParser {
 		}
 	}
 
+	@Override
 	public BindingKeyParser newParser() {
 		return new JavaElementFinder(this, this.project, this.owner);
 	}

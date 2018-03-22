@@ -29,27 +29,32 @@ public class DefaultCompilerAdapter implements ICompilerAdapter {
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.ICompilerAdapter#beforeCompiling(org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit[])
 	 */
+	@Override
 	public void beforeCompiling(ICompilationUnit[] sourceUnits) {}
 
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.ICompilerAdapter#afterCompiling()
 	 */
+	@Override
 	public void afterCompiling(CompilationUnitDeclaration[] units) {}
 	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.ICompilerAdapter#beforeProcessing(org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration)
 	 */
+	@Override
 	public void beforeProcessing(CompilationUnitDeclaration unit) {}
 	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.ICompilerAdapter#afterProcessing(org.aspectj.org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration)
 	 */
+	@Override
 	public void afterProcessing(CompilationUnitDeclaration unit, int unitIndex) {
 		unit.cleanUp();
 		compiler.requestor.acceptResult(unit.compilationResult.tagAsAccepted());
 		compiler.unitsToProcess[unitIndex] = null;
 	}
 	
+	@Override
 	public void beforeAnalysing(CompilationUnitDeclaration unit) {
 		// no-op
 	}
@@ -73,31 +78,37 @@ public class DefaultCompilerAdapter implements ICompilerAdapter {
 		compiler.requestor.acceptResult(unit.compilationResult.tagAsAccepted());
 	}
 
+	@Override
 	public void beforeResolving(CompilationUnitDeclaration unit) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void afterResolving(CompilationUnitDeclaration unit) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void afterAnalysing(CompilationUnitDeclaration unit) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void beforeGenerating(CompilationUnitDeclaration unit) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void afterGenerating(CompilationUnitDeclaration unit) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void afterDietParsing(CompilationUnitDeclaration[] units) {
 		// TODO Auto-generated method stub
 		

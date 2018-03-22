@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -92,9 +88,8 @@ protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, 
 	((ClassFileInfo) info).readBinaryChildren(this, (HashMap) newElements, typeInfo);
 	return true;
 }
-/* (non-Javadoc)
- * @see org.aspectj.org.eclipse.jdt.core.ICodeAssist#codeComplete(int, org.aspectj.org.eclipse.jdt.core.CompletionRequestor, org.aspectj.org.eclipse.jdt.core.WorkingCopyOwner, org.eclipse.core.runtime.IProgressMonitor)
- */
+
+@Override
 public void codeComplete(int offset, CompletionRequestor requestor, WorkingCopyOwner owner, IProgressMonitor monitor) throws JavaModelException {
 	String source = getSource();
 	if (source != null) {
@@ -112,6 +107,7 @@ public void codeComplete(int offset, CompletionRequestor requestor, WorkingCopyO
 /**
  * @see ICodeAssist#codeSelect(int, int, WorkingCopyOwner)
  */
+@Override
 public IJavaElement[] codeSelect(int offset, int length, WorkingCopyOwner owner) throws JavaModelException {
 	IBuffer buffer = getBuffer();
 	char[] contents;
@@ -163,6 +159,7 @@ public boolean existsUsingJarTypeCache() {
 /**
  * @see ITypeRoot#findPrimaryType()
  */
+@Override
 public IType findPrimaryType() {
 	IType primaryType= getType();
 	if (primaryType.exists()) {
@@ -231,12 +228,19 @@ private IBinaryType getJarBinaryTypeInfo() throws CoreException, IOException, Cl
 			if (contents != null) {
 				String fileName;
 				String rootPath = root.getPath().toOSString();
+				String rootIdentifier = root.getHandleIdentifier();
 				if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
-					fileName = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + 
-							root.getElementName() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
-				} else {
-					fileName = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
+					int slash = rootIdentifier.lastIndexOf('/');
+					if (slash != -1) {
+						StringBuilder extract = new StringBuilder();
+						extract.append(rootIdentifier.substring(0, slash));
+						int modStart = rootIdentifier.indexOf(JavaElement.JEM_MODULE);
+						if (modStart != -1)
+							extract.append(rootIdentifier.substring(modStart));
+						rootIdentifier = extract.toString();
+					}
 				}
+				fileName = rootIdentifier + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
 				result = new ClassFileReader(contents, fileName.toCharArray(), false);
 			}
 		} else {
@@ -350,6 +354,7 @@ public IClassFile getClassFile() {
 /**
  * @see IClassFile
  */
+@Override
 public IJavaElement getElementAt(int position) throws JavaModelException {
 	IJavaElement parentElement = getParent();
 	while (parentElement.getElementType() != IJavaElement.PACKAGE_FRAGMENT_ROOT) {
@@ -405,6 +410,7 @@ public String getTopLevelTypeName() {
 /**
  * @see IClassFile
  */
+@Override
 public IType getType() {
 	if (this.binaryType == null) {
 		this.binaryType = new BinaryType(this, getTypeName());
@@ -419,6 +425,7 @@ public String getTypeName() {
 /*
  * @see IClassFile
  */
+@Override
 public ICompilationUnit getWorkingCopy(WorkingCopyOwner owner, IProgressMonitor monitor) throws JavaModelException {
 	CompilationUnit workingCopy = new ClassFileWorkingCopy(this, owner == null ? DefaultWorkingCopyOwner.PRIMARY : owner);
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
@@ -434,12 +441,14 @@ public ICompilationUnit getWorkingCopy(WorkingCopyOwner owner, IProgressMonitor 
 /**
  * @see IClassFile
  */
+@Override
 public boolean isClass() throws JavaModelException {
 	return getType().isClass();
 }
 /**
  * @see IClassFile
  */
+@Override
 public boolean isInterface() throws JavaModelException {
 	return getType().isInterface();
 }

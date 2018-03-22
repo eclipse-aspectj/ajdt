@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
  *******************************************************************************/
@@ -19,10 +15,13 @@ import java.util.stream.Stream;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IPackageExport;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IService;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment;
 
 public class BinaryModuleBinding extends ModuleBinding {
@@ -37,6 +36,7 @@ public class BinaryModuleBinding extends ModuleBinding {
 			this.requiresTransitive = Binding.NO_MODULES;
 			this.exportedPackages = Binding.NO_PACKAGES;
 		}
+		@Override
 		public ModuleBinding[] getRequiresTransitive() {
 			if (this.requiresTransitive == NO_MODULES) {
 				char[][] autoModules = ((IModuleAwareNameEnvironment)this.environment.nameEnvironment).getAllAutomaticModules();
@@ -59,7 +59,7 @@ public class BinaryModuleBinding extends ModuleBinding {
 	private IService[] unresolvedProvides;
 	
 	/**
-	 * Construct a named module from binary, could be an auto module.
+	 * Construct a named module from binary, could be an auto module - or from an info from Java Model.
 	 * <p>
 	 * <strong>Side effects:</strong> adds the new module to root.knownModules and resolves its directives.
 	 * </p>
@@ -103,8 +103,51 @@ public class BinaryModuleBinding extends ModuleBinding {
 		this.unresolvedOpens = module.opens();
 		this.unresolvedUses = module.uses();
 		this.unresolvedProvides = module.provides();
+		if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
+			if (module instanceof IBinaryModule)
+				scanForNullDefaultAnnotation((IBinaryModule) module);
+//			this.setAnnotations(BinaryTypeBinding.createAnnotations(((IBinaryModule) module).getAnnotations(), this.environment, null));
+		}
 	}
-	
+
+	private void scanForNullDefaultAnnotation(IBinaryModule binaryModule) {
+		// trimmed-down version of BinaryTypeBinding.scanForNullDefaultAnnotation()
+		char[][] nonNullByDefaultAnnotationName = this.environment.getNonNullByDefaultAnnotationName();
+		if (nonNullByDefaultAnnotationName == null)
+			return; // not well-configured to use null annotations
+
+		IBinaryAnnotation[] annotations = binaryModule.getAnnotations();
+		if (annotations != null) {
+			long annotationBit = 0L;
+			int nullness = NO_NULL_DEFAULT;
+			int length = annotations.length;
+			for (int i = 0; i < length; i++) {
+				char[] annotationTypeName = annotations[i].getTypeName();
+				if (annotationTypeName[0] != Util.C_RESOLVED)
+					continue;
+				int typeBit = this.environment.getNullAnnotationBit(BinaryTypeBinding.signature2qualifiedTypeName(annotationTypeName));
+				if (typeBit == TypeIds.BitNonNullByDefaultAnnotation) {
+					// using NonNullByDefault we need to inspect the details of the value() attribute:
+					nullness = BinaryTypeBinding.getNonNullByDefaultValue(annotations[i], this.environment);
+					if (nullness == NULL_UNSPECIFIED_BY_DEFAULT) {
+						annotationBit = TagBits.AnnotationNullUnspecifiedByDefault;
+					} else if (nullness != 0) {
+						annotationBit = TagBits.AnnotationNonNullByDefault;
+						if (nullness == Binding.NONNULL_BY_DEFAULT && this.environment.usesNullTypeAnnotations()) {
+							// reading a decl-nnbd in a project using type annotations, mimic corresponding semantics by enumerating:
+							nullness |= Binding.DefaultLocationParameter | Binding.DefaultLocationReturnType | Binding.DefaultLocationField;
+						}
+					}
+					this.defaultNullness = nullness;
+					break;
+				}
+			}
+			if (annotationBit != 0L) {
+				this.tagBits |= annotationBit;
+			}
+		}
+	}
+
 	@Override
 	public PackageBinding[] getExports() {
 		if (this.exportedPackages == null && this.unresolvedExports != null)

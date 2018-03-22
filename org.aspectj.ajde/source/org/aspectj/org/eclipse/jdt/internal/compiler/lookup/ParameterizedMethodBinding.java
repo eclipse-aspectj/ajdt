@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -75,12 +71,15 @@ public class ParameterizedMethodBinding extends MethodBinding {
 
 			// need to substitute old var refs with new ones (double substitution: declaringClass + new type variables)
 			substitution = new Substitution() {
+				@Override
 				public LookupEnvironment environment() {
 					return parameterizedDeclaringClass.environment;
 				}
+				@Override
 				public boolean isRawSubstitution() {
 					return !isStatic && parameterizedDeclaringClass.isRawSubstitution();
 				}
+				@Override
 				public TypeBinding substitute(TypeVariableBinding typeVariable) {
 					// check this variable can be substituted given copied variables
 					if (typeVariable.rank < length && TypeBinding.equalsEquals(originalVariables[typeVariable.rank], typeVariable)) {
@@ -215,12 +214,15 @@ public class ParameterizedMethodBinding extends MethodBinding {
 
 			// need to substitute old var refs with new ones (double substitution: declaringClass + new type variables)
 			substitution = new Substitution() {
+				@Override
 				public LookupEnvironment environment() {
 					return environment;
 				}
+				@Override
 				public boolean isRawSubstitution() {
 					return false;
 				}
+				@Override
 				public TypeBinding substitute(TypeVariableBinding typeVariable) {
 			        // check this variable can be substituted given copied variables
 			        if (typeVariable.rank < length && TypeBinding.equalsEquals(originalVariables[typeVariable.rank], typeVariable)) {
@@ -333,6 +335,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 	/**
 	 * Returns true if some parameters got substituted.
 	 */
+	@Override
 	public boolean hasSubstitutedParameters() {
 		return this.parameters != this.originalMethod.parameters;
 	}
@@ -340,6 +343,7 @@ public class ParameterizedMethodBinding extends MethodBinding {
 	/**
 	 * Returns true if the return type got substituted.
 	 */
+	@Override
 	public boolean hasSubstitutedReturnType() {
 		return this.returnType != this.originalMethod.returnType; //$IDENTITY-COMPARISON$
 	}
@@ -347,30 +351,36 @@ public class ParameterizedMethodBinding extends MethodBinding {
 	/**
 	 * Returns the original method (as opposed to parameterized instances)
 	 */
+	@Override
 	public MethodBinding original() {
 		return this.originalMethod.original();
 	}
 	
 	
+	@Override
 	public MethodBinding shallowOriginal() {
 		return this.originalMethod;
 	}
 	
 	// AspectJ Extension - delegate to the original method
 	
+	@Override
 	public boolean alwaysNeedsAccessMethod() {
 		return originalMethod.alwaysNeedsAccessMethod();
 	}
 
+	@Override
 	public boolean canBeSeenBy(TypeBinding receiverType, InvocationSite invocationSite, Scope scope) {
 		if (alwaysNeedsAccessMethod()) return originalMethod.canBeSeenBy(receiverType,invocationSite,scope);
 		else                           return super.canBeSeenBy(receiverType,invocationSite,scope);
 	}
 
+	@Override
 	public MethodBinding getAccessMethod(boolean staticReference) {
 		return originalMethod.getAccessMethod(staticReference);
 	}
 	
+	@Override
 	public AbstractMethodDeclaration sourceMethod() {
 		return originalMethod.sourceMethod();
 	}

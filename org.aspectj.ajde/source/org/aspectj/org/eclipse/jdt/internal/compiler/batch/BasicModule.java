@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -47,6 +43,7 @@ public class BasicModule implements IModule {
 		public char[][] with() {
 			return this.with;
 		}
+		@Override
 		public String toString() {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("provides"); //$NON-NLS-1$
@@ -189,6 +186,7 @@ public class BasicModule implements IModule {
 	public boolean isOpen() {
 		return this.isOpen;
 	}
+	@Override
 	public void addReads(char[] modName) {
 		Predicate<char[]> shouldAdd = m -> {
 			return Stream.of(this.requires).map(ref -> ref.name()).noneMatch(n -> CharOperation.equals(modName, n));
@@ -201,6 +199,7 @@ public class BasicModule implements IModule {
 			this.requires[len] = info;
 		}		
 	}
+	@Override
 	public void addExports(IModule.IPackageExport[] toAdd) {
 		Predicate<char[]> shouldAdd = m -> {
 			return Stream.of(this.exports).map(ref -> ((PackageExportImpl) ref).pack).noneMatch(n -> CharOperation.equals(m, n));
@@ -219,6 +218,7 @@ public class BasicModule implements IModule {
 				ArrayList::addAll);
 		this.exports = merged.toArray(new PackageExportImpl[merged.size()]);
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -232,12 +232,13 @@ public class BasicModule implements IModule {
 	@Override
 	public int hashCode() {
 		int result = 17;
-		int c = this.name.hashCode();
+		int c = CharOperation.hashCode(this.name);
 		result = 31 * result + c;
 		c =  Arrays.hashCode(this.requires);
 		result = 31 * result + c;
 		return result;
 	}
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer(getClass().getName());
 		toStringContent(buffer);

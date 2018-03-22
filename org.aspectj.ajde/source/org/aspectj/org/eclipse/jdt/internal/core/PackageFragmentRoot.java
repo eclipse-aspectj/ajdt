@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -23,6 +19,7 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AutomaticModuleNaming;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
@@ -61,6 +58,7 @@ protected PackageFragmentRoot(IResource resource, JavaProject project) {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public void attachSource(IPath sourcePath, IPath rootPath, IProgressMonitor monitor) throws JavaModelException {
 	try {
 		verifyAttachSource(sourcePath);
@@ -156,6 +154,7 @@ public void attachSource(IPath sourcePath, IPath rootPath, IProgressMonitor moni
 /**
  * @see Openable
  */
+@Override
 protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
 	((PackageFragmentRootInfo) info).setRootKind(determineKind(underlyingResource));
 	return computeChildren(info, underlyingResource);
@@ -172,9 +171,8 @@ SourceMapper createSourceMapper(IPath sourcePath, IPath rootPath) throws JavaMod
 
 	return mapper;
 }
-/*
- * @see org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot#delete
- */
+
+@Override
 public void delete(
 	int updateResourceFlags,
 	int updateModelFlags,
@@ -283,9 +281,7 @@ protected void computeFolderChildren(IContainer folder, boolean isIncluded, Stri
 	}
 }
 
-/*
- * @see org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot#copy
- */
+@Override
 public void copy(
 	IPath destination,
 	int updateResourceFlags,
@@ -302,6 +298,7 @@ public void copy(
 /**
  * Returns a new element info for this element.
  */
+@Override
 protected Object createElementInfo() {
 	return new PackageFragmentRootInfo();
 }
@@ -309,6 +306,7 @@ protected Object createElementInfo() {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public IPackageFragment createPackageFragment(String pkgName, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	CreatePackageFragmentOperation op = new CreatePackageFragmentOperation(this, pkgName, force);
 	op.runOperation(monitor);
@@ -336,6 +334,7 @@ protected int determineKind(IResource underlyingResource) throws JavaModelExcept
  * same parent, same resources, and occurrence count.
  *
  */
+@Override
 public boolean equals(Object o) {
 	if (this == o)
 		return true;
@@ -423,6 +422,7 @@ public char[][] fullInclusionPatternChars() {
 		return null;
 	}
 }
+@Override
 public String getElementName() {
 	IResource res = resource();
 	if (res instanceof IFolder)
@@ -432,18 +432,21 @@ public String getElementName() {
 /**
  * @see IJavaElement
  */
+@Override
 public int getElementType() {
 	return PACKAGE_FRAGMENT_ROOT;
 }
 /**
  * @see JavaElement#getHandleMemento()
  */
+@Override
 protected char getHandleMementoDelimiter() {
 	return JavaElement.JEM_PACKAGEFRAGMENTROOT;
 }
 /*
  * @see JavaElement
  */
+@Override
 public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner owner) {
 	switch (token.charAt(0)) {
 		case JEM_PACKAGEFRAGMENT:
@@ -473,6 +476,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 /**
  * @see JavaElement#getHandleMemento(StringBuffer)
  */
+@Override
 protected void getHandleMemento(StringBuffer buff) {
 	IPath path;
 	IResource underlyingResource = getResource();
@@ -491,13 +495,14 @@ protected void getHandleMemento(StringBuffer buff) {
 	buff.append(getHandleMementoDelimiter());
 	escapeMementoName(buff, path.toString());
 	if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(path.toOSString())) {
-		buff.append(getHandleMementoDelimiter());
+		buff.append(JavaElement.JEM_MODULE);
 		escapeMementoName(buff, getElementName());
 	}
 }
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public int getKind() throws JavaModelException {
 	return ((PackageFragmentRootInfo)getElementInfo()).getRootKind();
 }
@@ -518,6 +523,7 @@ int internalKind() throws JavaModelException {
 /**
  * Returns an array of non-java resources contained in the receiver.
  */
+@Override
 public Object[] getNonJavaResources() throws JavaModelException {
 	return ((PackageFragmentRootInfo) getElementInfo()).getNonJavaResources(getJavaProject(), resource(), this);
 }
@@ -525,6 +531,7 @@ public Object[] getNonJavaResources() throws JavaModelException {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public IPackageFragment getPackageFragment(String packageName) {
 	// tolerate package names with spaces (e.g. 'x . y') (http://bugs.eclipse.org/bugs/show_bug.cgi?id=21957)
 	String[] pkgName = Util.getTrimmedSimpleNames(packageName);
@@ -558,6 +565,7 @@ protected String getPackageName(IFolder folder) {
 /**
  * @see IJavaElement
  */
+@Override
 public IPath getPath() {
 	return internalPath();
 }
@@ -568,6 +576,7 @@ public IPath internalPath() {
 /*
  * @see IPackageFragmentRoot
  */
+@Override
 public IClasspathEntry getRawClasspathEntry() throws JavaModelException {
 
 	IClasspathEntry rawEntry = null;
@@ -585,6 +594,7 @@ public IClasspathEntry getRawClasspathEntry() throws JavaModelException {
 /*
  * @see IPackageFragmentRoot
  */
+@Override
 public IClasspathEntry getResolvedClasspathEntry() throws JavaModelException {
 	IClasspathEntry resolvedEntry = null;
 	JavaProject project = (JavaProject)getJavaProject();
@@ -600,6 +610,7 @@ public IClasspathEntry getResolvedClasspathEntry() throws JavaModelException {
 }
 
 
+@Override
 public IResource resource() {
 	if (this.resource != null) // perf improvement to avoid message send in resource()
 		return this.resource;
@@ -608,6 +619,7 @@ public IResource resource() {
 /*
  * @see IJavaElement
  */
+@Override
 public IResource resource(PackageFragmentRoot root) {
 	return this.resource;
 }
@@ -615,6 +627,7 @@ public IResource resource(PackageFragmentRoot root) {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public IPath getSourceAttachmentPath() throws JavaModelException {
 	if (getKind() != K_BINARY) return null;
 
@@ -660,6 +673,7 @@ public void setSourceMapper(SourceMapper mapper) throws JavaModelException {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public IPath getSourceAttachmentRootPath() throws JavaModelException {
 	if (getKind() != K_BINARY) return null;
 
@@ -693,6 +707,7 @@ public IPath getSourceAttachmentRootPath() throws JavaModelException {
 /**
  * @see JavaElement
  */
+@Override
 public SourceMapper getSourceMapper() {
 	SourceMapper mapper;
 	try {
@@ -718,6 +733,7 @@ public SourceMapper getSourceMapper() {
 /**
  * @see IJavaElement
  */
+@Override
 public IResource getUnderlyingResource() throws JavaModelException {
 	if (!exists()) throw newNotPresentException();
 	return resource();
@@ -726,11 +742,13 @@ public IResource getUnderlyingResource() throws JavaModelException {
 /**
  * @see IParent
  */
+@Override
 public boolean hasChildren() throws JavaModelException {
 	// a package fragment root always has the default package as a child
 	return true;
 }
 
+@Override
 public int hashCode() {
 	return resource().hashCode();
 }
@@ -746,6 +764,7 @@ public boolean ignoreOptionalProblems() {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public boolean isArchive() {
 	return false;
 }
@@ -753,6 +772,7 @@ public boolean isArchive() {
 /**
  * @see IPackageFragmentRoot
  */
+@Override
 public boolean isExternal() {
 	return false;
 }
@@ -776,9 +796,8 @@ protected IStatus validateOnClasspath() {
 	}
 	return new JavaModelStatus(IJavaModelStatusConstants.ELEMENT_NOT_ON_CLASSPATH, this);
 }
-/*
- * @see org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot#move
- */
+
+@Override
 public void move(
 	IPath destination,
 	int updateResourceFlags,
@@ -795,6 +814,7 @@ public void move(
 /**
  * @private Debugging purposes
  */
+@Override
 protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean showResolvedInfo) {
 	buffer.append(tabString(tab));
 	IPath path = getPath();
@@ -814,6 +834,7 @@ protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean s
 	}
 }
 
+@Override
 protected IStatus validateExistence(IResource underlyingResource) {
 	// check whether this pkg fragment root can be opened
 	IStatus status = validateOnClasspath();
@@ -854,6 +875,7 @@ protected void verifyAttachSource(IPath sourcePath) throws JavaModelException {
 public String getClassFilePath(String classname) {
 	return classname;
 }
+@Override
 public IModuleDescription getModuleDescription() {
 	try {
 		IJavaElement[] pkgs = getChildren();
@@ -880,11 +902,36 @@ public IModuleDescription getModuleDescription() {
 			}
 		}
 	} catch (JavaModelException e) {
-		e.printStackTrace();
-		//
+		Util.log(e);
 	}
 	return null;
 }
+
+public IModuleDescription getAutomaticModuleDescription() throws JavaModelException {
+	return getAutomaticModuleDescription(getResolvedClasspathEntry());
+}
+
+IModuleDescription getAutomaticModuleDescription(IClasspathEntry classpathEntry) {
+	String elementName = getElementName();
+	Manifest manifest = null;
+	switch (classpathEntry.getEntryKind()) {
+		case IClasspathEntry.CPE_SOURCE:
+			manifest = ((JavaProject) getJavaProject()).getManifest();
+			elementName = getJavaProject().getElementName();
+			break;
+		case IClasspathEntry.CPE_LIBRARY:
+			manifest = getManifest();
+			break;
+		case IClasspathEntry.CPE_PROJECT:
+			JavaProject javaProject = (JavaProject) getJavaModel().getJavaProject(classpathEntry.getPath().lastSegment());
+			manifest = javaProject.getManifest();
+			elementName = javaProject.getElementName();
+			break;
+	}
+	char[] moduleName = AutomaticModuleNaming.determineAutomaticModuleName(elementName, isArchive(), manifest);
+	return new AbstractModule.AutoModule(this, String.valueOf(moduleName));
+}
+
 /** @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModulePathEntry#hasCompilationUnit(String, String) */
 public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName) {
 	IPackageFragment fragment = getPackageFragment(qualifiedPackageName.replace('/', '.'));

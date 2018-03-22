@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -19,6 +15,7 @@
 package org.aspectj.org.eclipse.jdt.internal.compiler.lookup;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment;
@@ -39,7 +36,7 @@ public class PackageBinding extends Binding implements TypeConstants {
 
 	// code representing the default that has been defined for this package (using @NonNullByDefault)
 	// one of Binding.{NO_NULL_DEFAULT,NULL_UNSPECIFIED_BY_DEFAULT,NONNULL_BY_DEFAULT}
-	protected int defaultNullness = NO_NULL_DEFAULT;
+	private int defaultNullness = NO_NULL_DEFAULT;
 
 	public ModuleBinding enclosingModule;
 
@@ -134,6 +131,7 @@ void clearMissingTagBit() {
  * slash separated name
  * org.aspectj.org.eclipse.jdt.core --> org.aspectj.org.eclipse.jdt/core
  */
+@Override
 public char[] computeUniqueKey(boolean isLeaf) {
 	return CharOperation.concatWith(this.compoundName, '/');
 }
@@ -302,13 +300,35 @@ public final boolean isViewedAsDeprecated() {
 	}
 	return (this.tagBits & TagBits.AnnotationDeprecated) != 0;
 }
+public int getDefaultNullness() {
+	if (this.defaultNullness == NO_NULL_DEFAULT)
+		return this.enclosingModule.getDefaultNullness();
+	return this.defaultNullness;
+}
+public void setDefaultNullness(int nullness) {
+	this.defaultNullness = nullness;
+}
+/**
+ * Find a binding (either this package or its enclosing ModuleBinding)
+ * where 'defaultNullness' matches the given predicate.
+ */
+public Binding findDefaultNullnessTarget(Predicate<Integer> predicate) {
+	if (predicate.test(this.defaultNullness))
+		return this;
+	if (this.defaultNullness == NO_NULL_DEFAULT)
+		if (predicate.test(this.enclosingModule.getDefaultNullness()))
+			return this.enclosingModule;
+	return null;
+}
 /* API
 * Answer the receiver's binding type from Binding.BindingID.
 */
+@Override
 public final int kind() {
 	return Binding.PACKAGE;
 }
 
+@Override
 public int problemId() {
 	if ((this.tagBits & TagBits.HasMissingType) != 0)
 		return ProblemReasons.NotFound;
@@ -360,9 +380,11 @@ void checkIfNullAnnotationType(ReferenceBinding type) {
 	}
 }
 
+@Override
 public char[] readableName() /*java.lang*/ {
 	return CharOperation.concatWith(this.compoundName, '.');
 }
+@Override
 public String toString() {
 	String str;
 	if (this.compoundName == CharOperation.NO_CHAR_CHAR) {

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -29,6 +25,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
+import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -64,6 +61,8 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	 */
 	protected final IPath jarPath;
 
+	boolean knownToBeModuleLess;
+
 	/**
 	 * Constructs a package fragment root which is the root of the Java package directory hierarchy
 	 * based on a JAR file that is not contained in a <code>IJavaProject</code> and
@@ -87,6 +86,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	 * These are all of the directory zip entries, and any directories implied
 	 * by the path of class files contained in the jar of this package fragment root.
 	 */
+	@Override
 	protected boolean computeChildren(OpenableElementInfo info, IResource underlyingResource) throws JavaModelException {
 		final HashtableOfArrayToObject rawPackageInfo = new HashtableOfArrayToObject();
 		IJavaElement[] children;
@@ -180,12 +180,14 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	/**
 	 * Returns a new element info for this element.
 	 */
+	@Override
 	protected Object createElementInfo() {
 		return new JarPackageFragmentRootInfo();
 	}
 	/**
 	 * A Jar is always K_BINARY.
 	 */
+	@Override
 	protected int determineKind(IResource underlyingResource) {
 		return IPackageFragmentRoot.K_BINARY;
 	}
@@ -196,6 +198,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	 *
 	 * @see Object#equals
 	 */
+	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -205,6 +208,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 		}
 		return false;
 	}
+	@Override
 	public String getElementName() {
 		return this.jarPath.lastSegment();
 	}
@@ -219,15 +223,18 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	/**
 	 * @see IPackageFragmentRoot
 	 */
+	@Override
 	public int getKind() {
 		return IPackageFragmentRoot.K_BINARY;
 	}
+	@Override
 	int internalKind() throws JavaModelException {
 		return IPackageFragmentRoot.K_BINARY;
 	}
 	/**
 	 * Returns an array of non-java resources contained in the receiver.
 	 */
+	@Override
 	public Object[] getNonJavaResources() throws JavaModelException {
 		// We want to show non java resources of the default package at the root (see PR #1G58NB8)
 		Object[] defaultPkgResources =  ((JarPackageFragment) getPackageFragment(CharOperation.NO_STRINGS)).storedNonJavaResources();
@@ -241,12 +248,26 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 		}
 		return nonJavaResources;
 	}
+	@Override
 	public PackageFragment getPackageFragment(String[] pkgName) {
 		return new JarPackageFragment(this, pkgName);
 	}
+	@Override
 	public PackageFragment getPackageFragment(String[] pkgName, String mod) {
 		return new JarPackageFragment(this, pkgName); // Overridden in JImageModuleFragmentBridge
 	}
+
+	@Override
+	public IModuleDescription getModuleDescription() {
+		if (this.knownToBeModuleLess)
+			return null;
+		IModuleDescription module = super.getModuleDescription();
+		if (module == null)
+			this.knownToBeModuleLess = true;
+		return module;
+	}
+
+	@Override
 	public IPath internalPath() {
 		if (isExternal()) {
 			return this.jarPath;
@@ -254,6 +275,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 			return super.internalPath();
 		}
 	}
+	@Override
 	public IResource resource(PackageFragmentRoot root) {
 		if (this.resource == null) {
 			// external jar
@@ -266,6 +288,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	/**
 	 * @see IJavaElement
 	 */
+	@Override
 	public IResource getUnderlyingResource() throws JavaModelException {
 		if (isExternal()) {
 			if (!exists()) throw newNotPresentException();
@@ -274,6 +297,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 			return super.getUnderlyingResource();
 		}
 	}
+	@Override
 	public int hashCode() {
 		return this.jarPath.hashCode();
 	}
@@ -332,24 +356,28 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	/**
 	 * @see IPackageFragmentRoot
 	 */
+	@Override
 	public boolean isArchive() {
 		return true;
 	}
 	/**
 	 * @see IPackageFragmentRoot
 	 */
+	@Override
 	public boolean isExternal() {
 		return resource() == null;
 	}
 	/**
 	 * Jars and jar entries are all read only
 	 */
+	@Override
 	public boolean isReadOnly() {
 		return true;
 	}
 	/**
 	 * Returns whether the corresponding resource or associated file exists
 	 */
+	@Override
 	protected boolean resourceExists(IResource underlyingResource) {
 		if (underlyingResource == null) {
 			return
@@ -361,6 +389,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 		}
 	}
 
+	@Override
 	protected void toStringAncestors(StringBuffer buffer) {
 		if (isExternal())
 			// don't show project as it is irrelevant for external jar files.

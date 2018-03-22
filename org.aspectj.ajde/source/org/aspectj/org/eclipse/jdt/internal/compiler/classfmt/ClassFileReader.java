@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -48,7 +44,7 @@ public class ClassFileReader extends ClassFileStruct implements IBinaryType {
 	private AnnotationInfo[] annotations;
 	private TypeAnnotationInfo[] typeAnnotations;
 	private FieldInfo[] fields;
-	private IBinaryModule moduleDeclaration;
+	private ModuleInfo moduleDeclaration;
 	public char[] moduleName;
 	private int fieldsCount;
 
@@ -308,7 +304,7 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 			FieldInfo field;
 			this.fields = new FieldInfo[this.fieldsCount];
 			for (int i = 0; i < this.fieldsCount; i++) {
-				field = FieldInfo.createField(this.reference, this.constantPoolOffsets, readOffset);
+				field = FieldInfo.createField(this.reference, this.constantPoolOffsets, readOffset, this.version);
 				this.fields[i] = field;
 				readOffset += field.sizeInBytes();
 			}
@@ -321,8 +317,8 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 			boolean isAnnotationType = (this.accessFlags & ClassFileConstants.AccAnnotation) != 0;
 			for (int i = 0; i < this.methodsCount; i++) {
 				this.methods[i] = isAnnotationType
-					? AnnotationMethodInfo.createAnnotationMethod(this.reference, this.constantPoolOffsets, readOffset)
-					: MethodInfo.createMethod(this.reference, this.constantPoolOffsets, readOffset);
+					? AnnotationMethodInfo.createAnnotationMethod(this.reference, this.constantPoolOffsets, readOffset, this.version)
+					: MethodInfo.createMethod(this.reference, this.constantPoolOffsets, readOffset, this.version);
 				readOffset += this.methods[i].sizeInBytes();
 			}
 		}
@@ -428,11 +424,15 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 							}
 						}
 					} else if (CharOperation.equals(attributeName, AttributeNamesConstants.ModuleName)) {
-						this.moduleDeclaration = ModuleInfo.createModule(this.className, this.reference, this.constantPoolOffsets, readOffset);
+						this.moduleDeclaration = ModuleInfo.createModule(this.reference, this.constantPoolOffsets, readOffset);
 						this.moduleName = this.moduleDeclaration.name();
 					}
 			}
 			readOffset += (6 + u4At(readOffset + 2));
+		}
+		if (this.moduleDeclaration != null && this.annotations != null) {
+			this.moduleDeclaration.setAnnotations(this.annotations, fullyInitialize);
+			this.annotations = null;
 		}
 		if (fullyInitialize) {
 			initialize();
@@ -482,12 +482,13 @@ private void decodeAnnotations(int offset, boolean runtimeVisible) {
 			long standardTagBits = newInfo.standardAnnotationTagBits;
 			if (standardTagBits != 0) {
 				this.tagBits |= standardTagBits;
-			} else {
+				if (this.version < ClassFileConstants.JDK9 || (standardTagBits & TagBits.AnnotationDeprecated) == 0)
+					continue;
+			}
 				if (newInfos == null)
 					newInfos = new AnnotationInfo[numberOfAnnotations - i];
 				newInfos[newInfoCount++] = newInfo;
 			}
-		}
 		if (newInfos == null)
 			return; // nothing to record in this.annotations
 
@@ -532,6 +533,7 @@ private void decodeTypeAnnotations(int offset, boolean runtimeVisible) {
 /**
  * @return the annotations or null if there is none.
  */
+@Override
 public IBinaryAnnotation[] getAnnotations() {
 	return this.annotations;
 }
@@ -539,6 +541,7 @@ public IBinaryAnnotation[] getAnnotations() {
 /**
  * @return the type annotations or null if there is none.
  */
+@Override
 public IBinaryTypeAnnotation[] getTypeAnnotations() {
 	return this.typeAnnotations;
 }
@@ -564,6 +567,7 @@ public int[] getConstantPoolOffsets() {
 	return this.constantPoolOffsets;
 }
 
+@Override
 public char[] getEnclosingMethod() {
 	if (this.enclosingNameAndTypeIndex <= 0) {
 		return null;
@@ -588,6 +592,7 @@ public char[] getEnclosingMethod() {
  * Answer the resolved compoundName of the enclosing type
  * or null if the receiver is a top level type.
  */
+@Override
 public char[] getEnclosingTypeName() {
 	return this.enclosingTypeName;
 }
@@ -596,12 +601,14 @@ public char[] getEnclosingTypeName() {
  * Answer the receiver's this.fields or null if the array is empty.
  * @return org.aspectj.org.eclipse.jdt.internal.compiler.api.IBinaryField[]
  */
+@Override
 public IBinaryField[] getFields() {
 	return this.fields;
 }
 /**
  * @see IBinaryType#getModule()
  */
+@Override
 public char[] getModule() {
 	return this.moduleName;
 }
@@ -618,10 +625,12 @@ public IBinaryModule getModuleDeclaration() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
  */
+@Override
 public char[] getFileName() {
 	return this.classFileName;
 }
 
+@Override
 public char[] getGenericSignature() {
 	return this.signature;
 }
@@ -653,20 +662,14 @@ public char[] getInnerSourceName() {
 	return null;
 }
 
-/**
- * Answer the resolved names of the receiver's interfaces in the
- * class file format as specified in section 4.2 of the Java 2 VM spec
- * or null if the array is empty.
- *
- * For example, java.lang.String is java/lang/String.
- * @return char[][]
- */
+@Override
 public char[][] getInterfaceNames() {
 	return this.interfaceNames;
 }
 
 // AspectJ start - original method has added boolean parameter, this new one has the original signature and simply
 // passes in false.  This is all needed due to the support for inter type inner types
+@Override
 public IBinaryNestedType[] getMemberTypes() {
 	return getMemberTypes(false);
 }
@@ -738,6 +741,7 @@ public IBinaryNestedType[] getMemberTypes(boolean keepIncorrectlyNamedInners) { 
  * Answer the receiver's this.methods or null if the array is empty.
  * @return org.aspectj.org.eclipse.jdt.internal.compiler.api.env.IBinaryMethod[]
  */
+@Override
 public IBinaryMethod[] getMethods() {
 	return this.methods;
 }
@@ -789,6 +793,7 @@ public static void main(String[] args) throws ClassFormatException, IOException 
 	System.err.println('}');
 }
 */
+@Override
 public char[][][] getMissingTypeNames() {
 	return this.missingTypeNames;
 }
@@ -799,6 +804,7 @@ public char[][][] getMissingTypeNames() {
  * Set the AccDeprecated and AccSynthetic bits if necessary
  * @return int
  */
+@Override
 public int getModifiers() {
 	int modifiers;
 	if (this.innerInfo != null) {
@@ -811,17 +817,12 @@ public int getModifiers() {
 	return modifiers;
 }
 
-/**
- * Answer the resolved name of the type in the
- * class file format as specified in section 4.2 of the Java 2 VM spec.
- *
- * For example, java.lang.String is java/lang/String.
- * @return char[]
- */
+@Override
 public char[] getName() {
 	return this.className;
 }
 
+@Override
 public char[] getSourceName() {
 	if (this.sourceName != null)
 		return this.sourceName;
@@ -844,18 +845,12 @@ public char[] getSourceName() {
 	return this.sourceName = name;
 }
 
-/**
- * Answer the resolved name of the receiver's superclass in the
- * class file format as specified in section 4.2 of the Java 2 VM spec
- * or null if it does not have one.
- *
- * For example, java.lang.String is java/lang/String.
- * @return char[]
- */
+@Override
 public char[] getSuperclassName() {
 	return this.superclassName;
 }
 
+@Override
 public long getTagBits() {
 	return this.tagBits;
 }
@@ -1313,32 +1308,19 @@ private void initialize() throws ClassFormatException {
 		throw exception;
 	}
 }
-
-/**
- * Answer true if the receiver is an anonymous type, false otherwise
- *
- * @return <CODE>boolean</CODE>
- */
+@Override
 public boolean isAnonymous() {
 	if (this.innerInfo == null) return false;
 	char[] innerSourceName = this.innerInfo.getSourceName();
 	return (innerSourceName == null || innerSourceName.length == 0);
 }
 
-/**
- * Answer whether the receiver contains the resolved binary form
- * or the unresolved source form of the type.
- * @return boolean
- */
+@Override
 public boolean isBinaryType() {
 	return true;
 }
 
-/**
- * Answer true if the receiver is a local type, false otherwise
- *
- * @return <CODE>boolean</CODE>
- */
+@Override
 public boolean isLocal() {
 	if (this.innerInfo == null) return false;
 	if (this.innerInfo.getEnclosingTypeName() != null) return false;
@@ -1346,11 +1328,7 @@ public boolean isLocal() {
 	return (innerSourceName != null && innerSourceName.length > 0);
 }
 
-/**
- * Answer true if the receiver is a member type, false otherwise
- *
- * @return <CODE>boolean</CODE>
- */
+@Override
 public boolean isMember() {
 	if (this.innerInfo == null) return false;
 	if (this.innerInfo.getEnclosingTypeName() == null) return false;
@@ -1372,10 +1350,12 @@ public boolean isNestedType() {
  *
  * @return char[]
  */
+@Override
 public char[] sourceFileName() {
 	return this.sourceFileName;
 }
 
+@Override
 public String toString() {
 	java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
 	java.io.PrintWriter print = new java.io.PrintWriter(out);

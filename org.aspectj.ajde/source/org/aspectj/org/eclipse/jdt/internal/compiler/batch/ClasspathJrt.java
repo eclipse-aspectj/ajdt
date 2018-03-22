@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -25,7 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.zip.ZipFile;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -37,16 +33,18 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IMultiModuleEntry;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IPackageExport;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.JRTUtil;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry {
-	protected File file;
+	public File file;
 	protected ZipFile annotationZipFile;
 	protected boolean closeZipFileAtEnd;
 	private static HashMap<String, Map<String,IModule>> ModulesCache = new HashMap<>();
+	public HashMap<String, Path> modulePathMap;
 	//private Set<String> packageCache;
 	protected List<String> annotationPaths;
 
@@ -55,11 +53,14 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 		super(accessRuleSet, destinationPath);
 		this.file = file;
 		this.closeZipFileAtEnd = closeZipFileAtEnd;
+		this.modulePathMap = new HashMap<>();
 	}
 
+	@Override
 	public List fetchLinkedJars(FileSystem.ClasspathSectionProblemReporter problemReporter) {
 		return null;
 	}
+	@Override
 	public char[][] getModulesDeclaringPackage(String qualifiedPackageName, String moduleName) {
 		List<String> modules = JRTUtil.getModulesDeclaringPackage(this.file, qualifiedPackageName, moduleName);
 		return CharOperation.toCharArrays(modules);
@@ -68,9 +69,11 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 	public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName) {
 		return JRTUtil.hasCompilationUnit(this.file, qualifiedPackageName, moduleName);
 	}
+	@Override
 	public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName) {
 		return findClass(typeName, qualifiedPackageName, moduleName, qualifiedBinaryFileName, false);
 	}
+	@Override
 	public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 		if (!isPackage(qualifiedPackageName, moduleName))
 			return null; // most common case
@@ -115,6 +118,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 	public boolean hasAnnotationFileFor(String qualifiedTypeName) {
 		return false; // TODO(SHMOD): implement
 	}
+	@Override
 	public char[][][] findTypeNames(final String qualifiedPackageName, final String moduleName) {
 		if (!isPackage(qualifiedPackageName, moduleName))
 			return null; // most common case
@@ -134,7 +138,10 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 
 				@Override
 				public FileVisitResult visitFile(java.nio.file.Path dir, java.nio.file.Path modPath, BasicFileAttributes attrs) throws IOException {
-					if (!dir.getParent().toString().equals(qualifiedPackageName)) {
+					Path parent = dir.getParent();
+					if (parent == null)
+						return FileVisitResult.CONTINUE;
+					if (!parent.toString().equals(qualifiedPackageName)) {
 						return FileVisitResult.CONTINUE;
 					}
 					String fileName = dir.getName(dir.getNameCount() - 1).toString();
@@ -177,6 +184,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 					typeName.toCharArray()));
 		}
 	}
+	@Override
 	public void initialize() throws IOException {
 		loadModules();
 	}
@@ -209,6 +217,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 					public FileVisitResult visitModule(Path mod) throws IOException {
 						try {
 							ClasspathJrt.this.acceptModule(JRTUtil.getClassfileContent(ClasspathJrt.this.file, IModule.MODULE_INFO_CLASS, mod.toString()));
+							ClasspathJrt.this.modulePathMap.put(mod.getFileName().toString(), mod);
 						} catch (ClassFormatException e) {
 							e.printStackTrace();
 						}
@@ -216,7 +225,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 					}
 				}, JRTUtil.NOTIFY_MODULES);
 			} catch (IOException e) {
-				// TODO: BETA_JAVA9 Should report better
+				// TODO: Java 9 Should report better
 			}
 		}
 	}
@@ -248,11 +257,42 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 	}
 	
 	@Override
-	public Collection<String> getModuleNames(Collection<String> limitModule) {
-		return ModulesCache.values().stream()
-				.flatMap(entryMap -> entryMap.keySet().stream())
-				.filter(m -> limitModule == null || limitModule.contains(m)) // TODO: implement algo from JEP 261 (root selection & transitive closure)
-				.collect(Collectors.toList());
+	public Collection<String> getModuleNames(Collection<String> limitModule, Function<String, IModule> getModule) {
+		Map<String, IModule> cache = ModulesCache.get(this.file.getPath());
+		return selectModules(cache.keySet(), limitModule, getModule);
+	}
+	@Override
+	protected <T> List<String> allModules(Iterable<T> allSystemModules, Function<T,String> getModuleName, Function<T,IModule> getModule) {
+		List<String> result = new ArrayList<>();
+		boolean hasJavaDotSE = false;
+		for (T mod : allSystemModules) {
+			String moduleName = getModuleName.apply(mod);
+			if ("java.se".equals(moduleName)) { //$NON-NLS-1$
+				result.add(moduleName);
+				hasJavaDotSE = true;
+				break;
+			}
+		}
+		for (T mod : allSystemModules) {
+			String moduleName = getModuleName.apply(mod);
+			boolean isJavaDotStart = moduleName.startsWith("java."); //$NON-NLS-1$
+			boolean isPotentialRoot = !isJavaDotStart;	// always include non-java.*
+			if (!hasJavaDotSE)
+				isPotentialRoot |= isJavaDotStart;		// no java.se => add all java.*
+			
+			if (isPotentialRoot) {
+				IModule m = getModule.apply(mod);
+				if (m != null) {
+					for (IPackageExport packageExport : m.exports()) {
+						if (!packageExport.isQualified()) {
+							result.add(moduleName);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return result;
 	}
 //	protected void addToPackageCache(String fileName, boolean endsWithSep) {
 //		int last = endsWithSep ? fileName.length() : fileName.lastIndexOf('/');
@@ -297,6 +337,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 //			}
 //		return this.packageCache.contains(qualifiedPackageName);
 //	}
+	@Override
 	public void reset() {
 		if (this.closeZipFileAtEnd) {
 			if (this.annotationZipFile != null) {
@@ -313,9 +354,11 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 			this.annotationPaths = null;
 		}
 	}
+	@Override
 	public String toString() {
 		return "Classpath for JRT System " + this.file.getPath(); //$NON-NLS-1$
 	}
+	@Override
 	public char[] normalizedPath() {
 		if (this.normalizedPath == null) {
 			String path2 = this.getPath();
@@ -327,6 +370,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 		}
 		return this.normalizedPath;
 	}
+	@Override
 	public String getPath() {
 		if (this.path == null) {
 			try {
@@ -338,6 +382,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 		}
 		return this.path;
 	}
+	@Override
 	public int getMode() {
 		return BINARY;
 	}
@@ -345,6 +390,7 @@ public class ClasspathJrt extends ClasspathLocation implements IMultiModuleEntry
 	public boolean hasModule() {
 		return true;
 	}
+	@Override
 	public IModule getModule(char[] moduleName) {
 		Map<String, IModule> modules = ModulesCache.get(this.file.getPath());
 		if (modules != null) {

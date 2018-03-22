@@ -12,6 +12,7 @@
 package org.aspectj.org.eclipse.jdt.internal.core.search;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -116,28 +117,38 @@ public class BasicSearchEngine {
 		return new HierarchyScope(project, type, owner, onlySubtypes, true, includeFocusType);
 	}
 
-	/**
-	 * @see SearchEngine#createJavaSearchScope(IJavaElement[]) for detailed comment.
-	 */
 	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements) {
-		return createJavaSearchScope(elements, true);
+		return createJavaSearchScope(false, elements, true);
 	}
 
 	/**
+	 * @see SearchEngine#createJavaSearchScope(IJavaElement[]) for detailed comment.
+	 */
+	public static IJavaSearchScope createJavaSearchScope(boolean excludeTestCode, IJavaElement[] elements) {
+		return createJavaSearchScope(excludeTestCode, elements, true);
+	}
+
+	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements, boolean includeReferencedProjects) {
+		return createJavaSearchScope(false, elements, includeReferencedProjects);
+	}
+	/**
 	 * @see SearchEngine#createJavaSearchScope(IJavaElement[], boolean) for detailed comment.
 	 */
-	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements, boolean includeReferencedProjects) {
+	public static IJavaSearchScope createJavaSearchScope(boolean excludeTestCode, IJavaElement[] elements, boolean includeReferencedProjects) {
 		int includeMask = IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.SYSTEM_LIBRARIES;
 		if (includeReferencedProjects) {
 			includeMask |= IJavaSearchScope.REFERENCED_PROJECTS;
 		}
-		return createJavaSearchScope(elements, includeMask);
+		return createJavaSearchScope(excludeTestCode, elements, includeMask);
 	}
-
+	
+	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements, int includeMask) {
+		return createJavaSearchScope(false, elements, includeMask);
+	}
 	/**
 	 * @see SearchEngine#createJavaSearchScope(IJavaElement[], int) for detailed comment.
 	 */
-	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements, int includeMask) {
+	public static IJavaSearchScope createJavaSearchScope(boolean excludeTestCode, IJavaElement[] elements, int includeMask) {
 		HashSet projectsToBeAdded = new HashSet(2);
 		for (int i = 0, length = elements.length; i < length; i++) {
 			IJavaElement element = elements[i];
@@ -145,7 +156,7 @@ public class BasicSearchEngine {
 				projectsToBeAdded.add(element);
 			}
 		}
-		JavaSearchScope scope = new JavaSearchScope();
+		JavaSearchScope scope = new JavaSearchScope(excludeTestCode);
 		for (int i = 0, length = elements.length; i < length; i++) {
 			IJavaElement element = elements[i];
 			if (element != null) {
@@ -491,8 +502,7 @@ public class BasicSearchEngine {
 				case SearchPattern.R_PATTERN_MATCH :
 					return CharOperation.match(patternTypeName, typeName, isCaseSensitive);
 				case SearchPattern.R_REGEXP_MATCH :
-					// TODO (frederic) implement regular expression match
-					break;
+					return Pattern.matches(new String(patternTypeName), new String(typeName));
 				case SearchPattern.R_CAMELCASE_MATCH:
 					if (matchFirstChar && CharOperation.camelCaseMatch(patternTypeName, typeName, false)) {
 						return true;
@@ -523,8 +533,7 @@ public class BasicSearchEngine {
 				case SearchPattern.R_PATTERN_MATCH :
 					return CharOperation.match(patternName, name, isCaseSensitive);
 				case SearchPattern.R_REGEXP_MATCH :
-					// TODO implement regular expression match
-					break;
+					return Pattern.matches(new String(patternName), new String(name));
 				case SearchPattern.R_CAMELCASE_MATCH:
 					if (matchFirstChar && CharOperation.camelCaseMatch(patternName, name, false)) {
 						return true;
@@ -638,6 +647,7 @@ public class BasicSearchEngine {
 	
 			// Index requestor
 			IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+				@Override
 				public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 					// Filter unexpected types
 					ConstructorDeclarationPattern record = (ConstructorDeclarationPattern)indexRecord;
@@ -819,10 +829,12 @@ public class BasicSearchEngine {
 									this.declaringTypesPtr--;
 								}
 								
+								@Override
 								public void endVisit(TypeDeclaration typeDeclaration, CompilationUnitScope s) {
 									endVisit(typeDeclaration);
 								}
 								
+								@Override
 								public void endVisit(TypeDeclaration memberTypeDeclaration, ClassScope s) {
 									endVisit(memberTypeDeclaration);
 								}
@@ -838,6 +850,7 @@ public class BasicSearchEngine {
 									
 									return false;
 								}
+								@Override
 								public boolean visit(ConstructorDeclaration constructorDeclaration, ClassScope classScope) {
 									TypeDeclaration typeDeclaration = this.declaringTypes[this.declaringTypesPtr];
 									if (match(NoSuffix, packageName, pkgMatchRule, typeName, validatedTypeMatchRule, 0/*no kind*/, packageDeclaration, typeDeclaration.name)) {
@@ -881,6 +894,7 @@ public class BasicSearchEngine {
 									}
 									return false; // no need to find constructors from local/anonymous type
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, BlockScope blockScope) {
 									return false; 
 								}
@@ -894,10 +908,12 @@ public class BasicSearchEngine {
 									return true;
 								}
 								
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope s) {
 									return visit(typeDeclaration);
 								}
 								
+								@Override
 								public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope s) {
 									return visit(memberTypeDeclaration);
 								}
@@ -973,6 +989,7 @@ public class BasicSearchEngine {
 
 			// Index requestor
 			IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+				@Override
 				public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 					MethodDeclarationPattern record = (MethodDeclarationPattern)indexRecord;
 					
@@ -1130,12 +1147,15 @@ public class BasicSearchEngine {
 									boolean visitMethods = match(qualifier, qualifierMatchRule, q);
 									this.typeInfoStack.push(new TypeInfo(typeDeclaration, visitMethods, enclosingTypeName));
 								}
+								@Override
 								public void endVisit(TypeDeclaration typeDeclaration, CompilationUnitScope s) {
 									this.typeInfoStack.pop();
 								}
+								@Override
 								public void endVisit(TypeDeclaration memberTypeDeclaration, ClassScope s) {
 									this.typeInfoStack.pop();
 								}
+								@Override
 								public boolean visit(MethodDeclaration methodDeclaration, ClassScope classScope) {
 									TypeInfo typeInfo = this.typeInfoStack.peek();
 									if (typeInfo.visitMethods &&
@@ -1150,13 +1170,16 @@ public class BasicSearchEngine {
 									
 									return false; // no need to find methods from local/anonymous type
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, BlockScope blockScope) {
 									return false; // do not visit local/anonymous types
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope s) {
 									addStackEntry(typeDeclaration, CharOperation.NO_CHAR);
 									return true;
 								}
+								@Override
 								public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope s) {
 									TypeInfo typeInfo = this.typeInfoStack.peek();
 									addStackEntry(memberTypeDeclaration, typeInfo.enclosingTypeName == CharOperation.NO_CHAR ? typeInfo.typeDecl.name :
@@ -1236,6 +1259,7 @@ public class BasicSearchEngine {
 
 			// Index requestor
 			IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+				@Override
 				public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 					MethodDeclarationPattern record = (MethodDeclarationPattern)indexRecord;
 					
@@ -1396,12 +1420,15 @@ public class BasicSearchEngine {
 											match(declaringSimpleName, declSimpleNameMatchRule, typeDeclaration.name);
 									this.typeInfoStack.push(new TypeInfo(typeDeclaration, visitMethods, enclosingTypeName));
 								}
+								@Override
 								public void endVisit(TypeDeclaration typeDeclaration, CompilationUnitScope s) {
 									this.typeInfoStack.pop();
 								}
+								@Override
 								public void endVisit(TypeDeclaration memberTypeDeclaration, ClassScope s) {
 									this.typeInfoStack.pop();
 								}
+								@Override
 								public boolean visit(MethodDeclaration methodDeclaration, ClassScope classScope) {
 									TypeInfo typeInfo = this.typeInfoStack.peek();
 									if (typeInfo.visitMethods &&
@@ -1416,13 +1443,16 @@ public class BasicSearchEngine {
 									
 									return false; // no need to find methods from local/anonymous type
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, BlockScope blockScope) {
 									return false; // do not visit local/anonymous types
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope s) {
 									addStackEntry(typeDeclaration, CharOperation.NO_CHAR);
 									return true;
 								}
+								@Override
 								public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope s) {
 									TypeInfo typeInfo = this.typeInfoStack.peek();
 									addStackEntry(memberTypeDeclaration, typeInfo.enclosingTypeName == CharOperation.NO_CHAR ? typeInfo.typeDecl.name :
@@ -1585,6 +1615,7 @@ public class BasicSearchEngine {
 	
 			// Index requestor
 			IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+				@Override
 				public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 					// Filter unexpected types
 					TypeDeclarationPattern record = (TypeDeclarationPattern)indexRecord;
@@ -1760,6 +1791,7 @@ public class BasicSearchEngine {
 	
 			// Index requestor
 			IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+				@Override
 				public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 					// Filter unexpected types
 					TypeDeclarationPattern record = (TypeDeclarationPattern)indexRecord;
@@ -1874,9 +1906,11 @@ public class BasicSearchEngine {
 						if (parsedUnit != null) {
 							final char[] packageDeclaration = parsedUnit.currentPackage == null ? CharOperation.NO_CHAR : CharOperation.concatWith(parsedUnit.currentPackage.getImportName(), '.');
 							class AllTypeDeclarationsVisitor extends ASTVisitor {
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, BlockScope blockScope) {
 									return false; // no local/anonymous type
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope compilationUnitScope) {
 									if (match(typeSuffix, packageName, packageMatchRule, typeName, validatedTypeMatchRule, TypeDeclaration.kind(typeDeclaration.modifiers), packageDeclaration, typeDeclaration.name)) {
 										if (nameRequestor instanceof TypeNameMatchRequestorWrapper) {
@@ -1888,6 +1922,7 @@ public class BasicSearchEngine {
 									}
 									return true;
 								}
+								@Override
 								public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope classScope) {
 									if (match(typeSuffix, packageName, packageMatchRule, typeName, validatedTypeMatchRule, TypeDeclaration.kind(memberTypeDeclaration.modifiers), packageDeclaration, memberTypeDeclaration.name)) {
 										// compute enclosing type names
@@ -2005,6 +2040,7 @@ public class BasicSearchEngine {
 	
 			// Index requestor
 			IndexQueryRequestor searchRequestor = new IndexQueryRequestor(){
+				@Override
 				public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
 					// Filter unexpected types
 					QualifiedTypeDeclarationPattern record = (QualifiedTypeDeclarationPattern) indexRecord;
@@ -2114,9 +2150,11 @@ public class BasicSearchEngine {
 								? CharOperation.NO_CHAR
 								: CharOperation.concatWith(parsedUnit.currentPackage.getImportName(), '.');
 							class AllTypeDeclarationsVisitor extends ASTVisitor {
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, BlockScope blockScope) {
 									return false; // no local/anonymous type
 								}
+								@Override
 								public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope compilationUnitScope) {
 									SearchPattern decodedPattern =
 										new QualifiedTypeDeclarationPattern(packageDeclaration, typeDeclaration.name, convertTypeKind(TypeDeclaration.kind(typeDeclaration.modifiers)), matchRule);
@@ -2125,6 +2163,7 @@ public class BasicSearchEngine {
 									}
 									return true;
 								}
+								@Override
 								public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope classScope) {
 									// compute enclosing type names
 									char[] qualification = packageDeclaration;

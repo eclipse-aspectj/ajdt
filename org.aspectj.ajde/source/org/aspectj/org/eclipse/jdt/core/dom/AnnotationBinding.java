@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *    tyeung@bea.com - initial API and implementation
  *    IBM Corporation - implemented methods from IBinding
@@ -43,10 +39,12 @@ class AnnotationBinding implements IAnnotationBinding {
 		this.bindingResolver = resolver;
 	}
 
+	@Override
 	public IAnnotationBinding[] getAnnotations() {
 		return NoAnnotations;
 	}
 
+	@Override
 	public ITypeBinding getAnnotationType() {
 		ITypeBinding typeBinding = this.bindingResolver.getTypeBinding(this.binding.getAnnotationType());
 		if (typeBinding == null)
@@ -54,6 +52,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return typeBinding;
 	}
 
+	@Override
 	public IMemberValuePairBinding[] getDeclaredMemberValuePairs() {
 		ReferenceBinding typeBinding = this.binding.getAnnotationType();
 		if (typeBinding == null || ((typeBinding.tagBits & TagBits.HasMissingType) != 0)) {
@@ -76,6 +75,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return pairs;
 	}
 
+	@Override
 	public IMemberValuePairBinding[] getAllMemberValuePairs() {
 		IMemberValuePairBinding[] pairs = getDeclaredMemberValuePairs();
 		ReferenceBinding typeBinding = this.binding.getAnnotationType();
@@ -104,6 +104,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return allPairs;
 	}
 
+	@Override
 	public IJavaElement getJavaElement() {
 		if (!(this.bindingResolver instanceof DefaultBindingResolver)) return null;
 		ASTNode node = (ASTNode) ((DefaultBindingResolver) this.bindingResolver).bindingsToAstNodes.get(this);
@@ -159,6 +160,7 @@ class AnnotationBinding implements IAnnotationBinding {
 		return ((IAnnotatable) parentElement).getAnnotation(getName());
 	}
 
+	@Override
 	public String getKey() {
 		if (this.key == null) {
 			String recipientKey = getRecipientKey();
@@ -197,14 +199,17 @@ class AnnotationBinding implements IAnnotationBinding {
 		}
 	}
 
+	@Override
 	public int getKind() {
 		return IBinding.ANNOTATION;
 	}
 
+	@Override
 	public int getModifiers() {
 		return Modifier.NONE;
 	}
 
+	@Override
 	public String getName() {
 		ITypeBinding annotationType = getAnnotationType();
 		if (annotationType == null) {
@@ -214,12 +219,14 @@ class AnnotationBinding implements IAnnotationBinding {
 		}
 	}
 
+	@Override
 	public boolean isDeprecated() {
 		ReferenceBinding typeBinding = this.binding.getAnnotationType();
 		if (typeBinding == null) return false;
 		return typeBinding.isDeprecated();
 	}
 
+	@Override
 	public boolean isEqualTo(IBinding otherBinding) {
 		if (this == otherBinding)
 			return true;
@@ -239,18 +246,17 @@ class AnnotationBinding implements IAnnotationBinding {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.core.dom.IBinding#isRecovered()
-	 */
+	@Override
 	public boolean isRecovered() {
         ReferenceBinding annotationType = this.binding.getAnnotationType();
         return annotationType == null || (annotationType.tagBits & TagBits.HasMissingType) != 0;	}
 
+	@Override
 	public boolean isSynthetic() {
 		return false;
 	}
 
+	@Override
 	public String toString() {
 		ITypeBinding type = getAnnotationType();
 		final StringBuffer buffer = new StringBuffer();

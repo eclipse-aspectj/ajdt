@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -41,6 +37,7 @@ public CodeSnippetEnvironment(INameEnvironment env, EvaluationContext context) {
 /**
  * @see INameEnvironment#findType(char[][])
  */
+@Override
 public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
 	NameEnvironmentAnswer result = this.env.findType(compoundTypeName);
 	if (result != null) {
@@ -74,6 +71,7 @@ public NameEnvironmentAnswer findType(char[][] compoundTypeName) {
 /**
  * @see INameEnvironment#findType(char[], char[][])
  */
+@Override
 public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
 	NameEnvironmentAnswer result = this.env.findType(typeName, packageName);
 	if (result != null) {
@@ -84,9 +82,11 @@ public NameEnvironmentAnswer findType(char[] typeName, char[][] packageName) {
 /**
  * @see INameEnvironment#isPackage(char[][], char[])
  */
+@Override
 public boolean isPackage(char[][] parentPackageName, char[] packageName) {
 	return this.env.isPackage(parentPackageName, packageName);
 }
+@Override
 public void cleanup() {
 	this.env.cleanup();
 }

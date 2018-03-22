@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -182,6 +178,7 @@ public void acceptModule(char[] moduleName, char[] uniqueKey, int start, int end
 /**
  * Resolve the type.
  */
+@Override
 public void acceptType(char[] packageName, char[] typeName, int modifiers, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 	int acceptFlags = 0;
 	int kind = modifiers & (ClassFileConstants.AccInterface|ClassFileConstants.AccEnum|ClassFileConstants.AccAnnotation);
@@ -253,12 +250,14 @@ public void acceptType(IType type) {
 /**
  * @see ISelectionRequestor#acceptError
  */
+@Override
 public void acceptError(CategorizedProblem error) {
 	// do nothing
 }
 /**
  * Resolve the field.
  */
+@Override
 public void acceptField(char[] declaringTypePackageName, char[] declaringTypeName, char[] name, boolean isDeclaration, char[] uniqueKey, int start, int end) {
 	if(isDeclaration) {
 		IType type= resolveTypeByLocation(declaringTypePackageName, declaringTypeName,
@@ -491,6 +490,7 @@ public void acceptLocalVariable(LocalVariableBinding binding, org.aspectj.org.ec
 /**
  * Resolve the method
  */
+@Override
 public void acceptMethod(
 		char[] declaringTypePackageName,
 		char[] declaringTypeName,
@@ -566,6 +566,7 @@ public void acceptMethod(
 /**
  * Resolve the package
  */
+@Override
 public void acceptPackage(char[] packageName) {
 	IPackageFragment[] pkgs = this.nameLookup.findPackageFragments(new String(packageName), false);
 	if (pkgs != null) {
@@ -705,6 +706,7 @@ protected void acceptMethodDeclaration(IType type, char[] selector, int start, i
 	}
 	return;
 }
+@Override
 public void acceptTypeParameter(char[] declaringTypePackageName, char[] declaringTypeName, char[] typeParameterName, boolean isDeclaration, int start, int end) {
 	IType type;
 	if(isDeclaration) {
@@ -735,6 +737,7 @@ public void acceptTypeParameter(char[] declaringTypePackageName, char[] declarin
 		}
 	}
 }
+@Override
 public void acceptMethodTypeParameter(char[] declaringTypePackageName, char[] declaringTypeName, char[] selector,int selectorStart, int selectorEnd, char[] typeParameterName, boolean isDeclaration, int start, int end) {
 	IType type = resolveTypeByLocation(declaringTypePackageName, declaringTypeName,
 			NameLookup.ACCEPT_ALL,

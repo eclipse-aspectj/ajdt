@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -43,6 +39,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.NLSTag;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortType;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashSetOfInt;
@@ -51,6 +48,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashSetOfInt;
 public class CompilationUnitDeclaration extends ASTNode implements ProblemSeverities, ReferenceContext {
 
 	private static final Comparator STRING_LITERAL_COMPARATOR = new Comparator() {
+		@Override
 		public int compare(Object o1, Object o2) {
 			StringLiteral literal1 = (StringLiteral) o1;
 			StringLiteral literal2 = (StringLiteral) o2;
@@ -103,6 +101,7 @@ public CompilationUnitDeclaration(ProblemReporter problemReporter, CompilationRe
 /*
  *	We cause the compilation task to abort to a given extent.
  */
+@Override
 public void abort(int abortLevel, CategorizedProblem problem) {
 	switch (abortLevel) {
 		case AbortType :
@@ -153,6 +152,11 @@ public void cleanUp() {
 			localType.enclosingCase = null;
 		}
 	}
+	if (this.functionalExpressionsCount > 0) {
+		for (int i = 0, max = this.functionalExpressionsCount; i < max; i++) {
+			this.functionalExpressions[i].cleanUp();
+		}
+	}
 
 	this.compilationResult.recoveryScannerData = null; // recovery is already done
 
@@ -200,6 +204,7 @@ public void checkUnusedImports(){
 	}
 }
 
+@Override
 public CompilationResult compilationResult() {
 	return this.compilationResult;
 }
@@ -229,10 +234,17 @@ public TypeDeclaration declarationOfType(char[][] typeName) {
 }
 
 public void finalizeProblems() {
-	if (this.suppressWarningsCount == 0) return;
-	int removed = 0;
-	CategorizedProblem[] problems = this.compilationResult.problems;
 	int problemCount = this.compilationResult.problemCount;
+	CategorizedProblem[] problems = this.compilationResult.problems;
+	if (this.suppressWarningsCount == 0) {
+		 for (int iProblem = 0, length = problemCount; iProblem < length; iProblem++) {
+			 if (problems[iProblem] instanceof DefaultProblem) {
+				 ((DefaultProblem)problems[iProblem]).reportError();
+			 }
+		 }
+		return;
+	}
+	int removed = 0;
 	IrritantSet[] foundIrritants = new IrritantSet[this.suppressWarningsCount];
 	CompilerOptions options = this.scope.compilerOptions();
 	boolean hasMandatoryErrors = false;
@@ -259,8 +271,12 @@ public void finalizeProblems() {
 			int endSuppress = (int) position;
 			if (start < startSuppress) continue nextSuppress;
 			if (end > endSuppress) continue nextSuppress;
-			if (!this.suppressWarningIrritants[iSuppress].isSet(irritant))
+			if (!this.suppressWarningIrritants[iSuppress].isSet(irritant)) {
+				if (problem instanceof DefaultProblem) {
+					((DefaultProblem) problem).reportError();
+				}
 				continue nextSuppress;
+			}
 			// discard suppressed warning
 			removed++;
 			problems[iProblem] = null;
@@ -401,6 +417,7 @@ public void generateCode() {
 	}
 }
 
+@Override
 public CompilationUnitDeclaration getCompilationUnitDeclaration() {
 	return this;
 }
@@ -461,10 +478,12 @@ public boolean hasFunctionalTypes() {
 	return this.compilationResult.hasFunctionalTypes;
 }
 
+@Override
 public boolean hasErrors() {
 	return this.ignoreFurtherInvestigation;
 }
 
+@Override
 public StringBuffer print(int indent, StringBuffer output) {
 	if (this.currentPackage != null) {
 		printIndent(indent, output).append("package "); //$NON-NLS-1$
@@ -731,10 +750,12 @@ private void reportNLSProblems() {
 	}
 }
 
+@Override
 public void tagAsHavingErrors() {
 	this.ignoreFurtherInvestigation = true;
 }
 
+@Override
 public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
 	// Nothing to do for this context;
 }
@@ -781,6 +802,9 @@ public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope, boolean
 				for (int i = 0; i < typesLength; i++) {
 					this.types[i].traverse(visitor, this.scope);
 				}
+			}
+			if (this.isModuleInfo() && this.moduleDeclaration != null) {
+				this.moduleDeclaration.traverse(visitor, this.scope);
 			}
 		}
 		visitor.endVisit(this, this.scope);

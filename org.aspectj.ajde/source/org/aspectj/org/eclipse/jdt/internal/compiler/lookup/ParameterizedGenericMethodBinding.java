@@ -1,3 +1,4 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -50,6 +51,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
     public boolean isRaw; // set to true for method behaving as raw for substitution purpose
     private MethodBinding tiebreakMethod;
 	public boolean inferredWithUncheckedConversion;
+	public TypeBinding targetType; // used to distinguish different PGMB created for different target types (needed because inference contexts are remembered per PGMB)
 
 	/**
 	 * Perform inference of generic method type parameters and/or expected type
@@ -273,7 +275,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 				// assemble the solution etc:
 				TypeBinding[] solutions = infCtx18.getSolutions(typeVariables, invocationSite, result);
 				if (solutions != null) {
-					methodSubstitute = scope.environment().createParameterizedGenericMethod(originalMethod, solutions, infCtx18.usesUncheckedConversion, hasReturnProblem);
+					methodSubstitute = scope.environment().createParameterizedGenericMethod(originalMethod, solutions, infCtx18.usesUncheckedConversion, hasReturnProblem, expectedType);
 					if (invocationSite instanceof Invocation && allArgumentsAreProper)
 						infCtx18.forwardResults(result, (Invocation) invocationSite, methodSubstitute, expectedType);
 					try {
@@ -537,9 +539,10 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
     /**
      * Create method of parameterized type, substituting original parameters with type arguments.
      */
-	public ParameterizedGenericMethodBinding(MethodBinding originalMethod, TypeBinding[] typeArguments, LookupEnvironment environment, boolean inferredWithUncheckConversion, boolean hasReturnProblem) {
+	public ParameterizedGenericMethodBinding(MethodBinding originalMethod, TypeBinding[] typeArguments, LookupEnvironment environment, boolean inferredWithUncheckConversion, boolean hasReturnProblem, TypeBinding targetType) {
 	    this.environment = environment;
 		this.inferredWithUncheckedConversion = inferredWithUncheckConversion;
+		this.targetType = targetType;
 		this.modifiers = originalMethod.modifiers;
 		this.selector = originalMethod.selector;
 		this.declaringClass = originalMethod.declaringClass;
@@ -616,6 +619,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	 * parameterizedDeclaringUniqueKey dot selector originalMethodGenericSignature percent typeArguments
 	 * p.X<U> { <T> void bar(T t, U u) { new X<String>().bar(this, "") } } --> Lp/X<Ljava/lang/String;>;.bar<T:Ljava/lang/Object;>(TT;Ljava/lang/String;)V%<Lp/X;>
 	 */
+	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(this.originalMethod.computeUniqueKey(false/*not a leaf*/));
@@ -638,6 +642,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Substitution#environment()
 	 */
+	@Override
 	public LookupEnvironment environment() {
 		return this.environment;
 	}
@@ -645,6 +650,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	 * Returns true if some parameters got substituted.
 	 * NOTE: generic method invocation delegates to its declaring method (could be a parameterized one)
 	 */
+	@Override
 	public boolean hasSubstitutedParameters() {
 		// generic parameterized method can represent either an invocation or a raw generic method
 		if (this.wasInferred)
@@ -655,6 +661,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	 * Returns true if the return type got substituted.
 	 * NOTE: generic method invocation delegates to its declaring method (could be a parameterized one)
 	 */
+	@Override
 	public boolean hasSubstitutedReturnType() {
 		if (this.inferredReturnType)
 			return this.originalMethod.hasSubstitutedReturnType();
@@ -780,6 +787,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 			this.scope = scope;
 		}
 		// With T mapping to I<T>, answer of I<?>, when given T, having eliminated the circularity/self reference.
+		@Override
 		public TypeBinding substitute(TypeVariableBinding typeVariable) {
 			if (typeVariable.rank >= this.variables.length || TypeBinding.notEquals(this.variables[typeVariable.rank], typeVariable)) {   // not kosher, don't touch.
 				return typeVariable;
@@ -791,10 +799,12 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 			return this.scope.environment().createWildcard(genericType, typeVariable.rank, null, null, Wildcard.UNBOUND, typeVariable.getTypeAnnotations());
 		}
 
+		@Override
 		public LookupEnvironment environment() {
 			return this.scope.environment();
 		}
 
+		@Override
 		public boolean isRawSubstitution() {
 			return false;
 		}
@@ -803,6 +813,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Substitution#isRawSubstitution()
 	 */
+	@Override
 	public boolean isRawSubstitution() {
 		return this.isRaw;
 	}
@@ -810,6 +821,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Substitution#substitute(org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding)
 	 */
+	@Override
 	public TypeBinding substitute(TypeVariableBinding originalVariable) {
         TypeVariableBinding[] variables = this.originalMethod.typeVariables;
         int length = variables.length;
@@ -823,6 +835,7 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding#tiebreakMethod()
 	 */
+	@Override
 	public MethodBinding tiebreakMethod() {
 		if (this.tiebreakMethod == null)
 			this.tiebreakMethod = this.originalMethod.asRawMethod(this.environment);
@@ -838,10 +851,12 @@ public class ParameterizedGenericMethodBinding extends ParameterizedMethodBindin
 	
 	// AspectJ Extension
 	// delegate to the original method since it might be an intertypemethodbinding ...
-	public boolean alwaysNeedsAccessMethod() { return originalMethod.alwaysNeedsAccessMethod(); }
+	@Override
+	public boolean alwaysNeedsAccessMethod() { return this.originalMethod.alwaysNeedsAccessMethod(); }
 	
+	@Override
 	public MethodBinding getAccessMethod(boolean staticReference) {
-		return originalMethod.getAccessMethod(staticReference);
+		return this.originalMethod.getAccessMethod(staticReference);
     }
 	// End AspectJ Extension
 }

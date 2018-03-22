@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -72,6 +72,7 @@ public class LocalVariableBinding extends VariableBinding {
 	/* API
 	* Answer the receiver's binding type from Binding.BindingID.
 	*/
+	@Override
 	public final int kind() {
 		return LOCAL;
 	}
@@ -87,6 +88,7 @@ public class LocalVariableBinding extends VariableBinding {
 	 * without parameter names (see org.aspectj.org.eclipse.jdt.internal.core.util.BindingKeyResolver.SyntheticLocalVariableBinding):
 	 *    p.X { void foo(int i0, int i1) { } } --> Lp/X;.foo()V#arg1#0#1
 	 */
+	@Override
 	public char[] computeUniqueKey(boolean isLeaf) {
 		StringBuffer buffer = new StringBuffer();
 
@@ -160,6 +162,7 @@ public class LocalVariableBinding extends VariableBinding {
 		return uniqueKey;
 	}
 
+	@Override
 	public AnnotationBinding[] getAnnotations() {
 		if (this.declaringScope == null) {
 			if ((this.tagBits & TagBits.AnnotationResolved) != 0) {
@@ -245,14 +248,15 @@ public class LocalVariableBinding extends VariableBinding {
 		this.initializationCount++;
 	}
 
-	public void setAnnotations(AnnotationBinding[] annotations, Scope scope) {
+	@Override
+	public void setAnnotations(AnnotationBinding[] annotations, Scope scope, boolean forceStore) {
 		// note: we don's use this.declaringScope because we might be called before Scope.addLocalVariable(this)
 		//       which is where this.declaringScope is set.
 		if (scope == null)
 			return;
 		SourceTypeBinding sourceType = scope.enclosingSourceType();
 		if (sourceType != null)
-			sourceType.storeAnnotations(this, annotations);
+			sourceType.storeAnnotations(this, annotations, forceStore);
 	}
 
 	public void resetInitializations() {
@@ -260,6 +264,7 @@ public class LocalVariableBinding extends VariableBinding {
 		this.initializationPCs = null;
 	}
 
+	@Override
 	public String toString() {
 
 		String s = super.toString();
@@ -287,6 +292,7 @@ public class LocalVariableBinding extends VariableBinding {
 		return s;
 	}
 
+	@Override
 	public boolean isParameter() {
 		return ((this.tagBits & TagBits.IsArgument) != 0);
 	}

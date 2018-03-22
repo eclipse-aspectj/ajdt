@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -33,6 +29,7 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		super(compilationResult);
 	}
 
+	@Override
 	public void generateCode(ClassFile classFile) {
 		classFile.generateMethodInfoHeader(this.binding);
 		int methodAttributeOffset = classFile.contentsOffset;
@@ -40,21 +37,25 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 	}
 
+	@Override
 	public boolean isAnnotationMethod() {
 
 		return true;
 	}
 
+	@Override
 	public boolean isMethod() {
 
 		return false;
 	}
 
+	@Override
 	public void parseStatements(Parser parser, CompilationUnitDeclaration unit) {
 		// nothing to do
 		// annotation type member declaration don't have any body
 	}
 
+	@Override
 	public StringBuffer print(int tab, StringBuffer output) {
 
 		printIndent(tab, output);
@@ -101,6 +102,7 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		return output;
 	}
 
+	@Override
 	public void resolveStatements() {
 
 		super.resolveStatements();
@@ -151,6 +153,7 @@ public class AnnotationMethodDeclaration extends MethodDeclaration {
 		}
 	}
 
+	@Override
 	public void traverse(
 		ASTVisitor visitor,
 		ClassScope classScope) {

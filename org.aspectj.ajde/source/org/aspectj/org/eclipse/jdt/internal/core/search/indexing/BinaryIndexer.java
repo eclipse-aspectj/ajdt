@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -201,6 +197,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			}
 		}
 	}
+	@Override
 	public void addTypeReference(char[] typeName) {
 		int length = typeName.length;
 		if (length > 2 && typeName[length - 2] == '$') {
@@ -639,6 +636,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 		int utf8Offset = constantPoolOffsets[reader.u2At(constantPoolOffsets[constantPoolIndex] + 3)];
 		return reader.utf8At(utf8Offset + 3, reader.u2At(utf8Offset + 1));
 	}
+	@Override
 	public void indexDocument() {
 		try {
 			final byte[] contents = this.document.getByteContents();
@@ -875,23 +873,23 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			for (IPackageExport pack : exportedPackages) {
 				addModuleExportedPackages(pack.name());
 				char[][] tgts = pack.targets();
-				if (tgts == null || tgts.equals(CharOperation.NO_CHAR_CHAR)) continue;
+				if (tgts == null || tgts == CharOperation.NO_CHAR_CHAR) continue;
 				for (char[] tgt : tgts) {
-					if (tgt != null && !tgt.equals(CharOperation.NO_CHAR)) 
+					if (tgt != null && tgt != CharOperation.NO_CHAR)
 						addModuleReference(tgt);
 				}
 			}
 		}
 	}
 	private void indexTypeReferences(char[][] ref) {
-		if (ref == null || ref.equals(CharOperation.NO_CHAR))
+		if (ref == null || ref == CharOperation.NO_CHAR_CHAR)
 			return;
 		for (int i = 0; i < ref.length; i++) {
 			addTypeReference(ref[i]);
 		}
 	}
 	private void indexTypeReference(char[] ref) {
-		if (ref == null || ref.equals(CharOperation.NO_CHAR))
+		if (ref == null || ref == CharOperation.NO_CHAR)
 			return;
 		addTypeReference(ref);
 	}

@@ -1,13 +1,10 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -65,6 +62,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InferenceContext18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
@@ -477,8 +475,10 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		}
 
 		if ((field.modifiers & ExtraCompilerModifiers.AccRestrictedAccess) != 0) {
+			ModuleBinding module = field.declaringClass.module();
+			LookupEnvironment env = (module == null) ? scope.environment() : module.environment;
 			AccessRestriction restriction =
-				scope.environment().getAccessRestriction(field.declaringClass.erasure());
+				env.getAccessRestriction(field.declaringClass.erasure());
 			if (restriction != null) {
 				scope.problemReporter().forbiddenReference(field, this,
 						restriction.classpathEntryType, restriction.classpathEntryName,
@@ -522,8 +522,10 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		if (isExplicitUse && (method.modifiers & ExtraCompilerModifiers.AccRestrictedAccess) != 0) {
 			// note: explicit constructors calls warnings are kept despite the 'new C1()' case (two
 			//       warnings, one on type, the other on constructor), because of the 'super()' case.
+			ModuleBinding module = method.declaringClass.module();
+			LookupEnvironment env = (module == null) ? scope.environment() : module.environment;
 			AccessRestriction restriction =
-				scope.environment().getAccessRestriction(method.declaringClass.erasure());
+				env.getAccessRestriction(method.declaringClass.erasure());
 			if (restriction != null) {
 				scope.problemReporter().forbiddenReference(method, this,
 						restriction.classpathEntryType, restriction.classpathEntryName,
@@ -590,7 +592,9 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		}
 
 		if (refType.hasRestrictedAccess()) {
-			AccessRestriction restriction = scope.environment().getAccessRestriction(type.erasure());
+			ModuleBinding module = refType.module();
+			LookupEnvironment env = (module == null) ? scope.environment() : module.environment;
+			AccessRestriction restriction = env.getAccessRestriction(type.erasure());
 			if (restriction != null) {
 				scope.problemReporter().forbiddenReference(type, this, restriction.classpathEntryType,
 						restriction.classpathEntryName, restriction.getProblemId());
@@ -744,7 +748,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					type.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
-						type.setAnnotations(annotations);
+						type.setAnnotations(annotations, false);
 					}
 					break;
 				case Binding.METHOD :
@@ -753,7 +757,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					method.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
-						method.setAnnotations(annotations);
+						method.setAnnotations(annotations, false);
 					}
 					break;
 				case Binding.FIELD :
@@ -762,7 +766,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					field.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
-						field.setAnnotations(annotations);
+						field.setAnnotations(annotations, false);
 					}
 					break;
 				case Binding.LOCAL :
@@ -771,7 +775,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					local.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
 					if (length > 0) {
 						annotations = new AnnotationBinding[length];
-						local.setAnnotations(annotations, scope);
+						local.setAnnotations(annotations, scope, false);
 					}
 					break;
 				case Binding.TYPE_PARAMETER :
@@ -783,6 +787,10 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					ModuleBinding module = (ModuleBinding)recipient;
 					if ((module.tagBits & TagBits.AnnotationResolved) != 0) return annotations;
 					module.tagBits |= (TagBits.AnnotationResolved | TagBits.DeprecatedAnnotationResolved);
+					if (length > 0) {
+						annotations = new AnnotationBinding[length];
+						module.setAnnotations(annotations, scope, false);
+					}
 					break;
 				default :
 					return annotations;
@@ -1095,7 +1103,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 			}
 			if (newLength != length) {
 				System.arraycopy(recipientAnnotations, 0, recipientAnnotations = new AnnotationBinding[newLength],  0, newLength);
-				recipient.setAnnotations(recipientAnnotations, scope);
+				recipient.setAnnotations(recipientAnnotations, scope, false);
 			}
 		}
 	}
@@ -1271,6 +1279,7 @@ public static void resolveDeprecatedAnnotations(BlockScope scope, Annotation[] a
 	public int sourceEnd() {
 		return this.sourceEnd;
 	}
+	@Override
 	public String toString() {
 
 		return print(0, new StringBuffer(30)).toString();

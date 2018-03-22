@@ -5,14 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.env;
+
+import java.util.Arrays;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -74,13 +72,16 @@ public class NameEnvironmentAnswer {
 			baseString = "ICompilationUnit " + this.compilationUnit.toString(); //$NON-NLS-1$
 		}
 		if (this.sourceTypes != null) {
-			baseString = this.sourceTypes.toString();
+			baseString = Arrays.toString(this.sourceTypes);
 		}
 		if (this.accessRestriction != null) {
 			baseString += " " + this.accessRestriction.toString(); //$NON-NLS-1$
 		}
 		if (this.externalAnnotationPath != null) {
 			baseString += " extPath=" + this.externalAnnotationPath.toString(); //$NON-NLS-1$
+		}
+		if (this.moduleName != null) {
+			baseString += " module=" + String.valueOf(this.moduleName); //$NON-NLS-1$
 		}
 		return baseString;
 	}

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Terry Parker <tparker@google.com> - [performance] Low hit rates in JavaModel caches - https://bugs.eclipse.org/421165
@@ -57,6 +53,7 @@ public class JavaModel extends Openable implements IJavaModel {
 protected JavaModel() throws Error {
 	super(null);
 }
+@Override
 protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource)	/*throws JavaModelException*/ {
 
 	// determine my children
@@ -81,6 +78,7 @@ protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, 
 /*
  * @see IJavaModel
  */
+@Override
 public boolean contains(IResource resource) {
 	switch (resource.getType()) {
 		case IResource.ROOT:
@@ -105,6 +103,7 @@ public boolean contains(IResource resource) {
 /**
  * @see IJavaModel
  */
+@Override
 public void copy(IJavaElement[] elements, IJavaElement[] containers, IJavaElement[] siblings, String[] renamings, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	if (elements != null && elements.length > 0 && elements[0] != null && elements[0].getElementType() < IJavaElement.TYPE) {
 		runOperation(new CopyResourceElementsOperation(elements, containers, force), elements, siblings, renamings, monitor);
@@ -115,6 +114,7 @@ public void copy(IJavaElement[] elements, IJavaElement[] containers, IJavaElemen
 /**
  * Returns a new element info for this element.
  */
+@Override
 protected Object createElementInfo() {
 	return new JavaModelInfo();
 }
@@ -122,6 +122,7 @@ protected Object createElementInfo() {
 /**
  * @see IJavaModel
  */
+@Override
 public void delete(IJavaElement[] elements, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	if (elements != null && elements.length > 0 && elements[0] != null && elements[0].getElementType() < IJavaElement.TYPE) {
 		new DeleteResourceElementsOperation(elements, force).runOperation(monitor);
@@ -129,6 +130,7 @@ public void delete(IJavaElement[] elements, boolean force, IProgressMonitor moni
 		new DeleteElementsOperation(elements, force).runOperation(monitor);
 	}
 }
+@Override
 public boolean equals(Object o) {
 	if (!(o instanceof JavaModel)) return false;
 	return super.equals(o);
@@ -136,6 +138,7 @@ public boolean equals(Object o) {
 /**
  * @see IJavaElement
  */
+@Override
 public int getElementType() {
 	return JAVA_MODEL;
 }
@@ -143,6 +146,7 @@ public int getElementType() {
 /*
  * @see JavaElement
  */
+@Override
 public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner owner) {
 	switch (token.charAt(0)) {
 		case JEM_JAVAPROJECT:
@@ -156,6 +160,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 /**
  * @see JavaElement#getHandleMemento(StringBuffer)
  */
+@Override
 protected void getHandleMemento(StringBuffer buff) {
 	buff.append(getElementName());
 }
@@ -163,6 +168,7 @@ protected void getHandleMemento(StringBuffer buff) {
  * Returns the <code>char</code> that marks the start of this handles
  * contribution to a memento.
  */
+@Override
 protected char getHandleMementoDelimiter(){
 	Assert.isTrue(false, "Should not be called"); //$NON-NLS-1$
 	return 0;
@@ -170,6 +176,7 @@ protected char getHandleMementoDelimiter(){
 /**
  * @see IJavaModel
  */
+@Override
 public IJavaProject getJavaProject(String projectName) {
 	return new JavaProject(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName), this);
 }
@@ -196,6 +203,7 @@ public IJavaProject getJavaProject(IResource resource) {
 /**
  * @see IJavaModel
  */
+@Override
 public IJavaProject[] getJavaProjects() throws JavaModelException {
 	ArrayList list = getChildrenOfType(JAVA_PROJECT);
 	IJavaProject[] array= new IJavaProject[list.size()];
@@ -206,6 +214,7 @@ public IJavaProject[] getJavaProjects() throws JavaModelException {
 /**
  * @see IJavaModel
  */
+@Override
 public Object[] getNonJavaResources() throws JavaModelException {
 		return ((JavaModelInfo) getElementInfo()).getNonJavaResources();
 }
@@ -213,24 +222,28 @@ public Object[] getNonJavaResources() throws JavaModelException {
 /*
  * @see IJavaElement
  */
+@Override
 public IPath getPath() {
 	return Path.ROOT;
 }
 /*
  * @see IJavaElement
  */
+@Override
 public IResource resource(PackageFragmentRoot root) {
 	return ResourcesPlugin.getWorkspace().getRoot();
 }
 /**
  * @see IOpenable
  */
+@Override
 public IResource getUnderlyingResource() {
 	return null;
 }
 /**
  * Returns the workbench associated with this object.
  */
+@Override
 public IWorkspace getWorkspace() {
 	return ResourcesPlugin.getWorkspace();
 }
@@ -238,6 +251,7 @@ public IWorkspace getWorkspace() {
 /**
  * @see IJavaModel
  */
+@Override
 public void move(IJavaElement[] elements, IJavaElement[] containers, IJavaElement[] siblings, String[] renamings, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	if (elements != null && elements.length > 0 && elements[0] != null && elements[0].getElementType() < IJavaElement.TYPE) {
 		runOperation(new MoveResourceElementsOperation(elements, containers, force), elements, siblings, renamings, monitor);
@@ -249,6 +263,7 @@ public void move(IJavaElement[] elements, IJavaElement[] containers, IJavaElemen
 /**
  * @see IJavaModel#refreshExternalArchives(IJavaElement[], IProgressMonitor)
  */
+@Override
 public void refreshExternalArchives(IJavaElement[] elementsScope, IProgressMonitor monitor) throws JavaModelException {
 	if (elementsScope == null){
 		elementsScope = new IJavaElement[] { this };
@@ -259,6 +274,7 @@ public void refreshExternalArchives(IJavaElement[] elementsScope, IProgressMonit
 /**
  * @see IJavaModel
  */
+@Override
 public void rename(IJavaElement[] elements, IJavaElement[] destinations, String[] renamings, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	MultiOperation op;
 	if (elements != null && elements.length > 0 && elements[0] != null && elements[0].getElementType() < IJavaElement.TYPE) {
@@ -284,6 +300,7 @@ protected void runOperation(MultiOperation op, IJavaElement[] elements, IJavaEle
 /**
  * @private Debugging purposes
  */
+@Override
 protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean showResolvedInfo) {
 	buffer.append(tabString(tab));
 	buffer.append("Java Model"); //$NON-NLS-1$
@@ -403,6 +420,7 @@ public static File getFile(Object target) {
 	return isFile(target) ? (File) target : null;
 }
 
+@Override
 protected IStatus validateExistence(IResource underlyingResource) {
 	// Java model always exists
 	return JavaModelStatus.VERIFIED_OK;

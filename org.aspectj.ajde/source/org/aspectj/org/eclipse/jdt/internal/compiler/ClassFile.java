@@ -1,15 +1,11 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Jesper S Moller - Contributions for
@@ -426,6 +422,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			ReferenceBinding[] innerClasses = new ReferenceBinding[numberOfInnerClasses];
 			this.innerClassesBindings.keySet().toArray(innerClasses);
 			Arrays.sort(innerClasses, new Comparator() {
+				@Override
 				public int compare(Object o1, Object o2) {
 					TypeBinding binding1 = (TypeBinding) o1;
 					TypeBinding binding2 = (TypeBinding) o2;
@@ -2777,6 +2774,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.contents[localContentsOffset++] = (byte) module.exportsCount;
 		for (int i = 0; i < module.exportsCount; i++) {
 			ExportsStatement ref = module.exports[i];
+			if (localContentsOffset + 6 >= this.contents.length) {
+				resizeContents((module.exportsCount - i) * 6);
+			}
 			int nameIndex = this.constantPool.literalIndexForPackage(CharOperation.replaceOnCopy(ref.pkgName, '.', '/'));
 			this.contents[localContentsOffset++] = (byte) (nameIndex >> 8);
 			this.contents[localContentsOffset++] = (byte) (nameIndex);
@@ -2820,6 +2820,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.contents[localContentsOffset++] = (byte) module.opensCount;
 		for (int i = 0; i < module.opensCount; i++) {
 			OpensStatement ref = module.opens[i];
+			if (localContentsOffset + 6 >= this.contents.length) {
+				resizeContents((module.opensCount - i) * 6);
+			}
 			int nameIndex = this.constantPool.literalIndexForPackage(CharOperation.replaceOnCopy(ref.pkgName, '.', '/'));
 			this.contents[localContentsOffset++] = (byte) (nameIndex >> 8);
 			this.contents[localContentsOffset++] = (byte) (nameIndex);
@@ -2881,6 +2884,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.contents[localContentsOffset++] = (byte) (module.servicesCount >> 8);
 		this.contents[localContentsOffset++] = (byte) module.servicesCount;
 		for(int i = 0; i < module.servicesCount; i++) {
+			if (localContentsOffset + 4 >= this.contents.length) {
+				resizeContents((module.servicesCount - i) * 4);
+			}
 			int nameIndex = this.constantPool.literalIndexForType(module.services[i].serviceInterface.resolvedType.constantPoolName());
 			this.contents[localContentsOffset++] = (byte) (nameIndex >> 8);
 			this.contents[localContentsOffset++] = (byte) (nameIndex);
@@ -3898,10 +3904,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 				.referenceCompilationUnit()
 				.compilationResult
 				.getLineSeparatorPositions());
-		// update the number of attributes
-		if ((this.produceAttributes & ClassFileConstants.ATTR_METHOD_PARAMETERS) != 0) {
-			attributeNumber += generateMethodParameters(methodBinding);
-		}
 		this.contents[methodAttributeOffset++] = (byte) (attributeNumber >> 8);
 		this.contents[methodAttributeOffset] = (byte) attributeNumber;
 	}	
@@ -3974,6 +3976,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 		int numberOfMissingTypes = 0;
 		if (initialSize > 1) {
 			Collections.sort(this.missingTypes, new Comparator() {
+				@Override
 				public int compare(Object o1, Object o2) {
 					TypeBinding typeBinding1 = (TypeBinding) o1;
 					TypeBinding typeBinding2 = (TypeBinding) o2;
@@ -4417,6 +4420,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 	 */
 	private int generateMethodParameters(final MethodBinding binding) {
 		
+		if (binding.sourceLambda() != null)
+			return 0;
 		int initialContentsOffset = this.contentsOffset;
 		int length = 0; // count of actual parameters
 		
@@ -4468,8 +4473,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 			Argument[] arguments = null;
 			if (methodDeclaration != null && methodDeclaration.arguments != null) {
 				arguments = methodDeclaration.arguments;
-			} else if (binding.sourceLambda() != null) { // SyntheticMethodBinding, purpose : LambdaMethod.
-				arguments = binding.sourceLambda().arguments;
 			}
 			for (int i = 0, max = targetParameters.length, argumentsLength = arguments != null ? arguments.length : 0; i < max; i++) {
 				if (argumentsLength > i && arguments[i] != null) {
@@ -5822,6 +5825,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			}
 		}
 		Collections.sort(result, new Comparator() {
+			@Override
 			public int compare(Object o1, Object o2) {
 				StackMapFrame frame = (StackMapFrame) o1;
 				StackMapFrame frame2 = (StackMapFrame) o2;

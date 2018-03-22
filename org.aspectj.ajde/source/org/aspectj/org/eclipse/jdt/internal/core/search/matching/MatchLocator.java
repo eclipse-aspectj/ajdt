@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -47,6 +43,7 @@ import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.Signature;
 import org.aspectj.org.eclipse.jdt.core.compiler.*;
@@ -127,6 +124,7 @@ public int matchContainer;
 public SearchRequestor requestor;
 public IJavaSearchScope scope;
 public IProgressMonitor progressMonitor;
+private IJavaSearchScope subScope = null;
 
 public org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies;
 public HandleFactory handleFactory;
@@ -149,6 +147,7 @@ public int numberOfMatches; // (numberOfMatches - 1) is the last unit in matches
 public PossibleMatch[] matchesToProcess;
 public PossibleMatch currentPossibleMatch;
 
+/* package */HashMap<SearchMatch, Binding> matchBinding = new HashMap<>();
 /*
  * Time spent in the IJavaSearchResultCollector
  */
@@ -178,6 +177,7 @@ public static class WorkingCopyDocument extends JavaSearchDocument {
 		this.charContents = ((CompilationUnit)workingCopy).getContents();
 		this.workingCopy = workingCopy;
 	}
+	@Override
 	public String toString() {
 		return "WorkingCopyDocument for " + getPath(); //$NON-NLS-1$
 	}
@@ -342,6 +342,7 @@ public MatchLocator(
 /**
  * Add an additional binary type
  */
+@Override
 public void accept(IBinaryType binaryType, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 	this.lookupEnvironment.createBinaryTypeFrom(binaryType, packageBinding, accessRestriction);
 }
@@ -349,6 +350,7 @@ public void accept(IBinaryType binaryType, PackageBinding packageBinding, Access
  * Add an additional compilation unit into the loop
  *  ->  build compilation unit declarations, their bindings and record their results.
  */
+@Override
 public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
 	// Switch the current policy and compilation result for this unit to the requested one.
 	CompilationResult unitResult = new CompilationResult(sourceUnit, 1, 1, this.options.maxProblemsPerUnit);
@@ -375,6 +377,7 @@ public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestrict
 /**
  * Add additional source types
  */
+@Override
 public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 	// case of SearchableEnvironment of an IJavaProject is used
 	ISourceType sourceType = sourceTypes[0];
@@ -1118,6 +1121,13 @@ private MethodBinding getMethodBinding0(MethodPattern methodPattern) {
 	this.bindings.put(methodPattern, result != null ? result : new ProblemMethodBinding(methodPattern.selector, null, ProblemReasons.NotFound));
 	return result;
 }
+private boolean matchParams(MethodPattern methodPattern, int index, TypeBinding binding) {
+	char[] qualifier = CharOperation.concat(methodPattern.parameterQualifications[index], methodPattern.parameterSimpleNames[index], '.');
+	int offset = (qualifier.length > 0 && qualifier[0] == '*') ? 1 : 0;
+	String s1 = new String(qualifier, offset, qualifier.length - offset);
+	char[] s2 = CharOperation.concat(binding.qualifiedPackageName(), binding.qualifiedSourceName(), '.');
+	return new String(s2).endsWith(s1);
+}
 
 private MethodBinding getMethodBinding(MethodPattern methodPattern, TypeBinding declaringTypeBinding) {
 	MethodBinding result;
@@ -1138,7 +1148,8 @@ private MethodBinding getMethodBinding(MethodPattern methodPattern, TypeBinding 
 		boolean found = false;
 		if (methodParameters != null && paramLength == paramTypeslength) {
 			for (int p=0; p<paramLength; p++) {
-				if (CharOperation.equals(methodParameters[p].sourceName(), parameterTypes[p])) {
+				TypeBinding parameter = methodParameters[p];
+				if (matchParams(methodPattern, p, parameter)) {
 					// param erasure match
 					found = true;
 				} else {
@@ -1231,6 +1242,14 @@ public void initialize(JavaProject project, int possibleMatchSize) throws JavaMo
 
 	this.lookupEnvironment.addResolutionListener(this.patternLocator);
 }
+private boolean skipMatch(JavaProject javaProject, PossibleMatch possibleMatch) {
+	if (this.options.sourceLevel >= ClassFileConstants.JDK9) {
+		char[] pModuleName = possibleMatch.getModuleName();
+		if (pModuleName != null && this.lookupEnvironment.getModule(pModuleName) == null)
+			return true;
+	}
+	return false;
+}
 protected void locateMatches(JavaProject javaProject, PossibleMatch[] possibleMatches, int start, int length) throws CoreException {
 	initialize(javaProject, length);
 
@@ -1242,6 +1261,7 @@ protected void locateMatches(JavaProject javaProject, PossibleMatch[] possibleMa
 	try {
 		for (int i = start, maxUnits = start + length; i < maxUnits; i++) {
 			PossibleMatch possibleMatch = possibleMatches[i];
+			if (skipMatch(javaProject, possibleMatch)) continue;
 			try {
 				if (!parseAndBuildBindings(possibleMatch, mustResolvePattern)) continue;
 				// Currently we only need to resolve over pattern flag if there's potential parameterized types
@@ -1409,6 +1429,7 @@ public void locateMatches(SearchDocument[] searchDocuments) throws CoreException
 		JavaProject previousJavaProject = null;
 		PossibleMatchSet matchSet = new PossibleMatchSet();
 		Util.sort(searchDocuments, new Util.Comparer() {
+			@Override
 			public int compare(Object a, Object b) {
 				return ((SearchDocument)a).getPath().compareTo(((SearchDocument)b).getPath());
 			}
@@ -1457,6 +1478,7 @@ public void locateMatches(SearchDocument[] searchDocuments) throws CoreException
 
 			// create new parser and lookup environment if this is a new project
 			IResource resource = null;
+			openable = getCloserOpenable(openable, pathString);
 			JavaProject javaProject = (JavaProject) openable.getJavaProject();
 			resource = workingCopy != null ? workingCopy.getResource() : openable.getResource();
 			if (resource == null)
@@ -1500,6 +1522,42 @@ public void locateMatches(SearchDocument[] searchDocuments) throws CoreException
 		this.bindings = null;
 	}
 }
+private IJavaSearchScope getSubScope(String optionString, long value, boolean ref) {
+	if (this.subScope != null)
+		return this.subScope;
+	IPath[] enclosingProjectsAndJars = this.scope.enclosingProjectsAndJars();
+	JavaModelManager manager = JavaModelManager.getJavaModelManager();
+	HashSet<IJavaProject> set = new HashSet<>();
+	for (int i = 0, l = enclosingProjectsAndJars.length; i < l; i++) {
+		IPath path = enclosingProjectsAndJars[i];
+		if (path.segmentCount() == 1) {
+			IJavaProject p = manager.getJavaModel().getJavaProject(path.segment(0));
+			if (p == null) continue;
+			if (CompilerOptions.versionToJdkLevel(p.getOption(optionString, true)) >= value) {
+				set.add(p);
+			}
+		}
+	}
+	return this.subScope = BasicSearchEngine.createJavaSearchScope(set.toArray(new IJavaProject[0]), ref);
+}
+private Openable getCloserOpenable(Openable openable, String pathString) {
+	if (this.pattern instanceof TypeDeclarationPattern &&
+			((TypeDeclarationPattern) this.pattern).moduleNames != null) {
+		JavaProject javaProject = (JavaProject) openable.getJavaProject();
+		PackageFragmentRoot root = openable.getPackageFragmentRoot();
+		if (root instanceof JarPackageFragmentRoot) {
+			JarPackageFragmentRoot jpkf = (JarPackageFragmentRoot) root;
+			if (jpkf.getModuleDescription() != null &&
+					CompilerOptions.versionToJdkLevel(javaProject.getOption(JavaCore.COMPILER_COMPLIANCE, true)) <
+					ClassFileConstants.JDK9) {
+				openable = this.handleFactory.createOpenable(pathString, 
+						getSubScope(JavaCore.COMPILER_COMPLIANCE, ClassFileConstants.JDK9, false));
+			}
+		}
+	}
+	return openable;
+}
+
 /**
  * Locates the package declarations corresponding to this locator's pattern.
  */
@@ -1658,7 +1716,9 @@ public SearchMatch newDeclarationMatch(
 		case IJavaElement.TYPE_PARAMETER:
 			return new TypeParameterDeclarationMatch(element, accuracy, offset, length, participant, resource);
 		case IJavaElement.JAVA_MODULE:
-			return new ModuleDeclarationMatch(binding == null ? element : ((JavaElement) element).resolved(binding), accuracy, offset, length, participant, resource);
+			ModuleDeclarationMatch match = new ModuleDeclarationMatch(binding == null ? element : ((JavaElement) element).resolved(binding), accuracy, offset, length, participant, resource);
+			this.matchBinding.put(match, binding);
+			return match;
 		default:
 			return null;
 	}
@@ -2929,6 +2989,7 @@ protected void reportMatching(ModuleDeclaration module, IJavaElement parent, int
 	}
 	if (moduleDesc == null) // could theoretically happen if openable is ICompilationUnit, but logically having a module should prevent this from happening
 		return;
+	reportMatching(module.annotations, moduleDesc, null, module.binding, nodeSet, true, true);
 	if (accuracy > -1) { // report module declaration
 		SearchMatch match = this.patternLocator.newDeclarationMatch(module, moduleDesc, module.binding, accuracy, module.moduleName.length, this);
 		report(match);

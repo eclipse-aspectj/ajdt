@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -17,6 +13,7 @@
 
 package org.aspectj.org.eclipse.jdt.core.dom;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -3371,6 +3368,7 @@ public class ASTConverter {
 
 		List<ModuleDirective> stmts = moduleDecl.moduleStatements();
 		TreeSet<ModuleDirective> tSet = new TreeSet<> (new Comparator() {
+			@Override
 			public int compare(Object o1, Object o2) {
 				int p1 = ((ModuleDirective) o1).getStartPosition();
 				int p2 = ((ModuleDirective) o2).getStartPosition();
@@ -5415,7 +5413,14 @@ public class ASTConverter {
 
 	protected void setAnnotations(ModuleDeclaration moduleDecl, org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration moduleDeclaration) {
 		this.scanner.resetTo(moduleDeclaration.declarationSourceStart, moduleDeclaration.sourceStart);
-		this.setModifiers(moduleDecl.annotations(), moduleDeclaration.annotations, moduleDeclaration.sourceStart);
+		List<IExtendedModifier> modifiers = new ArrayList<>();
+		this.setModifiers(modifiers, moduleDeclaration.annotations, moduleDeclaration.sourceStart);
+		for (IExtendedModifier ie : modifiers) {
+			if (!ie.isAnnotation()) {
+				continue; // not setting to malformed.
+			}
+			moduleDecl.annotations().add(ie);
+		}
 	}
 	/**
 	 * @param variableDecl

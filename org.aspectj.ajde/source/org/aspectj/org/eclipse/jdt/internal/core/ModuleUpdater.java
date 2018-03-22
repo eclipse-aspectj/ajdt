@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2017 GK Software AG, and others.
+ * Copyright (c) 2017, 2018 GK Software AG, and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
@@ -15,14 +11,18 @@
 package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.aspectj.org.eclipse.jdt.core.IClasspathAttribute;
 import org.aspectj.org.eclipse.jdt.core.IClasspathEntry;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModuleAwareNameEnvironment;
@@ -66,7 +66,7 @@ public class ModuleUpdater {
 						String modName = value.substring(0, slash);
 						char[] packName = value.substring(slash+1, equals).toCharArray();
 						char[][] targets = CharOperation.splitOn(',', value.substring(equals+1).toCharArray());
-						addModuleUpdate(modName, m -> m.addExports(packName, targets), UpdateKind.PACKAGE);
+						addModuleUpdate(modName, new IUpdatableModule.AddExports(packName, targets), UpdateKind.PACKAGE);
 					} else {
 						Util.log(IStatus.WARNING, "Invalid argument to add-exports: "+value); //$NON-NLS-1$
 					}
@@ -77,7 +77,7 @@ public class ModuleUpdater {
 					if (equals != -1) {
 						String srcMod = value.substring(0, equals);
 						char[] targetMod = value.substring(equals+1).toCharArray();
-						addModuleUpdate(srcMod, m -> m.addReads(targetMod), UpdateKind.MODULE);
+						addModuleUpdate(srcMod, new IUpdatableModule.AddReads(targetMod), UpdateKind.MODULE);
 					} else {
 						Util.log(IStatus.WARNING, "Invalid argument to add-reads: "+value); //$NON-NLS-1$
 					}
@@ -111,5 +111,53 @@ public class ModuleUpdater {
 					update.accept(compilerModule);
 			}
 		}
+	}
+
+	private static boolean containsNonModularDependency(IClasspathEntry[] entries) {
+		for (IClasspathEntry e : entries) {
+			if (e.getEntryKind() != IClasspathEntry.CPE_SOURCE && !((ClasspathEntry) e).isModular())
+				return true;
+		}
+		return false;
+	}
+
+	// Bug 520713: allow test code to access code on the classpath
+	public void addReadUnnamedForNonEmptyClasspath(JavaProject project, IClasspathEntry[] expandedClasspath)
+			throws JavaModelException {
+		for (String moduleName : determineModulesOfProjectsWithNonEmptyClasspath(project, expandedClasspath)) {
+			addModuleUpdate(moduleName, m -> m.addReads(ModuleBinding.ALL_UNNAMED), UpdateKind.MODULE);
+		}
+	}
+
+	public static Set<String> determineModulesOfProjectsWithNonEmptyClasspath(JavaProject project,
+			IClasspathEntry[] expandedClasspath) throws JavaModelException {
+		LinkedHashSet<String> list = new LinkedHashSet<>();
+		if (containsNonModularDependency(expandedClasspath)) {
+			IModuleDescription moduleDescription = project.getModuleDescription();
+			if (moduleDescription != null) {
+				list.add(moduleDescription.getElementName());
+			}
+		}
+		for (IClasspathEntry e1 : expandedClasspath) {
+			if (e1.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+				Object target = JavaModel.getTarget(e1.getPath(), true);
+				if (target instanceof IProject) {
+					IProject prereqProject = (IProject) target;
+					if (JavaProject.hasJavaNature(prereqProject)) {
+						JavaProject prereqJavaProject = (JavaProject) JavaCore.create(prereqProject);
+						if (containsNonModularDependency(prereqJavaProject.getResolvedClasspath())) {
+							IModuleDescription prereqModuleDescription = prereqJavaProject.getModuleDescription();
+							if (prereqModuleDescription != null) {
+								list.add(prereqModuleDescription.getElementName());
+							}
+						}
+					}
+				}
+			}
+		}
+		return list;
+	}
+	public UpdatesByKind getUpdates(String moduleName) {
+		return this.moduleUpdates.get(moduleName);
 	}
 }

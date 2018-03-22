@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,7 @@ protected BinaryMember(JavaElement parent, String name) {
 /*
  * @see ISourceManipulation
  */
+@Override
 public void copy(IJavaElement container, IJavaElement sibling, String rename, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, this));
 }
@@ -92,6 +93,7 @@ protected IAnnotation[] getStandardAnnotations(long tagBits) {
 	return (IAnnotation[]) annotations.toArray(new IAnnotation[annotations.size()]);
 }
 
+@Override
 public String[] getCategories() throws JavaModelException {
 	SourceMapper mapper= getSourceMapper();
 	if (mapper != null) {
@@ -121,11 +123,12 @@ public abstract String getKey(boolean forceOpen) throws JavaModelException;
 /*
  * @see ISourceReference
  */
+@Override
 public ISourceRange getNameRange() throws JavaModelException {
 	SourceMapper mapper= getSourceMapper();
 	if (mapper != null) {
 		// ensure the class file's buffer is open so that source ranges are computed
-		((ClassFile)getClassFile()).getBuffer();
+		((AbstractClassFile)getClassFile()).getBuffer();
 
 		return mapper.getNameRange(this);
 	} else {
@@ -135,6 +138,7 @@ public ISourceRange getNameRange() throws JavaModelException {
 /*
  * @see ISourceReference
  */
+@Override
 public ISourceRange getSourceRange() throws JavaModelException {
 	SourceMapper mapper= getSourceMapper();
 	if (mapper != null) {
@@ -149,24 +153,28 @@ public ISourceRange getSourceRange() throws JavaModelException {
 /*
  * @see IMember
  */
+@Override
 public boolean isBinary() {
 	return true;
 }
 /*
  * @see IJavaElement
  */
+@Override
 public boolean isStructureKnown() throws JavaModelException {
 	return ((IJavaElement)getOpenableParent()).isStructureKnown();
 }
 /*
  * @see ISourceManipulation
  */
+@Override
 public void move(IJavaElement container, IJavaElement sibling, String rename, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, this));
 }
 /*
  * @see ISourceManipulation
  */
+@Override
 public void rename(String newName, boolean force, IProgressMonitor monitor) throws JavaModelException {
 	throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, this));
 }

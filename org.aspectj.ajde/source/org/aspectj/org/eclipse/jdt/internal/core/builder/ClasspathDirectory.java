@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,6 +50,7 @@ ClasspathDirectory(IContainer binaryFolder, boolean isOutputFolder, AccessRuleSe
 	this.isOnModulePath = isOnModulePath;
 }
 
+@Override
 public void cleanup() {
 	if (this.annotationZipFile != null) {
 		try {
@@ -80,7 +77,7 @@ IModule initializeModule() {
 							ClassFileReader cfr = Util.newClassFileReader(m);
 							return cfr.getModuleDeclaration();
 						} catch (ClassFormatException | IOException e) {
-							// TODO BETA_JAVA9 Auto-generated catch block
+							// TODO Java 9 Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -132,6 +129,7 @@ boolean doesFileExist(String fileName, String qualifiedPackageName, String quali
 	return false;
 }
 
+@Override
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathDirectory)) return false;
@@ -140,11 +138,12 @@ public boolean equals(Object o) {
 	if (this.accessRuleSet != dir.accessRuleSet)
 		if (this.accessRuleSet == null || !this.accessRuleSet.equals(dir.accessRuleSet))
 			return false;
-	if (this.module != dir.module)
-		if (this.module == null || !this.module.equals(dir.module))
-			return false;
-	return this.binaryFolder.equals(dir.binaryFolder);
+	if (this.isOnModulePath != dir.isOnModulePath)
+		return false;
+
+	return this.binaryFolder.equals(dir.binaryFolder) && areAllModuleOptionsEqual(dir);
 }
+@Override
 public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 	if (!doesFileExist(binaryFileName, qualifiedPackageName, qualifiedBinaryFileName)) return null; // most common case
 
@@ -187,10 +186,12 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 	return null;
 }
 
+@Override
 public IPath getProjectRelativePath() {
 	return this.binaryFolder.getProjectRelativePath();
 }
 
+@Override
 public int hashCode() {
 	return this.binaryFolder == null ? super.hashCode() : this.binaryFolder.hashCode();
 }
@@ -199,10 +200,12 @@ protected boolean isExcluded(IResource resource) {
 	return false;
 }
 
+@Override
 public boolean isOutputFolder() {
 	return this.isOutputFolder;
 }
 
+@Override
 public boolean isPackage(String qualifiedPackageName, String moduleName) {
 	if (moduleName != null) {
 		if (this.module == null || !moduleName.equals(String.valueOf(this.module.name())))
@@ -223,10 +226,12 @@ public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName
 	return false;
 }
 
+@Override
 public void reset() {
 	this.directoryCache = new SimpleLookupTable(5);
 }
 
+@Override
 public String toString() {
 	String start = "Binary classpath directory " + this.binaryFolder.getFullPath().toString(); //$NON-NLS-1$
 	if (this.accessRuleSet == null)
@@ -234,6 +239,7 @@ public String toString() {
 	return start + " with " + this.accessRuleSet; //$NON-NLS-1$
 }
 
+@Override
 public String debugPathString() {
 	return this.binaryFolder.getFullPath().toString();
 }

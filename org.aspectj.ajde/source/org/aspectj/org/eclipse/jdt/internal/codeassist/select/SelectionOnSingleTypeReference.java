@@ -35,14 +35,19 @@ public class SelectionOnSingleTypeReference extends SingleTypeReference {
 public SelectionOnSingleTypeReference(char[] source, long pos) {
 	super(source, pos);
 }
+@Override
 public void aboutToResolve(Scope scope) {
 	getTypeBinding(scope.parent); // step up from the ClassScope
 }
+@Override
 protected TypeBinding getTypeBinding(Scope scope) {
 	// it can be a package, type or member type
 	Binding binding = scope.getTypeOrPackage(new char[][] {this.token});
 	if (!binding.isValidBinding()) {
-		if (binding instanceof TypeBinding) {
+		if(binding instanceof ProblemReferenceBinding && binding.problemId() == ProblemReasons.NotVisible) {
+			ProblemReferenceBinding problemReferenceBinding = (ProblemReferenceBinding) binding;
+			throw new SelectionNodeFound(problemReferenceBinding.closestMatch());
+		} else if (binding instanceof TypeBinding) {
 			scope.problemReporter().invalidType(this, (TypeBinding) binding);
 		} else if (binding instanceof PackageBinding) {
 			ProblemReferenceBinding problemBinding = new ProblemReferenceBinding(((PackageBinding)binding).compoundName, null, binding.problemId());
@@ -52,10 +57,12 @@ protected TypeBinding getTypeBinding(Scope scope) {
 	}
 	throw new SelectionNodeFound(binding);
 }
+@Override
 public StringBuffer printExpression(int indent, StringBuffer output) {
 
 	return output.append("<SelectOnType:").append(this.token).append('>');//$NON-NLS-1$
 }
+@Override
 public TypeBinding resolveTypeEnclosing(BlockScope scope, ReferenceBinding enclosingType) {
 	super.resolveTypeEnclosing(scope, enclosingType);
 

@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     daolaf@gmail.com - Contribution for bug 3292227
@@ -240,7 +236,7 @@ public class Util implements SuffixConstants {
 
 	public static final String EMPTY_STRING = new String(CharOperation.NO_CHAR);
 	/**
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static final String COMMA_SEPARATOR = new String(CharOperation.COMMA_SEPARATOR);
 	public static final int[] EMPTY_INT_ARRAY= new int[0];
@@ -1023,6 +1019,7 @@ public class Util implements SuffixConstants {
 	public static String toString(Object[] objects) {
 		return toString(objects,
 			new Displayable(){
+				@Override
 				public String displayString(Object o) {
 					if (o == null) return "null"; //$NON-NLS-1$
 					return o.toString();

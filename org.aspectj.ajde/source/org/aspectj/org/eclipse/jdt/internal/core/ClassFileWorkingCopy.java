@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for Bug 337935 - Test failures when run as an IDE (org.eclipse.sdk.ide)
@@ -49,10 +45,12 @@ private static String sourceFileName(AbstractClassFile classFile) {
 		return ((BinaryType) ((ClassFile) classFile).getType()).getSourceFileName(null/*no info available*/);
 }
 
+@Override
 public void commitWorkingCopy(boolean force, IProgressMonitor monitor) throws JavaModelException {
 	throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, this));
 }
 
+@Override
 public IBuffer getBuffer() throws JavaModelException {
 	if (isWorkingCopy())
 		return super.getBuffer();
@@ -60,6 +58,7 @@ public IBuffer getBuffer() throws JavaModelException {
 		return this.classFile.getBuffer();
 }
 
+@Override
 public char[] getContents() {
 	try {
 		IBuffer buffer = getBuffer();
@@ -72,15 +71,18 @@ public char[] getContents() {
 	}
 }
 
+@Override
 public IPath getPath() {
 	return this.classFile.getPath();
 }
 
+@Override
 public IJavaElement getPrimaryElement(boolean checkOwner) {
 	if (checkOwner && isPrimary()) return this;
 	return new ClassFileWorkingCopy(this.classFile, DefaultWorkingCopyOwner.PRIMARY);
 }
 
+@Override
 public IResource resource(PackageFragmentRoot root) {
 	if (root.isArchive())
 		return root.resource(root);
@@ -90,6 +92,7 @@ public IResource resource(PackageFragmentRoot root) {
 /**
  * @see Openable#openBuffer(IProgressMonitor, Object)
  */
+@Override
 protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelException {
 
 	// create buffer
@@ -117,6 +120,7 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 	return buffer;
 }
 
+@Override
 protected void toStringName(StringBuffer buffer) {
 	buffer.append(this.classFile.getElementName());
 }

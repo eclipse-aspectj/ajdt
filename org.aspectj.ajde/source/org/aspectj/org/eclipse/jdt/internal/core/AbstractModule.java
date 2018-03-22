@@ -1,53 +1,86 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation.
+ * Copyright (c) 2017, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
+import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IPackageExport;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IService;
 
-public abstract class AbstractModule extends NamedMember implements IModuleDescription {
-	protected AbstractModule(JavaElement parent, String name) {
-		super(parent, name);
+public interface AbstractModule extends IModuleDescription {
+	
+	/**
+	 * Handle for an automatic module.
+	 *
+	 * <p>Note, that by definition this is mostly a fake, only {@link #getElementName()} provides a useful value.</p>
+	 */
+	static class AutoModule extends NamedMember implements AbstractModule {
+	
+		public AutoModule(JavaElement parent, String name) {
+			super(parent, name);
+		}
+		@Override
+		public IJavaElement[] getChildren() throws JavaModelException {
+			return JavaElement.NO_ELEMENTS; // may later answer computed details
+		}
+		@Override
+		public int getFlags() throws JavaModelException {
+			return 0;
+		}
+		@Override
+		public char getHandleMementoDelimiter() {
+			return JavaElement.JEM_MODULE;
+		}
+		@Override
+		public ITypeRoot getTypeRoot() {
+			return null; // has no real CompilationUnit nor ClassFile
+		}
+		@Override
+		public IModuleReference[] getRequiredModules() throws JavaModelException {
+			return ModuleDescriptionInfo.NO_REQUIRES;
+		}
+		@Override
+		public void toStringContent(StringBuffer buffer, String lineDelimiter) throws JavaModelException {
+			buffer.append("automatic module "); //$NON-NLS-1$
+			buffer.append(this.name);
+		}
 	}
-	public IModuleReference[] getRequiredModules() throws JavaModelException {
-		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
-		return info.requires();
+	
+	// "forward declaration" for a method from JavaElement:
+	abstract Object getElementInfo() throws JavaModelException;
+
+	default IModule getModuleInfo() throws JavaModelException {
+		return (IModule) getElementInfo();
 	}
-	public IPackageExport[] getExportedPackages() throws JavaModelException {
-		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
-		return info.exports();
+	default IModuleReference[] getRequiredModules() throws JavaModelException {
+		return getModuleInfo().requires();
 	}
-	public IService[] getProvidedServices() throws JavaModelException {
-		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
-		return info.provides();
+	default IPackageExport[] getExportedPackages() throws JavaModelException {
+		return getModuleInfo().exports();
 	}
-	public char[][] getUsedServices() throws JavaModelException {
-		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
-		return info.uses();
+	default IService[] getProvidedServices() throws JavaModelException {
+		return getModuleInfo().provides();
 	}
-	public IPackageExport[] getOpenedPackages() throws JavaModelException {
-		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
-		return info.opens();
+	default char[][] getUsedServices() throws JavaModelException {
+		return getModuleInfo().uses();
 	}
-	public String getKey(boolean forceOpen) throws JavaModelException {
-		return getKey(this, forceOpen);
+	default IPackageExport[] getOpenedPackages() throws JavaModelException {
+		return getModuleInfo().opens();
 	}
-	public String toString(String lineDelimiter) {
+
+	default String toString(String lineDelimiter) {
 		StringBuffer buffer = new StringBuffer();
 		try {
 			toStringContent(buffer, lineDelimiter);
@@ -57,11 +90,11 @@ public abstract class AbstractModule extends NamedMember implements IModuleDescr
 		}
 		return buffer.toString();
 	}
-	protected void toStringContent(StringBuffer buffer, String lineDelimiter) throws JavaModelException {
+	default void toStringContent(StringBuffer buffer, String lineDelimiter) throws JavaModelException {
 		IPackageExport[] exports = getExportedPackages();
 		IModuleReference[] requires = getRequiredModules();
 		buffer.append("module "); //$NON-NLS-1$
-		buffer.append(this.name).append(' ');
+		buffer.append(getElementName()).append(' ');
 		buffer.append('{').append(lineDelimiter);
 		if (exports != null) {
 			for(int i = 0; i < exports.length; i++) {
@@ -84,14 +117,8 @@ public abstract class AbstractModule extends NamedMember implements IModuleDescr
 		buffer.append(lineDelimiter).append('}').toString();
 	}
 
-	/**
-	 * @see JavaElement#getHandleMemento()
-	 */
-	protected char getHandleMementoDelimiter() {
-		return JavaElement.JEM_MODULE;
-	}
 	@Override
-	public int getElementType() {
+	default int getElementType() {
 		return JAVA_MODULE;
 	}
 }

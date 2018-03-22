@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -67,8 +63,6 @@ public class ProvidesStatement extends ModuleStatement {
 				problemId = IProblem.InvalidServiceImplType;
 			} else if (impl.isNestedType() && !impl.isStatic()) {
 				problemId = IProblem.NestedServiceImpl;
-			} else if (impl.isAbstract()) {
-				problemId = IProblem.AbstractServiceImplementation;
 			} else {
 				MethodBinding provider = impl.getExactMethod(TypeConstants.PROVIDER, Binding.NO_PARAMETERS, scope.compilationUnitScope());
 				if (provider != null && (!provider.isValidBinding() || !(provider.isPublic() && provider.isStatic()))) {
@@ -84,11 +78,15 @@ public class ProvidesStatement extends ModuleStatement {
 						hasErrors = true;
 					}
 				} else {
-					MethodBinding defaultConstructor = impl.getExactConstructor(Binding.NO_PARAMETERS);
-					if (defaultConstructor == null || !defaultConstructor.isValidBinding()) {
-						problemId = IProblem.ProviderMethodOrConstructorRequiredForServiceImpl;
-					} else if (!defaultConstructor.isPublic()) {
-						problemId = IProblem.ServiceImplDefaultConstructorNotPublic;
+					if (impl.isAbstract()) {
+						problemId = IProblem.AbstractServiceImplementation;
+					} else {
+						MethodBinding defaultConstructor = impl.getExactConstructor(Binding.NO_PARAMETERS);
+						if (defaultConstructor == null || !defaultConstructor.isValidBinding()) {
+							problemId = IProblem.ProviderMethodOrConstructorRequiredForServiceImpl;
+						} else if (!defaultConstructor.isPublic()) {
+							problemId = IProblem.ServiceImplDefaultConstructorNotPublic;
+						}
 					}
 				}
 				if (implType.findSuperTypeOriginatingFrom(intf) == null) {

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -197,7 +193,7 @@ public class AST {
 	/**
 	 * Internal synonym for {@link #JLS8}. Use to alleviate
 	 * deprecation warnings.
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	/*package*/ static final int JLS8_INTERNAL = JLS8;
 	
@@ -213,14 +209,14 @@ public class AST {
 	 * up to and including Java SE 9 (aka JDK 9).
 	 * </p>
 	 *
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static final int JLS9 = 9;
 
 	/**
 	 * Internal synonym for {@link #JLS9}. Use to alleviate
 	 * deprecation warnings once JLS9 is deprecated
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	/*package*/ static final int JLS9_INTERNAL = JLS9;
 
@@ -1520,7 +1516,7 @@ public class AST {
 	 *
 	 * @return a new unparented exports directive node
 	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public ExportsDirective newExportsStatement() {
 		ExportsDirective result = new ExportsDirective(this);
@@ -1895,7 +1891,7 @@ public class AST {
 	 * @exception IllegalArgumentException if the primitive type code is invalid
 	 * @exception UnsupportedOperationException if this operation is used in
 	 * an AST with level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public ModuleModifier newModuleModifier(ModuleModifier.ModuleModifierKeyword keyword) {
 		ModuleModifier result = new ModuleModifier(this);
@@ -1971,7 +1967,7 @@ public class AST {
 	 *
 	 * @return a new unparented module declaration node
 	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public ModuleDeclaration newModuleDeclaration() {
 		ModuleDeclaration result = new ModuleDeclaration(this);
@@ -2147,7 +2143,7 @@ public class AST {
 	 *
 	 * @return a new unparented opens directive node
 	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public OpensDirective newOpensDirective() {
 		OpensDirective result = new OpensDirective(this);
@@ -2243,7 +2239,7 @@ public class AST {
 	 *
 	 * @return a new unparented provides directive node
 	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public ProvidesDirective newProvidesDirective() {
 		ProvidesDirective result = new ProvidesDirective(this);
@@ -2302,7 +2298,7 @@ public class AST {
 	 *
 	 * @return a new unparented requires directive node
 	 * @exception UnsupportedOperationException if this operation is used in an AST with level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public RequiresDirective newRequiresDirective() {
 		RequiresDirective result = new RequiresDirective(this);
@@ -2687,7 +2683,7 @@ public class AST {
 	 *
 	 * @return a new unparented uses directive node
 	 * @exception UnsupportedOperationException if this operation is used in level less than JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public UsesDirective newUsesDirective() {
 		UsesDirective result = new UsesDirective(this);

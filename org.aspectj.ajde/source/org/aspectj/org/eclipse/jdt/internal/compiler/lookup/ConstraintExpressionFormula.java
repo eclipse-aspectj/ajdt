@@ -53,6 +53,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 		this.isSoft = isSoft;
 	}
 
+	@Override
 	public Object reduce(InferenceContext18 inferenceContext) throws InferenceFailureException {
 		
 		if (this.relation == POTENTIALLY_COMPATIBLE) {
@@ -67,7 +68,13 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 	
 		// JLS 18.2.1
 		if (this.right.isProperType(true)) {
-			return this.left.isCompatibleWith(this.right, inferenceContext.scope) || this.left.isBoxingCompatibleWith(this.right, inferenceContext.scope) ? TRUE : FALSE;
+			if (this.left.isCompatibleWith(this.right, inferenceContext.scope) || this.left.isBoxingCompatibleWith(this.right, inferenceContext.scope)) {
+				if (this.left.resolvedType != null && this.left.resolvedType.needsUncheckedConversion(this.right)) {
+					inferenceContext.usesUncheckedConversion = true;
+				}
+				return TRUE;
+			}
+			return FALSE;
 		}
 		if (!canBePolyExpression(this.left)) {
 			TypeBinding exprType = this.left.resolvedType;
@@ -456,6 +463,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 		return erasedLeaf;
 	}
 
+	@Override
 	Collection<InferenceVariable> inputVariables(final InferenceContext18 context) {
 		// from 18.5.2.
 		if (this.left instanceof LambdaExpression) {
@@ -516,6 +524,7 @@ class ConstraintExpressionFormula extends ConstraintFormula {
 	}
 
 	// debugging:
+	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer().append(LEFT_ANGLE_BRACKET);
 		this.left.printExpression(4, buf);

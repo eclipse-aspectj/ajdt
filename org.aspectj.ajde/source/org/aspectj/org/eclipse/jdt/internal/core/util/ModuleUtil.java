@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -39,6 +35,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.BasicCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.aspectj.org.eclipse.jdt.internal.core.CompilationGroup;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.NameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.builder.ProblemFactory;
 
@@ -46,7 +43,7 @@ public class ModuleUtil {
 
 	static class ModuleAccumulatorEnvironment extends NameEnvironment {
 		public ModuleAccumulatorEnvironment(IJavaProject javaProject) {
-			super(javaProject);
+			super(javaProject, CompilationGroup.MAIN);
 		}
 
 		Set<String> modules = new HashSet<>();

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
  *******************************************************************************/
@@ -35,6 +31,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule.UpdateKind;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSetOfCharArray;
+import org.aspectj.org.eclipse.jdt.internal.core.CompilationGroup;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.aspectj.org.eclipse.jdt.internal.core.ModuleUpdater;
 
@@ -55,7 +52,7 @@ public class ModuleInfoBuilder {
 	
 	public byte[] compileWithAttributes(IModuleDescription module, Map<String,String> classFileAttributes) throws JavaModelException {
 		IJavaProject javaProject = module.getJavaProject();
-		NameEnvironment nameEnvironment = new NameEnvironment(javaProject);
+		NameEnvironment nameEnvironment = new NameEnvironment(javaProject, CompilationGroup.MAIN);
 
 		addModuleUpdates(module, nameEnvironment.moduleUpdater, classFileAttributes);
 		

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -42,12 +38,14 @@ public class JarEntryFile  extends JarEntryResource {
 		super(simpleName);
 	}
 
+	@Override
 	public JarEntryResource clone(Object newParent) {
 		JarEntryFile file = new JarEntryFile(this.simpleName);
 		file.setParent(newParent);
 		return file;
 	}
 
+	@Override
 	public InputStream getContents() throws CoreException {
 		IPackageFragmentRoot root = getPackageFragmentRoot();
 		if (Util.isJrt(root.getPath().toOSString())) {
@@ -84,14 +82,17 @@ public class JarEntryFile  extends JarEntryResource {
 		}
 	}
 
+	@Override
 	public IJarEntryResource[] getChildren() {
 		return NO_CHILDREN;
 	}
 
+	@Override
 	public boolean isFile() {
 		return true;
 	}
 
+	@Override
 	public String toString() {
 		return "JarEntryFile["+getEntryName()+"]"; //$NON-NLS-2$ //$NON-NLS-1$
 	}

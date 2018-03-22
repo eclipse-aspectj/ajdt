@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -23,6 +19,7 @@ public class ModuleReferenceImpl implements IModule.IModuleReference {
 	public char[] name() {
 		return this.name;
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) 
 			return true;
@@ -35,7 +32,7 @@ public class ModuleReferenceImpl implements IModule.IModuleReference {
 	}
 	@Override
 	public int hashCode() {
-		return this.name.hashCode();
+		return CharOperation.hashCode(this.name);
 	}
 	@Override
 	public int getModifiers() {

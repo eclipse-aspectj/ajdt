@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2017 GK Software AG, and others.
+ * Copyright (c) 2017, 2018 GK Software AG, and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
@@ -19,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSetOfCharArray;
 
 /**
@@ -33,6 +30,88 @@ public interface IUpdatableModule {
 	 */
 	enum UpdateKind { MODULE, PACKAGE }
 
+	class AddExports implements Consumer<IUpdatableModule> {
+
+		char[] name;
+		char[][] targets;
+		public AddExports(char[] pkgName, char[][] targets) {
+			this.name = pkgName;
+			this.targets = targets;
+		}
+		@Override
+		public void accept(IUpdatableModule t) {
+			// TODO Auto-generated method stub
+			t.addExports(this.name, this.targets);
+		}
+		
+		public char[] getName() {
+			return this.name;
+		}
+		
+		public char[][] getTargetModules() {
+			return this.targets;
+		}
+		
+		public UpdateKind getKind() {
+			return UpdateKind.PACKAGE;
+		}
+		@Override
+		public boolean equals(Object other) {
+			if (this == other) return true;
+			if (!(other instanceof AddExports)) return false;
+			AddExports pu = (AddExports) other;
+			
+			if (!CharOperation.equals(this.name, pu.name))
+				return false;
+			if (!CharOperation.equals(this.targets, pu.targets))
+				return false;
+			return true;
+		}
+		@Override
+		public int hashCode() {
+			int hash = CharOperation.hashCode(this.name);
+			if (this.targets != null) {
+				for (int i = 0; i < this.targets.length; i++) {
+					hash += 17 * CharOperation.hashCode(this.targets[i]);
+				}
+			}
+			return hash;
+		}
+	}
+	
+	class AddReads implements Consumer<IUpdatableModule> {
+
+		char[] targetModule;
+		
+		public AddReads(char[] target) {
+			this.targetModule = target;
+		}
+		@Override
+		public void accept(IUpdatableModule t) {
+			// TODO Auto-generated method stub
+			t.addReads(this.targetModule);
+		}
+		
+		public char[] getTarget() {
+			return this.targetModule;
+		}
+		
+		public UpdateKind getKind() {
+			return UpdateKind.MODULE;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (this == other) return true;
+			if (!(other instanceof AddReads)) return false;
+			AddReads mu = (AddReads) other;
+			return CharOperation.equals(this.targetModule, mu.targetModule);
+		}
+		@Override
+		public int hashCode() {
+			return CharOperation.hashCode(this.targetModule);
+		}
+	}
 	/** Structure for update operations, sorted by {@link UpdateKind}. */
 	class UpdatesByKind {
 		List<Consumer<IUpdatableModule>> moduleUpdates = Collections.emptyList();

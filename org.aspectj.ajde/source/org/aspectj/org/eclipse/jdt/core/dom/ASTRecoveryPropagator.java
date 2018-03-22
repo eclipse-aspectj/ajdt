@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -129,6 +125,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(Block node) {
 		this.blockDepth--;
 		if(this.blockDepth <= 0) {
@@ -139,12 +136,14 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 
 
 
+	@Override
 	public boolean visit(Block node) {
 		boolean visitChildren = super.visit(node);
 		this.blockDepth++;
 		return visitChildren;
 	}
 
+	@Override
 	protected boolean visitNode(ASTNode node) {
 		if(this.blockDepth > 0) {
 			int start = node.getStartPosition();
@@ -184,6 +183,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		return true;
 	}
 
+	@Override
 	protected void endVisitNode(ASTNode node) {
 		int start = node.getStartPosition();
 		int end = start + node.getLength() - 1;
@@ -363,6 +363,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		return foundProblems;
 	}
 
+	@Override
 	public void endVisit(ExpressionStatement node) {
 		endVisitNode(node);
 		if ((node.getFlags() & ASTNode.RECOVERED) == 0) return;
@@ -383,6 +384,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(ForStatement node) {
 		endVisitNode(node);
 		List initializers = node.initializers();
@@ -403,6 +405,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(VariableDeclarationStatement node) {
 		endVisitNode(node);
 		List fragments = node.fragments();
@@ -421,6 +424,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(NormalAnnotation node) {
 		endVisitNode(node);
 		// is inside diet part of the ast
@@ -439,6 +443,7 @@ class ASTRecoveryPropagator extends DefaultASTVisitor {
 		}
 	}
 
+	@Override
 	public void endVisit(SingleMemberAnnotation node) {
 		endVisitNode(node);
 		// is inside diet part of the ast

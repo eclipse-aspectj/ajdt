@@ -5,21 +5,19 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - contribution for bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -67,20 +65,26 @@ public class SearchableEnvironment
 	protected boolean checkAccessRestrictions;
 	// moduleName -> IPackageFragmentRoot[](lazily populated)
 	private Map<String,IPackageFragmentRoot[]> knownModuleLocations; // null indicates: not using JPMS
+	private boolean excludeTestCode;
 
 	private ModuleUpdater moduleUpdater;
 	private Map<IPackageFragmentRoot,IModuleDescription> rootToModule;
 
+	@Deprecated
+	public SearchableEnvironment(JavaProject project, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+		this(project, workingCopies, false);
+	}
 	/**
 	 * Creates a SearchableEnvironment on the given project
 	 */
-	public SearchableEnvironment(JavaProject project, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies) throws JavaModelException {
+	public SearchableEnvironment(JavaProject project, org.aspectj.org.eclipse.jdt.core.ICompilationUnit[] workingCopies, boolean excludeTestCode) throws JavaModelException {
 		this.project = project;
+		this.excludeTestCode = excludeTestCode;
 		this.checkAccessRestrictions =
 			!JavaCore.IGNORE.equals(project.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 			|| !JavaCore.IGNORE.equals(project.getOption(JavaCore.COMPILER_PB_DISCOURAGED_REFERENCE, true));
 		this.workingCopies = workingCopies;
-		this.nameLookup = project.newNameLookup(workingCopies);
+		this.nameLookup = project.newNameLookup(workingCopies, excludeTestCode);
 		if (CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true)) >= ClassFileConstants.JDK9) {
 			for (IPackageFragmentRoot root : project.getPackageFragmentRoots()) {
 				if (root.getModuleDescription() != null) {
@@ -91,16 +95,22 @@ public class SearchableEnvironment
 		}
 		if (CompilerOptions.versionToJdkLevel(project.getOption(JavaCore.COMPILER_COMPLIANCE, true)) >= ClassFileConstants.JDK9) {
 			this.moduleUpdater = new ModuleUpdater(project);
+			if (!excludeTestCode) {
+				IClasspathEntry[] expandedClasspath = project.getExpandedClasspath();
+				if(Arrays.stream(expandedClasspath).anyMatch(e -> e.isTest())) {
+					this.moduleUpdater.addReadUnnamedForNonEmptyClasspath(project, expandedClasspath);
+				}
+			}
 			for (IClasspathEntry entry : project.getRawClasspath())
-				this.moduleUpdater.computeModuleUpdates(entry);
+				if(!excludeTestCode || !entry.isTest())
+					this.moduleUpdater.computeModuleUpdates(entry);
 		}
 	}
-
 	/**
 	 * Creates a SearchableEnvironment on the given project
 	 */
-	public SearchableEnvironment(JavaProject project, WorkingCopyOwner owner) throws JavaModelException {
-		this(project, owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/));
+	public SearchableEnvironment(JavaProject project, WorkingCopyOwner owner, boolean excludeTestCode) throws JavaModelException {
+		this(project, owner == null ? null : JavaModelManager.getJavaModelManager().getWorkingCopies(owner, true/*add primary WCs*/), excludeTestCode);
 		this.owner = owner;
 	}
 
@@ -274,32 +284,41 @@ public class SearchableEnvironment
 
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String n, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String n) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String n) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			IRestrictedAccessTypeRequestor typeRequestor = new IRestrictedAccessTypeRequestor() {
+				@Override
 				public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 					if (excludePath != null && excludePath.equals(path))
 						return;
@@ -486,32 +505,41 @@ public class SearchableEnvironment
 
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String name, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String name) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String name) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			IRestrictedAccessTypeRequestor typeRequestor = new IRestrictedAccessTypeRequestor() {
+				@Override
 				public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 					if (excludePath != null && excludePath.equals(path))
 						return;
@@ -637,33 +665,42 @@ public class SearchableEnvironment
 
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String name, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String name) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String name) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			
 			IRestrictedAccessConstructorRequestor constructorRequestor = new IRestrictedAccessConstructorRequestor() {
+				@Override
 				public void acceptConstructor(
 						int modifiers,
 						char[] simpleTypeName,
@@ -784,9 +821,9 @@ public class SearchableEnvironment
 		if (this.searchScope == null) {
 			// Create search scope with visible entry on the project's classpath
 			if(this.checkAccessRestrictions) {
-				this.searchScope = BasicSearchEngine.createJavaSearchScope(new IJavaElement[] {this.project});
+				this.searchScope = BasicSearchEngine.createJavaSearchScope(this.excludeTestCode, new IJavaElement[] {this.project});
 			} else {
-				this.searchScope = BasicSearchEngine.createJavaSearchScope(this.nameLookup.packageFragmentRoots);
+				this.searchScope = BasicSearchEngine.createJavaSearchScope(this.excludeTestCode, this.nameLookup.packageFragmentRoots);
 			}
 		}
 		return this.searchScope;
@@ -833,12 +870,21 @@ public class SearchableEnvironment
 			case AnyNamed:
 				char[][] names = CharOperation.NO_CHAR_CHAR;
 				IPackageFragmentRoot[] packageRoots = this.nameLookup.packageFragmentRoots;
+				boolean containsUnnamed = false;
 				for (IPackageFragmentRoot packageRoot : packageRoots) {
 					IPackageFragmentRoot[] singleton = { packageRoot };
 					if (strategy.matches(singleton, locs -> locs[0] instanceof JrtPackageFragmentRoot || getModuleDescription(locs) != null)) {
 						if (this.nameLookup.isPackage(pkgName, singleton)) {
 							IModuleDescription moduleDescription = getModuleDescription(singleton);
-							char[] aName = moduleDescription != null ? moduleDescription.getElementName().toCharArray() : ModuleBinding.UNNAMED;
+							char[] aName;
+							if (moduleDescription != null) {
+								aName = moduleDescription.getElementName().toCharArray();
+							} else {
+								if (containsUnnamed)
+									continue;
+								containsUnnamed = true;
+								aName = ModuleBinding.UNNAMED;
+							}
 							names = CharOperation.arrayConcat(names, aName);
 						}
 					}
@@ -889,15 +935,8 @@ public class SearchableEnvironment
 		if (this.rootToModule == null) {
 			this.rootToModule = new HashMap<>();
 		}
-		Function<IPackageFragmentRoot, IClasspathEntry> rootToEntry = r -> {
-			try {
-				return ((JavaProject) r.getJavaProject()).getClasspathEntryFor(r.getPath());
-			} catch (JavaModelException e) {
-				return null;
-			}
-		};
 		for (IPackageFragmentRoot root : roots) {
-			IModuleDescription moduleDescription = NameLookup.getModuleDescription(root, this.rootToModule, rootToEntry);
+			IModuleDescription moduleDescription = NameLookup.getModuleDescription(root, this.rootToModule, this.nameLookup.rootToResolvedEntries::get);
 			if (moduleDescription != null)
 				return moduleDescription;
 		}
@@ -911,11 +950,12 @@ public class SearchableEnvironment
 			if (moduleContext == null) {
 				Answer moduleAnswer = this.nameLookup.findModule(moduleName);
 				if (moduleAnswer != null) {
+					IProject currentProject = moduleAnswer.module.getJavaProject().getProject();
 					IJavaElement current = moduleAnswer.module.getParent();
 					while (moduleContext == null && current != null) {
 						switch (current.getElementType()) {
 							case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-								if (!((IPackageFragmentRoot) current).isExternal()) {
+								if (!((IPackageFragmentRoot) current).isExternal() && !(current instanceof JarPackageFragmentRoot)) {
 									current = current.getJavaProject();
 								} else {
 									moduleContext = new IPackageFragmentRoot[] { (IPackageFragmentRoot) current }; // TODO: validate
@@ -931,6 +971,22 @@ public class SearchableEnvironment
 								break;
 							default:
 								current = current.getParent();
+								if (current != null) {
+									try {
+										// detect when an element refers to a resource owned by another project:
+										IResource resource = current.getUnderlyingResource();
+										if (resource != null) {
+											IProject otherProject = resource.getProject();
+											if (otherProject != null && !otherProject.equals(currentProject)) {
+												IJavaProject otherJavaProject = JavaCore.create(otherProject);
+												if (otherJavaProject.exists())
+													moduleContext = getRootsForOutputLocation(otherJavaProject, resource);
+											}
+										}
+									} catch (JavaModelException e) {
+										Util.log(e, "Failed to find package fragment root for " + current); //$NON-NLS-1$
+									}
+								}
 						}
 					}
 					this.knownModuleLocations.put(String.valueOf(moduleName), moduleContext);
@@ -959,6 +1015,7 @@ public class SearchableEnvironment
 		return result.toString();
 	}
 
+	@Override
 	public void cleanup() {
 		// nothing to do
 	}
@@ -984,6 +1041,32 @@ public class SearchableEnvironment
 			this.moduleUpdater.applyModuleUpdates(module, kind);
 	}
 
+	private IPackageFragmentRoot[] getRootsForOutputLocation(IJavaProject otherJavaProject, IResource outputLocation) throws JavaModelException {
+		IPath outputPath = outputLocation.getFullPath();
+		List<IPackageFragmentRoot> result = new ArrayList<>();
+		if (outputPath.equals(otherJavaProject.getOutputLocation())) {
+			// collect roots reporting to the default output location:
+			for (IClasspathEntry classpathEntry : otherJavaProject.getRawClasspath()) {
+				if (classpathEntry.getOutputLocation() == null) {
+					for (IPackageFragmentRoot root : otherJavaProject.findPackageFragmentRoots(classpathEntry)) {
+						IResource rootResource = root.getResource();
+						if (rootResource == null || !rootResource.getProject().equals(otherJavaProject.getProject()))
+							continue; // outside this project
+						result.add(root);
+					}
+				}
+			}			
+		}
+		if (!result.isEmpty())
+			return result.toArray(new IPackageFragmentRoot[result.size()]);
+		// search an entry that specifically (and exclusively) reports to the output location:
+		for (IClasspathEntry classpathEntry : otherJavaProject.getRawClasspath()) {
+			if (outputPath.equals(classpathEntry.getOutputLocation()))
+				return otherJavaProject.findPackageFragmentRoots(classpathEntry);
+		}
+		return null;
+	}
+
 	public static IPackageFragmentRoot[] getOwnedPackageFragmentRoots(IJavaProject javaProject) throws JavaModelException {
 		IPackageFragmentRoot[] allRoots = javaProject.getPackageFragmentRoots();
 		IPackageFragmentRoot[] sourceRoots = Arrays.copyOf(allRoots, allRoots.length);
@@ -991,6 +1074,10 @@ public class SearchableEnvironment
 		for (int i = 0; i < allRoots.length; i++) {
 			IPackageFragmentRoot root = allRoots[i];
 			if (root.getKind() == IPackageFragmentRoot.K_BINARY) {
+				if(root instanceof JarPackageFragmentRoot) {
+					// don't treat jars in a project as part of the project's module
+					continue;
+				}
 				IResource resource = root.getResource();
 				if (resource == null || !resource.getProject().equals(javaProject.getProject()))
 					continue; // outside this project

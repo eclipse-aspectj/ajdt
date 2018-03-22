@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -79,6 +75,7 @@ public MethodScope(Scope parent, ReferenceContext context, boolean isStatic, int
 	this.lastVisibleFieldID = lastVisibleFieldID;
 }
 
+@Override
 String basicToString(int tab) {
 	String newLine = "\n"; //$NON-NLS-1$
 	for (int i = tab; --i >= 0;)
@@ -440,6 +437,7 @@ class X {
 	}
 }
  */
+@Override
 public FieldBinding findField(TypeBinding receiverType, char[] fieldName, InvocationSite invocationSite, boolean needResolve) {
 
 	FieldBinding field = super.findField(receiverType, fieldName, invocationSite, needResolve);
@@ -489,6 +487,7 @@ public boolean isInsideInitializer() {
 	return (this.referenceContext instanceof TypeDeclaration);
 }
 
+@Override
 public boolean isLambdaScope() {
 	return this.referenceContext instanceof LambdaExpression;
 }
@@ -505,6 +504,7 @@ public boolean isInsideInitializerOrConstructor() {
  * (unit, type or method) in case the problem handler decides it is necessary
  * to abort.
  */
+@Override
 public ProblemReporter problemReporter() {
 	ProblemReporter problemReporter = referenceCompilationUnit().problemReporter;
 	problemReporter.referenceContext = this.referenceContext;
@@ -590,11 +590,13 @@ public MethodBinding referenceMethodBinding() {
  *  Answer the reference type of this scope.
  * It is the nearest enclosing type of this scope.
  */
+@Override
 public TypeDeclaration referenceType() {
 	ClassScope scope = enclosingClassScope();
 	return scope == null ? null : scope.referenceContext;
 }
 
+@Override
 void resolveTypeParameter(TypeParameter typeParameter) {
 	typeParameter.resolve(this);
 }

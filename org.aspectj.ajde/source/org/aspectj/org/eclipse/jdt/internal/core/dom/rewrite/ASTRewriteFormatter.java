@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -58,9 +54,7 @@ public final class ASTRewriteFormatter {
 			this.positions= new ArrayList();
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#preVisit(ASTNode)
-		 */
+		@Override
 		public void preVisit(ASTNode node) {
 			Object trackData= getEventStore().getTrackedNodeData(node);
 			if (trackData != null) {
@@ -72,9 +66,7 @@ public final class ASTRewriteFormatter {
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#postVisit(ASTNode)
-		 */
+		@Override
 		public void postVisit(ASTNode node) {
 			Object placeholderData= getPlaceholders().getPlaceholderData(node);
 			if (placeholderData != null) {
@@ -86,9 +78,7 @@ public final class ASTRewriteFormatter {
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.aspectj.org.eclipse.jdt.internal.corext.dom.ASTRewriteFlattener#visit(org.aspectj.org.eclipse.jdt.core.dom.Block)
-		 */
+		@Override
 		public boolean visit(Block node) {
 			if (getPlaceholders().isCollapsed(node)) {
 				visitList(node, Block.STATEMENTS_PROPERTY, null);
@@ -425,6 +415,7 @@ public final class ASTRewriteFormatter {
 
 				doc.addPositionCategory(POS_CATEGORY);
 				doc.addPositionUpdater(new DefaultPositionUpdater(POS_CATEGORY) {
+					@Override
 					protected boolean notDeleted() {
 						int start= this.fOffset;
 						int end= start + this.fLength;
@@ -466,6 +457,7 @@ public final class ASTRewriteFormatter {
 			this.prefix= prefix;
 		}
 
+		@Override
 		public String getPrefix(int indent) {
 			return this.prefix;
 		}
@@ -484,6 +476,7 @@ public final class ASTRewriteFormatter {
 			this.kind= kind;
 		}
 
+		@Override
 		public String getPrefix(int indent) {
 			Position pos= new Position(this.start, this.length);
 			String str= this.string;
@@ -504,6 +497,7 @@ public final class ASTRewriteFormatter {
 			this.prefix= prefix;
 		}
 
+		@Override
 		public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
 			String nodeString= ASTRewriteFlattener.asString(node, events);
 			String str= this.prefix + nodeString;
@@ -528,6 +522,7 @@ public final class ASTRewriteFormatter {
 			this.prefix= prefix;
 		}
 
+		@Override
 		public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
 			String nodeString= ASTRewriteFlattener.asString(node, events);
 			int nodeStart= this.prefix.length();

@@ -117,21 +117,21 @@ public class Parser extends TheOriginalJDTParserClass {
 	protected int aspectIntPtr;
 	protected int[] aspectIntStack;
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.TheOriginalJDTParserClass#initialize()
-	 */
+	@Override
 	public void initialize() {
 		super.initialize();
 		aspectIntPtr = -1;
 		aspectIntStack = new int[4];
 	}
 
+	@Override
 	public void initialize(boolean initializeNLS) {
 		super.initialize(initializeNLS);
 		aspectIntPtr = -1;
 		aspectIntStack = new int[4];
 	}
 	
+	@Override
 	public void initializeScanner(){
 		this.scanner = new Scanner(
 			false /*comment*/, 
@@ -213,14 +213,17 @@ public class Parser extends TheOriginalJDTParserClass {
 
 
 //************** Overriding behavior for standard Java rules
+	@Override
 	protected MethodDeclaration createMethodDeclaration(CompilationResult result) {
 		return declarationFactory.createMethodDeclaration(result);
 	}
 	
+	@Override
 	protected ConstructorDeclaration createConstructorDeclaration(CompilationResult result) {
 		return declarationFactory.createConstructorDeclaration(result);
 	}
 	
+	@Override
 	protected void consumeMethodInvocationName() {
 		super.consumeMethodInvocationName();
 
@@ -230,6 +233,7 @@ public class Parser extends TheOriginalJDTParserClass {
 		}
 	}
 	
+	@Override
 	protected void consumeToken(int type) {
 		currentTokenStart = scanner.startPosition;
 		super.consumeToken(type);
@@ -999,6 +1003,7 @@ public class Parser extends TheOriginalJDTParserClass {
 		optimizedConcatNodeLists();
 	}
 	// This method is part of an automatic generation : do NOT edit-modify
+	@Override
 	protected void consumeRule(int act) {
 	  switch ( act ) {
 	    case 39 : if (DEBUG) { System.out.println("Type ::= PrimitiveType"); }  //$NON-NLS-1$
@@ -3866,6 +3871,7 @@ protected void consumeQualifiedName() {
 		this.restartRecovery = true;
 	}
 
+@Override
 protected void consumeSimpleAssertStatement() {
 	super.consumeSimpleAssertStatement();
 }
@@ -3896,6 +3902,7 @@ public Parser(
 }
 
 // don't try to recover if we're parsing AspectJ constructs
+@Override
 protected boolean shouldTryToRecover() {
 	int index = 0;
 	ASTNode node;

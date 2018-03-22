@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -17,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.builder;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.runtime.IPath;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -39,8 +36,31 @@ public class ClasspathJMod extends ClasspathJar {
 	ClasspathJMod(String zipFilename, long lastModified, AccessRuleSet accessRuleSet, IPath externalAnnotationPath) {
 		super(zipFilename, lastModified, accessRuleSet, externalAnnotationPath, true);
 	}
+	@Override
+	IModule initializeModule() {
+		IModule mod = null;
+		ZipFile file = null;
+		try {
+			file = new ZipFile(this.zipFilename);
+			String fileName = new String(CLASSES_FOLDER) + IModule.MODULE_INFO_CLASS;
+			ClassFileReader classfile = ClassFileReader.read(file, fileName);
+			if (classfile != null) {
+				mod = classfile.getModuleDeclaration();
+			}
+		} catch (ClassFormatException | IOException e) {
+			// do nothing
+		} finally {
+			try {
+				if (file != null)
+					file.close();
+			} catch (IOException e) {
+				// do nothing
+			}
+		}
+		return mod;
+	}
 
-
+	@Override
 	public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 		if (!isPackage(qualifiedPackageName, moduleName)) return null; // most common case
 
@@ -79,6 +99,7 @@ public class ClasspathJMod extends ClasspathJar {
 		}
 		return null;
 	}
+	@Override
 	protected String readJarContent(final SimpleSet packageSet) {
 		String modInfo = null;
 		for (Enumeration<? extends ZipEntry> e = this.zipFile.entries(); e.hasMoreElements(); ) {

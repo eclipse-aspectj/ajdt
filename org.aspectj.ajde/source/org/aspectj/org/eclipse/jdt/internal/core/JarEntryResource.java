@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -36,6 +32,7 @@ public abstract class JarEntryResource  extends PlatformObject implements IJarEn
 
 	public abstract JarEntryResource clone(Object newParent);
 
+	@Override
 	public boolean equals(Object obj) {
 		if (! (obj instanceof JarEntryResource))
 			return false;
@@ -56,18 +53,22 @@ public abstract class JarEntryResource  extends PlatformObject implements IJarEn
 		return parentEntryName + this.simpleName;
 	}
 
+	@Override
 	public IPath getFullPath() {
 		return new Path(getEntryName()).makeAbsolute();
 	}
 
+	@Override
 	public String getName() {
 		return this.simpleName;
 	}
 
+	@Override
 	public Object getParent() {
 		return this.parent;
 	}
 
+	@Override
 	public IPackageFragmentRoot getPackageFragmentRoot() {
 		if (this.parent instanceof IPackageFragment) {
 			return (IPackageFragmentRoot) ((IPackageFragment) this.parent).getParent();
@@ -88,10 +89,12 @@ public abstract class JarEntryResource  extends PlatformObject implements IJarEn
 			return ((JarEntryDirectory) this.parent).getZipFile();
 	}
 
+	@Override
 	public int hashCode() {
 		return Util.combineHashCodes(this.simpleName.hashCode(), this.parent.hashCode());
 	}
 
+	@Override
 	public boolean isReadOnly() {
 		return true;
 	}

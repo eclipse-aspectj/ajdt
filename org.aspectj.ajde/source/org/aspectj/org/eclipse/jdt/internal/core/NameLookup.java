@@ -1,14 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - contribution for bug 337868 - [compiler][model] incomplete support for package-info.java when using SearchableEnvironment
@@ -18,7 +14,6 @@ package org.aspectj.org.eclipse.jdt.internal.core;
 import java.io.File;
 import java.util.*;
 import java.util.function.Function;
-import java.util.jar.Manifest;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.IPath;
@@ -42,7 +37,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.AutomaticModuleNaming;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
@@ -72,23 +66,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class NameLookup implements SuffixConstants {
 
-	/**
-	 * Handle for an automatic module.
-	 *
-	 * <p>Note, that by definition this is mostly a fake, only {@link #getElementName()} provides a useful value.</p>
-	 */
-	private static class AutoModule extends AbstractModule {
-
-		public AutoModule(JavaElement parent, String name) {
-			super(parent, name);
-		}
-
-		@Override
-		protected void toStringContent(StringBuffer buffer, String lineDelimiter) throws JavaModelException {
-			buffer.append("automatic module "); //$NON-NLS-1$
-			buffer.append(this.name);
-		}
-	}
+	private static IModuleDescription NO_MODULE = new SourceModule(null, "Not a module") { /* empty */ }; //$NON-NLS-1$
 
 	public static class Answer {
 		public IType type;
@@ -122,6 +100,7 @@ public class NameLookup implements SuffixConstants {
 			return otherAnswer.restriction != null
 				&& this.restriction.getProblemId() < otherAnswer.restriction.getProblemId();
 		}
+		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder(this.type.toString());
 			builder.append("from ") //$NON-NLS-1$
@@ -875,16 +854,17 @@ public class NameLookup implements SuffixConstants {
 		if (moduleDesc != null) {
 			try {
 				if (moduleDesc instanceof BinaryModule) {
-					return (ModuleDescriptionInfo)((BinaryModule) moduleDesc).getElementInfo();
+					IJavaElement parent = moduleDesc.getParent();
+					if (parent instanceof ModularClassFile)
+						return ((ModularClassFile) parent).getBinaryModuleInfo();
 				} else if (moduleDesc instanceof SourceModule) {
-					return (ModuleDescriptionInfo)((SourceModule) moduleDesc).getElementInfo();
+					return (IModule)((SourceModule) moduleDesc).getElementInfo();
 				} else {
 					return IModule.createAutomatic(moduleDesc.getElementName().toCharArray());
 				}
 			} catch (JavaModelException e) {
-				// TODO Auto-generated catch block
 				if (!e.isDoesNotExist())
-					e.printStackTrace();
+					Util.log(e);
 			}
 		}
 		return null;
@@ -894,13 +874,14 @@ public class NameLookup implements SuffixConstants {
 	static IModuleDescription getModuleDescription(IPackageFragmentRoot root, Map<IPackageFragmentRoot,IModuleDescription> cache, Function<IPackageFragmentRoot,IClasspathEntry> rootToEntry) {
 		IModuleDescription module = cache.get(root);
 		if (module != null)
-			return module;
+			return module != NO_MODULE ? module : null;
 		try {
 			if (root.getKind() == IPackageFragmentRoot.K_SOURCE)
 				module = root.getJavaProject().getModuleDescription(); // from any root in this project
 			else
 				module = root.getModuleDescription();
 		} catch (JavaModelException e) {
+			cache.put(root, NO_MODULE);
 			return null;
 		}
 		if (module == null) {
@@ -909,23 +890,11 @@ public class NameLookup implements SuffixConstants {
 			if (classpathEntry instanceof ClasspathEntry) {
 				if (((ClasspathEntry) classpathEntry).isModular()) {
 					// modular but no module-info implies this is an automatic module
-					Manifest manifest = null;
-					switch (classpathEntry.getEntryKind()) {
-						case IClasspathEntry.CPE_LIBRARY:
-							manifest = ((PackageFragmentRoot) root).getManifest();
-							break;
-						case IClasspathEntry.CPE_PROJECT:
-							JavaProject javaProject = (JavaProject) root.getJavaModel().getJavaProject(classpathEntry.getPath().lastSegment());
-							manifest = javaProject.getManifest();
-							break;
-					}
-					char[] moduleName = AutomaticModuleNaming.determineAutomaticModuleName(root.getElementName(), root.isArchive(), manifest);
-					module = new AutoModule((JavaElement) root, String.valueOf(moduleName));
+					module = ((PackageFragmentRoot) root).getAutomaticModuleDescription(classpathEntry);
 				}
 			}
 		}
-		if (module != null)
-			cache.put(root, module);
+		cache.put(root, module != null ? module : NO_MODULE);
 		return module;
 	}
 

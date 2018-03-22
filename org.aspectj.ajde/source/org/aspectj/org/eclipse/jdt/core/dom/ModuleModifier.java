@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
@@ -32,7 +28,7 @@ import java.util.Map;
  * Note that the value of <b>static</b> does <b>not</b> correspond to the value of {@link Modifier#STATIC}!
  * </p>
  *
- * @since 3.13 BETA_JAVA9
+ * @since 3.14
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -149,6 +145,7 @@ public final class ModuleModifier extends ASTNode {
 		 * @return the keyword for the module modifier
 		 * @see #toKeyword(String)
 		 */
+		@Override
 		public String toString() {
 			return this.keyword;
 		}
@@ -249,17 +246,13 @@ public final class ModuleModifier extends ASTNode {
 	    unsupportedBelow9();
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		visitor.visit(this);
 		visitor.endVisit(this);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		ModuleModifier result = new ModuleModifier(target);
 		result.setSourceRange(getStartPosition(), getLength());
@@ -291,16 +284,12 @@ public final class ModuleModifier extends ASTNode {
 		postValueChange(KEYWORD_PROPERTY);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return MODULE_MODIFIER;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final Object internalGetSetObjectProperty(SimplePropertyDescriptor property, boolean get, Object value) {
 		if (property == KEYWORD_PROPERTY) {
 			if (get) {
@@ -314,9 +303,7 @@ public final class ModuleModifier extends ASTNode {
 		return super.internalGetSetObjectProperty(property, get, value);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
@@ -339,25 +326,19 @@ public final class ModuleModifier extends ASTNode {
 		return this.modifierKeyword == ModuleModifierKeyword.TRANSITIVE_KEYWORD;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int memSize() {
 		// treat ModifierKeyword as free
 		return BASE_NODE_SIZE + 1 * 4;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		return memSize();
 	}

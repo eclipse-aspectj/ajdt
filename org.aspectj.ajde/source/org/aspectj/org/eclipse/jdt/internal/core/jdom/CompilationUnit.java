@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -40,30 +36,36 @@ public CompilationUnit(char[] contents, char[] filename) {
 
 	this.fMainTypeName = file.substring(start, end).toCharArray();
 }
+@Override
 public char[] getContents() {
 	return this.fContents;
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
  */
+@Override
 public char[] getFileName() {
 	return this.fFileName;
 }
+@Override
 public char[] getMainTypeName() {
 	return this.fMainTypeName;
 }
+@Override
 public char[][] getPackageName() {
 	return null;
 }
+@Override
 public boolean ignoreOptionalProblems() {
 	return false;
 }
+@Override
 public String toString() {
 	return "CompilationUnit[" + new String(this.fFileName) + "]";  //$NON-NLS-2$ //$NON-NLS-1$
 }
 @Override
 public char[] getModuleName() {
-	// TODO BETA_JAVA9 Auto-generated method stub
+	// TODO Java 9 Auto-generated method stub
 	return null;
 }
 }

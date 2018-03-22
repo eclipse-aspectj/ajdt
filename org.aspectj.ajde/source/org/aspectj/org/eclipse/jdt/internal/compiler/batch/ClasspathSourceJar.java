@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -33,6 +29,7 @@ public class ClasspathSourceJar extends ClasspathJar {
 		this.encoding = encoding;
 	}
 
+	@Override
 	public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 		if (!isPackage(qualifiedPackageName, moduleName))
 			return null; // most common case
@@ -65,6 +62,7 @@ public class ClasspathSourceJar extends ClasspathJar {
 		return null;
 	}
 
+	@Override
 	public int getMode() {
 		return SOURCE;
 	}

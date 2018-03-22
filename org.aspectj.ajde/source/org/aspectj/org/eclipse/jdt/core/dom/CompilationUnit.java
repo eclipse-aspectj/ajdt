@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -88,7 +84,7 @@ public class CompilationUnit extends ASTNode {
 	/**
 	 * The "module" structural property of this node type (child type: {@link ModuleDeclaration}) (added in JLS9 API).
 	 *
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static final ChildPropertyDescriptor MODULE_PROPERTY =
 		new ChildPropertyDescriptor(CompilationUnit.class, "module", ModuleDeclaration.class, OPTIONAL, NO_CYCLE_RISK); //$NON-NLS-1$
@@ -105,7 +101,7 @@ public class CompilationUnit extends ASTNode {
 	 * A list of property descriptors (element type:
 	 * {@link StructuralPropertyDescriptor}),
 	 * or null if uninitialized.
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	private static final List PROPERTY_DESCRIPTORS_9_0;
 
@@ -246,9 +242,7 @@ public class CompilationUnit extends ASTNode {
 		super(ast);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	void accept0(ASTVisitor visitor) {
 		boolean visitChildren = visitor.visit(this);
 		if (visitChildren) {
@@ -263,9 +257,7 @@ public class CompilationUnit extends ASTNode {
 		visitor.endVisit(this);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	ASTNode clone0(AST target) {
 		CompilationUnit result = new CompilationUnit(target);
 		// n.b do not copy line number table or messages
@@ -581,9 +573,7 @@ public class CompilationUnit extends ASTNode {
 		return this.messages;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final int getNodeType0() {
 		return COMPILATION_UNIT;
 	}
@@ -593,7 +583,7 @@ public class CompilationUnit extends ASTNode {
 	 * unit, or <code>null</code> if this compilation unit is not a module info.
 	 *
 	 * @return the module declaration node, or <code>null</code> if none
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public ModuleDeclaration getModule() {
 		unsupportedBelow9();
@@ -762,9 +752,7 @@ public class CompilationUnit extends ASTNode {
 		this.commentMapper.initialize(this, scanner);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == IMPORTS_PROPERTY) {
 			return imports();
@@ -776,9 +764,7 @@ public class CompilationUnit extends ASTNode {
 		return super.internalGetChildListProperty(property);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == MODULE_PROPERTY) {
 			if (get) {
@@ -800,10 +786,7 @@ public class CompilationUnit extends ASTNode {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 * @since 3.0
-	 */
+	@Override
 	final List internalStructuralPropertiesForType(int apiLevel) {
 		return propertyDescriptors(apiLevel);
 	}
@@ -915,9 +898,7 @@ public class CompilationUnit extends ASTNode {
 		}
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int memSize() {
 		int size = BASE_NODE_SIZE + 8 * 4;
 		if (this.lineEndTable != null) {
@@ -1083,7 +1064,7 @@ public class CompilationUnit extends ASTNode {
 	 * <li>the node already has a parent</li>
 	 * </ul>
 	 * @exception UnsupportedOperationException if this operation is used below JLS9
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public void setModule(ModuleDeclaration module) {
 		unsupportedBelow9();
@@ -1139,17 +1120,13 @@ public class CompilationUnit extends ASTNode {
 		this.statementsRecoveryData = data;
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
 		// dispatch to correct overloaded match method
 		return matcher.match(this, other);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	int treeSize() {
 		int size = memSize();
 		if (this.module != null) {

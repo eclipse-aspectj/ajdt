@@ -1,14 +1,10 @@
 // AspectJ Extension
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -79,7 +75,7 @@ protected File file;
 protected ZipFile zipFile;
 protected ZipFile annotationZipFile;
 protected boolean closeZipFileAtEnd;
-private Set<String> packageCache;
+protected Set<String> packageCache;
 protected List<String> annotationPaths;
 
 // AspectJ Extension	
@@ -97,6 +93,7 @@ public ClasspathJar(File file, boolean closeZipFileAtEnd,
 	this.closeZipFileAtEnd = closeZipFileAtEnd;
 }
 
+@Override
 public List<Classpath> fetchLinkedJars(FileSystem.ClasspathSectionProblemReporter problemReporter) {
 	// expected to be called once only - if multiple calls desired, consider
 	// using a cache
@@ -142,9 +139,11 @@ public List<Classpath> fetchLinkedJars(FileSystem.ClasspathSectionProblemReporte
 		}
 	}
 }
+@Override
 public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName) {
 	return findClass(typeName, qualifiedPackageName, moduleName, qualifiedBinaryFileName, false);
 }
+@Override
 public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 	if (!isPackage(qualifiedPackageName, moduleName))
 		return null; // most common case
@@ -194,6 +193,7 @@ public NameEnvironmentAnswer findClass(char[] typeName, String qualifiedPackageN
 public boolean hasAnnotationFileFor(String qualifiedTypeName) {
 	return this.zipFile.getEntry(qualifiedTypeName+ExternalAnnotationProvider.ANNOTATION_FILE_SUFFIX) != null; 
 }
+@Override
 public char[][][] findTypeNames(final String qualifiedPackageName, String moduleName) {
 	if (!isPackage(qualifiedPackageName, moduleName))
 		return null; // most common case
@@ -221,9 +221,16 @@ public char[][][] findTypeNames(final String qualifiedPackageName, String module
 				String packageName = fileName.substring(0, last);
 				if (!qualifiedPackageName.equals(packageName))
 					continue nextEntry;
-				addTypeName(answers, fileName, last, packageArray);
+			int indexOfDot = fileName.lastIndexOf('.');
+			if (indexOfDot != -1) {
+				String typeName = fileName.substring(last + 1, indexOfDot);
+				answers.add(
+					CharOperation.arrayConcat(
+						CharOperation.splitOn('/', packageArray),
+						typeName.toCharArray()));
 			}
 		}
+	}
 	int size = answers.size();
 	if (size != 0) {
 		char[][][] result = new char[size][][];
@@ -233,16 +240,7 @@ public char[][][] findTypeNames(final String qualifiedPackageName, String module
 	return null;
 }
 
-protected void addTypeName(final ArrayList answers, String fileName, int last, char[] packageName) {
-	int indexOfDot = fileName.lastIndexOf('.');
-	if (indexOfDot != -1) {
-		String typeName = fileName.substring(last + 1, indexOfDot);
-		answers.add(
-			CharOperation.arrayConcat(
-				CharOperation.splitOn('/', packageName),
-				typeName.toCharArray()));
-	}
-}
+@Override
 public void initialize() throws IOException {
 	if (this.zipFile == null) {
 		this.zipFile = new ZipFile(this.file);
@@ -277,6 +275,7 @@ protected void addToPackageCache(String fileName, boolean endsWithSep) {
 		last = packageName.lastIndexOf('/');
 	}
 }
+@Override
 public synchronized char[][] getModulesDeclaringPackage(String qualifiedPackageName, String moduleName) {
 	if (this.packageCache != null)
 		return singletonModuleNameIf(this.packageCache.contains(qualifiedPackageName));
@@ -302,13 +301,20 @@ public synchronized char[][] getModulesDeclaringPackage(String qualifiedPackageN
 }
 @Override
 public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName) {
+	qualifiedPackageName += '/';
 	for (Enumeration<? extends ZipEntry> e = this.zipFile.entries(); e.hasMoreElements(); ) {
 		String fileName = e.nextElement().getName();
-		if (fileName.startsWith(qualifiedPackageName) && fileName.toLowerCase().endsWith(SUFFIX_STRING_class))
+		if (fileName.startsWith(qualifiedPackageName) && fileName.length() > qualifiedPackageName.length()) {
+			String tail = fileName.substring(qualifiedPackageName.length());
+			if (tail.indexOf('/') != -1)
+				continue;
+			if (tail.toLowerCase().endsWith(SUFFIX_STRING_class))
 			return true;
+	}	
 	}	
 	return false;
 }
+@Override
 public void reset() {
 	if (this.closeZipFileAtEnd) {
 		if (this.zipFile != null) {
@@ -336,9 +342,11 @@ public void reset() {
 	this.packageCache = null;
 	this.annotationPaths = null;
 }
+@Override
 public String toString() {
 	return "Classpath for jar file " + this.file.getPath(); //$NON-NLS-1$
 }
+@Override
 public char[] normalizedPath() {
 	if (this.normalizedPath == null) {
 		String path2 = this.getPath();
@@ -350,6 +358,7 @@ public char[] normalizedPath() {
 	}
 	return this.normalizedPath;
 }
+@Override
 public String getPath() {
 	if (this.path == null) {
 		try {
@@ -361,10 +370,12 @@ public String getPath() {
 	}
 	return this.path;
 }
+@Override
 public int getMode() {
 	return BINARY;
 }
 
+@Override
 public IModule getModule() {
 	if (this.isAutoModule && this.module == null) {
 		Manifest manifest = null;

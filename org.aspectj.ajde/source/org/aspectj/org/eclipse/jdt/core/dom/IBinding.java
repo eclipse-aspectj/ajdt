@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -98,7 +94,7 @@ public interface IBinding {
 	 *
 	 * @see #getKind()
 	 * @see IModuleBinding
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static final int MODULE = 7;
 
@@ -330,6 +326,7 @@ public interface IBinding {
 	 * @return {@inheritDoc}
 	 * @see ITypeBinding#getTypeDeclaration()
 	 */
+	@Override
 	public boolean equals(Object obj);
 
 	/**
@@ -365,5 +362,6 @@ public interface IBinding {
 	 *
 	 * @return a debug string
 	 */
+	@Override
 	public String toString();
 }

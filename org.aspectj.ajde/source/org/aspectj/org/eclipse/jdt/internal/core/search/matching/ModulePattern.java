@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -31,6 +27,7 @@ public class ModulePattern extends JavaSearchPattern {
 	protected static char[][] REF_CATEGORIES = { MODULE_REF };
 	protected static char[][] REF_AND_DECL_CATEGORIES = { MODULE_REF, MODULE_DECL };
 	protected static char[][] DECL_CATEGORIES = { MODULE_DECL };
+	private static char[] regexPrefix = {'/','r',' '};
 
 	public static char[] createIndexKey(char[] name) {
 		return name; // until a need arises, let the name itself be the index key.
@@ -39,8 +36,8 @@ public class ModulePattern extends JavaSearchPattern {
 		super(MODULE_PATTERN, matchRule);
 	}
 	public ModulePattern(char[] name, int limitTo, int matchRule) {
-		this(matchRule);
-		this.name = name;
+		this(ModulePattern.trapDoorRegexMatchRule(name, matchRule));
+		this.name = trapDoorRegexExtractModuleName(name);
 		switch (limitTo & 0xF) {
 			case IJavaSearchConstants.DECLARATIONS :
 				this.findReferences = false;
@@ -49,16 +46,38 @@ public class ModulePattern extends JavaSearchPattern {
 				this.findDeclarations = false;
 				break;
 			case IJavaSearchConstants.ALL_OCCURRENCES :
+				if ((getMatchRule() & SearchPattern.R_REGEXP_MATCH) != 0)
+					this.findReferences = false; //regex implemented only for module declarations.
 				break;
 		}
 		this.mustResolve = mustResolve();
 	}
+	/*
+	 * Trap door method for implicitly triggering a regex search.
+	 * if the module name starts with regex: (case insensitive),
+	 * the rest of the characters are taken as a regular expression
+	 * for the module name.
+	 */
+	private static char[] trapDoorRegexExtractModuleName(char[] name2) {
+		int index = CharOperation.indexOf(regexPrefix, name2, false);
+		return index >= 0 ? CharOperation.subarray(name2, index + regexPrefix.length, name2.length) : name2;
+	}
+	/*
+	 * Sets the match rule to regular expression search as well.
+	 */
+	private static int trapDoorRegexMatchRule(char[] name2, int matchRule) {
+		return CharOperation.indexOf(regexPrefix, name2, false) == 0 ?
+				SearchPattern.R_REGEXP_MATCH : matchRule;
+	}
+	@Override
 	public void decodeIndexKey(char[] key) {
 		this.name = key;
 	}
+	@Override
 	public SearchPattern getBlankPattern() {
 		return new ModulePattern(R_EXACT_MATCH);
 	}
+	@Override
 	public char[][] getIndexCategories() {
 		if (this.findReferences)
 			return this.findDeclarations ? REF_AND_DECL_CATEGORIES : REF_CATEGORIES;
@@ -66,9 +85,11 @@ public class ModulePattern extends JavaSearchPattern {
 			return DECL_CATEGORIES;
 		return CharOperation.NO_CHAR_CHAR;
 	}
+	@Override
 	public boolean matchesDecodedKey(SearchPattern decodedPattern) {
 		return matchesName(this.name, ((ModulePattern) decodedPattern).name);
 	}
+	@Override
 	public EntryResult[] queryIn(Index index) throws IOException {
 		char[] key = this.name; // can be null
 		int matchRule = getMatchRule();
@@ -92,7 +113,7 @@ public class ModulePattern extends JavaSearchPattern {
 				// else do a pattern query with just the selector
 				break;
 			case R_REGEXP_MATCH :
-				// TODO implement regular expression match
+				// nothing to do here for the regex match
 				break;
 			case R_CAMELCASE_MATCH:
 			case R_CAMELCASE_SAME_PART_COUNT_MATCH:
@@ -106,6 +127,7 @@ public class ModulePattern extends JavaSearchPattern {
 	protected boolean mustResolve() {
 		return true;
 	}
+	@Override
 	protected StringBuffer print(StringBuffer output) {
 		if (this.findDeclarations) {
 			output.append(this.findReferences

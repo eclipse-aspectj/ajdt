@@ -19,6 +19,7 @@ UnresolvedAnnotationBinding(ReferenceBinding type, ElementValuePair[] pairs, Loo
 	this.env = env;
 }
 
+@Override
 public void resolve() { // in place resolution.
 	if (this.typeUnresolved) { // the type is resolved when requested
 		boolean wasToleratingMissingTypeProcessingAnnotations = this.env.mayTolerateMissingType;
@@ -32,11 +33,13 @@ public void resolve() { // in place resolution.
 		this.typeUnresolved = false;
 	}
 }
+@Override
 public ReferenceBinding getAnnotationType() {
 	resolve();
 	return this.type;
 }
 
+@Override
 public ElementValuePair[] getElementValuePairs() {
 	if (this.env != null) {
 		if (this.typeUnresolved) {
@@ -55,6 +58,13 @@ public ElementValuePair[] getElementValuePairs() {
 				pair.setValue(((UnresolvedReferenceBinding) value).
 						resolve(this.env, false));
 							// no parameterized types in annotation values
+			} else if (value instanceof Object[]) {
+				Object[] values = (Object[]) value;
+				for (int j = 0; j < values.length; j++) {
+					if (values[j] instanceof UnresolvedReferenceBinding) {
+						values[j] = ((UnresolvedReferenceBinding) values[j]).resolve(this.env, false);
+					}
+				}
 			} // do nothing for UnresolvedAnnotationBinding-s, since their
 			  // content is only accessed through get* methods
 		}

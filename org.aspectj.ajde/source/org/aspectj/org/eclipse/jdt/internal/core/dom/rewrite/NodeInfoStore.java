@@ -143,6 +143,7 @@ public final class NodeInfoStore {
 	// AspectJ extension - raised visibility to public 
 	public /*protected*/ static final class CopyPlaceholderData extends PlaceholderData {
 		public CopySourceInfo copySource;
+		@Override
 		public String toString() {
 			return "[placeholder " + this.copySource +"]";  //$NON-NLS-1$//$NON-NLS-2$
 		}
@@ -151,6 +152,7 @@ public final class NodeInfoStore {
     // AspectJ extension - raised visibility to public 
 	public /*protected*/ static final class StringPlaceholderData extends PlaceholderData {
 		public String code;
+		@Override
 		public String toString() {
 			return "[placeholder string: " + this.code +"]"; //$NON-NLS-1$ //$NON-NLS-2$
 		}

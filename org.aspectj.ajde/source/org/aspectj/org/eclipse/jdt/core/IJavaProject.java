@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - added getOption(String, boolean), getOptions(boolean) and setOptions(Map)
@@ -420,7 +416,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 *		exception occurs while accessing its corresponding resource
 	 * @return the first module found following this project's module path
 	 * with the given name or <code>null</code> if none is found
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	IModuleDescription findModule(String moduleName, WorkingCopyOwner owner) throws JavaModelException;
 
@@ -606,7 +602,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * @return the <code>IModule</code> this project represents.
 	 * @exception JavaModelException if this element does not exist or if an
 	 *		exception occurs while accessing its corresponding resource
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	IModuleDescription getModuleDescription() throws JavaModelException;
 

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - specified that a source archive or a source folder can be attached to a binary
@@ -460,7 +456,7 @@ public interface IPackageFragmentRoot
 	 * contain a module descriptor.
 	 *
 	 * @return the <code>IModuleDescription</code> this root contains.
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public IModuleDescription getModuleDescription();
 }

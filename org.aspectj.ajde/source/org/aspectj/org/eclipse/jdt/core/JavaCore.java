@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - added the following constants:
@@ -115,9 +111,11 @@
 package org.aspectj.org.eclipse.jdt.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IContainer;
@@ -248,7 +246,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String USER_LIBRARY_CONTAINER_ID= "org.aspectj.org.eclipse.jdt.USER_LIBRARY"; //$NON-NLS-1$
 
 	/**
-	 * @since 3.13
+	 * @since 3.14
 	 */
 	public static final String MODULE_PATH_CONTAINER_ID = "org.aspectj.org.eclipse.jdt.MODULE_PATH"; //$NON-NLS-1$
 
@@ -426,7 +424,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
 	 * </dl>
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_TERMINAL_DEPRECATION = PLUGIN_ID + ".compiler.problem.terminalDeprecation"; //$NON-NLS-1$
@@ -1614,7 +1612,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
 	 * </dl>
 	 * 
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_API_LEAKS = PLUGIN_ID + ".compiler.problem.APILeak"; //$NON-NLS-1$
@@ -2943,7 +2941,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String VERSION_1_8 = "1.8"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 * @category OptionValue
 	 */
 	public static final String VERSION_9 = "9"; //$NON-NLS-1$
@@ -2953,6 +2951,17 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @category OptionValue
 	 */
 	public static final String VERSION_CLDC_1_1 = "cldc1.1"; //$NON-NLS-1$
+	/**
+	 * Returns all {@link JavaCore}{@code #VERSION_*} levels.
+	 * 
+	 * @return all available versions
+	 * @since 3.14
+	 */
+	public static List<String> getAllVersions() {
+		return Arrays.asList(VERSION_CLDC_1_1, VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4, VERSION_1_5,
+				VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9);
+	}
+
 	/**
 	 * Configurable option value: {@value}.
 	 * @since 2.0
@@ -4411,6 +4420,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				if (JavaBuilder.DEBUG)
 					System.out.println("Build state version number has changed"); //$NON-NLS-1$
 				IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+				@Override
 					public void run(IProgressMonitor progressMonitor2) throws CoreException {
 						for (int i = 0, length = projects.length; i < length; i++) {
 							IJavaProject project = projects[i];
@@ -4451,6 +4461,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				IJavaSearchConstants.CLASS,
 				scope,
 				new TypeNameRequestor() {
+					@Override
 					public void acceptType(
 						int modifiers,
 						char[] packageName,
@@ -5968,7 +5979,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *            the project whose referenced modules to be computed
 	 * @return an array of String containing module names
 	 * @throws CoreException
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static String[] getReferencedModules(IJavaProject project) throws CoreException {
 		return ModuleUtil.getReferencedModules(project);
@@ -6000,7 +6011,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *
 	 * @throws JavaModelException
 	 * @throws IllegalArgumentException if the map of classFileAttributes contains an unsupported key.
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static byte[] compileWithAttributes(IModuleDescription module, Map<String,String> classFileAttributes)
 			throws JavaModelException, IllegalArgumentException
@@ -6015,6 +6026,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * </p>
 	 * @see org.eclipse.core.runtime.Plugin#stop(BundleContext)
 	 */
+	@Override
 	public void stop(BundleContext context) throws Exception {
 		try {
 			JavaModelManager.unregisterDebugOptionsListener();
@@ -6034,6 +6046,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @throws Exception
 	 * @see org.eclipse.core.runtime.Plugin#start(BundleContext)
 	 */
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		JavaModelManager.registerDebugOptionsListener(context);

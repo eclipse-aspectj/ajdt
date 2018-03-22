@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Benjamin Muskalla - Contribution for bug 239066
@@ -499,13 +495,9 @@ public class CompilerOptions {
 	/** Should the compiler tolerate illegal ambiguous varargs invocation in compliance < 1.7 
 	 * to be bug compatible with javac? (bug 383780) */
 	public static boolean tolerateIllegalAmbiguousVarargsInvocation;
-	/** Should the compiler use performance optimization during type inference (bug 476718) */
-	public static boolean useunspecdtypeinferenceperformanceoptimization;
 	{
 		String tolerateIllegalAmbiguousVarargs = System.getProperty("tolerateIllegalAmbiguousVarargsInvocation"); //$NON-NLS-1$
 		tolerateIllegalAmbiguousVarargsInvocation = tolerateIllegalAmbiguousVarargs != null && tolerateIllegalAmbiguousVarargs.equalsIgnoreCase("true"); //$NON-NLS-1$
-		String useunspecdtypeinferenceoptimization = System.getProperty("useunspecdtypeinferenceperformanceoptimization"); //$NON-NLS-1$
-		useunspecdtypeinferenceperformanceoptimization = useunspecdtypeinferenceoptimization != null && useunspecdtypeinferenceoptimization.equalsIgnoreCase("true"); //$NON-NLS-1$
 	}
 	/** Should null annotations of overridden methods be inherited? */
 	public boolean inheritNullAnnotations;
@@ -800,6 +792,23 @@ public class CompilerOptions {
 		return Util.EMPTY_STRING; // unknown version
 	}
 
+	public static long releaseToJDKLevel(String release) {
+		if (release != null && release.length() > 0) {
+			switch(release.charAt(0)) {
+				case '6':
+					return ClassFileConstants.JDK1_6;
+				case '7':
+					return ClassFileConstants.JDK1_7;
+				case '8':
+					return ClassFileConstants.JDK1_8;
+				case '9':
+					return ClassFileConstants.JDK9;
+				default:
+					return 0; // unknown
+			}
+		}
+		return 0;
+	}
 	public static long versionToJdkLevel(String versionID) {
 		String version = versionID;
 		// verification is optimized for all versions with same length and same "1." prefix
@@ -2022,6 +2031,7 @@ public class CompilerOptions {
 		return buf.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer("CompilerOptions:"); //$NON-NLS-1$
 		buf.append("\n\t- local variables debug attributes: ").append((this.produceDebugAttributes & ClassFileConstants.ATTR_VARS) != 0 ? "ON" : " OFF"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$

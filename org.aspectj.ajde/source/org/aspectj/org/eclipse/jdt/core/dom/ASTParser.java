@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -790,6 +786,10 @@ public class ASTParser {
 	 * {@link JavaCore#getJavaLikeExtensions() Java-like extensions}
 	 * and match the name of the main (public) class or interface declared in the source.</p>
 	 *
+	 * <p>
+	 * For compilation of a module-info.java file (since Java 9), the name of the compilation unit must be supplied.
+	 * Otherwise, module-info.java will be compiled as an ordinary Java file resulting in compilation errors.</p>
+	 *
 	 * <p>This name must represent the full path of the unit inside the given project. For example, if the source
 	 * declares a public class named "Foo" in a project "P" where the source folder is the project itself, the name
 	 * of the compilation unit must be "/P/Foo.java".
@@ -841,6 +841,9 @@ public class ASTParser {
 	 * A successful call to this method returns all settings to their
 	 * default values so the object is ready to be reused.
 	 * </p>
+	 * <p>For identifying a module-info.java file as a special file instead of an ordinary 
+	 * Java file (Since Java 9), a call to this should be preceded by a call to 
+	 * {@link #setUnitName(String)} that sets the unit name as module-info.java</p>
 	 *
 	 * @param monitor the progress monitor used to report progress and request cancellation,
 	 *   or <code>null</code> if none
@@ -1198,7 +1201,7 @@ public class ASTParser {
 								// assumed to be "module-info.class" (which has no type):
 								fileNameString = this.typeRoot.getElementName();
 							}
-							sourceUnit = new BasicCompilationUnit(sourceString.toCharArray(), Util.toCharArrays(packageFragment.names), fileNameString, this.project);
+							sourceUnit = new BasicCompilationUnit(sourceString.toCharArray(), Util.toCharArrays(packageFragment.names), fileNameString, this.typeRoot);
 						} catch(JavaModelException e) {
 							// an error occured accessing the java element
 							StringWriter stringWriter = new StringWriter();

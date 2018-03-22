@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -264,6 +264,7 @@ boolean isValueProvidedUsingAnnotation(FieldDeclaration fieldDecl) {
  * @param classScope org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope
  * @param classFile org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ClassFile
  */
+@Override
 public void generateCode(ClassScope classScope, ClassFile classFile) {
 	int problemResetPC = 0;
 	if (this.ignoreFurtherInvestigation) {
@@ -415,7 +416,7 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 
 		if (needFieldInitializations && preInitSyntheticFields){
 			generateSyntheticFieldInitializationsIfNecessary(this.scope, codeStream, declaringClass);
-			codeStream.recordPositionsFrom(0, this.bodyStart);
+			codeStream.recordPositionsFrom(0, this.bodyStart > 0 ? this.bodyStart : this.sourceStart);
 		}
 		// generate constructor call
 		if (this.constructorCall != null) {
@@ -451,7 +452,7 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 		}
 		// local variable attributes
 		codeStream.exitUserScope(this.scope);
-		codeStream.recordPositionsFrom(0, this.bodyEnd);
+		codeStream.recordPositionsFrom(0, this.bodyEnd > 0 ? this.bodyEnd : this.sourceStart);
 		try {
 			classFile.completeCodeAttribute(codeAttributeOffset);
 		} catch(NegativeArraySizeException e) {
@@ -467,6 +468,7 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 	classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 }
 
+@Override
 public void getAllAnnotationContexts(int targetType, List allAnnotationContexts) {
 	TypeReference fakeReturnType = new SingleTypeReference(this.selector, 0);
 	fakeReturnType.resolvedType = this.binding.declaringClass;
@@ -477,14 +479,17 @@ public void getAllAnnotationContexts(int targetType, List allAnnotationContexts)
 	}
 }
 
+@Override
 public boolean isConstructor() {
 	return true;
 }
 
+@Override
 public boolean isDefaultConstructor() {
 	return (this.bits & ASTNode.IsDefaultConstructor) != 0;
 }
 
+@Override
 public boolean isInitializationMethod() {
 	return true;
 }
@@ -523,6 +528,7 @@ public boolean isRecursive(ArrayList visited) {
 	return targetConstructor.isRecursive(visited);
 }
 
+@Override
 public void parseStatements(Parser parser, CompilationUnitDeclaration unit) {
 	//fill up the constructor body with its statements
 	if (((this.bits & ASTNode.IsDefaultConstructor) != 0) && this.constructorCall == null){
@@ -535,6 +541,7 @@ public void parseStatements(Parser parser, CompilationUnitDeclaration unit) {
 
 }
 
+@Override
 public StringBuffer printBody(int indent, StringBuffer output) {
 	output.append(" {"); //$NON-NLS-1$
 	if (this.constructorCall != null) {
@@ -552,6 +559,7 @@ public StringBuffer printBody(int indent, StringBuffer output) {
 	return output;
 }
 
+@Override
 public void resolveJavadoc() {
 	if (this.binding == null || this.javadoc != null) {
 		super.resolveJavadoc();
@@ -577,6 +585,7 @@ public void resolveJavadoc() {
  * Type checking for constructor, just another method, except for special check
  * for recursive constructor invocations.
  */
+@Override
 public void resolveStatements() {
 	SourceTypeBinding sourceType = this.scope.enclosingSourceType();
 	if (!CharOperation.equals(sourceType.sourceName, this.selector)){
@@ -605,6 +614,7 @@ public void resolveStatements() {
 	super.resolveStatements();
 }
 
+@Override
 public void traverse(ASTVisitor visitor, ClassScope classScope) {
 	if (visitor.visit(this, classScope)) {
 		if (this.javadoc != null) {
@@ -641,6 +651,7 @@ public void traverse(ASTVisitor visitor, ClassScope classScope) {
 	}
 	visitor.endVisit(this, classScope);
 }
+@Override
 public TypeParameter[] typeParameters() {
     return this.typeParameters;
 }

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 IBM Corporation.
+ * Copyright (c) 2015, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -52,9 +48,10 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 		this.moduleName = moduleName;
 	}
 
+	@Override
 	protected boolean computeChildren(OpenableElementInfo info, IResource underlyingResource) throws JavaModelException {
 		final HashtableOfArrayToObject rawPackageInfo = new HashtableOfArrayToObject();
-		final String compliance = CompilerOptions.VERSION_1_8; // TODO: BETA_JAVA9 Revisit
+		final String compliance = CompilerOptions.VERSION_1_8; // TODO: Java 9 Revisit
 
 		// always create the default package
 		rawPackageInfo.put(CharOperation.NO_STRINGS, new ArrayList[] { EMPTY_LIST, EMPTY_LIST });
@@ -90,6 +87,7 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 		((JarPackageFragmentRootInfo) info).rawPackageInfo = rawPackageInfo;
 		return true;
 	}
+	@Override
 	SourceMapper createSourceMapper(IPath sourcePath, IPath rootPath) throws JavaModelException {
 		IClasspathEntry entry = ((JavaProject) getParent()).getClasspathEntryFor(getPath());
 		String encoding = (entry== null) ? null : ((ClasspathEntry) entry).getSourceAttachmentEncoding();
@@ -102,6 +100,7 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 			encoding);
 		return mapper;
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -112,16 +111,20 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 		}
 		return false;
 	}
+	@Override
 	public String getElementName() {
 		return this.moduleName;
 	}
+	@Override
 	public PackageFragment getPackageFragment(String[] pkgName) {
 		// NOTE: Do we need a different kind of package fragment?
 		return new JarPackageFragment(this, pkgName);
 	}
+	@Override
 	public int hashCode() {
 		return this.jarPath.hashCode() + this.moduleName.hashCode();
 	}
+	@Override
 	protected void toStringInfo(int tab, StringBuffer buffer, Object info, boolean showResolvedInfo) {
 		buffer.append(tabString(tab));
 		buffer.append("<module:").append(this.moduleName).append(">"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -135,9 +138,9 @@ public class JrtPackageFragmentRoot extends JarPackageFragmentRoot implements IM
 		IModuleDescription desc = getModuleDescription();
 		if (desc != null) {
 			try {
-				return (ModuleDescriptionInfo)((JavaElement) desc).getElementInfo();
+				return (IModule)((JavaElement) desc).getElementInfo();
 			} catch (JavaModelException e) {
-				e.printStackTrace();
+				Util.log(e);
 			}
 		}
 		return null;

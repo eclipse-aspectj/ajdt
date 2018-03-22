@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -44,6 +40,7 @@ public SourceFile(IFile resource, ClasspathMultiDirectory sourceLocation, boolea
 	this.updateClassFile = updateClassFile;
 }
 
+@Override
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof SourceFile)) return false;
@@ -78,6 +75,7 @@ String extractTypeName() {
 	return new String(result);
 }
 
+@Override
 public char[] getContents() {
 
 	try {
@@ -90,24 +88,29 @@ public char[] getContents() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
  */
+@Override
 public char[] getFileName() {
 	return this.resource.getFullPath().toString().toCharArray(); // do not know what you want to return here
 }
 
+@Override
 public char[] getMainTypeName() {
 	char[] typeName = this.initialTypeName.toCharArray();
 	int lastIndex = CharOperation.lastIndexOf('/', typeName);
 	return CharOperation.subarray(typeName, lastIndex + 1, -1);
 }
 
+@Override
 public char[][] getPackageName() {
 	char[] typeName = this.initialTypeName.toCharArray();
 	int lastIndex = CharOperation.lastIndexOf('/', typeName);
 	return CharOperation.splitOn('/', typeName, 0, lastIndex);
 }
+@Override
 public int hashCode() {
 	return this.initialTypeName.hashCode();
 }
+@Override
 public boolean ignoreOptionalProblems() {
 	return this.sourceLocation.ignoreOptionalProblems;
 }
@@ -115,6 +118,7 @@ String typeLocator() {
 	return this.resource.getProjectRelativePath().toString();
 }
 
+@Override
 public String toString() {
 	return "SourceFile[" //$NON-NLS-1$
 		+ this.resource.getFullPath() + "]";  //$NON-NLS-1$

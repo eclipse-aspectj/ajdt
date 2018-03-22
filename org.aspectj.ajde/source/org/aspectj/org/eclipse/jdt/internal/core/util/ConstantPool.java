@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -36,6 +32,7 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 	/**
 	 * @see IConstantPool#decodeEntry(int)
 	 */
+	@Override
 	public IConstantPoolEntry decodeEntry(int index) {
 		ConstantPoolEntry constantPoolEntry = null;
 		int kind = getEntryKind(index);
@@ -180,6 +177,7 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 	/**
 	 * @see IConstantPool#getConstantPoolCount()
 	 */
+	@Override
 	public int getConstantPoolCount() {
 		return this.constantPoolCount;
 	}
@@ -187,6 +185,7 @@ public class ConstantPool extends ClassFileStruct implements IConstantPool {
 	/**
 	 * @see IConstantPool#getEntryKind(int)
 	 */
+	@Override
 	public int getEntryKind(int index) {
 		return u1At(this.classFileBytes, 0, this.constantPoolOffset[index]);
 	}

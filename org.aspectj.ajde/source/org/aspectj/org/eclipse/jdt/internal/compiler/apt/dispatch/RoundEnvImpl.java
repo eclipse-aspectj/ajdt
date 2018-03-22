@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2015 IBM Corporation and others.
+ * Copyright (c) 2005, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -210,6 +210,11 @@ public class RoundEnvImpl implements RoundEnvironment
 		if (_rootElements == null) {
 			Set<Element> elements = new HashSet<>(_units.length);
 			for (CompilationUnitDeclaration unit : _units) {
+				if (unit.moduleDeclaration != null && unit.moduleDeclaration.binding != null) {
+					Element m = _factory.newElement(unit.moduleDeclaration.binding);
+					elements.add(m);
+					continue;
+				}
 				if (null == unit.scope || null == unit.scope.topLevelTypes)
 					continue;
 				for (SourceTypeBinding binding : unit.scope.topLevelTypes) {

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -33,6 +29,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.core.NameLookup;
@@ -58,6 +55,7 @@ class PackageBinding implements IPackageBinding {
 		this.resolver = resolver;
 	}
 
+	@Override
 	public IAnnotationBinding[] getAnnotations() {
 		try {
 			INameEnvironment nameEnvironment = this.binding.environment.nameEnvironment;
@@ -132,9 +130,13 @@ class PackageBinding implements IPackageBinding {
 		return AnnotationBinding.NoAnnotations;
 	}
 
-	/*
-	 * @see IBinding#getName()
-	 */
+	@Override
+	public IModuleBinding getModule() {
+		ModuleBinding moduleBinding = this.binding.enclosingModule;
+		return moduleBinding != null ? this.resolver.getModuleBinding(moduleBinding) : null;
+	}
+
+	@Override
 	public String getName() {
 		if (this.name == null) {
 			computeNameAndComponents();
@@ -142,16 +144,12 @@ class PackageBinding implements IPackageBinding {
 		return this.name;
 	}
 
-	/*
-	 * @see IPackageBinding#isUnnamed()
-	 */
+	@Override
 	public boolean isUnnamed() {
 		return getName().equals(UNNAMED);
 	}
 
-	/*
-	 * @see IPackageBinding#getNameComponents()
-	 */
+	@Override
 	public String[] getNameComponents() {
 		if (this.components == null) {
 			computeNameAndComponents();
@@ -159,23 +157,17 @@ class PackageBinding implements IPackageBinding {
 		return this.components;
 	}
 
-	/*
-	 * @see IBinding#getKind()
-	 */
+	@Override
 	public int getKind() {
 		return IBinding.PACKAGE;
 	}
 
-	/*
-	 * @see IBinding#getModifiers()
-	 */
+	@Override
 	public int getModifiers() {
 		return Modifier.NONE;
 	}
 
-	/*
-	 * @see IBinding#isDeprecated()
-	 */
+	@Override
 	public boolean isDeprecated() {
 		return false;
 	}
@@ -183,6 +175,7 @@ class PackageBinding implements IPackageBinding {
 	/**
 	 * @see IBinding#isRecovered()
 	 */
+	@Override
 	public boolean isRecovered() {
 		return false;
 	}
@@ -190,13 +183,12 @@ class PackageBinding implements IPackageBinding {
 	/**
 	 * @see IBinding#isSynthetic()
 	 */
+	@Override
 	public boolean isSynthetic() {
 		return false;
 	}
 
-	/*
-	 * @see IBinding#getJavaElement()
-	 */
+	@Override
 	public IJavaElement getJavaElement() {
 		INameEnvironment nameEnvironment = this.binding.environment.nameEnvironment; // a package binding always has a LooupEnvironment set
 		if (!(nameEnvironment instanceof SearchableEnvironment)) return null;
@@ -217,17 +209,12 @@ class PackageBinding implements IPackageBinding {
 		return pkgs[0];
 	}
 
-	/*
-	 * @see IBinding#getKey()
-	 */
+	@Override
 	public String getKey() {
 		return new String(this.binding.computeUniqueKey());
 	}
 
-	/*
-	 * @see IBinding#isEqualTo(Binding)
-	 * @since 3.1
-	 */
+	@Override
 	public boolean isEqualTo(IBinding other) {
 		if (other == this) {
 			// identical binding - equal (key or no key)
@@ -271,6 +258,7 @@ class PackageBinding implements IPackageBinding {
 	 * For debugging purpose only.
 	 * @see java.lang.Object#toString()
 	 */
+	@Override
 	public String toString() {
 		return this.binding.toString();
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2017 GK Software AG, and others.
+ * Copyright (c) 2013, 2018 GK Software AG, and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Invocation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Wildcard;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants.BoundCheckStatus;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Sorting;
 
 /**
@@ -413,7 +414,8 @@ public class InferenceContext18 {
 			if (SHOULD_WORKAROUND_BUG_JDK_8153748) { // "before 18.5.2", but should not spill into b3 ... (heuristically)
 				ReductionResult jdk8153748result = addJDK_8153748ConstraintsFromInvocation(this.invocationArguments, method, new InferenceSubstitution(this));
 				if (jdk8153748result != null) {
-					this.currentBounds.incorporate(this);
+					if (!this.currentBounds.incorporate(this))
+						return null;
 				}
 			}
 
@@ -734,8 +736,15 @@ public class InferenceContext18 {
 				ReferenceBinding genericType = targetTypeWithWildCards.genericType();
 				TypeBinding[] a = targetTypeWithWildCards.arguments; // a is not-null by construction of parameterizedWithWildcard()
 				TypeBinding[] aprime = getFunctionInterfaceArgumentSolutions(a);
-				// TODO If F<A'1, ..., A'm> is a well-formed type, ...
-				return blockScope.environment().createParameterizedType(genericType, aprime, targetTypeWithWildCards.enclosingType());
+				// If F<A'1, ..., A'm> is a well-formed type, ...
+				ParameterizedTypeBinding ptb = blockScope.environment().createParameterizedType(genericType, aprime, targetTypeWithWildCards.enclosingType());
+				TypeVariableBinding[] vars = ptb.genericType().typeVariables();
+				ParameterizedTypeBinding captured = ptb.capture(blockScope, lambda.sourceStart, lambda.sourceEnd);
+				for (int i = 0; i < vars.length; i++) {
+					if (vars[i].boundCheck(captured, aprime[i], blockScope, lambda) == BoundCheckStatus.MISMATCH)
+						return null;
+				}
+				return ptb;
 			}
 		}
 		return targetTypeWithWildCards;
@@ -1156,12 +1165,15 @@ public class InferenceContext18 {
 						zs[j] = freshCapture(variables[j]);
 					final BoundSet kurrentBoundSet = tmpBoundSet;
 					Substitution theta = new Substitution() {
+						@Override
 						public LookupEnvironment environment() { 
 							return InferenceContext18.this.environment;
 						}
+						@Override
 						public boolean isRawSubstitution() {
 							return false;
 						}
+						@Override
 						public TypeBinding substitute(TypeVariableBinding typeVariable) {
 							for (int j = 0; j < numVars; j++)
 								if (TypeBinding.equalsEquals(variables[j], typeVariable))
@@ -1265,6 +1277,7 @@ public class InferenceContext18 {
 
 	static void sortTypes(TypeBinding[] types) {
 		Arrays.sort(types, new Comparator<TypeBinding>() {
+			@Override
 			public int compare(TypeBinding o1, TypeBinding o2) {
 				int i1 = o1.id, i2 = o2.id; 
 				return (i1<i2 ? -1 : (i1==i2 ? 0 : 1));
@@ -1564,7 +1577,6 @@ public class InferenceContext18 {
 		SuspendedInferenceRecord record = new SuspendedInferenceRecord(this.currentInvocation, this.invocationArguments, this.inferenceVariables, this.inferenceKind, this.usesUncheckedConversion);
 		this.inferenceVariables = null;
 		this.invocationArguments = null;
-		this.currentInvocation = null;
 		this.usesUncheckedConversion = false;
 		return record;
 	}
@@ -1599,12 +1611,15 @@ public class InferenceContext18 {
 
 	private Substitution getResultSubstitution(final BoundSet result) {
 		return new Substitution() {
+			@Override
 			public LookupEnvironment environment() { 
 				return InferenceContext18.this.environment;
 			}
+			@Override
 			public boolean isRawSubstitution() {
 				return false;
 			}
+			@Override
 			public TypeBinding substitute(TypeVariableBinding typeVariable) {
 				if (typeVariable instanceof InferenceVariable) {
 					TypeBinding instantiation = result.getInstantiation((InferenceVariable) typeVariable, InferenceContext18.this.environment);
@@ -1640,9 +1655,12 @@ public class InferenceContext18 {
 	 * unless the given candidate is tolerable to be compatible with buggy javac.
 	 */
 	public MethodBinding getReturnProblemMethodIfNeeded(TypeBinding expectedType, MethodBinding method) {
-		if (InferenceContext18.SIMULATE_BUG_JDK_8026527 && expectedType != null 
+		if (InferenceContext18.SIMULATE_BUG_JDK_8026527 && expectedType != null
+				&& !(method.original() instanceof SyntheticFactoryMethodBinding)
 				&& (method.returnType instanceof ReferenceBinding || method.returnType instanceof ArrayBinding)) {
-			if (method.returnType.erasure().isCompatibleWith(expectedType))
+			if (!expectedType.isProperType(true))
+				return null; // not ready
+			if (this.environment.convertToRawType(method.returnType.erasure(), false).isCompatibleWith(expectedType))
 				return method; // don't count as problem.
 		}
 		/* We used to check if expected type is null and if so return method, but that is wrong - it injects an incompatible method into overload resolution.
@@ -1656,6 +1674,7 @@ public class InferenceContext18 {
 	}
 
 	// debugging:
+	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer("Inference Context"); //$NON-NLS-1$
 		switch (this.stepCompleted) {

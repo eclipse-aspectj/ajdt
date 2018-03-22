@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ public interface IPackageBinding extends IBinding {
 	 * @return the name of the package represented by this binding, or
 	 *    an empty string for an unnamed package
 	 */
+	@Override
 	public String getName();
 
 	/**
@@ -49,6 +50,16 @@ public interface IPackageBinding extends IBinding {
 	 */
 	public String[] getNameComponents();
 
+	/**
+	 * Returns the binding of the module associated with this package binding.
+	 * @return the binding of the module associated with this package, or
+	 * <code>null</code> if none
+	 * 
+	 * @since 3.14
+	 */
+	public default IModuleBinding getModule() {
+		return null;
+	}
 //	/**
 //	 * Finds and returns the binding for the class or interface with the given
 //	 * name declared in this package.

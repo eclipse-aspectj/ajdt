@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -110,6 +106,7 @@ public HierarchyResolver(LookupEnvironment lookupEnvironment, HierarchyBuilder b
  * @param binaryType
  * @param packageBinding
  */
+@Override
 public void accept(IBinaryType binaryType, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 	IProgressMonitor progressMonitor = this.builder.hierarchy.progressMonitor;
 	if (progressMonitor != null && progressMonitor.isCanceled())
@@ -127,6 +124,7 @@ public void accept(IBinaryType binaryType, PackageBinding packageBinding, Access
  * Add an additional compilation unit.
  * @param sourceUnit
  */
+@Override
 public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestriction) {
 	//System.out.println("Cannot accept compilation units inside the HierarchyResolver.");
 	this.lookupEnvironment.problemReporter.abortDueToInternalError(
@@ -140,6 +138,7 @@ public void accept(ICompilationUnit sourceUnit, AccessRestriction accessRestrict
  * @param sourceTypes
  * @param packageBinding
  */
+@Override
 public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding, AccessRestriction accessRestriction) {
 	IProgressMonitor progressMonitor = this.builder.hierarchy.progressMonitor;
 	if (progressMonitor != null && progressMonitor.isCanceled())
@@ -883,14 +882,14 @@ public ReferenceBinding setFocusType(char[][] compoundName) {
 	if (compoundName == null || this.lookupEnvironment == null) return null;
 	this.focusType = this.lookupEnvironment.getCachedType(compoundName);
 	if (this.focusType == null) {
-		this.focusType = this.lookupEnvironment.askForType(compoundName);
+		this.focusType = this.lookupEnvironment.askForType(compoundName, this.lookupEnvironment.UnNamedModule);
 		if (this.focusType == null) {
 			int length = compoundName.length;
 			char[] typeName = compoundName[length-1];
 			int firstDollar = CharOperation.indexOf('$', typeName);
 			if (firstDollar != -1) {
 				compoundName[length-1] = CharOperation.subarray(typeName, 0, firstDollar);
-				this.focusType = this.lookupEnvironment.askForType(compoundName);
+				this.focusType = this.lookupEnvironment.askForType(compoundName, this.lookupEnvironment.UnNamedModule);
 				if (this.focusType != null) {
 					char[][] memberTypeNames = CharOperation.splitOn('$', typeName, firstDollar+1, typeName.length);
 					for (int i = 0; i < memberTypeNames.length; i++) {

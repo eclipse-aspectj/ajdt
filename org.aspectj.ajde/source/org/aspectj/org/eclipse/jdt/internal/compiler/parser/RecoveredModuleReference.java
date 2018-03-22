@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     
@@ -28,15 +24,18 @@ public RecoveredModuleReference(ModuleReference moduleReference, RecoveredElemen
 /*
  * Answer the associated parsed structure
  */
+@Override
 public ASTNode parseTree(){
 	return this.moduleReference;
 }
 /*
  * Answer the very source end of the corresponding parse node
  */
+@Override
 public int sourceEnd(){
 	return this.moduleReference.sourceEnd;
 }
+@Override
 public String toString(int tab) {
 	return tabString(tab) + "Recovered ModuleReference: " + this.moduleReference.toString(); //$NON-NLS-1$
 }
@@ -44,6 +43,7 @@ public ModuleReference updatedModuleReference(){
 
 	return this.moduleReference;
 }
+@Override
 public void updateParseTree(){
 	updatedModuleReference();
 }

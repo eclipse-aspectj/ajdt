@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *
@@ -30,6 +26,7 @@ public class RecoveredProvidesStatement extends RecoveredModuleStatement {
 		return this;
 	}
 
+	@Override
 	public String toString(int tab) {
 		return tabString(tab) + "Recovered Provides: " + super.toString(); //$NON-NLS-1$
 	}
@@ -40,6 +37,7 @@ public class RecoveredProvidesStatement extends RecoveredModuleStatement {
 		}
 		return providesStatement;
 	}
+	@Override
 	public void updateParseTree(){
 		updatedProvidesStatement();
 	}

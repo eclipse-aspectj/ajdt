@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -53,10 +49,12 @@ public class JModPackageFragmentRoot extends JarPackageFragmentRoot {
 	/**
 	 * @see PackageFragmentRoot#getClassFilePath(String)
 	 */
+	@Override
 	public String getClassFilePath(String entryName) {
 		char[] name = CharOperation.append(ClasspathJMod.CLASSES_FOLDER, entryName.toCharArray());
 		return new String(name);
 	}
+	@Override
 	protected void initRawPackageInfo(HashtableOfArrayToObject rawPackageInfo, String entryName, boolean isDirectory, String compliance) {
 		char[] name = entryName.toCharArray();
 		if (CharOperation.prefixEquals(ClasspathJMod.CLASSES_FOLDER, name)) {

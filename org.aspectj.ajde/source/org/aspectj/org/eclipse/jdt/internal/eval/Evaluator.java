@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -94,6 +90,7 @@ ClassFile[] getClasses() {
 	// The requestor collects the class definitions and problems
 	class CompilerRequestor implements ICompilerRequestor {
 		boolean hasErrors = false;
+		@Override
 		public void acceptResult(CompilationResult result) {
 			if (result.hasProblems()) {
 				EvaluationResult[] evalResults = evaluationResultsForCompilationProblems(result, source);
@@ -133,25 +130,30 @@ ClassFile[] getClasses() {
 	CompilerRequestor compilerRequestor = new CompilerRequestor();
 	Compiler compiler = getCompiler(compilerRequestor);
 	compiler.compile(new ICompilationUnit[] {new ICompilationUnit() {
+		@Override
 		public char[] getFileName() {
 			 // Name of class is name of CU
 			return CharOperation.concat(Evaluator.this.getClassName(), Util.defaultJavaExtension().toCharArray());
 		}
+		@Override
 		public char[] getContents() {
 			return source;
 		}
+		@Override
 		public char[] getMainTypeName() {
 			return Evaluator.this.getClassName();
 		}
+		@Override
 		public char[][] getPackageName() {
 			return null;
 		}
+		@Override
 		public boolean ignoreOptionalProblems() {
 			return false;
 		}
 		@Override
 		public char[] getModuleName() {
-			// TODO BETA_JAVA9 Auto-generated method stub
+			// TODO Java 9 Auto-generated method stub
 			return null;
 		}
 	}});

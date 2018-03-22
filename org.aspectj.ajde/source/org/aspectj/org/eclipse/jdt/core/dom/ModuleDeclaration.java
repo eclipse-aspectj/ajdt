@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.dom;
@@ -28,7 +24,7 @@ import java.util.List;
  * <p>
  * </p>
  *
- * @since 3.13 BETA_JAVA9
+ * @since 3.14
  *
  * @noextend This class is not intended to be subclassed by clients.
  * @noinstantiate This class is not intended to be instantiated by clients.
@@ -138,9 +134,7 @@ public class ModuleDeclaration extends ASTNode {
 		return propertyDescriptors(apiLevel);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final boolean internalGetSetBooleanProperty(SimplePropertyDescriptor property, boolean get, boolean value) {
 		if (property == OPEN_PROPERTY) {
 			if (get) {
@@ -153,9 +147,8 @@ public class ModuleDeclaration extends ASTNode {
 		// allow default implementation to flag the error
 		return super.internalGetSetBooleanProperty(property, get, value);
 	}
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+
+	@Override
 	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
 		if (property == JAVADOC_PROPERTY) {
 			if (get) {
@@ -177,9 +170,7 @@ public class ModuleDeclaration extends ASTNode {
 		return super.internalGetSetChildProperty(property, get, child);
 	}
 
-	/* (omit javadoc for this method)
-	 * Method declared on ASTNode.
-	 */
+	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
 		if (property == ANNOTATIONS_PROPERTY) {
 			return annotations();

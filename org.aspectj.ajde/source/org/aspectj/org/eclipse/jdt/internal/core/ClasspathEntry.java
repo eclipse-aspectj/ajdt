@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Terry Parker <tparker@google.com> - DeltaProcessor misses state changes in archive files, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=357425
@@ -342,6 +338,7 @@ public class ClasspathEntry implements IClasspathEntry {
 		this.isExported = isExported;
 	}
 
+	@Override
 	public boolean combineAccessRules() {
 		return this.combineAccessRules;
 	}
@@ -1135,6 +1132,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * Returns true if the given object is a classpath entry
 	 * with equivalent attributes.
 	 */
+	@Override
 	public boolean equals(Object object) {
 		if (this == object)
 			return true;
@@ -1232,6 +1230,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getAccessRules()
 	 */
+	@Override
 	public IAccessRule[] getAccessRules() {
 		if (this.accessRuleSet == null) return NO_ACCESS_RULES;
 		AccessRule[] rules = this.accessRuleSet.getAccessRules();
@@ -1249,6 +1248,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public int getContentKind() {
 		return this.contentKind;
 	}
@@ -1256,6 +1256,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public int getEntryKind() {
 		return this.entryKind;
 	}
@@ -1263,10 +1264,12 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
+	@Override
 	public IPath[] getExclusionPatterns() {
 		return this.exclusionPatterns;
 	}
 
+	@Override
 	public IClasspathAttribute[] getExtraAttributes() {
 		return this.extraAttributes;
 	}
@@ -1274,6 +1277,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
+	@Override
 	public IPath[] getInclusionPatterns() {
 		return this.inclusionPatterns;
 	}
@@ -1281,6 +1285,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#getOutputLocation()
 	 */
+	@Override
 	public IPath getOutputLocation() {
 		return this.specificOutputLocation;
 	}
@@ -1288,6 +1293,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public IPath getPath() {
 		return this.path;
 	}
@@ -1295,6 +1301,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public IPath getSourceAttachmentPath() {
 		return this.sourceAttachmentPath;
 	}
@@ -1302,6 +1309,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry
 	 */
+	@Override
 	public IPath getSourceAttachmentRootPath() {
 		return this.sourceAttachmentRootPath;
 	}
@@ -1417,6 +1425,7 @@ public class ClasspathEntry implements IClasspathEntry {
 		return null;
 	}
 
+	@Override
 	public IClasspathEntry getReferencingEntry() {
 		return this.referencingEntry;
 	}
@@ -1424,6 +1433,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * Returns the hash code for this classpath entry
 	 */
+	@Override
 	public int hashCode() {
 		return this.path.hashCode();
 	}
@@ -1431,6 +1441,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * @see IClasspathEntry#isExported()
 	 */
+	@Override
 	public boolean isExported() {
 		return this.isExported;
 	}
@@ -1525,6 +1536,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	/**
 	 * Returns a printable representation of this classpath entry.
 	 */
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		Object target = JavaModel.getTarget(getPath(), true);
@@ -1712,6 +1724,7 @@ public class ClasspathEntry implements IClasspathEntry {
 	 * @see IClasspathEntry
 	 * @deprecated
 	 */
+	@Override
 	public IClasspathEntry getResolvedEntry() {
 
 		return JavaCore.getResolvedClasspathEntry(this);
@@ -1843,9 +1856,9 @@ public class ClasspathEntry implements IClasspathEntry {
 		int sourceEntryCount = 0;
 		boolean disableExclusionPatterns = JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, true));
 		boolean disableCustomOutputLocations = JavaCore.DISABLED.equals(javaProject.getOption(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, true));
-
-		for (int i = 0 ; i < length; i++) {
-			IClasspathEntry resolvedEntry = classpath[i];
+		ArrayList<IClasspathEntry> testSourcesFolders=new ArrayList<>();
+		HashSet<IPath> mainOutputLocations=new HashSet<>();
+		for (IClasspathEntry resolvedEntry : classpath) {
 			if (disableExclusionPatterns &&
 			        ((resolvedEntry.getInclusionPatterns() != null && resolvedEntry.getInclusionPatterns().length > 0)
 			        || (resolvedEntry.getExclusionPatterns() != null && resolvedEntry.getExclusionPatterns().length > 0))) {
@@ -1854,6 +1867,10 @@ public class ClasspathEntry implements IClasspathEntry {
 			switch(resolvedEntry.getEntryKind()){
 				case IClasspathEntry.CPE_SOURCE :
 					sourceEntryCount++;
+					boolean isTest = resolvedEntry.isTest();
+					if(isTest) {
+						testSourcesFolders.add(resolvedEntry);
+					}
 
 					IPath customOutput;
 					if ((customOutput = resolvedEntry.getOutputLocation()) != null) {
@@ -1869,7 +1886,9 @@ public class ClasspathEntry implements IClasspathEntry {
 						} else {
 							return new JavaModelStatus(IJavaModelStatusConstants.RELATIVE_PATH, customOutput);
 						}
-
+						if(!isTest) {
+							mainOutputLocations.add(customOutput);
+						}
 						// ensure custom output doesn't conflict with other outputs
 						// check exact match
 						if (Util.indexOfMatchingPath(customOutput, outputLocations, outputCount) != -1) {
@@ -1900,6 +1919,23 @@ public class ClasspathEntry implements IClasspathEntry {
 		    allowNestingInOutputLocations[0] = true;
 		} else if (potentialNestedOutput != null) {
 			return new JavaModelStatus(IJavaModelStatusConstants.INVALID_CLASSPATH, Messages.bind(Messages.classpath_cannotNestOutputInOutput, new String[] {potentialNestedOutput.makeRelative().toString(), outputLocations[0].makeRelative().toString()}));
+		} else {
+			if (sourceEntryCount > testSourcesFolders.size()) {
+				// if there are source folders with main sources, treat project output location as main output location
+				mainOutputLocations.add(outputLocations[0]);
+			}
+		}
+		for (IClasspathEntry resolvedEntry : testSourcesFolders) {
+			IPath customOutput;
+			if ((customOutput = resolvedEntry.getOutputLocation()) != null) {
+				if(mainOutputLocations.contains(customOutput)) {
+					return new JavaModelStatus(IJavaModelStatusConstants.TEST_OUTPUT_FOLDER_MUST_BE_SEPARATE_FROM_MAIN_OUTPUT_FOLDERS, javaProject, resolvedEntry.getPath());				
+				}
+			} else {
+				if(sourceEntryCount > testSourcesFolders.size()) {
+					return new JavaModelStatus(IJavaModelStatusConstants.TEST_SOURCE_REQUIRES_SEPARATE_OUTPUT_LOCATION, javaProject, resolvedEntry.getPath());
+				}
+			}
 		}
 
 		for (int i = 0 ; i < length; i++) {
@@ -2045,6 +2081,7 @@ public class ClasspathEntry implements IClasspathEntry {
 									cachedStatus = new JavaModelStatus(IStatus.OK, IJavaModelStatusConstants.OUTPUT_LOCATION_OVERLAPPING_ANOTHER_SOURCE, 
 										Messages.bind(Messages.classpath_cannotUseDistinctSourceFolderAsOutput, new String[] {
 										entryPathMsg, otherPathMsg, projectName })){
+										@Override
 										public boolean isOK() {
 											return true;
 										}

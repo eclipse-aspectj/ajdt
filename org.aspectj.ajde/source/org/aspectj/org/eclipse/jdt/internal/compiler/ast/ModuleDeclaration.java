@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 IBM Corporation and others.
+ * Copyright (c) 2015, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,17 +11,22 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 
+import static org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities.*;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
@@ -37,11 +38,14 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SplitPackageBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortMethod;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
 
-public class ModuleDeclaration extends ASTNode {
+public class ModuleDeclaration extends ASTNode implements ReferenceContext {
 
 	public ExportsStatement[] exports;
 	public RequiresStatement[] requires;
@@ -60,7 +64,7 @@ public class ModuleDeclaration extends ASTNode {
 	public int bodyStart;
 	public int bodyEnd; // doesn't include the trailing comment if any.
 	public int modifiersSourceStart;
-	BlockScope scope;
+	public BlockScope scope;
 	public char[][] tokens;
 	public char[] moduleName;
 	public long[] sourcePositions;
@@ -68,6 +72,7 @@ public class ModuleDeclaration extends ASTNode {
 	boolean ignoreFurtherInvestigation;
 	boolean hasResolvedModuleDirectives;
 	boolean hasResolvedPackageDirectives;
+	boolean hasResolvedTypeDirectives;
 	CompilationResult compilationResult;
 
 	public ModuleDeclaration(CompilationResult compilationResult, char[][] tokens, long[] positions) {
@@ -107,6 +112,10 @@ public class ModuleDeclaration extends ASTNode {
 			public ProblemReporter problemReporter() {
 				// this method scope has no reference context so we better deletegate to the 'real' cuScope:
 				return parentScope.problemReporter();
+			}
+			@Override
+			public ReferenceContext referenceContext() {
+				return ModuleDeclaration.this;
 			}
 		};
 	}
@@ -224,6 +233,10 @@ public class ModuleDeclaration extends ASTNode {
 			this.ignoreFurtherInvestigation = true;
 			return;
 		}
+		if (this.hasResolvedTypeDirectives)
+			return;
+
+		this.hasResolvedTypeDirectives = true;
 		ASTNode.resolveAnnotations(this.scope, this.annotations, this.binding);
 
 		Set<TypeBinding> allTypes = new HashSet<TypeBinding>();
@@ -313,6 +326,10 @@ public class ModuleDeclaration extends ASTNode {
 		}
 	}
 
+	public void traverse(ASTVisitor visitor, CompilationUnitScope unitScope) {
+		visitor.visit(this, unitScope);
+	}
+
 	public StringBuffer printHeader(int indent, StringBuffer output) {
 		if (this.annotations != null) {
 			for (int i = 0; i < this.annotations.length; i++) {
@@ -372,5 +389,44 @@ public class ModuleDeclaration extends ASTNode {
 		printIndent(indent, output);
 		printHeader(0, output);
 		return printBody(indent, output);
+	}
+
+	@Override
+	public void abort(int abortLevel, CategorizedProblem problem) {
+		switch (abortLevel) {
+			case AbortCompilation :
+				throw new AbortCompilation(this.compilationResult, problem);
+			case AbortCompilationUnit :
+				throw new AbortCompilationUnit(this.compilationResult, problem);
+			case AbortMethod :
+				throw new AbortMethod(this.compilationResult, problem);
+			default :
+				throw new AbortType(this.compilationResult, problem);
+		}
+	}
+
+	@Override
+	public CompilationResult compilationResult() {
+		return this.compilationResult;
+	}
+
+	@Override
+	public CompilationUnitDeclaration getCompilationUnitDeclaration() {
+		return this.scope.referenceCompilationUnit();
+	}
+
+	@Override
+	public boolean hasErrors() {
+		return this.ignoreFurtherInvestigation;
+	}
+
+	@Override
+	public void tagAsHavingErrors() {
+		this.ignoreFurtherInvestigation = true;
+	}
+
+	@Override
+	public void tagAsHavingIgnoredMandatoryErrors(int problemId) {
+		// Nothing to do for this context;
 	}
 }

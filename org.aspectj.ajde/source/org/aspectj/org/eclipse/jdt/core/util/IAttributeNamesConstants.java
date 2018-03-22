@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement - Contributions for
@@ -176,19 +172,19 @@ public interface IAttributeNamesConstants {
 
 	/**
 	 * "Module" attribute (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	char[] MODULE = "Module".toCharArray(); //$NON-NLS-1$
 
 	/**
 	 * "ModulePackages" attribute (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	char[] MODULE_PACKAGES = "ModulePackages".toCharArray(); //$NON-NLS-1$
 
 	/**
 	 * "ModuleMainClass" attribute (added in Java SE 9).
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	char[] MODULE_MAIN_CLASS = "ModuleMainClass".toCharArray(); //$NON-NLS-1$
 }

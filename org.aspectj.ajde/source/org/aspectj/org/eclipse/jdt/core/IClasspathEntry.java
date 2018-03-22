@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -476,4 +472,40 @@ public interface IClasspathEntry {
 	 * @deprecated Use {@link JavaCore#getResolvedClasspathEntry(IClasspathEntry)} instead
 	 */
 	IClasspathEntry getResolvedEntry();
+
+	/**
+	 * This is a convience method, that returns <code>true</code> if the extra attributes contain an attribute whose name
+	 * is {@link IClasspathAttribute#TEST} and whose value is 'true'.
+	 * 
+	 * @see #getExtraAttributes()
+	 * @see IClasspathAttribute#TEST
+	 * @return <code>true</code>, if if the extra attributes contain a attribute whose name is
+	 *         {@link IClasspathAttribute#TEST} and whose value is 'true'.
+	 * @since 3.14
+	 */
+	default public boolean isTest() {
+		for (IClasspathAttribute attribute : getExtraAttributes()) {
+			if (IClasspathAttribute.TEST.equals(attribute.getName()) && "true".equals(attribute.getValue())) //$NON-NLS-1$
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * This is a convience method, that returns <code>true</code> if the extra attributes contain an attribute whose name
+	 * is {@link IClasspathAttribute#WITHOUT_TEST_CODE} and whose value is 'true'.
+	 * 
+	 * @see #getExtraAttributes()
+	 * @see IClasspathAttribute#WITHOUT_TEST_CODE
+	 * @return <code>true</code>, if if the extra attributes contain a attribute whose name is
+	 *         {@link IClasspathAttribute#WITHOUT_TEST_CODE} and whose value is 'true'.
+	 * @since 3.14
+	 */
+	default public boolean isWithoutTestCode() {
+		for (IClasspathAttribute attribute : getExtraAttributes()) {
+			if (IClasspathAttribute.WITHOUT_TEST_CODE.equals(attribute.getName()) && "true".equals(attribute.getValue())) //$NON-NLS-1$
+				return true;
+		}
+		return false;
+	}
 }

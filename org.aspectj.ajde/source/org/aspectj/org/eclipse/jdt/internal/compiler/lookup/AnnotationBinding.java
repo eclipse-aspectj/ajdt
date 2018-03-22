@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -157,6 +153,8 @@ private static AnnotationBinding buildTargetAnnotation(long bits, LookupEnvironm
 	if (arraysize > 0) {
 		ReferenceBinding elementType = env.getResolvedType(TypeConstants.JAVA_LANG_ANNOTATION_ELEMENTTYPE, null);
 		int index = 0;
+		if ((bits & TagBits.AnnotationForTypeUse) != 0)
+			value[index++] = elementType.getField(TypeConstants.TYPE_USE_TARGET, true);
 		if ((bits & TagBits.AnnotationForAnnotationType) != 0)
 			value[index++] = elementType.getField(TypeConstants.UPPER_ANNOTATION_TYPE, true);
 		if ((bits & TagBits.AnnotationForConstructor) != 0)
@@ -169,8 +167,6 @@ private static AnnotationBinding buildTargetAnnotation(long bits, LookupEnvironm
 			value[index++] = elementType.getField(TypeConstants.UPPER_PACKAGE, true);
 		if ((bits & TagBits.AnnotationForParameter) != 0)
 			value[index++] = elementType.getField(TypeConstants.UPPER_PARAMETER, true);
-		if ((bits & TagBits.AnnotationForTypeUse) != 0)
-			value[index++] = elementType.getField(TypeConstants.TYPE_USE_TARGET, true);
 		if ((bits & TagBits.AnnotationForTypeParameter) != 0)
 			value[index++] = elementType.getField(TypeConstants.TYPE_PARAMETER_TARGET, true);
 		if ((bits & TagBits.AnnotationForType) != 0)
@@ -232,6 +228,7 @@ public static void setMethodBindings(ReferenceBinding type, ElementValuePair[] p
 	}
 }
 
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer(5);
 	buffer.append('@').append(this.type.sourceName);
@@ -250,14 +247,16 @@ public String toString() {
 	return buffer.toString();
 }
 
+@Override
 public int hashCode() {
 	int result = 17;
-	int c = this.type.hashCode();
+	int c = this.getAnnotationType().hashCode();
 	result = 31 * result + c;
-	c =  Arrays.hashCode(this.pairs);
+	c =  Arrays.hashCode(this.getElementValuePairs());
 	result = 31 * result + c;
 	return result;
 }
+@Override
 public boolean equals(Object object) {
 	if (this == object)
 		return true;

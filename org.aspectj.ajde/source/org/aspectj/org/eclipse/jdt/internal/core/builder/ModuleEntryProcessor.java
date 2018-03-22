@@ -5,17 +5,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.builder;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -102,6 +98,6 @@ class ModuleEntryProcessor {
 			return null;
 		
 		// collect the transitive closure of modules contained in limitSet
-		return new HashSet<>(Arrays.asList(extraAttribute.split(","))); //$NON-NLS-1$
+		return new LinkedHashSet<>(Arrays.asList(extraAttribute.split(","))); //$NON-NLS-1$
 	}
 }

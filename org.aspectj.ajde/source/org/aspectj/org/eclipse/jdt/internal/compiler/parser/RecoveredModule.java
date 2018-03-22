@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     
@@ -42,6 +38,7 @@ public class RecoveredModule extends RecoveredElement {
 		super(parent, bracketBalance);
 		this.moduleDeclaration = moduleDeclaration;
 	}
+	@Override
 	public RecoveredElement add(ModuleStatement moduleStatement, int bracketBalanceValue) {
 		
 		// TODO: can't we do away with all these additions except for ProvidesStatement - to check
@@ -164,6 +161,7 @@ public class RecoveredModule extends RecoveredElement {
 		RecoveredUsesStatement element = new RecoveredUsesStatement(usesStatement, this, bracketBalanceValue);
 		this.uses[this.usesCount++] = element;
 	}
+	@Override
 	public String toString(int tab) {
 		StringBuffer result = new StringBuffer(tabString(tab));
 		result.append("Recovered module:\n"); //$NON-NLS-1$
@@ -281,6 +279,7 @@ public class RecoveredModule extends RecoveredElement {
 			mod.servicesCount = actualCount;  			
 		}
 	}
+	@Override
 	public void updateParseTree(){
 		updatedModuleDeclaration();
 	}

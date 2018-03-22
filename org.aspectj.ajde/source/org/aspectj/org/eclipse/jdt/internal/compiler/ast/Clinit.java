@@ -1,6 +1,6 @@
 //AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ package org.aspectj.org.eclipse.jdt.internal.compiler.ast;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
@@ -108,6 +109,7 @@ public class Clinit extends AbstractMethodDeclaration {
 	 * @param classScope org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope
 	 * @param classFile org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ClassFile
 	 */
+	@Override
 	public void generateCode(ClassScope classScope, ClassFile classFile) {
 
 		int clinitOffset = 0;
@@ -219,6 +221,7 @@ public class Clinit extends AbstractMethodDeclaration {
 		//}
 		generateSyntheticCode(classScope, codeStream);
 		// End AspectJ Extension
+		boolean isJava9 = classScope.compilerOptions().complianceLevel >= ClassFileConstants.JDK9;
 		
 		// generate static fields/initializers/enum constants
 		final FieldDeclaration[] fieldDeclarations = declaringType.fields;
@@ -226,7 +229,7 @@ public class Clinit extends AbstractMethodDeclaration {
 		int remainingFieldCount = 0;
 		if (TypeDeclaration.kind(declaringType.modifiers) == TypeDeclaration.ENUM_DECL) {
 			int enumCount = declaringType.enumConstantsCounter;
-			if (enumCount > ENUM_CONSTANTS_THRESHOLD) {
+			if (!isJava9 && enumCount > ENUM_CONSTANTS_THRESHOLD) {
 				// generate synthetic methods to initialize all the enum constants
 				int begin = -1;
 				int count = 0;
@@ -334,6 +337,9 @@ public class Clinit extends AbstractMethodDeclaration {
 					}
 				}
 			}
+			if (isJava9) {
+				declaringType.binding.generateSyntheticFinalFieldInitialization(codeStream);
+			}
 		}
 
 		// AspectJ Extension
@@ -390,25 +396,30 @@ public class Clinit extends AbstractMethodDeclaration {
 		}
 	// End AspectJ Extension
 
+	@Override
 	public boolean isClinit() {
 
 		return true;
 	}
 
+	@Override
 	public boolean isInitializationMethod() {
 
 		return true;
 	}
 
+	@Override
 	public boolean isStatic() {
 
 		return true;
 	}
 
+	@Override
 	public void parseStatements(Parser parser, CompilationUnitDeclaration unit) {
 		//the clinit is filled by hand ....
 	}
 
+	@Override
 	public StringBuffer print(int tab, StringBuffer output) {
 
 		printIndent(tab, output).append("<clinit>()"); //$NON-NLS-1$
@@ -416,11 +427,13 @@ public class Clinit extends AbstractMethodDeclaration {
 		return output;
 	}
 
+	@Override
 	public void resolve(ClassScope classScope) {
 
 		this.scope = new MethodScope(classScope, classScope.referenceContext, true);
 	}
 
+	@Override
 	public void traverse(
 		ASTVisitor visitor,
 		ClassScope classScope) {

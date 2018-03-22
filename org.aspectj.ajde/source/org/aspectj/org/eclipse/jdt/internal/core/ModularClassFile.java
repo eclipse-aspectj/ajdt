@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2017 GK Software AG, and others.
+ * Copyright (c) 2017, 2018 GK Software AG, and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     Stephan Herrmann - initial API and implementation
@@ -15,7 +11,6 @@
 package org.aspectj.org.eclipse.jdt.internal.core;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
@@ -62,13 +57,15 @@ public class ModularClassFile extends AbstractClassFile implements IModularClass
 			return false;
 		}
 		
-		// Read the module	
-		BinaryModule module = ((ClassFileInfo) info).readBinaryModule(this, (HashMap<?,?>) newElements, moduleInfo);
-		if (module != null) {
-			this.binaryModule = module;
-			info.setChildren(new IJavaElement[] {module});
-			((PackageFragmentRootInfo) getPackageFragmentRoot().getElementInfo()).setModule(module);
+		// Create & link a handle:	
+		BinaryModule module = new BinaryModule(this, moduleInfo);
+		newElements.put(module, moduleInfo);
+		info.setChildren(new IJavaElement[] {module});
+		this.binaryModule = module;
+		if (info instanceof ClassFileInfo) {
+			((ClassFileInfo) info).setModule(module);
 		}
+		((PackageFragmentRootInfo) getPackageFragmentRoot().getElementInfo()).setModule(module);
 		return true;
 	}
 
@@ -116,7 +113,7 @@ public class ModularClassFile extends AbstractClassFile implements IModularClass
 	
 	@Override
 	public IType getType() {
-		throw new UnsupportedOperationException("IClassFile#getType() cannot be used on an IModularClassFile");
+		throw new UnsupportedOperationException("IClassFile#getType() cannot be used on an IModularClassFile"); //$NON-NLS-1$
 	}
 
 	/**
@@ -172,12 +169,13 @@ public class ModularClassFile extends AbstractClassFile implements IModularClass
 				if (contents != null) {
 					String fileName;
 					String rootPath = root.getPath().toOSString();
+					String rootIdentifier = root.getHandleIdentifier();
 					if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isJrt(rootPath)) {
-						fileName = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + 
-								root.getElementName() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
-					} else {
-						fileName = root.getHandleIdentifier() + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
+						int slash = rootIdentifier.lastIndexOf('/');
+						if (slash != -1)
+							rootIdentifier = rootIdentifier.substring(0, slash);
 					}
+					fileName = rootIdentifier + IDependent.JAR_FILE_ENTRY_SEPARATOR + entryName;
 					ClassFileReader classFileReader = new ClassFileReader(contents, fileName.toCharArray(), false);
 					return classFileReader.getModuleDeclaration();
 				}
@@ -194,6 +192,7 @@ public class ModularClassFile extends AbstractClassFile implements IModularClass
 	/**
 	 * @see ITypeRoot
 	 */
+	@Override
 	public IJavaElement getElementAt(int position) throws JavaModelException {
 		IJavaElement parentElement = getParent();
 		while (parentElement.getElementType() != IJavaElement.PACKAGE_FRAGMENT_ROOT) {
@@ -244,7 +243,6 @@ public class ModularClassFile extends AbstractClassFile implements IModularClass
 		}
 		BecomeWorkingCopyOperation op = new BecomeWorkingCopyOperation(workingCopy, null);
 		op.runOperation(monitor);
-		System.out.println("<<getWorkingCopy: "+workingCopy);
 		return workingCopy;
 	}
 	/**

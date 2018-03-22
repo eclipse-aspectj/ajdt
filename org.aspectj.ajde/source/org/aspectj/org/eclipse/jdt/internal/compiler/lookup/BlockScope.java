@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -443,6 +439,7 @@ public LocalDeclaration[] findLocalVariableDeclarations(int position) {
 	return null;
 }
 
+@Override
 public LocalVariableBinding findVariable(char[] variableName) {
 	int varLength = variableName.length;
 	for (int i = this.localIndex-1; i >= 0; i--) { // lookup backward to reach latest additions first
@@ -979,6 +976,7 @@ public final boolean needBlankFinalFieldInitializationCheck(FieldBinding binding
  * (unit, type or method) in case the problem handler decides it is necessary
  * to abort.
  */
+@Override
 public ProblemReporter problemReporter() {
 	return methodScope().problemReporter();
 }
@@ -1026,10 +1024,12 @@ public int scopeIndex() {
 }
 
 // start position in this scope - for ordering scopes vs. variables
+@Override
 int startIndex() {
 	return this.startIndex;
 }
 
+@Override
 public String toString() {
 	return toString(0);
 }

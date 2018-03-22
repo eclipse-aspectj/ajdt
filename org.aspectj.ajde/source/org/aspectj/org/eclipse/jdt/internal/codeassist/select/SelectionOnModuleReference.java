@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     
@@ -25,6 +21,7 @@ public class SelectionOnModuleReference extends ModuleReference {
 		super(tokens, sourcePositions);
 	}
 
+	@Override
 	public ModuleBinding resolve(Scope scope) {
 		ModuleBinding resolvedBinding = super.resolve(scope);
 		if (resolvedBinding != null) {
@@ -34,6 +31,7 @@ public class SelectionOnModuleReference extends ModuleReference {
 		}
 	}
 
+	@Override
 	public StringBuffer print(int tab, StringBuffer output) {
 		printIndent(tab, output).append("<SelectOnModuleReference:"); //$NON-NLS-1$
 		for (int i = 0; i < this.tokens.length; i++) {

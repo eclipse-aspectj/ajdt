@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -213,6 +209,7 @@ public class ClasspathChange {
 		return fragments;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof ClasspathChange))
 			return false;
@@ -480,6 +477,7 @@ public class ClasspathChange {
 		}
 	}
 
+	@Override
 	public int hashCode() {
 		return this.project.hashCode();
 	}
@@ -579,6 +577,7 @@ public class ClasspathChange {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return "ClasspathChange: " + this.project.getElementName(); //$NON-NLS-1$
 	}

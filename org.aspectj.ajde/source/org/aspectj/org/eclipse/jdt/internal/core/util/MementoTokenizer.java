@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -119,6 +115,8 @@ public class MementoTokenizer {
 					if (buffer == null) buffer = new StringBuffer();
 					buffer.append(this.memento, start, this.index - start);
 					start = ++this.index;
+					if (this.memento[this.index] == JavaElement.JEM_MODULE)
+						return buffer.toString();
 					break;
 				case JavaElement.JEM_COUNT:
 				case JavaElement.JEM_JAVAPROJECT:

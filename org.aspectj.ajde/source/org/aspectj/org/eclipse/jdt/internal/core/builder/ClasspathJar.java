@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,6 +24,9 @@ import java.util.zip.ZipFile;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.aspectj.org.eclipse.jdt.core.JavaCore;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ExternalAnnotationDecorator;
@@ -181,27 +180,46 @@ public ClasspathJar(String fileName, AccessRuleSet accessRuleSet, IPath external
 		this.externalAnnotationPath = externalAnnotationPath.toString();
 }
 
+@Override
 public void cleanup() {
 	if (this.closeZipFileAtEnd) {
 		if (this.zipFile != null) {
 			try {
 				this.zipFile.close();
+				if (org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.ZIP_ACCESS_VERBOSE) {
+					System.out.println("(" + Thread.currentThread() + ") [ClasspathJar.cleanup()] Closed ZipFile on " + this.zipFilename); //$NON-NLS-1$	//$NON-NLS-2$
+				}
 			} catch(IOException e) { // ignore it
+				JavaCore.getPlugin().getLog().log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, "Error closing " + this.zipFile.getName(), e)); //$NON-NLS-1$
 			}
 			this.zipFile = null;
 		}
 		if (this.annotationZipFile != null) {
 			try {
 				this.annotationZipFile.close();
+				if (org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.ZIP_ACCESS_VERBOSE) {
+					System.out.println("(" + Thread.currentThread() + ") [ClasspathJar.cleanup()] Closed Annotation ZipFile on " + this.zipFilename); //$NON-NLS-1$	//$NON-NLS-2$
+				}
 			} catch(IOException e) { // ignore it
+				JavaCore.getPlugin().getLog().log(new Status(IStatus.ERROR, JavaCore.PLUGIN_ID, "Error closing " + this.annotationZipFile.getName(), e)); //$NON-NLS-1$
 			}
 			this.annotationZipFile = null;
+		}
+	} else {
+		if (this.zipFile != null && org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.ZIP_ACCESS_VERBOSE) {
+			try {
+				this.zipFile.size();
+				System.out.println("(" + Thread.currentThread() + ") [ClasspathJar.cleanup()] ZipFile NOT closed on " + this.zipFilename); //$NON-NLS-1$	//$NON-NLS-2$
+			} catch (IllegalStateException e) {
+				// OK: the file was already closed
+			}
 		}
 	}
 	this.module = null; // TODO(SHMOD): is this safe?
 	this.knownPackageNames = null;
 }
 
+@Override
 public boolean equals(Object o) {
 	if (this == o) return true;
 	if (!(o instanceof ClasspathJar)) return false;
@@ -211,9 +229,11 @@ public boolean equals(Object o) {
 			return false;
 	return this.zipFilename.equals(jar.zipFilename) 
 			&& lastModified() == jar.lastModified()
-			&& this.isOnModulePath == jar.isOnModulePath;
+			&& this.isOnModulePath == jar.isOnModulePath
+			&& areAllModuleOptionsEqual(jar);
 }
 
+@Override
 public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
 	if (!isPackage(qualifiedPackageName, moduleName)) return null; // most common case
 
@@ -258,15 +278,18 @@ public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPa
 	return null;
 }
 
+@Override
 public IPath getProjectRelativePath() {
 	if (this.resource == null) return null;
 	return	this.resource.getProjectRelativePath();
 }
 
+@Override
 public int hashCode() {
 	return this.zipFilename == null ? super.hashCode() : this.zipFilename.hashCode();
 }
 
+@Override
 public boolean isPackage(String qualifiedPackageName, String moduleName) {
 	if (moduleName != null) {
 		if (this.module == null || !moduleName.equals(String.valueOf(this.module.name())))
@@ -310,6 +333,7 @@ public long lastModified() {
 	return this.lastModified;
 }
 
+@Override
 public String toString() {
 	String start = "Classpath jar file " + this.zipFilename; //$NON-NLS-1$
 	if (this.accessRuleSet == null)
@@ -317,6 +341,7 @@ public String toString() {
 	return start + " with " + this.accessRuleSet; //$NON-NLS-1$
 }
 
+@Override
 public String debugPathString() {
 	long time = lastModified();
 	if (time == 0)

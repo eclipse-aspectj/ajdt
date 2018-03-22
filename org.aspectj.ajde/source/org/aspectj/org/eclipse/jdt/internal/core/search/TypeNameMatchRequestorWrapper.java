@@ -5,14 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for bug 215139
@@ -58,9 +50,7 @@ public TypeNameMatchRequestorWrapper(TypeNameMatchRequestor requestor, IJavaSear
 	this.requestor = requestor;
 }
 
-/* (non-Javadoc)
- * @see org.aspectj.org.eclipse.jdt.internal.core.search.IRestrictedAccessTypeRequestor#acceptType(int, char[], char[], char[][], java.lang.String, org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction)
- */
+@Override
 public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 
 	// Get type

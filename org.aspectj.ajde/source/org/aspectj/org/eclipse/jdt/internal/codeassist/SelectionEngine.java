@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -22,6 +18,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.IBuffer;
+import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IOpenable;
@@ -164,6 +161,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			this.importReferences = importReferences;
 		}
 		
+		@Override
 		public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path, AccessRestriction access) {
 			if (enclosingTypeNames != null && enclosingTypeNames.length > 0) return;
 			
@@ -306,6 +304,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				this.compilerOptions,
 				new DefaultProblemFactory(Locale.getDefault())) {
 
+			@Override
 			public CategorizedProblem createProblem(
 				char[] fileName,
 				int problemId,
@@ -339,6 +338,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		this.owner = owner;
 	}
 	
+	@Override
 	public void acceptConstructor(
 			int modifiers,
 			char[] simpleTypeName,
@@ -354,6 +354,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		// constructors aren't searched
 	}
 
+	@Override
 	public void acceptType(char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, int modifiers, AccessRestriction accessRestriction) {
 		char[] typeName = enclosingTypeNames == null ?
 				simpleTypeName :
@@ -464,14 +465,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		}
 	}
 
-	/**
-	 * One result of the search consists of a new package.
-	 * @param packageName char[]
-	 *
-	 * NOTE - All package names are presented in their readable form:
-	 *    Package names are in the form "a.b.c".
-	 *    The default package is represented by an empty array.
-	 */
+	@Override
 	public void acceptPackage(char[] packageName) {
 		// implementation of interface method
 	}
@@ -838,33 +832,42 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		try {
 			IProgressMonitor progressMonitor = new IProgressMonitor() {
 				boolean isCanceled = false;
+				@Override
 				public void beginTask(String name, int totalWork) {
 					// implements interface method
 				}
+				@Override
 				public void done() {
 					// implements interface method
 				}
+				@Override
 				public void internalWorked(double work) {
 					// implements interface method
 				}
+				@Override
 				public boolean isCanceled() {
 					return this.isCanceled;
 				}
+				@Override
 				public void setCanceled(boolean value) {
 					this.isCanceled = value;
 				}
+				@Override
 				public void setTaskName(String name) {
 					// implements interface method
 				}
+				@Override
 				public void subTask(String name) {
 					// implements interface method
 				}
+				@Override
 				public void worked(int work) {
 					// implements interface method
 				}
 			};
 			
 			TypeNameMatchRequestor typeNameMatchRequestor = new TypeNameMatchRequestor() {
+				@Override
 				public void acceptTypeNameMatch(TypeNameMatch match) {
 					if (SelectionEngine.this.requestor instanceof SelectionRequestor) {
 						SelectionEngine.this.noProposal = false;
@@ -903,6 +906,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		}
 	}
 
+	@Override
 	public AssistParser getParser() {
 		return this.parser;
 	}
@@ -1031,6 +1035,9 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					if (parsedUnit.isModuleInfo() && parsedUnit.moduleDeclaration != null) {
 						ModuleDeclaration module = parsedUnit.moduleDeclaration;
 						this.lookupEnvironment.buildTypeBindings(parsedUnit, null /*no access restriction*/);
+						if ((this.unitScope = parsedUnit.scope)  != null) {
+							this.lookupEnvironment.completeTypeBindings(parsedUnit, true);
+						}
 						module.resolveModuleDirectives(parsedUnit.scope);
 						module.resolvePackageDirectives(parsedUnit.scope);
 						module.resolveTypeDirectives(parsedUnit.scope);
@@ -1399,6 +1406,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		if (assistIdentifier == null) return;
 
 		class Visitor extends ASTVisitor {
+			@Override
 			public boolean visit(ConstructorDeclaration constructorDeclaration, ClassScope scope) {
 				if (constructorDeclaration.selector == assistIdentifier){
 					if (constructorDeclaration.binding != null) {
@@ -1411,24 +1419,28 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
 				if (fieldDeclaration.name == assistIdentifier){
 					throw new SelectionNodeFound(fieldDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeDeclaration localTypeDeclaration, BlockScope scope) {
 				if (localTypeDeclaration.name == assistIdentifier) {
 					throw new SelectionNodeFound(localTypeDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeDeclaration memberTypeDeclaration, ClassScope scope) {
 				if (memberTypeDeclaration.name == assistIdentifier) {
 					throw new SelectionNodeFound(memberTypeDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {
 				if (methodDeclaration.selector == assistIdentifier){
 					if (methodDeclaration.binding != null) {
@@ -1441,18 +1453,21 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeDeclaration typeDeclaration, CompilationUnitScope scope) {
 				if (typeDeclaration.name == assistIdentifier) {
 					throw new SelectionNodeFound(typeDeclaration.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeParameter typeParameter, BlockScope scope) {
 				if (typeParameter.name == assistIdentifier) {
 					throw new SelectionNodeFound(typeParameter.binding);
 				}
 				return true;
 			}
+			@Override
 			public boolean visit(TypeParameter typeParameter, ClassScope scope) {
 				if (typeParameter.name == assistIdentifier) {
 					throw new SelectionNodeFound(typeParameter.binding);
@@ -1524,26 +1539,29 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					typeDeclaration = new ASTNodeFinder(parsedUnit).findType(context);
 				}
 			} else { // binary type
-				ClassFile classFile = (ClassFile) context.getClassFile();
-				BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(classFile);
-				ClassFileReader reader = null;
-				try {
-					reader = BinaryTypeFactory.rawReadType(descriptor, false/*don't fully initialize so as to keep constant pool (used below)*/);
-				} catch (ClassFormatException e) {
-					if (JavaCore.getPlugin().isDebugging()) {
-						e.printStackTrace(System.err);
+				IClassFile iClassFile = context.getClassFile();
+				if (iClassFile instanceof ClassFile) {
+					ClassFile classFile = (ClassFile) iClassFile;
+					BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(classFile);
+					ClassFileReader reader = null;
+					try {
+						reader = BinaryTypeFactory.rawReadType(descriptor, false/*don't fully initialize so as to keep constant pool (used below)*/);
+					} catch (ClassFormatException e) {
+						if (JavaCore.getPlugin().isDebugging()) {
+							e.printStackTrace(System.err);
+						}
 					}
+					if (reader == null) {
+						throw classFile.newNotPresentException();
+					}
+					CompilationResult result = new CompilationResult(reader.getFileName(), 1, 1, this.compilerOptions.maxProblemsPerUnit);
+					parsedUnit = new CompilationUnitDeclaration(this.parser.problemReporter(), result, 0);
+					HashSetOfCharArrayArray typeNames = new HashSetOfCharArrayArray();
+					
+					BinaryTypeConverter converter = new BinaryTypeConverter(this.parser.problemReporter(), result, typeNames);
+					typeDeclaration = converter.buildTypeDeclaration(context, parsedUnit);
+					parsedUnit.imports = converter.buildImports(reader);
 				}
-				if (reader == null) {
-					throw classFile.newNotPresentException();
-				}
-				CompilationResult result = new CompilationResult(reader.getFileName(), 1, 1, this.compilerOptions.maxProblemsPerUnit);
-				parsedUnit = new CompilationUnitDeclaration(this.parser.problemReporter(), result, 0);
-				HashSetOfCharArrayArray typeNames = new HashSetOfCharArrayArray();
-
-				BinaryTypeConverter converter = new BinaryTypeConverter(this.parser.problemReporter(), result, typeNames);
-				typeDeclaration = converter.buildTypeDeclaration(context, parsedUnit);
-				parsedUnit.imports = converter.buildImports(reader);
 			}
 
 			if (typeDeclaration != null) {
@@ -1805,6 +1823,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 		ReferenceBinding type= method.declaringClass;
 		final SelectionRequestor requestor1 = (SelectionRequestor) this.requestor;
 		return new InheritDocVisitor() {
+			@Override
 			public Object visit(ReferenceBinding currType) throws JavaModelException {
 				MethodBinding overridden =  findOverriddenMethodInType(currType, method);
 				if (overridden == null)
@@ -1857,9 +1876,11 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 	 */
 	static abstract class InheritDocVisitor {
 		public static final Object STOP_BRANCH= new Object() {
+			@Override
 			public String toString() { return "STOP_BRANCH"; } //$NON-NLS-1$
 		};
 		public static final Object CONTINUE= new Object() {
+			@Override
 			public String toString() { return "CONTINUE"; } //$NON-NLS-1$
 		};
 

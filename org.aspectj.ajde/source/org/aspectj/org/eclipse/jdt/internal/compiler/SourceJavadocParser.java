@@ -28,6 +28,7 @@ public SourceJavadocParser(Parser sourceParser) {
 	this.kind = SOURCE_PARSER | TEXT_VERIF;
 }
 
+@Override
 public boolean checkDeprecation(int commentPtr) {
 	this.categoriesPtr = -1;
 	boolean result = super.checkDeprecation(commentPtr);
@@ -39,9 +40,7 @@ public boolean checkDeprecation(int commentPtr) {
 	return result;
 }
 
-/* (non-Javadoc)
- * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.AbstractCommentParser#parseIdentifierTag()
- */
+@Override
 protected boolean parseIdentifierTag(boolean report) {
 	int end = this.lineEnd+1;
 	if (super.parseIdentifierTag(report) && this.index <= end) {
@@ -80,9 +79,7 @@ protected boolean parseIdentifierTag(boolean report) {
 	return false;
 }
 
-/* (non-Javadoc)
- * @see org.aspectj.org.eclipse.jdt.internal.compiler.parser.JavadocParser#parseSimpleTag()
- */
+@Override
 protected void parseSimpleTag() {
 
 	// Read first char

@@ -198,6 +198,7 @@ public class ExternalAnnotationProvider {
 		return ITypeAnnotationWalker.EMPTY_ANNOTATION_WALKER;
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("External Annotations for ").append(this.typeName).append('\n'); //$NON-NLS-1$
@@ -212,6 +213,10 @@ public class ExternalAnnotationProvider {
 		@Override
 		public IBinaryElementValuePair[] getElementValuePairs() {
 			return ElementValuePairInfo.NoMembers;
+		}
+		@Override
+		public boolean isExternalAnnotation() {
+			return true;
 		}
 		protected char[] getBinaryTypeName(char[][] name) {
 			return CharOperation.concat('L', CharOperation.concatWith(name, '/'), ';');
@@ -245,6 +250,7 @@ public class ExternalAnnotationProvider {
 		public DispatchingAnnotationWalker(LookupEnvironment environment) {
 			this.environment = environment;
 		}
+		@Override
 		public ITypeAnnotationWalker toTypeParameter(boolean isClassTypeParameter, int rank) {
 			String source = ExternalAnnotationProvider.this.typeParametersAnnotationSource;
 			if (source != null) {
@@ -254,11 +260,13 @@ public class ExternalAnnotationProvider {
 			}
 			return this;
 		}
+		@Override
 		public ITypeAnnotationWalker toTypeParameterBounds(boolean isClassTypeParameter, int parameterRank) {
 			if (this.typeParametersWalker != null)
 				return this.typeParametersWalker.toTypeParameterBounds(isClassTypeParameter, parameterRank);
 			return this;
 		}
+		@Override
 		public ITypeAnnotationWalker toSupertype(short index, char[] superTypeSignature) {
 			Map<String, String> sources = ExternalAnnotationProvider.this.supertypeAnnotationSources;
 			if (sources != null) {
@@ -269,16 +277,27 @@ public class ExternalAnnotationProvider {
 			return this;
 		}
 		// the rest is borrowed from EMPTY_ANNOTATION_WALKER:
+		@Override
 		public ITypeAnnotationWalker toField() { return this; }
+		@Override
 		public ITypeAnnotationWalker toThrows(int rank) { return this; }
+		@Override
 		public ITypeAnnotationWalker toTypeArgument(int rank) { return this; }
+		@Override
 		public ITypeAnnotationWalker toMethodParameter(short index) { return this; }
+		@Override
 		public ITypeAnnotationWalker toTypeBound(short boundIndex) { return this; }
+		@Override
 		public ITypeAnnotationWalker toMethodReturn() { return this; }
+		@Override
 		public ITypeAnnotationWalker toReceiver() { return this; }
+		@Override
 		public ITypeAnnotationWalker toWildcardBound() { return this; }
+		@Override
 		public ITypeAnnotationWalker toNextArrayDimension() { return this; }
+		@Override
 		public ITypeAnnotationWalker toNextNestedType() { return this; }
+		@Override
 		public IBinaryAnnotation[] getAnnotationsAtCursor(int currentTypeId, boolean mayApplyArrayContentsDefaultNullness) { return NO_ANNOTATIONS; }
 	}
 
@@ -302,6 +321,7 @@ public class ExternalAnnotationProvider {
 			if (this.wrapper == null)
 				this.wrapper = new SignatureWrapper(this.source);
 			this.wrapper.start = start;
+			this.wrapper.bracket = -1;
 			return this.wrapper;
 		}
 

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -47,11 +43,11 @@ public interface IConstantPoolConstant {
 	int CONSTANT_InvokeDynamic = 18;
 
 	/**
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int CONSTANT_Module = 19;
 	/**
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int CONSTANT_Package = 20;
 
@@ -80,12 +76,12 @@ public interface IConstantPoolConstant {
 	int CONSTANT_InvokeDynamic_SIZE = 5;
 
 	/**
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int CONSTANT_Module_SIZE = 3;
 
 	/**
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	int CONSTANT_Package_SIZE = 3;
 	/**

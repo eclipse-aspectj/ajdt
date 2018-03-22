@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -286,6 +282,10 @@ public int previousAvailableLineEnd(int position){
 public int sourceEnd(){
 	return 0;
 }
+public int getLastStart() {
+	ASTNode parseTree = parseTree();
+	return parseTree == null ? -1 : parseTree.sourceStart;
+}
 protected String tabString(int tab) {
 	StringBuffer result = new StringBuffer();
 	for (int i = tab; i > 0; i--) {
@@ -303,6 +303,7 @@ public RecoveredElement topElement(){
 	}
 	return current;
 }
+@Override
 public String toString() {
 	return toString(0);
 }

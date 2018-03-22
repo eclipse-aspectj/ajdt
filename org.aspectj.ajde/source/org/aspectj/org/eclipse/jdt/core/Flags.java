@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - added constant AccDefault
@@ -180,7 +176,7 @@ public final class Flags {
 	 * Module declaration property flag.
 	 * Used to flag a compilation unit or a class file that contains a module declaration.
 	 * 
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */
 	public static final int AccModule = ClassFileConstants.AccModule;
 	
@@ -424,7 +420,7 @@ public final class Flags {
 	 *
 	 * @return <code>true</code> if the <code>AccModule</code> flag is included
 	 * @see #AccModule
-	 * @since 3.13 BETA_JAVA9
+	 * @since 3.14
 	 */	
 	public static boolean isModule(int flags) {
 		return (flags & AccModule) != 0;

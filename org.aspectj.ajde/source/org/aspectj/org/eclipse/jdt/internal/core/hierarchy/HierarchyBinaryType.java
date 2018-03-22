@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
@@ -77,15 +73,18 @@ public HierarchyBinaryType(int modifiers, char[] binaryName, char[] sourceName, 
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType
  */
+@Override
 public IBinaryAnnotation[] getAnnotations() {
 	return null;
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType
  */
+@Override
 public IBinaryTypeAnnotation[] getTypeAnnotations() {
 	return null;
 }
+@Override
 public char[] getEnclosingMethod() {
 	return null;
 }
@@ -96,21 +95,25 @@ public char[] getEnclosingMethod() {
  *
  * For example, java.lang.String is java/lang/String.
  */
+@Override
 public char[] getEnclosingTypeName() {
 	return this.enclosingTypeName;
 }
 /**
  * Answer the receiver's fields or null if the array is empty.
  */
+@Override
 public IBinaryField[] getFields() {
 	return null;
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
  */
+@Override
 public char[] getFileName() {
 	return null;
 }
+@Override
 public char[] getGenericSignature() {
 	if (this.typeParameterSignatures != null && this.genericSignature == null) {
 		StringBuffer buffer = new StringBuffer();
@@ -138,6 +141,7 @@ public char[] getGenericSignature() {
  *
  * For example, java.lang.String is java/lang/String.
  */
+@Override
 public char[][] getInterfaceNames() {
 	return this.superInterfaces;
 }
@@ -147,12 +151,14 @@ public char[][] getInterfaceNames() {
  * This nested type info is extracted from the inner class attributes.
  * Ask the name environment to find a member type using its compound name.
  */
+@Override
 public IBinaryNestedType[] getMemberTypes() {
 	return null;
 }
 /**
  * Answer the receiver's methods or null if the array is empty.
  */
+@Override
 public IBinaryMethod[] getMethods() {
 	return null;
 }
@@ -160,6 +166,7 @@ public IBinaryMethod[] getMethods() {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType#getMissingTypeNames()
  */
+@Override
 public char[][][] getMissingTypeNames() {
 	return null;
 }
@@ -168,6 +175,7 @@ public char[][][] getMissingTypeNames() {
  * Answer an int whose bits are set according the access constants
  * defined by the VM spec.
  */
+@Override
 public int getModifiers() {
 	return this.modifiers;
 }
@@ -178,10 +186,12 @@ public int getModifiers() {
  *
  * For example, java.lang.String is java/lang/String.
  */
+@Override
 public char[] getName() {
 	return this.name;
 }
 
+@Override
 public char[] getSourceName() {
 	return this.sourceName;
 }
@@ -192,14 +202,17 @@ public char[] getSourceName() {
  *
  * For example, java.lang.String is java/lang/String.
  */
+@Override
 public char[] getSuperclassName() {
 	return this.superclass;
 }
 
 // TODO (jerome) please verify that we don't need the tagbits for the receiver
+@Override
 public long getTagBits() {
 	return 0;
 }
+@Override
 public boolean isAnonymous() {
 	return false; // index did not record this information (since unused for hierarchies)
 }
@@ -207,13 +220,16 @@ public boolean isAnonymous() {
  * Answer whether the receiver contains the resolved binary form
  * or the unresolved source form of the type.
  */
+@Override
 public boolean isBinaryType() {
 	return true;
 }
 
+@Override
 public boolean isLocal() {
 	return false;  // index did not record this information (since unused for hierarchies)
 }
+@Override
 public boolean isMember() {
 	return false;  // index did not record this information (since unused for hierarchies)
 }
@@ -262,6 +278,7 @@ public void recordInterface(char[] binaryName) {
 /**
  * @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType
  */
+@Override
 public char[] sourceFileName() {
 	return null;
 }
@@ -301,12 +318,13 @@ public String toString() {
 	}
 	return buffer.toString();
 }
+@Override
 public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(ITypeAnnotationWalker walker, Object member, LookupEnvironment environment) {
 	return walker;
 }
 @Override
 public char[] getModule() {
-	// TODO BETA_JAVA9 Auto-generated method stub
+	// TODO Java 9 Auto-generated method stub
 	return null;
 }
 @Override

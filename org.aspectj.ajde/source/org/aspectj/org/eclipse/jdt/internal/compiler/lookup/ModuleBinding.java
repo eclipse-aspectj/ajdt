@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     
@@ -64,9 +60,11 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 		UnNamedModule(LookupEnvironment env) {
 			super(env);
 		}
+		@Override
 		public ModuleBinding[] getAllRequiredModules() {
 			return Binding.NO_MODULES;
 		}
+		@Override
 		public boolean canAccess(PackageBinding pkg) {
 			ModuleBinding mod = pkg.enclosingModule;
 			if (mod != null && mod != this)
@@ -110,14 +108,20 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 	public int modifiers;
 	public LookupEnvironment environment;
 	public int tagBits;
+	public int defaultNullness = NO_NULL_DEFAULT;
 	ModuleBinding[] requiredModules = null;
 	boolean isAuto = false;
 	private boolean[] isComplete = new boolean[UpdateKind.values().length];
 	private Set<ModuleBinding> transitiveRequires;
-	private boolean isPackageLookupActive = false; // to prevent cyclic lookup caused by synthetic reads edges on behalf of auto-modules.
+	boolean isPackageLookupActive = false; // to prevent cyclic lookup caused by synthetic reads edges on behalf of auto-modules.
 
-	/** Packages declared in this module (indexed by qualified name). */
-	HashtableOfPackage declaredPackages; // TODO(SHMOD): measure if this is worth the memory. LE->PackageBinding basically hold the same information
+	/**
+	 * Packages declared in this module (indexed by qualified name).
+	 * We consider a package as declared in a module,
+	 * if a compilation unit associated with the module
+	 * declares the package or a subpackage thereof.
+	 */
+	public HashtableOfPackage declaredPackages;
 
 	/** Constructor for the unnamed module. */
 	private ModuleBinding(LookupEnvironment env) {
@@ -404,6 +408,7 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 	}
 
 	/** Answer the name of this module. The unnamed module is identified by {@link #UNNAMED}. */
+	@Override
 	public char[] name() {
 		return this.moduleName;
 	}
@@ -469,7 +474,7 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 	 * When asked via the unnamed module or an automatic module all other named modules are considered visible. 
 	 * </p>
 	 */
-	PackageBinding getTopLevelPackage(char[] name) {
+	public PackageBinding getTopLevelPackage(char[] name) {
 		// check caches:
 		PackageBinding binding = this.declaredPackages.get(name);
 		if (binding != null)
@@ -499,6 +504,9 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 		PackageBinding binding = new PackageBinding(subPkgCompoundName, parent, this.environment, this);
 		// remember
 		this.declaredPackages.put(fullFlatName, binding);
+		if (parent == null) {
+			this.environment.knownPackages.put(name, binding);
+		}
 		return binding;
 	}
 	// Given parent is visible in this module, see if there is sub package named name visible in this module
@@ -526,15 +534,24 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 			IModuleAwareNameEnvironment moduleEnv = (IModuleAwareNameEnvironment) this.environment.nameEnvironment;
 			char[][] declaringModuleNames = moduleEnv.getModulesDeclaringPackage(parentName, name, nameForLookup());
 			if (declaringModuleNames != null) {
-				if (CharOperation.containsEqual(declaringModuleNames, this.moduleName)) {
+				if (!this.isUnnamed() && CharOperation.containsEqual(declaringModuleNames, this.moduleName)) {
 					// declared here, not yet known, so create it now:
 					binding = new PackageBinding(subPkgCompoundName, parent, this.environment, this);
 				} else {
 					// visible but foreign (when current is unnamed or auto):
 					for (char[] declaringModuleName : declaringModuleNames) {
 						ModuleBinding declaringModule = this.environment.root.getModule(declaringModuleName);
-						if (declaringModule != null && !declaringModule.isPackageLookupActive)
-							binding = SplitPackageBinding.combine(declaringModule.getDeclaredPackage(parentName, name), binding, this);
+						if (declaringModule != null && !declaringModule.isPackageLookupActive) {
+							PackageBinding declaredPackage = declaringModule.getDeclaredPackage(parentName, name);
+							if (declaredPackage != null) {
+								// don't add foreign package to 'parent' (below), but to its own parent:
+								if (declaredPackage.parent != null)
+									declaredPackage.parent.addPackage(declaredPackage, declaringModule, true);
+								parent = null;
+								//
+								binding = SplitPackageBinding.combine(declaredPackage, binding, this);
+							}
+						}
 					}
 				}
 			}
@@ -552,7 +569,7 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 		// remember
 		if (parentName.length == 0)
 			binding.environment.knownPackages.put(name, binding);
-		else
+		else if (parent != null)
 			binding = parent.addPackage(binding, this, false);
 		return addPackage(binding, false);
 	}
@@ -593,7 +610,7 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 	 * read by the current module.
 	 * Accessibility (via package exports) is <strong>not</strong> checked.
 	 */
-	PackageBinding getPackage(char[][] parentPackageName, char[] packageName) {
+	public PackageBinding getPackage(char[][] parentPackageName, char[] packageName) {
 		// Returns a package binding if there exists such a package in the context of this module and it is observable
 		// A package is observable if it is declared in this module or it is exported by some required module
 		if (parentPackageName == null || parentPackageName.length == 0) {
@@ -638,6 +655,9 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 				}
 			}
 			this.declaredPackages.put(packageName, packageBinding);
+			if (packageBinding.parent == null) {
+				this.environment.knownPackages.put(packageName, packageBinding);
+			}
 		}
 		return packageBinding;
 	}
@@ -693,6 +713,7 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 		return this.moduleName;
 	}
 
+	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer(30);
 		if (isOpen())
@@ -815,5 +836,10 @@ public class ModuleBinding extends Binding implements IUpdatableModule {
 			this.transitiveRequires = transitiveDeps;
 		}
 		return this.transitiveRequires.contains(otherModule);
+	}
+
+	public int getDefaultNullness() {
+		getAnnotationTagBits(); // ensure annotations are initialized
+		return this.defaultNullness;
 	}
 }

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -171,6 +167,7 @@ public interface TypeConstants {
 	char[][] JAVA_UTIL_LIST = {JAVA, UTIL, "List".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_DEPRECATED = {JAVA, LANG, "Deprecated".toCharArray()}; //$NON-NLS-1$
 	char[] FOR_REMOVAL = "forRemoval".toCharArray(); //$NON-NLS-1$
+	char[] SINCE = "since".toCharArray(); //$NON-NLS-1$
 	char[][] JAVA_LANG_ANNOTATION_DOCUMENTED = {JAVA, LANG, ANNOTATION, "Documented".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_ANNOTATION_INHERITED = {JAVA, LANG, ANNOTATION, "Inherited".toCharArray()}; //$NON-NLS-1$
 	char[][] JAVA_LANG_ANNOTATION_REPEATABLE = {JAVA, LANG, ANNOTATION, "Repeatable".toCharArray()}; //$NON-NLS-1$
@@ -296,8 +293,12 @@ public interface TypeConstants {
 		"CharArrayWriter".toCharArray(), //$NON-NLS-1$
 		"StringBufferInputStream".toCharArray(), //$NON-NLS-1$
 	};
-	char[][] RESOURCE_FREE_CLOSEABLE_STREAM = new char[][] {
-		JAVA, UTIL, "stream".toCharArray(), "Stream".toCharArray() //$NON-NLS-1$ //$NON-NLS-2$
+	char[][] JAVA_UTIL_STREAM = { JAVA, UTIL, "stream".toCharArray() }; //$NON-NLS-1$
+	char[][] RESOURCE_FREE_CLOSEABLE_J_U_STREAMS = {
+		"Stream".toCharArray(), //$NON-NLS-1$
+		"DoubleStream".toCharArray(), //$NON-NLS-1$
+		"LongStream".toCharArray(), //$NON-NLS-1$
+		"IntStream".toCharArray() //$NON-NLS-1$
 	};
 	
 	// different assertion utilities:

@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 IBM Corporation and others.
+ * Copyright (c) 2006, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -23,6 +23,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
@@ -35,6 +36,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ModuleBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
@@ -123,6 +125,9 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 				return false;
 			}
 			((SourceTypeBinding) fieldBinding.declaringClass).resolveTypeFor(fieldBinding);
+			if (fieldDeclaration.binding == null) {
+				return false;
+			}
 			this.resolveAnnotations(scope, annotations, fieldBinding);
 		}
 		return false;
@@ -219,6 +224,16 @@ public class AnnotationDiscoveryVisitor extends ASTVisitor {
 					annotations,
 					binding);
 		}
+		return true;
+	}
+	@Override
+	public boolean visit(ModuleDeclaration module, CompilationUnitScope scope) {
+		ModuleBinding binding = module.binding;
+		if (binding == null) {
+			return false;
+		}
+		module.resolveTypeDirectives(scope);
+		// The above call also resolvesAnnotations
 		return true;
 	}
 

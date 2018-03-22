@@ -204,6 +204,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public void beginTask(String name, int totalWork) {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.beginTask(name, totalWork);
@@ -318,6 +319,9 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 						forceFlag ? IResource.FORCE | IResource.KEEP_HISTORY : IResource.KEEP_HISTORY,
 						getSubProgressMonitor(1));
 					setAttribute(HAS_MODIFIED_RESOURCE_ATTR, TRUE);
+				} else {
+					// we didn't delete the package, so its parent packages cannot be empty
+					break;
 				}
 			}
 		} catch (CoreException e) {
@@ -355,6 +359,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public void done() {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.done();
@@ -525,6 +530,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	public boolean hasModifiedResource() {
 		return !isReadOnly() && getAttribute(HAS_MODIFIED_RESOURCE_ATTR) == TRUE;
 	}
+	@Override
 	public void internalWorked(double work) {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.internalWorked(work);
@@ -533,6 +539,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public boolean isCanceled() {
 		if (this.progressMonitor != null) {
 			return this.progressMonitor.isCanceled();
@@ -705,6 +712,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	 * @see IWorkspaceRunnable
 	 * @exception CoreException if the operation fails
 	 */
+	@Override
 	public void run(IProgressMonitor monitor) throws CoreException {
 		SubMonitor oldMonitor = this.progressMonitor;
 		try {
@@ -833,6 +841,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public void setCanceled(boolean b) {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.setCanceled(b);
@@ -848,6 +857,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public void setTaskName(String name) {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.setTaskName(name);
@@ -856,6 +866,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public void subTask(String name) {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.subTask(name);
@@ -878,6 +889,7 @@ public abstract class JavaModelOperation implements IWorkspaceRunnable, IProgres
 	/**
 	 * @see IProgressMonitor
 	 */
+	@Override
 	public void worked(int work) {
 		if (this.progressMonitor != null) {
 			this.progressMonitor.worked(work);

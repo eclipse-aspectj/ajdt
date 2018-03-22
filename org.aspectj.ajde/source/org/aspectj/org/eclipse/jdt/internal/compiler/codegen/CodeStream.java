@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -3076,8 +3072,11 @@ public void generateSyntheticBodyForSwitchTable(SyntheticMethodBinding methodBin
 		}
 	}
 	aload_0();
-	dup();
-	fieldAccess(Opcodes.OPC_putstatic, syntheticFieldBinding, null /* default declaringClass */);
+	if (scope.compilerOptions().complianceLevel < ClassFileConstants.JDK9) {
+		// Modifying a final field outside of the <clinit> method is not allowed in 9
+		dup();
+		fieldAccess(Opcodes.OPC_putstatic, syntheticFieldBinding, null /* default declaringClass */);
+	}
 	areturn();
 	removeVariable(localVariableBinding);
 }
@@ -6939,6 +6938,7 @@ public void throwAnyException(LocalVariableBinding anyExceptionVariable) {
 	athrow();
 }
 
+@Override
 public String toString() {
 	StringBuffer buffer = new StringBuffer("( position:"); //$NON-NLS-1$
 	buffer.append(this.position);

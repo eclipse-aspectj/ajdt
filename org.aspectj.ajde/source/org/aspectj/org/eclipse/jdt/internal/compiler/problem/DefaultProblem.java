@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,7 +22,7 @@ public class DefaultProblem extends CategorizedProblem {
 	private int endPosition;
 	private int line;
 	public int column;
-	private int severity;
+	public int severity;
 	private String[] arguments;
 	private String message;
 	// AspectJ Extension
@@ -60,6 +56,9 @@ public DefaultProblem(
 	this.endPosition = endPosition;
 	this.line = line;
 	this.column = column;
+}
+public void reportError() {
+	// Do nothing by default
 }
 
 public String errorReportSource(char[] unitSource) {
@@ -115,16 +114,15 @@ public String errorReportSource(char[] unitSource) {
 	}
 	return errorBuffer.toString();
 }
-/**
- * Answer back the original arguments recorded into the problem.
- * @return java.lang.String[]
- */
+
+@Override
 public String[] getArguments() {
 	return this.arguments;
 }
 /**
  * @see org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem#getCategoryID()
  */
+@Override
 public int getCategoryID() {
 	return ProblemReporter.getProblemCategory(this.severity, this.id);
 }
@@ -134,6 +132,7 @@ public int getCategoryID() {
  * @see org.aspectj.org.eclipse.jdt.core.compiler.IProblem#getID()
  * @return int
  */
+@Override
 public int getID() {
 	return this.id;
 }
@@ -188,32 +187,24 @@ public String getInternalCategoryMessage() {
  * Returns the marker type associated to this problem.
  * @see org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem#getMarkerType()
  */
+@Override
 public String getMarkerType() {
 	return this.id == IProblem.Task
 		? MARKER_TYPE_TASK
 		: MARKER_TYPE_PROBLEM;
 }
 
-/**
- * Answer a localized, human-readable message string which describes the problem.
- * @return java.lang.String
- */
+@Override
 public String getMessage() {
 	return this.message;
 }
 
-/**
- * Answer the file name in which the problem was found.
- * @return char[]
- */
+@Override
 public char[] getOriginatingFileName() {
 	return this.fileName;
 }
 
-/**
- * Answer the end position of the problem (inclusive), or -1 if unknown.
- * @return int
- */
+@Override
 public int getSourceEnd() {
 	return this.endPosition;
 }
@@ -224,17 +215,13 @@ public int getSourceEnd() {
 public int getSourceColumnNumber() {
 	return this.column;
 }
-/**
- * Answer the line number in source where the problem begins.
- * @return int
- */
+
+@Override
 public int getSourceLineNumber() {
 	return this.line;
 }
-/**
- * Answer the start position of the problem (inclusive), or -1 if unknown.
- * @return int
- */
+
+@Override
 public int getSourceStart() {
 	return this.startPosition;
 }
@@ -243,6 +230,7 @@ public int getSourceStart() {
  * Helper method: checks the severity to see if the Error bit is set.
  * @return boolean
  */
+@Override
 public boolean isError() {
 	return (this.severity & ProblemSeverities.Error) != 0;
 }
@@ -251,10 +239,12 @@ public boolean isError() {
  * Helper method: checks the severity to see if the Error bit is not set.
  * @return boolean
  */
+@Override
 public boolean isWarning() {
 	return (this.severity & ProblemSeverities.Error) == 0
 			&& (this.severity & ProblemSeverities.Info) == 0;
 }
+@Override
 public boolean isInfo() {
 	return (this.severity & ProblemSeverities.Info) != 0;
 }
@@ -263,35 +253,23 @@ public void setOriginatingFileName(char[] fileName) {
 	this.fileName = fileName;
 }
 
-/**
- * Set the end position of the problem (inclusive), or -1 if unknown.
- *
- * Used for shifting problem positions.
- * @param sourceEnd the new value of the sourceEnd of the receiver
- */
+@Override
 public void setSourceEnd(int sourceEnd) {
 	this.endPosition = sourceEnd;
 }
 
-/**
- * Set the line number in source where the problem begins.
- * @param lineNumber the new value of the line number of the receiver
- */
+@Override
 public void setSourceLineNumber(int lineNumber) {
 
 	this.line = lineNumber;
 }
 
-/**
- * Set the start position of the problem (inclusive), or -1 if unknown.
- *
- * Used for shifting problem positions.
- * @param sourceStart the new value of the source start position of the receiver
- */
+@Override
 public void setSourceStart(int sourceStart) {
 	this.startPosition = sourceStart;
 }
 
+@Override
 public String toString() {
 	String s = "Pb(" + (this.id & IProblem.IgnoreCategoriesMask) + ") "; //$NON-NLS-1$ //$NON-NLS-2$
 	if (this.message != null) {
@@ -305,21 +283,25 @@ public String toString() {
 }
 
 	// AspectJ Extension
+	@Override
 	public void setSeeAlsoProblems(IProblem[] problems) {
 		this.seeAlso = problems;
 	}
 	
+	@Override
 	public IProblem[] seeAlso() {
-		return seeAlso;
+		return this.seeAlso;
 	}
 	
 	
+	@Override
 	public String getSupplementaryMessageInfo() {
-		return supplementaryInfo;
+		return this.supplementaryInfo;
 	}
 	
+	@Override
 	public void setSupplementaryMessageInfo(String msg) {
-		supplementaryInfo = msg;
+		this.supplementaryInfo = msg;
 	}
 	// End AspectJ Extension
 }

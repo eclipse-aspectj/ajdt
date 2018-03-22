@@ -48,9 +48,7 @@ public class MemberValuePair extends ASTNode {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode#print(int, java.lang.StringBuffer)
-	 */
+	@Override
 	public StringBuffer print(int indent, StringBuffer output) {
 		output
 			.append(this.name)
@@ -92,6 +90,7 @@ public class MemberValuePair extends ASTNode {
 			valueType = this.value.resolveType(scope);
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=248897
 			ASTVisitor visitor = new ASTVisitor() {
+				@Override
 				public boolean visit(SingleNameReference reference, BlockScope scop) {
 					if (reference.binding instanceof LocalVariableBinding) {
 						((LocalVariableBinding) reference.binding).useFlag = LocalVariableBinding.USED;
@@ -251,6 +250,7 @@ public class MemberValuePair extends ASTNode {
 		}
 	}
 
+	@Override
 	public void traverse(ASTVisitor visitor, BlockScope scope) {
 		if (visitor.visit(this, scope)) {
 			if (this.value != null) {

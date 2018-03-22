@@ -6,10 +6,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -86,6 +82,7 @@ public class CompilationResult {
 
 	private static final int[] EMPTY_LINE_ENDS = Util.EMPTY_INT_ARRAY;
 	private static final Comparator PROBLEM_COMPARATOR = new Comparator() {
+		@Override
 		public int compare(Object o1, Object o2) {
 			return ((CategorizedProblem) o1).getSourceStart() - ((CategorizedProblem) o2).getSourceStart();
 		}
@@ -451,6 +448,7 @@ public CompilationResult tagAsAccepted(){
 	return this;
 }
 
+@Override
 public String toString(){
 	StringBuffer buffer = new StringBuffer();
 	if (this.fileName != null){

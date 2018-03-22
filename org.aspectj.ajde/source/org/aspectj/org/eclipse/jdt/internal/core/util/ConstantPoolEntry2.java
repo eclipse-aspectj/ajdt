@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -33,34 +29,42 @@ public class ConstantPoolEntry2 extends ConstantPoolEntry implements IConstantPo
 	private int packageIndex;
 	private char[] packageName;
 
+	@Override
 	public int getDescriptorIndex() {
 		return this.descriptorIndex;
 	}
 
+	@Override
 	public int getReferenceKind() {
 		return this.referenceKind;
 	}
 
+	@Override
 	public int getReferenceIndex() {
 		return this.referenceIndex;
 	}
 
+	@Override
 	public int getBootstrapMethodAttributeIndex() {
 		return this.bootstrapMethodAttributeIndex;
 	}
 
+	@Override
 	public int getModuleIndex() {
 		return this.moduleIndex;
 	}
 
+	@Override
 	public char[] getModuleName() {
 		return this.moduleName;
 	}
 
+	@Override
 	public int getPackageIndex() {
 		return this.packageIndex;
 	}
 
+	@Override
 	public char[] getPackageName() {
 		return this.packageName;
 	}
@@ -97,6 +101,7 @@ public class ConstantPoolEntry2 extends ConstantPoolEntry implements IConstantPo
 		this.packageName = packageName;
 	}
 
+	@Override
 	public void reset() {
 		super.reset();
 		this.descriptorIndex = 0;

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,6 +17,8 @@ import org.eclipse.core.runtime.*;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IUpdatableModule.*;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRule;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
@@ -29,6 +27,8 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class State {
@@ -36,7 +36,9 @@ public class State {
 
 String javaProjectName;
 public ClasspathMultiDirectory[] sourceLocations;
+public ClasspathMultiDirectory[] testSourceLocations;
 ClasspathLocation[] binaryLocations;
+ClasspathLocation[] testBinaryLocations;
 // keyed by the project relative path of the type (i.e. "src1/p1/p2/A.java"), value is a ReferenceCollection or an AdditionalTypeCollection
 SimpleLookupTable references;
 // keyed by qualified type name "p1/p2/A", value is the project relative path which defines this type "src1/p1/p2/A.java"
@@ -52,7 +54,7 @@ private long previousStructuralBuildTime;
 private StringSet structurallyChangedTypes;
 public static int MaxStructurallyChangedTypes = 100; // keep track of ? structurally changed types, otherwise consider all to be changed
 
-public static final byte VERSION = 0x001E;
+public static final byte VERSION = 0x001F;
 
 static final byte SOURCE_FOLDER = 1;
 static final byte BINARY_FOLDER = 2;
@@ -70,6 +72,8 @@ protected State(JavaBuilder javaBuilder) {
 	this.javaProjectName = javaBuilder.currentProject.getName();
 	this.sourceLocations = javaBuilder.nameEnvironment.sourceLocations;
 	this.binaryLocations = javaBuilder.nameEnvironment.binaryLocations;
+	this.testSourceLocations = javaBuilder.testNameEnvironment.sourceLocations;
+	this.testBinaryLocations = javaBuilder.testNameEnvironment.binaryLocations;
 	this.references = new SimpleLookupTable(7);
 	this.typeLocators = new SimpleLookupTable(7);
 
@@ -140,7 +144,7 @@ public boolean isDuplicateLocator(String qualifiedTypeName, String typeLocator) 
 
 public boolean isKnownPackage(String qualifiedPackageName) {
 	if (this.knownPackageNames == null) {
-		ArrayList names = new ArrayList(this.typeLocators.elementSize);
+		LinkedHashSet<String> names = new LinkedHashSet<>(this.typeLocators.elementSize);
 		Object[] keyTable = this.typeLocators.keyTable;
 		for (int i = 0, l = keyTable.length; i < l; i++) {
 			if (keyTable[i] != null) {
@@ -283,6 +287,78 @@ static State read(IProject project, DataInputStream in) throws IOException {
 				break;
 			case INTERNAL_JAR :
 					newState.binaryLocations[i] = ClasspathLocation.forLibrary(root.getFile(new Path(in.readUTF())),
+							readRestriction(in), new Path(in.readUTF()), in.readBoolean());
+		}
+		ClasspathLocation loc = newState.binaryLocations[i];
+		char[] patchName = readName(in);
+		loc.patchModuleName = patchName.length > 0 ? new String(patchName) : null;
+		int limitSize = in.readInt();
+		if (limitSize != 0) {
+			loc.limitModuleNames = new LinkedHashSet<>(limitSize);
+			for (int j = 0; j < limitSize; j++) {
+				loc.limitModuleNames.add(in.readUTF());
+			}
+		} else {
+			loc.limitModuleNames = null;
+		}
+		IUpdatableModule.UpdatesByKind updates = new IUpdatableModule.UpdatesByKind();
+		List<Consumer<IUpdatableModule>> packageUpdates = null;
+		int packageUpdatesSize = in.readInt();
+		if (packageUpdatesSize != 0) {
+			packageUpdates = updates.getList(UpdateKind.PACKAGE, true);
+			for (int j = 0; j < packageUpdatesSize; j++) {
+				char[] pkgName = readName(in);
+				char[][] targets = readNames(in);
+				packageUpdates.add(new AddExports(pkgName, targets));
+			}
+		}
+		List<Consumer<IUpdatableModule>> moduleUpdates = null;
+		int moduleUpdatesSize = in.readInt();
+		if (moduleUpdatesSize != 0) {
+			moduleUpdates = updates.getList(UpdateKind.MODULE, true);
+			char[] modName = readName(in);
+			moduleUpdates.add(new AddReads(modName));
+		}
+		if (packageUpdates != null || moduleUpdates != null)
+			loc.updates = updates;
+	}
+
+	length = in.readInt();
+	newState.testSourceLocations = new ClasspathMultiDirectory[length];
+	for (int i = 0; i < length; i++) {
+		IContainer sourceFolder = project, outputFolder = project;
+		String folderName;
+		if ((folderName = in.readUTF()).length() > 0) sourceFolder = project.getFolder(folderName);
+		if ((folderName = in.readUTF()).length() > 0) outputFolder = project.getFolder(folderName);
+		ClasspathMultiDirectory md =
+			(ClasspathMultiDirectory) ClasspathLocation.forSourceFolder(sourceFolder, outputFolder, readNames(in), readNames(in), in.readBoolean());
+		if (in.readBoolean())
+			md.hasIndependentOutputFolder = true;
+		newState.testSourceLocations[i] = md;
+	}
+
+	length = in.readInt();
+	newState.testBinaryLocations = new ClasspathLocation[length];
+	for (int i = 0; i < length; i++) {
+		switch (in.readByte()) {
+			case SOURCE_FOLDER :
+				newState.testBinaryLocations[i] = newState.testSourceLocations[in.readInt()];
+				break;
+			case BINARY_FOLDER :
+				IPath path = new Path(in.readUTF());
+				IContainer outputFolder = path.segmentCount() == 1
+					? (IContainer) root.getProject(path.toString())
+					: (IContainer) root.getFolder(path);
+					newState.testBinaryLocations[i] = ClasspathLocation.forBinaryFolder(outputFolder, in.readBoolean(),
+							readRestriction(in), new Path(in.readUTF()), in.readBoolean());
+				break;
+			case EXTERNAL_JAR :
+				String jarPath = in.readUTF();
+				newState.testBinaryLocations[i] = ClasspathLocation.forLibrary(jarPath, in.readLong(),
+							readRestriction(in), new Path(in.readUTF()), Util.isJrt(jarPath) ? false : in.readBoolean());
+				break;
+			case INTERNAL_JAR :
+					newState.testBinaryLocations[i] = ClasspathLocation.forLibrary(root.getFile(new Path(in.readUTF())),
 							readRestriction(in), new Path(in.readUTF()), in.readBoolean());
 		}
 	}
@@ -447,14 +523,14 @@ void write(DataOutputStream out) throws IOException {
  * String		path(s)
 */
 	out.writeInt(length = this.binaryLocations.length);
-	next : for (int i = 0; i < length; i++) {
+	for (int i = 0; i < length; i++) {
 		ClasspathLocation c = this.binaryLocations[i];
 		if (c instanceof ClasspathMultiDirectory) {
 			out.writeByte(SOURCE_FOLDER);
 			for (int j = 0, m = this.sourceLocations.length; j < m; j++) {
 				if (this.sourceLocations[j] == c) {
 					out.writeInt(j);
-					continue next;
+					//continue next;
 				}
 			}
 		} else if (c instanceof ClasspathDirectory) {
@@ -486,7 +562,118 @@ void write(DataOutputStream out) throws IOException {
 			writeRestriction(null, out);
 			out.writeUTF(""); //$NON-NLS-1$
 		}
+		char[] patchName = c.patchModuleName == null ? CharOperation.NO_CHAR : c.patchModuleName.toCharArray();
+		writeName(patchName, out);
+		if (c.limitModuleNames != null) {
+			out.writeInt(c.limitModuleNames.size());
+			for (String name : c.limitModuleNames) {
+				out.writeUTF(name);
+			}
+		} else {
+			out.writeInt(0);
+		}
+		if (c.updates != null) {
+			List<Consumer<IUpdatableModule>> pu = c.updates.getList(UpdateKind.PACKAGE, false);
+			if (pu != null) {
+				Map<String, List<Consumer<IUpdatableModule>>> map = pu.stream().
+						collect(Collectors.groupingBy(
+								update -> CharOperation.charToString(((IUpdatableModule.AddExports)update).getName())));
+				out.writeInt(map.size());
+				map.entrySet().stream().forEach(entry -> {
+					String pkgName = entry.getKey();
+					try {
+						writeName(pkgName.toCharArray(), out);
+						char[][] targetModules = entry.getValue().stream()
+								.map(consumer -> ((IUpdatableModule.AddExports) consumer).getTargetModules())
+								.filter(targets -> targets != null)
+								.reduce((f,s) -> CharOperation.arrayConcat(f,s))
+								.orElse(null);
+						writeNames(targetModules, out);
+					} catch (IOException e) {
+						// ignore
+					}
+					
+				});
+			} else {
+				out.writeInt(0);
+			}
+			List<Consumer<IUpdatableModule>> mu = c.updates.getList(UpdateKind.MODULE, false);
+			if (mu != null) {
+				out.writeInt(mu.size());
+				for (Consumer<IUpdatableModule> cons : mu) {
+					AddReads m = (AddReads) cons;
+					writeName(m.getTarget(), out);
+				}
+			} else {
+				out.writeInt(0);
+			}
+		} else {
+			out.writeInt(0);
+			out.writeInt(0);
+		}
 	}
+	/*
+	 * ClasspathMultiDirectory[]
+	 * int			id
+	 * String		path(s)
+	*/
+		out.writeInt(length = this.testSourceLocations.length);
+		for (int i = 0; i < length; i++) {
+			ClasspathMultiDirectory md = this.testSourceLocations[i];
+			out.writeUTF(md.sourceFolder.getProjectRelativePath().toString());
+			out.writeUTF(md.binaryFolder.getProjectRelativePath().toString());
+			writeNames(md.inclusionPatterns, out);
+			writeNames(md.exclusionPatterns, out);
+			out.writeBoolean(md.ignoreOptionalProblems);
+			out.writeBoolean(md.hasIndependentOutputFolder);
+		}
+
+	/*
+	 * ClasspathLocation[]
+	 * int			id
+	 * String		path(s)
+	*/
+		out.writeInt(length = this.testBinaryLocations.length);
+		next : for (int i = 0; i < length; i++) {
+			ClasspathLocation c = this.testBinaryLocations[i];
+			if (c instanceof ClasspathMultiDirectory) {
+				out.writeByte(SOURCE_FOLDER);
+				for (int j = 0, m = this.testSourceLocations.length; j < m; j++) {
+					if (this.testSourceLocations[j] == c) {
+						out.writeInt(j);
+						continue next;
+					}
+				}
+			} else if (c instanceof ClasspathDirectory) {
+				out.writeByte(BINARY_FOLDER);
+				ClasspathDirectory cd = (ClasspathDirectory) c;
+				out.writeUTF(cd.binaryFolder.getFullPath().toString());
+				out.writeBoolean(cd.isOutputFolder);
+				writeRestriction(cd.accessRuleSet, out);
+				out.writeUTF(cd.externalAnnotationPath != null ? cd.externalAnnotationPath : ""); //$NON-NLS-1$
+				out.writeBoolean(cd.isOnModulePath);
+			} else if (c instanceof ClasspathJar) {
+				ClasspathJar jar = (ClasspathJar) c;
+				if (jar.resource == null) {
+					out.writeByte(EXTERNAL_JAR);
+					out.writeUTF(jar.zipFilename);
+					out.writeLong(jar.lastModified());
+				} else {
+					out.writeByte(INTERNAL_JAR);
+					out.writeUTF(jar.resource.getFullPath().toString());
+				}
+				writeRestriction(jar.accessRuleSet, out);
+				out.writeUTF(jar.externalAnnotationPath != null ? jar.externalAnnotationPath : ""); //$NON-NLS-1$
+				out.writeBoolean(jar.isOnModulePath);
+			} else {
+				ClasspathJrt jrt = (ClasspathJrt) c;
+				out.writeByte(EXTERNAL_JAR);
+				out.writeUTF(jrt.zipFilename);
+				out.writeLong(-1);
+				writeRestriction(null, out);
+				out.writeUTF(""); //$NON-NLS-1$
+			}
+		}
 
 /*
  * Structural build numbers table
@@ -713,6 +900,7 @@ private void writeRestriction(AccessRuleSet accessRuleSet, DataOutputStream out)
 /**
  * Returns a string representation of the receiver.
  */
+@Override
 public String toString() {
 	return "State for " + this.javaProjectName //$NON-NLS-1$
 		+ " (#" + this.buildNumber //$NON-NLS-1$

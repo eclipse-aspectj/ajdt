@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contributions for
@@ -43,6 +39,7 @@ public UnresolvedReferenceBinding(UnresolvedReferenceBinding prototype) {
 	this.prototype = prototype.prototype;
 }
 
+@Override
 public TypeBinding clone(TypeBinding outerType) {
 	if (this.resolvedType != null)
 		return this.resolvedType.clone(outerType);
@@ -66,23 +63,28 @@ void addWrapper(TypeBinding wrapper, LookupEnvironment environment) {
 		this.wrappers[length] = wrapper;
 	}
 }
+@Override
 public boolean isUnresolvedType() {
 	return true;
 }
+@Override
 public String debugName() {
 	return toString();
 }
+@Override
 public int depth() {
 	// we don't yet have our enclosing types wired, but we know the nesting depth from our compoundName:
 	// (NOTE: this an upper bound, because class names may contain '$')
 	int last = this.compoundName.length-1;
 	return CharOperation.occurencesOf('$', this.compoundName[last], 1); // leading '$' must be part of the class name, so start at 1.
 }
+@Override
 public boolean hasTypeBit(int bit) {
 	// shouldn't happen since we are not called before analyseCode(), but play safe:
 	return false;
 }
 
+@Override
 public TypeBinding prototype() {
 	return this.prototype;
 }
@@ -123,9 +125,6 @@ ReferenceBinding resolve(LookupEnvironment environment, boolean convertGenericTo
 			// create a proxy for the missing BinaryType
 			targetType = environment.createMissingType(null, this.compoundName);
 		}
-		if (targetType.id != TypeIds.NoId) {
-			this.id = targetType.id;
-		}
 		setResolvedType(targetType, environment);
 	}
 	if (convertGenericToRawType) {
@@ -146,18 +145,20 @@ void setResolvedType(ReferenceBinding targetType, LookupEnvironment environment)
 			this.wrappers[i].swapUnresolved(this, targetType, environment);
 }
 
+@Override
 public void swapUnresolved(UnresolvedReferenceBinding unresolvedType, ReferenceBinding unannotatedType, LookupEnvironment environment) {
 	if (this.resolvedType != null) return;
 	ReferenceBinding annotatedType = (ReferenceBinding) unannotatedType.clone(null);
 	this.resolvedType = annotatedType;
 	annotatedType.setTypeAnnotations(getTypeAnnotations(), environment.globalOptions.isAnnotationBasedNullAnalysisEnabled);
-	annotatedType.id = unannotatedType.id = this.id;
+
 	environment.updateCaches(this, annotatedType);
 	if (this.wrappers != null)
 		for (int i = 0, l = this.wrappers.length; i < l; i++)
 			this.wrappers[i].swapUnresolved(this, annotatedType, environment);
 }
 
+@Override
 public String toString() {
 	if (this.hasTypeAnnotations())
 		return super.annotatedDebugName() + "(unresolved)"; //$NON-NLS-1$

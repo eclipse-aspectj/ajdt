@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *        Andy Clement (GoPivotal, Inc) aclement@gopivotal.com - Contributions for
@@ -227,6 +223,7 @@ public class Disassembler extends ClassFileBytesDisassembler {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.core.util.ClassFileBytesDisassembler#disassemble(byte[], java.lang.String)
 	 */
+	@Override
 	public String disassemble(byte[] classFileBytes, String lineSeparator) throws ClassFormatException {
 		try {
 			return disassemble(new ClassFileReader(classFileBytes, IClassFileReader.ALL), lineSeparator, ClassFileBytesDisassembler.DEFAULT);
@@ -238,6 +235,7 @@ public class Disassembler extends ClassFileBytesDisassembler {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.core.util.ClassFileBytesDisassembler#disassemble(byte[], java.lang.String, int)
 	 */
+	@Override
 	public String disassemble(byte[] classFileBytes, String lineSeparator, int mode) throws ClassFormatException {
 		try {
 			return disassemble(new ClassFileReader(classFileBytes, IClassFileReader.ALL), lineSeparator, mode);
@@ -2624,6 +2622,7 @@ public class Disassembler extends ClassFileBytesDisassembler {
 	/**
 	 * @see org.aspectj.org.eclipse.jdt.core.util.ClassFileBytesDisassembler#getDescription()
 	 */
+	@Override
 	public String getDescription() {
 		return Messages.disassembler_description;
 	}

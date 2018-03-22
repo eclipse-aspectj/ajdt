@@ -58,6 +58,7 @@ class ConstraintTypeFormula extends ConstraintFormula {
 	ConstraintTypeFormula() { }
 
 	// return: ReductionResult or ConstraintFormula[]
+	@Override
 	public Object reduce(InferenceContext18 inferenceContext) {
 		switch (this.relation) {
 		case COMPATIBLE:
@@ -225,7 +226,7 @@ class ConstraintTypeFormula extends ConstraintFormula {
 	private Object reduceSubType(Scope scope, TypeBinding subCandidate, TypeBinding superCandidate) {
 		// 18.2.3 Subtyping Constraints
 		if (subCandidate.isProperType(true) && superCandidate.isProperType(true)) {
-			if (subCandidate.isCompatibleWith(superCandidate, scope))
+			if (subCandidate.isSubtypeOf(superCandidate, InferenceContext18.SIMULATE_BUG_JDK_8026527))
 				return TRUE;
 			return FALSE;
 		}
@@ -242,7 +243,7 @@ class ConstraintTypeFormula extends ConstraintFormula {
 			case Binding.TYPE:
 			case Binding.RAW_TYPE:
 				{
-					if (subCandidate.isSubtypeOf(superCandidate))
+					if (subCandidate.isSubtypeOf(superCandidate, InferenceContext18.SIMULATE_BUG_JDK_8026527))
 						return TRUE;
 					return FALSE;
 				}
@@ -390,6 +391,7 @@ class ConstraintTypeFormula extends ConstraintFormula {
 					TypeBinding.equalsEquals(this.left, that.left) && TypeBinding.equalsEquals(this.right, that.right));
 	}
 	
+	@Override
 	public boolean applySubstitution(BoundSet solutionSet, InferenceVariable[] variables) {
 		super.applySubstitution(solutionSet, variables);
 		for (int i=0; i<variables.length; i++) {
@@ -403,6 +405,7 @@ class ConstraintTypeFormula extends ConstraintFormula {
 	}
 
 	// debugging
+	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer("Type Constraint:\n"); //$NON-NLS-1$
 		buf.append('\t').append(LEFT_ANGLE_BRACKET);

@@ -75,7 +75,7 @@ public JavaModelException(IJavaModelStatus status) {
 /**
  * Creates a Java model exception for the given status object.
  *
- * @since 3.13 BETA_JAVA9
+ * @since 3.14
  */
 public JavaModelException(IStatus status) {
 	super(status);
@@ -133,6 +133,7 @@ public boolean isDoesNotExist() {
  * @param output the print stream
  * @since 3.0
  */
+@Override
 public void printStackTrace(PrintStream output) {
 	synchronized(output) {
 		super.printStackTrace(output);
@@ -150,6 +151,7 @@ public void printStackTrace(PrintStream output) {
  * @param output the print writer
  * @since 3.0
  */
+@Override
 public void printStackTrace(PrintWriter output) {
 	synchronized(output) {
 		super.printStackTrace(output);
@@ -164,6 +166,7 @@ public void printStackTrace(PrintWriter output) {
  * Returns a printable representation of this exception suitable for debugging
  * purposes only.
  */
+@Override
 public String toString() {
 	StringBuffer buffer= new StringBuffer();
 	buffer.append("Java Model Exception: "); //$NON-NLS-1$

@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation.
+ * Copyright (c) 2017, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,7 +12,7 @@ package org.aspectj.org.eclipse.jdt.internal.core;
 
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 
-public class SourceModule extends AbstractModule {
+public class SourceModule extends NamedMember implements AbstractModule {
 	public SourceModule(JavaElement parent, String name) {
 		super(parent, name);
 	}
@@ -25,6 +21,11 @@ public class SourceModule extends AbstractModule {
 		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
 		return info.getModifiers();
 	}
+	@Override
+	public char getHandleMementoDelimiter() {
+		return JavaElement.JEM_MODULE;
+	}
+	@Override
 	public String toString(String lineDelimiter) {
 		StringBuffer buffer = new StringBuffer();
 		try {

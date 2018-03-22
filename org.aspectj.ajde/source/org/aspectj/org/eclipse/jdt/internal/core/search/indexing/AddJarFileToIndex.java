@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -64,6 +60,7 @@ class AddJarFileToIndex extends BinaryContainer {
 		this.indexFileURL = indexFile;
 		this.forceIndexUpdate = updateIndex;
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (o instanceof AddJarFileToIndex) {
 			if (this.resource != null)
@@ -73,6 +70,7 @@ class AddJarFileToIndex extends BinaryContainer {
 		}
 		return false;
 	}
+	@Override
 	public int hashCode() {
 		if (this.resource != null)
 			return this.resource.hashCode();
@@ -80,6 +78,7 @@ class AddJarFileToIndex extends BinaryContainer {
 			return this.containerPath.hashCode();
 		return -1;
 	}
+	@Override
 	public boolean execute(IProgressMonitor progressMonitor) {
 
 		if (this.isCancelled || progressMonitor != null && progressMonitor.isCanceled()) return true;
@@ -139,6 +138,8 @@ class AddJarFileToIndex extends BinaryContainer {
 							org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> failed to index " + location.getPath() + " because the file could not be fetched"); //$NON-NLS-1$ //$NON-NLS-2$
 						return false;
 					}
+					if (JavaModelManager.ZIP_ACCESS_VERBOSE)
+						System.out.println("(" + Thread.currentThread() + ") [AddJarFileToIndex.execute()] Creating ZipFile on " + this.containerPath); //$NON-NLS-1$	//$NON-NLS-2$
 					zip = new ZipFile(file);
 					zipFilePath = (Path) this.resource.getFullPath().makeRelative();
 					// absolute path relative to the workspace
@@ -247,19 +248,12 @@ class AddJarFileToIndex extends BinaryContainer {
 			} finally {
 				if (zip != null) {
 					if (JavaModelManager.ZIP_ACCESS_VERBOSE)
-						System.out.println("(" + Thread.currentThread() + ") [AddJarFileToIndex.execute()] Closing ZipFile " + zip); //$NON-NLS-1$	//$NON-NLS-2$
+						System.out.println("(" + Thread.currentThread() + ") [AddJarFileToIndex.execute()] Closing ZipFile " + this.containerPath); //$NON-NLS-1$	//$NON-NLS-2$
 					zip.close();
 				}
 				monitor.exitWrite(); // free write lock
 			}
-		} catch (IOException e) {
-			if (JobManager.VERBOSE) {
-				org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> failed to index " + this.containerPath + " because of the following exception:"); //$NON-NLS-1$ //$NON-NLS-2$
-				e.printStackTrace();
-			}
-			this.manager.removeIndex(this.containerPath);
-			return false;
-		} catch (ZipError e) { // merge with the code above using '|' when we move to 1.7
+		} catch (IOException | ZipError e) {
 			if (JobManager.VERBOSE) {
 				org.aspectj.org.eclipse.jdt.internal.core.util.Util.verbose("-> failed to index " + this.containerPath + " because of the following exception:"); //$NON-NLS-1$ //$NON-NLS-2$
 				e.printStackTrace();
@@ -269,11 +263,13 @@ class AddJarFileToIndex extends BinaryContainer {
 		}
 		return true;
 	}
+	@Override
 	public String getJobFamily() {
 		if (this.resource != null)
 			return super.getJobFamily();
 		return this.containerPath.toOSString(); // external jar
 	}	
+	@Override
 	protected Integer updatedIndexState() {
 
 		Integer updateState = null;
@@ -285,6 +281,7 @@ class AddJarFileToIndex extends BinaryContainer {
 		}
 		return updateState;
 	}
+	@Override
 	public String toString() {
 		return "indexing " + this.containerPath.toString(); //$NON-NLS-1$
 	}

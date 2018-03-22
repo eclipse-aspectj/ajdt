@@ -1,13 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 IBM Corporation.
+ * Copyright (c) 2016, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,15 +17,36 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.JavaModelException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager.PerProjectInfo;
 
-public class BinaryModule extends AbstractModule {
+public class BinaryModule extends BinaryMember implements AbstractModule {
+
+	private IBinaryModule info;
+	
+	/** For creating a pure handle from its memento. */
 	public BinaryModule(JavaElement parent, String name) {
 		super(parent, name);
+	}
+	/** For creating a populated handle from a class file. */
+	public BinaryModule(JavaElement parent, IBinaryModule info) {
+		super(parent, String.valueOf(info.name()));
+		this.info = info;
+	}
+	@Override
+	public IModule getModuleInfo() throws JavaModelException {
+		if (this.info == null) {
+			ModularClassFile classFile = (ModularClassFile) this.parent;
+			this.info = classFile.getBinaryModuleInfo();			
+		}
+		return this.info;
 	}
 	/*
 	 * @see IParent#getChildren()
 	 */
+	@Override
 	public IJavaElement[] getChildren() throws JavaModelException {
 		return NO_ELEMENTS;
 	}
@@ -39,9 +56,15 @@ public class BinaryModule extends AbstractModule {
 	}
 	@Override
 	public int getFlags() throws JavaModelException {
-		ModuleDescriptionInfo info = (ModuleDescriptionInfo) getElementInfo();
-		return info.getModifiers();
+		if (getModuleInfo().isOpen())
+			return ClassFileConstants.ACC_OPEN;
+		return 0;
 	}
+	@Override
+	public char getHandleMementoDelimiter() {
+		return JavaElement.JEM_MODULE;
+	}
+	@Override
 	public String getKey(boolean forceOpen) throws JavaModelException {
 		return getKey(this, forceOpen);
 	}
@@ -57,6 +80,7 @@ public class BinaryModule extends AbstractModule {
 			return SourceMapper.UNKNOWN_RANGE;
 		}
 	}
+	@Override
 	public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelException {
 		JavadocContents javadocContents = getJavadocContents(monitor);
 		if (javadocContents == null) return null;
@@ -90,6 +114,7 @@ public class BinaryModule extends AbstractModule {
 		}
 		return javadocContents;
 	}
+	@Override
 	public String toString(String lineDelimiter) {
 		StringBuffer buffer = new StringBuffer();
 		try {

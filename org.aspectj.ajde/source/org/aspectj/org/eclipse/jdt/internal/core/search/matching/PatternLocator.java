@@ -5,15 +5,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 
+
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.*;
@@ -331,7 +329,9 @@ protected int matchNameValue(char[] pattern, char[] name) {
 			break;
 
 		case SearchPattern.R_REGEXP_MATCH :
-			// TODO (frederic) implement regular expression match
+			if (Pattern.matches(new String(pattern), new String(name))) {
+				return POSSIBLE_MATCH;
+			}
 			break;
 
 		case SearchPattern.R_CAMELCASE_MATCH:
@@ -1002,9 +1002,11 @@ protected int resolveLevelForType (char[] simpleNamePattern,
 	}
 	return level;
 }
+@Override
 public String toString(){
 	return "SearchPattern"; //$NON-NLS-1$
 }
+@Override
 public void recordResolution(QualifiedTypeReference typeReference, TypeBinding resolution) {
 	// noop by default
 }
