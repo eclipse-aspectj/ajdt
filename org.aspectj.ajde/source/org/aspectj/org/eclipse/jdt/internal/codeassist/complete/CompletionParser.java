@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,9 @@
  *		IBM Corporation - initial API and implementation
  *		Stephan Herrmann - Contribution for
  *								bug 401035 - [1.8] A few tests have started failing recently
+ *      Jesper Steen Møller - Contributions for
+ *                               bug 529552 - [18.3] Add 'var' in completions
+ *                               Bug 529556 - [18.3] Add content assist support for 'var' as a type
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist.complete;
 
@@ -657,10 +660,22 @@ protected void attachOrphanCompletionNode(){
 		}
 	}
 }
+
+private static class SavedState {
+	final ASTNode assistNodeParent;
+	final int parserCursorLocation;
+	final int scannerCursorLocation;
+
+	public SavedState(int parserCursorLocation, int scannerCursorLocation, ASTNode assistNodeParent) {
+		this.parserCursorLocation = parserCursorLocation;
+		this.scannerCursorLocation = scannerCursorLocation;
+		this.assistNodeParent = assistNodeParent;
+	}	
+}
 @Override
 public Object becomeSimpleParser() {
 	CompletionScanner completionScanner = (CompletionScanner)this.scanner;
-	int[] parserState = new int[] {this.cursorLocation, completionScanner.cursorLocation};
+	SavedState parserState = new SavedState(this.cursorLocation, completionScanner.cursorLocation, this.assistNodeParent);
 	
 	this.cursorLocation = Integer.MAX_VALUE;
 	completionScanner.cursorLocation = Integer.MAX_VALUE;
@@ -2776,7 +2791,11 @@ protected void consumeExitVariableWithInitialization() {
 	AbstractVariableDeclaration variable = (AbstractVariableDeclaration) this.astStack[this.astPtr];
 	if (this.cursorLocation + 1 < variable.initialization.sourceStart ||
 		this.cursorLocation > variable.initialization.sourceEnd) {
-		variable.initialization = null;
+		if (!variable.type.isTypeNameVar(null)) {
+			if (! (variable instanceof LocalDeclaration && ((LocalDeclaration)variable).isTypeNameVar(this.compilationUnit.scope))) {
+				variable.initialization = null;
+			}
+		}
 	} else if (this.assistNode != null && this.assistNode == variable.initialization) {
 			this.assistNodeParent = variable;
 	}
@@ -4813,6 +4832,9 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 
 				keywords[count++]= Keywords.FINAL;
 				keywords[count++]= Keywords.CLASS;
+				if (this.options.complianceLevel >= ClassFileConstants.JDK10) {
+					keywords[count++]= Keywords.VAR;
+				}
 
 				if(this.previousKind == K_BLOCK_DELIMITER) {
 					switch (this.previousInfo) {
@@ -4832,6 +4854,10 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 				}
 				if(isInsideBreakable()) {
 					keywords[count++]= Keywords.BREAK;
+				}
+			} else if (kind == K_BETWEEN_FOR_AND_RIGHT_PAREN) {
+				if (this.options.complianceLevel >= ClassFileConstants.JDK10) {
+					keywords[count++]= Keywords.VAR;
 				}
 			} else if(kind != K_BETWEEN_CASE_AND_COLON && kind != K_BETWEEN_DEFAULT_AND_COLON) {
 				keywords[count++]= Keywords.TRUE;
@@ -4860,6 +4886,9 @@ public NameReference createSingleAssistNameReference(char[] assistName, long pos
 					keywords[count++]= Keywords.FINAL;
 					keywords[count++]= Keywords.CLASS;
 
+					if (this.options.complianceLevel >= ClassFileConstants.JDK10) {
+						keywords[count++]= Keywords.VAR;
+					}
 					if(isInsideLoop()) {
 						keywords[count++]= Keywords.CONTINUE;
 					}
@@ -5470,12 +5499,13 @@ public void resetAfterCompletion() {
 }
 @Override
 public void restoreAssistParser(Object parserState) { 	
-	int[] state = (int[]) parserState;
+	SavedState state = (SavedState) parserState;
 	
 	CompletionScanner completionScanner = (CompletionScanner)this.scanner;
 	
-	this.cursorLocation = state[0];
-	completionScanner.cursorLocation = state[1];
+	this.cursorLocation = state.parserCursorLocation;
+	completionScanner.cursorLocation = state.scannerCursorLocation;
+	this.assistNodeParent = state.assistNodeParent;
 }
 @Override
 protected int resumeOnSyntaxError() {

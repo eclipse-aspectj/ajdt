@@ -1,6 +1,6 @@
 // AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -108,7 +108,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	public final static int Bit20 = 0x80000;			// contains syntax errors (method declaration, type declaration, field declarations, initializer), typeref: <> name ref: lambda capture)
 	public final static int Bit21 = 0x100000;
 	public final static int Bit22 = 0x200000;			// parenthesis count (expression) | used (import reference) shadows outer local (local declarations)
-	public final static int Bit23 = 0x400000;			// parenthesis count (expression)
+	public final static int Bit23 = 0x400000;			// parenthesis count (expression) | second or later declarator in declaration (local declarations)
 	public final static int Bit24 = 0x800000;			// parenthesis count (expression)
 	public final static int Bit25 = 0x1000000;		// parenthesis count (expression)
 	public final static int Bit26 = 0x2000000;		// parenthesis count (expression)
@@ -178,6 +178,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	public static final int IsLocalDeclarationReachable = Bit31;
 	public static final int IsForeachElementVariable = Bit5;
 	public static final int ShadowsOuterLocal = Bit22;
+	public static final int IsAdditionalDeclarator = Bit23;
 
 	// for name refs or local decls
 	public static final int FirstAssignmentToLocal = Bit4;
@@ -449,9 +450,9 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 				|| uncheckedBoundCheck
 				|| ((invocationStatus & INVOCATION_ARGUMENT_UNCHECKED) != 0)) {
 			if (method instanceof ParameterizedGenericMethodBinding) {
-			scope.problemReporter().unsafeRawGenericMethodInvocation((ASTNode)invocationSite, method, argumentTypes);
-			return true;
-		}
+				scope.problemReporter().unsafeRawGenericMethodInvocation((ASTNode)invocationSite, method, argumentTypes);
+				return true;
+			}
 			if (sourceLevel >= ClassFileConstants.JDK1_8)
 				return true; // signal to erase return type and exceptions, while keeping javac compatibility at 1.7-
 		}
@@ -669,7 +670,7 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	 * After method lookup has produced 'methodBinding' but when poly expressions have been seen as arguments,
 	 * inspect the arguments to trigger another round of resolving with improved target types from the methods parameters.
 	 * If this resolving produces better types for any arguments, update the 'argumentTypes' array in-place as an
-	 * intended side effect that will feed better type information in checkInvocationArguments() and others.
+	 * intended side effect that will feed better type information in checkInvocationArguments() and others. 
 	 * @param invocation the outer invocation which is being resolved
 	 * @param method the method produced by lookup (possibly involving type inference).
 	 * @param argumentTypes the argument types as collected from first resolving the invocation arguments and as used for the method lookup.
@@ -679,21 +680,21 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		MethodBinding candidateMethod = method.isValidBinding() ? method : method instanceof ProblemMethodBinding ? ((ProblemMethodBinding) method).closestMatch : null;
 		if (candidateMethod == null)
 			return;
-			boolean variableArity = candidateMethod.isVarargs();
-			final TypeBinding[] parameters = candidateMethod.parameters;
+		boolean variableArity = candidateMethod.isVarargs();
+		final TypeBinding[] parameters = candidateMethod.parameters;
 		Expression[] arguments = invocation.arguments();
 		if (variableArity && arguments != null && parameters.length == arguments.length) {
 			if (arguments[arguments.length-1].isCompatibleWith(parameters[parameters.length-1], scope)) {
-					variableArity = false;
-				}
+				variableArity = false;
 			}
-			for (int i = 0, length = arguments == null ? 0 : arguments.length; i < length; i++) {
-				Expression argument = arguments[i];
-				TypeBinding parameterType = InferenceContext18.getParameter(parameters, i, variableArity);
+		}
+		for (int i = 0, length = arguments == null ? 0 : arguments.length; i < length; i++) {
+			Expression argument = arguments[i];
+			TypeBinding parameterType = InferenceContext18.getParameter(parameters, i, variableArity);
 			if (parameterType == null)
-					continue; // not much we can do without a target type, assume it only happens after some resolve error
+				continue; // not much we can do without a target type, assume it only happens after some resolve error
 			if (argumentTypes[i] != null && argumentTypes[i].isPolyType()) {
-								argument.setExpectedType(parameterType);
+				argument.setExpectedType(parameterType);
 				TypeBinding updatedArgumentType; 
 				if (argument instanceof LambdaExpression) {
 					LambdaExpression lambda = (LambdaExpression) argument;
@@ -707,12 +708,12 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 					updatedArgumentType = argument.resolveType(scope);
 				}
 				if (updatedArgumentType != null && updatedArgumentType.kind() != Binding.POLY_TYPE) {
-						argumentTypes[i] = updatedArgumentType;
+					argumentTypes[i] = updatedArgumentType;
 					if (candidateMethod.isPolymorphic())
 						candidateMethod.parameters[i] = updatedArgumentType;
-					}
 				}
 			}
+		}
 		if (method instanceof ParameterizedGenericMethodBinding) {
 			InferenceContext18 ic18 = invocation.getInferenceContext((ParameterizedMethodBinding) method);
 			if (ic18 != null)
@@ -981,9 +982,29 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 			return;
 		}
 		int length = sourceAnnotations.length;
+
+		int defaultNullness = 0;
+		Annotation lastNNBDAnnotation = null;
 		for (int i = 0; i < length; i++) {
 			Annotation annotation = sourceAnnotations[i];
-			annotation.handleNonNullByDefault(scope, localDeclaration);
+			long value = annotation.handleNonNullByDefault(scope);
+			if (value != 0) {
+				defaultNullness |= value;
+				lastNNBDAnnotation = annotation;
+			}
+		}
+		if (defaultNullness != 0) {
+			// the actual localDeclaration.binding is not set yet. fake one for problemreporter.
+			LocalVariableBinding binding = new LocalVariableBinding(localDeclaration, null, 0, false);
+			Binding target = scope.checkRedundantDefaultNullness(defaultNullness, localDeclaration.sourceStart);
+			boolean recorded = scope.recordNonNullByDefault(binding, defaultNullness, lastNNBDAnnotation,
+					lastNNBDAnnotation.sourceStart, localDeclaration.declarationSourceEnd);
+			if (recorded) {
+				if (target != null) {
+					scope.problemReporter().nullDefaultAnnotationIsRedundant(localDeclaration,
+							new Annotation[] { lastNNBDAnnotation }, target);
+				}
+			}
 		}
 	}
 
@@ -1083,8 +1104,8 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 							method.returnType = mergeAnnotationsIntoType(scope, se8Annotations, se8nullBits, se8NullAnnotation, methodDecl.returnType, method.returnType);
 							if(scope.environment().usesNullTypeAnnotations()) {
 								method.tagBits &= ~(se8nullBits);
+							}
 						}
-					}
 					} else {
 						method.setTypeAnnotations(se8Annotations);
 					}
@@ -1133,11 +1154,11 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 		if ((prevNullBits | se8nullBits) == TagBits.AnnotationNullMASK) { // contradiction after merge?
 			if (!(oldLeafType instanceof TypeVariableBinding)) { // let type-use annotations override annotations on the type parameter declaration
 				if (prevNullBits != TagBits.AnnotationNullMASK && se8nullBits != TagBits.AnnotationNullMASK) { // conflict caused by the merge?
-				scope.problemReporter().contradictoryNullAnnotations(se8NullAnnotation);
-			}
+					scope.problemReporter().contradictoryNullAnnotations(se8NullAnnotation);
+				}
 				se8Annotations = Binding.NO_ANNOTATIONS;
 				se8nullBits = 0;
-		}
+			}
 			oldLeafType = oldLeafType.withoutToplevelNullAnnotation();
 		}
 

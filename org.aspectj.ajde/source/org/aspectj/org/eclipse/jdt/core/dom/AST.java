@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -114,7 +115,7 @@ public class AST {
      * </p>
      *
 	 * @since 3.0
-	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
 	 */
 	public static final int JLS2 = 2;
 
@@ -138,7 +139,7 @@ public class AST {
      * </p>
      *
 	 * @since 3.1
-	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
 	 */
 	public static final int JLS3 = 3;
 	
@@ -162,7 +163,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.7.1
-	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
 	 */
 	public static final int JLS4 = 4;
 	
@@ -186,7 +187,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.10
-	 * @deprecated Clients should use the {@link #JLS9} AST API instead.
+	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
 	 */
 	public static final int JLS8 = 8;
 
@@ -210,6 +211,7 @@ public class AST {
 	 * </p>
 	 *
 	 * @since 3.14
+	 * @deprecated Clients should use the {@link #JLS10} AST API instead.
 	 */
 	public static final int JLS9 = 9;
 
@@ -219,6 +221,29 @@ public class AST {
 	 * @since 3.14
 	 */
 	/*package*/ static final int JLS9_INTERNAL = JLS9;
+	
+	/**
+	 * Constant for indicating the AST API that handles JLS10.
+	 * <p>
+	 * This API is capable of handling all constructs in the
+	 * Java language as described in the Java Language
+	 * Specification, Java SE 10 Edition (JLS10).
+	 * JLS10 is a superset of all earlier versions of the
+	 * Java language, and the JLS10 API can be used to manipulate
+	 * programs written in all versions of the Java language
+	 * up to and including Java SE 10 (aka JDK 10).
+	 * </p>
+	 *
+	 * @since 3.14
+	 */
+	public static final int JLS10 = 10;
+
+	/**
+	 * Internal synonym for {@link #JLS10}. Use to alleviate
+	 * deprecation warnings once JLS10 is deprecated
+	 * @since 3.14
+	 */
+	/*package*/ static final int JLS10_INTERNAL = JLS10;
 
 	/*
 	 * Must not collide with a value for ICompilationUnit constants
@@ -315,7 +340,7 @@ public class AST {
 	 * Creates a new Java abstract syntax tree
      * (AST) following the specified set of API rules.
      * <p>
-     * Clients should use this method specifying {@link #JLS9} as the
+     * Clients should use this method specifying {@link #JLS10} as the
      * AST level in all cases, even when dealing with source of earlier JDK versions like 1.3 or 1.4.
      * </p>
      *
@@ -751,7 +776,7 @@ public class AST {
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
 				break;	
-			case JLS9 :
+			case JLS9_INTERNAL :
 				this.apiLevel = level;
 				// initialize a scanner
 				this.scanner = new Scanner(
@@ -760,6 +785,19 @@ public class AST {
 						false /*nls*/,
 						ClassFileConstants.JDK9   /*sourceLevel*/,
 						ClassFileConstants.JDK9 /*complianceLevel*/,
+						null/*taskTag*/,
+						null/*taskPriorities*/,
+						true/*taskCaseSensitive*/);
+				break;	
+			case JLS10_INTERNAL :
+				this.apiLevel = level;
+				// initialize a scanner
+				this.scanner = new Scanner(
+						true /*comment*/,
+						true /*whitespace*/,
+						false /*nls*/,
+						ClassFileConstants.JDK10   /*sourceLevel*/,
+						ClassFileConstants.JDK10 /*complianceLevel*/,
 						null/*taskTag*/,
 						null/*taskPriorities*/,
 						true/*taskCaseSensitive*/);
@@ -1527,7 +1565,7 @@ public class AST {
 	 * Creates an unparented expression method reference node owned by this AST.
 	 * By default, the expression and method name are unspecified (but legal),
 	 * and there are no type arguments.
-	 * 
+	 *
 	 * @return a new unparented expression method reference expression node
 	 * @exception UnsupportedOperationException if this operation is used in a JLS2, JLS3 or JLS4 AST
 	 * @since 3.10

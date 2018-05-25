@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 GK Software AG, and others.
+ * Copyright (c) 2017, 2018 GK Software SE, and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,13 +28,20 @@ public class BinaryModuleBinding extends ModuleBinding {
 	
 	private static class AutomaticModuleBinding extends ModuleBinding {
 
+		boolean autoNameFromManifest;
+
 		public AutomaticModuleBinding(IModule module, LookupEnvironment existingEnvironment) {
 			super(module.name(), existingEnvironment);
 			existingEnvironment.root.knownModules.put(this.moduleName, this);
 			this.isAuto = true;
+			this.autoNameFromManifest = module.isAutoNameFromManifest();
 			this.requires = Binding.NO_MODULES;
 			this.requiresTransitive = Binding.NO_MODULES;
 			this.exportedPackages = Binding.NO_PACKAGES;
+		}
+		@Override
+		public boolean hasUnstableAutoName() {
+			return !this.autoNameFromManifest;
 		}
 		@Override
 		public ModuleBinding[] getRequiresTransitive() {
@@ -61,24 +68,28 @@ public class BinaryModuleBinding extends ModuleBinding {
 	/**
 	 * Construct a named module from binary, could be an auto module - or from an info from Java Model.
 	 * <p>
+	 * <strong>precondition:</strong> module must be either IBinaryModule or IModule.AutoModule
+	 * </p>
+	 * <p>
 	 * <strong>Side effects:</strong> adds the new module to root.knownModules and resolves its directives.
 	 * </p>
 	 */
 	public static ModuleBinding create(IModule module, LookupEnvironment existingEnvironment) {
 		if (module.isAutomatic())
 			return new AutomaticModuleBinding(module, existingEnvironment);
-		return new BinaryModuleBinding(module, existingEnvironment);
+		return new BinaryModuleBinding((IBinaryModule) module, existingEnvironment);
 	}
 
-	private BinaryModuleBinding(IModule module, LookupEnvironment existingEnvironment) {
+	private BinaryModuleBinding(IBinaryModule module, LookupEnvironment existingEnvironment) {
 		super(module.name(), existingEnvironment);
 		existingEnvironment.root.knownModules.put(this.moduleName, this);
 		cachePartsFrom(module);
 	}
 	
-	void cachePartsFrom(IModule module) {
+	void cachePartsFrom(IBinaryModule module) {
 		if (module.isOpen())
 			this.modifiers |= ClassFileConstants.ACC_OPEN;
+		this.tagBits |= module.getTagBits();
 
 		IModuleReference[] requiresReferences = module.requires();
 		this.requires = new ModuleBinding[requiresReferences.length];
@@ -104,9 +115,10 @@ public class BinaryModuleBinding extends ModuleBinding {
 		this.unresolvedUses = module.uses();
 		this.unresolvedProvides = module.provides();
 		if (this.environment.globalOptions.isAnnotationBasedNullAnalysisEnabled) {
-			if (module instanceof IBinaryModule)
-				scanForNullDefaultAnnotation((IBinaryModule) module);
-//			this.setAnnotations(BinaryTypeBinding.createAnnotations(((IBinaryModule) module).getAnnotations(), this.environment, null));
+			scanForNullDefaultAnnotation(module);
+		}
+		if ((this.tagBits & TagBits.AnnotationDeprecated) != 0 || this.environment.globalOptions.storeAnnotations) {
+			this.setAnnotations(BinaryTypeBinding.createAnnotations(module.getAnnotations(), this.environment, null), true);
 		}
 	}
 
@@ -118,7 +130,6 @@ public class BinaryModuleBinding extends ModuleBinding {
 
 		IBinaryAnnotation[] annotations = binaryModule.getAnnotations();
 		if (annotations != null) {
-			long annotationBit = 0L;
 			int nullness = NO_NULL_DEFAULT;
 			int length = annotations.length;
 			for (int i = 0; i < length; i++) {
@@ -128,23 +139,10 @@ public class BinaryModuleBinding extends ModuleBinding {
 				int typeBit = this.environment.getNullAnnotationBit(BinaryTypeBinding.signature2qualifiedTypeName(annotationTypeName));
 				if (typeBit == TypeIds.BitNonNullByDefaultAnnotation) {
 					// using NonNullByDefault we need to inspect the details of the value() attribute:
-					nullness = BinaryTypeBinding.getNonNullByDefaultValue(annotations[i], this.environment);
-					if (nullness == NULL_UNSPECIFIED_BY_DEFAULT) {
-						annotationBit = TagBits.AnnotationNullUnspecifiedByDefault;
-					} else if (nullness != 0) {
-						annotationBit = TagBits.AnnotationNonNullByDefault;
-						if (nullness == Binding.NONNULL_BY_DEFAULT && this.environment.usesNullTypeAnnotations()) {
-							// reading a decl-nnbd in a project using type annotations, mimic corresponding semantics by enumerating:
-							nullness |= Binding.DefaultLocationParameter | Binding.DefaultLocationReturnType | Binding.DefaultLocationField;
-						}
-					}
-					this.defaultNullness = nullness;
-					break;
+					nullness |= BinaryTypeBinding.getNonNullByDefaultValue(annotations[i], this.environment);
 				}
 			}
-			if (annotationBit != 0L) {
-				this.tagBits |= annotationBit;
-			}
+			this.defaultNullness = nullness;
 		}
 	}
 
@@ -170,8 +168,12 @@ public class BinaryModuleBinding extends ModuleBinding {
 			PackageBinding declaredPackage = getVisiblePackage(CharOperation.splitOn('.', export.name()));
 			if (declaredPackage != null) {
 				this.exportedPackages[count++] = declaredPackage;
-				declaredPackage.isExported = Boolean.TRUE;
-				recordExportRestrictions(declaredPackage, export.targets());
+				if (declaredPackage instanceof SplitPackageBinding)
+					declaredPackage = ((SplitPackageBinding) declaredPackage).getIncarnation(this);
+				if (declaredPackage != null) {
+					declaredPackage.isExported = Boolean.TRUE;
+					recordExportRestrictions(declaredPackage, export.targets());
+				}
 			} else {
 				// TODO(SHMOD): report incomplete module path?
 			}
@@ -186,7 +188,11 @@ public class BinaryModuleBinding extends ModuleBinding {
 			PackageBinding declaredPackage = getVisiblePackage(CharOperation.splitOn('.', opens.name()));
 			if (declaredPackage != null) {
 				this.openedPackages[count++] = declaredPackage;
-				recordOpensRestrictions(declaredPackage, opens.targets());
+				if (declaredPackage instanceof SplitPackageBinding)
+					declaredPackage = ((SplitPackageBinding) declaredPackage).getIncarnation(this);
+				if (declaredPackage != null) {
+					recordOpensRestrictions(declaredPackage, opens.targets());
+				}
 			} else {
 				// TODO(SHMOD): report incomplete module path?
 			}
@@ -229,5 +235,9 @@ public class BinaryModuleBinding extends ModuleBinding {
 				impls[j] = this.environment.getType(CharOperation.splitOn('.', implNames[j]), this);
 			this.implementations.put(this.services[i], impls);
 		}
+	}
+	@Override
+	public AnnotationBinding[] getAnnotations() {
+		return retrieveAnnotations(this);
 	}
 }

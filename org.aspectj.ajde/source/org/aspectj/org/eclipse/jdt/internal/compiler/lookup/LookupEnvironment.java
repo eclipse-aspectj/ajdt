@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -95,7 +95,7 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 	protected int lastUnitIndex = -1; // ROOT_ONLY
 	// End AspectJ Extension
 
-	TypeSystem typeSystem; // SHARED
+	TypeSystem typeSystem;					 	// SHARED
 	
 	public INameEnvironment nameEnvironment;	// SHARED
 	public CompilerOptions globalOptions;		// SHARED
@@ -136,7 +136,7 @@ public class LookupEnvironment implements ProblemReasons, TypeConstants {
 
 	AnnotationBinding nonNullAnnotation;
 	AnnotationBinding nullableAnnotation;
-	
+
 	Map<String,Integer> allNullAnnotations = null;
 
 	final List<MethodBinding> deferredEnumMethods; // SHARED: during early initialization we cannot mark Enum-methods as nonnull.
@@ -214,10 +214,10 @@ public ModuleBinding getModule(char[] name) {
 	if (moduleBinding == null) {
 		if (this.useModuleSystem) {
 			IModule mod = ((IModuleAwareNameEnvironment) this.nameEnvironment).getModule(name);
-		if (mod != null) {
+			if (mod != null) {
 				this.typeRequestor.accept(mod, this);
 				moduleBinding = this.root.knownModules.get(name);
-		}
+			}
 		} else 
 			return this.UnNamedModule;
 	}
@@ -241,7 +241,7 @@ public ReferenceBinding askForType(char[][] compoundName, /*@NonNull*/ModuleBind
 		if (answer != null) {
 			answer.moduleBinding = this.module;
 			answers = new NameEnvironmentAnswer[] { answer };
-	}
+		}
 	}
 	if (answers == null)
 		return null;
@@ -251,35 +251,36 @@ public ReferenceBinding askForType(char[][] compoundName, /*@NonNull*/ModuleBind
 		if (answer == null) continue;
 
 		ModuleBinding answerModule = answer.moduleBinding != null ? answer.moduleBinding : this.UnNamedModule;
-
-	if (answer.isBinaryType()) {
-		// the type was found as a .class file
+	
+		if (answer.isBinaryType()) {
+			// the type was found as a .class file
 			PackageBinding pkg = answerModule.environment.computePackageFrom(compoundName, false /* valid pkg */);
-		this.typeRequestor.accept(answer.getBinaryType(), pkg, answer.getAccessRestriction());
-		ReferenceBinding binding = pkg.getType0(compoundName[compoundName.length - 1]);
-		if (binding instanceof BinaryTypeBinding) {
+			this.typeRequestor.accept(answer.getBinaryType(), pkg, answer.getAccessRestriction());
+			ReferenceBinding binding = pkg.getType0(compoundName[compoundName.length - 1]);
+			if (binding instanceof BinaryTypeBinding) {
 				((BinaryTypeBinding) binding).module = answerModule;
 				if (pkg.enclosingModule == null)
 					pkg.enclosingModule = answerModule;
-		}
-	} else if (answer.isCompilationUnit()) {
-		// the type was found as a .java file, try to build it then search the cache
-		this.typeRequestor.accept(answer.getCompilationUnit(), answer.getAccessRestriction());
-	} else if (answer.isSourceType()) {
-		// the type was found as a source model
+			}
+		} else if (answer.isCompilationUnit()) {
+			// the type was found as a .java file, try to build it then search the cache
+			this.typeRequestor.accept(answer.getCompilationUnit(), answer.getAccessRestriction());
+		} else if (answer.isSourceType()) {
+			// the type was found as a source model
 			PackageBinding pkg = answerModule.environment.computePackageFrom(compoundName, false /* valid pkg */);
-		this.typeRequestor.accept(answer.getSourceTypes(), pkg, answer.getAccessRestriction());
-		ReferenceBinding binding = pkg.getType0(compoundName[compoundName.length - 1]);
-		if (binding instanceof SourceTypeBinding) {
+			this.typeRequestor.accept(answer.getSourceTypes(), pkg, answer.getAccessRestriction());
+			ReferenceBinding binding = pkg.getType0(compoundName[compoundName.length - 1]);
+			if (binding instanceof SourceTypeBinding) {
 				((SourceTypeBinding) binding).module = answerModule;
 				if (pkg.enclosingModule == null)
 					pkg.enclosingModule = answerModule;
+			}
 		}
-	}
 		candidate = combine(candidate, answerModule.environment.getCachedType(compoundName), clientModule);
-}
+	}
 	return candidate;
 }
+
 /* Ask the oracle for a type named name in the packageBinding.
 * Answer null if the name cannot be found.
 */
@@ -300,7 +301,7 @@ ReferenceBinding askForType(PackageBinding packageBinding, char[] name, ModuleBi
 		if (answer != null) {
 			answer.moduleBinding = this.module;
 			answers = new NameEnvironmentAnswer[] { answer };
-	}
+		}
 	}
 	if (answers == null)
 		return null;
@@ -321,39 +322,39 @@ ReferenceBinding askForType(PackageBinding packageBinding, char[] name, ModuleBi
 			candidate = combine(candidate, answer.getResolvedBinding(), clientModule);
 			continue;
 		} else if (answer.isBinaryType()) {
-		// the type was found as a .class file
+			// the type was found as a .class file
 			this.typeRequestor.accept(answer.getBinaryType(), answerPackage, answer.getAccessRestriction());
 			ReferenceBinding binding = answerPackage.getType0(name);
-		if (binding instanceof BinaryTypeBinding) {
+			if (binding instanceof BinaryTypeBinding) {
 				((BinaryTypeBinding) binding).module = answerModule;
-		}
-	} else if (answer.isCompilationUnit()) {
-		// the type was found as a .java file, try to build it then search the cache
-		try {
-			this.typeRequestor.accept(answer.getCompilationUnit(), answer.getAccessRestriction());
-		} catch (AbortCompilation abort) {
-			if (CharOperation.equals(name, TypeConstants.PACKAGE_INFO_NAME))
-				return null; // silently, requestor may not be able to handle compilation units (HierarchyResolver)
-			throw abort;
-		}
-	} else if (answer.isSourceType()) {
-		// the type was found as a source model
+			}
+		} else if (answer.isCompilationUnit()) {
+			// the type was found as a .java file, try to build it then search the cache
+			try {
+				this.typeRequestor.accept(answer.getCompilationUnit(), answer.getAccessRestriction());
+			} catch (AbortCompilation abort) {
+				if (CharOperation.equals(name, TypeConstants.PACKAGE_INFO_NAME))
+					return null; // silently, requestor may not be able to handle compilation units (HierarchyResolver)
+				throw abort;
+			}
+		} else if (answer.isSourceType()) {
+			// the type was found as a source model
 			this.typeRequestor.accept(answer.getSourceTypes(), answerPackage, answer.getAccessRestriction());
 			ReferenceBinding binding = answerPackage.getType0(name);
-		if (binding instanceof SourceTypeBinding) {
+			if (binding instanceof SourceTypeBinding) {
 				((SourceTypeBinding) binding).module = answerModule;
-		}
-		String externalAnnotationPath = answer.getExternalAnnotationPath();
-		if (externalAnnotationPath != null && this.globalOptions.isAnnotationBasedNullAnalysisEnabled && binding instanceof SourceTypeBinding) {
-			ExternalAnnotationSuperimposer.apply((SourceTypeBinding) binding, externalAnnotationPath);
-	}
+			}
+			String externalAnnotationPath = answer.getExternalAnnotationPath();
+			if (externalAnnotationPath != null && this.globalOptions.isAnnotationBasedNullAnalysisEnabled && binding instanceof SourceTypeBinding) {
+				ExternalAnnotationSuperimposer.apply((SourceTypeBinding) binding, externalAnnotationPath);
+			}
 			candidate = combine(candidate, binding, clientModule);
 			continue;
-	}
+		}
 		candidate = combine(candidate, answerPackage.getType0(name), clientModule);
 		if (candidate != null && candidate.problemId() == ProblemReasons.Ambiguous)
 			return candidate; // saw enough
-}
+	}
 	return candidate;
 }
 /** Combine up-to two candidate types. If both types are present let accessibility from the given clientModule decide. */
@@ -432,7 +433,13 @@ private ModuleBinding getModuleFromAnswer(NameEnvironmentAnswer answer) {
 			if (moduleBinding == null && this.nameEnvironment instanceof IModuleAwareNameEnvironment) {
 				assert answer.isBinaryType();
 				IModule iModule = ((IModuleAwareNameEnvironment) this.nameEnvironment).getModule(moduleName);
-				moduleBinding = BinaryModuleBinding.create(iModule, this);
+				try {
+					moduleBinding = BinaryModuleBinding.create(iModule, this);
+				} catch (NullPointerException e) {
+					System.err.println("Bug 529367: moduleName: " + new String(moduleName) + "iModule null" +  //$NON-NLS-1$ //$NON-NLS-2$
+							(iModule == null ? "true" : "false")); //$NON-NLS-1$ //$NON-NLS-2$]
+					throw e;
+				}
 			}
 		}
 		return moduleBinding;
@@ -797,7 +804,7 @@ public ReferenceBinding convertToParameterizedType(ReferenceBinding originalType
 		ReferenceBinding originalEnclosingType = originalType.enclosingType();
 		ReferenceBinding convertedEnclosingType = originalEnclosingType;
 		boolean needToConvert = isGeneric;
-		if (originalEnclosingType != null && !originalType.isStatic()) {
+		if (originalEnclosingType != null && hasInstanceContext(originalType)) {
 			convertedEnclosingType = convertToParameterizedType(originalEnclosingType);
 			needToConvert |= TypeBinding.notEquals(originalEnclosingType, convertedEnclosingType);
 		}
@@ -806,6 +813,14 @@ public ReferenceBinding convertToParameterizedType(ReferenceBinding originalType
 		}
 	}
 	return originalType;
+}
+private boolean hasInstanceContext(ReferenceBinding type) {
+	if (type.isMemberType() && !type.isStatic())
+		return true;
+	MethodBinding enclosingMethod = type.enclosingMethod();
+	if (enclosingMethod != null)
+		return !enclosingMethod.isStatic();
+	return false;
 }
 
 /**
@@ -859,17 +874,17 @@ public TypeBinding convertToRawType(TypeBinding type, boolean forceRawEnclosingT
 		if(((ReferenceBinding)originalType).isStatic()) {
 			convertedEnclosing = (ReferenceBinding) originalEnclosing.original();
 		} else {
-		if (originalEnclosing.kind() == Binding.RAW_TYPE) {
-			convertedEnclosing = originalEnclosing;
+			if (originalEnclosing.kind() == Binding.RAW_TYPE) {			
+				convertedEnclosing = originalEnclosing;
 				needToConvert = true;
-		} else if (forceRawEnclosingType && !needToConvert/*stop recursion when conversion occurs*/) {
-			convertedEnclosing = (ReferenceBinding) convertToRawType(originalEnclosing, forceRawEnclosingType);
-			needToConvert = TypeBinding.notEquals(originalEnclosing, convertedEnclosing); // only convert generic or parameterized types
+			} else if (forceRawEnclosingType && !needToConvert/*stop recursion when conversion occurs*/) {
+				convertedEnclosing = (ReferenceBinding) convertToRawType(originalEnclosing, forceRawEnclosingType);
+				needToConvert = TypeBinding.notEquals(originalEnclosing, convertedEnclosing); // only convert generic or parameterized types
 			} else if (needToConvert) {
-			convertedEnclosing = (ReferenceBinding) convertToRawType(originalEnclosing, false);
-		} else {
-			convertedEnclosing = convertToParameterizedType(originalEnclosing);
-		}
+				convertedEnclosing = (ReferenceBinding) convertToRawType(originalEnclosing, false);
+			} else {
+				convertedEnclosing = convertToParameterizedType(originalEnclosing);
+			}
 		}
 		if (needToConvert) {
 			convertedType = createRawType((ReferenceBinding) originalType.erasure(), convertedEnclosing);
@@ -1063,10 +1078,10 @@ public MissingTypeBinding createMissingType(PackageBinding packageBinding, char[
 }
 
 /*
-* 1. Connect the type hierarchy for the type bindings created for parsedUnits.
-* 2. Create the field bindings
-* 3. Create the method bindings
-*/
+ * 1. Connect the type hierarchy for the type bindings created for parsedUnits.
+ * 2. Create the field bindings
+ * 3. Create the method bindings
+ */
 public PackageBinding createPackage(char[][] compoundName) {
 	PackageBinding packageBinding = getPackage0(compoundName[0]);
 	if (packageBinding == null || packageBinding == TheNotFoundPackage) {
@@ -1075,7 +1090,7 @@ public PackageBinding createPackage(char[][] compoundName) {
 		if (this.module != null) {
 			packageBinding = this.module.addPackage(packageBinding, true);
 			this.knownPackages.put(compoundName[0], packageBinding); // update in case of split package
-	}
+		}
 	}
 
 	for (int i = 1, length = compoundName.length; i < length; i++) {
@@ -1100,7 +1115,7 @@ public PackageBinding createPackage(char[][] compoundName) {
 				// This is a performance optimization, because it is very expensive to search for secondary types and it isn't necessary to check when creating a package,
 				// because package name can not collide with a secondary type name.
 				if (((INameEnvironmentExtension)this.nameEnvironment).findType(compoundName[i], parent.compoundName, false, this.module.nameForLookup()) != null) {
-				return null;
+					return null;
 				}
 			} else {
 				if (this.nameEnvironment.findType(compoundName[i], parent.compoundName) != null) {
@@ -1112,7 +1127,7 @@ public PackageBinding createPackage(char[][] compoundName) {
 				PackageBinding singleParent = ((SplitPackageBinding) parent).getIncarnation(this.module);
 				if (singleParent != null)
 					packageBinding = singleParent.getPackage0(compoundName[i]);
-		}
+			}
 			if (packageBinding == null) {
 				packageBinding = new PackageBinding(CharOperation.subarray(compoundName, 0, i + 1), parent, this, this.module);
 				packageBinding = parent.addPackage(packageBinding, this.module, true);
@@ -1696,11 +1711,11 @@ private ReferenceBinding getTypeFromCompoundName(char[][] compoundName, boolean 
 			binding = packageBinding.getType0(compoundName[compoundName.length - 1]);
 		}
 		if(binding == null) {
-		binding = new UnresolvedReferenceBinding(compoundName, packageBinding);
-		if (wasMissingType) {
-			binding.tagBits |= TagBits.HasMissingType; // record it was bound to a missing type
-		}
-		packageBinding.addType(binding);
+			binding = new UnresolvedReferenceBinding(compoundName, packageBinding);
+			if (wasMissingType) {
+				binding.tagBits |= TagBits.HasMissingType; // record it was bound to a missing type
+			}
+			packageBinding.addType(binding);
 		}
 	} else if (binding == TheNotFoundType) {
 		// report the missing class file first
@@ -1955,7 +1970,7 @@ public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariab
 		int nonStaticNestingLevels = countNonStaticNestingLevels(actualType);
 		for (int i = 0; i < nonStaticNestingLevels; i++) {
 			walker = walker.toNextNestedType();
-	}
+		}
 	}
 
 	TypeBinding[] typeArguments = getTypeArgumentsFromSignature(wrapper, staticVariables, enclosingType, actualType, missingTypeNames, walker);
@@ -1975,7 +1990,7 @@ public TypeBinding getTypeFromTypeSignature(SignatureWrapper wrapper, TypeVariab
 			// may happen for class files generated by eclipse before bug 460491 was fixed. 
 			walker = savedWalker;
 		} else {
-		walker = walker.toNextNestedType();
+			walker = walker.toNextNestedType();
 		}
 		if (wrapper.signature[wrapper.start] == '<') {
 			wrapper.start++; // skip '<'
@@ -2131,10 +2146,10 @@ public IQualifiedTypeResolutionListener[] resolutionListeners;	// ROOT_ONLY
 public void addResolutionListener(IQualifiedTypeResolutionListener resolutionListener) {
 	synchronized (this.root) {
 		int length = this.root.resolutionListeners.length;
-	for (int i = 0; i < length; i++){
+		for (int i = 0; i < length; i++){
 			if (this.root.resolutionListeners[i].equals(resolutionListener))
-			return;
-	}
+				return;
+		}
 		System.arraycopy(this.root.resolutionListeners, 0,
 				this.root.resolutionListeners = new IQualifiedTypeResolutionListener[length + 1], 0, length);
 		this.root.resolutionListeners[length] = resolutionListener;

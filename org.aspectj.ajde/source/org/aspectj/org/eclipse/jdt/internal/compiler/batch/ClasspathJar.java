@@ -309,13 +309,14 @@ public boolean hasCompilationUnit(String qualifiedPackageName, String moduleName
 			if (tail.indexOf('/') != -1)
 				continue;
 			if (tail.toLowerCase().endsWith(SUFFIX_STRING_class))
-			return true;
-	}	
+				return true;
+		}
 	}	
 	return false;
 }
 @Override
 public void reset() {
+	super.reset();
 	if (this.closeZipFileAtEnd) {
 		if (this.zipFile != null) {
 		// AspectJ Extension

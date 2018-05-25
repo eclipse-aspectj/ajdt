@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2004, 2017 IBM Corporation and others.
+ * Copyright (c) 2004, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -266,6 +267,7 @@ public class ASTParser {
 			case AST.JLS4_INTERNAL:
 			case AST.JLS8_INTERNAL:
 			case AST.JLS9_INTERNAL:
+			case AST.JLS10_INTERNAL:
 				break;
 			default:
 				throw new IllegalArgumentException();
@@ -1184,18 +1186,19 @@ public class ASTParser {
 							BinaryType type = (BinaryType) this.typeRoot.findPrimaryType();
 							String fileNameString = null;
 							if (type != null) {
-							IBinaryType binaryType = (IBinaryType) type.getElementInfo();
-							// file name is used to recreate the Java element, so it has to be the toplevel .class file name
-							char[] fileName = binaryType.getFileName();
-							int firstDollar = CharOperation.indexOf('$', fileName);
-							if (firstDollar != -1) {
-								char[] suffix = SuffixConstants.SUFFIX_class;
-								int suffixLength = suffix.length;
-								char[] newFileName = new char[firstDollar + suffixLength];
-								System.arraycopy(fileName, 0, newFileName, 0, firstDollar);
-								System.arraycopy(suffix, 0, newFileName, firstDollar, suffixLength);
-								fileName = newFileName;
-							}
+								IBinaryType binaryType = (IBinaryType) type.getElementInfo();
+								// file name is used to recreate the Java element, so it has to be the toplevel .class file name
+								char[] fileName = binaryType.getFileName();
+
+								int firstDollar = CharOperation.indexOf('$', fileName);
+								if (firstDollar != -1) {
+									char[] suffix = SuffixConstants.SUFFIX_class;
+									int suffixLength = suffix.length;
+									char[] newFileName = new char[firstDollar + suffixLength];
+									System.arraycopy(fileName, 0, newFileName, 0, firstDollar);
+									System.arraycopy(suffix, 0, newFileName, firstDollar, suffixLength);
+									fileName = newFileName;
+								}
 								fileNameString = new String(fileName);
 							} else {
 								// assumed to be "module-info.class" (which has no type):

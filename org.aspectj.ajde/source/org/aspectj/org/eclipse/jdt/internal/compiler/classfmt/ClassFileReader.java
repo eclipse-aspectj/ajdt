@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
@@ -114,13 +115,6 @@ public static ClassFileReader read(
 		return read(zip, filename, false);
 }
 
-public static ClassFileReader readFromJimage(
-		File jrt,
-		String filename)
-		throws ClassFormatException, java.io.IOException {
-
-		return readFromModule(jrt, null, filename);
-	}
 public static ClassFileReader readFromJrt(
 		File jrt,
 		IModule module,
@@ -132,10 +126,11 @@ public static ClassFileReader readFromJrt(
 public static ClassFileReader readFromModule(
 		File jrt,
 		String moduleName,
-		String filename)
+		String filename,
+		Predicate<String> moduleNameFilter)
 
 		throws ClassFormatException, java.io.IOException {
-		return JRTUtil.getClassfile(jrt, filename, moduleName);
+		return JRTUtil.getClassfile(jrt, filename, moduleName, moduleNameFilter);
 }
 public static ClassFileReader read(
 	java.util.zip.ZipFile zip,
@@ -274,7 +269,7 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 		// Read the classname, use exception handlers to catch bad format
 		this.classNameIndex = u2At(readOffset);
 		if (this.classNameIndex != 0) {
-		this.className = getConstantClassNameAt(this.classNameIndex);
+			this.className = getConstantClassNameAt(this.classNameIndex);
 		}
 		readOffset += 2;
 
@@ -431,7 +426,7 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 			readOffset += (6 + u4At(readOffset + 2));
 		}
 		if (this.moduleDeclaration != null && this.annotations != null) {
-			this.moduleDeclaration.setAnnotations(this.annotations, fullyInitialize);
+			this.moduleDeclaration.setAnnotations(this.annotations, this.tagBits, fullyInitialize);
 			this.annotations = null;
 		}
 		if (fullyInitialize) {
@@ -440,7 +435,8 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 	} catch(ClassFormatException e) {
 		throw e;
 	} catch (Exception e) {
-		throw new ClassFormatException(
+		throw new ClassFormatException(e,
+			this.classFileName,
 			ClassFormatException.ErrTruncatedInput,
 			readOffset);
 	}
@@ -485,10 +481,10 @@ private void decodeAnnotations(int offset, boolean runtimeVisible) {
 				if (this.version < ClassFileConstants.JDK9 || (standardTagBits & TagBits.AnnotationDeprecated) == 0)
 					continue;
 			}
-				if (newInfos == null)
-					newInfos = new AnnotationInfo[numberOfAnnotations - i];
-				newInfos[newInfoCount++] = newInfo;
-			}
+			if (newInfos == null)
+				newInfos = new AnnotationInfo[numberOfAnnotations - i];
+			newInfos[newInfoCount++] = newInfo;
+		}
 		if (newInfos == null)
 			return; // nothing to record in this.annotations
 
@@ -1111,41 +1107,40 @@ private boolean hasStructuralAnnotationChanges(IBinaryAnnotation[] currentAnnota
 }
 private Boolean matchAnnotations(IBinaryAnnotation currentAnnotation, IBinaryAnnotation otherAnnotation) {
 	if (!CharOperation.equals(currentAnnotation.getTypeName(), otherAnnotation.getTypeName()))
-			return true;
+		return true;
 	IBinaryElementValuePair[] currentPairs = currentAnnotation.getElementValuePairs();
 	IBinaryElementValuePair[] otherPairs = otherAnnotation.getElementValuePairs();
-		int currentPairsLength = currentPairs == null ? 0 : currentPairs.length;
-		int otherPairsLength = otherPairs == null ? 0 : otherPairs.length;
-		if (currentPairsLength != otherPairsLength)
+	int currentPairsLength = currentPairs == null ? 0 : currentPairs.length;
+	int otherPairsLength = otherPairs == null ? 0 : otherPairs.length;
+	if (currentPairsLength != otherPairsLength)
 		return Boolean.TRUE;
-		for (int j = 0; j < currentPairsLength; j++) {
-			if (!CharOperation.equals(currentPairs[j].getName(), otherPairs[j].getName()))
+	for (int j = 0; j < currentPairsLength; j++) {
+		if (!CharOperation.equals(currentPairs[j].getName(), otherPairs[j].getName()))
 			return Boolean.TRUE;
-			final Object value = currentPairs[j].getValue();
-			final Object value2 = otherPairs[j].getValue();
-			if (value instanceof Object[]) {
-				Object[] currentValues = (Object[]) value;
-				if (value2 instanceof Object[]) {
-					Object[] currentValues2 = (Object[]) value2;
-					final int length = currentValues.length;
-					if (length != currentValues2.length) {
+		final Object value = currentPairs[j].getValue();
+		final Object value2 = otherPairs[j].getValue();
+		if (value instanceof Object[]) {
+			Object[] currentValues = (Object[]) value;
+			if (value2 instanceof Object[]) {
+				Object[] currentValues2 = (Object[]) value2;
+				final int length = currentValues.length;
+				if (length != currentValues2.length) {
 					return Boolean.TRUE;
-					}
-					for (int n = 0; n < length; n++) {
-						if (!currentValues[n].equals(currentValues2[n])) {
-						return Boolean.TRUE;
-						}
-					}
-				return Boolean.FALSE;
 				}
+				for (int n = 0; n < length; n++) {
+					if (!currentValues[n].equals(currentValues2[n])) {
+						return Boolean.TRUE;
+					}
+				}
+				return Boolean.FALSE;
+			}
 			return Boolean.TRUE;
-			} else if (!value.equals(value2)) {
+		} else if (!value.equals(value2)) {
 			return Boolean.TRUE;
 		}
 	}
 	return null;
 }
-
 private boolean hasStructuralFieldChanges(FieldInfo currentFieldInfo, FieldInfo otherFieldInfo) {
 	// generic signature
 	if (!CharOperation.equals(currentFieldInfo.getGenericSignature(), otherFieldInfo.getGenericSignature()))

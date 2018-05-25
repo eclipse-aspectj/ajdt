@@ -10,11 +10,7 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.compiler.classfmt;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryAnnotation;
@@ -37,6 +33,7 @@ public class ModuleInfo extends ClassFileStruct implements IBinaryModule {
 	IModule.IService[] provides;
 
 	protected AnnotationInfo[] annotations;
+	private long tagBits;
 
 
 	@Override
@@ -87,36 +84,10 @@ public class ModuleInfo extends ClassFileStruct implements IBinaryModule {
 		return this.annotations;
 	}
 	@Override
-	public void addReads(char[] modName) {
-		Predicate<char[]> shouldAdd = m -> {
-			return Stream.of(this.requires).map(ref -> ref.name()).noneMatch(n -> CharOperation.equals(modName, n));
-		};
-		if (shouldAdd.test(modName)) {
-			int len = this.requires.length;
-			this.requires = Arrays.copyOf(this.requires, len);
-			ModuleReferenceInfo info = this.requires[len] = new ModuleReferenceInfo();
-			info.refName = modName;
-		}		
+	public long getTagBits() {
+		return this.tagBits;
 	}
-	@Override
-	public void addExports(IPackageExport[] toAdd) {
-		Predicate<char[]> shouldAdd = m -> {
-			return Stream.of(this.exports).map(ref -> ref.packageName).noneMatch(n -> CharOperation.equals(m, n));
-		};
-		Collection<PackageExportInfo> merged = Stream.concat(Stream.of(this.exports), Stream.of(toAdd)
-				.filter(e -> shouldAdd.test(e.name()))
-				.map(e -> {
-					PackageExportInfo exp = new PackageExportInfo();
-					exp.packageName = e.name();
-					exp.exportedTo = e.targets();
-					return exp;
-				}))
-			.collect(
-				ArrayList::new,
-				ArrayList::add,
-				ArrayList::addAll);
-		this.exports = merged.toArray(new PackageExportInfo[merged.size()]);
-	}
+
 	/**
 	 * @param classFileBytes byte[]
 	 * @param offsets int[]
@@ -281,8 +252,9 @@ public class ModuleInfo extends ClassFileStruct implements IBinaryModule {
 			}
 		}
 	}
-	void setAnnotations(AnnotationInfo[] annotationInfos, boolean fullyInitialize) {
+	void setAnnotations(AnnotationInfo[] annotationInfos, long tagBits, boolean fullyInitialize) {
 		this.annotations = annotationInfos;
+		this.tagBits = tagBits;
 		if (fullyInitialize) {
 			for (int i = 0, max = annotationInfos.length; i < max; i++) {
 				annotationInfos[i].initialize();

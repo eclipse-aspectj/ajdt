@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -107,19 +107,35 @@ public abstract class Scope {
 
 	public int kind;
 	public Scope parent;
-
+	
 	private static class NullDefaultRange {
-		final int value;
-		final Annotation annotation;
 		final int start, end;
-		final Binding target;
+		int value;
+		private Annotation[] annotations;
+		Binding target;
 
 		NullDefaultRange(int value, Annotation annotation, int start, int end, Binding target) {
-			this.value = value;
-			this.annotation = annotation;
 			this.start = start;
 			this.end = end;
+			this.value = value;
+			this.annotations = new Annotation[] { annotation };
 			this.target = target;
+		}
+
+		boolean contains(Annotation annotation) {
+			for (Annotation annotation2 : this.annotations) {
+				if (annotation2 == annotation)
+					return true;
+			}
+			return false;
+		}
+
+		void merge(int nextValue, Annotation nextAnnotation, Binding nextTarget) {
+			int len = this.annotations.length;
+			System.arraycopy(this.annotations, 0, this.annotations = new Annotation[len + 1], 0, len);
+			this.annotations[len] = nextAnnotation;
+			this.target = nextTarget;
+			this.value |= nextValue;
 		}
 	}
 
@@ -603,7 +619,7 @@ public abstract class Scope {
 				        }
 			        } 
 					break;
-	
+
 				case Binding.INTERSECTION_TYPE18:
 					IntersectionTypeBinding18 intersection = (IntersectionTypeBinding18) originalType;
 					ReferenceBinding[] types = intersection.getIntersectingTypes();
@@ -749,7 +765,7 @@ public abstract class Scope {
 	 * Internal use only
 	 * Given a method, returns null if arguments cannot be converted to parameters.
 	 * Will answer a substituted method in case the method was generic and type inference got triggered;
-	 * in case the method was originally compatible, then simply answer it back.
+	 * in case the method was originally compatible, then simply answer it back. 
 	 */
 	protected final MethodBinding computeCompatibleMethod(MethodBinding method, TypeBinding[] arguments, InvocationSite invocationSite) {
 		return computeCompatibleMethod(method, arguments, invocationSite, false);
@@ -782,16 +798,16 @@ public abstract class Scope {
 		if (typeVariables != Binding.NO_TYPE_VARIABLES && compilerOptions.sourceLevel >= ClassFileConstants.JDK1_5) { // generic method
 			TypeBinding[] newArgs = null;
 			if (compilerOptions.sourceLevel < ClassFileConstants.JDK1_8 || genericTypeArguments != null) { // for 1.8+ inferred calls, we do this inside PGMB.cCM18.
-			for (int i = 0; i < argLength; i++) {
-				TypeBinding param = i < paramLength ? parameters[i] : parameters[paramLength - 1];
-				if (arguments[i].isBaseType() != param.isBaseType()) {
-					if (newArgs == null) {
-						newArgs = new TypeBinding[argLength];
-						System.arraycopy(arguments, 0, newArgs, 0, argLength);
+				for (int i = 0; i < argLength; i++) {
+					TypeBinding param = i < paramLength ? parameters[i] : parameters[paramLength - 1];
+					if (arguments[i].isBaseType() != param.isBaseType()) {
+						if (newArgs == null) {
+							newArgs = new TypeBinding[argLength];
+							System.arraycopy(arguments, 0, newArgs, 0, argLength);
+						}
+						newArgs[i] = environment().computeBoxingType(arguments[i]);
 					}
-					newArgs[i] = environment().computeBoxingType(arguments[i]);
 				}
-			}
 			}
 			if (newArgs != null)
 				arguments = newArgs;
@@ -818,7 +834,7 @@ public abstract class Scope {
 				InferenceContext18 infCtx = invocation.getInferenceContext((ParameterizedGenericMethodBinding) method);
 				if (infCtx != null)
 					return method; // inference is responsible, no need to recheck.
-		}
+			}
 		}
 
 		if (tiebreakingVarargsMethods) {
@@ -922,8 +938,8 @@ public abstract class Scope {
 						default :
 							if (((ReferenceBinding) superType).isFinal()) {
 								if (!environment().usesNullTypeAnnotations() || (superType.tagBits & TagBits.AnnotationNullable) == 0) {
-								problemReporter().finalVariableBound(typeVariable, typeRef);
-							}
+									problemReporter().finalVariableBound(typeVariable, typeRef);
+								}
 							}
 							break;
 					}
@@ -1230,8 +1246,8 @@ public abstract class Scope {
 						if (concreteMatches != null) {
 							for (int j = 0, length = concreteMatches.length; j < length; j++) {
 								if (methodVerifier.areMethodsCompatible(concreteMatches[j], compatibleMethod))
-								continue; // can skip this method since concreteMatch overrides it
-						}
+									continue; // can skip this method since concreteMatch overrides it
+							}
 						}
 						if (sourceLevel18 || !(compatibleMethod.isVarargs() && compatibleMethod instanceof ParameterizedGenericMethodBinding)) {
 							for (int j = 0; j < startFoundSize; j++) {
@@ -1255,7 +1271,7 @@ public abstract class Scope {
 			}
 			concreteMatch = candidates[0];
 			if (concreteMatch != null)
-			compilationUnitScope().recordTypeReferences(concreteMatch.thrownExceptions);
+				compilationUnitScope().recordTypeReferences(concreteMatch.thrownExceptions);
 			return concreteMatch;
 		}
 		// no need to check for visibility - interface methods are public
@@ -1416,11 +1432,11 @@ public abstract class Scope {
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=316456
 		boolean insideTypeAnnotations = this instanceof MethodScope && ((MethodScope) this).insideTypeAnnotation;
 		if (field != null) {
-                        //      AspectJ Extension
-                        FieldBinding ret = field.getVisibleBinding(currentType, invocationSite, this);
-                        if (ret != null)
-                                return ret;
-                        //      End AspectJ Extension
+            //      AspectJ Extension
+            FieldBinding ret = field.getVisibleBinding(currentType, invocationSite, this);
+            if (ret != null)
+                return ret;
+            //      End AspectJ Extension
 			if (invisibleFieldsOk) {
 				return field;
 			}
@@ -1466,9 +1482,9 @@ public abstract class Scope {
 					return field;
 				}
 				keepLooking = false;
-                                //      AspectJ Extension
-                                field = field.getVisibleBinding(receiverType, invocationSite, this);
-                                if (field != null) {
+                //      AspectJ Extension
+                field = field.getVisibleBinding(receiverType, invocationSite, this);
+                if (field != null) {
 				// End AspectJ Extension
 				if (field.canBeSeenBy(receiverType, invocationSite, this)) {
 					if (visibleField == null)
@@ -1491,10 +1507,10 @@ public abstract class Scope {
 				unitScope.recordTypeReference(anInterface);
 				// no need to capture rcv interface, since member field is going to be static anyway
 				if ((field = anInterface.getField(fieldName, true /*resolve*/, invocationSite, this)) != null) { // AspectJ Extension - was getField(fieldName,true/*resolve*/)
-									 //      AspectJ Extension
-                                        field = field.getVisibleBinding(receiverType, invocationSite, this);
-                                        if (field != null) {
-                                    //  End AspectJ Extension
+					//      AspectJ Extension
+                    field = field.getVisibleBinding(receiverType, invocationSite, this);
+                    if (field != null) {
+                    //  End AspectJ Extension
 					if (invisibleFieldsOk) {
 						return field;
 					}
@@ -1873,6 +1889,7 @@ public abstract class Scope {
 			}
 //				// End AspectJ Extension
 		}
+		
 		switch (visiblesCount) {
 			case 0 :
 				MethodBinding interfaceMethod =
@@ -1892,7 +1909,7 @@ public abstract class Scope {
 					return findDefaultAbstractMethod(receiverType, selector, argumentTypes, invocationSite, classHierarchyStart, found, new MethodBinding [] { candidates[0] });
 				candidate = candidates[0];
 				if (candidate != null)
-				unitScope.recordTypeReferences(candidate.thrownExceptions);
+					unitScope.recordTypeReferences(candidate.thrownExceptions);
 				return candidate;
 			default :
 				break;
@@ -3766,11 +3783,19 @@ public abstract class Scope {
 				MethodScope methodScope = methodScope();
 				if (!methodScope.isInsideInitializer()){
 					// check method modifiers to see if deprecated
-					ReferenceContext referenceContext = methodScope.referenceContext;
-					MethodBinding context = referenceContext instanceof AbstractMethodDeclaration ?
-							((AbstractMethodDeclaration)referenceContext).binding : ((LambdaExpression)referenceContext).binding;
-					if (context != null && context.isViewedAsDeprecated())
-						return true;
+					ReferenceContext referenceContext = methodScope.referenceContext();
+					if (referenceContext instanceof AbstractMethodDeclaration) {
+						MethodBinding context = ((AbstractMethodDeclaration) referenceContext).binding;
+						if (context != null && context.isViewedAsDeprecated())
+							return true;
+					} else if (referenceContext instanceof LambdaExpression) {
+						MethodBinding context = ((LambdaExpression) referenceContext).binding;
+						if (context != null && context.isViewedAsDeprecated())
+							return true;
+					} else if (referenceContext instanceof ModuleDeclaration) {
+						ModuleBinding context = ((ModuleDeclaration) referenceContext).binding;
+						return context != null && context.isDeprecated();
+					}
 				} else if (methodScope.initializedField != null && methodScope.initializedField.isViewedAsDeprecated()) {
 					// inside field declaration ? check field modifier to see if deprecated
 					return true;
@@ -4454,7 +4479,7 @@ public abstract class Scope {
 		} else if (compatibleCount == 1) {
 			MethodBinding candidate = visible[0];
 			if (candidate != null)
-			compilationUnitScope().recordTypeReferences(candidate.thrownExceptions);
+				compilationUnitScope().recordTypeReferences(candidate.thrownExceptions);
 			return candidate;
 		}
 		if (compatibleCount != visibleSize) {
@@ -4462,7 +4487,7 @@ public abstract class Scope {
 			System.arraycopy(compatibilityLevels, 0, compatibilityLevels = new int[compatibleCount], 0, compatibleCount);
 		}
 		
-
+		
 		MethodBinding[] moreSpecific = new MethodBinding[visibleSize];
 		if (isJdk18) {
 			// 15.12.2.5 Choosing the Most Specific Method
@@ -4524,7 +4549,7 @@ public abstract class Scope {
 			} else if (count == 1) {
 				MethodBinding candidate = moreSpecific[0];
 				if (candidate != null)
-				compilationUnitScope().recordTypeReferences(candidate.thrownExceptions);
+					compilationUnitScope().recordTypeReferences(candidate.thrownExceptions);
 				return candidate;
 			} else {
 				visibleSize = count;
@@ -4619,7 +4644,7 @@ public abstract class Scope {
 					if (moreSpecific[i] != null) {
 						MethodBinding candidate = visible[i];
 						if (candidate != null)
-						compilationUnitScope().recordTypeReferences(candidate.thrownExceptions);
+							compilationUnitScope().recordTypeReferences(candidate.thrownExceptions);
 						return candidate;
 					}
 				}
@@ -4809,7 +4834,7 @@ public abstract class Scope {
 		} while (scope != null);
 		return lastMethodScope; // may answer null if no method around
 	}
-
+	
 	// Version that just answers based on inference kind (at 1.8+) when available.
 	public int parameterCompatibilityLevel(MethodBinding method, TypeBinding[] arguments, InvocationSite site) {
 		if (method.problemId() == ProblemReasons.InvocationTypeInferenceFailure) {
@@ -5214,7 +5239,7 @@ public abstract class Scope {
 	public boolean validateNullAnnotation(long tagBits, TypeReference typeRef, Annotation[] annotations) {
 		if (typeRef == null)
 			return true;
-			TypeBinding type = typeRef.resolvedType;
+		TypeBinding type = typeRef.resolvedType;
 
 		boolean usesNullTypeAnnotations = this.environment().usesNullTypeAnnotations();
 		long nullAnnotationTagBit;
@@ -5236,7 +5261,7 @@ public abstract class Scope {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Record a NNBD annotation applying to a given source range within the current scope
 	 * @param target the annotated element
@@ -5255,12 +5280,14 @@ public abstract class Scope {
 			this.nullDefaultRanges=new ArrayList<>(3);
 		}
 		for (NullDefaultRange nullDefaultRange : this.nullDefaultRanges) {
-			if (nullDefaultRange.annotation == annotation
-					&& nullDefaultRange.start== scopeStart
-					&& nullDefaultRange.end==scopeEnd
-					&& nullDefaultRange.value==value) {
-				// annotation data already recorded
-				return false;
+			if (nullDefaultRange.start== scopeStart && nullDefaultRange.end==scopeEnd) {
+				if (nullDefaultRange.contains(annotation)) {
+					// annotation data already recorded
+					return false;
+				} else {
+					nullDefaultRange.merge(value, annotation, target);
+					return true;
+				}
 			}
 		}
 		this.nullDefaultRanges.add(new NullDefaultRange(value, annotation, scopeStart, scopeEnd, target));
@@ -5295,7 +5322,7 @@ public abstract class Scope {
 	/*
 	 * helper for hasDefaultNullnessFor(..) which inspects only ranges recorded within this scope.
 	 */
-	final protected int localNonNullByDefaultValue(int start) {
+	public final int localNonNullByDefaultValue(int start) {
 		NullDefaultRange nullDefaultRange = nullDefaultRangeForPosition(start);
 		return nullDefaultRange != null ? nullDefaultRange.value : 0;
 	}

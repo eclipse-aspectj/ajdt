@@ -37,13 +37,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.aspectj.org.eclipse.jdt.core.Flags;
-import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.IField;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IMethod;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
 import org.aspectj.org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.IType;
@@ -861,6 +861,11 @@ public class SourceMapper
 	
 		// module type modifiers
 		this.moduleModifiers = moduleInfo.modifiers;
+
+		if (this.binaryTypeOrModule instanceof IModuleDescription) {
+			// categories
+			addCategories(this.binaryTypeOrModule, moduleInfo.categories);
+		}
 	}
 
 	@Override
@@ -938,7 +943,7 @@ public class SourceMapper
 				IType declaringType = currentType.getDeclaringType();
 				String declaringTypeName = declaringType.getElementName();
 				if (declaringTypeName.length() == 0) {
-					IClassFile classFile = declaringType.getClassFile();
+					IOrdinaryClassFile classFile = declaringType.getClassFile();
 					int length = parameterTypes != null ? parameterTypes.length : 0;
 					char[][] newParameterTypes = new char[length+1][];
 					declaringTypeName = classFile.getElementName();
@@ -1154,18 +1159,21 @@ public class SourceMapper
 					source = getSourceForRootPath("", name); //$NON-NLS-1$
 				}
 			}
-	
-			if (source == null) {
-				computeAllRootPaths(typeOrModule);
-				if (this.rootPaths != null) {
-					loop: for (Iterator iterator = this.rootPaths.iterator(); iterator.hasNext(); ) {
-						String currentRootPath = (String) iterator.next();
-						if (!currentRootPath.equals(this.rootPath)) {
-							source = getSourceForRootPath(currentRootPath, name);
-							if (source != null) {
-								// remember right root path
-								this.rootPath = currentRootPath;
-								break loop;
+
+			if (source == null) { // proceed with automatic root path detection ...
+				// ... but not for multi-module roots
+				if (!(typeOrModule.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT) instanceof JrtPackageFragmentRoot)) {
+					computeAllRootPaths(typeOrModule);
+					if (this.rootPaths != null) {
+						loop: for (Iterator iterator = this.rootPaths.iterator(); iterator.hasNext(); ) {
+							String currentRootPath = (String) iterator.next();
+							if (!currentRootPath.equals(this.rootPath)) {
+								source = getSourceForRootPath(currentRootPath, name);
+								if (source != null) {
+									// remember right root path
+									this.rootPath = currentRootPath;
+									break loop;
+								}
 							}
 						}
 					}

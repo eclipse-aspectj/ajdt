@@ -181,9 +181,13 @@ public class ClassFile implements TypeConstants, TypeIds {
 	 * @param unitResult org.aspectj.org.eclipse.jdt.internal.compiler.CompilationUnitResult
 	 */
 	public static void createProblemType(TypeDeclaration typeDeclaration, CompilationResult unitResult) {
+		createProblemType(typeDeclaration, null, unitResult);
+	}
+
+	private static void createProblemType(TypeDeclaration typeDeclaration, ClassFile parentClassFile, CompilationResult unitResult) {
 		SourceTypeBinding typeBinding = typeDeclaration.binding;
 		ClassFile classFile = ClassFile.getNewInstance(typeBinding);
-		classFile.initialize(typeBinding, null, true);
+		classFile.initialize(typeBinding, parentClassFile, true);
 
 		if (typeBinding.hasMemberTypes()) {
 			// see bug 180109
@@ -258,7 +262,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			for (int i = 0, max = typeDeclaration.memberTypes.length; i < max; i++) {
 				TypeDeclaration memberType = typeDeclaration.memberTypes[i];
 				if (memberType.binding != null) {
-					ClassFile.createProblemType(memberType, unitResult);
+					ClassFile.createProblemType(memberType, classFile, unitResult);
 				}
 			}
 		}
@@ -475,7 +479,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.header[this.constantPoolOffset++] = (byte) (constantPoolCount >> 8);
 		this.header[this.constantPoolOffset] = (byte) constantPoolCount;
 	}
-		
+
 	/**
 	 * INTERNAL USE-ONLY
 	 * This methods generate all the module attributes for the receiver.
@@ -496,12 +500,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 				fullFileName = fullFileName.substring(lastIndex + 1, fullFileName.length());
 			}
 			attributesNumber += generateSourceAttribute(fullFileName);
-		}
-		// Deprecated attribute
-		if (module.isDeprecated()) {
-			// check that there is enough space to write all the bytes for the field info corresponding
-			// to the @fieldBinding
-			attributesNumber += generateDeprecatedAttribute();
 		}
 		attributesNumber += generateModuleAttribute(cud.moduleDeclaration);
 		if (annotations != null) {
@@ -531,6 +529,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 		this.header[this.constantPoolOffset++] = (byte) (constantPoolCount >> 8);
 		this.header[this.constantPoolOffset] = (byte) constantPoolCount;
 	}
+
 	/**
 	 * INTERNAL USE-ONLY
 	 * This methods generate all the default abstract method infos that correpond to
@@ -1065,7 +1064,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			do {
 				try {
 					problemResetPC = this.contentsOffset;
-			addSyntheticDeserializeLambda(deserializeLambdaMethod,this.referenceBinding.syntheticMethods()); 
+					addSyntheticDeserializeLambda(deserializeLambdaMethod,this.referenceBinding.syntheticMethods()); 
 					restart = false;
 				} catch (AbortMethod e) {
 					// Restart code generation if possible ...
@@ -1077,8 +1076,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 						restart = true;
 					} else {
 						throw new AbortType(this.referenceBinding.scope.referenceContext.compilationResult, e.problem);
-		}
-	}
+					}
+				}
 			} while (restart);
 		}
 	}
@@ -2466,7 +2465,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			if (memberValuePairs != null) {
 				int memberValuePairsCount = 0;
 				int memberValuePairsLengthPosition = this.contentsOffset;
-				this.contentsOffset+=2; // leave space to fill in the pair count later
+				this.contentsOffset += 2; // leave space to fill in the pair count later
 				int resetPosition = this.contentsOffset;
 				final int memberValuePairsLength = memberValuePairs.length;
 				loop: for (int i = 0; i < memberValuePairsLength; i++) {
@@ -2783,7 +2782,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			// TODO exports_flags - check when they are set
 			this.contents[localContentsOffset++] = (byte) 0;
 			this.contents[localContentsOffset++] = (byte) 0;
-			
+
 			int exportsToCount = ref.isQualified() ? ref.targets.length : 0; 
 			this.contents[localContentsOffset++] = (byte) (exportsToCount >> 8);
 			this.contents[localContentsOffset++] = (byte) (exportsToCount);
@@ -2900,9 +2899,9 @@ public class ClassFile implements TypeConstants, TypeIds {
 			}
 			for (int j = 0; j < implLength; j++) {
 				nameIndex = this.constantPool.literalIndexForType(impls[j].resolvedType.constantPoolName());
-			this.contents[localContentsOffset++] = (byte) (nameIndex >> 8);
-			this.contents[localContentsOffset++] = (byte) (nameIndex);
-		}
+				this.contents[localContentsOffset++] = (byte) (nameIndex >> 8);
+				this.contents[localContentsOffset++] = (byte) (nameIndex);
+			}
 			attrLength += targetSize;
 		}
 		attrLength += servicesSize;
@@ -5708,8 +5707,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 	public void reset(/*@Nullable*/SourceTypeBinding typeBinding, CompilerOptions options) {
 		// the code stream is reinitialized for each method
 		if (typeBinding != null) {
-		this.referenceBinding = typeBinding;
-		this.isNestedType = typeBinding.isNestedType();
+			this.referenceBinding = typeBinding;
+			this.isNestedType = typeBinding.isNestedType();
 		} else {
 			this.referenceBinding = null;
 			this.isNestedType = false;

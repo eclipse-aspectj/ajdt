@@ -164,7 +164,7 @@ public class FileSystem implements IModuleAwareNameEnvironment, SuffixConstants 
 	protected boolean annotationsFromClasspath; // should annotation files be read from the classpath (vs. explicit separate path)?
 	private static HashMap<File, Classpath> JRT_CLASSPATH_CACHE = null;
 	
-	Map<String,Classpath> moduleLocations = new HashMap<>();
+	protected Map<String,Classpath> moduleLocations = new HashMap<>();
 
 	/** Tasks resulting from --add-reads or --add-exports command line options. */
 	Map<String,UpdatesByKind> moduleUpdates = new HashMap<>();
@@ -498,6 +498,8 @@ private NameEnvironmentAnswer internalFindClass(String qualifiedTypeName, char[]
 				continue;
 			NameEnvironmentAnswer answer = this.classpaths[i].findClass(typeName, qualifiedPackageName, null, qualifiedBinaryFileName, asBinaryOnly);
 			if (answer != null) {
+				if (answer.moduleName() != null && !this.moduleLocations.containsKey(String.valueOf(answer.moduleName())))
+					continue; // type belongs to an unobservable module
 				if (!answer.ignoreIfBetter()) {
 					if (answer.isBetter(suggestedAnswer))
 						return answer;
@@ -516,6 +518,8 @@ private NameEnvironmentAnswer internalFindClass(String qualifiedTypeName, char[]
 				? p.findClass(typeName, qualifiedPackageName, null, qualifiedBinaryFileName, asBinaryOnly)
 				: p.findClass(typeName, qp2, null, qb2, asBinaryOnly);
 			if (answer != null) {
+				if (answer.moduleName() != null && !this.moduleLocations.containsKey(String.valueOf(answer.moduleName())))
+					continue; // type belongs to an unobservable module
 				if (!answer.ignoreIfBetter()) {
 					if (answer.isBetter(suggestedAnswer))
 						return answer;
@@ -563,21 +567,21 @@ public char[][][] findTypeNames(char[][] packageName) {
 				Classpath p = this.classpaths[i];
 				char[][][] answers = !(p instanceof ClasspathDirectory) ? p.findTypeNames(qualifiedPackageName, null)
 						: p.findTypeNames(qualifiedPackageName2, null);
-						if (answers != null) {
-							// concat with previous answers
-							if (result == null) {
-								result = answers;
-							} else {
-								int resultLength = result.length;
-								int answersLength = answers.length;
+				if (answers != null) {
+					// concat with previous answers
+					if (result == null) {
+						result = answers;
+					} else {
+						int resultLength = result.length;
+						int answersLength = answers.length;
 						System.arraycopy(result, 0, (result = new char[answersLength + resultLength][][]), 0,
 								resultLength);
-								System.arraycopy(answers, 0, result, resultLength, answersLength);
-							}
-						}
+						System.arraycopy(answers, 0, result, resultLength, answersLength);
+					}
 				}
 			}
 		}
+	}
 	return result;
 }
 
@@ -605,10 +609,10 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 			if (classpath != null) {
 				if (classpath.isPackage(qualifiedPackageName, moduleNameString))
 					return new char[][] {moduleName};
-}
 			}
-		return null;
 		}
+		return null;
+	}
 	// search the entire environment and answer which modules declare that package:
 	char[][] allNames = null;
 	for (Classpath cp : this.classpaths) {
@@ -624,19 +628,19 @@ public char[][] getModulesDeclaringPackage(char[][] parentPackageName, char[] pa
 						allNames = declaringModules;
 					else
 						allNames = CharOperation.arrayConcat(allNames, declaringModules);
-	}
-}
-}
+				}
 			}
-	return allNames;
 		}
+	}
+	return allNames;
+}
 private Parser getParser() {
 	Map<String,String> opts = new HashMap<String, String>();
 	opts.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_9);
 	return new Parser(
 			new ProblemReporter(DefaultErrorHandlingPolicies.exitOnFirstError(), new CompilerOptions(opts), new DefaultProblemFactory(Locale.getDefault())),
 			false);
-	}
+}
 @Override
 public boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleName, boolean checkCUs) {
 	String qPackageName = String.valueOf(CharOperation.concatWith(qualifiedPackageName, '/'));
@@ -649,7 +653,7 @@ public boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleNa
 		char[][] name = parser.parsePackageDeclaration(sourceUnit.getContents(), compilationResult);
 		if (name != null) {
 			pkgName = CharOperation.toString(name);
-}
+		}
 		return pkgName;
 	};
 	switch (strategy) {
@@ -659,7 +663,7 @@ public boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleNa
 				if (location != null)
 					return checkCUs ? location.hasCUDeclaringPackage(qPackageName, pkgNameExtractor)
 							: location.hasCompilationUnit(qPackageName, moduleNameString);
-		}
+			}
 			return false;
 		default:
 			for (int i = 0; i < this.classpaths.length; i++) {
@@ -671,6 +675,7 @@ public boolean hasCompilationUnit(char[][] qualifiedPackageName, char[] moduleNa
 			return false;
 	}
 }
+
 @Override
 public IModule getModule(char[] name) {
 	if (this.module != null && CharOperation.equals(name, this.module.name())) {
@@ -694,8 +699,8 @@ public IModule getModuleFromEnvironment(char[] name) {
 		IModule mod = classpath.getModule(name);
 		if (mod != null) {
 			return mod;
-}
-}
+		}
+	}
 	return null;
 }
 

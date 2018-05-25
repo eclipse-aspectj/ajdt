@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -928,8 +928,13 @@ IModuleDescription getAutomaticModuleDescription(IClasspathEntry classpathEntry)
 			elementName = javaProject.getElementName();
 			break;
 	}
-	char[] moduleName = AutomaticModuleNaming.determineAutomaticModuleName(elementName, isArchive(), manifest);
-	return new AbstractModule.AutoModule(this, String.valueOf(moduleName));
+	boolean nameFromManifest = true;
+	char[] moduleName = AutomaticModuleNaming.determineAutomaticModuleNameFromManifest(manifest);
+	if (moduleName == null) {
+		nameFromManifest = false;
+		moduleName = AutomaticModuleNaming.determineAutomaticModuleNameFromFileName(elementName, true, isArchive());
+	}
+	return new AbstractModule.AutoModule(this, String.valueOf(moduleName), nameFromManifest);
 }
 
 /** @see org.aspectj.org.eclipse.jdt.internal.compiler.env.IModulePathEntry#hasCompilationUnit(String, String) */

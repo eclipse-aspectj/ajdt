@@ -1,5 +1,6 @@
+//AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -826,7 +827,6 @@ public Object[] getEmulationPath(ReferenceBinding targetEnclosingType, boolean o
 				&& sourceType.scope.referenceContext.allocation.enclosingInstance != null;
 			// reject allocation and super constructor call
 			if (denyEnclosingArgInConstructorCall
-					&& currentMethodScope.isConstructorCall
 					&& !isAnonymousAndHasEnclosing
 					&& (TypeBinding.equalsEquals(sourceType, targetEnclosingType) || (!onlyExactMatch && sourceType.findSuperTypeOriginatingFrom(targetEnclosingType) != null))) {
 				return BlockScope.NoEnclosingInstanceInConstructorCall;
@@ -1045,6 +1045,7 @@ public String toString(int tab) {
 private List trackingVariables; // can be null if no resources are tracked
 /** Used only during analyseCode and only for checking if a resource was closed in a finallyBlock. */
 public FlowInfo finallyInfo;
+
 /**
  * Register a tracking variable and compute its id.
  */
@@ -1090,7 +1091,7 @@ public void checkUnclosedCloseables(FlowInfo flowInfo, FlowContext flowContext, 
 
 	// iterate variables according to the priorities defined in FakedTrackingVariable.IteratorForReporting.Stage
 	Iterator<FakedTrackingVariable> iterator = new FakedTrackingVariable.IteratorForReporting(this.trackingVariables, this, location != null);
-	while (iterator.hasNext()) { 
+	while (iterator.hasNext()) {
 		FakedTrackingVariable trackingVar = iterator.next();
 
 		if (returnVar != null && trackingVar.isResourceBeingReturned(returnVar)) {

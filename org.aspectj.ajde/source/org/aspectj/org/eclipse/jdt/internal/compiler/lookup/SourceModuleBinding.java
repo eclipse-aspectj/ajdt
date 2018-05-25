@@ -1,3 +1,4 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2017, 2018 GK Software AG, and others.
  * All rights reserved. This program and the accompanying materials
@@ -18,13 +19,11 @@ import java.util.stream.Stream;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 
 public class SourceModuleBinding extends ModuleBinding {
 
 	final public CompilationUnitScope scope; // TODO(SHMOD): consider cleanup at end of compile
-	private SimpleLookupTable storedAnnotations = null;
 
 	/**
 	 * Construct a named module from source.
@@ -125,7 +124,10 @@ public class SourceModuleBinding extends ModuleBinding {
 	}
 	@Override
 	public long getAnnotationTagBits() {
-		//TODO: This code is untested as we don't yet get a scope in ModuleBinding
+		ensureAnnotationsResolved();
+		return this.tagBits;
+	}
+	protected void ensureAnnotationsResolved() {
 		if ((this.tagBits & TagBits.AnnotationResolved) == 0 && this.scope != null) {
 			ModuleDeclaration module = this.scope.referenceContext.moduleDeclaration;
 			ASTNode.resolveAnnotations(module.scope, module.annotations, this);
@@ -135,64 +137,21 @@ public class SourceModuleBinding extends ModuleBinding {
 			}
 			this.tagBits |= TagBits.AnnotationResolved;
 		}
-		return this.tagBits;
 	}
 	@Override
 	public AnnotationBinding[] getAnnotations() {
+		ensureAnnotationsResolved();
 		return retrieveAnnotations(this);
-	}
-	public AnnotationHolder retrieveAnnotationHolder(Binding binding, boolean forceInitialization) {
-		SimpleLookupTable store = storedAnnotations(forceInitialization, false);
-		return store == null ? null : (AnnotationHolder) store.get(binding);
-	}
-
-	AnnotationBinding[] retrieveAnnotations(Binding binding) {
-		AnnotationHolder holder = retrieveAnnotationHolder(binding, true);
-		return holder == null ? Binding.NO_ANNOTATIONS : holder.getAnnotations();
 	}
 
 	@Override
-	public void setAnnotations(AnnotationBinding[] annotations, boolean forceStore) {
-		storeAnnotations(this, annotations, forceStore);
-	}
-	void storeAnnotationHolder(Binding binding, AnnotationHolder holder) {
-		if (holder == null) {
-			SimpleLookupTable store = storedAnnotations(false, false);
-			if (store != null)
-				store.removeKey(binding);
-		} else {
-			SimpleLookupTable store = storedAnnotations(true, false);
-			if (store != null)
-				store.put(binding, holder);
-		}
-	}
-
-	void storeAnnotations(Binding binding, AnnotationBinding[] annotations, boolean forceStore) {
-		AnnotationHolder holder = null;
-		if (annotations == null || annotations.length == 0) {
-			SimpleLookupTable store = storedAnnotations(false, forceStore);
-			if (store != null)
-				holder = (AnnotationHolder) store.get(binding);
-			if (holder == null) return; // nothing to delete
-		} else {
-			SimpleLookupTable store = storedAnnotations(true, forceStore);
-			if (store == null) return; // not supported
-			holder = (AnnotationHolder) store.get(binding);
-			if (holder == null)
-				holder = new AnnotationHolder();
-		}
-		storeAnnotationHolder(binding, holder.setAnnotations(annotations));
-	}
-
 	SimpleLookupTable storedAnnotations(boolean forceInitialize, boolean forceStore) {
-		if (forceInitialize && this.storedAnnotations == null && this.scope != null) { // scope null when no annotation cached, and type got processed fully (159631)
-			this.scope.referenceCompilationUnit().compilationResult.hasAnnotations = true;
-			final CompilerOptions globalOptions = this.scope.environment().globalOptions;
-			if (!globalOptions.storeAnnotations && !forceStore)
-				return null; // not supported during this compile
-			this.storedAnnotations = new SimpleLookupTable(3);
+		if (this.scope != null) { // scope null when no annotation cached, and module got processed fully (159631)
+			SimpleLookupTable annotationTable = super.storedAnnotations(forceInitialize, forceStore); 
+			if (annotationTable != null)
+				this.scope.referenceCompilationUnit().compilationResult.hasAnnotations = true;
+			return annotationTable;
 		}
-		return this.storedAnnotations;
+		return null;
 	}
-
 }

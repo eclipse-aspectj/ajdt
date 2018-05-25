@@ -1,5 +1,6 @@
+//AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -116,6 +117,7 @@ public class CompilerOptions {
 	public static final String OPTION_Source = "org.eclipse.jdt.core.compiler.source"; //$NON-NLS-1$
 	public static final String OPTION_TargetPlatform = "org.eclipse.jdt.core.compiler.codegen.targetPlatform"; //$NON-NLS-1$
 	public static final String OPTION_Compliance = "org.eclipse.jdt.core.compiler.compliance"; //$NON-NLS-1$
+	public static final String OPTION_Release = "org.eclipse.jdt.core.compiler.release"; //$NON-NLS-1$
 	public static final String OPTION_Encoding = "org.eclipse.jdt.core.encoding"; //$NON-NLS-1$
 	public static final String OPTION_MaxProblemPerUnit = "org.eclipse.jdt.core.compiler.maxProblemPerUnit"; //$NON-NLS-1$
 	public static final String OPTION_TaskTags = "org.eclipse.jdt.core.compiler.taskTags"; //$NON-NLS-1$
@@ -163,9 +165,11 @@ public class CompilerOptions {
 	public static final String OPTION_ReportMethodCanBeStatic = "org.eclipse.jdt.core.compiler.problem.reportMethodCanBeStatic";  //$NON-NLS-1$
 	public static final String OPTION_ReportMethodCanBePotentiallyStatic = "org.eclipse.jdt.core.compiler.problem.reportMethodCanBePotentiallyStatic";  //$NON-NLS-1$
 	public static final String OPTION_ReportRedundantSpecificationOfTypeArguments =  "org.eclipse.jdt.core.compiler.problem.redundantSpecificationOfTypeArguments"; //$NON-NLS-1$
+
 	public static final String OPTION_ReportUnclosedCloseable = "org.eclipse.jdt.core.compiler.problem.unclosedCloseable"; //$NON-NLS-1$
 	public static final String OPTION_ReportPotentiallyUnclosedCloseable = "org.eclipse.jdt.core.compiler.problem.potentiallyUnclosedCloseable"; //$NON-NLS-1$
 	public static final String OPTION_ReportExplicitlyClosedAutoCloseable = "org.eclipse.jdt.core.compiler.problem.explicitlyClosedAutoCloseable"; //$NON-NLS-1$
+
 	public static final String OPTION_ReportNullSpecViolation = "org.eclipse.jdt.core.compiler.problem.nullSpecViolation";  //$NON-NLS-1$
 	public static final String OPTION_ReportNullAnnotationInferenceConflict = "org.eclipse.jdt.core.compiler.problem.nullAnnotationInferenceConflict";  //$NON-NLS-1$
 	public static final String OPTION_ReportNullUncheckedConversion = "org.eclipse.jdt.core.compiler.problem.nullUncheckedConversion";  //$NON-NLS-1$
@@ -194,6 +198,7 @@ public class CompilerOptions {
 	public static final String OPTION_ReportUnlikelyEqualsArgumentType = "org.eclipse.jdt.core.compiler.problem.unlikelyEqualsArgumentType"; //$NON-NLS-1$
 
 	public static final String OPTION_ReportAPILeak = "org.eclipse.jdt.core.compiler.problem.APILeak"; //$NON-NLS-1$
+	public static final String OPTION_ReportUnstableAutoModuleName = "org.eclipse.jdt.core.compiler.problem.unstableAutoModuleName";   //$NON-NLS-1$
 
 	/**
 	 * Possible values for configurable options
@@ -213,6 +218,7 @@ public class CompilerOptions {
 	public static final String VERSION_1_7 = "1.7"; //$NON-NLS-1$
 	public static final String VERSION_1_8 = "1.8"; //$NON-NLS-1$
 	public static final String VERSION_9 = "9"; //$NON-NLS-1$
+	public static final String VERSION_10 = "10"; //$NON-NLS-1$
 	public static final String ERROR = "error"; //$NON-NLS-1$
 	public static final String WARNING = "warning"; //$NON-NLS-1$
 	public static final String INFO = "info"; //$NON-NLS-1$
@@ -321,11 +327,12 @@ public class CompilerOptions {
 	public static final int UnlikelyEqualsArgumentType = IrritantSet.GROUP2 | ASTNode.Bit23;
 	public static final int UsingTerminallyDeprecatedAPI = IrritantSet.GROUP2 | ASTNode.Bit24;
 	public static final int APILeak = IrritantSet.GROUP2 | ASTNode.Bit25;
+	public static final int UnstableAutoModuleName = IrritantSet.GROUP2 | ASTNode.Bit26;
 
 	// AspectJ Extension
 	// Not sure we need this anymore...
 	public static final String OPTION_ReportSwallowedExceptionInCatchBlock = "org.eclipse.jdt.core.compiler.problem.swallowedExceptionInCatchBlock"; //$NON-NLS-1$
-	public static final int SwallowedExceptionInCatchBlock = IrritantSet.GROUP2 | ASTNode.Bit26;
+	public static final int SwallowedExceptionInCatchBlock = IrritantSet.GROUP2 | ASTNode.Bit28;
 	// when picking up a later version of this class, if new constants have been added to 
 	// the above list, then AjCompilerOptions will need updating also.
 	// End AspectJ Extension
@@ -513,7 +520,6 @@ public class CompilerOptions {
 
 	/** Not directly configurable, derived from other options by LookupEnvironment.usesNullTypeAnnotations() */
 	public Boolean useNullTypeAnnotations = null;
-	
 
 	// keep in sync with warningTokenToIrritant and warningTokenFromIrritant
 	public final static String[] warningTokens = {
@@ -528,6 +534,7 @@ public class CompilerOptions {
 		"hiding", //$NON-NLS-1$
 		"incomplete-switch", //$NON-NLS-1$
 		"javadoc", //$NON-NLS-1$
+		"module", //$NON-NLS-1$
 		"nls", //$NON-NLS-1$
 		"null", //$NON-NLS-1$
 		"rawtypes", //$NON-NLS-1$
@@ -746,6 +753,8 @@ public class CompilerOptions {
 				return OPTION_ReportUnlikelyEqualsArgumentType;
 			case APILeak:
 				return OPTION_ReportAPILeak;
+			case UnstableAutoModuleName:
+				return OPTION_ReportUnstableAutoModuleName;
 		}
 		return null;
 	}
@@ -788,6 +797,11 @@ public class CompilerOptions {
 				if (jdkLevel == ClassFileConstants.JDK9)
 					return VERSION_9;
 				break;
+			case ClassFileConstants.MAJOR_VERSION_10 :
+				// JDK10 uses same major version ad JDK9
+				if (jdkLevel == ClassFileConstants.JDK10)
+					return VERSION_10;
+				break;
 		}
 		return Util.EMPTY_STRING; // unknown version
 	}
@@ -803,6 +817,11 @@ public class CompilerOptions {
 					return ClassFileConstants.JDK1_8;
 				case '9':
 					return ClassFileConstants.JDK9;
+				case '1':
+					if (release.length() > 1 && release.charAt(1) == '0')
+						return ClassFileConstants.JDK10;
+					else 
+						return 0;
 				default:
 					return 0; // unknown
 			}
@@ -838,6 +857,10 @@ public class CompilerOptions {
 				switch (version.charAt(0)) {
 					case '9':
 						return ClassFileConstants.JDK9;
+					case '1':
+						if (version.length() > 1 && version.charAt(1) == '0') {
+							return ClassFileConstants.JDK10; // Level for JDK 10
+						}
 					// No default - let it go through the remaining checks.
 				}
 			}
@@ -1063,6 +1086,8 @@ public class CompilerOptions {
 				return "unlikely-arg-type"; //$NON-NLS-1$
 			case APILeak:
 				return "exports"; //$NON-NLS-1$
+			case UnstableAutoModuleName:
+				return "module"; //$NON-NLS-1$
 		}
 		return null;
 	}
@@ -1110,6 +1135,10 @@ public class CompilerOptions {
 			case 'j' :
 				if ("javadoc".equals(warningToken)) //$NON-NLS-1$
 					return IrritantSet.JAVADOC;
+				break;
+			case 'm' :
+				if ("module".equals(warningToken)) //$NON-NLS-1$
+					return IrritantSet.MODULE;
 				break;
 			case 'n' :
 				if ("nls".equals(warningToken)) //$NON-NLS-1$
@@ -1233,6 +1262,7 @@ public class CompilerOptions {
 		optionsMap.put(OPTION_ReportUnusedLabel, getSeverityString(UnusedLabel));
 		optionsMap.put(OPTION_ReportUnusedTypeArgumentsForMethodInvocation, getSeverityString(UnusedTypeArguments));
 		optionsMap.put(OPTION_Compliance, versionFromJdkLevel(this.complianceLevel));
+		optionsMap.put(OPTION_Release, DISABLED);
 		optionsMap.put(OPTION_Source, versionFromJdkLevel(this.sourceLevel));
 		optionsMap.put(OPTION_TargetPlatform, versionFromJdkLevel(this.targetJDK));
 		optionsMap.put(OPTION_FatalOptionalError, this.treatOptionalErrorAsFatal ? ENABLED : DISABLED);
@@ -1301,6 +1331,7 @@ public class CompilerOptions {
 		optionsMap.put(OPTION_ReportUnlikelyCollectionMethodArgumentTypeStrict, this.reportUnlikelyCollectionMethodArgumentTypeStrict ? ENABLED : DISABLED);
 		optionsMap.put(OPTION_ReportUnlikelyEqualsArgumentType, getSeverityString(UnlikelyEqualsArgumentType));
 		optionsMap.put(OPTION_ReportAPILeak, getSeverityString(APILeak));
+		optionsMap.put(OPTION_ReportUnstableAutoModuleName, getSeverityString(UnstableAutoModuleName));
 		return optionsMap;
 	}
 
@@ -1820,6 +1851,7 @@ public class CompilerOptions {
 			this.analyseResourceLeaks = true;
 		}
 		if ((optionValue = optionsMap.get(OPTION_ReportAPILeak)) != null) updateSeverity(APILeak, optionValue);
+		if ((optionValue = optionsMap.get(OPTION_ReportUnstableAutoModuleName)) != null) updateSeverity(UnstableAutoModuleName, optionValue);
 		if ((optionValue = optionsMap.get(OPTION_AnnotationBasedNullAnalysis)) != null) {
 			this.isAnnotationBasedNullAnalysisEnabled = ENABLED.equals(optionValue);
 		}
@@ -2149,6 +2181,7 @@ public class CompilerOptions {
 		buf.append("\n\t- unlikely argument type for collection methods, strict check against expected type: ").append(this.reportUnlikelyCollectionMethodArgumentTypeStrict ? ENABLED : DISABLED); //$NON-NLS-1$
 		buf.append("\n\t- unlikely argument types for equals(): ").append(getSeverityString(UnlikelyEqualsArgumentType)); //$NON-NLS-1$
 		buf.append("\n\t- API leak: ").append(getSeverityString(APILeak)); //$NON-NLS-1$
+		buf.append("\n\t- unstable auto module name: ").append(getSeverityString(UnstableAutoModuleName)); //$NON-NLS-1$
 		return buf.toString();
 	}
 	

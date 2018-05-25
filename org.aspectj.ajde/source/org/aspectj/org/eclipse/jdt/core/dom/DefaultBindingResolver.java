@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -325,7 +325,8 @@ class DefaultBindingResolver extends BindingResolver {
 		if (binding != null) {
 			return binding;
 		}
-		binding = new PackageBinding(packageBinding, this);
+		binding = packageBinding instanceof ProblemPackageBinding ? new RecoveredPackageBinding(packageBinding, this) :
+				new PackageBinding(packageBinding, this);
 		this.bindingTables.compilerBindingsToASTBindings.put(packageBinding, binding);
 		return binding;
 	}
@@ -1453,7 +1454,9 @@ class DefaultBindingResolver extends BindingResolver {
 			QualifiedSuperReference qualifiedSuperReference = (QualifiedSuperReference) node;
 			return this.getTypeBinding(qualifiedSuperReference.qualification.resolvedType);
 		} else if (node instanceof LocalDeclaration) {
-			return this.getVariableBinding(((LocalDeclaration)node).binding);
+			return name.getAST().apiLevel() >= AST.JLS10_INTERNAL && name instanceof SimpleName && ((SimpleName) name).isVar()  ? 
+					resolveTypeBindingForName(name) :
+					this.getVariableBinding(((LocalDeclaration)node).binding);
 		} else if (node instanceof JavadocFieldReference) {
 			JavadocFieldReference fieldRef = (JavadocFieldReference) node;
 			if (fieldRef.methodBinding != null) {
@@ -1659,6 +1662,9 @@ class DefaultBindingResolver extends BindingResolver {
 		// retrieve the old ast node
 		org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode node = (org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode) this.newAstToOldAst.get(type);
 		org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding binding = null;
+		if (type.getAST().apiLevel() >= AST.JLS10_INTERNAL && type.isVar()) {
+			return resolveTypeBindingForName(((SimpleType) type).getName());
+		}
 		if (node != null) {
 			if (node instanceof Receiver) {
 				node = ((Receiver) node).type;

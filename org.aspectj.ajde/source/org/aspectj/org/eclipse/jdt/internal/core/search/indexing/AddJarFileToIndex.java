@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.search.indexing;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
@@ -23,9 +24,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.aspectj.org.eclipse.jdt.core.search.SearchEngine;
 import org.aspectj.org.eclipse.jdt.core.search.SearchParticipant;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AutomaticModuleNaming;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
@@ -217,6 +221,7 @@ class AddJarFileToIndex extends BinaryContainer {
 				if ((indexLocation = index.getIndexLocation()) != null) {
 					indexPath = new Path(indexLocation.getCanonicalFilePath());
 				}
+				boolean hasModuleInfoClass = false;
 				for (Enumeration e = zip.entries(); e.hasMoreElements();) {
 					if (this.isCancelled) {
 						if (JobManager.VERBOSE)
@@ -229,10 +234,27 @@ class AddJarFileToIndex extends BinaryContainer {
 					String zipEntryName = ze.getName();
 					if (Util.isClassFileName(zipEntryName) && 
 							isValidPackageNameForClassOrisModule(zipEntryName)) {
+						hasModuleInfoClass |= zipEntryName.contains(TypeConstants.MODULE_INFO_NAME_STRING);
 						// index only classes coming from valid packages - https://bugs.eclipse.org/bugs/show_bug.cgi?id=293861
 						final byte[] classFileBytes = org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
 						JavaSearchDocument entryDocument = new JavaSearchDocument(ze, zipFilePath, classFileBytes, participant);
 						this.manager.indexDocument(entryDocument, participant, index, indexPath);
+					}
+				}
+				if (!hasModuleInfoClass) {
+					String s;
+					try {
+						s = this.resource == null ? this.containerPath.toOSString() :
+							JavaModelManager.getLocalFile(this.resource.getFullPath()).toPath().toAbsolutePath().toString();
+						char[] autoModuleName = AutomaticModuleNaming.determineAutomaticModuleName(s);
+						final char[] contents = CharOperation.append(CharOperation.append(TypeConstants.AUTOMATIC_MODULE_NAME.toCharArray(), ':'), autoModuleName);
+						// adding only the automatic module entry here - can be extended in the future to include other fields.
+						ZipEntry ze = new ZipEntry(TypeConstants.AUTOMATIC_MODULE_NAME);
+						JavaSearchDocument entryDocument = new JavaSearchDocument(ze, zipFilePath, new String(contents).getBytes(Charset.defaultCharset()), participant);
+						this.manager.indexDocument(entryDocument, participant, index, indexPath);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+//						e.printStackTrace();
 					}
 				}
 				if(this.forceIndexUpdate) {

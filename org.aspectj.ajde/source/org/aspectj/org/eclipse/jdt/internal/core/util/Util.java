@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,9 +43,10 @@ import org.aspectj.org.eclipse.jdt.core.util.IMethodInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AnnotationMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.IntersectionCastTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
@@ -752,7 +753,7 @@ public class Util {
 	}
 
 	private static IClassFile getClassFile(char[] fileName) {
-		int jarSeparator = CharOperation.lastIndexOf(IDependent.JAR_FILE_ENTRY_SEPARATOR, fileName);
+		int jarSeparator = CharOperation.indexOf(IDependent.JAR_FILE_ENTRY_SEPARATOR, fileName);
 		int pkgEnd = CharOperation.lastIndexOf('/', fileName); // pkgEnd is exclusive
 		if (pkgEnd == -1)
 			pkgEnd = CharOperation.lastIndexOf(File.separatorChar, fileName);
@@ -772,15 +773,23 @@ public class Util {
 		if (pkgEnd == -1)
 			return null;
 		IPackageFragment pkg = getPackageFragment(slashSeparatedFileName, pkgEnd, -1/*no jar separator for .java files*/);
-		if (pkg == null) return null;
-		int start;
-		ICompilationUnit cu = pkg.getCompilationUnit(new String(slashSeparatedFileName, start =  pkgEnd+1, slashSeparatedFileName.length - start));
-		if (workingCopyOwner != null) {
-			ICompilationUnit workingCopy = cu.findWorkingCopy(workingCopyOwner);
-			if (workingCopy != null)
-				return workingCopy;
+		if (pkg != null) {
+			int start;
+			ICompilationUnit cu = pkg.getCompilationUnit(new String(slashSeparatedFileName, start =  pkgEnd+1, slashSeparatedFileName.length - start));
+			if (workingCopyOwner != null) {
+				ICompilationUnit workingCopy = cu.findWorkingCopy(workingCopyOwner);
+				if (workingCopy != null)
+					return workingCopy;
+			}
+			return cu;
 		}
-		return cu;
+		IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+		IFile file = wsRoot.getFile(new Path(String.valueOf(fileName)));
+		if (file.exists()) {
+			// this approach works if file exists but is not on the project's build path:
+			return JavaCore.createCompilationUnitFrom(file);
+		}
+		return null;
 	}
 
 	/**
@@ -1485,7 +1494,7 @@ public class Util {
 		if (referenceBinding.isLocalType() || referenceBinding.isAnonymousType()) {
 			// local or anonymous type
 			if (org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(fileName)) {
-				int jarSeparator = CharOperation.lastIndexOf(IDependent.JAR_FILE_ENTRY_SEPARATOR, fileName);
+				int jarSeparator = CharOperation.indexOf(IDependent.JAR_FILE_ENTRY_SEPARATOR, fileName);
 				int pkgEnd = CharOperation.lastIndexOf('/', fileName); // pkgEnd is exclusive
 				if (pkgEnd == -1)
 					pkgEnd = CharOperation.lastIndexOf(File.separatorChar, fileName);
@@ -2697,14 +2706,13 @@ public class Util {
 			// special treatment for union type reference
 			UnionTypeReference unionTypeReference = (UnionTypeReference) type;
 			TypeReference[] typeReferences = unionTypeReference.typeReferences;
-			int length = typeReferences.length;
-			String[] typeSignatures = new String[length];
-			for(int i = 0; i < length; i++) {
-				char[][] compoundName = typeReferences[i].getParameterizedTypeName();
-				char[] typeName = CharOperation.concatWith(compoundName, '.');
-				typeSignatures[i] = Signature.createTypeSignature(typeName, false/*don't resolve*/);
-			}
+			String[] typeSignatures = typeSignatures(typeReferences);
 			signature = Signature.createIntersectionTypeSignature(typeSignatures);
+		} else if (type instanceof IntersectionCastTypeReference) {
+			IntersectionCastTypeReference intersection = (IntersectionCastTypeReference) type;
+			TypeReference[] typeReferences = intersection.typeReferences;
+			String[] typeSignatures = typeSignatures(typeReferences);
+			signature = Signature.createUnionTypeSignature(typeSignatures);
 		} else {
 			char[][] compoundName = type.getParameterizedTypeName();
 			char[] typeName =CharOperation.concatWith(compoundName, '.');
@@ -2712,7 +2720,17 @@ public class Util {
 		}
 		return signature;
 	}
-
+	
+	private static String[] typeSignatures(TypeReference[] types) {
+		int length = types.length;
+		String[] typeSignatures = new String[length];
+		for(int i = 0; i < length; i++) {
+			char[][] compoundName = types[i].getParameterizedTypeName();
+			char[] typeName = CharOperation.concatWith(compoundName, '.');
+			typeSignatures[i] = Signature.createTypeSignature(typeName, false/*don't resolve*/);
+		}
+		return typeSignatures;
+	}
 	/**
 	 * Asserts that the given method signature is valid.
 	 */

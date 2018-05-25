@@ -1,5 +1,6 @@
+// AspectJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -105,18 +106,27 @@
  *									COMPILER_CODEGEN_METHOD_PARAMETERS_ATTR
  *     Harry Terkelsen (het@google.com) - Bug 449262 - Allow the use of third-party Java formatters
  *     Gábor Kövesdán - Contribution for Bug 350000 - [content assist] Include non-prefix matches in auto-complete suggestions
+ *     Karsten Thoms - Bug 532505 - Reduce memory footprint of ClasspathAccessRule
  *     
  *******************************************************************************/
 
 package org.aspectj.org.eclipse.jdt.core;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -153,11 +163,15 @@ import org.aspectj.org.eclipse.jdt.core.search.SearchPattern;
 import org.aspectj.org.eclipse.jdt.core.search.TypeNameRequestor;
 import org.aspectj.org.eclipse.jdt.core.util.IAttributeNamesConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
+import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.AutomaticModuleNaming;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IModule.IModuleReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.core.BatchOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.BufferManager;
-import org.aspectj.org.eclipse.jdt.internal.core.ClasspathAccessRule;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathAttribute;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.aspectj.org.eclipse.jdt.internal.core.ClasspathValidation;
@@ -168,6 +182,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.JavaCorePreferenceInitializer;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModel;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaProject;
+import org.aspectj.org.eclipse.jdt.internal.core.PackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.Region;
 import org.aspectj.org.eclipse.jdt.internal.core.SetContainerOperation;
 import org.aspectj.org.eclipse.jdt.internal.core.SetVariablesOperation;
@@ -323,7 +338,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * <p><code>"cldc1.1"</code> requires the source version to be <code>"1.3"</code> and the compliance version to be <code>"1.4"</code> or lower.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.codegen.targetPlatform"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.1", "cldc1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.2"</code></dd>
 	 * </dl>
 	 * @category CompilerOptionID
@@ -1618,6 +1633,27 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String COMPILER_PB_API_LEAKS = PLUGIN_ID + ".compiler.problem.APILeak"; //$NON-NLS-1$
 	
 	/**
+	 * Compiler option ID: Reporting when a module requires an auto module with an unstable name.
+	 * <p>
+	 * The name of an auto module name is considered unstable when it is derived from a file name rather than
+	 * being declared in the module's MANIFEST.MF.
+	 * <p>
+	 * When enabled, the compiler will issue an error or warning when a module references an auto module
+	 * with an unstable name in its 'requires' clause.
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.problem.unstableAutoModuleName"</code></dd>
+	 * <dt>Possible values:</dt>
+	 * <dd><code>{ "error", "warning", "info", "ignore" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"warning"</code></dd>
+	 * </dl>
+	 * 
+	 * @since 3.14
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_PB_UNSTABLE_AUTO_MODULE_NAME = PLUGIN_ID + ".compiler.problem.unstableAutoModuleName"; //$NON-NLS-1$
+
+	
+	/**
 	 * Compiler option ID: Annotation-based Null Analysis.
 	 * <p>This option controls whether the compiler will use null annotations for
 	 *    improved analysis of (potential) null references.</p>
@@ -2022,7 +2058,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    set to the same version as the source level.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.source"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "10" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.3"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -2040,7 +2076,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 *    should match the compliance setting.</p>
 	 * <dl>
 	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.compliance"</code></dd>
-	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9" }</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "9", "10" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"1.4"</code></dd>
 	 * </dl>
 	 * @since 2.0
@@ -2050,6 +2086,22 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @see #setComplianceOptions(String, Map)
 	 */
 	public static final String COMPILER_COMPLIANCE = PLUGIN_ID + ".compiler.compliance"; //$NON-NLS-1$
+	/**
+	 * Compiler option ID: Use system libraries from release.
+	 * <p>When enabled, the compiler will compile against the system libraries from release
+	 * of the specified compliance level</p>
+	 * <p>Setting this option sets the {@link #COMPILER_CODEGEN_TARGET_PLATFORM}) and {@link #COMPILER_SOURCE} to
+	 * the same level as the compiler compliance. This option is available to a project only when a supporting 
+	 * JDK is found in the project's build path</p>
+	 * <dl>
+	 * <dt>Option id:</dt><dd><code>"org.aspectj.org.eclipse.jdt.core.compiler.release"</code></dd>
+	 * <dt>Possible values:</dt><dd><code>{ "enabled", "disabled" }</code></dd>
+	 * <dt>Default:</dt><dd><code>"disabled"</code></dd>
+	 * </dl>
+	 * @since 3.14
+	 * @category CompilerOptionID
+	 */
+	public static final String COMPILER_RELEASE = PLUGIN_ID + ".compiler.release"; //$NON-NLS-1$
 	/**
 	 * Compiler option ID: Defining the Automatic Task Priorities.
 	 * <p>In parallel with the Automatic Task Tags, this list defines the priorities (high, normal or low)
@@ -2947,10 +2999,17 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	public static final String VERSION_9 = "9"; //$NON-NLS-1$
 	/**
 	 * Configurable option value: {@value}.
+	 * @since 3.14
+	 * @category OptionValue
+	 */
+	public static final String VERSION_10 = "10"; //$NON-NLS-1$
+	/**
+	 * Configurable option value: {@value}.
 	 * @since 3.4
 	 * @category OptionValue
 	 */
 	public static final String VERSION_CLDC_1_1 = "cldc1.1"; //$NON-NLS-1$
+
 	/**
 	 * Returns all {@link JavaCore}{@code #VERSION_*} levels.
 	 * 
@@ -2959,7 +3018,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 */
 	public static List<String> getAllVersions() {
 		return Arrays.asList(VERSION_CLDC_1_1, VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4, VERSION_1_5,
-				VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9);
+				VERSION_1_6, VERSION_1_7, VERSION_1_8, VERSION_9, VERSION_10);
 	}
 
 	/**
@@ -3747,7 +3806,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	    JavaModelManager manager = JavaModelManager.getJavaModelManager();
 
 		// Returns the stored deprecation message
-		String message = (String) manager.deprecatedVariables.get(variableName);
+		String message = manager.deprecatedVariables.get(variableName);
 		if (message != null) {
 		    return message;
 		}
@@ -4310,144 +4369,144 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @since 3.1
 	 */
 	public static void initializeAfterLoad(IProgressMonitor monitor) throws CoreException {
-			SubMonitor mainMonitor = SubMonitor.convert(monitor, Messages.javamodel_initialization, 100);
-			mainMonitor.subTask(Messages.javamodel_configuring_classpath_containers);
-	
-			// initialize all containers and variables
-			JavaModelManager manager = JavaModelManager.getJavaModelManager();
-			try {
-				SubMonitor subMonitor = mainMonitor.split(50).setWorkRemaining(100); // 50% of the time is spent in initializing containers and variables
+		SubMonitor mainMonitor = SubMonitor.convert(monitor, Messages.javamodel_initialization, 100);
+		mainMonitor.subTask(Messages.javamodel_configuring_classpath_containers);
+
+		// initialize all containers and variables
+		JavaModelManager manager = JavaModelManager.getJavaModelManager();
+		try {
+			SubMonitor subMonitor = mainMonitor.split(50).setWorkRemaining(100); // 50% of the time is spent in initializing containers and variables
 			subMonitor.split(5); // give feedback to the user that something is happening
-				manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(subMonitor);
-				if (manager.forceBatchInitializations(true/*initAfterLoad*/)) { // if no other thread has started the batch container initializations
-					manager.getClasspathContainer(Path.EMPTY, null); // force the batch initialization
-				} else { // else wait for the batch initialization to finish
-					while (manager.batchContainerInitializations == JavaModelManager.BATCH_INITIALIZATION_IN_PROGRESS) {
-						subMonitor.subTask(manager.batchContainerInitializationsProgress.subTaskName);
+			manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(subMonitor);
+			if (manager.forceBatchInitializations(true/*initAfterLoad*/)) { // if no other thread has started the batch container initializations
+				manager.getClasspathContainer(Path.EMPTY, null); // force the batch initialization
+			} else { // else wait for the batch initialization to finish
+				while (manager.batchContainerInitializations == JavaModelManager.BATCH_INITIALIZATION_IN_PROGRESS) {
+					subMonitor.subTask(manager.batchContainerInitializationsProgress.subTaskName);
 					subMonitor.split(manager.batchContainerInitializationsProgress.getWorked());
-						synchronized(manager) {
-							try {
-								manager.wait(100);
-							} catch (InterruptedException e) {
-								// continue
-							}
-						}
-					}
-				}
-			} finally {
-				manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(null);
-			}
-	
-			// avoid leaking source attachment properties (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=183413 )
-			// and recreate links for external folders if needed
-			mainMonitor.subTask(Messages.javamodel_resetting_source_attachment_properties);
-			final IJavaProject[] projects = manager.getJavaModel().getJavaProjects();
-			HashSet visitedPaths = new HashSet();
-			ExternalFoldersManager externalFoldersManager = JavaModelManager.getExternalManager();
-			for (int i = 0, length = projects.length; i < length; i++) {
-				JavaProject javaProject = (JavaProject) projects[i];
-				IClasspathEntry[] classpath;
-				try {
-					classpath = javaProject.getResolvedClasspath();
-				} catch (JavaModelException e) {
-					// project no longer exist: ignore
-					continue;
-				}
-				if (classpath != null) {
-					for (int j = 0, length2 = classpath.length; j < length2; j++) {
-						IClasspathEntry entry = classpath[j];
-						if (entry.getSourceAttachmentPath() != null) {
-							IPath entryPath = entry.getPath();
-							if (visitedPaths.add(entryPath)) {
-								Util.setSourceAttachmentProperty(entryPath, null);
-							}
-						}
-						// else source might have been attached by IPackageFragmentRoot#attachSource(...), we keep it
-						if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-							IPath entryPath = entry.getPath();
-							if (ExternalFoldersManager.isExternalFolderPath(entryPath) && externalFoldersManager.getFolder(entryPath) == null) {
-								externalFoldersManager.addFolder(entryPath, true);
-							}
+					synchronized(manager) {
+						try {
+							manager.wait(100);
+						} catch (InterruptedException e) {
+							// continue
 						}
 					}
 				}
 			}
+		} finally {
+			manager.batchContainerInitializationsProgress.initializeAfterLoadMonitor.set(null);
+		}
+
+		// avoid leaking source attachment properties (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=183413 )
+		// and recreate links for external folders if needed
+		mainMonitor.subTask(Messages.javamodel_resetting_source_attachment_properties);
+		final IJavaProject[] projects = manager.getJavaModel().getJavaProjects();
+		HashSet visitedPaths = new HashSet();
+		ExternalFoldersManager externalFoldersManager = JavaModelManager.getExternalManager();
+		for (int i = 0, length = projects.length; i < length; i++) {
+			JavaProject javaProject = (JavaProject) projects[i];
+			IClasspathEntry[] classpath;
 			try {
-				externalFoldersManager.createPendingFolders(mainMonitor.split(1));
-			}
-			catch(JavaModelException jme) {
-				// Creation of external folder project failed. Log it and continue;
-				Util.log(jme, "Error while processing external folders"); //$NON-NLS-1$
-			}
-	
-			// ensure external jars are refreshed (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=93668)
-			// before search is initialized (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=405051)
-			final JavaModel model = manager.getJavaModel();
-			try {
-				mainMonitor.subTask(Messages.javamodel_refreshing_external_jars);
-				model.refreshExternalArchives(
-					null/*refresh all projects*/,
-					mainMonitor.split(1) // 1% of the time is spent in jar refresh
-				);
+				classpath = javaProject.getResolvedClasspath();
 			} catch (JavaModelException e) {
-				// refreshing failed: ignore
+				// project no longer exist: ignore
+				continue;
 			}
-	
-			// initialize delta state
-			mainMonitor.subTask(Messages.javamodel_initializing_delta_state);
-			manager.deltaState.rootsAreStale = true; // in case it was already initialized before we cleaned up the source attachment properties
-			manager.deltaState.initializeRoots(true/*initAfteLoad*/);
-	
-			// dummy query for waiting until the indexes are ready
-			mainMonitor.subTask(Messages.javamodel_configuring_searchengine);
+			if (classpath != null) {
+				for (int j = 0, length2 = classpath.length; j < length2; j++) {
+					IClasspathEntry entry = classpath[j];
+					if (entry.getSourceAttachmentPath() != null) {
+						IPath entryPath = entry.getPath();
+						if (visitedPaths.add(entryPath)) {
+							Util.setSourceAttachmentProperty(entryPath, null);
+						}
+					}
+					// else source might have been attached by IPackageFragmentRoot#attachSource(...), we keep it
+					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+						IPath entryPath = entry.getPath();
+						if (ExternalFoldersManager.isExternalFolderPath(entryPath) && externalFoldersManager.getFolder(entryPath) == null) {
+							externalFoldersManager.addFolder(entryPath, true);
+						}
+					}
+				}
+			}
+		}
+		try {
+			externalFoldersManager.createPendingFolders(mainMonitor.split(1));
+		}
+		catch(JavaModelException jme) {
+			// Creation of external folder project failed. Log it and continue;
+			Util.log(jme, "Error while processing external folders"); //$NON-NLS-1$
+		}
+
+		// ensure external jars are refreshed (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=93668)
+		// before search is initialized (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=405051)
+		final JavaModel model = manager.getJavaModel();
+		try {
+			mainMonitor.subTask(Messages.javamodel_refreshing_external_jars);
+			model.refreshExternalArchives(
+				null/*refresh all projects*/,
+				mainMonitor.split(1) // 1% of the time is spent in jar refresh
+			);
+		} catch (JavaModelException e) {
+			// refreshing failed: ignore
+		}
+
+		// initialize delta state
+		mainMonitor.subTask(Messages.javamodel_initializing_delta_state);
+		manager.deltaState.rootsAreStale = true; // in case it was already initialized before we cleaned up the source attachment properties
+		manager.deltaState.initializeRoots(true/*initAfteLoad*/);
+
+		// dummy query for waiting until the indexes are ready
+		mainMonitor.subTask(Messages.javamodel_configuring_searchengine);
 		// 47% of the time is spent in the dummy search
 		updateLegacyIndex(mainMonitor.split(47));
-	
-			// check if the build state version number has changed since last session
-			// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=98969)
-			mainMonitor.subTask(Messages.javamodel_getting_build_state_number);
-			QualifiedName qName = new QualifiedName(JavaCore.PLUGIN_ID, "stateVersionNumber"); //$NON-NLS-1$
-			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-			String versionNumber = null;
-			try {
-				versionNumber = root.getPersistentProperty(qName);
-			} catch (CoreException e) {
-				// could not read version number: consider it is new
-			}
-			String newVersionNumber = Byte.toString(State.VERSION);
-			if (!newVersionNumber.equals(versionNumber)) {
-				// build state version number has changed: touch every projects to force a rebuild
-				if (JavaBuilder.DEBUG)
-					System.out.println("Build state version number has changed"); //$NON-NLS-1$
-				IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+
+		// check if the build state version number has changed since last session
+		// (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=98969)
+		mainMonitor.subTask(Messages.javamodel_getting_build_state_number);
+		QualifiedName qName = new QualifiedName(JavaCore.PLUGIN_ID, "stateVersionNumber"); //$NON-NLS-1$
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		String versionNumber = null;
+		try {
+			versionNumber = root.getPersistentProperty(qName);
+		} catch (CoreException e) {
+			// could not read version number: consider it is new
+		}
+		String newVersionNumber = Byte.toString(State.VERSION);
+		if (!newVersionNumber.equals(versionNumber)) {
+			// build state version number has changed: touch every projects to force a rebuild
+			if (JavaBuilder.DEBUG)
+				System.out.println("Build state version number has changed"); //$NON-NLS-1$
+			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 				@Override
-					public void run(IProgressMonitor progressMonitor2) throws CoreException {
-						for (int i = 0, length = projects.length; i < length; i++) {
-							IJavaProject project = projects[i];
-							try {
-								if (JavaBuilder.DEBUG)
-									System.out.println("Touching " + project.getElementName()); //$NON-NLS-1$
-								new ClasspathValidation((JavaProject) project).validate(); // https://bugs.eclipse.org/bugs/show_bug.cgi?id=287164
-								project.getProject().touch(progressMonitor2);
-							} catch (CoreException e) {
-								// could not touch this project: ignore
-							}
+				public void run(IProgressMonitor progressMonitor2) throws CoreException {
+					for (int i = 0, length = projects.length; i < length; i++) {
+						IJavaProject project = projects[i];
+						try {
+							if (JavaBuilder.DEBUG)
+								System.out.println("Touching " + project.getElementName()); //$NON-NLS-1$
+							new ClasspathValidation((JavaProject) project).validate(); // https://bugs.eclipse.org/bugs/show_bug.cgi?id=287164
+							project.getProject().touch(progressMonitor2);
+						} catch (CoreException e) {
+							// could not touch this project: ignore
 						}
 					}
-				};
-				mainMonitor.subTask(Messages.javamodel_building_after_upgrade);
-				try {
-					ResourcesPlugin.getWorkspace().run(runnable, mainMonitor.split(1));
-				} catch (CoreException e) {
-					// could not touch all projects
 				}
-				try {
-					root.setPersistentProperty(qName, newVersionNumber);
-				} catch (CoreException e) {
-					Util.log(e, "Could not persist build state version number"); //$NON-NLS-1$
-				}
+			};
+			mainMonitor.subTask(Messages.javamodel_building_after_upgrade);
+			try {
+				ResourcesPlugin.getWorkspace().run(runnable, mainMonitor.split(1));
+			} catch (CoreException e) {
+				// could not touch all projects
 			}
+			try {
+				root.setPersistentProperty(qName, newVersionNumber);
+			} catch (CoreException e) {
+				Util.log(e, "Could not persist build state version number"); //$NON-NLS-1$
 			}
+		}
+	}
 
 	private static void updateLegacyIndex(IProgressMonitor monitor) {
 		SearchEngine engine = new SearchEngine();
@@ -4612,7 +4671,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @see IClasspathEntry#getExclusionPatterns()
 	 */
 	public static IAccessRule newAccessRule(IPath filePattern, int kind) {
-		return new ClasspathAccessRule(filePattern, kind);
+		return JavaModelManager.getJavaModelManager().getAccessRule(filePattern, kind);
 	}
 
 	/**
@@ -5600,7 +5659,6 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 		updateLegacyIndex(subMonitor.split(4));
 	}
 
-
 	/**
 	 * Runs the given action as an atomic Java model operation.
 	 * <p>
@@ -5920,6 +5978,16 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
 				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
 				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
+				options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
+				break;
+			case ClassFileConstants.MAJOR_VERSION_10:
+				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_10);
+				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_10);
+				options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_10);
+				options.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+				options.put(JavaCore.COMPILER_CODEGEN_INLINE_JSR_BYTECODE, JavaCore.ENABLED);
+				options.put(JavaCore.COMPILER_RELEASE, JavaCore.ENABLED);
 				break;
 		}
 	}
@@ -5986,6 +6054,43 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	}
 
 	/**
+	 * Returns the <code>IModuleDescription</code> that the given java element contains 
+	 * when regarded as an automatic module. The element must be an <code>IPackageFragmentRoot</code>
+	 * or an <code>IJavaProject</code>.
+	 * 
+	 * <p>The returned module descriptor has a name (<code>getElementName()</code>) following
+	 * the specification of <code>java.lang.module.ModuleFinder.of(Path...)</code>, but it
+	 * contains no other useful information.</p>
+	 * 
+	 * @return the <code>IModuleDescription</code> representing this java element as an automatic module,
+	 * 		never <code>null</code>.
+	 * @throws JavaModelException
+	 * @throws IllegalArgumentException if the provided element is neither <code>IPackageFragmentRoot</code>
+	 * 	nor <code>IJavaProject</code>
+	 * @since 3.14
+	 */
+	public static IModuleDescription getAutomaticModuleDescription(IJavaElement element) throws JavaModelException, IllegalArgumentException {
+		switch (element.getElementType()) {
+			case IJavaElement.JAVA_PROJECT:
+				return ((JavaProject) element).getAutomaticModuleDescription();
+			case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+				return ((PackageFragmentRoot) element).getAutomaticModuleDescription();
+			default:
+				throw new IllegalArgumentException("Illegal kind of java element: "+element.getElementType()); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Filter the given set of system roots by the rules for root modules from JEP 261.
+	 * @param allSystemRoots all physically available system modules, represented by their package fragment roots
+	 * @return the list of names of default root modules
+	 * @since 3.14
+	 */
+	public static List<String> defaultRootModules(Iterable<IPackageFragmentRoot> allSystemRoots) {
+		return JavaProject.defaultRootModules(allSystemRoots);
+	}
+
+	/**
 	 * Compile the given module description in the context of its enclosing Java project
 	 * and add class file attributes using the given map of attribute values.
 	 * <p>In this map, the following keys are supported</p>
@@ -6008,7 +6113,7 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	 * @param module handle for the <code>module-info.java</code> file to be compiled.
 	 * @param classFileAttributes map of attribute names and values to be used during class file generation
 	 * @return the compiled byte code
-	 *
+	 * 
 	 * @throws JavaModelException
 	 * @throws IllegalArgumentException if the map of classFileAttributes contains an unsupported key.
 	 * @since 3.14
@@ -6018,6 +6123,71 @@ public /*final*/ class JavaCore extends Plugin {  // AspectJ Extension - made no
 	{
 		return new ModuleInfoBuilder().compileWithAttributes(module, classFileAttributes);
 	}
+
+	/**
+	 * Returns the module name computed for a jar. If the file is a jar and contains a module-info.class, the name
+	 * specified in it is used, otherwise, the algorithm for automatic module naming is used, which first looks for a
+	 * module name in the Manifest.MF and as last resort computes it from the file name.
+	 * 
+	 * @param file the jar to examine
+	 * @return null if file is not a file, otherwise the module name.
+	 * @since 3.14
+	 */
+	public static String getModuleNameFromJar(File file) {
+		if (!file.isFile()) {
+			return null;
+		}
+
+		char[] moduleName = null;
+		try (ZipFile zipFile = new ZipFile(file)) {
+			IModule module = null;
+			ClassFileReader reader = ClassFileReader.read(zipFile, IModule.MODULE_INFO_CLASS);
+			if (reader != null) {
+				module = reader.getModuleDeclaration();
+				if (module != null) {
+					moduleName = module.name();
+				}
+			}
+		} catch (ClassFormatException | IOException ex) {
+			Util.log(ex);
+		}
+		if (moduleName == null) {
+			moduleName = AutomaticModuleNaming.determineAutomaticModuleName(file.getAbsolutePath());
+		}
+		return new String(moduleName);
+	}
+	
+	/**
+	 * Returns the names of the modules required by the module-info.class in the jar. If the file is not jar or a jar
+	 * that has no module-info.class is present, the empty set is returned.
+	 * 
+	 * @param file the jar to examine
+	 * @return set of module names.
+	 * @since 3.14
+	 */
+	public static Set<String> getRequiredModulesFromJar(File file) {
+		if (!file.isFile()) {
+			return Collections.emptySet();
+		}
+		try (ZipFile zipFile = new ZipFile(file)) {
+			IModule module = null;
+			ClassFileReader reader = ClassFileReader.read(zipFile, IModule.MODULE_INFO_CLASS);
+			if (reader != null) {
+				module = reader.getModuleDeclaration();
+				if (module != null) {
+					IModuleReference[] moduleRefs = module.requires();
+					if (moduleRefs != null) {
+						return Stream.of(moduleRefs).map(m -> new String(m.name()))
+								.collect(Collectors.toCollection(LinkedHashSet::new));
+					}
+				}
+			}
+		} catch (ClassFormatException | IOException ex) {
+			Util.log(ex);
+		}
+		return Collections.emptySet();
+	}
+
 
 	/* (non-Javadoc)
 	 * Shutdown the JavaCore plug-in.

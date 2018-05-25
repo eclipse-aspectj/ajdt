@@ -40,6 +40,7 @@
  *      Jesper S Moller - Contributions for
  *								bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *								bug 412153 - [1.8][compiler] Check validity of annotations which may be repeatable
+ *								bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *     Ulrich Grave <ulrich.grave@gmx.de> - Contributions for
  *                              bug 386692 - Missing "unused" warning on "autowired" fields
  *******************************************************************************/
@@ -924,10 +925,10 @@ public void computeId() {
 					}
 					return;
 				}
-			if (!CharOperation.equals(TypeConstants.JDT, this.compoundName[2]) || !CharOperation.equals(TypeConstants.ITYPEBINDING, this.compoundName[5]))
-				return;
-			if (CharOperation.equals(TypeConstants.ORG_ECLIPSE_JDT_CORE_DOM_ITYPEBINDING, this.compoundName))
-				this.typeBits |= TypeIds.BitUninternedType;
+				if (!CharOperation.equals(TypeConstants.JDT, this.compoundName[2]) || !CharOperation.equals(TypeConstants.ITYPEBINDING, this.compoundName[5]))
+					return;
+				if (CharOperation.equals(TypeConstants.ORG_ECLIPSE_JDT_CORE_DOM_ITYPEBINDING, this.compoundName))
+					this.typeBits |= TypeIds.BitUninternedType;
 			}
 			break;
 		case 7 :
@@ -1203,27 +1204,17 @@ public boolean hasMemberTypes() {
  * for 1.8 check if the default is applicable to the given kind of location.
  */
 // pre: null annotation analysis is enabled
-boolean hasNonNullDefaultFor(int location, boolean useTypeAnnotations, int sourceStart) {
+boolean hasNonNullDefaultFor(int location, int sourceStart) {
 	// Note, STB overrides for correctly handling local types
 	ReferenceBinding currentType = this;
 	while (currentType != null) {
-		if (useTypeAnnotations) {
-			int nullDefault = ((ReferenceBinding)currentType.original()).getNullDefault();
-			if (nullDefault != 0)
-				return (nullDefault & location) != 0;
-		} else {
-			if ((currentType.tagBits & TagBits.AnnotationNonNullByDefault) != 0)
-				return true;
-			if ((currentType.tagBits & TagBits.AnnotationNullUnspecifiedByDefault) != 0)
-				return false;
-		}
+		int nullDefault = ((ReferenceBinding)currentType.original()).getNullDefault();
+		if (nullDefault != 0)
+			return (nullDefault & location) != 0;
 		currentType = currentType.enclosingType();
 	}
 	// package
-	if (useTypeAnnotations)
-		return (this.getPackage().getDefaultNullness() & location) != 0;
-	else
-		return this.getPackage().getDefaultNullness() == NONNULL_BY_DEFAULT;
+	return (this.getPackage().getDefaultNullness() & location) != 0;
 }
 
 int getNullDefault() {
@@ -1427,6 +1418,7 @@ private boolean isCompatibleWith0(TypeBinding otherType, /*@Nullable*/ Scope cap
 		case Binding.TYPE :
 		case Binding.PARAMETERIZED_TYPE :
 		case Binding.RAW_TYPE :
+		case Binding.INTERSECTION_TYPE18 :
 			switch (kind()) {
 				case Binding.GENERIC_TYPE :
 				case Binding.PARAMETERIZED_TYPE :
@@ -1436,6 +1428,14 @@ private boolean isCompatibleWith0(TypeBinding otherType, /*@Nullable*/ Scope cap
 										// above if same erasure
 			}
 			ReferenceBinding otherReferenceType = (ReferenceBinding) otherType;
+			if (otherReferenceType.isIntersectionType18()) {
+				ReferenceBinding[] intersectingTypes = ((IntersectionTypeBinding18)otherReferenceType).intersectingTypes;
+				for (ReferenceBinding binding : intersectingTypes) {
+					if (!isCompatibleWith(binding))
+						return false;
+				}
+				return true;
+			}
 			if (otherReferenceType.isInterface()) { // could be annotation type
 				if (implementsInterface(otherReferenceType, true))
 					return true;
@@ -1755,19 +1755,19 @@ public char[] readableName(boolean showGenerics) /*java.lang.Object,  p.X<T> */ 
 		readableName = CharOperation.concatWith(this.compoundName, '.');
 	}
 	if (showGenerics) {
-	TypeVariableBinding[] typeVars;
-	if ((typeVars = typeVariables()) != Binding.NO_TYPE_VARIABLES) {
-	    StringBuffer nameBuffer = new StringBuffer(10);
-	    nameBuffer.append(readableName).append('<');
-	    for (int i = 0, length = typeVars.length; i < length; i++) {
-	        if (i > 0) nameBuffer.append(',');
-	        nameBuffer.append(typeVars[i].readableName());
-	    }
-	    nameBuffer.append('>');
-		int nameLength = nameBuffer.length();
-		readableName = new char[nameLength];
-		nameBuffer.getChars(0, nameLength, readableName, 0);
-	}
+		TypeVariableBinding[] typeVars;
+		if ((typeVars = typeVariables()) != Binding.NO_TYPE_VARIABLES) {
+		    StringBuffer nameBuffer = new StringBuffer(10);
+		    nameBuffer.append(readableName).append('<');
+		    for (int i = 0, length = typeVars.length; i < length; i++) {
+		        if (i > 0) nameBuffer.append(',');
+		        nameBuffer.append(typeVars[i].readableName());
+		    }
+		    nameBuffer.append('>');
+			int nameLength = nameBuffer.length();
+			readableName = new char[nameLength];
+			nameBuffer.getChars(0, nameLength, readableName, 0);
+		}
 	}
 	return readableName;
 }
@@ -1782,17 +1782,17 @@ protected void appendNullAnnotation(StringBuffer nameBuffer, CompilerOptions opt
 				}
 			}
 		} else {
-		// restore applied null annotation from tagBits:
-	    if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
-	    	char[][] nonNullAnnotationName = options.nonNullAnnotationName;
-			nameBuffer.append('@').append(nonNullAnnotationName[nonNullAnnotationName.length-1]).append(' ');
-	    }
-	    if ((this.tagBits & TagBits.AnnotationNullable) != 0) {
-	    	char[][] nullableAnnotationName = options.nullableAnnotationName;
-			nameBuffer.append('@').append(nullableAnnotationName[nullableAnnotationName.length-1]).append(' ');
-	    }
+			// restore applied null annotation from tagBits:
+		    if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
+		    	char[][] nonNullAnnotationName = options.nonNullAnnotationName;
+				nameBuffer.append('@').append(nonNullAnnotationName[nonNullAnnotationName.length-1]).append(' ');
+		    }
+		    if ((this.tagBits & TagBits.AnnotationNullable) != 0) {
+		    	char[][] nullableAnnotationName = options.nullableAnnotationName;
+				nameBuffer.append('@').append(nullableAnnotationName[nullableAnnotationName.length-1]).append(' ');
+		    }
+		}
 	}
-}
 }
 
 public AnnotationHolder retrieveAnnotationHolder(Binding binding, boolean forceInitialization) {
@@ -1906,19 +1906,19 @@ public char[] shortReadableName(boolean showGenerics) /*Object*/ {
 		shortReadableName = this.sourceName;
 	}
 	if (showGenerics) {
-	TypeVariableBinding[] typeVars;
-	if ((typeVars = typeVariables()) != Binding.NO_TYPE_VARIABLES) {
-	    StringBuffer nameBuffer = new StringBuffer(10);
-	    nameBuffer.append(shortReadableName).append('<');
-	    for (int i = 0, length = typeVars.length; i < length; i++) {
-	        if (i > 0) nameBuffer.append(',');
-	        nameBuffer.append(typeVars[i].shortReadableName());
-	    }
-	    nameBuffer.append('>');
-		int nameLength = nameBuffer.length();
-		shortReadableName = new char[nameLength];
-		nameBuffer.getChars(0, nameLength, shortReadableName, 0);
-	}
+		TypeVariableBinding[] typeVars;
+		if ((typeVars = typeVariables()) != Binding.NO_TYPE_VARIABLES) {
+		    StringBuffer nameBuffer = new StringBuffer(10);
+		    nameBuffer.append(shortReadableName).append('<');
+		    for (int i = 0, length = typeVars.length; i < length; i++) {
+		        if (i > 0) nameBuffer.append(',');
+		        nameBuffer.append(typeVars[i].shortReadableName());
+		    }
+		    nameBuffer.append('>');
+			int nameLength = nameBuffer.length();
+			shortReadableName = new char[nameLength];
+			nameBuffer.getChars(0, nameLength, shortReadableName, 0);
+		}
 	}
 	return shortReadableName;
 }
@@ -1934,6 +1934,28 @@ public char[] signature() /* Ljava/lang/Object; */ {
 @Override
 public char[] sourceName() {
 	return this.sourceName;
+}
+
+/**
+ * Perform an upwards type projection as per JLS 4.10.5
+ * @param scope Relevant scope for evaluating type projection
+ * @param mentionedTypeVariables Filter for mentioned type variabled
+ * @returns Upwards type projection of 'this', or null if downwards projection is undefined 
+*/
+@Override
+public ReferenceBinding upwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+	return this;
+}
+
+/**
+ * Perform a downwards type projection as per JLS 4.10.5
+ * @param scope Relevant scope for evaluating type projection
+ * @param mentionedTypeVariables Filter for mentioned type variabled
+ * @returns Downwards type projection of 'this', or null if downwards projection is undefined 
+*/
+@Override
+public ReferenceBinding downwardsProjection(Scope scope, TypeBinding[] mentionedTypeVariables) {
+	return this;
 }
 
 void storeAnnotationHolder(Binding binding, AnnotationHolder holder) {
@@ -2054,7 +2076,7 @@ protected int applyCloseableInterfaceWhitelists() {
 					return 0;
 			for (char[] streamName : TypeConstants.RESOURCE_FREE_CLOSEABLE_J_U_STREAMS)
 				if (CharOperation.equals(this.compoundName[3], streamName))
-				return TypeIds.BitResourceFreeCloseable;
+					return TypeIds.BitResourceFreeCloseable;
 			break;
 	}
 	return 0;
@@ -2093,10 +2115,10 @@ protected MethodBinding [] getInterfaceAbstractContracts(Scope scope, boolean re
 			throw new InvalidInputException("Not a functional interface"); //$NON-NLS-1$
 		for (int j = 0; j < contractsCount;) {
 			if ( contracts[j] != null && MethodVerifier.doesMethodOverride(method, contracts[j], environment)) {
-					contractsCount--;
+				contractsCount--;
 				// abstract method from super type overridden by present interface ==> contracts[j] = null;
 				if (j < contractsCount) {
-						System.arraycopy(contracts, j+1, contracts, j, contractsCount - j);
+					System.arraycopy(contracts, j+1, contracts, j, contractsCount - j);
 					continue;
 				}
 			}
@@ -2208,7 +2230,7 @@ public MethodBinding getSingleAbstractMethod(Scope scope, boolean replaceWildcar
 					continue next;
 			}
 			if (!MethodVerifier.isSubstituteParameterSubsignature(method, otherMethod, environment) || !MethodVerifier.areReturnTypesCompatible(method, otherMethod, environment)) 
-				continue next; 
+				continue next;
 			if (analyseNullAnnotations) {
 				returnType = NullAnnotationMatching.strongerType(returnType, otherMethod.returnType, environment);
 				parameters = NullAnnotationMatching.weakerTypes(parameters, otherMethod.parameters, environment);

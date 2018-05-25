@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.core;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IModuleDescription;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
@@ -44,7 +47,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 	char[][] usedServices;
 	IModuleDescription handle;
 	char[] name;
-	boolean isOpen = false;
+	private Map<IJavaElement,String[]> categories;
 
 	static class ModuleReferenceInfo extends MemberElementInfo implements IModule.IModuleReference {
 		char[] name;
@@ -115,10 +118,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 	public static ModuleDescriptionInfo createModule(ModuleDeclaration module) {
 		ModuleDescriptionInfo mod = new ModuleDescriptionInfo();
 		mod.name = module.moduleName;
-		if (module.isOpen()) {
-			mod.isOpen = true;
-			mod.setFlags(ClassFileConstants.ACC_OPEN);
-		}
+		mod.setFlags(module.modifiers);
 		if (module.requiresCount > 0) {
 			RequiresStatement[] refs = module.requires;
 			mod.requires = new ModuleReferenceInfo[refs.length+1];
@@ -239,7 +239,7 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 
 	@Override
 	public boolean isOpen() {
-		return this.isOpen;
+		return (this.flags & ClassFileConstants.ACC_OPEN) != 0;
 	}
 
 	@Override
@@ -269,6 +269,17 @@ public class ModuleDescriptionInfo extends AnnotatableInfo implements ISourceMod
 	@Override
 	public IPackageExport[] opens() {
 		return this.opens;
+	}
+
+	public void addCategories(IJavaElement element, char[][] elementCategories) {
+		if (elementCategories == null) return;
+		if (this.categories == null)
+			this.categories = new HashMap<>();
+		this.categories.put(element, CharOperation.toStrings(elementCategories));
+	}
+
+	public Map<IJavaElement, String[]> getCategories() {
+		return this.categories;
 	}
 
 	@Override

@@ -1,10 +1,11 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Benjamin Muskalla - Contribution for bug 239066
@@ -69,6 +70,7 @@
  *								bug 419209 - [1.8] Repeating container annotations should be rejected in the presence of annotation it contains
  *								Bug 429384 - [1.8][null] implement conformance rules for null-annotated lower / upper type bounds
  *								Bug 416182 - [1.8][compiler][null] Contradictory null annotations not rejected
+ *								bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *     Ulrich Grave <ulrich.grave@gmx.de> - Contributions for
  *                              bug 386692 - Missing "unused" warning on "autowired" fields
  ********************************************************************************/
@@ -246,11 +248,15 @@ public static int getIrritant(int problemID) {
 		case IProblem.UsingDeprecatedMethod :
 		case IProblem.UsingDeprecatedConstructor :
 		case IProblem.UsingDeprecatedField :
+		case IProblem.UsingDeprecatedPackage :
+		case IProblem.UsingDeprecatedModule :
 		case IProblem.OverridingDeprecatedSinceVersionMethod :
 		case IProblem.UsingDeprecatedSinceVersionType :
 		case IProblem.UsingDeprecatedSinceVersionMethod :
 		case IProblem.UsingDeprecatedSinceVersionConstructor :
 		case IProblem.UsingDeprecatedSinceVersionField :
+		case IProblem.UsingDeprecatedSinceVersionPackage :
+		case IProblem.UsingDeprecatedSinceVersionModule :
 			return CompilerOptions.UsingDeprecatedAPI;
 
 		case IProblem.OverridingTerminallyDeprecatedMethod :
@@ -258,11 +264,15 @@ public static int getIrritant(int problemID) {
 		case IProblem.UsingTerminallyDeprecatedMethod :
 		case IProblem.UsingTerminallyDeprecatedConstructor :
 		case IProblem.UsingTerminallyDeprecatedField :
+		case IProblem.UsingTerminallyDeprecatedPackage :
+		case IProblem.UsingTerminallyDeprecatedModule :
 		case IProblem.OverridingTerminallyDeprecatedSinceVersionMethod :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionType :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionMethod :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionConstructor :
 		case IProblem.UsingTerminallyDeprecatedSinceVersionField :
+		case IProblem.UsingTerminallyDeprecatedSinceVersionPackage :
+		case IProblem.UsingTerminallyDeprecatedSinceVersionModule :
 			return CompilerOptions.UsingTerminallyDeprecatedAPI;
 
 		case IProblem.LocalVariableIsNeverUsed :
@@ -401,7 +411,6 @@ public static int getIrritant(int problemID) {
 			return CompilerOptions.VarargsArgumentNeedCast;
 
 		case IProblem.NullLocalVariableReference:
-		case IProblem.NullableFieldReference:
 		case IProblem.NullExpressionReference:
 		case IProblem.NullUnboxing:
 			return CompilerOptions.NullReference;
@@ -409,6 +418,7 @@ public static int getIrritant(int problemID) {
 		case IProblem.PotentialNullLocalVariableReference:
 		case IProblem.PotentialNullMessageSendReference:
 		case IProblem.ArrayReferencePotentialNullReference:
+		case IProblem.NullableFieldReference:
 		case IProblem.DereferencingNullableExpression:
 		case IProblem.PotentialNullExpressionReference:
 		case IProblem.PotentialNullUnboxing:
@@ -657,6 +667,8 @@ public static int getIrritant(int problemID) {
 		case IProblem.NotExportedTypeInAPI:
 		case IProblem.MissingRequiresTransitiveForTypeInAPI:
 			return CompilerOptions.APILeak;
+		case IProblem.UnstableAutoModuleName:
+			return CompilerOptions.UnstableAutoModuleName;
 }
 	return 0;
 }
@@ -719,6 +731,7 @@ public static int getProblemCategory(int severity, int problemID) {
 			case CompilerOptions.UnlikelyCollectionMethodArgumentType :
 			case CompilerOptions.UnlikelyEqualsArgumentType:
 			case CompilerOptions.APILeak:
+			case CompilerOptions.UnstableAutoModuleName:
 				return CategorizedProblem.CAT_POTENTIAL_PROGRAMMING_PROBLEM;
 			
 			case CompilerOptions.OverriddenPackageDefaultMethod :
@@ -1731,18 +1744,18 @@ public void deprecatedField(final FieldBinding field, ASTNode location) {
 	int sourceEnd = nodeSourceEnd(field, location);
 	String sinceValue = deprecatedSinceValue(() -> field.getAnnotations());
 	if (sinceValue != null) {
-	this.handle(
+		this.handle(
 			(field.tagBits & TagBits.AnnotationTerminallyDeprecated) == 0 ? IProblem.UsingDeprecatedSinceVersionField : IProblem.UsingTerminallyDeprecatedSinceVersionField,
 			new String[] {new String(field.declaringClass.readableName()), fieldName, sinceValue},
 			new String[] {new String(field.declaringClass.shortReadableName()), fieldName, sinceValue},
 			sourceStart, sourceEnd);
 	} else {
 		this.handle(
-		(field.tagBits & TagBits.AnnotationTerminallyDeprecated) == 0 ? IProblem.UsingDeprecatedField : IProblem.UsingTerminallyDeprecatedField,
+			(field.tagBits & TagBits.AnnotationTerminallyDeprecated) == 0 ? IProblem.UsingDeprecatedField : IProblem.UsingTerminallyDeprecatedField,
 			new String[] {new String(field.declaringClass.readableName()), fieldName},
 			new String[] {new String(field.declaringClass.shortReadableName()), fieldName},
 			sourceStart, sourceEnd);
-}
+	}
 }
 
 public void deprecatedMethod(final MethodBinding method, ASTNode location) {
@@ -1754,7 +1767,7 @@ public void deprecatedMethod(final MethodBinding method, ASTNode location) {
 	String shortSignature = typesAsString(method, true);
 	
 	boolean isConstructor = method.isConstructor();
-		int start = -1;
+	int start = -1;
 	if (isConstructor) {
 		if(location instanceof AllocationExpression) {
 			// omit the new keyword from the warning marker
@@ -1783,7 +1796,7 @@ public void deprecatedMethod(final MethodBinding method, ASTNode location) {
 	}
 	if (sinceValue != null) {
 		if (isConstructor) {
-		this.handle(
+			this.handle(
 				terminally ? IProblem.UsingTerminallyDeprecatedSinceVersionConstructor : IProblem.UsingDeprecatedSinceVersionConstructor,
 				new String[] {readableClassName, signature, sinceValue},
 				new String[] {shortReadableClassName, shortSignature, sinceValue},
@@ -1804,7 +1817,7 @@ public void deprecatedMethod(final MethodBinding method, ASTNode location) {
 				sourceStart, sourceEnd);
 		} else {
 			this.handle(
-			terminally ? IProblem.UsingTerminallyDeprecatedMethod : IProblem.UsingDeprecatedMethod,
+				terminally ? IProblem.UsingTerminallyDeprecatedMethod : IProblem.UsingDeprecatedMethod,
 				new String[] {readableClassName, selector, signature},
 				new String[] {shortReadableClassName, selector, shortSignature},
 				sourceStart, sourceEnd);
@@ -1828,12 +1841,12 @@ public void deprecatedType(TypeBinding type, ASTNode location, int index) {
 	}
 	String sinceValue = deprecatedSinceValue(() -> leafType.getAnnotations());
 	if (sinceValue != null) {
-	this.handle(
+		this.handle(
 			((leafType.tagBits & TagBits.AnnotationTerminallyDeprecated) == 0) ? IProblem.UsingDeprecatedSinceVersionType : IProblem.UsingTerminallyDeprecatedSinceVersionType,
 			new String[] {new String(leafType.readableName()), sinceValue},
 			new String[] {new String(leafType.shortReadableName()), sinceValue},
-		(sourceStart == -1) ? location.sourceStart : sourceStart,
-		nodeSourceEnd(null, location, index));
+			(sourceStart == -1) ? location.sourceStart : sourceStart,
+			nodeSourceEnd(null, location, index));
 	} else {
 		this.handle(
 			((leafType.tagBits & TagBits.AnnotationTerminallyDeprecated) == 0) ? IProblem.UsingDeprecatedType : IProblem.UsingTerminallyDeprecatedType,
@@ -1841,6 +1854,44 @@ public void deprecatedType(TypeBinding type, ASTNode location, int index) {
 			new String[] {new String(leafType.shortReadableName())},
 			(sourceStart == -1) ? location.sourceStart : sourceStart,
 			nodeSourceEnd(null, location, index));
+	}
+}
+public void deprecatedPackage(ImportReference pkgRef, PackageBinding resolvedPackage, TypeBinding packageInfo) {
+	String sinceValue = deprecatedSinceValue(() -> packageInfo.isValidBinding() ? packageInfo.getAnnotations() : Binding.NO_ANNOTATIONS);
+	boolean isTerminally = (resolvedPackage.tagBits & TagBits.AnnotationTerminallyDeprecated) != 0;
+	if (sinceValue != null) {
+		String[] args = { CharOperation.toString(pkgRef.tokens), sinceValue };
+		handle( isTerminally ? IProblem.UsingTerminallyDeprecatedSinceVersionPackage : IProblem.UsingDeprecatedSinceVersionPackage,
+				args,
+				args,
+				pkgRef.sourceStart,
+				pkgRef.sourceEnd);		
+	} else {
+		String[] args = { CharOperation.toString(pkgRef.tokens) };
+		handle( isTerminally ? IProblem.UsingTerminallyDeprecatedPackage : IProblem.UsingDeprecatedPackage,
+				args,
+				args,
+				pkgRef.sourceStart,
+				pkgRef.sourceEnd);
+	}
+}
+public void deprecatedModule(ModuleReference moduleReference, ModuleBinding requiredModule) {
+	String sinceValue = deprecatedSinceValue(() -> requiredModule.getAnnotations());
+	boolean isTerminally = (requiredModule.tagBits & TagBits.AnnotationTerminallyDeprecated) != 0;
+	if (sinceValue != null) {
+		String[] args = { String.valueOf(requiredModule.name()), sinceValue };
+		handle( isTerminally ? IProblem.UsingTerminallyDeprecatedSinceVersionModule : IProblem.UsingDeprecatedSinceVersionModule,
+				args,
+				args,
+				moduleReference.sourceStart,
+				moduleReference.sourceEnd);		
+	} else {
+		String[] args = { String.valueOf(requiredModule.name()) };
+		handle( isTerminally ? IProblem.UsingTerminallyDeprecatedModule : IProblem.UsingDeprecatedModule,
+				args,
+				args,
+				moduleReference.sourceStart,
+				moduleReference.sourceEnd);
 	}
 }
 String deprecatedSinceValue(Supplier<AnnotationBinding[]> annotations) {
@@ -4972,15 +5023,15 @@ public void isClassPathCorrect(char[][] wellKnownTypeName, CompilationUnitDeclar
 		}
 	}
 	try {
-	this.handle(
-		IProblem.IsClassPathCorrect,
-		arguments,
-		arguments,
-		start,
-		end);
+		this.handle(
+				IProblem.IsClassPathCorrect,
+				arguments,
+				arguments,
+				start,
+				end);
 	} finally {
 		this.referenceContext = savedContext;
-}
+	}
 }
 private boolean isIdentifier(int token) {
 	return token == TerminalTokens.TokenNameIdentifier;
@@ -7046,14 +7097,14 @@ public void operatorOnlyValidOnNumericType(CompoundAssignment  assignment, TypeB
 }
 public void overridesDeprecatedMethod(MethodBinding localMethod, MethodBinding inheritedMethod) {
 	String localMethodName = new String(
-					CharOperation.concat(
-						localMethod.declaringClass.readableName(),
-						localMethod.readableName(),
+								CharOperation.concat(
+									localMethod.declaringClass.readableName(),
+									localMethod.readableName(),
 									'.'));
 	String localMethodShortName = new String(
-					CharOperation.concat(
-						localMethod.declaringClass.shortReadableName(),
-						localMethod.shortReadableName(),
+									CharOperation.concat(
+										localMethod.declaringClass.shortReadableName(),
+										localMethod.shortReadableName(),
 										'.'));
 	String sinceValue = deprecatedSinceValue(() -> inheritedMethod.getAnnotations());
 	if (sinceValue != null) {
@@ -7080,10 +7131,10 @@ public void overridesDeprecatedMethod(MethodBinding localMethod, MethodBinding i
 				new String(inheritedMethod.declaringClass.readableName())},
 			new String[] {
 				localMethodShortName,
-			new String(inheritedMethod.declaringClass.shortReadableName())},
-		localMethod.sourceStart(),
-		localMethod.sourceEnd());
-}
+				new String(inheritedMethod.declaringClass.shortReadableName())},
+			localMethod.sourceStart(),
+			localMethod.sourceEnd());
+	}
 }
 public void overridesMethodWithoutSuperInvocation(MethodBinding localMethod) {
 	this.handle(
@@ -8470,7 +8521,7 @@ public void uninitializedBlankFinalField(FieldBinding field, ASTNode location) {
 public void uninitializedNonNullField(FieldBinding field, ASTNode location) {
 	char[][] nonNullAnnotationName = this.options.nonNullAnnotationName;
 	if(!field.isNonNull()) {
-	String[] arguments = new String[] {
+		String[] arguments = new String[] {
 				new String(field.readableName()), 
 				new String(field.type.readableName()), 
 				new String(nonNullAnnotationName[nonNullAnnotationName.length-1])
@@ -9342,6 +9393,103 @@ public void variableTypeCannotBeVoid(AbstractVariableDeclaration varDecl) {
 		varDecl.sourceStart,
 		varDecl.sourceEnd);
 }
+public void varLocalMultipleDeclarators(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalMultipleDeclarators,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalCannotBeArray(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalCannotBeArray,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalReferencesItself(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalReferencesItself,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalWithoutInitizalier(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalWithoutInitizalier,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalInitializedToNull(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalInitializedToNull,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalInitializedToVoid(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalInitializedToVoid,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalCannotBeArrayInitalizers(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalCannotBeArrayInitalizers,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalCannotBeLambda(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalCannotBeLambda,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varLocalCannotBeMethodReference(AbstractVariableDeclaration varDecl) {
+	this.handle(
+		IProblem.VarLocalCannotBeMethodReference,
+		NoArgument,
+		NoArgument,
+		varDecl.sourceStart,
+		varDecl.sourceEnd);
+}
+public void varIsReservedTypeName(TypeDeclaration decl) {
+	this.handle(
+		IProblem.VarIsReserved,
+		NoArgument,
+		NoArgument,
+		decl.sourceStart,
+		decl.sourceEnd);
+}
+public void varIsReservedTypeNameInFuture(ASTNode decl) {
+	this.handle(
+		IProblem.VarIsReservedInFuture,
+		NoArgument,
+		NoArgument,
+		ProblemSeverities.Warning,
+		decl.sourceStart,
+		decl.sourceEnd);
+}
+public void varIsNotAllowedHere(ASTNode astNode) {
+	this.handle(
+		IProblem.VarIsNotAllowedHere,
+		NoArgument,
+		NoArgument,
+		astNode.sourceStart,
+		astNode.sourceEnd);
+}
 public void variableTypeCannotBeVoidArray(AbstractVariableDeclaration varDecl) {
 	this.handle(
 		IProblem.CannotAllocateVoidArray,
@@ -9625,7 +9773,7 @@ public void nullityMismatch(Expression expression, TypeBinding providedType, Typ
 				nullityMismatchingTypeAnnotation(expression, providedType, requiredType, NullAnnotationMatching.NULL_ANNOTATIONS_MISMATCH);
 				return;
 			}
-		nullityMismatchPotentiallyNull(expression, requiredType, annotationName);
+			nullityMismatchPotentiallyNull(expression, requiredType, annotationName);
 		return;
 	}
 	if (this.options.usesNullTypeAnnotations())
@@ -9808,7 +9956,7 @@ public void illegalReturnRedefinition(AbstractMethodDeclaration abstractMethodDe
 	}
 	TypeBinding inheritedReturnType = inheritedMethod.returnType;
 	int problemId = IProblem.IllegalReturnNullityRedefinition;
-		StringBuilder returnType = new StringBuilder();
+	StringBuilder returnType = new StringBuilder();
 	StringBuilder returnTypeShort = new StringBuilder();
 	if (this.options.usesNullTypeAnnotations()) {
 		// 1.8+
@@ -9835,8 +9983,8 @@ public void illegalReturnRedefinition(AbstractMethodDeclaration abstractMethodDe
 			problemId, 
 			arguments,
 			argumentsShort,
-		sourceStart,
-		methodDecl.returnType.sourceEnd);
+			sourceStart,
+			methodDecl.returnType.sourceEnd);
 }
 public void referenceExpressionArgumentNullityMismatch(ReferenceExpression location, TypeBinding requiredType, TypeBinding providedType,
 		MethodBinding descriptorMethod, int idx, NullAnnotationMatching status) {
@@ -10176,7 +10324,7 @@ private Annotation findAnnotation(Annotation[] annotations, int typeBit) {
 	if (annotations != null) {
 		// should have a @NonNull/@Nullable annotation, search for it:
 		int length = annotations.length;
-		for (int j=0; j<length; j++) {
+		for (int j = length - 1; j >= 0; j--) {
 			if (annotations[j].hasNullBit(typeBit)) {
 				return annotations[j];
 			}
@@ -10259,7 +10407,7 @@ public void nullityMismatchingTypeAnnotation(Expression expression, TypeBinding 
 		nullityMismatchPotentiallyNull(expression, requiredType, this.options.nonNullAnnotationName);
 		return;
 	}
-	String[] arguments ;
+	String[] arguments;
 	String[] shortArguments;
 		
 	int problemId = 0;
@@ -10362,7 +10510,7 @@ public void nonNullTypeVariableInUnannotatedBinary(LookupEnvironment environment
 
 		char[][] nonNullName = this.options.nonNullAnnotationName;
 		String shortNonNullName = String.valueOf(nonNullName[nonNullName.length-1]);
-
+		
 		if (typeVariable.declaringElement instanceof ReferenceBinding) {
 			String[] arguments = new String[] {
 					shortNonNullName,
@@ -10865,5 +11013,14 @@ public void unnamedPackageInNamedModule(ModuleBinding module) {
 			ProblemSeverities.Warning,
 			0,
 			0);
+}
+
+public void autoModuleWithUnstableName(ModuleReference moduleReference) {
+	String[] args = { new String(moduleReference.moduleName) };
+	handle(IProblem.UnstableAutoModuleName,
+			args,
+			args,
+			moduleReference.sourceStart,
+			moduleReference.sourceEnd);
 }
 }

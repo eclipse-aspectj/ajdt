@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,8 @@
  *							bug 382701 - [1.8][compiler] Implement semantic analysis of Lambda expressions & Reference expression
  *							bug 399695 - [1.8][compiler] [1.8][compiler] migrate parser to other syntax for default methods
  *							bug 384567 - [1.5][compiler] Compiler accepts illegal modifiers on package declaration
- *									bug 393192 - Incomplete type hierarchy with > 10 annotations
+ *							bug 393192 - Incomplete type hierarchy with > 10 annotations
+ *							bug 527554 - [18.3] Compiler support for JEP 286 Local-Variable Type
  *        Andy Clement - Contributions for
  *                          Bug 383624 - [1.8][compiler] Revive code generation support for type annotations (from Olivier's work)
  *                          Bug 409250 - [1.8][compiler] Various loose ends in 308 code generation
@@ -678,7 +679,6 @@ public class TheOriginalJDTParserClass implements TerminalTokens, ParserBasicInf
 	}
 
 	protected static byte[] readByteTable(Class parserClass, String filename) throws java.io.IOException { 	//	AspectJ Extension - used passed class not static ref
-	
 	
 		//files are located at Parser.class directory
 	
@@ -3533,6 +3533,7 @@ protected void consumeEnterVariable() {
 			final int annotationsLength = annotations.length;
 			System.arraycopy(annotations, 0, declaration.annotations = new Annotation[annotationsLength], 0, annotationsLength);
 		}
+		declaration.bits |= ASTNode.IsAdditionalDeclarator;
 	}
 
 	declaration.type = extendedDimensions == 0 ? type : augmentTypeWithAdditionalDimensions(type, extendedDimensions, annotationsOnExtendedDimensions, false);
@@ -6196,10 +6197,10 @@ private void rejectIllegalTypeAnnotations(TypeReference typeReference) {
 				problemReporter().misplacedTypeAnnotations(misplacedAnnotations[0], misplacedAnnotations[misplacedAnnotations.length - 1]);
 		}
 	}
-		typeReference.annotations = null;
-		typeReference.setAnnotationsOnDimensions(null);
-		typeReference.bits &= ~ASTNode.HasTypeAnnotations;
-	}
+typeReference.annotations = null;
+typeReference.setAnnotationsOnDimensions(null);
+typeReference.bits &= ~ASTNode.HasTypeAnnotations;
+}
 protected void consumeQualifiedSuperReceiver() {
 	// QualifiedSuperReceiver ::= Name '.' 'super'
 	// handle type arguments
@@ -6377,7 +6378,6 @@ protected void consumeReferenceType2() {
 protected void consumeReferenceType3() {
 	pushOnGenericsStack(getTypeReference(this.intStack[this.intPtr--]));
 }
-
 protected void consumeResourceAsLocalVariable() {
 	// Resource ::= Name
 	NameReference ref = getUnspecifiedReference(true);
@@ -7223,11 +7223,11 @@ protected void consumeStatementTry(boolean withFinally, boolean hasResources) {
 		length = this.astLengthStack[this.astLengthPtr--];
 		Statement[] stmts  = new Statement[length];
 		System.arraycopy(
-				this.astStack,
-				(this.astPtr -= length) + 1,
+		this.astStack,
+		(this.astPtr -= length) + 1,
 		stmts,
-				0,
-				length);
+		0,
+		length);
 
 		tryStmt.resources = stmts;
 			
@@ -7239,8 +7239,8 @@ protected void consumeStatementTry(boolean withFinally, boolean hasResources) {
 				Statement stmt = stmts[i];
 				if (stmt instanceof FieldReference || stmt instanceof NameReference) {
 					problemReporter().autoManagedVariableResourcesNotBelow9((Expression) stmt);
-		}
-	}
+				}
+			}
 		}
 	}
 	//positions

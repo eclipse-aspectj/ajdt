@@ -215,7 +215,18 @@
  *									RepeatableAnnotationIsDocumented
  *									RepeatableAnnotationIsInherited
  *									RepeatableAnnotationWithRepeatingContainerAnnotation
-*******************************************************************************/
+ *									VarLocalMultipleDeclarators
+ *									VarLocalCannotBeArray
+ *									VarLocalReferencesItself
+ *									VarLocalWithoutInitizalier
+ *									VarLocalInitializedToNull
+ *									VarLocalCannotBeArrayInitalizers
+ *									VarLocalCannotBeLambda 
+ *									VarLocalCannotBeMethodReference
+ *									VarIsReserved
+ *									VarIsReservedInFuture
+ *									VarIsNotAllowedHere
+******************************************************************************/
 package org.aspectj.org.eclipse.jdt.core.compiler;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
@@ -1811,7 +1822,7 @@ void setSourceStart(int sourceStart);
 	int FieldComparisonYieldsFalse = Internal + 942;
 	/** @since 3.14 */
 	int RedundantNullDefaultAnnotationModule = Internal + 943;
-	
+
 	/** @since 3.10 */
 	int ArrayReferencePotentialNullReference = Internal + 951;
 	/** @since 3.10 */
@@ -1910,8 +1921,8 @@ void setSourceStart(int sourceStart);
 	int IllegalDefaultModifierSpecification = MethodRelated + 1058;
 	/** @since 3.13 */
 	int CannotInferInvocationType = TypeRelated + 1059;
-
-
+	
+	
 	/** @since 3.13 */
 	int TypeAnnotationAtQualifiedName = Internal + Syntax + 1060;
 
@@ -1998,6 +2009,23 @@ void setSourceStart(int sourceStart);
 	/** @since 3.14 */
 	int OverridingTerminallyDeprecatedSinceVersionMethod = MethodRelated + 1414;
 
+	// deprecation of package / module:
+	/** @since 3.14 */
+	int UsingDeprecatedPackage = ModuleRelated + 1425;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionPackage = ModuleRelated + 1426;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedPackage = ModuleRelated + 1427;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionPackage = ModuleRelated + 1428;
+	/** @since 3.14 */
+	int UsingDeprecatedModule = ModuleRelated + 1429;
+	/** @since 3.14 */
+	int UsingDeprecatedSinceVersionModule = ModuleRelated + 1430;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedModule = ModuleRelated + 1431;
+	/** @since 3.14 */
+	int UsingTerminallyDeprecatedSinceVersionModule = ModuleRelated + 1432;
 	
 	/** @since 3.14 */
 	int NotAccessibleType = TypeRelated + 1450;
@@ -2021,6 +2049,8 @@ void setSourceStart(int sourceStart);
 	int MissingRequiresTransitiveForTypeInAPI = ModuleRelated + 1459;
 	/** @since  3.14 */
 	int UnnamedPackageInNamedModule = ModuleRelated + 1460;
+	/** @since  3.14 */
+	int UnstableAutoModuleName = ModuleRelated + 1461;
 
 	/** @since 3.13 */
 	int RedundantNullDefaultAnnotationLocal = Internal + 1062;
@@ -2041,4 +2071,31 @@ void setSourceStart(int sourceStart);
 	int UnlikelyCollectionMethodArgumentType = 1200;
 	/** @since 3.13 */
 	int UnlikelyEqualsArgumentType = 1201;
+
+	/* Local-Variable Type Inference */
+	/** @since 3.14 */
+	int VarLocalMultipleDeclarators = Syntax + 1500; // ''var'' is not allowed in a compound declaration
+	/** @since 3.14 */
+	int VarLocalCannotBeArray = Syntax + 1501; // ''var'' is not allowed as an element type of an array
+	/** @since 3.14 */
+	int VarLocalReferencesItself = Syntax + 1502; // Declaration using ''var'' may not contin references to itself
+	/** @since 3.14 */
+	int VarLocalWithoutInitizalier = Syntax + 1503; // Cannot use ''var'' on variable without initializer
+	/** @since 3.14 */
+	int VarLocalInitializedToNull = TypeRelated + 1504; // Variable initialized to ''null'' needs an explicit target-type
+	/** @since 3.14 */
+	int VarLocalInitializedToVoid = TypeRelated + 1505; // Variable initializer is ''void'' -- cannot infer variable type 
+	/** @since 3.14 */
+	int VarLocalCannotBeArrayInitalizers = TypeRelated + 1506; // Array initializer needs an explicit target-type
+	/** @since 3.14 */
+	int VarLocalCannotBeLambda = TypeRelated + 1507; // Lambda expression needs an explicit target-type 
+	/** @since 3.14 */
+	int VarLocalCannotBeMethodReference = TypeRelated + 1508; // Method reference needs an explicit target-type
+	/** @since 3.14 */
+	int VarIsReserved = Syntax + 1509; // ''var'' is not a valid type name
+	/** @since 3.14 */
+	int VarIsReservedInFuture = Syntax + 1510; // ''var'' should not be used as an type name, since it is a reserved word from source level 10 on
+	/** @since 3.14 */
+	int VarIsNotAllowedHere = Syntax + 1511; // ''var'' is not allowed here
+	
 }

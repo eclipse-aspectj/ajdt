@@ -1,3 +1,4 @@
+// AspectJ
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -163,6 +164,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	/** @deprecated using deprecated code */
 	private static final int JLS8_INTERNAL = AST.JLS8;
 
+	/** @deprecated using deprecated code */
 	private static final int JLS9_INTERNAL = AST.JLS9;
 
 
@@ -841,6 +843,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 			}
 			return currPos;
 		}
+
 		public final int rewriteList(ASTNode parent, StructuralPropertyDescriptor property, int offset, String keyword) {
 			return rewriteList(parent, property, keyword, null, offset);
 		}
@@ -1380,10 +1383,10 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	 */
 	private int getPosAfterLeftBrace(int pos) {
 		try {
-		return getPosAfterToken(pos, TerminalTokens.TokenNameLBRACE);
+			return getPosAfterToken(pos, TerminalTokens.TokenNameLBRACE);
 		} catch (IllegalArgumentException e) {
 			return pos;
-	}
+		}
 	}
 
 	/*
@@ -1599,16 +1602,16 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		boolean isAnnotationsProperty = isVarargsAnnotationsProperty 
 				|| node instanceof AnnotatableType && property == ((AnnotatableType) node).getAnnotationsProperty();
 		Prefix formatterPrefix;
-		if (property == SingleVariableDeclaration.MODIFIERS2_PROPERTY || 
+		if (property == SingleVariableDeclaration.MODIFIERS2_PROPERTY ||
 				property == VariableDeclarationExpression.MODIFIERS2_PROPERTY ||
 				property == VariableDeclarationStatement.MODIFIERS2_PROPERTY ||
 				property == TypeParameter.MODIFIERS_PROPERTY || isAnnotationsProperty) {
 			ASTNode parent = node.getParent();
 			if (parent instanceof MethodDeclaration)
-			formatterPrefix= this.formatter.PARAM_ANNOTATION_SEPARATION;
+				formatterPrefix= this.formatter.PARAM_ANNOTATION_SEPARATION;
 			else if (parent instanceof Block || parent instanceof TryStatement || parent instanceof ForStatement)
 				formatterPrefix= this.formatter.LOCAL_ANNOTATION_SEPARATION;
-		else
+			else
 				formatterPrefix= this.formatter.TYPE_ANNOTATION_SEPARATION;
 		} else {
 			formatterPrefix= this.formatter.ANNOTATION_SEPARATION;
@@ -3025,7 +3028,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteNodeList(node, IntersectionType.TYPES_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " & "); //$NON-NLS-1$
 		return false;
 	}
-	
+
 	@Override
 	public boolean visit(Javadoc node) {
 		if (!hasChildrenChanges(node)) {
@@ -3671,7 +3674,7 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 		rewriteNodeList(node, UnionType.TYPES_PROPERTY, node.getStartPosition(), Util.EMPTY_STRING, " | "); //$NON-NLS-1$
 		return false;
 	}
-	
+
 	@Override
 	public boolean visit(UsesDirective node) {
 		if (!hasChildrenChanges(node)) {
@@ -4281,4 +4284,5 @@ public final class ASTRewriteAnalyzer extends ASTVisitor {
 	final void handleException(Throwable e) {
 		throw new IllegalArgumentException("Document does not match the AST", e); //$NON-NLS-1$
 	}
+
 }

@@ -1,11 +1,11 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Stephan Herrmann - Contribution for
@@ -2543,7 +2543,6 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 	}
 	ClassScope scope = ((SourceTypeBinding)methodBinding.declaringClass).scope;
 	
-	
 	// Generate the first switch, on method name hashcode
 	aload_0();
 	invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, ConstantPool.GetImplMethodName, ConstantPool.GetImplMethodNameSignature);
@@ -2636,81 +2635,81 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 		// Loop through all lambdas that share the same hashcode
 		for (int j = 0, count = synthetics.size(); j < count; j++) {
 			SyntheticMethodBinding syntheticMethodBinding = (SyntheticMethodBinding) synthetics.get(j);
-		// Compare ImplMethodKind
-		aload_0();
+			// Compare ImplMethodKind
+			aload_0();
 			FunctionalExpression funcEx = syntheticMethodBinding.lambda != null ? syntheticMethodBinding.lambda
 					: syntheticMethodBinding.serializableMethodRef;
 			MethodBinding mb = funcEx.binding;
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetImplMethodKind, ConstantPool.GetImplMethodKindSignature);
-		byte methodKind = 0;
-		if (mb.isStatic()) {
-			methodKind = ClassFileConstants.MethodHandleRefKindInvokeStatic;
-		} else if (mb.isPrivate()) {
-			methodKind = ClassFileConstants.MethodHandleRefKindInvokeSpecial;
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetImplMethodKind, ConstantPool.GetImplMethodKindSignature);
+			byte methodKind = 0;
+			if (mb.isStatic()) {
+				methodKind = ClassFileConstants.MethodHandleRefKindInvokeStatic;
+			} else if (mb.isPrivate()) {
+				methodKind = ClassFileConstants.MethodHandleRefKindInvokeSpecial;
 			} else if (mb.isConstructor()) {
 				methodKind = ClassFileConstants.MethodHandleRefKindNewInvokeSpecial;
 			} else if (mb.declaringClass.isInterface()) {
 				methodKind = ClassFileConstants.MethodHandleRefKindInvokeInterface;
-		} else {
-			methodKind = ClassFileConstants.MethodHandleRefKindInvokeVirtual;
-		}
-		bipush(methodKind);// TODO see table below
+			} else {
+				methodKind = ClassFileConstants.MethodHandleRefKindInvokeVirtual;
+			}
+			bipush(methodKind);// TODO see table below
 			if_icmpne(nextOne);
 
-		// Compare FunctionalInterfaceClass
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetFunctionalInterfaceClass, ConstantPool.GetFunctionalInterfaceClassSignature);
-		String functionalInterface = null;
+			// Compare FunctionalInterfaceClass
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetFunctionalInterfaceClass, ConstantPool.GetFunctionalInterfaceClassSignature);
+			String functionalInterface = null;
 			final TypeBinding expectedType = funcEx.expectedType();
 			if (expectedType instanceof IntersectionTypeBinding18) {
 				functionalInterface = new String(
 						((IntersectionTypeBinding18) expectedType).getSAMType(scope).constantPoolName());
-		} else {
-			functionalInterface = new String(expectedType.constantPoolName());
-		}
-		ldc(functionalInterface);// e.g. "com/foo/X$Foo"
-		invokeObjectEquals();
+			} else {
+				functionalInterface = new String(expectedType.constantPoolName());
+			}
+			ldc(functionalInterface);// e.g. "com/foo/X$Foo"
+			invokeObjectEquals();
 			ifeq(nextOne);
-		
-		// Compare FunctionalInterfaceMethodName
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
+
+			// Compare FunctionalInterfaceMethodName
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
 					ConstantPool.GetFunctionalInterfaceMethodName,
 					ConstantPool.GetFunctionalInterfaceMethodNameSignature);
 			ldc(new String(funcEx.descriptor.selector)); // e.g. "m"
-		invokeObjectEquals();
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Compare FunctionalInterfaceMethodSignature
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
+			// Compare FunctionalInterfaceMethodSignature
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
 					ConstantPool.GetFunctionalInterfaceMethodSignature,
 					ConstantPool.GetFunctionalInterfaceMethodSignatureSignature);
 			ldc(new String(funcEx.descriptor.original().signature())); // e.g "()I"
-		invokeObjectEquals();
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Compare ImplClass
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetImplClass, ConstantPool.GetImplClassSignature);
+			// Compare ImplClass
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetImplClass, ConstantPool.GetImplClassSignature);
 			ldc(new String(mb.declaringClass.constantPoolName())); // e.g. "com/foo/X"
-		invokeObjectEquals();
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Compare ImplMethodSignature
-		aload_0();
-		invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName, 
-				ConstantPool.GetImplMethodSignature, ConstantPool.GetImplMethodSignatureSignature);
-		ldc(new String(mb.signature())); // e.g. "(I)I"
-		invokeObjectEquals();
+			// Compare ImplMethodSignature
+			aload_0();
+			invoke(Opcodes.OPC_invokevirtual, 1, 1, ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
+					ConstantPool.GetImplMethodSignature, ConstantPool.GetImplMethodSignatureSignature);
+			ldc(new String(mb.signature())); // e.g. "(I)I"
+			invokeObjectEquals();
 			ifeq(nextOne);
 
-		// Captured arguments
-		StringBuffer sig = new StringBuffer("("); //$NON-NLS-1$
-		index = 0;
+			// Captured arguments
+			StringBuffer sig = new StringBuffer("("); //$NON-NLS-1$
+			index = 0;
 			boolean isLambda = funcEx instanceof LambdaExpression;
 			TypeBinding receiverType = null;
 			SyntheticArgumentBinding[] outerLocalVariables = null;
@@ -2726,47 +2725,47 @@ public void generateSyntheticBodyForDeserializeLambda(SyntheticMethodBinding met
 				// Should never have outer locals
 			}
 			if (receiverType != null) {
-			aload_0();
-			loadInt(index++);
+				aload_0();
+				loadInt(index++);
 				invoke(Opcodes.OPC_invokevirtual, 1, 1,
 						ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
-					ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
+						ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
 				checkcast(receiverType);
 				sig.append(receiverType.signature());
-		}
+			}
 			for (int p = 0, max = outerLocalVariables == null ? 0 : outerLocalVariables.length; p < max; p++) {
 				TypeBinding varType = outerLocalVariables[p].type;
-			aload_0();
+				aload_0();
 				loadInt(index);
 				invoke(Opcodes.OPC_invokevirtual, 1, 1,
 						ConstantPool.JavaLangInvokeSerializedLambdaConstantPoolName,
-					ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
-			if (varType.isBaseType()) {
-				checkcast(scope.boxing(varType));
-				generateUnboxingConversion(varType.id);
-				if (varType.id == TypeIds.T_JavaLangLong || varType.id == TypeIds.T_JavaLangDouble) {
-					index++;
+						ConstantPool.GetCapturedArg, ConstantPool.GetCapturedArgSignature);
+				if (varType.isBaseType()) {
+					checkcast(scope.boxing(varType));
+					generateUnboxingConversion(varType.id);
+					if (varType.id == TypeIds.T_JavaLangLong || varType.id == TypeIds.T_JavaLangDouble) {
+						index++;
+					}
+				} else {
+					checkcast(varType);
 				}
-			} else {
-				checkcast(varType);
+				index++;
+				sig.append(varType.signature());
 			}
-			index++;
-			sig.append(varType.signature());
-		}
-		sig.append(")"); //$NON-NLS-1$
+			sig.append(")"); //$NON-NLS-1$
 			if (funcEx.resolvedType instanceof IntersectionTypeBinding18) {
 				sig.append(((IntersectionTypeBinding18) funcEx.resolvedType).getSAMType(scope).signature());
-		} else {
+			} else {
 				sig.append(funcEx.resolvedType.signature());
-		}
-		// Example: invokeDynamic(0, 0, 1, "m".toCharArray(), "()Lcom/foo/X$Foo;".toCharArray());
+			}
+			// Example: invokeDynamic(0, 0, 1, "m".toCharArray(), "()Lcom/foo/X$Foo;".toCharArray());
 			invokeDynamic(funcEx.bootstrapMethodNumber, index, 1, funcEx.descriptor.selector,
 					sig.toString().toCharArray());
-		areturn();
+			areturn();
 			if (j < count - 1) {
 				nextOne.place();
 				nextOne = j < count - 2 ? new BranchLabel(this) : errorLabel;
-	}
+			}
 		}
 	}
 	
@@ -3110,11 +3109,23 @@ public void generateSyntheticEnclosingInstanceValues(BlockScope currentScope, Re
 		} else if (compliance == ClassFileConstants.JDK1_4){
 			denyEnclosingArgInConstructorCall = invocationSite instanceof AllocationExpression
 				|| invocationSite instanceof ExplicitConstructorCall && ((ExplicitConstructorCall)invocationSite).isSuperAccess();
-		} else {
+		} else if (compliance < ClassFileConstants.JDK1_7) {
 			//compliance >= JDK1_5
 			denyEnclosingArgInConstructorCall = (invocationSite instanceof AllocationExpression
 					|| invocationSite instanceof ExplicitConstructorCall && ((ExplicitConstructorCall)invocationSite).isSuperAccess())
 				&& !targetType.isLocalType();
+		} else {
+			//compliance >= JDK1_7
+			if (invocationSite instanceof AllocationExpression) {
+				denyEnclosingArgInConstructorCall = !targetType.isLocalType();
+			} else if (invocationSite instanceof ExplicitConstructorCall && 
+					((ExplicitConstructorCall)invocationSite).isSuperAccess()) {
+				MethodScope enclosingMethodScope = currentScope.enclosingMethodScope();
+				denyEnclosingArgInConstructorCall = !targetType.isLocalType() && enclosingMethodScope != null
+						&& enclosingMethodScope.isConstructorCall; 
+			} else {
+				denyEnclosingArgInConstructorCall = false;
+			}
 		}
 
 		boolean complyTo14 = compliance >= ClassFileConstants.JDK1_4;
@@ -3421,8 +3432,9 @@ public static TypeBinding getConstantPoolDeclaringClass(Scope currentScope, Meth
 						&& (options.complianceLevel >= ClassFileConstants.JDK1_4 || !(isImplicitThisReceiver && codegenBinding.isStatic()))
 						&& codegenBinding.declaringClass.id != TypeIds.T_JavaLangObject) // no change for Object methods
 					|| !codegenBinding.declaringClass.canBeSeenBy(currentScope)) {
-				if (actualReceiverType.isIntersectionType18()) {
-					TypeBinding[] intersectingTypes = ((IntersectionTypeBinding18)actualReceiverType).getIntersectingTypes();
+				TypeBinding erasure = actualReceiverType.erasure();
+				if (erasure.isIntersectionType18()) {
+					TypeBinding[] intersectingTypes = ((IntersectionTypeBinding18)erasure).getIntersectingTypes();
 					for(int i = 0; i < intersectingTypes.length; i++) {
 						if (intersectingTypes[i].findSuperTypeOriginatingFrom(constantPoolDeclaringClass) != null) {
 							constantPoolDeclaringClass = intersectingTypes[i];
@@ -3430,10 +3442,10 @@ public static TypeBinding getConstantPoolDeclaringClass(Scope currentScope, Meth
 						}
 					}
 				} else {
-					constantPoolDeclaringClass = actualReceiverType.erasure();
+					constantPoolDeclaringClass = erasure;
+				}
 			}
 		}				
-	}
 	}
 	return constantPoolDeclaringClass;
 }
@@ -6331,18 +6343,18 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 					lineNumber = 1;
 				} else if (length == 1 || sourcePos < lineSeparatorPositions2[1]) {
 					lineNumber = 2;
-					}
+				}
 			} else if (previousLineNumber < length) {
 				if (lineSeparatorPositions2[previousLineNumber - 2] < sourcePos) {
 					if (sourcePos < lineSeparatorPositions2[previousLineNumber - 1]) {
 						lineNumber = previousLineNumber;
 					} else if (sourcePos < lineSeparatorPositions2[previousLineNumber]) {
 						lineNumber = previousLineNumber + 1;
-								}
+					}
 				}
 			} else if (lineSeparatorPositions2[length - 1] < sourcePos) {
 				lineNumber = length + 1;
-						}
+			}
 			if(lineNumber == -1) {
 				// since lineSeparatorPositions is zero-based, we pass this.lineNumberStart - 1 and this.lineNumberEnd - 1
 				lineNumber = Util.getLineNumber(sourcePos, lineSeparatorPositions2, this.lineNumberStart - 1, this.lineNumberEnd - 1);
@@ -6359,23 +6371,23 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 					if (!((insertionIndex > 1) && (this.pcToSourceMap[insertionIndex - 1] == lineNumber))) {
 						if(insertionIndex< this.pcToSourceMapSize && this.pcToSourceMap[insertionIndex + 1] == lineNumber) {
 							/* the entry at insertionIndex corresponds to an entry with the same line and a PC >= startPC.
-						in this case it is relevant to widen this entry instead of creating a new one.
-						line1: this(a,
-						  b,
-						  c);
-						with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
-						aload0 bytecode. The first entry is the one for the argument a.
-						But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
+							in this case it is relevant to widen this entry instead of creating a new one.
+							line1: this(a,
+							  b,
+							  c);
+							with this code we generate each argument. We generate a aload0 to invoke the constructor. There is no entry for this
+							aload0 bytecode. The first entry is the one for the argument a.
+							But we want the constructor call to start at the aload0 pc and not just at the pc of the first argument.
 							So we widen the existing entry
-					*/
+							 */
 							this.pcToSourceMap[insertionIndex] = startPC;
 						} else {
-						// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
-						System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
-						this.pcToSourceMap[insertionIndex++] = startPC;
-						this.pcToSourceMap[insertionIndex] = lineNumber;
-						this.pcToSourceMapSize += 2;
-					}
+							// we have to add an entry that won't be sorted. So we sort the pcToSourceMap.
+							System.arraycopy(this.pcToSourceMap, insertionIndex, this.pcToSourceMap, insertionIndex + 2, this.pcToSourceMapSize - insertionIndex);
+							this.pcToSourceMap[insertionIndex++] = startPC;
+							this.pcToSourceMap[insertionIndex] = lineNumber;
+							this.pcToSourceMapSize += 2;
+						}
 					}
 				} else if (this.position != this.lastEntryPC) { // no bytecode since last entry pc
 					if (this.lastEntryPC == startPC || this.lastEntryPC == this.pcToSourceMap[this.pcToSourceMapSize - 2]) {
@@ -6436,7 +6448,6 @@ public void recordPositionsFrom(int startPC, int sourcePos, boolean widen) {
 		this.lastEntryPC = this.position;
 	}
 }
-
 /**
  * @param anExceptionLabel org.aspectj.org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel
  */

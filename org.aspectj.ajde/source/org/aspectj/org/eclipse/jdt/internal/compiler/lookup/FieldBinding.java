@@ -1,6 +1,6 @@
 // ASPECTJ
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -265,10 +265,10 @@ public void fillInDefaultNonNullness(FieldDeclaration sourceField, Scope scope) 
 	} else {
 		if ( (this.tagBits & TagBits.AnnotationNullMASK) == 0 ) {
 			this.tagBits |= TagBits.AnnotationNonNull;
-	} else if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
-		scope.problemReporter().nullAnnotationIsRedundant(sourceField);
+		} else if ((this.tagBits & TagBits.AnnotationNonNull) != 0) {
+			scope.problemReporter().nullAnnotationIsRedundant(sourceField);
+		}		
 	}
-}
 }
 
 /**

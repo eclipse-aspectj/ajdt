@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Jesper Steen Møller <jesper@selskabet.org> - contributions for:	
+ *         Bug 531046: [10] ICodeAssist#codeSelect support for 'var'
  *******************************************************************************/
 package org.aspectj.org.eclipse.jdt.internal.codeassist;
 
@@ -18,10 +20,10 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.aspectj.org.eclipse.jdt.core.IBuffer;
-import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IMember;
 import org.aspectj.org.eclipse.jdt.core.IOpenable;
+import org.aspectj.org.eclipse.jdt.core.IOrdinaryClassFile;
 import org.aspectj.org.eclipse.jdt.core.ISourceRange;
 import org.aspectj.org.eclipse.jdt.core.IType;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
@@ -56,15 +58,18 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ModuleDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.PackageVisibilityStatement;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
@@ -73,6 +78,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
@@ -104,6 +110,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.ObjectVector;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryTypeConverter;
 import org.aspectj.org.eclipse.jdt.internal.core.ClassFile;
 import org.aspectj.org.eclipse.jdt.internal.core.JavaModelManager;
+import org.aspectj.org.eclipse.jdt.internal.core.JrtPackageFragmentRoot;
 import org.aspectj.org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.aspectj.org.eclipse.jdt.internal.core.SelectionRequestor;
 import org.aspectj.org.eclipse.jdt.internal.core.SourceType;
@@ -1241,6 +1248,12 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 			if (isLocal(typeBinding) && this.requestor instanceof SelectionRequestor) {
 				this.noProposal = false;
 				((SelectionRequestor)this.requestor).acceptLocalType(typeBinding);
+			} else if (binding instanceof IntersectionTypeBinding18) {
+				IntersectionTypeBinding18 intersection = (IntersectionTypeBinding18) binding;
+				ReferenceBinding[] intersectingTypes = intersection.intersectingTypes;
+				for (ReferenceBinding referenceBinding : intersectingTypes) {
+					selectFrom(referenceBinding, parsedUnit, isDeclaration);
+				}
 			} else {
 				this.noProposal = false;
 
@@ -1420,6 +1433,13 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 				return true;
 			}
 			@Override
+			public boolean visit(
+		    		LocalDeclaration localDeclaration, BlockScope scope) {
+				if (localDeclaration.type instanceof SingleTypeReference && ((SingleTypeReference)localDeclaration.type).token == assistIdentifier)
+					throw new SelectionNodeFound(localDeclaration.binding.type);
+				return true; // do nothing by default, keep traversing
+			}
+			@Override
 			public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
 				if (fieldDeclaration.name == assistIdentifier){
 					throw new SelectionNodeFound(fieldDeclaration.binding);
@@ -1539,16 +1559,23 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 					typeDeclaration = new ASTNodeFinder(parsedUnit).findType(context);
 				}
 			} else { // binary type
-				IClassFile iClassFile = context.getClassFile();
+				IOrdinaryClassFile iClassFile = context.getClassFile();
 				if (iClassFile instanceof ClassFile) {
 					ClassFile classFile = (ClassFile) iClassFile;
-					BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(classFile);
 					ClassFileReader reader = null;
-					try {
-						reader = BinaryTypeFactory.rawReadType(descriptor, false/*don't fully initialize so as to keep constant pool (used below)*/);
-					} catch (ClassFormatException e) {
-						if (JavaCore.getPlugin().isDebugging()) {
-							e.printStackTrace(System.err);
+					if (classFile.getPackageFragmentRoot() instanceof JrtPackageFragmentRoot) {
+						IBinaryType binaryTypeInfo = classFile.getBinaryTypeInfo();
+						if (binaryTypeInfo instanceof ClassFileReader) {
+							reader = (ClassFileReader) binaryTypeInfo;
+						}
+					} else {
+						BinaryTypeDescriptor descriptor = BinaryTypeFactory.createDescriptor(classFile);
+						try {
+							reader = BinaryTypeFactory.rawReadType(descriptor, false/*don't fully initialize so as to keep constant pool (used below)*/);
+						} catch (ClassFormatException e) {
+							if (JavaCore.getPlugin().isDebugging()) {
+								e.printStackTrace(System.err);
+							}
 						}
 					}
 					if (reader == null) {

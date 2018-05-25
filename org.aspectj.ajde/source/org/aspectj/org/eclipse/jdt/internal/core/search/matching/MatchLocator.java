@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IResource;
@@ -29,7 +30,6 @@ import org.eclipse.core.runtime.*;
 import org.aspectj.org.eclipse.jdt.core.Flags;
 import org.aspectj.org.eclipse.jdt.core.IAnnotatable;
 import org.aspectj.org.eclipse.jdt.core.IAnnotation;
-import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.aspectj.org.eclipse.jdt.core.IJavaElement;
 import org.aspectj.org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.aspectj.org.eclipse.jdt.core.IJavaProject;
@@ -66,6 +66,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SimpleSet;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.aspectj.org.eclipse.jdt.internal.core.hierarchy.HierarchyResolver;
+import org.aspectj.org.eclipse.jdt.internal.core.AbstractModule;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryMember;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryMethod;
 import org.aspectj.org.eclipse.jdt.internal.core.BinaryType;
@@ -249,7 +250,7 @@ private static HashMap workingCopiesThatCanSeeFocus(org.aspectj.org.eclipse.jdt.
 }
 
 public static IBinaryType classFileReader(IType type) {
-	IClassFile classFile = type.getClassFile();
+	IOrdinaryClassFile classFile = type.getClassFile();
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	if (classFile.isOpen())
 		return (IBinaryType)manager.getInfo(type);
@@ -1496,7 +1497,15 @@ public void locateMatches(SearchDocument[] searchDocuments) throws CoreException
 				}
 				previousJavaProject = javaProject;
 			}
-			matchSet.add(new PossibleMatch(this, resource, openable, searchDocument,this.pattern.mustResolve));
+			PossibleMatch possibleMatch = new PossibleMatch(this, resource, openable, searchDocument,this.pattern.mustResolve);
+			matchSet.add(possibleMatch);
+			if (pathString.endsWith(TypeConstants.AUTOMATIC_MODULE_NAME)) {
+				IPath path = resource.getFullPath();
+				String s = (pathString.contains(path.lastSegment())) ?
+						JavaModelManager.getLocalFile(path).toPath().toAbsolutePath().toString() :
+						pathString.split(Pattern.quote("|"))[0]; //$NON-NLS-1$
+				possibleMatch.autoModuleName = new String(AutomaticModuleNaming.determineAutomaticModuleName(s));
+			}			
 		}
 
 		// last project
@@ -2977,6 +2986,10 @@ protected void reportMatching(FieldDeclaration field, FieldDeclaration[] otherFi
  * search pattern (i.e. the ones in the matching nodes set)
  */
 protected void reportMatching(ModuleDeclaration module, IJavaElement parent, int accuracy, MatchingNodeSet nodeSet, int occurrenceCount) throws CoreException {
+	if (this.currentPossibleMatch.autoModuleName != null && accuracy > -1) {
+		reportMatchingAutoModule(module, parent, accuracy);
+		return;
+	}
 	IModuleDescription moduleDesc =  null;
 	Openable openable = this.currentPossibleMatch.openable;
 	if (openable instanceof ITypeRoot) {
@@ -2999,6 +3012,11 @@ protected void reportMatching(ModuleDeclaration module, IJavaElement parent, int
 	reportMatching(module.opens, nodeSet, moduleDesc);
 	reportMatching(module.services, module, nodeSet, moduleDesc);
 	reportMatching(module.uses, module, nodeSet, moduleDesc);
+}
+private void reportMatchingAutoModule(ModuleDeclaration module, IJavaElement parent, int accuracy) throws CoreException {
+	IModuleDescription autoModule = new AbstractModule.AutoModule( this.currentPossibleMatch.openable, this.currentPossibleMatch.autoModuleName, true);
+	SearchMatch match = this.patternLocator.newDeclarationMatch(module, autoModule, module.binding, accuracy, module.moduleName.length, this);
+	report(match);
 }
 
 private void reportMatching(RequiresStatement[] reqs, ModuleDeclaration module, MatchingNodeSet nodeSet, IModuleDescription moduleDesc) {

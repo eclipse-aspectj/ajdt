@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ package org.aspectj.org.eclipse.jdt.internal.core.search.matching;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -30,7 +31,6 @@ import org.aspectj.org.eclipse.jdt.internal.core.builder.ClasspathLocation;
 import org.aspectj.org.eclipse.jdt.internal.core.util.ResourceCompilationUnit;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
 
-@SuppressWarnings("rawtypes")
 public class ClasspathSourceDirectory extends ClasspathLocation implements IModulePathEntry {
 
 	IContainer sourceFolder;
@@ -76,13 +76,13 @@ SimpleLookupTable directoryTable(String qualifiedPackageName) {
 			}
 			// look for secondary types, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=382778
 			IJavaProject project = JavaCore.create(container.getProject());
-			Map secondaryTypePaths = JavaModelManager.getJavaModelManager().secondaryTypes(project, false, null);
+			Map<String, Map<String, IType>> secondaryTypePaths = JavaModelManager.getJavaModelManager().secondaryTypes(project, false, null);
 			if (secondaryTypePaths.size() > 0) {
-				Map typesInPackage = (Map) secondaryTypePaths.get(qualifiedPackageName.replace('/', '.'));
+				Map<String, IType> typesInPackage = secondaryTypePaths.get(qualifiedPackageName.replace('/', '.'));
 				if (typesInPackage != null && typesInPackage.size() > 0) {
-					for (Iterator j = typesInPackage.keySet().iterator(); j.hasNext();) {
-						String secondaryTypeName = (String) j.next();
-						IType secondaryType = (IType) typesInPackage.get(secondaryTypeName);
+					for (Iterator<String> j = typesInPackage.keySet().iterator(); j.hasNext();) {
+						String secondaryTypeName = j.next();
+						IType secondaryType = typesInPackage.get(secondaryTypeName);
 						IJavaElement parent = secondaryType.getParent();
 						String fullPath = parent.getResource().getFullPath().toString();
 						if (!org.aspectj.org.eclipse.jdt.internal.compiler.util.Util.isExcluded(fullPath.toCharArray(), this.fulInclusionPatternChars, this.fullExclusionPatternChars, false/*not a folder path*/)) {
@@ -110,7 +110,7 @@ public boolean equals(Object o) {
 }
 
 @Override
-public NameEnvironmentAnswer findClass(String typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly) {
+public NameEnvironmentAnswer findClass(String typeName, String qualifiedPackageName, String moduleName, String qualifiedBinaryFileName, boolean asBinaryOnly, Predicate<String> moduleNameFilter) {
 	return findClass(typeName, qualifiedPackageName, moduleName, qualifiedBinaryFileName);
 }
 @Override
@@ -119,7 +119,7 @@ public NameEnvironmentAnswer findClass(String sourceFileWithoutExtension, String
 	if (dirTable != null && dirTable.elementSize > 0) {
 		IFile file = (IFile) dirTable.get(sourceFileWithoutExtension);
 		if (file != null) {
-			return new NameEnvironmentAnswer(new ResourceCompilationUnit(file, 
+			return new NameEnvironmentAnswer(new ResourceCompilationUnit(file,
 					this.module == null ? null : this.module.name()), null /* no access restriction */);
 		}
 	}

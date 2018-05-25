@@ -43,6 +43,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.SuffixConstants;
+import org.aspectj.org.eclipse.jdt.internal.core.AbstractModule.AutoModule;
 import org.aspectj.org.eclipse.jdt.internal.core.util.HashtableOfArrayToObject;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Messages;
 import org.aspectj.org.eclipse.jdt.internal.core.util.Util;
@@ -669,11 +670,11 @@ public class NameLookup implements SuffixConstants {
 		JavaModelManager manager = JavaModelManager.getJavaModelManager();
 		try {
 			IJavaProject javaProject = project;
-			Map secondaryTypePaths = manager.secondaryTypes(javaProject, waitForIndexes, monitor);
+			Map<String, Map<String, IType>> secondaryTypePaths = manager.secondaryTypes(javaProject, waitForIndexes, monitor);
 			if (secondaryTypePaths.size() > 0) {
-				Map types = (Map) secondaryTypePaths.get(packageName==null?"":packageName); //$NON-NLS-1$
+				Map<String, IType> types = secondaryTypePaths.get(packageName==null?"":packageName); //$NON-NLS-1$
 				if (types != null && types.size() > 0) {
-					IType type = (IType) types.get(typeName);
+					IType type = types.get(typeName);
 					if (type != null) {
 						if (JavaModelManager.VERBOSE) {
 							Util.verbose("NameLookup FIND SECONDARY TYPES:"); //$NON-NLS-1$
@@ -853,14 +854,11 @@ public class NameLookup implements SuffixConstants {
 	public static IModule getModuleDescriptionInfo(IModuleDescription moduleDesc) {
 		if (moduleDesc != null) {
 			try {
-				if (moduleDesc instanceof BinaryModule) {
-					IJavaElement parent = moduleDesc.getParent();
-					if (parent instanceof ModularClassFile)
-						return ((ModularClassFile) parent).getBinaryModuleInfo();
-				} else if (moduleDesc instanceof SourceModule) {
-					return (IModule)((SourceModule) moduleDesc).getElementInfo();
+				if (moduleDesc instanceof AutoModule) {
+					boolean nameFromManifest = ((AutoModule) moduleDesc).isAutoNameFromManifest();
+					return IModule.createAutomatic(moduleDesc.getElementName().toCharArray(), nameFromManifest);
 				} else {
-					return IModule.createAutomatic(moduleDesc.getElementName().toCharArray());
+					return ((AbstractModule) moduleDesc).getModuleInfo();
 				}
 			} catch (JavaModelException e) {
 				if (!e.isDoesNotExist())
@@ -1155,9 +1153,10 @@ public class NameLookup implements SuffixConstants {
 	
 	private void seekModuleAwarePartialPackageFragments(String name, IJavaElementRequestor requestor, IPackageFragmentRoot[] moduleContext) {
 		boolean allPrefixMatch = CharOperation.equals(name.toCharArray(), CharOperation.ALL_PREFIX);
+		String lName = name.toLowerCase();
 		Arrays.stream(this.packageFragments.keyTable)
 		.filter(k -> k != null)
-		.filter(k -> allPrefixMatch || Util.concatWith((String[])k, '.').startsWith(name))
+		.filter(k -> allPrefixMatch || Util.concatWith((String[])k, '.').toLowerCase().startsWith(lName))
 		.forEach(k -> {
 			checkModulePackages(requestor, moduleContext, this.packageFragments.getIndex(k));
 		});
